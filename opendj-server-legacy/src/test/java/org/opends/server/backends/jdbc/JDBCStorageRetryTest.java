@@ -15,6 +15,7 @@
  */
 package org.opends.server.backends.jdbc;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.server.config.server.JDBCBackendCfg;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.backends.jdbc.JDBCStorage.Conflict;
@@ -40,6 +41,8 @@ import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
 import java.sql.SQLRecoverableException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -49,6 +52,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.frequency;
 import static org.forgerock.i18n.LocalizableMessage.raw;
 import static org.forgerock.opendj.ldap.ResultCode.OTHER;
 import static org.mockito.Mockito.any;
@@ -56,7 +61,9 @@ import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -98,6 +105,14 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   /** A MySQL-wire-compatible driver, whose class name carries no engine this backend recognises. */
   private static final String MARIADB = "org.mariadb.jdbc.Connection";
 
+  /**
+   * What the cases below arm around a failure they classify: nothing. They are about the other classes of
+   * failure - a conflict, a connection the database dropped - and a row lock bound this backend did not put on
+   * is the state every one of them was written under (#915).
+   */
+  private static final JDBCStorage.ArmedLockBound NO_ROW_LOCK_BOUND =
+      JDBCStorage.ArmedLockBound.none(JDBCStorage.LockBound.ROW);
+
   /** The tree every write of this test opens; the table name behind it is a hash of this name. */
   private static final TreeName TREE = new TreeName("dc=example,dc=com", "id2entry");
 
@@ -131,6 +146,11 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   }
 
   interface mysqlConnection extends Connection
+  {
+  }
+
+  /** sql server, whose one {@code LOCK_TIMEOUT} is read back and put back around every write. */
+  interface microsoftConnection extends Connection
   {
   }
 
@@ -1138,6 +1158,358 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   }
 
   /**
+   * The wait a write takes for a row lock another session holds is bounded on the session of the attempt
+   * ({@code ROW_LOCK_TIMEOUT_PROPERTY}, #915), and the failure the engine ends that wait with is replayed. On
+   * postgres that failure is 55P03, which is no conflict - nothing was rolled back and the blocker still holds
+   * the lock - and what makes it worth replaying is that the wait it cost fits inside the replay window, which
+   * is the only thing that lets a clock bound these replays at all (#903).
+   * <p>
+   * The bound is armed per attempt: on postgres it is a {@code set local}, which the rollback of the attempt
+   * that failed discards along with everything else the attempt did.
+   */
+  @Test
+  public void testARowLockWaitThisBackendBoundedIsReplayed() throws Exception
+  {
+    final JDBCStorage storage = storageOverAnEngine(postgresConnection.class, true);
+    final List<String> sessionStatements = sessionStatementsOf(engineConnection);
+    when(statements.executeUpdate()).thenThrow(sql(0, "55P03")).thenReturn(1);
+    final AtomicInteger attempts = new AtomicInteger();
+
+    storage.write(txn -> {
+      attempts.incrementAndGet();
+      txn.openTree(TREE, false);
+      txn.put(TREE, ByteString.valueOfUtf8("dc=example,dc=com"), ByteString.valueOfUtf8("an entry"));
+    });
+
+    assertEquals(attempts.get(), 2, "a row lock wait this backend bounded was not replayed");
+    assertEquals(sessionStatements.stream().filter("set local lock_timeout = 3000"::equals).count(), 2L,
+        "the bound was not armed once per attempt: " + sessionStatements);
+  }
+
+  /**
+   * And where nothing bounds that wait it is not replayed, which is what a deployment asks for by setting the
+   * property to 0: this loop must not take again a wait that has no end of its own, and the failure is left
+   * exactly as unreplayable as it was before #915 - the behaviour every engine had, and oracle still has.
+   */
+  @Test
+  public void testARowLockWaitNothingBoundedIsNotReplayed() throws Exception
+  {
+    System.setProperty(JDBCStorage.ROW_LOCK_TIMEOUT_PROPERTY, "0");
+    try
+    {
+      final JDBCStorage storage = storageOverAnEngine(postgresConnection.class, true);
+      final List<String> sessionStatements = sessionStatementsOf(engineConnection);
+      when(statements.executeUpdate()).thenThrow(sql(0, "55P03")).thenReturn(1);
+      final AtomicInteger attempts = new AtomicInteger();
+
+      try
+      {
+        storage.write(txn -> {
+          attempts.incrementAndGet();
+          txn.openTree(TREE, false);
+          txn.put(TREE, ByteString.valueOfUtf8("dc=example,dc=com"), ByteString.valueOfUtf8("an entry"));
+        });
+        fail("a lock wait this backend put no bound on was replayed");
+      }
+      catch (StorageRuntimeException expected)
+      {
+        assertEquals(attempts.get(), 1, "an unbounded lock wait was taken a second time");
+      }
+      assertEquals(sessionStatements, emptyList(), "a bound turned off was armed all the same");
+    }
+    finally
+    {
+      System.clearProperty(JDBCStorage.ROW_LOCK_TIMEOUT_PROPERTY);
+    }
+  }
+
+  /**
+   * A DDL of an attempt commits, and that commit is the end of the transaction the row lock bound was armed
+   * around: on postgres the {@code set local} goes with it by itself, and on the two engines whose setting is
+   * the session's {@code commitStatement()} is what takes it off. What follows such a DDL is a write that has
+   * committed part of its work, so it is out of the replay whatever it waits for - and a bound on a wait
+   * nothing can replay only fails a write at 3 s where it used to wait for the blocker and go through.
+   * <p>
+   * The order is what says it: the value is put back before the statement behind the DDL is issued, rather
+   * than in the finally of the attempt, which runs after the whole write is through.
+   */
+  @Test
+  public void testTheRowLockBoundComesOffWhereADdlOfTheAttemptCommits() throws Exception
+  {
+    final JDBCStorage storage = storageOverAnEngine(mysqlConnection.class, false);
+    final List<String> issued = statementsOf(engineConnection, "50");
+
+    storage.write(txn -> {
+      txn.openTree(TREE, true); // a create index, which commits
+      txn.put(TREE, ByteString.valueOfUtf8("dc=example,dc=com"), ByteString.valueOfUtf8("an entry"));
+    });
+
+    final int boundArmed = issued.indexOf("set session innodb_lock_wait_timeout=3");
+    final int boundOff = issued.indexOf("set session innodb_lock_wait_timeout=50");
+    final int theDdl = indexOfFirst(issued, "create index k_");
+    final int behindTheDdl = indexOfFirst(issued, "insert into ");
+    assertTrue(boundArmed >= 0 && theDdl > boundArmed, "the attempt issued no bounded DDL: " + issued);
+    assertTrue(boundOff > theDdl, "the row lock bound was not taken off where the DDL committed: " + issued);
+    assertTrue(behindTheDdl > boundOff,
+        "the rest of the write ran under a bound its DDL had already taken out of the replay: " + issued);
+    // and taken off once: the transaction records that it carries none, so the finally of write() has
+    // nothing left to give back and the value is not put back over whatever the rest of the write left
+    assertEquals(frequency(issued, "set session innodb_lock_wait_timeout=50"), 1,
+        "the value the row lock bound displaced was put back twice: " + issued);
+  }
+
+  /**
+   * And it is not put back on a connection the driver reports closed: there is nothing there to give it back
+   * to, and the setting would fail on a dead session and be reported as a bound left behind - a database
+   * restart under write load would read as a stream of stranded bounds for connections that are gone.
+   * <p>
+   * Which is what the guard is keyed on, rather than on the attempt being classified as a dropped connection:
+   * the case below holds the other side of that.
+   */
+  @Test
+  public void testTheRowLockBoundIsNotPutBackOnAConnectionTheDatabaseDropped() throws Exception
+  {
+    final JDBCStorage storage = storageOverAnEngine(mysqlConnection.class, false);
+    final List<String> issued = statementsOf(engineConnection, "50");
+    // the state the driver leaves such a connection in, which is what tells it from a connection a failure of
+    // this class merely passed through: mssql-jdbc closes the connection for any error of severity 20 and
+    // above before it throws, and connector/j closes one the server hung up on
+    when(engineConnection.isClosed()).thenReturn(true);
+
+    try
+    {
+      storage.write(txn -> {
+        throw new StorageRuntimeException(sql(0, "08006"));
+      });
+      fail("the drop of the connection was swallowed");
+    }
+    catch (StorageRuntimeException expected)
+    {
+      assertTrue(JDBCStorage.isConnectionFailure(expected), "the failure this case rests on is not a drop");
+    }
+
+    assertTrue(issued.contains("set session innodb_lock_wait_timeout=3"),
+        "the write armed no row lock bound: " + issued);
+    assertEquals(frequency(issued, "set session innodb_lock_wait_timeout=50"), 0,
+        "the bound was given back on a connection the database had dropped: " + issued);
+  }
+
+  /**
+   * While a connection that only this attempt's classification made look dropped is given its value back. A
+   * write enrolling a tree opens a connection of the catalog's own, and a database refusing that connect
+   * answers a state of class 08 - mysql answers its connection limit with 08004, sql server with 08S01 - which
+   * puts the attempt in the replay as a dropped connection with the pooled connection of the write untouched.
+   * That connection does go back to the pool: the rollback went through, the validation of the next borrow is
+   * {@code isValid()}, and a live session passes it. On the two engines whose bound is a session setting,
+   * skipping the restore there hands the next borrow this backend's own 3 s - a read among them, and a read
+   * that gives up at a lock wait has no replay to absorb it.
+   */
+  @Test
+  public void testTheRowLockBoundIsPutBackOnALiveConnectionARefusedCatalogConnectMadeLookDropped() throws Exception
+  {
+    final JDBCStorage storage = storageOverAnEngine(mysqlConnection.class, false);
+    final List<String> issued = statementsOf(engineConnection, "50");
+
+    try
+    {
+      storage.write(txn -> {
+        throw new StorageRuntimeException(new SQLException("Too many connections", "08004", 1040));
+      });
+      fail("the refusal was swallowed");
+    }
+    catch (StorageRuntimeException expected)
+    {
+      assertTrue(JDBCStorage.isConnectionFailure(expected), "the failure this case rests on is not read as a drop");
+    }
+
+    // every attempt of the replay, rather than one of them: what the case is about is that no attempt leaves
+    // its bound on a connection it hands back, and a refusal of this class is replayed like any other drop
+    final int armed = frequency(issued, "set session innodb_lock_wait_timeout=3");
+    assertTrue(armed > 0, "the write armed no row lock bound: " + issued);
+    assertEquals(frequency(issued, "set session innodb_lock_wait_timeout=50"), armed,
+        "the bound was left on a connection the driver still reports open: " + issued);
+  }
+
+  /**
+   * A DDL told to wait as this backend waited before its bound existed ({@code DDL_LOCK_TIMEOUT_PROPERTY} at 0)
+   * is not left waiting at the row bound of the write it is issued from. On postgres that bound is a
+   * {@code set local}, which bounds every lock wait of the transaction, so the create table of an open would
+   * give up at 3 s - as the bare vendor error, nothing of ours being armed around it - and be replayed as a
+   * lock wait of the attempt until the window was spent. The bound comes off in front of the DDL instead.
+   * <p>
+   * Off the write and not off each of its DDL: the open of a tree that is not there issues two - the create
+   * table and the create index behind it - and the second has no bound of this backend left to lift.
+   */
+  @Test
+  public void testADdlToldToWaitDoesNotWaitAtTheRowBoundOnPostgres() throws Exception
+  {
+    System.setProperty(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY, "0");
+    try
+    {
+      final JDBCStorage storage = storageOverAnEngine(postgresConnection.class, false);
+      tablesAreNotThere(engineConnection);
+      final List<String> issued = statementsOf(engineConnection, "0");
+
+      storage.write(txn -> txn.openTree(TREE, true));
+
+      final int bound = issued.indexOf("set local lock_timeout = 3000");
+      final int lifted = issued.indexOf("set local lock_timeout to default");
+      final int theDdl = indexOfFirst(issued, "create index ");
+      assertTrue(bound >= 0, "the write armed no row lock bound: " + issued);
+      assertTrue(lifted > bound, "the row lock bound was not taken off in front of an unbounded DDL: " + issued);
+      assertTrue(theDdl > lifted, "the DDL ran under the row bound of the write that issued it: " + issued);
+      assertTrue(indexOfFirst(issued, "create table ") >= 0, "the open of this case created no table: " + issued);
+      assertEquals(frequency(issued, "set local lock_timeout to default"), 1,
+          "the row lock bound was lifted once per DDL rather than once per write: " + issued);
+    }
+    finally
+    {
+      System.clearProperty(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY);
+    }
+  }
+
+  /**
+   * The same on sql server, where the setting is the session's and what puts the wait back where the deployment
+   * left it is the value the row bound displaced - here the -1 that waits forever, which is what this backend
+   * waited before either bound existed. The DDL is the create table of a tree that is not there: this engine
+   * indexes nothing behind it, {@code k} being a {@code varbinary(max)} no index key column can hold.
+   */
+  @Test
+  public void testADdlToldToWaitDoesNotWaitAtTheRowBoundOnSqlServer() throws Exception
+  {
+    System.setProperty(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY, "0");
+    try
+    {
+      final JDBCStorage storage = storageOverAnEngine(microsoftConnection.class, false);
+      tablesAreNotThere(engineConnection);
+      final List<String> issued = statementsOf(engineConnection, "-1");
+
+      storage.write(txn -> txn.openTree(TREE, true));
+
+      final int bound = issued.indexOf("set lock_timeout 3000");
+      final int lifted = issued.indexOf("set lock_timeout -1");
+      final int theDdl = indexOfFirst(issued, "create table ");
+      assertTrue(bound >= 0, "the write armed no row lock bound: " + issued);
+      assertTrue(lifted > bound, "the deployment's own value was not put back in front of an unbounded DDL: "
+          + issued);
+      assertTrue(theDdl > lifted, "the DDL ran under the row bound of the write that issued it: " + issued);
+    }
+    finally
+    {
+      System.clearProperty(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY);
+    }
+  }
+
+  /**
+   * While a DDL that has a bound of its own is left exactly where it was: it arms that bound over the row one
+   * and puts it back afterwards, so taking the row bound off in front of it would be a round trip per DDL -
+   * about 25 of them per suffix of an open - buying nothing.
+   */
+  @Test
+  public void testABoundedDdlLeavesTheRowBoundOfTheWriteWhereItIs() throws Exception
+  {
+    final JDBCStorage storage = storageOverAnEngine(postgresConnection.class, false);
+    final List<String> issued = statementsOf(engineConnection, "0");
+
+    storage.write(txn -> txn.openTree(TREE, true));
+
+    assertTrue(issued.contains("set local lock_timeout = 3000"), "the write armed no row lock bound: " + issued);
+    assertEquals(frequency(issued, "set local lock_timeout to default"), 0,
+        "a DDL with a bound of its own took the row bound off in front of itself: " + issued);
+  }
+
+  /**
+   * And a DDL that did give up at its own bound inside a write is replayed like any other lock wait of a
+   * bounded attempt - on the copy of the bound that attempt ran under, which is what {@code write()} keeps
+   * for the replay while {@code commitStatement()} takes the transaction's copy off at the DDL that ends it.
+   * Decided on the transaction's copy instead, such a failure would be thrown at the first attempt.
+   */
+  @Test
+  public void testADdlLockWaitInsideAWriteIsReplayedOnTheBoundTheAttemptRanUnder() throws Exception
+  {
+    final JDBCStorage storage = storageOverAnEngine(postgresConnection.class, false);
+    sessionStatementsOf(engineConnection); // the row bound of the attempt: the fixture takes no session statement
+    when(statements.executeUpdate()).thenThrow(sql(0, "55P03")).thenReturn(0);
+    final AtomicInteger attempts = new AtomicInteger();
+
+    storage.write(txn -> {
+      attempts.incrementAndGet();
+      txn.openTree(TREE, true);
+    });
+
+    assertEquals(attempts.get(), 2, "a DDL that gave up at its own bound inside a bounded attempt was not replayed");
+  }
+
+  /** Where the first statement of the attempt starting with the given text was issued, or -1. */
+  private static int indexOfFirst(List<String> issued, String startsWith)
+  {
+    for (int i = 0; i < issued.size(); i++)
+    {
+      if (issued.get(i).startsWith(startsWith))
+      {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Answers the metadata of a connection with a database holding none of the tables asked about, so that an
+   * open creates them: the fixture of {@code storageOverAnEngine()} answers that every table asked about is
+   * there, which is the existing backend most cases here are about.
+   */
+  private static void tablesAreNotThere(Connection con) throws Exception
+  {
+    final ResultSet none = mock(ResultSet.class);
+    when(none.next()).thenReturn(false);
+    // the metadata is taken out of the chain first, and the stubbing is a doReturn: asking when() for the
+    // value of a call already stubbed with an answer would run that answer here, and it stubs a result set
+    // of its own as it goes
+    final DatabaseMetaData metaData = con.getMetaData();
+    doReturn(none).when(metaData).getTables(any(), any(), any(), any());
+  }
+
+  /**
+   * Records the session statements a connection is given - the bound of an attempt among them - on a fixture
+   * whose {@code createStatement()} otherwise refuses them. Stubbed through {@code doReturn}, since asking
+   * {@code when()} for the value of a call already stubbed to throw would raise that throw here.
+   */
+  private static List<String> sessionStatementsOf(Connection con) throws Exception
+  {
+    final List<String> issued = new ArrayList<>();
+    final Statement statement = mock(Statement.class);
+    when(statement.execute(anyString())).thenAnswer(invocation -> {
+      issued.add((String) invocation.getArguments()[0]);
+      return false;
+    });
+    doReturn(statement).when(con).createStatement();
+    return issued;
+  }
+
+  /**
+   * The same, with the statements of the work itself in the very same list and the readback of a session
+   * setting answered: what a case reads off this is the order the two were issued in, which is what a bound
+   * armed around a transaction and taken off inside it can only be pinned by.
+   */
+  private List<String> statementsOf(Connection con, String carries) throws Exception
+  {
+    final List<String> issued = sessionStatementsOf(con);
+    final Statement statement = con.createStatement();
+    when(statement.executeQuery(anyString())).thenAnswer(invocation -> {
+      issued.add((String) invocation.getArguments()[0]);
+      final ResultSet carried = mock(ResultSet.class);
+      when(carried.next()).thenReturn(true, false);
+      when(carried.getString(1)).thenReturn(carries);
+      return carried;
+    });
+    doAnswer(invocation -> {
+      issued.add((String) invocation.getArguments()[0]);
+      return statements;
+    }).when(con).prepareStatement(anyString());
+    return issued;
+  }
+
+  /**
    * mysql commits before a DDL statement whether asked to or not, so a create index that failed there has
    * committed everything the transaction did before it just as surely as one that succeeded: the attempt is out
    * of the replay whatever the failure says.
@@ -1432,7 +1804,7 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
       boolean connectionClosed)
   {
     return JDBCStorage.replayReason(conflictOf(failure, driver), failure, committing, partlyCommitted,
-        connectionClosed);
+        connectionClosed, JDBCStorage.dialectOf(driver), NO_ROW_LOCK_BOUND);
   }
 
   /**

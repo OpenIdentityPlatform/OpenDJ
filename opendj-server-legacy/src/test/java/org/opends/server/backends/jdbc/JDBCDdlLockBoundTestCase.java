@@ -18,6 +18,7 @@ package org.opends.server.backends.jdbc;
 import org.forgerock.opendj.server.config.server.JDBCBackendCfg;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.backends.jdbc.JDBCStorage.Dialect;
+import org.opends.server.backends.jdbc.JDBCStorage.LockBound;
 import org.opends.server.backends.jdbc.JDBCStorage.StatementBound;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Importer;
@@ -59,6 +60,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
@@ -216,9 +218,9 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 
 		storage.withDdlLockBound(con, null, theDdl());
 
-		assertTrue(storage.ddlLockBoundEngineUnknownWarned.get(),
+		assertTrue(storage.lockBoundEngineUnknownWarned.get(LockBound.DDL).get(),
 			"a driver this backend knows no lock bound for left the wait of every DDL unbounded and unsaid");
-		final String said = storage.ddlLockBoundEngineUnknownSaid;
+		final String said = storage.lockBoundEngineUnknownSaid.get(LockBound.DDL).get();
 		assertTrue(said != null && said.contains(JDBCStorage.driverNameOf(con)),
 			"the driver left unbounded was not named: " + said);
 		assertTrue(said != null && said.contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY),
@@ -233,12 +235,35 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 	public void testAnEngineThisBackendDoesNotKnowIsReportedOnce() throws Exception {
 		final Connection con = recording(mock(Connection.class), "0");
 		storage.withDdlLockBound(con, null, theDdl());
-		assertTrue(storage.ddlLockBoundEngineUnknownWarned.get(), "the first DDL on the engine said nothing");
+		assertTrue(storage.lockBoundEngineUnknownWarned.get(LockBound.DDL).get(),
+			"the first DDL on the engine said nothing");
 
-		storage.ddlLockBoundEngineUnknownSaid = null;
+		storage.lockBoundEngineUnknownSaid.get(LockBound.DDL).set(null);
 		storage.withDdlLockBound(con, null, theDdl());
 
-		assertNull(storage.ddlLockBoundEngineUnknownSaid, "an engine this backend does not know was reported twice");
+		assertNull(storage.lockBoundEngineUnknownSaid.get(LockBound.DDL).get(),
+			"an engine this backend does not know was reported twice");
+	}
+
+	/**
+	 * Once per bound, though: the row lock bound of a write is armed by other code on another path,
+	 * and the line an operator acts on names the property of the wait that was left unbounded. An
+	 * open reporting the DDL bound of this engine says nothing about the writes behind it, and a
+	 * single latch would leave every one of them silent.
+	 */
+	@Test
+	public void testTheRowBoundOfAnEngineThisBackendDoesNotKnowIsReportedOnItsOwn() throws Exception {
+		final Connection con = recording(mock(Connection.class), "0");
+		storage.withDdlLockBound(con, null, theDdl());
+
+		storage.armLockBound(con, null, LockBound.ROW);
+
+		final String said = storage.lockBoundEngineUnknownSaid.get(LockBound.ROW).get();
+		assertNotNull(said, "the open of a backend silenced the row lock bound of every write behind it");
+		assertTrue(said.contains(JDBCStorage.ROW_LOCK_TIMEOUT_PROPERTY),
+			"the property that would have bounded the write was not named: " + said);
+		assertFalse(said.contains(JDBCStorage.DDL_LOCK_TIMEOUT_PROPERTY),
+			"the write was sent to the property of the DDL bound: " + said);
 	}
 
 	/** A deployment that turned the bound off asked for none anywhere, and has nothing to act on. */
@@ -248,7 +273,7 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 
 		storage.withDdlLockBound(recording(mock(Connection.class), "0"), null, theDdl());
 
-		assertFalse(storage.ddlLockBoundEngineUnknownWarned.get(),
+		assertFalse(storage.lockBoundEngineUnknownWarned.get(LockBound.DDL).get(),
 			"a bound nobody asked for was reported as an engine this backend does not know");
 	}
 
@@ -260,7 +285,7 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 	public void testOracleIsNotReportedAsAnEngineThisBackendDoesNotKnow() throws Exception {
 		storage.withDdlLockBound(recording(mock(Connection.class), "0"), Dialect.ORACLE, theDdl());
 
-		assertFalse(storage.ddlLockBoundEngineUnknownWarned.get(),
+		assertFalse(storage.lockBoundEngineUnknownWarned.get(LockBound.DDL).get(),
 			"the engine left alone deliberately was reported as one this backend cannot bound");
 	}
 
@@ -447,8 +472,13 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 	}
 
 	/**
-	 * And a sql server lock wait is left as unreplayable as it was: error 1222 is no conflict of
-	 * {@code isConflict()}, and a DDL made to look like one would be replayed into the same wait.
+	 * And the rename leaves a sql server lock wait no conflict of {@code isConflict()}: error 1222 is
+	 * none, and a DDL made to look like one would be replayed on that class - past the window, where the
+	 * class is granted one - rather than on what bounded the wait. No conflict is not the same as never
+	 * replayed: a DDL issued from a write runs inside an attempt carrying a row lock bound of this
+	 * backend, and a lock wait of such an attempt is replayed on the window like any other (see
+	 * {@code JDBCStorageRetryTest.testADdlLockWaitInsideAWriteIsReplayedOnTheBoundTheAttemptRanUnder}) -
+	 * on the window alone, and never past it.
 	 */
 	@Test
 	public void testARewrittenSqlServerLockWaitIsMadeNoMoreReplayable() throws Exception {
@@ -514,10 +544,13 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 
 		bounded.write(txn -> txn.deleteTree(TREE));
 
-		// the search path in front of them is the lookup that decides whether there is a table to drop
-		// at all, narrowed to the schemas an unqualified name of this connection resolves in (#888): it
-		// reads a session setting rather than the data, and takes a bound of its own
-		assertEquals(issued, asList("select unnest(current_schemas(true))",
+		// the first setting is the row lock bound of the write this drop runs inside (#915), armed once
+		// per attempt and discarded with the transaction; the search path after it is the lookup that
+		// decides whether there is a table to drop at all, narrowed to the schemas an unqualified name of
+		// this connection resolves in (#888): it reads a session setting rather than the data, and takes a
+		// bound of its own. The DDL bound is the third, and is the one this case is about
+		assertEquals(issued, asList("set local lock_timeout = 3000",
+			"select unnest(current_schemas(true))",
 			"set local lock_timeout = 5000",
 			"drop table " + JDBCStorage.toTableName(TREE)));
 	}
@@ -893,7 +926,11 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 		assertEquals(issued, singletonList(THE_DDL));
 	}
 
-	/** And a setting that went through is left standing: it is what bounds the DDL that follows it. */
+	/**
+	 * And a setting that went through is left standing: it is what bounds the DDL that follows it. The
+	 * point it was taken in front of is let go of instead - a {@code SET LOCAL} survives the release,
+	 * and a subtransaction left open would span the work this bound was put around.
+	 */
 	@Test
 	public void testATransactionWhoseSettingWentThroughIsNotTakenBack() throws Exception {
 		final Connection con = recording(mock(Connection.class), "0");
@@ -903,6 +940,7 @@ public class JDBCDdlLockBoundTestCase extends DirectoryServerTestCase {
 		storage.withDdlLockBound(con, Dialect.POSTGRES, theDdl());
 
 		verify(con, never()).rollback(beforeTheBound);
+		verify(con).releaseSavepoint(beforeTheBound);
 		assertEquals(issued, asList("set local lock_timeout = 5000", THE_DDL));
 	}
 
