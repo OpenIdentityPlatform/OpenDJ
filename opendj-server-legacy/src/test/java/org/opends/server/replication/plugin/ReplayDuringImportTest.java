@@ -17,6 +17,7 @@ package org.opends.server.replication.plugin;
 
 import static java.nio.charset.StandardCharsets.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.opends.messages.CoreMessages.ERR_UNCAUGHT_THREAD_EXCEPTION;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.core.DirectoryServer.*;
@@ -26,7 +27,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -40,6 +45,7 @@ import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.DoneMsg;
 import org.opends.server.replication.protocol.EntryMsg;
+import org.opends.server.replication.protocol.ErrorMsg;
 import org.opends.server.replication.protocol.InitializeRequestMsg;
 import org.opends.server.replication.protocol.InitializeTargetMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
@@ -48,6 +54,7 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.OperationType;
 import org.testng.Assert;
@@ -74,6 +81,11 @@ import org.testng.annotations.Test;
  * The exporter is a broker of this test, so that the test says when the entries arrive: the
  * change is replayed while the import is waiting for them - or, for the request, while the
  * exporter is holding the answer.
+ * <p>
+ * The claim of a total update this replica did not ask for is made by the listener thread
+ * under no lock, so a restart of the session which reads no owner a moment before that claim
+ * would stop the session the import is about to read (issue #1041): the listener is held
+ * before its claim, and what stops the session is driven through the gap.
  * <p>
  * The {@code timeOut} each case declares is what it is expected to take at the most; it is
  * not what bounds it. {@code TestListener} sets the timeout of every test method from the
@@ -509,6 +521,421 @@ public class ReplayDuringImportTest extends ReplicationTestCase
   }
 
   /**
+   * A session restart decided after the {@code InitializeTargetMsg} was taken off the session
+   * and before the import claimed its context must not have the import run over the session
+   * it stops (issue #1041).
+   * <p>
+   * The owner read of the restart and the claim of the listener share no lock: the restart
+   * reads no owner, stops the broker and waits for the listener thread to end - which is the
+   * thread about to run the import. Run over that broker, the import ends on the nothing
+   * which arrived - as a failed import since issue #1039, and as a finished one before it -
+   * over a suffix which has been replaced by it all the same. Here the listener is held
+   * before its claim, the restart is driven through the gap by a change whose attempts in
+   * place are spent and held between its decision and the stop, and the listener is released
+   * in between: the broker it finds is still up, so what refuses the import is the claim of
+   * the restart, and the refusal reaches the exporter over the session which is about to be
+   * stopped.
+   */
+  @Test(timeOut = 120_000)
+  public void aRestartDecidedBeforeTheImportIsClaimedRefusesTheImport() throws Exception
+  {
+    final Entry entry = TestCaseUtils.addEntry(
+        "dn: cn=renamedSince," + EXAMPLE_DN,
+        "objectClass: top",
+        "objectClass: person",
+        "cn: renamedSince",
+        "sn: renamedSince");
+    final String entryUUID = getEntryUUID(entry.getName());
+    final int totalUpdatesStartedBefore =
+        errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START.ordinal()).size();
+    final int totalUpdatesEndedBefore =
+        errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.ordinal()).size();
+    final int listenerDeathsBefore = listenerDeaths().size();
+    final int refusalsBefore = errorLogRecordsOf(ERR_INIT_REJECTED_SESSION_STOPPING.ordinal()).size();
+
+    // The listener thread has taken the InitializeTargetMsg off the session and is held
+    // before it claims the import; the restart is held after its decision, before the stop.
+    final CountDownLatch listenerHeld = new CountDownLatch(1);
+    final CountDownLatch releaseListener = new CountDownLatch(1);
+    final CountDownLatch stopHeld = new CountDownLatch(1);
+    final CountDownLatch releaseStop = new CountDownLatch(1);
+    domain.setImportClaimHook(() -> {
+      listenerHeld.countDown();
+      awaitUninterruptibly(releaseListener);
+    });
+    domain.setServiceStopHook(() -> {
+      stopHeld.countDown();
+      awaitUninterruptibly(releaseStop);
+    });
+    try
+    {
+      exporter.publish(new InitializeTargetMsg(
+          baseDN, EXPORTER_ID, DS_ID, EXPORTER_ID, exportedEntries().length, INIT_WINDOW));
+      assertTrue(listenerHeld.await(30, TimeUnit.SECONDS),
+          "the listener thread did not reach the claim of the import");
+
+      /*
+       * A change whose entryUUID search never runs spends its attempts in place, finds no
+       * owner and restarts the session. On a thread of its own: the restart is held before
+       * the stop, and then waits for the listener thread.
+       */
+      final CSN csn = gen.newCSN();
+      final AtomicReference<Throwable> replayFailure = new AtomicReference<>();
+      final Thread replay = new Thread(() -> {
+        try
+        {
+          replayMsg(new ModifyMsg(csn, DN.valueOf("cn=movedAway," + EXAMPLE_DN),
+              generatemods("description", "replayed before the import was claimed"), entryUUID));
+        }
+        catch (Throwable t)
+        {
+          replayFailure.set(t);
+        }
+      }, "replay of " + csn);
+      ShortCircuitPlugin.registerShortCircuit(
+          OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue());
+      try
+      {
+        replay.start();
+        assertTrue(stopHeld.await(30, TimeUnit.SECONDS),
+            "the failed replay did not decide to restart the session");
+      }
+      finally
+      {
+        ShortCircuitPlugin.deregisterShortCircuit(OperationType.SEARCH, "PreParse");
+      }
+      assertTrue(domain.isConnected(), "the session was stopped before the stop was held");
+      assertFalse(domain.ieRunning(), "the claim of the stop is visible as a running import");
+      /*
+       * A total update asked for here is refused against the claim of the stop, and the
+       * claim is left where it is: the road which fails to acquire a context of its own
+       * releases nothing.
+       */
+      assertThatThrownBy(() -> domain.initializeFromRemote(EXPORTER_ID, null))
+          .as("a total update asked for while the session is being stopped was not refused")
+          .isInstanceOf(DirectoryException.class)
+          .hasMessageContaining(ERR_INIT_REJECTED_SESSION_STOPPING.get(baseDN, DS_ID).toString());
+
+      /*
+       * The import is claimed against a restart which is decided and not yet made. Decided
+       * either way before the stop is released: without the claim the import runs, and the
+       * exporter is then waited for over a socket which nothing bounds.
+       */
+      releaseListener.countDown();
+      waitUntil(() -> errorLogRecordsOf(ERR_INIT_REJECTED_SESSION_STOPPING.ordinal()).size() > refusalsBefore
+          || errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START.ordinal()).size() > totalUpdatesStartedBefore,
+          "the listener neither refused nor started the total update");
+      assertThat(errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START.ordinal()))
+          .as("a total update claimed against a restart which was decided was started")
+          .hasSize(totalUpdatesStartedBefore);
+      final ErrorMsg refusal = waitForSpecificMsg(exporter, ErrorMsg.class);
+      assertThat(refusal.getDetails().toString())
+          .as("the exporter was not told why the total update was refused")
+          .isEqualTo(ERR_INIT_REJECTED_SESSION_STOPPING.get(baseDN, DS_ID).toString());
+
+      /*
+       * An answer to a total update this replica asked for, which no context stands for - the
+       * request was abandoned as stalled (issue #861) - finds only the claim of the stop, and
+       * the claim is no context to import into: the answer is ignored. The total update
+       * another server starts after it is what shows that the listener is past it: refused
+       * here, against the same claim.
+       */
+      final int refusalsOfTheFirst =
+          errorLogRecordsOf(ERR_INIT_REJECTED_SESSION_STOPPING.ordinal()).size();
+      exporter.publish(new InitializeTargetMsg(
+          baseDN, EXPORTER_ID, DS_ID, DS_ID, exportedEntries().length, INIT_WINDOW));
+      exporter.publish(new InitializeTargetMsg(
+          baseDN, EXPORTER_ID, DS_ID, EXPORTER_ID, exportedEntries().length, INIT_WINDOW));
+      waitUntil(() -> errorLogRecordsOf(ERR_INIT_REJECTED_SESSION_STOPPING.ordinal()).size() > refusalsOfTheFirst
+          || errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START.ordinal()).size() > totalUpdatesStartedBefore,
+          "the listener neither refused nor started the total update after the stale answer");
+      assertThat(errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START.ordinal()))
+          .as("an answer no context stands for was imported into the claim of the stop")
+          .hasSize(totalUpdatesStartedBefore);
+
+      releaseStop.countDown();
+      replay.join(60_000);
+      assertFalse(replay.isAlive(), "the restart did not end: the listener thread it waits for is still there");
+      assertNull(replayFailure.get(), "the replay failed: " + replayFailure.get());
+    }
+    finally
+    {
+      releaseListener.countDown();
+      releaseStop.countDown();
+      domain.setImportClaimHook(null);
+      domain.setServiceStopHook(null);
+    }
+
+    waitUntil(domain::isConnected, "the session was not started back after the restart");
+    assertTrue(entryExists(entry.getName()), "the import ran over the session the restart"
+        + " stopped: the suffix was replaced by the nothing which arrived");
+    // A total update which got past the claim ran over the broker the restart then stopped
+    // and ended on the nothing which arrived - as a failed import since issue #1039, and as
+    // a finished one before it; neither is a total update which never ran.
+    assertThat(errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.ordinal()))
+        .as("a total update which was refused was run")
+        .hasSize(totalUpdatesEndedBefore);
+    assertThat(listenerDeaths())
+        .as("the listener thread ended on an uncaught exception")
+        .hasSize(listenerDeathsBefore);
+    // Every record is written twice - the error log has two publishers in the tests.
+    assertThat(errorLogRecordsOf(ERR_INIT_REJECTED_SESSION_STOPPING.ordinal()))
+        .as("the refusal of the total update was not recorded on this server")
+        .hasSizeGreaterThan(refusalsBefore);
+
+    /*
+     * The claim of the stop was released with the stop: the next total update into this
+     * replica is claimed by the listener and runs to its end. Held, it would be invisible
+     * to every reader of the context and refuse every total update for the life of the
+     * domain.
+     */
+    startImportInto(exportedEntries().length);
+    finishImport(exportedEntries());
+    assertThat(errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.ordinal()))
+        .as("the total update after the restart did not run to its end")
+        .hasSize(totalUpdatesEndedBefore + 2);
+  }
+
+  /**
+   * A domain disabled after the {@code InitializeTargetMsg} was taken off the session and
+   * before the import claimed its context must refuse the import as well.
+   * <p>
+   * Nothing claims against the listener here - the domain disabling itself stops the session
+   * whatever owns it - so what refuses the import is the listener reading, once its claim is
+   * made, that the broker it would stream over is stopping. Without that read the claim wins,
+   * and what runs next publishes the full update status over a session which is gone.
+   */
+  @Test(timeOut = 120_000)
+  public void aDomainDisabledBeforeTheImportIsClaimedRefusesTheImport() throws Exception
+  {
+    final Entry entry = TestCaseUtils.addEntry(
+        "dn: cn=survivor," + EXAMPLE_DN,
+        "objectClass: top",
+        "objectClass: person",
+        "cn: survivor",
+        "sn: survivor");
+    final int totalUpdatesStartedBefore =
+        errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START.ordinal()).size();
+    final int listenerDeathsBefore = listenerDeaths().size();
+    final int refusalsBefore = errorLogRecordsOf(ERR_INIT_REJECTED_SESSION_STOPPING.ordinal()).size();
+
+    final CountDownLatch listenerHeld = new CountDownLatch(1);
+    final CountDownLatch releaseListener = new CountDownLatch(1);
+    domain.setImportClaimHook(() -> {
+      listenerHeld.countDown();
+      awaitUninterruptibly(releaseListener);
+    });
+    try
+    {
+      exporter.publish(new InitializeTargetMsg(
+          baseDN, EXPORTER_ID, DS_ID, EXPORTER_ID, exportedEntries().length, INIT_WINDOW));
+      assertTrue(listenerHeld.await(30, TimeUnit.SECONDS),
+          "the listener thread did not reach the claim of the import");
+
+      // On a thread of its own: disabling the domain waits for the listener thread.
+      final Thread disable = new Thread(domain::disable, "disable of " + EXAMPLE_DN);
+      disable.start();
+      waitUntil(() -> !domain.isConnected(), "disabling the domain did not stop the session");
+      releaseListener.countDown();
+      disable.join(60_000);
+      assertFalse(disable.isAlive(), "disabling the domain did not end: the listener thread"
+          + " it waits for is still there");
+    }
+    finally
+    {
+      releaseListener.countDown();
+      domain.setImportClaimHook(null);
+    }
+    domain.enable();
+    waitUntil(domain::isConnected, "the session was not started back by enable()");
+    assertFalse(domain.ieRunning(), "the refused import left its context claimed");
+
+    assertTrue(entryExists(entry.getName()), "the import ran over the session the disable"
+        + " stopped: the suffix was replaced by the nothing which arrived");
+    assertThat(errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START.ordinal()))
+        .as("a total update claimed against a session which is being stopped was started")
+        .hasSize(totalUpdatesStartedBefore);
+    assertThat(listenerDeaths())
+        .as("the listener thread ended on an uncaught exception")
+        .hasSize(listenerDeathsBefore);
+    // Every record is written twice - the error log has two publishers in the tests.
+    assertThat(errorLogRecordsOf(ERR_INIT_REJECTED_SESSION_STOPPING.ordinal()))
+        .as("the refusal of the total update was not recorded on this server")
+        .hasSizeGreaterThan(refusalsBefore);
+  }
+
+  /**
+   * A domain disabled after the answer to a total update this replica asked for was taken off
+   * the session, and before the import started, must refuse the import too.
+   * <p>
+   * The context is the one the request claimed, so there is nothing to claim against: what
+   * refuses the import is the same read of the broker as for a total update another server
+   * started. Without it the import runs over the session the disable stopped, and replaces the
+   * suffix with the nothing which arrived.
+   */
+  @Test(timeOut = 120_000)
+  public void aDomainDisabledBeforeTheImportItAskedForStartsRefusesTheImport() throws Exception
+  {
+    final Entry entry = TestCaseUtils.addEntry(
+        "dn: cn=survivor," + EXAMPLE_DN,
+        "objectClass: top",
+        "objectClass: person",
+        "cn: survivor",
+        "sn: survivor");
+    final int totalUpdatesStartedBefore =
+        errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START.ordinal()).size();
+    final int listenerDeathsBefore = listenerDeaths().size();
+
+    domain.initializeFromRemote(EXPORTER_ID, null);
+    assertNotNull(waitForSpecificMsg(exporter, InitializeRequestMsg.class));
+
+    final CountDownLatch listenerHeld = new CountDownLatch(1);
+    final CountDownLatch releaseListener = new CountDownLatch(1);
+    domain.setImportClaimHook(() -> {
+      listenerHeld.countDown();
+      awaitUninterruptibly(releaseListener);
+    });
+    try
+    {
+      exporter.publish(new InitializeTargetMsg(
+          baseDN, EXPORTER_ID, DS_ID, DS_ID, exportedEntries().length, INIT_WINDOW));
+      assertTrue(listenerHeld.await(30, TimeUnit.SECONDS),
+          "the listener thread did not reach the start of the import");
+
+      // On a thread of its own: disabling the domain waits for the listener thread.
+      final Thread disable = new Thread(domain::disable, "disable of " + EXAMPLE_DN);
+      disable.start();
+      waitUntil(() -> !domain.isConnected(), "disabling the domain did not stop the session");
+      releaseListener.countDown();
+      disable.join(60_000);
+      assertFalse(disable.isAlive(), "disabling the domain did not end: the listener thread"
+          + " it waits for is still there");
+    }
+    finally
+    {
+      releaseListener.countDown();
+      domain.setImportClaimHook(null);
+    }
+    domain.enable();
+    waitUntil(domain::isConnected, "the session was not started back by enable()");
+    assertFalse(domain.ieRunning(), "the refused import left the context of its request claimed");
+
+    assertTrue(entryExists(entry.getName()), "the import ran over the session the disable"
+        + " stopped: the suffix was replaced by the nothing which arrived");
+    assertThat(errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START.ordinal()))
+        .as("a total update answered over a session which is being stopped was started")
+        .hasSize(totalUpdatesStartedBefore);
+    assertThat(listenerDeaths())
+        .as("the listener thread ended on an uncaught exception")
+        .hasSize(listenerDeathsBefore);
+  }
+
+  /**
+   * A session restart decided while a total update out of this replica is running stops the
+   * session that export streams over (issue #1041).
+   * <p>
+   * What the restart must leave alone is a total update into this replica: the data it is
+   * about to replace is read over the session, and the import is the thread the stop waits
+   * for. An export is not that: it streams out of a backend nothing is taking away, on a
+   * thread of its own, and a session stopped under it is the cut it reports to whoever asked
+   * for the total update - the same cut every other stop of the session is. The claim the
+   * restart makes for the import is not made here, and the session is stopped as it was
+   * before the claim.
+   * <p>
+   * The export holds the context by standing where it waits for its target to report the
+   * start of the total update: the target is a broker of this test, and reports nothing.
+   */
+  @Test(timeOut = 120_000)
+  public void aRestartDecidedWhileAnExportRunsStopsTheSessionItStreamsOver() throws Exception
+  {
+    final Entry entry = TestCaseUtils.addEntry(
+        "dn: cn=renamedSince," + EXAMPLE_DN,
+        "objectClass: top",
+        "objectClass: person",
+        "cn: renamedSince",
+        "sn: renamedSince");
+    final String entryUUID = getEntryUUID(entry.getName());
+    waitUntil(() -> domain.getReplicaInfos().containsKey(EXPORTER_ID),
+        "the exporter is not in the replicas of the domain: nothing to export into");
+
+    final AtomicReference<Throwable> exportFailure = new AtomicReference<>();
+    final Thread export = new Thread(() -> {
+      try
+      {
+        domain.initializeRemote(EXPORTER_ID, null);
+      }
+      catch (Throwable t)
+      {
+        exportFailure.set(t);
+      }
+    }, "export of " + EXAMPLE_DN);
+
+    // The restart is held after its decision, before the stop: what the case reads is the
+    // decision the export was found by, not the session which is down a moment later.
+    final CountDownLatch stopHeld = new CountDownLatch(1);
+    final CountDownLatch releaseStop = new CountDownLatch(1);
+    domain.setServiceStopHook(() -> {
+      stopHeld.countDown();
+      awaitUninterruptibly(releaseStop);
+    });
+    final CSN csn = gen.newCSN();
+    final AtomicReference<Throwable> replayFailure = new AtomicReference<>();
+    final Thread replay = new Thread(() -> {
+      try
+      {
+        replayMsg(new ModifyMsg(csn, DN.valueOf("cn=movedAway," + EXAMPLE_DN),
+            generatemods("description", "replayed while the export was running"), entryUUID));
+      }
+      catch (Throwable t)
+      {
+        replayFailure.set(t);
+      }
+    }, "replay of " + csn);
+    try
+    {
+      export.start();
+      waitUntil(() -> domain.ieRunning() || exportFailure.get() != null,
+          "the export did not claim the import context");
+      assertNull(exportFailure.get(),
+          "the export failed before it claimed the context: " + exportFailure.get());
+
+      // A change whose entryUUID search never runs spends its attempts in place and asks
+      // for the session to be restarted, the way it does in the case above.
+      ShortCircuitPlugin.registerShortCircuit(
+          OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue());
+      try
+      {
+        replay.start();
+        assertTrue(stopHeld.await(30, TimeUnit.SECONDS),
+            "the restart left the session to the export: an export is not the owner a total"
+                + " update into this replica is");
+      }
+      finally
+      {
+        ShortCircuitPlugin.deregisterShortCircuit(OperationType.SEARCH, "PreParse");
+      }
+      assertTrue(domain.ieRunning(), "the export ended before the restart was decided");
+    }
+    finally
+    {
+      releaseStop.countDown();
+      domain.setServiceStopHook(null);
+    }
+
+    replay.join(60_000);
+    assertFalse(replay.isAlive(), "the restart did not end");
+    assertNull(replayFailure.get(), "the replay failed: " + replayFailure.get());
+    export.join(60_000);
+    assertFalse(export.isAlive(), "the export did not end once the session it streams over"
+        + " was stopped");
+    assertThat(exportFailure.get())
+        .as("the export was not told that the session it streams over was cut")
+        .isInstanceOf(DirectoryException.class);
+    waitUntil(domain::isConnected, "the session was not started back after the restart");
+    assertFalse(domain.ieRunning(), "the export which was cut left its context claimed");
+  }
+
+  /**
    * Has the exporter start a total update into this replica, and returns once the backend
    * of the domain is deregistered for it: from then on the import is reading the session,
    * and a change replayed here is replayed into no backend.
@@ -589,14 +1016,73 @@ public class ReplayDuringImportTest extends ReplicationTestCase
   private static List<String> errorLogRecordsOf(int msgId, CSN csn)
   {
     final List<String> records = new ArrayList<>();
-    for (String record : TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+    for (String record : errorLogRecordsOf(msgId))
     {
-      if (record.contains("msgID=" + msgId) && record.contains(csn.toString()))
+      if (record.contains(csn.toString()))
       {
         records.add(record);
       }
     }
     return records;
+  }
+
+  /** The records of the error log which carry the provided message id. */
+  private static List<String> errorLogRecordsOf(int msgId)
+  {
+    final List<String> records = new ArrayList<>();
+    for (String record : TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+    {
+      if (record.contains("msgID=" + msgId))
+      {
+        records.add(record);
+      }
+    }
+    return records;
+  }
+
+  /** The records of the error log which report the listener thread of the domain ending abnormally. */
+  private static List<String> listenerDeaths()
+  {
+    final List<String> records = new ArrayList<>();
+    for (String record : errorLogRecordsOf(ERR_UNCAUGHT_THREAD_EXCEPTION.ordinal()))
+    {
+      if (record.contains("listener for domain \"" + EXAMPLE_DN + "\""))
+      {
+        records.add(record);
+      }
+    }
+    return records;
+  }
+
+  private static void waitUntil(BooleanSupplier condition, String failure) throws InterruptedException
+  {
+    final long deadline = System.currentTimeMillis() + 30_000;
+    while (!condition.getAsBoolean())
+    {
+      assertTrue(System.currentTimeMillis() < deadline, failure);
+      Thread.sleep(20);
+    }
+  }
+
+  private static void awaitUninterruptibly(CountDownLatch latch)
+  {
+    boolean interrupted = false;
+    while (true)
+    {
+      try
+      {
+        latch.await();
+        break;
+      }
+      catch (InterruptedException e)
+      {
+        interrupted = true;
+      }
+    }
+    if (interrupted)
+    {
+      Thread.currentThread().interrupt();
+    }
   }
 
   private void replayMsg(UpdateMsg updateMsg) throws InterruptedException
