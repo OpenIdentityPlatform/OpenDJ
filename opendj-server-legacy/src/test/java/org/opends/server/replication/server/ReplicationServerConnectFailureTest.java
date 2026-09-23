@@ -159,7 +159,7 @@ public class ReplicationServerConnectFailureTest extends ReplicationTestCase
    * {@code WARN_REPLICATION_SERVER_CONNECT_ERROR} is reported for the socket and for the
    * session built on it, the handshake throwing nothing of its own. Holding the outage open
    * across an abort silences the peer this server never sees connected under the address it
-   * dialled -- the multi homed peer of
+   * dialled -- the peer registered under an address this configuration does not use, of
    * {@link #aPeerRegisteredUnderAnotherAddressStillClosesItsOutage}, and one protocol
    * version down a peer which negotiates V1, connected and never registered.
    * <p>
@@ -313,17 +313,18 @@ public class ReplicationServerConnectFailureTest extends ReplicationTestCase
    * Tests that a peer already registered under an address other than the one it is
    * configured under still closes the outage reported for it.
    * <p>
-   * This is the multi homed peer, and the reason the recovery can be read neither from the
-   * address nor from the session. {@code ServerHandler.toServerAddressURL()} takes the host
-   * of a handler from {@code session.getRemoteAddress()} and its port from the start message
-   * that handler received, so a peer which dials this server from an address it is not
-   * configured under is registered under that other address. Two things follow, and this
-   * test drives both: the already connected branch of {@code runConnect()} compares the
-   * configured address against one which never matches it, so it can close nothing; and the
-   * handshake this server offers that same peer runs into a handler holding its server id
-   * under another address URL, which is {@code ERR_DUPLICATE_REPLICATION_SERVER_ID}, an
-   * abort of this server rather than of the peer, and a session closed at the end of
-   * {@code connect()} for as long as the peer stays where it is.
+   * This is the peer {@code runConnect()} matches by none of the addresses its handler is
+   * known by, and the reason the recovery can be read neither from the address nor from the
+   * session. A handler is known by the address its start message names and by the address
+   * its session came from ({@code ReplicationServerHandler.setServerAddresses()}), and the
+   * peer below names a port this configuration does not use, which both of those carry.
+   * Two things follow, and this test drives both: the already connected branch of
+   * {@code runConnect()} compares the configured address against two which never match it,
+   * so it can close nothing; and the handshake this server offers that same peer runs into
+   * a handler holding its server id at another address, which is
+   * {@code ERR_DUPLICATE_REPLICATION_SERVER_ID}, an abort of this server rather than of the
+   * peer, and a session closed at the end of {@code connect()} for as long as the peer
+   * stays where it is.
    * <p>
    * Gating the recovery on either leaves the record of such a peer uncleared for good, and
    * {@code recordFailure()} returns false from then on: the next real outage of it -- the
@@ -337,9 +338,10 @@ public class ReplicationServerConnectFailureTest extends ReplicationTestCase
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     /*
      * Three ports: the server under test, the address the peer is configured under and
-     * answers on, and the address it registers itself under. The last is never bound --
-     * what a multi homed peer costs is that the two addresses are not compared equal, and
-     * a port nothing listens on is that, without a second address to bind.
+     * answers on, and the address it names and is therefore registered under. The last is
+     * never bound -- what such a peer costs is that the configured address matches neither
+     * of the two addresses its handler is known by, and a port nothing listens on is that,
+     * without a second address to bind.
      */
     final int[] ports = TestCaseUtils.findFreePorts(3);
     final HostPort peerAddress = HostPort.valueOf("127.0.0.1:" + ports[1]);

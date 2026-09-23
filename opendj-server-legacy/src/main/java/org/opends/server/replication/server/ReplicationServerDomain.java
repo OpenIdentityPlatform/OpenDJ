@@ -1044,6 +1044,40 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
+   * Returns whether this domain already holds a session with the replication
+   * server configured at the provided address.
+   * <p>
+   * A connected server answers to the address its session came from and to the address it
+   * named in its start message, and the second of the two is what that server says of
+   * itself: a peer which names an address this configuration gives to another replication
+   * server hides that one from the connect thread, which then dials nothing for it and
+   * reports it connected while it is down. A replication server names itself from its own
+   * configuration, or, when none of the addresses it is configured with is local to it,
+   * from the host name of its machine ({@code ReplicationServer.setServerURL()}), so what
+   * it takes is a named address which resolves here to one this configuration gives to
+   * another replication server: two of them configured at one address -- a configuration
+   * copied whole, or two sites whose private ranges overlap -- or that fall back host name
+   * mapped there by the resolver of this server, which a clone host name, split DNS or a
+   * stale hosts file gives. The peer it hides is still the one which dials this server.
+   *
+   * @param address
+   *          the configured address of a replication server
+   * @return {@code true} if a connected replication server answers to that
+   *         address, {@code false} otherwise
+   */
+  public boolean isConnectedToServerAt(HostPort address)
+  {
+    for (ReplicationServerHandler rsHandler : connectedRSs.values())
+    {
+      if (rsHandler.isServerAt(address))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Stop operations with a list of replication servers.
    *
    * @param serversToDisconnect
@@ -1054,10 +1088,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     for (ReplicationServerHandler rsHandler : connectedRSs.values())
     {
-      if (serversToDisconnect.contains(
-            HostPort.valueOf(rsHandler.getServerAddressURL())))
+      for (HostPort serverToDisconnect : serversToDisconnect)
       {
-        stopServer(rsHandler, false);
+        if (rsHandler.isServerAt(serverToDisconnect))
+        {
+          stopServer(rsHandler, false);
+          break;
+        }
       }
     }
   }
@@ -1404,12 +1441,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       return false;
     }
 
-    if (oldRsHandler.getServerAddressURL().equals(
-        rsHandler.getServerAddressURL()))
+    if (oldRsHandler.isSameServerAs(rsHandler))
     {
       // this is the same server, this means that our ServerStart messages
       // have been sent at about the same time and 2 connections
-      // have been established.
+      // have been established -- or that this server reached the same peer at
+      // an address other than the one that peer connected from, which is what
+      // a multi homed or NATed peer gives.
       // Silently drop this connection.
       return true;
     }
