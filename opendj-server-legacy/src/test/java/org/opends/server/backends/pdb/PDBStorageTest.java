@@ -617,6 +617,61 @@ public class PDBStorageTest extends DirectoryServerTestCase
     assertThat(ccr.getMessages().get(0).ordinal()).isEqualTo(NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART.ordinal());
     assertThat(ccr.getMessages().get(0).toString()).isEqualTo(
         NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART.get("PDBStorageTest", SMALL_CACHE, 2 * SMALL_CACHE).toString());
+
+    // The pool still runs at the size it was opened with, whatever the change before said: back to
+    // that size, there is nothing left to restart for.
+    final ConfigChangeResult back = storage.applyConfigurationChange(createBackendCfg(SMALL_CACHE));
+    assertThat(back.adminActionRequired()).isFalse();
+    assertThat(back.getMessages()).isEmpty();
+  }
+
+  /**
+   * The default cache is sized by db-cache-percent, db-cache-size left at 0: the restart is asked
+   * for by the size the percentage comes to, not by db-cache-size, which does not move.
+   */
+  @Test
+  public void aCacheSizedByPercentAsksForARestartOnlyWhenThePercentChanges() throws Exception
+  {
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    closeAndRemove(storage);
+    storage = new PDBStorage(createBackendCfg(0L, 10), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+    final PDBBackendCfg unchangedCache = createBackendCfg(0L, 10);
+    when(unchangedCache.isDBTxnNoSync()).thenReturn(true);
+
+    final ConfigChangeResult unchanged = storage.applyConfigurationChange(unchangedCache);
+    assertThat(unchanged.adminActionRequired()).isFalse();
+    assertThat(unchanged.getMessages()).isEmpty();
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(createBackendCfg(0L, 20));
+    assertThat(ccr.adminActionRequired()).isTrue();
+    assertThat(ccr.getMessages()).hasSize(1);
+    assertThat(ccr.getMessages().get(0).toString()).isEqualTo(NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART.get(
+        "PDBStorageTest", quota.memPercentToBytes(10), quota.memPercentToBytes(20)).toString());
+  }
+
+  /**
+   * A storage which has not opened runs no cache to restart: a change of the cache size is picked
+   * up by the open, and asks for nothing. The listener is registered by the constructor already.
+   */
+  @Test
+  public void aStorageWhichIsNotOpenAsksForNoRestart() throws Exception
+  {
+    final PDBStorage unopened = new PDBStorage(createBackendCfg(SMALL_CACHE), serverContext);
+    try
+    {
+      final ConfigChangeResult ccr = unopened.applyConfigurationChange(createBackendCfg(2 * SMALL_CACHE));
+
+      assertThat(ccr.adminActionRequired()).isFalse();
+      for (LocalizableMessage message : ccr.getMessages())
+      {
+        assertThat(message.ordinal()).isNotEqualTo(NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART.ordinal());
+      }
+    }
+    finally
+    {
+      unopened.close();
+    }
   }
 
   /** A change which leaves the cache size alone asks for nothing, as before. */
@@ -682,6 +737,62 @@ public class PDBStorageTest extends DirectoryServerTestCase
     assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
   }
 
+  /**
+   * After an open the quota refused, the storage holds nothing of the quota, and a change which
+   * leaves the cache size alone - any other property, the disable an online import makes - still
+   * asks the quota for nothing: every change of the backend entry is put to this storage.
+   */
+  @Test
+  public void aChangeWhichLeavesTheCacheSizeAloneIsAdmittedAfterARefusedReservation() throws Exception
+  {
+    openWithTheReservationRefused();
+    final PDBBackendCfg unchangedCache = createBackendCfg(SMALL_CACHE);
+    when(unchangedCache.isDBTxnNoSync()).thenReturn(true);
+
+    assertThat(storage.isConfigurationChangeAcceptable(unchangedCache, new ArrayList<LocalizableMessage>()))
+        .isTrue();
+  }
+
+  /**
+   * A growth after an open the quota refused is measured against what the storage holds, which is
+   * nothing: a quarter of a cache more than configured is a cache and a quarter more than held.
+   */
+  @Test
+  public void aGrowthAfterARefusedReservationIsMeasuredAgainstNothingHeld() throws Exception
+  {
+    openWithTheReservationRefused();
+
+    assertThat(storage.isConfigurationChangeAcceptable(
+        createBackendCfg(SMALL_CACHE + SMALL_CACHE / 4), new ArrayList<LocalizableMessage>()))
+        .as("a cache and a quarter, with nothing held and half a cache free").isFalse();
+  }
+
+  /** A shrink asks the quota for nothing, even with none of it left. */
+  @Test
+  public void aShrinkIsAdmittedWithTheQuotaExhausted() throws Exception
+  {
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    closeAndRemove(storage);
+    storage = new PDBStorage(createBackendCfg(SMALL_CACHE), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+    assertThat(quota.acquireMemory(quota.getAvailableMemory())).isTrue();
+
+    assertThat(storage.isConfigurationChangeAcceptable(
+        createBackendCfg(SMALL_CACHE / 2), new ArrayList<LocalizableMessage>())).isTrue();
+  }
+
+  /** Opens a storage of one cache with half a cache left in the quota, so that its reservation is refused. */
+  private void openWithTheReservationRefused() throws Exception
+  {
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    closeAndRemove(storage);
+    assertThat(quota.acquireMemory(quota.getAvailableMemory() - SMALL_CACHE / 2)).isTrue();
+    final long availableBefore = quota.getAvailableMemory();
+    storage = new PDBStorage(createBackendCfg(SMALL_CACHE), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+    assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
+  }
+
   private void createTree() throws Exception
   {
     storage.write(new WriteOperation()
@@ -714,12 +825,18 @@ public class PDBStorageTest extends DirectoryServerTestCase
   /** A configuration whose cache is the given size in bytes, or a fifth of the quota when it is zero. */
   private static PDBBackendCfg createBackendCfg(long cacheSize)
   {
+    return createBackendCfg(cacheSize, 20);
+  }
+
+  /** A configuration whose cache is the given size in bytes, or the given percent of the quota when it is zero. */
+  private static PDBBackendCfg createBackendCfg(long cacheSize, int cachePercent)
+  {
     PDBBackendCfg backendCfg = mockCfg(PDBBackendCfg.class);
     when(backendCfg.getBackendId()).thenReturn("PDBStorageTest");
     when(backendCfg.getDBDirectory()).thenReturn("PDBStorageTest");
     when(backendCfg.getDBDirectoryPermissions()).thenReturn("755");
     when(backendCfg.getDBCacheSize()).thenReturn(cacheSize);
-    when(backendCfg.getDBCachePercent()).thenReturn(20);
+    when(backendCfg.getDBCachePercent()).thenReturn(cachePercent);
     return backendCfg;
   }
 

@@ -1549,11 +1549,15 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   public boolean isConfigurationChangeAcceptable(PDBBackendCfg newCfg,
       List<LocalizableMessage> unacceptableReasons)
   {
-    // Against what this storage holds of the quota, which is what the next open has to add to - not
-    // against config, which a change admitted but not yet applied has already moved to the new size.
+    // A size which does not grow past the one configured asks the quota for nothing, as before: every
+    // change of the backend entry comes here, the disable of an online import included, and after an
+    // open the quota refused this storage holds nothing to measure such a change against. A growth is
+    // measured against what this storage holds, which is what the next open adds to - not against
+    // config, which a change admitted but not yet applied has already moved to the new size.
     final long newSize = computeSize(newCfg);
     final MemoryQuota quota = serverContext.getMemoryQuota();
-    return (newSize <= reservedCacheSize || quota.isMemoryAvailable(newSize - reservedCacheSize))
+    return (newSize <= Math.max(reservedCacheSize, computeSize(config))
+            || quota.isMemoryAvailable(newSize - reservedCacheSize))
         && checkConfigurationDirectories(newCfg, unacceptableReasons);
   }
 
