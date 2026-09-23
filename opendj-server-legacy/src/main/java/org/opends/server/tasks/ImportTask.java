@@ -602,6 +602,8 @@ public class ImportTask extends Task
       catch (Exception e)
       {
         logger.error(ERR_LDIFIMPORT_CANNOT_OPEN_REJECTS_FILE, rejectFile, getExceptionMessage(e));
+        // No file is open yet, but a template import has already started generating its entries.
+        importConfig.close();
         return TaskState.STOPPED_BY_ERROR;
       }
     }

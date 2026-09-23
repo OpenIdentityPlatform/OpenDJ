@@ -21,6 +21,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.UUID;
 
 import org.forgerock.opendj.ldap.ResultCode;
@@ -32,6 +35,7 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.tools.makeldif.MakeLDIFInputStream;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
@@ -534,6 +538,55 @@ public class TestImportAndExport extends TasksTestCase
     assertNotNull(importConfig, "The task never built an import config");
     assertClosed(importConfig.getRejectWriter(), "reject");
     assertNull(importConfig.getSkipWriter(), "The skip writer was opened after all");
+  }
+
+  /**
+   * A template import which cannot open its reject file must stop the generator thread its config
+   * started when it was built. That failure is the first return after the config exists, and it
+   * returns before the import is announced and before the try whose finally closes the config.
+   */
+  @Test
+  public void testTemplateImportWhichCannotOpenItsRejectFileStopsItsGenerator() throws Exception
+  {
+    File templateFile = File.createTempFile("import-test", ".template");
+    try
+    {
+      Files.write(templateFile.toPath(), Arrays.asList(template), StandardCharsets.UTF_8);
+      Entry taskEntry = TestCaseUtils.makeEntry(
+          "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+          "objectclass: top",
+          "objectclass: ds-task",
+          "objectclass: ds-task-import",
+          "ds-task-class-name: org.opends.server.tasks.ImportTask",
+          "ds-task-import-backend-id: userRoot",
+          "ds-task-import-template-file: " + templateFile.getPath(),
+          // The task stores the path as it is given, and a directory cannot be opened for writing.
+          "ds-task-import-reject-file: " + ldifFile.getParent(),
+          "ds-task-import-overwrite-rejects: TRUE");
+
+      testTask(taskEntry, TaskState.STOPPED_BY_ERROR, 60);
+
+      LDIFImportConfig importConfig = importConfigOf(getDoneTask(taskEntry.getName()));
+      assertNotNull(importConfig, "The task never built an import config");
+      assertNull(importConfig.getRejectWriter(), "The reject writer was opened after all");
+      Thread generator = generatorOf(importConfig);
+      generator.join(10000);
+      assertFalse(generator.isAlive(), "The generator is still running after the import ended");
+    }
+    finally
+    {
+      templateFile.delete();
+    }
+  }
+
+  /** The thread generating the entries of a template import, which neither class exposes. */
+  private static Thread generatorOf(LDIFImportConfig importConfig) throws Exception
+  {
+    Field ldifInputStream = LDIFImportConfig.class.getDeclaredField("ldifInputStream");
+    ldifInputStream.setAccessible(true);
+    Field generatorThread = MakeLDIFInputStream.class.getDeclaredField("generatorThread");
+    generatorThread.setAccessible(true);
+    return (Thread) generatorThread.get(ldifInputStream.get(importConfig));
   }
 
   /** The config an import task worked with, which the task keeps to itself. */
