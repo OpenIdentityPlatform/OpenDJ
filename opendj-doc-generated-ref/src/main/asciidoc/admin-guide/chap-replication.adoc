@@ -1993,6 +1993,8 @@ Replication owns a few operational attributes: `entryUUID`, which identifies an 
 
 The replication repair request control (OID `1.3.6.1.4.1.26027.1.5.2`) lets an administrator write these attributes anyway. A request that carries the control changes the replica it is sent to, and that replica only: the change is not published to the replication servers, and it is not recorded in the history of the entry. Use it when the replicas already agree on the data, but an entry must be given specific values - for example, the `entryUUID` that another directory service assigned to it before a migration, and that client applications still hold.
 
+The control marks the whole request a synchronization operation, so it turns off more than the `NO-USER-MODIFICATION` refusal. Nothing the request carries is checked against the schema, and no value is checked against the syntax of its attribute: a mistyped `entryUUID` is stored as it is given and the request still returns success. The pre-operation plugins do not run either - attribute uniqueness and referential integrity are not enforced, and `modifiersName` and `modifyTimestamp` keep the values they had, so the entry does not record that it was repaired. Neither does password policy handling run: a `userPassword` value in such a request is stored as it is given, in the clear, rather than encoded. Put nothing but the repair in the request.
+
 [#repair-entry-uuid]
 .To Set the Entry UUID of an Entry
 ====
@@ -2006,7 +2008,7 @@ $ ldapmodify \
  --port 1389 \
  --bindDN "cn=Directory Manager" \
  --bindPassword password \
- --control 1.3.6.1.4.1.26027.1.5.2
+ --control "1.3.6.1.4.1.26027.1.5.2:false"
 dn: cn=My Group,ou=Groups,dc=example,dc=com
 changetype: modify
 replace: entryUUID
@@ -2016,7 +2018,7 @@ Processing MODIFY request for cn=My Group,ou=Groups,dc=example,dc=com
 MODIFY operation successful for DN cn=My Group,ou=Groups,dc=example,dc=com
 ----
 +
-Send the control as not critical, which is what `--control` does unless told otherwise: the backend refuses a critical control it does not know before the replication plugin takes the control off the request.
+Send the control as not critical, which is what `--control` does unless told otherwise: on a modify the backend refuses a critical control it does not know before the replication plugin takes the control off the request, and the request fails with result code 12 (`Unavailable Critical Extension`).
 
 . Check that every replica now returns the same value:
 +
@@ -2041,6 +2043,8 @@ entryUUID: 3d2a6b4c-7f1e-4c62-9a0d-5e8b2c1f4a77
 [WARNING]
 ======
 A repair that reaches some replicas and not others leaves the topology inconsistent. A replica initialized from one that was not repaired takes the old values with it, and when replication later resolves a conflict on the entry by its `entryUUID`, the replicas no longer agree on which entry that is.
+
+Until every replica carries the repaired value, a change made to the entry on one side of the difference is also discarded on the other, in either direction: the replayed change names the entry by the `entryUUID` of the replica it came from, the receiving replica finds no entry with that value, and the change is dropped without an error-log record - only the `resolved-naming-conflicts` monitor attribute moves. A modify is lost this way, and so is a delete: the entry stays on the replicas the deletion did not reach. This is why the repair of each replica is a step of the same procedure, run while nothing else changes the entry.
 ======
 
 Once the replicas agree again, the entry replicates as any other: a change to it is published with the repaired `entryUUID`, and no reinitialization is needed.

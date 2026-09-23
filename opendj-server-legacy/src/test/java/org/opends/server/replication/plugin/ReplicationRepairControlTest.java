@@ -27,7 +27,10 @@ import static org.testng.Assert.assertEquals;
 
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
@@ -64,12 +67,23 @@ import com.forgerock.opendj.ldap.tools.LDAPModify;
 public class ReplicationRepairControlTest extends ReplicationTestCase
 {
   private static final String REPAIRED_DN = "cn=repair me," + TEST_ROOT_DN_STRING;
+  private static final String HISTORY = "ds-sync-hist";
+  /**
+   * The values the repair gives the entry - not the ones {@link #testRepairControl()} gives to
+   * an entry of its own: two entries under one {@code entryUUID} is the corruption this control
+   * can cause, and a case reading by UUID would then pick either of them.
+   */
+  private static final String REPAIRED_UUID = "3d2a6b4c-7f1e-4c62-9a0d-5e8b2c1f4a77";
+  private static final String REPAIRED_NS_UNIQUE_ID = "3d2a6b4c-7f1e4c62-9a0d5e8b-2c1f4a77";
   /**
    * The record the error logger writes carries the id of the message rather than its text, so
-   * what is looked for here does not depend on the locale the tests run under.
+   * what is looked for here does not depend on the locale the tests run under. The publishers
+   * on {@link TestCaseUtils#ERROR_TEXT_WRITER} write the plain ordinal, which the trailing
+   * space - the record always has {@code msg=} after the id - keeps from matching the
+   * ordinals of other messages which begin with the same digits.
    */
   private static final String NOT_IN_PENDING =
-      "msgID=" + ERR_OPERATION_NOT_FOUND_IN_PENDING.get("", "").ordinal();
+      "msgID=" + ERR_OPERATION_NOT_FOUND_IN_PENDING.get("", "").ordinal() + " ";
 
   private ReplicationBroker broker;
   private LDAPConnectionFactory factory;
@@ -234,14 +248,12 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
         "cn: repair me");
     assertThat(nextUpdate()).as("the add of the entry to repair was not published").isNotNull();
 
-    final String repairedUUID = "d5b910d8-47cb-4ac0-9e5f-0f4a77de58d4";
-    final String repairedNsUniqueId = "d5b910d8-47cb4ac0-9e5f0f4a-77de58d4";
-    assertThat(attributeOfRepairedEntry("entryUUID")).isNotNull().isNotEqualTo(repairedUUID);
+    assertThat(attributeOfRepairedEntry("entryUUID")).isNotNull().isNotEqualTo(REPAIRED_UUID);
 
     // Without the control, entryUUID is NO-USER-MODIFICATION for an administrator too.
     try
     {
-      connection.modify(repairRequest(false, repairedUUID, repairedNsUniqueId));
+      connection.modify(repairRequest(false));
       throw new AssertionError("entryUUID was modified without the repair control");
     }
     catch (LdapException e)
@@ -249,17 +261,56 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
       assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CONSTRAINT_VIOLATION);
     }
 
-    TestCaseUtils.ERROR_TEXT_WRITER.clear();
-    connection.modify(repairRequest(true, repairedUUID, repairedNsUniqueId));
+    // The add of the entry was a replicated change, so the entry carries a history already:
+    // what the repair must leave alone is something rather than nothing.
+    final Set<String> historyBeforeTheRepair = valuesOfRepairedEntry(HISTORY);
+    assertThat(historyBeforeTheRepair).as("the entry to repair carries no history").isNotEmpty();
 
-    assertThat(attributeOfRepairedEntry("entryUUID")).isEqualTo(repairedUUID);
-    assertThat(attributeOfRepairedEntry("nsUniqueId")).isEqualTo(repairedNsUniqueId);
+    TestCaseUtils.ERROR_TEXT_WRITER.clear();
+    try
+    {
+      connection.modify(repairRequest(true));
+    }
+    finally
+    {
+      // Read the history back on every road out of the modify, including the ones where it
+      // failed: the entry keeps the history it had, and a repair which ends badly must not
+      // have left a record of itself there either.
+      assertThat(valuesOfRepairedEntry(HISTORY))
+          .as("the repair was recorded in the history of the entry")
+          .isEqualTo(historyBeforeTheRepair);
+    }
+
+    assertThat(attributeOfRepairedEntry("entryUUID")).isEqualTo(REPAIRED_UUID);
+    assertThat(attributeOfRepairedEntry("nsUniqueId")).isEqualTo(REPAIRED_NS_UNIQUE_ID);
     assertThat(nextUpdate()).as("the repair was published to the topology").isNull();
     // The change is not a replayed one either: replication is not left looking for it among
     // the changes it was replaying.
     final List<String> records = new ArrayList<>(TestCaseUtils.ERROR_TEXT_WRITER.getMessages());
     assertThat(records).as("the repair was reported as a change missing from the pending list")
         .noneMatch(record -> record.contains(NOT_IN_PENDING));
+  }
+
+  /**
+   * The procedure has the control sent as not critical, and on a modify it has to be: the
+   * backend refuses a critical control it does not know, and it does so before the replication
+   * plugin takes the control off the request.
+   */
+  @Test(dependsOnMethods = "aRepairedModifySetsTheEntryUUIDOnThisReplicaOnly")
+  public void aCriticalRepairControlIsRefusedOnAModify() throws Exception
+  {
+    final ModifyRequest critical = Requests.newModifyRequest(REPAIRED_DN)
+        .addModification(ModificationType.REPLACE, "entryUUID", REPAIRED_UUID)
+        .addControl(GenericControl.newControl(OID_REPLICATION_REPAIR_CONTROL, true));
+    try
+    {
+      connection.modify(critical);
+      throw new AssertionError("a critical repair control was accepted on a modify");
+    }
+    catch (LdapException e)
+    {
+      assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
+    }
   }
 
   /** A repaired entry goes on replicating as any other, under its repaired entryUUID. */
@@ -274,11 +325,11 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
     assertThat(published.getEntryUUID()).isEqualTo(attributeOfRepairedEntry("entryUUID"));
   }
 
-  private static ModifyRequest repairRequest(boolean withRepairControl, String entryUUID, String nsUniqueId)
+  private static ModifyRequest repairRequest(boolean withRepairControl)
   {
     final ModifyRequest request = Requests.newModifyRequest(REPAIRED_DN)
-        .addModification(ModificationType.REPLACE, "entryUUID", entryUUID)
-        .addModification(ModificationType.REPLACE, "nsUniqueId", nsUniqueId);
+        .addModification(ModificationType.REPLACE, "entryUUID", REPAIRED_UUID)
+        .addModification(ModificationType.REPLACE, "nsUniqueId", REPAIRED_NS_UNIQUE_ID);
     if (withRepairControl)
     {
       // Not critical: the control is taken off the request by the replication plugin, which
@@ -290,10 +341,23 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
 
   private String attributeOfRepairedEntry(String attribute) throws Exception
   {
+    final Set<String> values = valuesOfRepairedEntry(attribute);
+    return values.isEmpty() ? null : values.iterator().next();
+  }
+
+  /**
+   * The attribute is asked for by name as well as by {@code *} and {@code +}: an operational
+   * attribute is not always among the ones those two stand for, and a read which came back
+   * empty would leave the assertions on it comparing nothing with nothing.
+   */
+  private Set<String> valuesOfRepairedEntry(String attribute) throws Exception
+  {
     final SearchResultEntry entry = connection.searchSingleEntry(
         Requests.newSearchRequest(REPAIRED_DN, SearchScope.BASE_OBJECT, "(objectClass=*)")
-            .addAttribute("*", "+"));
-    return entry.containsAttribute(attribute) ? entry.parseAttribute(attribute).asString() : null;
+            .addAttribute("*", "+", attribute));
+    return entry.containsAttribute(attribute)
+        ? new HashSet<>(entry.parseAttribute(attribute).asSetOfString())
+        : Collections.<String> emptySet();
   }
 
   /**
