@@ -137,6 +137,8 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   private static final String JOURNAL_NAME = VOLUME_NAME + "_journal";
   /** The buffer / page size used by the PersistIt storage. */
   private static final int BUFFER_SIZE = 16 * 1024;
+  /** Encoded by {@link #bytesToValue(Value, ByteSequence)} for the header Persistit puts before a byte array. */
+  private static final byte[] EMPTY_BYTES = new byte[0];
 
   /** PersistIt implementation of the {@link Cursor} interface. */
   private final class CursorImpl implements Cursor<ByteString, ByteString>
@@ -1530,9 +1532,21 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     return key.clear().appendByteArray(tmp, 0, tmp.length);
   }
 
+  /**
+   * Encodes the bytes as a byte array value, copying them once, straight into the encoded bytes of the value.
+   * {@code putByteArray(bytes.toByteArray())} would copy them twice, and for a value of 63 MB the extra copy is
+   * one more humongous array live next to the source and the value buffer. Persistit encodes a byte array as a
+   * header followed by the bytes as they are, so the header is taken from Persistit itself - by encoding an empty
+   * array - and the bytes are appended behind it.
+   */
   private static Value bytesToValue(final Value value, final ByteSequence bytes)
   {
-    value.clear().putByteArray(bytes.toByteArray());
+    value.clear().putByteArray(EMPTY_BYTES);
+    final int headerSize = value.getEncodedSize();
+    value.ensureFit(bytes.length());
+    // ensureFit() may have replaced the encoded bytes, so they are read only after it
+    bytes.copyTo(value.getEncodedBytes(), headerSize);
+    value.setEncodedSize(headerSize + bytes.length());
     return value;
   }
 

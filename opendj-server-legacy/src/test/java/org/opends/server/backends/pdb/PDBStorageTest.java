@@ -32,6 +32,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
@@ -64,6 +65,8 @@ public class PDBStorageTest extends DirectoryServerTestCase
   private static final long SHORT_RETRY_WINDOW_NANOS = 200L * 1000L * 1000L; //200 ms
   /** An attempt long enough to outlast {@link #SHORT_RETRY_WINDOW_NANOS} on its own, in milliseconds. */
   private static final long ATTEMPT_LONGER_THAN_SHORT_WINDOW_MS = 300;
+  /** The buffer pool {@link #testCanAddLargeValues()} writes through, well under the 20% of the other methods. */
+  private static final long LARGE_VALUES_DB_CACHE_SIZE = 16L * MB;
 
   private final TreeName treeName = new TreeName("dc=test", "test");
   private ServerContext serverContext;
@@ -150,16 +153,22 @@ public class PDBStorageTest extends DirectoryServerTestCase
   }
 
   /**
-   * The sources are wrapped rather than copied: a value on its way into Persistit is copied twice more -
-   * {@code toByteArray()} and the value buffer of the exchange, which doubles up to 64 MB - so with a copy
-   * here as well the 63 MB value had four copies of itself live at once, on top of the buffer pool and the
-   * server: about 310 MB left after a collection, in a JVM of 512 MB, which one CI leg ran out of. Wrapped,
-   * about 165 MB. The three values stay in one transaction on purpose: the value buffer the 32 MB one
-   * grew fits the 63 MB one without growing again.
+   * The sources are wrapped rather than copied, and the storage is reopened with a buffer pool of
+   * {@link #LARGE_VALUES_DB_CACHE_SIZE}: in a JVM of 512 MB each 63 MB array needs a free run of 64 regions,
+   * and two CI legs ran out of one. A value on its way into Persistit is copied once more, into the value buffer
+   * of the exchange, which doubles up to 64 MB; the 20% cache of the other methods would add 76 MB of buffers
+   * which this test never fills. The three values stay in one transaction on purpose: the value buffer the
+   * 32 MB one grew fits the 63 MB one without growing again.
    */
   @Test
   public void testCanAddLargeValues() throws Exception
   {
+    closeAndRemove(storage);
+    final PDBBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBCacheSize()).thenReturn(LARGE_VALUES_DB_CACHE_SIZE);
+    storage = new PDBStorage(cfg, serverContext);
+    storage.open(AccessMode.READ_WRITE);
+
     storage.write(new WriteOperation()
     {
       private final TreeName treeName = new TreeName("dc=test", "test");
@@ -174,6 +183,43 @@ public class PDBStorageTest extends DirectoryServerTestCase
         txn.put(treeName, valueOfUtf8("64mb"), wrap(new byte[63 * MB]));
       }
     });
+  }
+
+  /**
+   * A value is copied straight into the encoded bytes of the Persistit value, behind the header Persistit
+   * writes for a byte array: each of these reads back as it was written - an empty one, one which starts past
+   * the offset of the array behind it, one which is not a {@link ByteString} at all, and one which outgrows the
+   * encoded bytes the value had, so that it is copied into the ones {@code ensureFit()} put in their place.
+   */
+  @Test
+  public void testValuesReadBackAsWritten() throws Exception
+  {
+    final ByteString empty = ByteString.empty();
+    final ByteString inTheMiddle = wrap(new byte[] { 9, 1, 2, 3, 9 }, 1, 3);
+    final ByteStringBuilder builder = new ByteStringBuilder().appendUtf8("built");
+    final byte[] patterned = new byte[64 * KB];
+    for (int i = 0; i < patterned.length; i++)
+    {
+      patterned[i] = (byte) i;
+    }
+    final ByteString large = wrap(patterned);
+    createTree();
+    storage.write(new WriteOperation()
+    {
+      @Override
+      public void run(WriteableTransaction txn) throws Exception
+      {
+        txn.put(treeName, valueOfUtf8("empty"), empty);
+        txn.put(treeName, valueOfUtf8("inTheMiddle"), inTheMiddle);
+        txn.put(treeName, valueOfUtf8("builder"), builder);
+        txn.put(treeName, valueOfUtf8("large"), large);
+      }
+    });
+
+    assertThat(read("empty")).isEqualTo(empty);
+    assertThat(read("inTheMiddle")).isEqualTo(valueOfBytes(new byte[] { 1, 2, 3 }));
+    assertThat(read("builder")).isEqualTo(valueOfUtf8("built"));
+    assertThat(read("large")).isEqualTo(large);
   }
 
   @Test
