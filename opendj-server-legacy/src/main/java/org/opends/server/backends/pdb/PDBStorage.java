@@ -1009,6 +1009,16 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   private DiskSpaceMonitor diskMonitor;
   private PDBMonitor monitor;
   private MemoryQuota memQuota;
+  /**
+   * The cache size of the configuration this storage opened with, in bytes - what the buffer pool was
+   * built to and the memory quota was asked for - and of it, what the quota granted, which is what
+   * {@link #close()} gives back. Both are zero while the storage is closed. Neither is read from
+   * {@link #config} again: a configuration change replaces that while the pool and the reservation
+   * stay as the open made them, so a release computed from it would give back a size that was never
+   * taken.
+   */
+  private long configuredCacheSize;
+  private long reservedCacheSize;
   private StorageStatus storageStatus = StorageStatus.working();
   /** Attempt bound of a {@link WriteableStorageImpl#write}, {@link #MAX_RETRIES} outside the tests. */
   private final int maxRetries;
@@ -1084,16 +1094,11 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
     diskMonitor = serverContext.getDiskSpaceMonitor();
     memQuota = serverContext.getMemoryQuota();
-    if (config.getDBCacheSize() > 0)
-    {
-      bufferPoolCfg.setMaximumMemory(config.getDBCacheSize());
-      memQuota.acquireMemory(config.getDBCacheSize());
-    }
-    else
-    {
-      bufferPoolCfg.setMaximumMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
-      memQuota.acquireMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
-    }
+    configuredCacheSize = computeSize(config);
+    bufferPoolCfg.setMaximumMemory(configuredCacheSize);
+    // A reservation the quota refuses - its budget spent by the other backends, which an open at
+    // startup is not checked against - is nothing to give back: the open goes ahead without it.
+    reservedCacheSize = memQuota.acquireMemory(configuredCacheSize) ? configuredCacheSize : 0;
     commitPolicy = config.isDBTxnNoSync() ? SOFT : GROUP;
     dbCfg.setJmxEnabled(false);
     return dbCfg;
@@ -1127,14 +1132,11 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       // backend be admitted while this one's cache is still resident.
       if (memQuota != null)
       {
-        if (config.getDBCacheSize() > 0)
-        {
-          memQuota.releaseMemory(config.getDBCacheSize());
-        }
-        else
-        {
-          memQuota.releaseMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
-        }
+        // What the open reserved, not what the configuration says by now: a cache size changed
+        // while the storage was open is applied by the next open, which reserves it then.
+        memQuota.releaseMemory(reservedCacheSize);
+        reservedCacheSize = 0;
+        configuredCacheSize = 0;
         // Released once: what an open takes, the next open takes again, and a close which follows
         // a close - BackendImpl.importLDIF closes the storage of its root container however the
         // import ended, on top of the close the import itself made - releases nothing more.
@@ -1547,15 +1549,23 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   public boolean isConfigurationChangeAcceptable(PDBBackendCfg newCfg,
       List<LocalizableMessage> unacceptableReasons)
   {
-    long newSize = computeSize(newCfg);
-    long oldSize = computeSize(config);
-    return (newSize <= oldSize || memQuota.isMemoryAvailable(newSize - oldSize))
+    // A size which does not grow past the one configured asks the quota for nothing, as before: every
+    // change of the backend entry comes here, the disable of an online import included, and after an
+    // open the quota refused this storage holds nothing to measure such a change against. A growth is
+    // measured against what this storage holds, which is what the next open adds to - not against
+    // config, which a change admitted but not yet applied has already moved to the new size.
+    final long newSize = computeSize(newCfg);
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    return (newSize <= Math.max(reservedCacheSize, computeSize(config))
+            || quota.isMemoryAvailable(newSize - reservedCacheSize))
         && checkConfigurationDirectories(newCfg, unacceptableReasons);
   }
 
   private long computeSize(PDBBackendCfg cfg)
   {
-    return cfg.getDBCacheSize() > 0 ? cfg.getDBCacheSize() : memQuota.memPercentToBytes(cfg.getDBCachePercent());
+    return cfg.getDBCacheSize() > 0
+        ? cfg.getDBCacheSize()
+        : serverContext.getMemoryQuota().memPercentToBytes(cfg.getDBCachePercent());
   }
 
   /**
@@ -1639,6 +1649,16 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         {
           return ccr;
         }
+      }
+      final long newCacheSize = computeSize(cfg);
+      if (db != null && newCacheSize != configuredCacheSize)
+      {
+        // The buffer pool is sized when the database opens and PersistIt has no way to resize it: the
+        // next open of the backend builds it to the new size and reserves that, and until then the
+        // reservation stays with the pool it was made for.
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(
+            NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART.get(cfg.getBackendId(), configuredCacheSize, newCacheSize));
       }
       registerMonitoredDirectory(cfg);
       config = cfg;
