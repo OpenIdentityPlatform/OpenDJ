@@ -110,8 +110,19 @@ public class LocalBackendAddOperation
   private Map<AttributeType, List<Attribute>> operationalAttributes;
   /** The set of user attributes for the entry to add. */
   private Map<AttributeType, List<Attribute>> userAttributes;
-  /** Indicates whether the request included the RelaxRules request control. */
-  private boolean RelaxRulesControlRequested=false;
+  /**
+   * Indicates whether the rules are relaxed on this change: the request included the Relax Rules
+   * request control, and the client has the {@code bypass-acl} privilege.
+   * <p>
+   * The checks of the attributes and of the schema run before the request controls are
+   * processed, so this is decided up front, from the request as it came and from the
+   * authentication identity of the client. Once the controls are processed,
+   * {@link #relaxedRulesStillHold()} verifies it against the identity the request runs as.
+   *
+   * @see LocalBackendWorkflowElement#isRelaxRulesRequested(org.opends.server.types.operation.PluginOperation)
+   */
+  private final boolean relaxRules;
+
   /**
    * Creates a new operation that may be used to add a new entry in a
    * local backend of the Directory Server.
@@ -123,11 +134,28 @@ public class LocalBackendAddOperation
     super(add);
 
     LocalBackendWorkflowElement.attachLocalOperation (add, this);
+    relaxRules = LocalBackendWorkflowElement.isRelaxRulesRequested(this)
+        && getClientConnection().hasPrivilege(Privilege.BYPASS_ACL, this);
   }
 
-  @Override
-  public boolean isSynchronizationOperation() {
-    return super.isSynchronizationOperation()||RelaxRulesControlRequested;
+  /**
+   * Indicates whether the request may go on as far as the Relax Rules control is concerned, once
+   * the request controls the client may not use are removed and the proxied authorization, if
+   * any, is applied.
+   * <p>
+   * A control still there needs the {@code bypass-acl} privilege of the identity the request
+   * runs as, which may not be the one {@link #relaxRules} was decided for. A control which is
+   * gone after the rules were relaxed on the checks already run cannot leave them relaxed. A
+   * control which is gone and relaxed nothing leaves an ordinary request.
+   */
+  private boolean relaxedRulesStillHold()
+  {
+    final boolean controlKept = LocalBackendWorkflowElement.isRelaxRulesRequested(this);
+    if (controlKept)
+    {
+      return getClientConnection().hasPrivilege(Privilege.BYPASS_ACL, this);
+    }
+    return !relaxRules;
   }
 
 
@@ -382,10 +410,11 @@ public class LocalBackendAddOperation
       }
 
       // If the server is configured to check schema and the
-      // operation is not a synchronization operation,
-      // check to see if the entry is valid according to the server schema,
-      // and also whether its attributes are valid according to their syntax.
-      if (DirectoryServer.getCoreConfigManager().isCheckSchema() && !isSynchronizationOperation())
+      // operation is not a synchronization operation nor one whose rules the
+      // client asked to relax, check to see if the entry is valid according to
+      // the server schema, and also whether its attributes are valid according
+      // to their syntax.
+      if (DirectoryServer.getCoreConfigManager().isCheckSchema() && !isSynchronizationOperation() && !relaxRules)
       {
         checkSchema(parentEntry);
       }
@@ -413,7 +442,7 @@ public class LocalBackendAddOperation
       // sensitive information to the client.
       try
       {
-        if (!getAccessControlHandler().isAllowed(this) || (RelaxRulesControlRequested && !clientConnection.hasPrivilege(Privilege.BYPASS_ACL, this)))
+        if (!getAccessControlHandler().isAllowed(this) || !relaxedRulesStillHold())
         {
           setResultCodeAndMessageNoInfoDisclosure(entryDN,
               ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -530,7 +559,8 @@ public class LocalBackendAddOperation
     {
       if (at.isNoUserModification()
           && !isInternalOperation()
-          && !isSynchronizationOperation())
+          && !isSynchronizationOperation()
+          && !relaxRules)
       {
         setResultCodeAndMessageNoInfoDisclosure(entryDN,
             ResultCode.CONSTRAINT_VIOLATION,
@@ -698,7 +728,8 @@ public class LocalBackendAddOperation
           : UserPasswordSyntax.isEncoded(value);
       if (isPreEncoded)
       {
-        if (isInternalOperation() || passwordPolicy.isAllowPreEncodedPasswords())
+        // A client relaxing the rules may bring a password encoded elsewhere, e.g. to migrate it.
+        if (isInternalOperation() || passwordPolicy.isAllowPreEncodedPasswords() || relaxRules)
         {
           builder.add(value);
           continue;
@@ -761,10 +792,15 @@ public class LocalBackendAddOperation
     entry.replaceAttribute(builder.toAttribute());
 
 
-    // Set the password changed time attribute.
+    // Set the password changed time attribute, unless a client relaxing the
+    // rules supplies the time the password was changed at.
     Attribute changedTime = Attributes.create(
         OP_ATTR_PWPOLICY_CHANGED_TIME, TimeThread.getGeneralizedTime());
-    entry.putAttribute(changedTime.getAttributeDescription().getAttributeType(), newArrayList(changedTime));
+    AttributeType changedTimeType = changedTime.getAttributeDescription().getAttributeType();
+    if (!relaxRules || !entry.hasAttribute(changedTimeType))
+    {
+      entry.putAttribute(changedTimeType, newArrayList(changedTime));
+    }
 
 
     // If we should force change on add, then set the appropriate flag.
@@ -976,7 +1012,7 @@ public class LocalBackendAddOperation
       }
       else if (RelaxRulesControl.OID.equals(oid))
       {
-        RelaxRulesControlRequested = true;
+        // Already taken into account: see relaxRules.
       }
       else if (TransactionSpecificationRequestControl.OID.equals(oid))
       {

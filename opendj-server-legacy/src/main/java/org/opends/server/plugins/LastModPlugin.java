@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.plugins;
 
@@ -32,6 +33,7 @@ import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.meta.PluginCfgDefn;
 import org.forgerock.opendj.server.config.server.LastModPluginCfg;
 import org.forgerock.opendj.server.config.server.PluginCfg;
@@ -47,6 +49,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
+import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 
 /**
  * This class implements a Directory Server plugin that will add the
@@ -117,25 +120,31 @@ public final class LastModPlugin
                doPreOperation(PreOperationAddOperation addOperation)
   {
     // Create the attribute list for the creatorsName attribute, if appropriate.
-    AttributeBuilder builder = new AttributeBuilder(getCreatorsNameAttributeType());
-    DN creatorDN = addOperation.getAuthorizationDN();
-    if (creatorDN == null)
+    if (!isSuppliedUnderRelaxRules(addOperation, getCreatorsNameAttributeType()))
     {
-      // This must mean that the operation was performed anonymously.
-      // Even so, we still need to update the creatorsName attribute.
-      builder.add(ByteString.empty());
+      AttributeBuilder builder = new AttributeBuilder(getCreatorsNameAttributeType());
+      DN creatorDN = addOperation.getAuthorizationDN();
+      if (creatorDN == null)
+      {
+        // This must mean that the operation was performed anonymously.
+        // Even so, we still need to update the creatorsName attribute.
+        builder.add(ByteString.empty());
+      }
+      else
+      {
+        builder.add(creatorDN.toString());
+      }
+      addOperation.setAttribute(getCreatorsNameAttributeType(), builder.toAttributeList());
     }
-    else
-    {
-      builder.add(creatorDN.toString());
-    }
-    addOperation.setAttribute(getCreatorsNameAttributeType(), builder.toAttributeList());
 
 
     //  Create the attribute list for the createTimestamp attribute.
-    List<Attribute> timeList = Attributes.createAsList(
-        getCreateTimestampAttributeType(), OP_ATTR_CREATE_TIMESTAMP, getGMTTime());
-    addOperation.setAttribute(getCreateTimestampAttributeType(), timeList);
+    if (!isSuppliedUnderRelaxRules(addOperation, getCreateTimestampAttributeType()))
+    {
+      List<Attribute> timeList = Attributes.createAsList(
+          getCreateTimestampAttributeType(), OP_ATTR_CREATE_TIMESTAMP, getGMTTime());
+      addOperation.setAttribute(getCreateTimestampAttributeType(), timeList);
+    }
 
     // We shouldn't ever need to return a non-success result.
     return PluginResult.PreOperation.continueOperationProcessing();
@@ -148,54 +157,90 @@ public final class LastModPlugin
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {
     // Create the modifiersName attribute.
-    AttributeBuilder builder = new AttributeBuilder(getModifiersNameAttributeType());
-    DN modifierDN = modifyOperation.getAuthorizationDN();
-    if (modifierDN == null)
+    if (!isSuppliedUnderRelaxRules(modifyOperation, getModifiersNameAttributeType()))
     {
-      // This must mean that the operation was performed anonymously.
-      // Even so, we still need to update the modifiersName attribute.
-      builder.add(ByteString.empty());
-    }
-    else
-    {
-      builder.add(modifierDN.toString());
-    }
-    Attribute nameAttr = builder.toAttribute();
-    try
-    {
-      modifyOperation.addModification(new Modification(ModificationType.REPLACE,
-                                                       nameAttr, true));
-    }
-    catch (DirectoryException de)
-    {
-      logger.traceException(de);
+      AttributeBuilder builder = new AttributeBuilder(getModifiersNameAttributeType());
+      DN modifierDN = modifyOperation.getAuthorizationDN();
+      if (modifierDN == null)
+      {
+        // This must mean that the operation was performed anonymously.
+        // Even so, we still need to update the modifiersName attribute.
+        builder.add(ByteString.empty());
+      }
+      else
+      {
+        builder.add(modifierDN.toString());
+      }
+      Attribute nameAttr = builder.toAttribute();
+      try
+      {
+        modifyOperation.addModification(new Modification(ModificationType.REPLACE,
+                                                         nameAttr, true));
+      }
+      catch (DirectoryException de)
+      {
+        logger.traceException(de);
 
-      // This should never happen.
-      return PluginResult.PreOperation.stopProcessing(
-          DirectoryConfig.getServerErrorResultCode(), de.getMessageObject());
+        // This should never happen.
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryConfig.getServerErrorResultCode(), de.getMessageObject());
+      }
     }
 
 
     //  Create the modifyTimestamp attribute.
-    Attribute timeAttr = Attributes.create(getModifyTimestampAttributeType(),
-        OP_ATTR_MODIFY_TIMESTAMP, getGMTTime());
-    try
+    if (!isSuppliedUnderRelaxRules(modifyOperation, getModifyTimestampAttributeType()))
     {
-      modifyOperation.addModification(new Modification(ModificationType.REPLACE,
-                                                       timeAttr, true));
-    }
-    catch (DirectoryException de)
-    {
-      logger.traceException(de);
+      Attribute timeAttr = Attributes.create(getModifyTimestampAttributeType(),
+          OP_ATTR_MODIFY_TIMESTAMP, getGMTTime());
+      try
+      {
+        modifyOperation.addModification(new Modification(ModificationType.REPLACE,
+                                                         timeAttr, true));
+      }
+      catch (DirectoryException de)
+      {
+        logger.traceException(de);
 
-      // This should never happen.
-      return PluginResult.PreOperation.stopProcessing(
-          DirectoryConfig.getServerErrorResultCode(), de.getMessageObject());
+        // This should never happen.
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryConfig.getServerErrorResultCode(), de.getMessageObject());
+      }
     }
 
 
     // We shouldn't ever need to return a non-success result.
     return PluginResult.PreOperation.continueOperationProcessing();
+  }
+
+  /**
+   * Indicates whether a client relaxing the rules supplies the provided attribute in the entry it
+   * adds: such a value is kept, the way it is kept when the change is replayed on another replica.
+   */
+  private static boolean isSuppliedUnderRelaxRules(PreOperationAddOperation addOperation, AttributeType type)
+  {
+    return LocalBackendWorkflowElement.isRelaxRulesRequested(addOperation)
+        && addOperation.getOperationalAttributes().containsKey(type);
+  }
+
+  /**
+   * Indicates whether a client relaxing the rules modifies the provided attribute: such a value is
+   * kept, the way it is kept when the change is replayed on another replica.
+   */
+  private static boolean isSuppliedUnderRelaxRules(PreOperationModifyOperation modifyOperation, AttributeType type)
+  {
+    if (!LocalBackendWorkflowElement.isRelaxRulesRequested(modifyOperation))
+    {
+      return false;
+    }
+    for (Modification m : modifyOperation.getModifications())
+    {
+      if (m.getAttribute().getAttributeDescription().getAttributeType().equals(type))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
 

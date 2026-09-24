@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -288,11 +289,13 @@ public class AddOperationBasis
           AttributeType attrType = attrDesc.getAttributeType();
 
           // If the attribute type is marked "NO-USER-MODIFICATION" then fail
-          // unless this is an internal operation or is related to
-          // synchronization in some way.
+          // unless this is an internal operation, is related to
+          // synchronization in some way, or the client asked for the rules
+          // to be relaxed.
           if (attrType.isNoUserModification()
               && !isInternalOperation()
-              && !isSynchronizationOperation())
+              && !isSynchronizationOperation()
+              && !isRelaxRulesRequested(this))
           {
             throw new LDAPException(LDAPResultCode.UNWILLING_TO_PERFORM,
                 ERR_ADD_ATTR_IS_NO_USER_MOD.get(entryDN, attrDesc));

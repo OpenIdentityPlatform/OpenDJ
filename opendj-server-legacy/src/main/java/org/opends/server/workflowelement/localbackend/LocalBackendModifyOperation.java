@@ -126,8 +126,17 @@ public class LocalBackendModifyOperation
   private boolean permissiveModify;
   /** Indicates whether the request included the password policy request control. */
   private boolean pwPolicyControlRequested;
-  /** Indicates whether the request included the RelaxRules request control. */
-  private boolean RelaxRulesControlRequested=false;
+  /**
+   * Indicates whether the request included the Relax Rules request control, and the client
+   * may use it.
+   * <p>
+   * It is set once the request controls the client may not use are removed, before any check
+   * it relaxes runs; {@link #operationIsAllowed()} then requires the {@code bypass-acl}
+   * privilege of the identity the request runs as.
+   *
+   * @see LocalBackendWorkflowElement#isRelaxRulesRequested(org.opends.server.types.operation.PluginOperation)
+   */
+  private boolean relaxRules;
   /** The post-read request control, if present. */
   private LDAPPostReadRequestControl postReadRequest;
   /** The pre-read request control, if present. */
@@ -166,11 +175,6 @@ public class LocalBackendModifyOperation
   {
     super(modify);
     LocalBackendWorkflowElement.attachLocalOperation (modify, this);
-  }
-
-  @Override
-  public boolean isSynchronizationOperation() {
-    return super.isSynchronizationOperation()||RelaxRulesControlRequested;
   }
 
   /**
@@ -540,7 +544,7 @@ public class LocalBackendModifyOperation
   {
     try
     {
-      if (!getAccessControlHandler().isAllowed(this) || (RelaxRulesControlRequested && !clientConnection.hasPrivilege(Privilege.BYPASS_ACL, this)))
+      if (!getAccessControlHandler().isAllowed(this) || (relaxRules && !clientConnection.hasPrivilege(Privilege.BYPASS_ACL, this)))
       {
         setResultCodeAndMessageNoInfoDisclosure(modifiedEntry,
             ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -699,7 +703,7 @@ public class LocalBackendModifyOperation
       }
       else if (RelaxRulesControl.OID.equals(oid))
       {
-        RelaxRulesControlRequested = true;
+        relaxRules = true;
       }
       else if (TransactionSpecificationRequestControl.OID.equals(oid))
       {
@@ -724,9 +728,10 @@ public class LocalBackendModifyOperation
 
 
       // If the attribute type is marked "NO-USER-MODIFICATION" then fail unless
-      // this is an internal operation or is related to synchronization in some way.
-      final boolean isInternalOrSynchro = isInternalOrSynchro(m);
-      if (t.isNoUserModification() && !isInternalOrSynchro)
+      // this is an internal operation, is related to synchronization in some way,
+      // or the client asked for the rules to be relaxed.
+      final boolean constraintsRelaxed = isInternalOrSynchro(m) || relaxRules;
+      if (t.isNoUserModification() && !constraintsRelaxed)
       {
         throw newDirectoryException(currentEntry,
             ResultCode.CONSTRAINT_VIOLATION,
@@ -734,12 +739,12 @@ public class LocalBackendModifyOperation
       }
 
       // If the attribute type is marked "OBSOLETE" and the modification is
-      // setting new values, then fail unless this is an internal operation or
-      // is related to synchronization in some way.
+      // setting new values, then fail unless this is an internal operation,
+      // is related to synchronization in some way, or the rules are relaxed.
       if (t.isObsolete()
           && !a.isEmpty()
           && m.getModificationType() != ModificationType.DELETE
-          && !isInternalOrSynchro)
+          && !constraintsRelaxed)
       {
         throw newDirectoryException(currentEntry,
             ResultCode.CONSTRAINT_VIOLATION,
@@ -768,6 +773,19 @@ public class LocalBackendModifyOperation
   private boolean isInternalOrSynchro(Modification m)
   {
     return isInternalOperation() || m.isInternal() || isSynchronizationOperation();
+  }
+
+  /** Indicates whether a modification of the request is on the provided attribute. */
+  private boolean modifiesAttribute(String attributeName)
+  {
+    for (Modification m : getModifications())
+    {
+      if (m.getAttribute().getAttributeDescription().getAttributeType().hasName(attributeName))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   private boolean isPassword(AttributeType t)
@@ -993,8 +1011,10 @@ public class LocalBackendModifyOperation
     {
       if (pwPolicyState.passwordIsPreEncoded(v))
       {
+        // A client relaxing the rules may bring a password encoded elsewhere, e.g. to migrate it.
         if (!isInternalOperation()
-            && !authPolicy.isAllowPreEncodedPasswords())
+            && !authPolicy.isAllowPreEncodedPasswords()
+            && !relaxRules)
         {
           pwpErrorType = PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
@@ -1201,7 +1221,7 @@ public class LocalBackendModifyOperation
 
   private boolean mustCheckSchema()
   {
-    return !isSynchronizationOperation() && DirectoryServer.getCoreConfigManager().isCheckSchema();
+    return !isSynchronizationOperation() && !relaxRules && DirectoryServer.getCoreConfigManager().isCheckSchema();
   }
 
   /**
@@ -1524,8 +1544,12 @@ public class LocalBackendModifyOperation
     wasLocked = pwPolicyState.isLocked();
 
     // Update the password policy state attributes in the user's entry.  If the
-    // modification fails, then these changes won't be applied.
-    pwPolicyState.setPasswordChangedTime();
+    // modification fails, then these changes won't be applied. A client relaxing
+    // the rules may supply the time the password was changed at.
+    if (!relaxRules || !modifiesAttribute(OP_ATTR_PWPOLICY_CHANGED_TIME))
+    {
+      pwPolicyState.setPasswordChangedTime();
+    }
     pwPolicyState.clearFailureLockout();
     pwPolicyState.clearGraceLoginTimes();
     pwPolicyState.clearWarnedTime();

@@ -27,6 +27,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.controls.RelaxRulesControl;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.controls.LDAPPostReadRequestControl;
@@ -56,6 +57,7 @@ import org.opends.server.types.OperationType;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.WritabilityMode;
+import org.opends.server.types.operation.PluginOperation;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ProtocolMessages.ERR_PROXYAUTH_AUTHZ_NOT_PERMITTED;
@@ -217,6 +219,35 @@ public class LocalBackendWorkflowElement
   static boolean isProxyAuthzControl(String oid)
   {
     return OID_PROXIED_AUTH_V1.equals(oid) || OID_PROXIED_AUTH_V2.equals(oid);
+  }
+
+  /**
+   * Indicates whether the provided operation carries the Relax Rules request control.
+   * <p>
+   * The control relaxes the constraints of the schema on the request - the attributes marked
+   * NO-USER-MODIFICATION or OBSOLETE, and the schema check of the resulting entry - for a
+   * client which has the {@code bypass-acl} privilege, and keeps the values such a client
+   * supplies for the attributes the server maintains (the last modified attributes, a
+   * pre-encoded password and its change time). It does not make the change a synchronization
+   * one: the change is logged, run through the plugins and replicated as any other.
+   * <p>
+   * The method only reads the request controls: before {@code removeAllDisallowedControls} has
+   * run they include a control the client may not use, and whether the client has the privilege
+   * is for the caller to check. By the time the pre-operation plugins run, both are settled.
+   *
+   * @param operation The operation to look at.
+   * @return {@code true} if the request carries the Relax Rules control.
+   */
+  public static boolean isRelaxRulesRequested(PluginOperation operation)
+  {
+    for (Control c : operation.getRequestControls())
+    {
+      if (RelaxRulesControl.OID.equals(c.getOID()))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
