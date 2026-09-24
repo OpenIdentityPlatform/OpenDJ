@@ -30,6 +30,21 @@ without `ADD_BASE_ENTRY` nothing creates the base entry, so `BASE_DN` is an empt
 a healthy container - the health check itself searches the root DSE, which every instance
 serves whatever it was set up to hold.
 
+The health check does not bind as the root user: `ROOT_PASSWORD` is only the initial root
+password, and a probe binding with it would turn the container `unhealthy` once that password
+is changed. It reads the root DSE anonymously instead. An instance that rejects
+unauthenticated requests (`reject-unauthenticated-requests:true`) answers that search with
+`53 (Unwilling to Perform)`; for such an instance set `HEALTHCHECK_BIND_DN` to an account the
+probe may bind as and `HEALTHCHECK_BIND_PASSWORD_FILE` to a file in the container holding its
+password - the probe reads it from there, so it never shows on a command line:
+
+```bash
+docker run -d --name opendj -v /path/to/secrets:/var/secrets/healthcheck:ro \
+  -e HEALTHCHECK_BIND_DN="uid=monitor,ou=people,dc=example,dc=com" \
+  -e HEALTHCHECK_BIND_PASSWORD_FILE=/var/secrets/healthcheck/password \
+  openidentityplatform/opendj
+```
+
 The server answering is not enough on a first start: the bootstrap starts the server, and
 once it is done that server is stopped and started again in the foreground, so a client
 that only waits for the port can have its first requests fail in between. A replica set up
@@ -68,3 +83,5 @@ turning `unhealthy` once the start period is over.
 | BACKEND_TYPE            | je                              | OpenDJ backend type, see [dsconfig create-backend](https://doc.openidentityplatform.org/opendj/reference/dsconfig-subcommands-ref#dsconfig-create-backend) documentation                                                                                |
 | BACKEND_DB_DIRECTORY    | db                              | OpenDJ `db-directory` attribute for backend                                                                                                                                                                                                             |
 | SETUP_ARGS              | -                               | extra setup args                                                                                                                                                                                                                                        |
+| HEALTHCHECK_BIND_DN     | -                               | DN the health check binds as, for an instance that rejects unauthenticated requests; unset, the health check searches the root DSE anonymously |
+| HEALTHCHECK_BIND_PASSWORD_FILE | -                               | file in the container holding the password of `HEALTHCHECK_BIND_DN` |
