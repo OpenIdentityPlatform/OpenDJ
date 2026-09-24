@@ -13,12 +13,17 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
+
+import javax.net.ssl.X509TrustManager;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.server.config.meta.FileBasedTrustManagerProviderCfgDefn;
@@ -30,6 +35,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.opends.server.extensions.FileBasedKeyManagerProviderTestCase.replace;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -278,6 +285,46 @@ public class FileBasedTrustManagerProviderTestCase
     for (StringBuilder sb : e.toLDIF())
     {
       System.err.println(sb.toString());
+    }
+  }
+
+  /**
+   * A trust manager handed out by the provider checks certificates against what the trust
+   * store file holds at the time of the check: a file replaced with other certificates is
+   * loaded again, and a file that cannot be loaded leaves the last certificates loaded in use.
+   */
+  @Test
+  public void testTrustStoreLoadedAgainWhenChanged() throws Exception
+  {
+    final File configDir = new File(DirectoryServer.getInstanceRoot(), "config");
+    final File trustStore = new File(configDir, "reload-test.truststore");
+    replace(trustStore, Files.readAllBytes(new File(configDir, "server.truststore").toPath()));
+
+    FileBasedTrustManagerProvider provider = initializeTrustManagerProvider(TestCaseUtils.makeEntry(
+        "dn: cn=Reloaded Trust Manager Provider,cn=SSL,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-trust-manager-provider",
+        "objectClass: ds-cfg-file-based-trust-manager-provider",
+        "cn: Reloaded Trust Manager Provider",
+        "ds-cfg-java-class: org.opends.server.extensions.FileBasedTrustManagerProvider",
+        "ds-cfg-enabled: true",
+        "ds-cfg-trust-store-file: config/reload-test.truststore",
+        "ds-cfg-trust-store-pin: password"));
+    try
+    {
+      final X509TrustManager trustManager = (X509TrustManager) provider.getTrustManagers()[0];
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
+
+      replace(trustStore, Files.readAllBytes(new File(configDir, "client.truststore").toPath()));
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
+
+      replace(trustStore, "not a trust store".getBytes(StandardCharsets.UTF_8));
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
+    }
+    finally
+    {
+      provider.finalizeTrustManagerProvider();
+      Files.deleteIfExists(trustStore.toPath());
     }
   }
 
