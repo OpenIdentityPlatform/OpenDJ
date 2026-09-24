@@ -789,6 +789,60 @@ At this point you can use OpenDJ directory server, or you can perform additional
 
 ====
 
+[#install-fips]
+.To Install OpenDJ Directory Server on a FIPS 140 Java Runtime
+====
+OpenDJ ships the Bouncy Castle FIPS provider. The `setup` command and the server register it themselves when the server key store is a BCFKS key store (`--useBcfksKeystore`), and the server registers it at start whenever the `org.openidentityplatform.opendj.fips.register` Java system property is `true`, for example through the `OPENDJ_JAVA_ARGS` environment variable. With this provider in its default mode the default configuration works as it is. The approved-only mode of the provider (the `org.bouncycastle.fips.approved_only` Java system property), which OpenDJ does not turn on, is not covered here.
+
+The crypto manager wraps the secret keys it shares with the other servers of a replication topology with each server's public key. The transformation it uses, the `key-wrapping-transformation` property of the crypto manager, is `RSA/ECB/OAEPWITHSHA-1ANDMGF1PADDING` by default: RSA-OAEP, the key transport scheme of NIST SP 800-56B, which Bouncy Castle FIPS provides. A Java runtime whose cryptography comes from a `SunPKCS11` provider alone, such as `SunPKCS11-NSS-FIPS` on a Linux system in FIPS mode, provides no RSA-OAEP at all: its only RSA cipher is `RSA/ECB/PKCS1Padding`, which NIST SP 800-131A Rev. 2 disallows for key transport. On such a runtime the server refuses to start with the default transformation, `setup` says so, and the choice of another one is yours to make: OpenDJ does not make it for you. If you make it, keep in mind that every server of a replication topology must use the same transformation, since each server unwraps what the others wrapped.
+
+. Install the server without starting it:
++
+
+[source, console]
+----
+$ ./setup --cli --doNotStart \
+ --hostname opendj.example.com \
+ --ldapPort 1389 \
+ --adminConnectorPort 4444 \
+ --rootUserDN "cn=Directory Manager" \
+ --rootUserPassword password \
+ --baseDN dc=example,dc=com \
+ --acceptLicense \
+ --no-prompt
+----
+
+. Set the transformation in the server configuration file, which the `dsconfig` command cannot change while the server is stopped:
++
+
+[source, console]
+----
+$ cat changes.ldif
+dn: cn=Crypto Manager,cn=config
+changetype: modify
+replace: ds-cfg-key-wrapping-transformation
+ds-cfg-key-wrapping-transformation: RSA/ECB/PKCS1Padding
+
+$ ldifmodify \
+ --outputLDIF /path/to/opendj/config/config.ldif.new \
+ /path/to/opendj/config/config.ldif \
+ changes.ldif
+
+$ mv /path/to/opendj/config/config.ldif.new /path/to/opendj/config/config.ldif
+----
+
+. Start the server:
++
+
+[source, console]
+----
+$ start-ds
+----
++
+Once the server runs, the `dsconfig set-crypto-manager-prop` command changes the property, and refuses a transformation the runtime does not support.
+
+====
+
 [#pdb-to-je]
 .To Move Data from a PDB Backend to a JE Backend
 ====
@@ -933,7 +987,7 @@ replace: ds-cfg-java-class
 ds-cfg-java-class: org.opends.server.backends.jeb.JEBackend
 EOF
 
-./bin/ldifmodify --targetLDIF "$LOC"/config/config.ldif.$$ --sourceLDIF "$LOC"/config/config.ldif --changesLDIF /tmp/changes_$$
+./bin/ldifmodify --outputLDIF "$LOC"/config/config.ldif.$$ "$LOC"/config/config.ldif /tmp/changes_$$
 if test $? -ne 0
 then
   echo "Modifications failed. Restoring the original configuration"

@@ -392,6 +392,9 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
                         requestedKeyWrappingTransformation));
         isAcceptable = false;
       }
+      else if (!isKeyWrappingTransformationSupported(requestedKeyWrappingTransformation, unacceptableReasons)) {
+        isAcceptable = false;
+      }
       else {
         try {
           /* Note that the TrustStoreBackend not available at initial,
@@ -428,6 +431,29 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
       }
     }
     return isAcceptable;
+  }
+
+  /**
+   * Checks that this Java runtime provides the key wrapping transformation. Only a refusal here
+   * names the key-wrapping-transformation property: the wrap which follows it also needs an MD5
+   * digest and a 1024-bit RSA key, and changing the property does not help when one of those is
+   * what the runtime refuses.
+   */
+  private static boolean isKeyWrappingTransformationSupported(
+      final String transformation, final List<LocalizableMessage> unacceptableReasons)
+  {
+    try
+    {
+      Cipher.getInstance(transformation);
+      return true;
+    }
+    catch (GeneralSecurityException ex)
+    {
+      logger.traceException(ex);
+      unacceptableReasons.add(
+          ERR_CRYPTOMGR_KEY_WRAPPING_TRANSFORMATION_UNSUPPORTED.get(transformation, getExceptionMessage(ex)));
+      return false;
+    }
   }
 
   @Override

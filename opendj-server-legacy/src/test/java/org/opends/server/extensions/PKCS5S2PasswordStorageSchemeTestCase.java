@@ -12,14 +12,24 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
+import java.security.SecureRandom;
+import java.util.concurrent.Callable;
+
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.server.config.meta.PKCS5S2PasswordStorageSchemeCfgDefn;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.opends.server.TestCaseUtils.withoutJceService;
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the PKCS5S2 password storage scheme.
@@ -123,4 +133,71 @@ public class PKCS5S2PasswordStorageSchemeTestCase
     return PKCS5S2PasswordStorageScheme.encodeOffline(plaintextBytes);
   }
 
+  /**
+   * A FIPS-restricted JCE (SunPKCS11-NSS-FIPS, BC-FIPS) registers no {@code SHA1PRNG}: the
+   * scheme has to take the provider's default random source, as the other PBKDF2 schemes do,
+   * instead of failing to initialize and taking the server start down with it.
+   */
+  @Test
+  public void testInitializesAndEncodesWithoutSha1Prng() throws Exception
+  {
+    withoutSha1Prng(() ->
+    {
+      final PasswordStorageScheme<?> scheme = getScheme();
+      final ByteString plaintext = ByteString.valueOfUtf8("correct horse battery staple");
+      assertTrue(scheme.passwordMatches(plaintext, scheme.encodePassword(plaintext)));
+      return null;
+    });
+  }
+
+  /** Same for the offline encoder, which a tool may call before any scheme is initialized. */
+  @Test
+  public void testEncodesOfflineWithoutSha1Prng() throws Exception
+  {
+    withoutSha1Prng(() ->
+    {
+      final ByteString plaintext = ByteString.valueOfUtf8("correct horse battery staple");
+      final String encoded = PKCS5S2PasswordStorageScheme.encodeOffline(plaintext.toByteArray());
+      final String prefix = "{" + getScheme().getStorageSchemeName() + "}";
+      assertTrue(encoded.startsWith(prefix), encoded);
+      assertTrue(getScheme().passwordMatches(plaintext, ByteString.valueOfUtf8(encoded.substring(prefix.length()))));
+      return null;
+    });
+  }
+
+  /**
+   * When the derivation itself is unavailable, the failure has to name the algorithm: a
+   * message-less InitializationException leaves the administrator with a server which does
+   * not start and no word on why.
+   */
+  @Test
+  public void testInitializationFailureNamesTheMissingAlgorithm() throws Exception
+  {
+    withoutJceService("SecretKeyFactory", "PBKDF2WithHmacSHA1", () ->
+    {
+      try
+      {
+        getScheme();
+        fail("initialization succeeded without PBKDF2WithHmacSHA1");
+      }
+      catch (InitializationException e)
+      {
+        assertNotNull(e.getMessageObject(), "the failure carries no message");
+        assertTrue(e.getMessage().contains("for the PBKDF2WithHmacSHA1 algorithm"), e.getMessage());
+      }
+      return null;
+    });
+  }
+
+  /**
+   * Withdraws every provider registering {@code SHA1PRNG} (the SUN provider on a stock JDK),
+   * with BC-FIPS standing in for the digests the derivation still needs from it.
+   */
+  private static void withoutSha1Prng(final Callable<Void> action) throws Exception
+  {
+    final BouncyCastleFipsProvider bcFips = new BouncyCastleFipsProvider();
+    // Seed the provider's DRBG while the JDK's own random source is still installed.
+    SecureRandom.getInstance("DEFAULT", bcFips).nextBytes(new byte[8]);
+    withoutJceService("SecureRandom", "SHA1PRNG", action, bcFips);
+  }
 }

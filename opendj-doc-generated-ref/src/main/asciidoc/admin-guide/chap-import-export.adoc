@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2025 3A Systems LLC.
+  Portions Copyright 2025-2026 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -228,9 +228,9 @@ replace: initials
 initials: AAA
 
 $ ldifmodify \
- --sourceLDIF generated.ldif \
- --changesLDIF changes.ldif \
- --targetLDIF new.ldif
+ --outputLDIF new.ldif \
+ generated.ldif \
+ changes.ldif
 ----
 Notice that the resulting new LDIF file is likely to be about the same size as the source LDIF file.
 
