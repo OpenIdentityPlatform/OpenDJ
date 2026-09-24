@@ -523,17 +523,28 @@ jobs:
         shell: bash
         run: |
           trap 'code=$?; echo "::group::container logs (test)"; docker logs test 2>&1 || true; echo "::endgroup::"; exit $code' ERR
-          docker run --rm -it -d --memory="512m" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
+          docker run -it -d --memory="512m" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test | grep -q \"healthy\"; do sleep 10; done'
           docker exec test 'sh' '-c' '/opt/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll'
           docker exec test 'sh' '-c' '/opt/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example2,dc=com /opt/opendj/data/config/MakeLDIF/example.template'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/stop-ds'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/import-ldif --offline --ldifFile /tmp/test.ldif --backendID=example2'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --offline --bindDN "cn=Directory Manager" --bindPassword password  --baseDN "dc=example2,dc=com" --rebuildAll'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/start-ds'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/import-ldif --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --ldifFile /tmp/test.ldif --backendID=example2 --trustAll'
+          # the server is PID 1 of the container, so stopping it stops the container; the
+          # container that bootstrapped the instance has to stop the server on SIGTERM, not
+          # sit out the timeout and be killed. The server run in the foreground reports its
+          # shutdown only in the error log, which is read once the container is back up
+          stopped=$(docker exec test grep -c "The Directory Server is now stopped" /opt/opendj/data/logs/errors || true)
+          start=$SECONDS
+          docker stop -t 60 test
+          echo "stopped in $((SECONDS - start)) s, exit code $(docker inspect --format='{{.State.ExitCode}}' test)"
+          test $((SECONDS - start)) -lt 50
+          test "$(docker inspect --format='{{.State.ExitCode}}' test)" -ne 137
+          # a restart runs the server of the instance already there
+          docker start test
+          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test | grep -q \"healthy\"; do sleep 10; done'
+          test "$(docker exec test grep -c "The Directory Server is now stopped" /opt/opendj/data/logs/errors)" -gt "$stopped"
+          docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll'
           docker exec test 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000'
-          docker kill test
+          docker rm -f test
       - name: Docker test custom password
         shell: bash
         run: |
@@ -736,17 +747,28 @@ jobs:
         shell: bash
         run: |
           trap 'code=$?; echo "::group::container logs (test)"; docker logs test 2>&1 || true; echo "::endgroup::"; exit $code' ERR
-          docker run --rm -it -d --memory="1g" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
+          docker run -it -d --memory="1g" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test | grep -q \"healthy\"; do sleep 10; done'
           docker exec test 'sh' '-c' '/opt/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll'
           docker exec test 'sh' '-c' '/opt/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example2,dc=com /opt/opendj/data/config/MakeLDIF/example.template'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/stop-ds'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/import-ldif --offline --ldifFile /tmp/test.ldif --backendID=example2'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --offline --bindDN "cn=Directory Manager" --bindPassword password  --baseDN "dc=example2,dc=com" --rebuildAll'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/start-ds'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/import-ldif --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --ldifFile /tmp/test.ldif --backendID=example2 --trustAll'
+          # the server is PID 1 of the container, so stopping it stops the container; the
+          # container that bootstrapped the instance has to stop the server on SIGTERM, not
+          # sit out the timeout and be killed. The server run in the foreground reports its
+          # shutdown only in the error log, which is read once the container is back up
+          stopped=$(docker exec test grep -c "The Directory Server is now stopped" /opt/opendj/data/logs/errors || true)
+          start=$SECONDS
+          docker stop -t 60 test
+          echo "stopped in $((SECONDS - start)) s, exit code $(docker inspect --format='{{.State.ExitCode}}' test)"
+          test $((SECONDS - start)) -lt 50
+          test "$(docker inspect --format='{{.State.ExitCode}}' test)" -ne 137
+          # a restart runs the server of the instance already there
+          docker start test
+          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test | grep -q \"healthy\"; do sleep 10; done'
+          test "$(docker exec test grep -c "The Directory Server is now stopped" /opt/opendj/data/logs/errors)" -gt "$stopped"
+          docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll'
           docker exec test 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000'
-          docker kill test
+          docker rm -f test
       - name: Docker test custom password
         shell: bash
         run: |

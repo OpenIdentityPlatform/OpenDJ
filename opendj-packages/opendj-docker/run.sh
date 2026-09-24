@@ -81,6 +81,16 @@ if [ -n "${MASTER_SERVER}" ] && [ -n "${OPENDJ_REPLICATION_TYPE}" ]; then
   fi
 fi
 
+# Setup has usually left the server running in the background. It is stopped here and
+# started again below with exec, so that the server is PID 1 on the first start just as
+# on a restart: a shell as PID 1 without a SIGTERM handler never receives the signal, and
+# the container would then be killed at the end of the stop timeout instead of stopping
+# the server. It is stopped before the marker below is written, so that the health check
+# never reports the server of the bootstrap healthy just before it goes down. stop-ds
+# exits 0 when the server is not running.
+echo "Stopping the server started by the bootstrap"
+./bin/stop-ds
+
 # Check if keystores are mounted as a volume, and if so
 # Copy any keystores over
 SECRET_VOLUME=${SECRET_VOLUME:-/var/secrets/opendj}
@@ -95,14 +105,6 @@ fi
 # replication - is in place from here on, so the health check may start probing the server
 if [ "$BOOTSTRAPPED" = true ]; then
   touch "$BOOTSTRAP_COMPLETE"
-fi
-
-# Opendj is probably already started in detach mode at the install
-if (bin/status -n | grep Started); then
-  echo "OpenDJ is started"
-  
-  # Use tail instead of sleep to allow the container to be stopped with SIGTERM
-  tail -f /dev/null
 fi
 
 echo "Starting OpenDJ"
