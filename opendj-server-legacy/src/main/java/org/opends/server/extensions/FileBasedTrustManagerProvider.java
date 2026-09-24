@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -20,11 +21,18 @@ import com.forgerock.opendj.util.FipsStaticUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.Socket;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
@@ -68,6 +76,99 @@ public class FileBasedTrustManagerProvider
   /** The trust store type to use. */
   private String trustStoreType;
 
+  /** What the trust managers handed out by {@link #getTrustManagers()} delegate to. */
+  private volatile LoadedTrustManager loaded;
+
+  /** A trust manager loaded from the trust store file, with the stamps of the files it was loaded from. */
+  private static final class LoadedTrustManager
+  {
+    private final List<FileStamp> stamps;
+    private final X509TrustManager trustManager;
+
+    private LoadedTrustManager(List<FileStamp> stamps, X509TrustManager trustManager)
+    {
+      this.stamps = stamps;
+      this.trustManager = trustManager;
+    }
+  }
+
+  /** The trust manager handed out by {@link #getTrustManagers()} over a plain trust manager. */
+  private final class ReloadingTrustManager implements X509TrustManager
+  {
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException
+    {
+      currentTrustManager().checkClientTrusted(chain, authType);
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException
+    {
+      currentTrustManager().checkServerTrusted(chain, authType);
+    }
+
+    @Override
+    public X509Certificate[] getAcceptedIssuers()
+    {
+      return currentTrustManager().getAcceptedIssuers();
+    }
+  }
+
+  /** The trust manager handed out by {@link #getTrustManagers()} over an extended trust manager. */
+  private final class ReloadingExtendedTrustManager extends X509ExtendedTrustManager
+  {
+    private X509ExtendedTrustManager current()
+    {
+      return (X509ExtendedTrustManager) currentTrustManager();
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException
+    {
+      current().checkClientTrusted(chain, authType);
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket)
+        throws CertificateException
+    {
+      current().checkClientTrusted(chain, authType, socket);
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine)
+        throws CertificateException
+    {
+      current().checkClientTrusted(chain, authType, engine);
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException
+    {
+      current().checkServerTrusted(chain, authType);
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket)
+        throws CertificateException
+    {
+      current().checkServerTrusted(chain, authType, socket);
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine)
+        throws CertificateException
+    {
+      current().checkServerTrusted(chain, authType, engine);
+    }
+
+    @Override
+    public X509Certificate[] getAcceptedIssuers()
+    {
+      return current().getAcceptedIssuers();
+    }
+  }
+
   /**
    * Creates a new instance of this file-based trust manager provider.  The
    * <CODE>initializeTrustManagerProvider</CODE> method must be called on the
@@ -102,8 +203,84 @@ public class FileBasedTrustManagerProvider
     currentConfig.removeFileBasedChangeListener(this);
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * The trust manager returned reads the trust store file again when a certificate is checked
+   * after the file, or the PIN file, has changed, so that a renewed trust store is used without
+   * restarting the server or the component using it.
+   */
   @Override
   public TrustManager[] getTrustManagers() throws DirectoryException
+  {
+    final List<FileStamp> stamps = stampFiles();
+    final TrustManager[] trustManagers = loadTrustManagers();
+    if (trustManagers.length != 1 || !(trustManagers[0] instanceof X509TrustManager))
+    {
+      return trustManagers;
+    }
+    loaded = new LoadedTrustManager(stamps, (X509TrustManager) trustManagers[0]);
+    // an extended trust manager stays one, and a plain one stays plain, for JSSE adds checks
+    // of its own around a plain one
+    return new TrustManager[] { trustManagers[0] instanceof X509ExtendedTrustManager
+        ? new ReloadingExtendedTrustManager() : new ReloadingTrustManager() };
+  }
+
+  private List<FileStamp> stampFiles()
+  {
+    final String pinFile = currentConfig.getTrustStorePinFile();
+    return FileStamp.of(getFileForPath(trustStoreFile), pinFile != null ? getFileForPath(pinFile) : null);
+  }
+
+  /**
+   * Returns the trust manager to check a certificate with, first loading the trust store file
+   * again when it has changed since it was last loaded. A file that cannot be loaded leaves the
+   * trust manager last loaded in use, and is not tried again until it changes again.
+   */
+  private X509TrustManager currentTrustManager()
+  {
+    final List<FileStamp> stamps = stampFiles();
+    LoadedTrustManager current = loaded;
+    if (current.stamps.equals(stamps))
+    {
+      return current.trustManager;
+    }
+    synchronized (this)
+    {
+      current = loaded;
+      if (current.stamps.equals(stamps))
+      {
+        return current.trustManager;
+      }
+      try
+      {
+        final ConfigChangeResult ccr = new ConfigChangeResult();
+        final char[] pin = getTrustStorePIN(currentConfig, ccr);
+        if (ccr.getResultCode() != ResultCode.SUCCESS)
+        {
+          throw new DirectoryException(ccr.getResultCode(), ccr.getMessages().get(0));
+        }
+        trustStorePIN = pin;
+        final TrustManager[] trustManagers = loadTrustManagers();
+        if (trustManagers.length != 1 || trustManagers[0].getClass() != current.trustManager.getClass())
+        {
+          throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+              ERR_FILE_TRUSTMANAGER_CANNOT_CREATE_FACTORY.get(trustStoreFile, Arrays.toString(trustManagers)));
+        }
+        loaded = new LoadedTrustManager(stamps, (X509TrustManager) trustManagers[0]);
+        logger.info(NOTE_FILE_TRUSTMANAGER_RELOADED, trustStoreFile, currentConfig.dn());
+      }
+      catch (DirectoryException e)
+      {
+        logger.traceException(e);
+        loaded = new LoadedTrustManager(stamps, current.trustManager);
+        logger.error(ERR_FILE_TRUSTMANAGER_CANNOT_RELOAD, trustStoreFile, currentConfig.dn(), e.getMessageObject());
+      }
+      return loaded.trustManager;
+    }
+  }
+
+  private TrustManager[] loadTrustManagers() throws DirectoryException
   {
     KeyStore trustStore;
     try (FileInputStream inputStream = new FileInputStream(getFileForPath(trustStoreFile)))
@@ -177,10 +354,19 @@ public class FileBasedTrustManagerProvider
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
-      currentConfig = cfg;
-      trustStorePIN   = newPIN;
-      trustStoreFile  = newTrustStoreFile;
-      trustStoreType  = newTrustStoreType;
+      synchronized (this)
+      {
+        currentConfig = cfg;
+        trustStorePIN   = newPIN;
+        trustStoreFile  = newTrustStoreFile;
+        trustStoreType  = newTrustStoreType;
+        // the trust managers already handed out load the trust store the new configuration
+        // names on their next check, even where its files are those they were loaded from
+        if (loaded != null)
+        {
+          loaded = new LoadedTrustManager(Collections.<FileStamp> emptyList(), loaded.trustManager);
+        }
+      }
     }
 
     return ccr;
