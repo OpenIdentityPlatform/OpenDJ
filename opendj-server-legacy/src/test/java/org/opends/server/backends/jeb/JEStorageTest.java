@@ -286,7 +286,12 @@ public class JEStorageTest extends DirectoryServerTestCase
     storage = new JEStorage(createBackendCfg(2 * SMALL_CACHE), serverContext);
     storage.open(AccessMode.READ_WRITE);
 
-    storage.applyConfigurationChange(createBackendCfg(SMALL_CACHE));
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(createBackendCfg(SMALL_CACHE));
+    // A shrink asks for the restart as a growth does: the cache keeps the size it was opened with.
+    assertThat(ccr.adminActionRequired()).isTrue();
+    assertThat(ccr.getMessages()).hasSize(1);
+    assertThat(ccr.getMessages().get(0).toString()).isEqualTo(
+        NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART.get(BACKEND_ID, 2 * SMALL_CACHE, SMALL_CACHE).toString());
     storage.close();
 
     assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
@@ -346,8 +351,8 @@ public class JEStorageTest extends DirectoryServerTestCase
   }
 
   /**
-   * A storage which has not opened runs no cache to restart: a change of the cache size is picked
-   * up by the open, and asks for nothing. The listener is registered by the constructor already.
+   * A storage which has not opened runs no cache to restart, and a change of the cache size asks it
+   * for none. The listener is registered by the constructor already.
    */
   @Test
   public void aStorageWhichIsNotOpenAsksForNoRestart() throws Exception
@@ -474,6 +479,45 @@ public class JEStorageTest extends DirectoryServerTestCase
 
     assertThat(storage.isConfigurationChangeAcceptable(
         createBackendCfg(SMALL_CACHE / 2), new ArrayList<LocalizableMessage>())).isTrue();
+  }
+
+  /**
+   * After a shrink while open, the storage still holds the cache it was opened with, and a growth
+   * back within that asks the quota for nothing, even with none of it left: measured against the
+   * configuration alone, it would ask the quota for the negative difference to what is held.
+   */
+  @Test
+  public void aGrowthWithinWhatIsHeldAfterAShrinkAsksTheQuotaForNothing() throws Exception
+  {
+    final MemoryQuota quota = serverContext.getMemoryQuota();
+    closeAndRemove(storage);
+    storage = new JEStorage(createBackendCfg(2 * SMALL_CACHE), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+    storage.applyConfigurationChange(createBackendCfg(SMALL_CACHE));
+    assertThat(quota.acquireMemory(quota.getAvailableMemory())).isTrue();
+
+    assertThat(storage.isConfigurationChangeAcceptable(
+        createBackendCfg(SMALL_CACHE + SMALL_CACHE / 2), new ArrayList<LocalizableMessage>())).isTrue();
+  }
+
+  /**
+   * A storage which is not open yet - its listener is registered by the constructor, the open comes
+   * later - admits a change of a cache sized by percent: the size is counted by the quota of the
+   * server context, not by the one the open keeps, which is not there yet.
+   */
+  @Test
+  public void aStorageWhichIsNotOpenAdmitsAChangeOfItsCachePercent() throws Exception
+  {
+    final JEStorage unopened = new JEStorage(createBackendCfg(0L, 10), serverContext);
+    try
+    {
+      assertThat(unopened.isConfigurationChangeAcceptable(
+          createBackendCfg(0L, 20), new ArrayList<LocalizableMessage>())).isTrue();
+    }
+    finally
+    {
+      unopened.close();
+    }
   }
 
   /** Opens a storage of one cache with half a cache left in the quota, so that its reservation is refused. */

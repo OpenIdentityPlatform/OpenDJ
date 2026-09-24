@@ -733,7 +733,9 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
    * was asked for - and of it, what the quota granted, which is what {@link #close()} gives back.
    * Both are zero while the storage is closed. Neither is read from {@link #config} again: a
    * configuration change replaces that while the environment and the reservation stay as the open
-   * made them, so a release computed from it would give back a size that was never taken.
+   * made them, so a release computed from it would give back a size that was never taken. For a
+   * cache sized by db-cache-percent this is the quota's count, a percent of its reservable pool, and
+   * not the cache JE runs: JE takes that percent of the maximum heap.
    */
   private long configuredCacheSize;
   private long reservedCacheSize;
