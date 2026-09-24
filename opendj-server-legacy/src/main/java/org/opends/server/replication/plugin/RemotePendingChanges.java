@@ -332,8 +332,12 @@ final class RemotePendingChanges
    * now is the double replay the ownership is there to prevent (issue #922).
    *
    * @param csn the CSN of the change whose replay failed
+   * @return whether the change was given back: {@code false} when it is not listed as an
+   *         uncommitted change anymore - the domain forgot its pending changes while it was
+   *         being replayed - or when another thread owns it, in which case nothing was
+   *         released here and there is no delivery for a session restart to ask for
    */
-  public void replayFailed(CSN csn)
+  public boolean replayFailed(CSN csn)
   {
     pendingChangesWriteLock.lock();
     try
@@ -343,7 +347,9 @@ final class RemotePendingChanges
       {
         change.setOwner(null);
         changeBeingReplayed.remove(Thread.currentThread(), csn);
+        return true;
       }
+      return false;
     }
     finally
     {
