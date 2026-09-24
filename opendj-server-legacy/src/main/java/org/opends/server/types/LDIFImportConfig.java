@@ -91,6 +91,12 @@ public final class LDIFImportConfig extends OperationConfig
   private BufferedWriter skipWriter;
   /** The input stream to use to read the data to import. */
   private InputStream ldifInputStream;
+  /**
+   * The input stream this config created for itself, which it must close: a backend closes it
+   * with the reader, but an import which ends before a backend took that reader leaves it open.
+   * A stream handed to the config belongs to the caller and is not held here.
+   */
+  private InputStream ownedInputStream;
 
   /** The buffer size to use when reading data from the LDIF file. */
   private int bufferSize = DEFAULT_BUFFER_SIZE;
@@ -205,6 +211,8 @@ public final class LDIFImportConfig extends OperationConfig
   public LDIFImportConfig(TemplateFile templateFile)
   {
     this(MakeLDIFInputStream.newStartedInputStream(templateFile));
+    // The generator thread is already running and stops only when this stream is closed.
+    ownedInputStream = ldifInputStream;
   }
 
 
@@ -1031,7 +1039,7 @@ public final class LDIFImportConfig extends OperationConfig
   @Override
   public void close()
   {
-    StaticUtils.close(reader, rejectWriter, skipWriter);
+    StaticUtils.close(reader, ownedInputStream, rejectWriter, skipWriter);
   }
 
   /**
