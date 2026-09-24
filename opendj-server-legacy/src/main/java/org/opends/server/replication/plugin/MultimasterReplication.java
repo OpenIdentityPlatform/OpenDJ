@@ -65,6 +65,7 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SynchronizationProviderResult;
 import org.opends.server.types.operation.PluginOperation;
@@ -209,14 +210,24 @@ public class MultimasterReplication
   /**
    * Whether the client may use the repair control on this operation, as the access control of
    * the controls decides it: a client with the {@code bypass-acl} privilege, or one an ACI allows
-   * to use the control.
+   * to use the control. The question is asked at the entry being repaired, on every operation:
+   * on an add as well, where the backend judges the other controls at the parent entry.
    * <p>
-   * The backend asks the same question of every control, but an add or a delete reaches the
-   * replication plugin before it does, and by then the plugin has taken the control off the
-   * request - so on those operations the answer given here is the only one.
+   * On a modify and a modify DN the backend has already asked it of every control by the time
+   * the replication plugin runs. An add and a delete reach the plugin before the backend checks
+   * their controls, and the plugin takes the control off the request, so on those operations the
+   * answer given here is the only one. They also reach it before the backend has applied a
+   * proxied authorization control: the answer would be given for the bound client rather than
+   * for the one the operation runs as, so a repair is refused on an add or a delete which
+   * carries one.
    */
   private static boolean mayUseRepairControl(DN dn, Operation op, Control control)
   {
+    final OperationType type = op.getOperationType();
+    if ((type == OperationType.ADD || type == OperationType.DELETE) && carriesProxiedAuthorization(op))
+    {
+      return false;
+    }
     try
     {
       return AccessControlConfigManager.getInstance().getAccessControlHandler().isAllowed(dn, op, control);
@@ -226,6 +237,18 @@ public class MultimasterReplication
       logger.traceException(e);
       return false;
     }
+  }
+
+  private static boolean carriesProxiedAuthorization(Operation op)
+  {
+    for (Control c : op.getRequestControls())
+    {
+      if (OID_PROXIED_AUTH_V1.equals(c.getOID()) || OID_PROXIED_AUTH_V2.equals(c.getOID()))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

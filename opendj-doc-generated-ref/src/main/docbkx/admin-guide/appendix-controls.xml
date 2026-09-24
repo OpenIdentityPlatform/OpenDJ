@@ -363,9 +363,11 @@
     is accepted without an error, and a <literal>userPassword</literal> value
     is stored in the clear rather than encoded. The server honours the control
     only for a client that has the <literal>bypass-acl</literal> privilege, or
-    that an ACI allows to use it; for any other client it drops the control
-    and processes the request as if the control had not been sent. Put nothing
-    but the repair in the request, and send it as not critical.</para>
+    that an ACI allows to use it at the entry being repaired, and never on an
+    add or a delete that also carries a proxied authorization control;
+    otherwise it drops the control and processes the request as if the
+    control had not been sent. Put nothing but the repair in the request, and
+    send it as not critical.</para>
    </listitem>
   </varlistentry>
 

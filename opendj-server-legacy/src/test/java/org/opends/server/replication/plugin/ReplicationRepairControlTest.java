@@ -40,6 +40,8 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.controls.GenericControl;
+import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
+import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
@@ -88,6 +90,8 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
 
   /** A client which may write anything under the suffix, but has no {@code bypass-acl} privilege. */
   private static final String USER_DN = "uid=repair.user," + TEST_ROOT_DN_STRING;
+  /** A client which may use any control, and act as {@link #USER_DN} through proxied authorization. */
+  private static final String PROXY_DN = "uid=repair.proxy," + TEST_ROOT_DN_STRING;
   private static final String ACCESS_HANDLER_DN = "cn=Access Control Handler,cn=config";
   /** The global ACI of the test configuration which lets anyone use any control. */
   private static final String ANY_CONTROL_ACI = "(targetcontrol=\"*\")"
@@ -470,6 +474,175 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
         Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT, "(objectClass=*)").addAttribute("entryUUID"));
     assertThat(added.parseAttribute("entryUUID").asString()).isEqualTo(uuid);
     assertThat(nextUpdate()).as("the repaired add was published to the topology").isNull();
+  }
+
+  /**
+   * A control the client may not use is refused when it is critical: on a delete, which reaches
+   * the replication plugin before the backend checks its controls, the plugin must leave it on
+   * the request for the backend to refuse, rather than drop it.
+   */
+  @Test
+  public void aCriticalRepairControlAClientMayNotUseIsRefusedOnADelete() throws Exception
+  {
+    final String dn = "cn=kept by a critical control," + TEST_ROOT_DN_STRING;
+    TestCaseUtils.addEntry(
+        "dn: " + dn,
+        "objectClass: top",
+        "objectClass: person",
+        "sn: kept",
+        "cn: kept by a critical control");
+    assertThat(nextUpdate()).as("the add of the entry was not published").isNotNull();
+
+    ResultCode resultCode = ResultCode.SUCCESS;
+    final Runnable restoreTheGlobalControlAci = withGlobalControlAci(null);
+    try (Connection user = connectAsUser())
+    {
+      user.delete(Requests.newDeleteRequest(dn)
+          .addControl(GenericControl.newControl(OID_REPLICATION_REPAIR_CONTROL, true)));
+    }
+    catch (LdapException e)
+    {
+      resultCode = e.getResult().getResultCode();
+    }
+    finally
+    {
+      restoreTheGlobalControlAci.run();
+    }
+    // Read first: a delete carried out is published, and must not be left for the next case.
+    assertThat(nextUpdate()).as("a critical control the client may not use was dropped, and the delete published")
+        .isNull();
+    assertThat(resultCode).isEqualTo(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
+  }
+
+  /**
+   * The ACI of the controls is evaluated at the entry being repaired: on a delete, and on an add
+   * too, where the backend evaluates the other controls of the request at the parent entry.
+   */
+  @Test
+  public void theRepairControlAciIsJudgedAtTheEntryBeingRepaired() throws Exception
+  {
+    final String repairable = "cn=repairable delete," + TEST_ROOT_DN_STRING;
+    final String other = "cn=not repairable delete," + TEST_ROOT_DN_STRING;
+    for (String dn : new String[] { repairable, other })
+    {
+      final String cn = dn.substring("cn=".length(), dn.indexOf(','));
+      TestCaseUtils.addEntry("dn: " + dn, "objectClass: top", "objectClass: person", "sn: " + cn, "cn: " + cn);
+      assertThat(nextUpdate()).as("the add of the entry was not published").isNotNull();
+    }
+    final String repairableAdd = "cn=repairable add," + TEST_ROOT_DN_STRING;
+    final String otherAdd = "cn=not repairable add," + TEST_ROOT_DN_STRING;
+    final String uuid = "5b1d7e3a-2c4f-4e8b-9a6d-0f1e2d3c4b5a";
+
+    final Runnable restoreTheGlobalControlAci = withGlobalControlAci(
+        "(target=\"ldap:///cn=repairable*," + TEST_ROOT_DN_STRING + "\")"
+        + "(targetcontrol=\"" + OID_REPLICATION_REPAIR_CONTROL + "\")"
+        + "(version 3.0; acl \"Repair control on some entries\"; allow(read) userdn=\"ldap:///" + USER_DN + "\";)");
+    try (Connection user = connectAsUser())
+    {
+      user.delete(Requests.newDeleteRequest(other)
+          .addControl(GenericControl.newControl(OID_REPLICATION_REPAIR_CONTROL)));
+      assertThat(nextUpdate()).as("a delete outside the ACI's target was repaired").isInstanceOf(DeleteMsg.class);
+      user.delete(Requests.newDeleteRequest(repairable)
+          .addControl(GenericControl.newControl(OID_REPLICATION_REPAIR_CONTROL)));
+      assertThat(nextUpdate()).as("a delete inside the ACI's target was published").isNull();
+
+      try
+      {
+        user.add(personWithEntryUUID(otherAdd, uuid)
+            .addControl(GenericControl.newControl(OID_REPLICATION_REPAIR_CONTROL)));
+        throw new AssertionError("an add outside the ACI's target was repaired");
+      }
+      catch (LdapException e)
+      {
+        assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
+      }
+      try
+      {
+        user.add(personWithEntryUUID(repairableAdd, uuid)
+            .addControl(GenericControl.newControl(OID_REPLICATION_REPAIR_CONTROL)));
+      }
+      catch (LdapException e)
+      {
+        throw new AssertionError("an add inside the ACI's target was not repaired", e);
+      }
+      assertThat(nextUpdate()).as("an add inside the ACI's target was published").isNull();
+    }
+    finally
+    {
+      restoreTheGlobalControlAci.run();
+    }
+  }
+
+  /**
+   * On an add and a delete the replication plugin runs before the backend applies a proxied
+   * authorization control, so it could only judge the bound client: it refuses the repair there,
+   * even to a client which may use any control, and the request is processed as if the control
+   * had not been sent.
+   */
+  @Test
+  public void aProxiedAddOrDeleteIsNotRepaired() throws Exception
+  {
+    TestCaseUtils.addEntry(
+        "dn: " + PROXY_DN,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: repair.proxy",
+        "sn: Proxy",
+        "cn: Repair Proxy",
+        "userPassword: password",
+        "ds-privilege-name: bypass-acl",
+        "ds-privilege-name: proxied-auth");
+    assertThat(nextUpdate()).as("the add of the proxy was not published").isNotNull();
+    final String dn = "cn=deleted through a proxy," + TEST_ROOT_DN_STRING;
+    TestCaseUtils.addEntry(
+        "dn: " + dn,
+        "objectClass: top",
+        "objectClass: person",
+        "sn: deleted",
+        "cn: deleted through a proxy");
+    assertThat(nextUpdate()).as("the add of the entry was not published").isNotNull();
+    final ProxiedAuthV2RequestControl asUser = ProxiedAuthV2RequestControl.newControl("dn:" + USER_DN);
+
+    final Runnable restoreTheGlobalControlAci = withGlobalControlAci(null);
+    try (Connection proxy = factory.getConnection())
+    {
+      proxy.bind(PROXY_DN, "password".toCharArray());
+      try
+      {
+        proxy.add(personWithEntryUUID("cn=added through a proxy," + TEST_ROOT_DN_STRING, REPAIRED_UUID)
+            .addControl(asUser)
+            .addControl(GenericControl.newControl(OID_REPLICATION_REPAIR_CONTROL)));
+        throw new AssertionError("a proxied add was repaired");
+      }
+      catch (LdapException e)
+      {
+        assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
+      }
+      assertThat(nextUpdate()).as("a refused add was published").isNull();
+
+      proxy.delete(Requests.newDeleteRequest(dn)
+          .addControl(asUser)
+          .addControl(GenericControl.newControl(OID_REPLICATION_REPAIR_CONTROL)));
+      assertThat(nextUpdate()).as("a proxied delete was repaired").isInstanceOf(DeleteMsg.class);
+    }
+    finally
+    {
+      restoreTheGlobalControlAci.run();
+    }
+  }
+
+  private static AddRequest personWithEntryUUID(String dn, String uuid)
+  {
+    final String cn = dn.substring("cn=".length(), dn.indexOf(','));
+    return Requests.newAddRequest(
+        "dn: " + dn,
+        "objectClass: top",
+        "objectClass: person",
+        "sn: " + cn,
+        "cn: " + cn,
+        "entryUUID: " + uuid);
   }
 
   /**
