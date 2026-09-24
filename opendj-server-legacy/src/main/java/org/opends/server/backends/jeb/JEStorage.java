@@ -1213,7 +1213,9 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
   @Override
   public File getDirectory()
   {
-    return getBackendDirectory(config);
+    // The directory the storage runs on: a db-directory moved while it runs is used from the next open,
+    // which a new storage makes.
+    return backendDirectory;
   }
 
   private static File getBackendDirectory(JEBackendCfg cfg)
@@ -1559,9 +1561,12 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     try
     {
       File newBackendDirectory = getBackendDirectory(cfg);
+      // Against the directory the storage runs on rather than the configuration as last changed, so
+      // that a later change still asks for the restart a move is waiting for.
+      final boolean moved = !newBackendDirectory.equals(backendDirectory);
 
       // Create the directory if it doesn't exist.
-      if (!cfg.getDBDirectory().equals(config.getDBDirectory()))
+      if (moved)
       {
         checkDBDirExistsOrCanCreate(newBackendDirectory, ccr, false);
         if (!ccr.getMessages().isEmpty())
@@ -1570,11 +1575,11 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
         }
 
         ccr.setAdminActionRequired(true);
-        ccr.addMessage(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.get(config.getDBDirectory(), cfg.getDBDirectory()));
+        ccr.addMessage(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.get(backendDirectory, newBackendDirectory));
       }
 
       if (!cfg.getDBDirectoryPermissions().equalsIgnoreCase(config.getDBDirectoryPermissions())
-          || !cfg.getDBDirectory().equals(config.getDBDirectory()))
+          || moved)
       {
         checkDBDirPermissions(cfg.getDBDirectoryPermissions(), cfg.dn(), ccr);
         // By its result code: the note of a moved directory is in the result already, and the rest of

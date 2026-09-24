@@ -22,6 +22,7 @@ import static org.forgerock.opendj.config.ConfigurationMock.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.opendj.ldap.ByteString.*;
 import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ConfigMessages.ERR_CONFIG_BACKEND_INSANE_MODE;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -903,10 +904,14 @@ public class PDBStorageTest extends DirectoryServerTestCase
   /**
    * A change which moves db-directory as well is still reported whole: the note of the moved
    * directory, which asks for a restart of its own, does not end the change before the rest of it.
+   * The storage keeps naming the directory it runs on, which a backup lists, and the move is held
+   * against that directory: a later change still asks for the restart, and one which moves back asks
+   * for nothing.
    */
   @Test
   public void aChangeWhichMovesTheDirectoryStillReportsTheRest() throws Exception
   {
+    final File directoryAtOpen = storage.getDirectory();
     final long intervalAtOpen = createBackendCfg().getDBCheckpointerWakeupInterval();
     final PDBBackendCfg cfg = createBackendCfg();
     when(cfg.getDBDirectory()).thenReturn("PDBStorageTest-moved");
@@ -920,11 +925,38 @@ public class PDBStorageTest extends DirectoryServerTestCase
       assertThat(ccr.getMessages()).hasSize(2);
       assertThat(ccr.getMessages().get(0).ordinal()).isEqualTo(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.ordinal());
       assertThat(ccr.getMessages().get(1).ordinal()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART.ordinal());
+      assertThat(storage.getDirectory()).isEqualTo(directoryAtOpen);
+
+      final ConfigChangeResult again = storage.applyConfigurationChange(cfg);
+      assertThat(again.getMessages()).hasSize(2);
+      assertThat(again.getMessages().get(0).ordinal()).isEqualTo(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.ordinal());
+
+      assertThat(storage.applyConfigurationChange(createBackendCfg()).getMessages()).isEmpty();
     }
     finally
     {
       recursiveDelete(getFileForPath("PDBStorageTest-moved"));
     }
+  }
+
+  /**
+   * A directory mode the server itself could not use refuses the change whole: nothing of it is
+   * written to the running directory, and the rest of it is not reported as waiting for a restart.
+   */
+  @Test
+  public void aChangeToAnInsaneDirectoryModeIsRefusedWhole() throws Exception
+  {
+    final long intervalAtOpen = createBackendCfg().getDBCheckpointerWakeupInterval();
+    final PDBBackendCfg insaneMode = createBackendCfg();
+    when(insaneMode.getDBDirectoryPermissions()).thenReturn("500");
+    when(insaneMode.getDBCheckpointerWakeupInterval()).thenReturn(4 * intervalAtOpen);
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(insaneMode);
+
+    assertThat(ccr.getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.getMessages()).hasSize(1);
+    assertThat(ccr.getMessages().get(0).ordinal()).isEqualTo(ERR_CONFIG_BACKEND_INSANE_MODE.ordinal());
+    assertThat(storage.getDirectory().canWrite()).isTrue();
   }
 
   /** A storage which is closed has no database to hold a change against: the next open takes it. */

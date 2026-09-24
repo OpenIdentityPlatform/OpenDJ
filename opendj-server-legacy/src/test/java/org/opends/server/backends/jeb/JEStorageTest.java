@@ -37,6 +37,7 @@ import static org.opends.messages.BackendMessages.ERR_CONFIG_JEB_DURABILITY_CONF
 import static org.opends.messages.BackendMessages.NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART;
 import static org.opends.messages.BackendMessages.NOTE_CONFIG_DB_DIR_REQUIRES_RESTART;
 import static org.opends.messages.BackendMessages.NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART;
+import static org.opends.messages.ConfigMessages.ERR_CONFIG_BACKEND_INSANE_MODE;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_JE_PROPERTY_INVALID;
 import static org.opends.server.util.CollectionUtils.newTreeSet;
 import static org.opends.server.util.StaticUtils.MB;
@@ -701,11 +702,15 @@ public class JEStorageTest extends DirectoryServerTestCase
   /**
    * A change which moves db-directory as well is still applied and reported: the note of the moved
    * directory, which asks for a restart of its own, does not end the change before the rest of it.
+   * The storage keeps naming the directory the environment runs on, which a backup lists, and the
+   * move is held against that directory: a later change still asks for the restart, and one which
+   * moves back asks for nothing.
    */
   @Test
   public void aChangeWhichMovesTheDirectoryIsStillAppliedToTheEnvironment() throws Exception
   {
     final Environment env = environmentOf(storage);
+    final File directoryAtOpen = storage.getDirectory();
     final String fileMaxAtOpen = env.getConfig().getConfigParam(LOG_FILE_MAX);
     final JEBackendCfg cfg = createBackendCfg();
     when(cfg.getDBDirectory()).thenReturn(MOVED_DB_DIRECTORY);
@@ -722,11 +727,42 @@ public class JEStorageTest extends DirectoryServerTestCase
       assertThat(ccr.getMessages().get(0).ordinal()).isEqualTo(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.ordinal());
       assertThat(ccr.getMessages().get(1).ordinal()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART.ordinal());
       assertThat(env.getConfig().getDurability()).isEqualTo(Durability.COMMIT_NO_SYNC);
+      assertThat(storage.getDirectory()).isEqualTo(directoryAtOpen);
+      assertThat(storage.getFilesToBackup().hasNext()).isTrue();
+
+      final ConfigChangeResult again = storage.applyConfigurationChange(cfg);
+      assertThat(again.getMessages()).hasSize(2);
+      assertThat(again.getMessages().get(0).ordinal()).isEqualTo(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.ordinal());
+
+      assertThat(storage.applyConfigurationChange(createBackendCfg()).getMessages()).isEmpty();
     }
     finally
     {
       recursiveDelete(getFileForPath(MOVED_DB_DIRECTORY));
     }
+  }
+
+  /**
+   * A directory mode the server itself could not use refuses the change whole: nothing of it is
+   * written to the running directory, and nothing else of it reaches the environment.
+   */
+  @Test
+  public void aChangeToAnInsaneDirectoryModeIsRefusedWhole() throws Exception
+  {
+    final Environment env = environmentOf(storage);
+    final Durability before = env.getConfig().getDurability();
+    final JEBackendCfg insaneMode = createBackendCfg();
+    when(insaneMode.getDBDirectoryPermissions()).thenReturn("500");
+    when(insaneMode.isDBTxnNoSync()).thenReturn(true);
+    when(insaneMode.isDBTxnWriteNoSync()).thenReturn(false);
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(insaneMode);
+
+    assertThat(ccr.getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.getMessages()).hasSize(1);
+    assertThat(ccr.getMessages().get(0).ordinal()).isEqualTo(ERR_CONFIG_BACKEND_INSANE_MODE.ordinal());
+    assertThat(env.getConfig().getDurability()).isEqualTo(before);
+    assertThat(storage.getDirectory().canWrite()).isTrue();
   }
 
   /**
@@ -853,6 +889,12 @@ public class JEStorageTest extends DirectoryServerTestCase
     reasons.clear();
     assertThat(JEStorage.isConfigurationAcceptable(bothFlags, reasons, serverContext)).isFalse();
     assertThat(reasons).hasSize(1);
+    assertThat(reasons.get(0).toString()).isEqualTo(ERR_CONFIG_JEB_DURABILITY_CONFLICT.get().toString());
+
+    reasons.clear();
+    assertThat(JEStorage.isConfigurationAcceptable(unknownProperty, reasons, serverContext)).isFalse();
+    assertThat(reasons).hasSize(1);
+    assertThat(reasons.get(0).ordinal()).isEqualTo(ERR_CONFIG_JE_PROPERTY_INVALID.get("", "").ordinal());
     assertThat(storage.isConfigurationChangeAcceptable(createBackendCfg(), new ArrayList<LocalizableMessage>())).isTrue();
   }
 
