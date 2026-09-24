@@ -46,7 +46,7 @@ import org.opends.server.types.RawModification;
  * so this one is handed to the domain rather than published. The twin of the fixture
  * {@code UpdateOperationTest} holds its barrier with.
  */
-final class ModifyMsgWhoseOperationRefusesAControl extends ModifyMsg
+class ModifyMsgWhoseOperationRefusesAControl extends ModifyMsg
 {
   ModifyMsgWhoseOperationRefusesAControl(
       CSN csn, DN dn, List<Modification> mods, String entryUUID)
