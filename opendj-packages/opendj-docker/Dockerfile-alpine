@@ -63,9 +63,10 @@ RUN apk add --update --no-cache --virtual builddeps curl unzip \
  && chown -R $OPENDJ_USER:0 /opt/opendj \
  && chmod -R g=u /opt/opendj
 
-# The files belong to group 0 rather than to the group of OPENDJ_USER, and the group may do
-# what the owner does: OpenShift runs a container under an arbitrary uid that is only in
-# group 0, and that uid still has to write instance.loc and the instance root
+# The RUN above gives /opt/opendj to group 0 rather than to the group of OPENDJ_USER, and
+# lets that group do what the owner does: OpenShift runs a container under an arbitrary uid
+# that is only in group 0, and that uid still has to write instance.loc and the instance
+# root. The scripts copied below are only read and run, so they just keep the same group.
 COPY --chown=$OPENDJ_USER:0 bootstrap/ /opt/opendj/bootstrap/
 COPY --chown=$OPENDJ_USER:0 run.sh /opt/opendj/run.sh
 
