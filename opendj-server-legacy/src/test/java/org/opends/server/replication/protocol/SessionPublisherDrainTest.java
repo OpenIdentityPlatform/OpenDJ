@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -64,7 +65,8 @@ import org.testng.annotations.Test;
  * close to sending that queue instead, and
  * {@code aCloseRunsTheCallbackOfEachMessageItSendsOutOfTheQueue} to telling the publisher of each
  * of those messages that it was written. The cases after it pin what a close gives up on: a
- * queue whose write fails is reported with every message it held; a session which had already
+ * queue whose write fails is reported with every message it held; a message queued after the
+ * close drained the queue is taken back and reported, and refused; a session which had already
  * failed is written nothing more and still has its queue reported, together with what its
  * publisher took and failed to write, and nothing when there is nothing; and a closed session -
  * one closed before it was started included - fails a later {@code publish()} rather than take
@@ -428,6 +430,119 @@ public class SessionPublisherDrainTest extends ReplicationTestCase
       {
         StaticUtils.close(sender, receiver);
       }
+    }
+  }
+
+  /**
+   * A message queued after the close drained the queue is taken back and reported, rather than
+   * left in a queue nothing sends: {@code publish()} answers that it neither wrote nor queued it,
+   * and its callback never runs. Answered as queued, the message would leave the writer of a
+   * replication server waiting on a callback which never comes, for the rest of the grace period
+   * of the shutdown.
+   * <p>
+   * Only a {@code publish()} which read the close as not yet begun and was descheduled before its
+   * offer gets there. The session holds the publishing thread at that spot through
+   * {@link Session#beforeQueueing(Runnable)} while the close runs to its end, and then lets the
+   * offer go.
+   */
+  @Test
+  public void aMessageQueuedAfterTheCloseDrainedTheQueueIsTakenBackAndReported() throws Exception
+  {
+    final CSNGenerator csns = new CSNGenerator(RS_ID, 0);
+    final ExecutorService executor = Executors.newSingleThreadExecutor();
+    try (ServerSocket listen = new ServerSocket(0))
+    {
+      final Session[] pair = connectSessionPair(listen);
+      final Session sender = pair[0];
+      final Session receiver = pair[1];
+      try
+      {
+        sender.start();
+        sender.waitForStartup();
+        // So that the close ends the connection with a FIN rather than a reset, which would cut the
+        // StopMsg off - see aSessionWithAPublisherThreadSendsWhatIsStillQueuedWhenItIsClosed.
+        sender.setSoTimeout(0);
+        newInboundReader(sender).start();
+
+        final CountDownLatch atTheOffer = new CountDownLatch(1);
+        final CountDownLatch closed = new CountDownLatch(1);
+        sender.beforeQueueing(new Runnable()
+        {
+          @Override
+          public void run()
+          {
+            atTheOffer.countDown();
+            try
+            {
+              closed.await(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            }
+            catch (final InterruptedException e)
+            {
+              Thread.currentThread().interrupt();
+            }
+          }
+        });
+        final AtomicInteger callbacks = new AtomicInteger();
+        final Future<Boolean> published = executor.submit(new Callable<Boolean>()
+        {
+          @Override
+          public Boolean call() throws Exception
+          {
+            return sender.publish(new DeleteMsg(
+                DN.valueOf("uid=queuedtoolate," + TEST_ROOT_DN_STRING),
+                csns.newCSN(), "00000000-0000-0000-0000-000000000000"),
+                callbacks::incrementAndGet);
+          }
+        });
+        assertThat(atTheOffer.await(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+            .as("the publish did not reach the offer of its message")
+            .isTrue();
+
+        final AtomicReference<Boolean> accepted = new AtomicReference<>();
+        final List<String> records = errorLogRecordsOf(new Callable<Void>()
+        {
+          @Override
+          public Void call() throws Exception
+          {
+            sender.close();
+            closed.countDown();
+            accepted.set(published.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS));
+            return null;
+          }
+        });
+
+        assertThat(accepted.get())
+            .as("a message queued after the close drained the queue was answered as queued, "
+                + "though nothing is left to send it")
+            .isFalse();
+        assertThat(callbacks.get())
+            .as("the callback of a message which was never written ran")
+            .isZero();
+        assertThat(sendQueueOf(sender))
+            .as("the message queued after the close was left in the queue")
+            .isEmpty();
+        final Set<String> reported = reportsIn(records);
+        assertThat(reported)
+            .as("a message taken back is reported once, and here the reports were: " + reported)
+            .hasSize(1);
+        assertThat(reported.iterator().next())
+            .contains("1 message(s)")
+            .contains("it was queued after the publisher of the session had stopped");
+        final Drained drained = drain(receiver);
+        assertThat(drained.received)
+            .as("the peer received the message taken back; the read ended by %s", drained.endedBy)
+            .isEmpty();
+        assertThat(drained.endedBy).isEqualTo("a StopMsg");
+      }
+      finally
+      {
+        sender.beforeQueueing(null);
+        StaticUtils.close(sender, receiver);
+      }
+    }
+    finally
+    {
+      executor.shutdownNow();
     }
   }
 

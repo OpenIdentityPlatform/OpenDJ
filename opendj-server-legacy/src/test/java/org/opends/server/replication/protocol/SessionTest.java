@@ -42,9 +42,10 @@ import org.testng.annotations.Test;
  * thread which wrote it, only after the write returned.
  * <p>
  * The peer of each test reads nothing until the test lets it, and both ends of the connection
- * have socket buffers far smaller than the first message published, so that the session thread
- * of the end under test is held inside the write of that message for as long as the test wants
- * - the state in which a message published behind it is queued and not written.
+ * have socket buffers far smaller than {@link #BLOCKING_MESSAGE_SIZE}, so that a test which
+ * publishes a message of that size holds the session thread of the end under test inside its
+ * write for as long as it wants - the state in which a message published behind it is queued
+ * and not written.
  */
 @SuppressWarnings("javadoc")
 public class SessionTest extends ReplicationTestCase

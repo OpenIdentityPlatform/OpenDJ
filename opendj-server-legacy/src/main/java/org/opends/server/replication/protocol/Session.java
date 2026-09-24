@@ -40,6 +40,7 @@ import javax.net.ssl.SSLSocket;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.annotations.VisibleForTesting;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.types.HostPort;
 import org.opends.server.util.StaticUtils;
@@ -127,6 +128,12 @@ public final class Session extends DirectoryThread implements Closeable
 
   private final LinkedBlockingQueue<Outgoing> sendQueue = new LinkedBlockingQueue<>(4000);
   private AtomicBoolean isRunning = new AtomicBoolean(false);
+  /**
+   * What {@link #publish(ReplicationMsg, Runnable)} runs between its check that no close has
+   * begun and the offer of the message to {@code sendQueue}, or null. Only the tests set it - see
+   * {@link #beforeQueueing(Runnable)}.
+   */
+  private volatile Runnable beforeQueueing;
   private final CountDownLatch latch = new CountDownLatch(1);
 
   /**
@@ -552,6 +559,11 @@ public final class Session extends DirectoryThread implements Closeable
       final Outgoing outgoing = new Outgoing(buffer, whenWritten);
       while (!closeInitiated)
       {
+        final Runnable hook = beforeQueueing;
+        if (hook != null)
+        {
+          hook.run();
+        }
         try
         {
           // Avoid blocking forever so that we can check for session closure.
@@ -621,6 +633,24 @@ public final class Session extends DirectoryThread implements Closeable
     {
       publishLock.unlock();
     }
+  }
+
+  /**
+   * Sets what {@link #publish(ReplicationMsg, Runnable)} runs between its check that no close has
+   * begun and the offer of the message to the queue.
+   * <p>
+   * Only there for the tests of {@link #takeBackWhatWasQueuedTooLate(Outgoing)}: a
+   * {@code publish()} descheduled at that spot is the only one which can queue a message after a
+   * close has drained the queue, and nothing else holds a thread there on cue while the close
+   * runs to its end.
+   *
+   * @param hook
+   *          What to run there, on the publishing thread, or null for nothing.
+   */
+  @VisibleForTesting
+  void beforeQueueing(final Runnable hook)
+  {
+    beforeQueueing = hook;
   }
 
   /** Sends a replication message already encoded to the socket.
