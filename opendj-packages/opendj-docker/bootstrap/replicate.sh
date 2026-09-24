@@ -37,8 +37,10 @@ echo "Replication type: $OPENDJ_REPLICATION_TYPE, base DN: $BASE_DN"
 
 # The tools read the root password from a file, so that it shows neither in the container log
 # nor on the command line of a process while the tool runs. mktemp creates the file readable by
-# its owner only.
-PASSWORD_FILE=$(mktemp) || exit 1
+# its owner only. It goes to the tmpfs of /dev/shm where there is one: the EXIT trap does not
+# run if the script is killed, and a file left in /tmp would stay in the writable layer of the
+# container, where no later start removes it, since replicate.sh runs only on the first one.
+PASSWORD_FILE=$(mktemp -p /dev/shm 2>/dev/null || mktemp) || exit 1
 trap 'rm -f "$PASSWORD_FILE"' EXIT
 printf '%s\n' "$ROOT_PASSWORD" >"$PASSWORD_FILE" || exit 1
 
