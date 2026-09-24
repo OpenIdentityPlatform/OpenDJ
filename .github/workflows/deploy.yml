@@ -76,9 +76,15 @@ jobs:
       #
       # This only works because the Makefile passes /Brepro to both cl and link: the output
       # is a function of the sources, not of the build time. Without it every run would
-      # produce different bytes and this would commit on every push. An MSVC toolchain bump
-      # on the runner image does change them, and that refresh commit is correct - the
-      # committed binary then matches what CI verifies. Pushes made with GITHUB_TOKEN do
+      # produce different bytes and this would commit on every push. The inputs it hashes
+      # include the build numbers of the tools, though, so a Visual Studio patch release
+      # on the runner image changes the stamp of the files - Rich header, REPRO hash,
+      # timestamps, checksum - while the code comes out the same. GitHub rolls a new image
+      # out over days, and while old and new both serve windows-latest the launchers were
+      # refreshed back and forth on every push (a8a18f000d, then c6919eaaf4, which undid
+      # it). same-pe-code.py compares the files with that stamp blanked, so only a change
+      # of the code, data or resources is committed - from a source change or from a
+      # toolchain that really generates different code. Pushes made with GITHUB_TOKEN do
       # not start new workflow runs, so this cannot loop; a PAT would break that.
       - name: Download the launchers built by the triggering Build run
         continue-on-error: true
@@ -103,7 +109,19 @@ jobs:
             echo "::warning title=No launcher binaries from the Build run::windows-exe-11 could not be downloaded, leaving opendj-server-legacy/lib/*.exe as committed."
             exit 0
           fi
-          cp "$BUILT"/*.exe opendj-server-legacy/lib/
+          for built in "$BUILT"/*.exe; do
+            committed=opendj-server-legacy/lib/$(basename "$built")
+            # Exit 1 (the code differs) and 2 (not readable as a PE image) both take the
+            # rebuilt file: when in doubt, refresh. So does a checked-out branch that predates
+            # the script - python exits 2 on a missing file too - which is the old behaviour.
+            if [ -f "$committed" ] && python3 .github/scripts/same-pe-code.py "$committed" "$built"; then
+              if ! cmp -s "$committed" "$built"; then
+                echo "$committed differs from the rebuilt one only in the toolchain stamp - keeping it."
+              fi
+              continue
+            fi
+            cp "$built" "$committed"
+          done
           # status --porcelain, not diff: it reports a brand-new launcher that was never
           # git-added just as well as a modified one.
           if [ -z "$(git status --porcelain -- opendj-server-legacy/lib)" ]; then
