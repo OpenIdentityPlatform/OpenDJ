@@ -45,6 +45,7 @@ import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -85,6 +86,16 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
   private static final String NOT_IN_PENDING =
       "msgID=" + ERR_OPERATION_NOT_FOUND_IN_PENDING.get("", "").ordinal() + " ";
 
+  /** A client which may write anything under the suffix, but has no {@code bypass-acl} privilege. */
+  private static final String USER_DN = "uid=repair.user," + TEST_ROOT_DN_STRING;
+  private static final String ACCESS_HANDLER_DN = "cn=Access Control Handler,cn=config";
+  /** The global ACI of the test configuration which lets anyone use any control. */
+  private static final String ANY_CONTROL_ACI = "(targetcontrol=\"*\")"
+      + " (version 3.0; acl \"Anonymous control access\"; allow(read) userdn=\"ldap:///anyone\";)";
+  /** Lets {@link #USER_DN} use the repair control, and no other control. */
+  private static final String REPAIR_CONTROL_ACI = "(targetcontrol=\"" + OID_REPLICATION_REPAIR_CONTROL + "\")"
+      + "(version 3.0; acl \"Repair control access\"; allow(read) userdn=\"ldap:///" + USER_DN + "\";)";
+
   private ReplicationBroker broker;
   private LDAPConnectionFactory factory;
   private Connection connection;
@@ -123,6 +134,24 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
     factory = new LDAPConnectionFactory("localhost", TestCaseUtils.getServerLdapPort());
     connection = factory.getConnection();
     connection.bind("cn=Directory Manager", "password".toCharArray());
+
+    // The user may write anything under the suffix, operational attributes included: what
+    // decides whether it may repair is the access control of the controls alone.
+    TestCaseUtils.addEntry(
+        "dn: " + USER_DN,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: repair.user",
+        "sn: User",
+        "cn: Repair User",
+        "userPassword: password");
+    assertThat(nextUpdate()).as("the add of the user was not published").isNotNull();
+    connection.modify(Requests.newModifyRequest(TEST_ROOT_DN_STRING).addModification(ModificationType.ADD, "aci",
+        "(targetattr=\"*||+\")(version 3.0; acl \"Repair control test user\"; allow(all) userdn=\"ldap:///"
+            + USER_DN + "\";)"));
+    assertThat(nextUpdate()).as("the ACI of the user was not published").isNotNull();
   }
 
   @AfterClass(alwaysRun = true)
@@ -325,6 +354,165 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
     assertThat(published.getEntryUUID()).isEqualTo(attributeOfRepairedEntry("entryUUID"));
   }
 
+  /**
+   * A client which may write the entries, but which no ACI lets use the control, gets no repair
+   * out of it on any operation: the control is dropped, as any control the client may not use,
+   * and the request is processed as if it had not been sent. On a modify the backend does that
+   * itself; an add and a delete reach the replication plugin before the backend checks their
+   * controls, and they used to be repaired there all the same.
+   */
+  @Test
+  public void aClientNoAciLetsUseTheControlGetsNoRepair() throws Exception
+  {
+    final String dn = "cn=not repaired," + TEST_ROOT_DN_STRING;
+    TestCaseUtils.addEntry(
+        "dn: " + dn,
+        "objectClass: top",
+        "objectClass: person",
+        "sn: not repaired",
+        "cn: not repaired");
+    assertThat(nextUpdate()).as("the add of the entry was not published").isNotNull();
+
+    final Runnable restoreTheGlobalControlAci = withGlobalControlAci(null);
+    try (Connection user = connectAsUser())
+    {
+      try
+      {
+        user.modify(Requests.newModifyRequest(dn)
+            .addModification(ModificationType.REPLACE, "entryUUID", REPAIRED_UUID)
+            .addControl(GenericControl.newControl(OID_REPLICATION_REPAIR_CONTROL)));
+        throw new AssertionError("a client no ACI lets use the control repaired a modify");
+      }
+      catch (LdapException e)
+      {
+        assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CONSTRAINT_VIOLATION);
+      }
+
+      final String addedDN = "cn=added with the control," + TEST_ROOT_DN_STRING;
+      try
+      {
+        user.add(Requests.newAddRequest(
+                "dn: " + addedDN,
+                "objectClass: top",
+                "objectClass: person",
+                "sn: added",
+                "cn: added with the control",
+                "entryUUID: " + REPAIRED_UUID)
+            .addControl(GenericControl.newControl(OID_REPLICATION_REPAIR_CONTROL)));
+        throw new AssertionError("a client no ACI lets use the control repaired an add");
+      }
+      catch (LdapException e)
+      {
+        assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
+      }
+      assertThat(nextUpdate()).as("a refused add was published").isNull();
+    }
+    finally
+    {
+      restoreTheGlobalControlAci.run();
+    }
+  }
+
+  /**
+   * A repaired delete would remove the entry from this replica alone: dropped, the control
+   * leaves an ordinary delete, which the other replicas are told about.
+   */
+  @Test
+  public void aDeleteByAClientNoAciLetsUseTheControlIsPublished() throws Exception
+  {
+    final String dn = "cn=deleted with the control," + TEST_ROOT_DN_STRING;
+    TestCaseUtils.addEntry(
+        "dn: " + dn,
+        "objectClass: top",
+        "objectClass: person",
+        "sn: deleted",
+        "cn: deleted with the control");
+    assertThat(nextUpdate()).as("the add of the entry was not published").isNotNull();
+
+    final Runnable restoreTheGlobalControlAci = withGlobalControlAci(null);
+    try (Connection user = connectAsUser())
+    {
+      user.delete(Requests.newDeleteRequest(dn)
+          .addControl(GenericControl.newControl(OID_REPLICATION_REPAIR_CONTROL)));
+    }
+    finally
+    {
+      restoreTheGlobalControlAci.run();
+    }
+    assertThat(nextUpdate()).as("the delete was not published").isInstanceOf(DeleteMsg.class);
+  }
+
+  /** A client an ACI lets use the control repairs as an administrator does. */
+  @Test
+  public void aClientAnAciLetsUseTheControlRepairs() throws Exception
+  {
+    final String dn = "cn=repaired by the user," + TEST_ROOT_DN_STRING;
+    final String uuid = "8f4c2e1a-6b3d-4a9e-b7c5-1d2e3f4a5b6c";
+
+    final Runnable restoreTheGlobalControlAci = withGlobalControlAci(REPAIR_CONTROL_ACI);
+    try (Connection user = connectAsUser())
+    {
+      user.add(Requests.newAddRequest(
+              "dn: " + dn,
+              "objectClass: top",
+              "objectClass: person",
+              "sn: repaired",
+              "cn: repaired by the user",
+              "entryUUID: " + uuid)
+          .addControl(GenericControl.newControl(OID_REPLICATION_REPAIR_CONTROL)));
+    }
+    finally
+    {
+      restoreTheGlobalControlAci.run();
+    }
+
+    final SearchResultEntry added = connection.searchSingleEntry(
+        Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT, "(objectClass=*)").addAttribute("entryUUID"));
+    assertThat(added.parseAttribute("entryUUID").asString()).isEqualTo(uuid);
+    assertThat(nextUpdate()).as("the repaired add was published to the topology").isNull();
+  }
+
+  /**
+   * Takes the global ACI which lets anyone use any control out of the configuration, and puts
+   * {@code aci} there instead when it is not {@code null}.
+   *
+   * @return what puts the configuration back as it was
+   */
+  private Runnable withGlobalControlAci(String aci) throws Exception
+  {
+    connection.modify(Requests.newModifyRequest(ACCESS_HANDLER_DN)
+        .addModification(ModificationType.DELETE, "ds-cfg-global-aci", ANY_CONTROL_ACI));
+    if (aci != null)
+    {
+      connection.modify(Requests.newModifyRequest(ACCESS_HANDLER_DN)
+          .addModification(ModificationType.ADD, "ds-cfg-global-aci", aci));
+    }
+    return () ->
+    {
+      try
+      {
+        if (aci != null)
+        {
+          connection.modify(Requests.newModifyRequest(ACCESS_HANDLER_DN)
+              .addModification(ModificationType.DELETE, "ds-cfg-global-aci", aci));
+        }
+        connection.modify(Requests.newModifyRequest(ACCESS_HANDLER_DN)
+            .addModification(ModificationType.ADD, "ds-cfg-global-aci", ANY_CONTROL_ACI));
+      }
+      catch (LdapException e)
+      {
+        throw new AssertionError("the global ACI of the controls could not be put back", e);
+      }
+    };
+  }
+
+  private Connection connectAsUser() throws Exception
+  {
+    final Connection user = factory.getConnection();
+    user.bind(USER_DN, "password".toCharArray());
+    return user;
+  }
+
   private static ModifyRequest repairRequest(boolean withRepairControl)
   {
     final ModifyRequest request = Requests.newModifyRequest(REPAIRED_DN)
@@ -382,7 +570,8 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
       }
       if (msg == null)
       {
-        throw new AssertionError("the broker session is gone");
+        // The broker reconnects a session it lost, and returns null only once it is stopped.
+        throw new AssertionError("the broker was stopped");
       }
       if (msg instanceof LDAPUpdateMsg)
       {

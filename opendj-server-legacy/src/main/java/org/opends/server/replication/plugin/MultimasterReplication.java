@@ -52,6 +52,7 @@ import org.opends.server.api.ExportTaskListener;
 import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.RestoreTaskListener;
 import org.opends.server.api.SynchronizationProvider;
+import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
@@ -161,6 +162,15 @@ public class MultimasterReplication
           Control c = it.next();
           if (OID_REPLICATION_REPAIR_CONTROL.equals(c.getOID()))
           {
+            if (!mayUseRepairControl(dn, op, c))
+            {
+              /*
+              Leave the control on the request: the backend drops it when it is not critical,
+              and refuses the request when it is, as it does with any control the client may
+              not use.
+              */
+              break;
+            }
             op.setSynchronizationOperation(true);
             op.setDontSynchronize(true);
             /*
@@ -194,6 +204,28 @@ public class MultimasterReplication
     }
 
     return domain;
+  }
+
+  /**
+   * Whether the client may use the repair control on this operation, as the access control of
+   * the controls decides it: a client with the {@code bypass-acl} privilege, or one an ACI allows
+   * to use the control.
+   * <p>
+   * The backend asks the same question of every control, but an add or a delete reaches the
+   * replication plugin before it does, and by then the plugin has taken the control off the
+   * request - so on those operations the answer given here is the only one.
+   */
+  private static boolean mayUseRepairControl(DN dn, Operation op, Control control)
+  {
+    try
+    {
+      return AccessControlConfigManager.getInstance().getAccessControlHandler().isAllowed(dn, op, control);
+    }
+    catch (DirectoryException e)
+    {
+      logger.traceException(e);
+      return false;
+    }
   }
 
   /**

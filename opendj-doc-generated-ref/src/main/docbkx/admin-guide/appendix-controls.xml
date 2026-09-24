@@ -361,8 +361,11 @@
     <literal>modifiersName</literal> and <literal>modifyTimestamp</literal> -
     and password policy handling do not run for it either: a mistyped value
     is accepted without an error, and a <literal>userPassword</literal> value
-    is stored in the clear rather than encoded. Put nothing but the repair in
-    the request, and send it as not critical.</para>
+    is stored in the clear rather than encoded. The server honours the control
+    only for a client that has the <literal>bypass-acl</literal> privilege, or
+    that an ACI allows to use it; for any other client it drops the control
+    and processes the request as if the control had not been sent. Put nothing
+    but the repair in the request, and send it as not critical.</para>
    </listitem>
   </varlistentry>
 
