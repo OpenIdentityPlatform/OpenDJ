@@ -254,7 +254,15 @@ public class CachedConnection implements Connection {
         return Math.min(backoffMs == 0 ? 1 : backoffMs * 2, MAX_BACKOFF_MS);
     }
 
-    /** How many links of the cause and getNextException() chains of a failure are looked at. */
+    /**
+     * How many links of the cause and getNextException() chains of a failure the two walks that
+     * have a reason to stop look at: {@link #holdsCredentials} answers "yes" past it, since the
+     * cost of the other answer is the password of the backend in the log, and
+     * {@link #redactedCopy} rebuilds that far and names the rest in one link. The walk whose verdict
+     * decides something, {@link #isWorthRetrying}, is not one of them: a count does not leave that
+     * question unanswered, it answers it with the verdict of a failure that carries nothing
+     * (issue #1076), and the visited set of every walk here terminates it on its own.
+     */
     private static final int MAX_CHAIN_LENGTH = 32;
 
     /** What a connection string is cut down to where this cannot tell its credentials from the rest of it. */
@@ -2002,11 +2010,14 @@ public class CachedConnection implements Connection {
      */
     static boolean isWorthRetrying(SQLException e, ConnectDialect dialect) {
         // a failure of the driver is often wrapped, and a SQLException carries two chains of its
-        // own: the causes behind it and the further exceptions of getNextException()
+        // own: the causes behind it and the further exceptions of getNextException(). Walked to
+        // their end rather than to MAX_CHAIN_LENGTH: the visited set already terminates the walk,
+        // and a count answered the link it never reached with "the caller's to see" - the connect
+        // reported as permanent on a database that would have taken it a moment later (issue #1076)
         final Deque<Throwable> pending = new ArrayDeque<>();
         final Set<Throwable> visited = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
         enqueue(pending, visited, e);
-        for (int links = 0; !pending.isEmpty() && links < MAX_CHAIN_LENGTH; links++) {
+        while (!pending.isEmpty()) {
             final Throwable t = pending.poll();
             if (t instanceof SQLException) {
                 final SQLException sql = (SQLException) t;
