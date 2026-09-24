@@ -120,7 +120,7 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
     assertFalse(pendingChanges.putRemoteUpdate(deleteMsg(csn, "uuid-1")),
         "a change a replay thread owns must not be taken over (OPENDJ-1115)");
 
-    pendingChanges.replayFailed(csn);
+    assertTrue(pendingChanges.replayFailed(csn), "the change its owner gave back was not released");
 
     assertEquals(pendingChanges.getQueueSize(), 1, "the change must stay listed as pending");
     assertTrue(state.isEmpty(), "a change which was not replayed must not be recorded as replayed");
@@ -499,15 +499,18 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
     assertTrue(pendingChanges.putRemoteUpdate(delivery));
     assertTrue(pendingChanges.markInProgress(delivery));
 
+    final AtomicReference<Boolean> releasedByTheOtherThread = new AtomicReference<>();
     runAndJoin(new Runnable()
     {
       @Override
       public void run()
       {
-        pendingChanges.replayFailed(csn);
+        releasedByTheOtherThread.set(pendingChanges.replayFailed(csn));
       }
     });
 
+    assertEquals(releasedByTheOtherThread.get(), Boolean.FALSE,
+        "a release which was ignored must say so: nothing was given back to ask for again");
     assertFalse(pendingChanges.putRemoteUpdate(deleteMsg(csn, "uuid-1")),
         "a change another thread is replaying must not be taken over");
     assertEquals(pendingChanges.getQueueSize(), 1);
@@ -515,7 +518,8 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
         "a release which was ignored must leave the change with the thread which owns it");
 
     // The thread which owns the change is still the one which decides its fate.
-    pendingChanges.replayFailed(csn);
+    assertTrue(pendingChanges.replayFailed(csn), "the change its owner gave back was not released");
+    assertFalse(pendingChanges.replayFailed(csn), "a change given back once was released again");
     assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(csn, "uuid-1")),
         "the change its owner gave back must be taken over by the next delivery");
     /*
@@ -526,6 +530,38 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
      */
     assertNull(pendingChanges.getChangeOwnedByCurrentThread(),
         "a change which was given back is not one this thread gives back again");
+  }
+
+  /**
+   * A release of a change which is not listed as an uncommitted one anymore gives nothing
+   * back, and says so: a replay thread which reaches its give-up after the pending changes
+   * were forgotten - by the domain disabled and enabled again, or by the import at its end -
+   * must not ask for a session restart for a change the ServerState loaded then accounts for
+   * (issue #1061).
+   */
+  @Test
+  public void replayFailedReleasesNothingOnceTheChangeIsForgottenOrCommitted() throws Exception
+  {
+    final ServerState state = new ServerState();
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(state);
+    final CSNGenerator generator = new CSNGenerator(SERVER_ID, 0);
+
+    final CSN forgotten = generator.newCSN();
+    final DeleteMsg forgottenDelivery = deleteMsg(forgotten, "uuid-1");
+    assertTrue(pendingChanges.putRemoteUpdate(forgottenDelivery));
+    assertTrue(pendingChanges.markInProgress(forgottenDelivery));
+    pendingChanges.clear();
+    assertFalse(pendingChanges.replayFailed(forgotten),
+        "a change the pending changes forgot was reported as given back");
+
+    final CSN committed = generator.newCSN();
+    final DeleteMsg committedDelivery = deleteMsg(committed, "uuid-2");
+    assertTrue(pendingChanges.putRemoteUpdate(committedDelivery));
+    assertTrue(pendingChanges.markInProgress(committedDelivery));
+    pendingChanges.commit(committed);
+    assertFalse(pendingChanges.replayFailed(committed),
+        "a change which was committed was reported as given back");
+    assertTrue(state.cover(committed));
   }
 
   /**

@@ -4349,13 +4349,28 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * <p>
    * The change is not owned by anyone anymore and it was never applied, so a session
    * restart is asked for to have it delivered again: it is left out of the ServerState,
-   * and the changes which follow it are held back until it is replayed.
+   * and the changes which follow it are held back until it is replayed. A change which
+   * this thread did not give back - it is not listed anymore, or another thread owns it -
+   * is asked for by nobody here.
    *
    * @param csn the CSN of the change this thread was replaying
    */
   private void abandonReplay(CSN csn)
   {
-    remotePendingChanges.replayFailed(csn);
+    if (!remotePendingChanges.replayFailed(csn))
+    {
+      /*
+       * Not listed anymore: the owner which forgot the pending changes - disable() with
+       * enable(), or the import at its end - did it while this thread was on its way here,
+       * and it starts the session again from the ServerState it loaded, which asks for
+       * everything that state does not cover. A request made now would outlive the clear
+       * of that owner and have the state checkpointer stop and start the session it has
+       * just started, for a change which is gone. The other road to false - the change is
+       * owned by another thread, which took it over since - needs no restart either: that
+       * thread is the one which replays it or gives it back.
+       */
+      return;
+    }
     /*
      * Asked for rather than run here. The threads of the pool are stopped one after the
      * other and joined, so every one of them which was replaying a change would stop and
@@ -6035,10 +6050,12 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
          * uncommitted change - the state would never move past it, and the replication
          * server does not send a change again which the state it is given covers. Nothing
          * listed a change meanwhile: the listener thread is the one running this import,
-         * and the replay threads gave up every attempt while the flag was set. The restart
-         * a replay thread may have asked for before the total update owned the session
-         * goes with them, as do the deliveries folded into no warning: the caller starts
-         * the session again from the reloaded state.
+         * and the replay threads gave up every attempt while the flag was set. The restarts
+         * they asked for on their way out, while the total update owned the session, and
+         * any asked for before it did, go with them, as do the deliveries folded into no
+         * warning: the caller starts the session again from the reloaded state. A replay
+         * thread which reaches its give-up after this clear finds its change unlisted and
+         * asks for nothing.
          */
         remotePendingChanges.clear();
         sessionRestarts.clear();

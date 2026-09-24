@@ -462,6 +462,8 @@ public class ReplayDuringImportTest extends ReplicationTestCase
     final LDAPUpdateMsg delivered = publishAndAwaitDelivery(new ModifyMsg(csn,
         DN.valueOf("cn=movedAway," + EXAMPLE_DN),
         generatemods("description", "released while the request was on its way"), entryUUID));
+    // A restart run on this thread would be back up before any read of the session: this counts it.
+    domain.failNextSessionRestarts(1);
     ShortCircuitPlugin.registerShortCircuit(
         OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue());
     try
@@ -478,8 +480,9 @@ public class ReplayDuringImportTest extends ReplicationTestCase
         .as("the change was warned about as one the replication server sends again, which it"
             + " does not while the total update owns the session")
         .isEmpty();
-    assertTrue(domain.isConnected(),
-        "the session the answer to the request would arrive over was stopped under the owner");
+    assertEquals(domain.getSessionRestartFailuresLeft(), 1,
+        "a session restart was run under the owner by the replay whose attempts were spent");
+    domain.failNextSessionRestarts(0);
 
     giveUpTheRequest();
 
@@ -517,7 +520,8 @@ public class ReplayDuringImportTest extends ReplicationTestCase
     final LDAPUpdateMsg delivered = publishAndAwaitDelivery(new ModifyMsg(csn, entry.getName(),
         generatemods("description", "abandoned while the request was on its way"), entryUUID));
     // The thread of this test is one which is stopping: the change is abandoned unapplied.
-    domain.markInProgress(delivered);
+    assertTrue(domain.markInProgress(delivered), "the delivery was not handed to this thread");
+    domain.failNextSessionRestarts(1);
     domain.replay(delivered, new AtomicBoolean(true));
     assertThat(DirectoryServer.getEntry(entry.getName()).getAllAttributes("description"))
         .as("a change abandoned by a stopping thread was applied").isEmpty();
@@ -525,8 +529,11 @@ public class ReplayDuringImportTest extends ReplicationTestCase
         .as("the change was reported as one the replication server sends again, which it"
             + " does not while the total update owns the session")
         .isEmpty();
-    assertTrue(domain.isConnected(),
-        "the session the answer to the request would arrive over was stopped under the owner");
+    assertEquals(getMonitorAttrValue(baseDN, "changes-with-failed-replay"), 0,
+        "the abandoned change was counted against its budget: it was never attempted");
+    assertEquals(domain.getSessionRestartFailuresLeft(), 1,
+        "a session restart was run under the owner by the thread which abandoned the change");
+    domain.failNextSessionRestarts(0);
 
     giveUpTheRequest();
 
@@ -539,17 +546,59 @@ public class ReplayDuringImportTest extends ReplicationTestCase
   }
 
   /**
+   * A change a stopping replay thread abandons once the import has forgotten it asks for no
+   * session restart (issue #1061).
+   * <p>
+   * The import forgets the pending changes at its end, and the session it starts asks for
+   * everything the ServerState it loaded does not cover. A thread which read the flag while
+   * the import ran and reaches the give-back only after that finds its change unlisted: a
+   * restart asked for then would outlive the clear, and the state checkpointer would stop
+   * and start the session the import has just started, for a change which is gone.
+   */
+  @Test(timeOut = 120_000)
+  public void aChangeAbandonedOnceTheImportForgotItAsksForNoRestart() throws Exception
+  {
+    final String[] exported = exportedEntries();
+
+    // Owned by this thread before the import begins, and still owned when the import ends.
+    final CSN csn = gen.newCSN();
+    domain.processUpdate(new ModifyMsg(csn, DN.valueOf(IMPORTED_ENTRY_DN),
+        generatemods("description", "abandoned once the import forgot it"), IMPORTED_ENTRY_UUID));
+    final LDAPUpdateMsg delivered = queue.take().getUpdateMessage();
+    assertTrue(domain.markInProgress(delivered), "the delivery was not handed to this thread");
+
+    startImportInto(exported.length);
+    finishImport(exported);
+
+    domain.failNextSessionRestarts(1);
+    try
+    {
+      domain.replay(delivered, new AtomicBoolean(true));
+
+      // Two ticks of the checkpointer: a request standing now is run on the first.
+      Thread.sleep(2000);
+      assertEquals(domain.getSessionRestartFailuresLeft(), 1, "a change the import forgot"
+          + " asked for a restart of the session the import started at its end");
+      assertThat(errorLogRecordsOf(NOTE_REPLAY_ABANDONED_CHANGE.ordinal(), csn))
+          .as("a change the import forgot was reported as one the replication server sends again")
+          .isEmpty();
+    }
+    finally
+    {
+      domain.failNextSessionRestarts(0);
+    }
+  }
+
+  /**
    * A change the give-back released while a total update which never begins owns the session
    * is asked for again under the owner by the give-back itself, and the request is left
    * standing rather than spent (issue #1061).
    * <p>
    * The change it waited for is one another thread is replaying, held before its operation
    * is built: nothing has failed, so no road but the give-back has asked for anything, and
-   * the request found standing once the owner is gone is the give-back's own. The parked
-   * road of {@code replay()} runs what is requested when the session has no owner; run under
-   * the owner, the restart would be refused where it runs and the request spent on the
-   * refusal, with nothing left for the state checkpointer to run - so the same case pins
-   * that the run is held back under the owner the give-back asked under.
+   * the request found standing once the owner is gone is the give-back's own. No restart is
+   * run on the thread of the give-back under the owner: one run there would be refused where
+   * it runs, and the case counts the restarts which get that far.
    * <p>
    * The replay which is unwound is this thread's, as in the case above: its change is
    * applied, and the ack of its delivery runs out of memory.
@@ -605,6 +654,7 @@ public class ReplayDuringImportTest extends ReplicationTestCase
 
       // The replay which is unwound while this thread still holds the parked change.
       final CSN unwound = gen.newCSN();
+      domain.failNextSessionRestarts(1);
       try
       {
         replayMsg(new ModifyMsgWhoseAckRunsOutOfMemoryOnceApplied(unwound, other.getName(),
@@ -618,8 +668,9 @@ public class ReplayDuringImportTest extends ReplicationTestCase
       }
       assertEquals(getMonitorAttrValue(baseDN, "dependent-changes-size"), 0,
           "the change parked by the replay which was unwound must be given back");
-      assertTrue(domain.isConnected(),
-          "the session the answer to the request would arrive over was stopped under the owner");
+      assertEquals(domain.getSessionRestartFailuresLeft(), 1,
+          "a session restart was run under the owner by the replay which was unwound");
+      domain.failNextSessionRestarts(0);
 
       // The held change runs to its end: nothing fails, nothing asks for a restart.
       letGo.countDown();
