@@ -380,6 +380,45 @@ public class FileBasedTrustManagerProviderTestCase
     }
   }
 
+  /**
+   * A trust store renewed together with its PIN file is loaded with the new PIN by the provider
+   * itself, as a component rebuilding its SSL context asks it to, with no certificate checked in
+   * between to read the PIN again.
+   */
+  @Test
+  public void testTrustStoreAndPinRenewedTogetherLoadedWithoutCheck() throws Exception
+  {
+    final File configDir = new File(DirectoryServer.getInstanceRoot(), "config");
+    final File trustStore = new File(configDir, "renewed-test.truststore");
+    final File pinFile = new File(configDir, "renewed-test.truststore.pin");
+    replace(trustStore, Files.readAllBytes(new File(configDir, "server.truststore").toPath()));
+    replace(pinFile, ("password" + EOL).getBytes(StandardCharsets.UTF_8));
+    FileBasedTrustManagerProvider provider = initializeTrustManagerProvider(TestCaseUtils.makeEntry(
+        "dn: cn=Renewed Trust Manager Provider,cn=SSL,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-trust-manager-provider",
+        "objectClass: ds-cfg-file-based-trust-manager-provider",
+        "cn: Renewed Trust Manager Provider",
+        "ds-cfg-java-class: org.opends.server.extensions.FileBasedTrustManagerProvider",
+        "ds-cfg-enabled: true",
+        "ds-cfg-trust-store-file: config/renewed-test.truststore",
+        "ds-cfg-trust-store-pin-file: config/renewed-test.truststore.pin"));
+    try
+    {
+      assertThat(((X509TrustManager) provider.getTrustManagers()[0]).getAcceptedIssuers()).hasSize(3);
+
+      replace(trustStore, withPassword(new File(configDir, "client.truststore"), "password", "changed"));
+      replace(pinFile, ("changed" + EOL).getBytes(StandardCharsets.UTF_8));
+      assertThat(((X509TrustManager) provider.getTrustManagers()[0]).getAcceptedIssuers()).hasSize(2);
+    }
+    finally
+    {
+      provider.finalizeTrustManagerProvider();
+      Files.deleteIfExists(trustStore.toPath());
+      Files.deleteIfExists(pinFile.toPath());
+    }
+  }
+
   private FileBasedTrustManagerProvider initializeTrustManagerProvider(Entry e) throws Exception {
     return InitializationUtils.initializeTrustManagerProvider(
         new FileBasedTrustManagerProvider(), e, FileBasedTrustManagerProviderCfgDefn.getInstance());

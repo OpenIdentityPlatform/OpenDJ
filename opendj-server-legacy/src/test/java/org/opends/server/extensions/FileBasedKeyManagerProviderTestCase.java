@@ -456,6 +456,48 @@ public class FileBasedKeyManagerProviderTestCase
     }
   }
 
+  /**
+   * A key store renewed together with its PIN file is loaded with the new PIN by the provider
+   * itself, as a connection handler rebuilding its SSL context asks it to, with no handshake in
+   * between to read the PIN again.
+   */
+  @Test
+  public void testKeyStoreAndPinRenewedTogetherLoadedWithoutHandshake() throws Exception
+  {
+    final File configDir = new File(DirectoryServer.getInstanceRoot(), "config");
+    final File keyStore = new File(configDir, "renewed-test.keystore");
+    final File pinFile = new File(configDir, "renewed-test.keystore.pin");
+    replace(keyStore, Files.readAllBytes(new File(configDir, "server.keystore").toPath()));
+    replace(pinFile, ("password" + EOL).getBytes(StandardCharsets.UTF_8));
+    FileBasedKeyManagerProvider provider = initializeKeyManagerProvider(TestCaseUtils.makeEntry(
+        "dn: cn=Renewed Key Manager Provider,cn=SSL,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-key-manager-provider",
+        "objectClass: ds-cfg-file-based-key-manager-provider",
+        "cn: Renewed Key Manager Provider",
+        "ds-cfg-java-class: org.opends.server.extensions.FileBasedKeyManagerProvider",
+        "ds-cfg-enabled: true",
+        "ds-cfg-key-store-file: config/renewed-test.keystore",
+        "ds-cfg-key-store-pin-file: config/renewed-test.keystore.pin"));
+    try
+    {
+      final String serverCertificate = serverCertificateOf((X509ExtendedKeyManager) provider.getKeyManagers()[0]);
+
+      replace(keyStore, rewritten(new File(configDir, "client.keystore"), "password", "changed", "server-cert"));
+      replace(pinFile, ("changed" + EOL).getBytes(StandardCharsets.UTF_8));
+      assertThat(provider.containsAtLeastOneKey()).isTrue();
+      assertThat(provider.containsKeyWithAlias("server-cert")).isTrue();
+      final X509ExtendedKeyManager keyManager = (X509ExtendedKeyManager) provider.getKeyManagers()[0];
+      assertThat(serverCertificateOf(keyManager)).isNotEqualTo(serverCertificate);
+    }
+    finally
+    {
+      provider.finalizeKeyManagerProvider();
+      Files.deleteIfExists(keyStore.toPath());
+      Files.deleteIfExists(pinFile.toPath());
+    }
+  }
+
   /** The road LDAPS takes with ssl-cert-nickname set: SelectableCertificateKeyManager asks getServerAliases. */
   private static String serverCertificateByAliasesOf(X509ExtendedKeyManager keyManager)
   {
