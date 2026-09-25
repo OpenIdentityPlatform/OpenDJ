@@ -36,6 +36,60 @@ over an instance that is already there - never reports healthy: what failed is i
 logs`, and where the server is up at all the container is left running to be looked at,
 turning `unhealthy` once the start period is over.
 
+## Certificates
+
+With the default `OPENDJ_SSL_OPTIONS` the instance serves LDAPS and StartTLS with a
+self-signed certificate from `config/keystore`, whose password is in `config/keystore.pin`.
+To serve your own certificate, mount a directory holding a `keystore` (JKS or PKCS12) and
+its `keystore.pin` at `SECRET_VOLUME`, and a `truststore` next to them if clients present
+certificates:
+
+```bash
+docker run -d --name opendj -v opendj-data:/opt/opendj/data \
+  -v "$PWD/secrets":/var/secrets/opendj:ro openidentityplatform/opendj
+```
+
+Every `key*` and `trust*` file of that directory is copied into `/opt/opendj/data/config`
+before the server starts - on the first start and on every later one, so a certificate
+renewed on the volume reaches an instance kept on a persistent volume. While the server
+runs, the directory is checked again every `SECRET_VOLUME_REFRESH` seconds and a changed
+file is copied again. The server reads the copied keystore when it starts, so a certificate
+renewed while it runs is served from its next restart. The administration connector and
+replication keep keys of their own and are not affected.
+
+On Kubernetes, the PEM files of a `kubernetes.io/tls` Secret cannot be used as they are:
+OpenDJ reads keystores, not PEM. cert-manager can add a PKCS12 keystore to the Secret it
+issues, and a projected volume mounts it under the names above:
+
+```yaml
+# the Certificate
+spec:
+  secretName: opendj-tls
+  keystores:
+    pkcs12:
+      create: true
+      passwordSecretRef: { name: opendj-keystore-password, key: password }
+---
+# the pod template of the StatefulSet
+volumes:
+  - name: secrets
+    projected:
+      sources:
+        - secret:
+            name: opendj-tls
+            items: [{ key: keystore.p12, path: keystore }]
+        - secret:
+            name: opendj-keystore-password
+            items: [{ key: password, path: keystore.pin }]
+containers:
+  - name: opendj
+    volumeMounts:
+      - { name: secrets, mountPath: /var/secrets/opendj, readOnly: true }
+```
+
+Mount the volume as a whole, not with `subPath`: Kubernetes does not update files mounted
+with `subPath` when the Secret changes.
+
 ## Environment Variables
 
 | Variable                | Default Value                   | Description                                                                                                                                                                                                                                             |
@@ -47,7 +101,8 @@ turning `unhealthy` once the start period is over.
 | BASE_DN                 | dc=example,dc=com               | OpenDJ Base DN                                                                                                                                                                                                                                          |
 | ROOT_USER_DN            | cn=Directory Manager            | Initial root user DN                                                                                                                                                                                                                                    |
 | ROOT_PASSWORD           | password                        | Initial root user password                                                                                                                                                                                                                              |
-| SECRET_VOLUME           | -                               | Mounted keystore volume, if present copies keystore over                                                                                                                                                                                                |
+| SECRET_VOLUME           | /var/secrets/opendj             | Mounted keystore volume, if present its `key*` and `trust*` files are copied into the instance on every start, see [Certificates](#certificates)                                                                                                        |
+| SECRET_VOLUME_REFRESH   | 60                              | While the server runs, `SECRET_VOLUME` is checked again every that many seconds and changed files are copied again; `0` copies them on start only                                                                                                       |
 | MASTER_SERVER           | -                               | Replication master server                                                                                                                                                                                                                               |
 | VERSION                 | -                               | OpenDJ version                                                                                                                                                                                                                                          |
 | OPENDJ_USER             | opendj                          | user which runs OpenDJ                                                                                                                                                                                                                                  |
