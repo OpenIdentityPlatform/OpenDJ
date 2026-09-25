@@ -578,7 +578,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
           }
           else
           {
-            ex.getValue().clear().putByteArray(newValue.toByteArray());
+            bytesToValue(ex.getValue(), newValue);
             ex.store();
           }
           return true;

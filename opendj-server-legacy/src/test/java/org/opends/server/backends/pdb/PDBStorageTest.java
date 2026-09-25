@@ -17,6 +17,7 @@
 package org.opends.server.backends.pdb;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.Mockito.*;
 import static org.forgerock.opendj.config.ConfigurationMock.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -31,6 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -43,6 +45,7 @@ import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageInUseException;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
+import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
@@ -156,17 +159,15 @@ public class PDBStorageTest extends DirectoryServerTestCase
    * The sources are wrapped rather than copied, and the storage is reopened with a buffer pool of
    * {@link #LARGE_VALUES_DB_CACHE_SIZE}: in a JVM of 512 MB each 63 MB array needs a free run of 64 regions,
    * and two CI legs ran out of one. A value on its way into Persistit is copied once more, into the value buffer
-   * of the exchange, which doubles up to 64 MB; the 20% cache of the other methods would add 76 MB of buffers
-   * which this test never fills. The three values stay in one transaction on purpose: the value buffer the
-   * 32 MB one grew fits the 63 MB one without growing again.
+   * of the exchange, which doubles up to 64 MB; the 20% cache of the other methods would allocate 76 MB of
+   * buffers up front, which this test does not need. The three values stay in one transaction on purpose:
+   * the value buffer the 32 MB one grew fits the 63 MB one without growing again.
    */
   @Test
   public void testCanAddLargeValues() throws Exception
   {
     closeAndRemove(storage);
-    final PDBBackendCfg cfg = createBackendCfg();
-    when(cfg.getDBCacheSize()).thenReturn(LARGE_VALUES_DB_CACHE_SIZE);
-    storage = new PDBStorage(cfg, serverContext);
+    storage = new PDBStorage(createBackendCfg(LARGE_VALUES_DB_CACHE_SIZE), serverContext);
     storage.open(AccessMode.READ_WRITE);
 
     storage.write(new WriteOperation()
@@ -219,6 +220,56 @@ public class PDBStorageTest extends DirectoryServerTestCase
     assertThat(read("empty")).isEqualTo(empty);
     assertThat(read("inTheMiddle")).isEqualTo(valueOfBytes(new byte[] { 1, 2, 3 }));
     assertThat(read("builder")).isEqualTo(valueOfUtf8("built"));
+    assertThat(read("large")).isEqualTo(large);
+  }
+
+  /**
+   * A put copies the value once, straight into the encoded bytes of the Persistit value: the source is never
+   * asked for a copy of its own, which {@code putByteArray(bytes.toByteArray())} would make.
+   */
+  @Test
+  public void testPutValueIsCopiedOnlyOnce() throws Exception
+  {
+    final ByteString large = wrap(new byte[64 * KB]);
+    final ByteSequence value = mock(ByteSequence.class, delegatesTo(large));
+    createTree();
+    storage.write(new WriteOperation()
+    {
+      @Override
+      public void run(WriteableTransaction txn) throws Exception
+      {
+        txn.put(treeName, valueOfUtf8("large"), value);
+      }
+    });
+
+    verify(value, never()).toByteArray();
+    assertThat(read("large")).isEqualTo(large);
+  }
+
+  /** The new value an update computes is copied once as well, the same way as the value of a put. */
+  @Test
+  public void testUpdatedValueIsCopiedOnlyOnce() throws Exception
+  {
+    final ByteString large = wrap(new byte[64 * KB]);
+    final ByteSequence value = mock(ByteSequence.class, delegatesTo(large));
+    createTree();
+    storage.write(new WriteOperation()
+    {
+      @Override
+      public void run(WriteableTransaction txn) throws Exception
+      {
+        txn.update(treeName, valueOfUtf8("large"), new UpdateFunction()
+        {
+          @Override
+          public ByteSequence computeNewValue(ByteSequence oldValue)
+          {
+            return value;
+          }
+        });
+      }
+    });
+
+    verify(value, never()).toByteArray();
     assertThat(read("large")).isEqualTo(large);
   }
 
