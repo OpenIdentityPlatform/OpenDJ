@@ -980,6 +980,13 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * Select the next update that must be sent to the server managed by this
    * ServerHandler.
+   * <p>
+   * The update comes with a permit of the send window of the session, taken
+   * before the writer decides whether it is sent at all. The peer gives the
+   * permit back for an update it receives, so the writer gives it back itself
+   * for one it drops - see {@link #releasePermitInSendWindow()} - and counts
+   * an update as sent only once it publishes it - see
+   * {@link #countSentUpdate(UpdateMsg)}.
    *
    * @return the next update that must be sent to the server managed by this
    *         ServerHandler.
@@ -1014,14 +1021,44 @@ public abstract class ServerHandler extends MessageHandler
       {
         msg = toNotAssuredUpdateMsg(msg);
       }
-      incrementOutCount();
-      if (msg.isAssured())
-      {
-        incrementAssuredStats(msg);
-      }
       return msg;
     }
     return null;
+  }
+
+  /**
+   * Gives back the permit of the send window {@link #take()} took for an
+   * update the writer drops rather than sends.
+   * <p>
+   * Only the peer gives permits back, for the updates it receives, and it
+   * never receives this one: kept, the permit would be lost for the rest of
+   * the session, and once more than half of the window is lost that way, the
+   * peer can no longer be sent enough to give any credit back, and the writer
+   * waits for it until the session is re-established (issue #1080).
+   * <p>
+   * A writer which is being shut down is let go of its wait without a permit,
+   * so one given back then may be one it never took: the window of a session
+   * which is going away is not used again.
+   */
+  void releasePermitInSendWindow()
+  {
+    sendWindow.release();
+  }
+
+  /**
+   * Counts an update {@link #take()} returned as sent to the peer, once the
+   * writer publishes it rather than drops it.
+   *
+   * @param msg
+   *          the update the writer publishes
+   */
+  void countSentUpdate(UpdateMsg msg)
+  {
+    incrementOutCount();
+    if (msg.isAssured())
+    {
+      incrementAssuredStats(msg);
+    }
   }
 
   /**
