@@ -4924,8 +4924,12 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * a driver that raises one of them has said so whatever state it filled in. Oracle reports ORA-03113, ORA-00028
 	 * and ORA-01089 as {@link SQLRecoverableException} and happens to map them to 08006 as well; the type is what
 	 * makes that robust rather than lucky.
+	 * <p>
+	 * Package-private for the one other reader it has, the redaction of a connect failure in {@link
+	 * CachedConnection}: what that rebuild leaves in place of a chain past its budget has to say what this reads
+	 * off the links it cuts (#1074), and a second copy of the question would drift from this one.
 	 */
-	private static boolean saysTheConnectionIsGone(SQLException e) {
+	static boolean saysTheConnectionIsGone(SQLException e) {
 		if (e instanceof SQLRecoverableException || e instanceof SQLNonTransientConnectionException
 				|| e instanceof SQLTransientConnectionException) {
 			return true;
