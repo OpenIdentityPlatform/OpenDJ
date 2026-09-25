@@ -38,6 +38,10 @@ rm -f "$BOOTSTRAP_COMPLETE"
 # Kubernetes that outlives the container: the pod keeps its /dev/shm across container restarts
 rm -f /dev/shm/opendj-replicate.*
 
+# A container killed during its bootstrap leaves the password file of setup.sh behind, as the
+# EXIT trap that removes it does not run then; nothing is bootstrapping yet at this point
+rm -f /dev/shm/opendj-setup-password.* /tmp/opendj-setup-password.*
+
 #if default data folder exists do not change it
 if [ ! -d ./db ]; then
   echo "/opt/opendj/data" >/opt/opendj/instance.loc && \

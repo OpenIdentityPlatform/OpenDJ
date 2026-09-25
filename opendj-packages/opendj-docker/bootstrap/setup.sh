@@ -24,8 +24,14 @@ echo "Setting up default OpenDJ instance"
 
 # The tools read the root password from a file, so that any password setup accepts reaches
 # them as one value, and it does not show on the command line of a process while the tool
-# runs. mktemp creates the file readable by its owner only.
-PASSWORD_FILE=$(mktemp) || exit 1
+# runs. mktemp creates the file readable by its owner only. The EXIT trap does not run when the
+# container is killed during the bootstrap, so the file goes to the tmpfs of /dev/shm where
+# there is one, rather than to the writable layer of the container, and run.sh removes what a
+# killed bootstrap left behind before anything else. On Kubernetes /dev/shm is shared by all
+# the containers of the pod and outlives a restart of this one, which is what the removal in
+# run.sh is for there. Busybox mktemp replaces only the last six X of the template.
+PASSWORD_FILE=$(mktemp -p /dev/shm opendj-setup-password.XXXXXX 2>/dev/null \
+  || mktemp /tmp/opendj-setup-password.XXXXXX) || exit 1
 trap 'rm -f "$PASSWORD_FILE"' EXIT
 printf '%s\n' "$ROOT_PASSWORD" >"$PASSWORD_FILE" || exit 1
 
