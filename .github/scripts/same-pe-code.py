@@ -18,8 +18,9 @@
 
 Usage: same-pe-code.py COMMITTED REBUILT
 
-Exits 0 when the two files are identical once the build stamp is blanked in both,
-1 when they differ anywhere else, and 2 when either one cannot be read as a PE image.
+Exits 0 when the two files are identical once the build stamp and the header padding
+are left out of both, 1 when they differ anywhere else, and 2 when either one cannot be
+read as a PE image.
 
 The Windows launchers are linked with /Brepro, so their bytes are a function of the
 inputs - and the inputs include the build numbers of cl, link and cvtres. Two runner
@@ -35,7 +36,8 @@ What is left out of the comparison:
 - the COFF and debug directory timestamps and the PE checksum;
 - the REPRO hash, and the PDB GUID and age of an RSDS CodeView entry;
 - the zero padding the linker puts after the DOS stub, up to the PE header, and after
-  the section table, up to SizeOfHeaders. A patch release may pad differently:
+  the section table, up to SizeOfHeaders, and e_lfanew, which only says where the first
+  of them ends. A patch release may pad differently:
   14.51.36252 put the PE header at 0x100, 14.51.36256 at 0xf0, around the same code.
 The DOS stub, the PE headers, the section table and every byte from SizeOfHeaders on
 are still compared, so a change of source or of code generation still shows. A Rich
