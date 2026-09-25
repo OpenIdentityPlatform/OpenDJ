@@ -29,12 +29,18 @@ header lists those build numbers, the REPRO debug entry holds a hash over them, 
 the COFF and debug directory timestamps and the PE checksum are derived from that
 hash. GitHub rolls a new image out over days, so the Windows job lands on either one
 and a byte comparison refreshes the committed launchers back and forth on every push.
-The fields blanked here are exactly those; everything a change of source or of code
-generation can move is still compared.
 
-A Rich header that gains or loses an entry changes length and shifts every offset
-after it, which then compares as a difference: the refresh is committed. That is the
-safe way to be wrong.
+What is left out of the comparison:
+- the Rich header;
+- the COFF and debug directory timestamps and the PE checksum;
+- the REPRO hash, and the PDB GUID and age of an RSDS CodeView entry;
+- the zero padding the linker puts after the DOS stub, up to the PE header, and after
+  the section table, up to SizeOfHeaders. A patch release may pad differently:
+  14.51.36252 put the PE header at 0x100, 14.51.36256 at 0xf0, around the same code.
+The DOS stub, the PE headers, the section table and every byte from SizeOfHeaders on
+are still compared, so a change of source or of code generation still shows. A Rich
+header that gains or loses an entry no longer does on its own: it comes with a change
+of the objects linked in, which moves the code as well.
 """
 
 import struct
@@ -97,6 +103,9 @@ def normalize(data):
         else:
             raise NotPE("unknown optional header magic 0x%x" % magic)
         blank(b, opt + 64, 4)                                    # CheckSum
+        headers_end = u32(b, opt + 60)                           # SizeOfHeaders
+        if not pe < headers_end <= len(b):
+            raise NotPE("SizeOfHeaders 0x%x out of range" % headers_end)
 
         table = opt + opt_size
         spans = []
@@ -126,7 +135,11 @@ def normalize(data):
                     blank(b, raw + 4, 20)                        # PDB GUID and age
     except struct.error as e:
         raise NotPE(str(e))
-    return bytes(b)
+    # Compare what the padding surrounds, wherever it ends (see above). The Rich header
+    # is blanked by now, so it goes with the padding after the DOS stub; e_lfanew goes
+    # too, since it only says where that padding ends.
+    return (bytes(b[:0x3C]) + bytes(b[0x40:pe]).rstrip(b"\0")
+            + bytes(b[pe:headers_end]).rstrip(b"\0") + bytes(b[headers_end:]))
 
 
 def main(argv):
