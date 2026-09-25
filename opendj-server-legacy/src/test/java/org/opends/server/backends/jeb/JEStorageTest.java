@@ -25,11 +25,16 @@ import static com.sleepycat.je.EnvironmentConfig.EVICTOR_KEEP_ALIVE;
 import static com.sleepycat.je.EnvironmentConfig.EVICTOR_MAX_THREADS;
 import static com.sleepycat.je.EnvironmentConfig.LOG_FILE_MAX;
 import static com.sleepycat.je.EnvironmentConfig.LOG_ITERATOR_READ_SIZE;
+import static com.sleepycat.je.EnvironmentConfig.MAX_OFF_HEAP_MEMORY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.forgerock.opendj.ldap.ByteString.valueOfUtf8;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -46,6 +51,9 @@ import static org.opends.server.util.StaticUtils.recursiveDelete;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -63,8 +71,10 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.server.JEBackendCfg;
+import org.mockito.ArgumentCaptor;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
@@ -76,6 +86,7 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.MemoryQuota;
 import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
+import org.testng.SkipException;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -700,15 +711,80 @@ public class JEStorageTest extends DirectoryServerTestCase
   }
 
   /**
+   * JE takes a change of its off-heap cache size while it runs, but not one which switches the cache
+   * on: switching it on asks for a restart, and the environment keeps running without it and takes
+   * the changes which follow.
+   */
+  @Test
+  public void aNativePropertyWhichSwitchesTheOffHeapCacheOnAsksForARestart() throws Exception
+  {
+    final Environment env = environmentOf(storage);
+    assertThat(env.getConfig().getConfigParam(MAX_OFF_HEAP_MEMORY)).isEqualTo("0");
+    final JEBackendCfg cfg = createBackendCfg();
+    when(cfg.getJEProperty()).thenReturn(newTreeSet(MAX_OFF_HEAP_MEMORY + "=" + MB));
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isTrue();
+    assertThat(ccr.getMessages()).hasSize(1);
+    assertThat(ccr.getMessages().get(0).toString()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART
+        .get(MAX_OFF_HEAP_MEMORY, BACKEND_ID, "0", String.valueOf(MB)).toString());
+    assertThat(env.getConfig().getConfigParam(MAX_OFF_HEAP_MEMORY)).isEqualTo("0");
+
+    final ConfigChangeResult removed = storage.applyConfigurationChange(createBackendCfg());
+    assertThat(removed.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(removed.getMessages()).isEmpty();
+  }
+
+  /**
+   * Nor does JE take a change which switches its off-heap cache off: the removal of the native
+   * property asks for a restart, and the environment keeps its cache and takes the changes which
+   * follow - a change of its size among them.
+   */
+  @Test
+  public void aRemovedNativePropertyWhichSwitchesTheOffHeapCacheOffAsksForARestart() throws Exception
+  {
+    final JEBackendCfg withOffHeapCache = createBackendCfg();
+    when(withOffHeapCache.getJEProperty()).thenReturn(newTreeSet(MAX_OFF_HEAP_MEMORY + "=" + MB));
+    closeAndRemove(storage);
+    storage = new JEStorage(withOffHeapCache, serverContext);
+    storage.open(AccessMode.READ_WRITE);
+    final Environment env = environmentOf(storage);
+    assertThat(env.getConfig().getConfigParam(MAX_OFF_HEAP_MEMORY)).isEqualTo(String.valueOf(MB));
+
+    final JEBackendCfg resized = createBackendCfg();
+    when(resized.getJEProperty()).thenReturn(newTreeSet(MAX_OFF_HEAP_MEMORY + "=" + 2 * MB));
+    assertThat(storage.applyConfigurationChange(resized).getMessages()).isEmpty();
+    assertThat(env.getConfig().getConfigParam(MAX_OFF_HEAP_MEMORY)).isEqualTo(String.valueOf(2 * MB));
+
+    final ConfigChangeResult removed = storage.applyConfigurationChange(createBackendCfg());
+
+    assertThat(removed.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(removed.adminActionRequired()).isTrue();
+    assertThat(removed.getMessages()).hasSize(1);
+    assertThat(removed.getMessages().get(0).toString()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART
+        .get(MAX_OFF_HEAP_MEMORY, BACKEND_ID, String.valueOf(2 * MB), "0").toString());
+    assertThat(env.getConfig().getConfigParam(MAX_OFF_HEAP_MEMORY)).isEqualTo(String.valueOf(2 * MB));
+
+    final JEBackendCfg durabilityChanged = createBackendCfg();
+    when(durabilityChanged.isDBTxnNoSync()).thenReturn(true);
+    when(durabilityChanged.isDBTxnWriteNoSync()).thenReturn(false);
+    assertThat(storage.applyConfigurationChange(durabilityChanged).getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(env.getConfig().getDurability()).isEqualTo(Durability.COMMIT_NO_SYNC);
+  }
+
+  /**
    * A change which moves db-directory as well is still applied and reported: the note of the moved
    * directory, which asks for a restart of its own, does not end the change before the rest of it.
-   * The storage keeps naming the directory the environment runs on, which a backup lists, and the
-   * move is held against that directory: a later change still asks for the restart, and one which
-   * moves back asks for nothing.
+   * The storage keeps naming the directory the environment runs on, which a backup lists and the
+   * disk monitor watches, and the move is held against that directory: a later change still asks for
+   * the restart, and one which moves back asks for nothing.
    */
   @Test
   public void aChangeWhichMovesTheDirectoryIsStillAppliedToTheEnvironment() throws Exception
   {
+    final DiskSpaceMonitor monitor = serverContext.getDiskSpaceMonitor();
     final Environment env = environmentOf(storage);
     final File directoryAtOpen = storage.getDirectory();
     final String fileMaxAtOpen = env.getConfig().getConfigParam(LOG_FILE_MAX);
@@ -735,6 +811,110 @@ public class JEStorageTest extends DirectoryServerTestCase
       assertThat(again.getMessages().get(0).ordinal()).isEqualTo(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.ordinal());
 
       assertThat(storage.applyConfigurationChange(createBackendCfg()).getMessages()).isEmpty();
+
+      final ArgumentCaptor<File> registered = ArgumentCaptor.forClass(File.class);
+      verify(monitor, atLeastOnce()).registerMonitoredDirectory(
+          anyString(), registered.capture(), anyLong(), anyLong(), any(DiskSpaceMonitorHandler.class));
+      assertThat(registered.getAllValues()).containsOnly(directoryAtOpen);
+    }
+    finally
+    {
+      recursiveDelete(getFileForPath(MOVED_DB_DIRECTORY));
+    }
+  }
+
+  /**
+   * A storage closed while a move of its directory waits for the restart deregisters from the disk
+   * monitor the directory it ran on, the one it registered.
+   */
+  @Test
+  public void aStorageClosedWithAMovePendingDeregistersTheDirectoryItRanOn() throws Exception
+  {
+    final DiskSpaceMonitor monitor = serverContext.getDiskSpaceMonitor();
+    final File directoryAtOpen = storage.getDirectory();
+    final JEBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBDirectory()).thenReturn(MOVED_DB_DIRECTORY);
+    try
+    {
+      assertThat(storage.applyConfigurationChange(cfg).getResultCode()).isEqualTo(ResultCode.SUCCESS);
+
+      storage.close();
+
+      verify(monitor).deregisterMonitoredDirectory(directoryAtOpen, storage);
+    }
+    finally
+    {
+      recursiveDelete(getFileForPath(MOVED_DB_DIRECTORY));
+    }
+  }
+
+  /**
+   * A mode changed along with a move is written to the directory moved to alone, the one the
+   * environment runs on keeps its own: a later change which moves back with the same mode still
+   * writes it to the running directory.
+   */
+  @Test
+  public void aModeChangedAlongWithAMoveReachesTheRunningDirectoryWhenMovedBack() throws Exception
+  {
+    if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix"))
+    {
+      throw new SkipException("the directory mode is POSIX alone");
+    }
+    final File directoryAtOpen = storage.getDirectory();
+    final JEBackendCfg movedOut = createBackendCfg();
+    when(movedOut.getDBDirectory()).thenReturn(MOVED_DB_DIRECTORY);
+    when(movedOut.getDBDirectoryPermissions()).thenReturn("700");
+    final JEBackendCfg movedBack = createBackendCfg();
+    when(movedBack.getDBDirectoryPermissions()).thenReturn("700");
+    try
+    {
+      assertThat(storage.applyConfigurationChange(movedOut).getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(Files.getPosixFilePermissions(directoryAtOpen.toPath()))
+          .isEqualTo(PosixFilePermissions.fromString("rwxr-xr-x"));
+
+      final ConfigChangeResult ccr = storage.applyConfigurationChange(movedBack);
+
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.getMessages()).isEmpty();
+      assertThat(Files.getPosixFilePermissions(directoryAtOpen.toPath()))
+          .isEqualTo(PosixFilePermissions.fromString("rwx------"));
+    }
+    finally
+    {
+      recursiveDelete(getFileForPath(MOVED_DB_DIRECTORY));
+    }
+  }
+
+  /**
+   * The open writes the configured mode to the directory it runs on, a mode which came with a move
+   * made while the storage was closed as well: a later change back to the former mode writes that
+   * one to the running directory again.
+   */
+  @Test
+  public void aModeTheOpenWroteIsWhatALaterChangeIsHeldAgainst() throws Exception
+  {
+    if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix"))
+    {
+      throw new SkipException("the directory mode is POSIX alone");
+    }
+    final File directoryAtOpen = storage.getDirectory();
+    final JEBackendCfg movedOut = createBackendCfg();
+    when(movedOut.getDBDirectory()).thenReturn(MOVED_DB_DIRECTORY);
+    when(movedOut.getDBDirectoryPermissions()).thenReturn("700");
+    storage.close();
+    try
+    {
+      assertThat(storage.applyConfigurationChange(movedOut).getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      storage.open(AccessMode.READ_WRITE);
+      assertThat(Files.getPosixFilePermissions(directoryAtOpen.toPath()))
+          .isEqualTo(PosixFilePermissions.fromString("rwx------"));
+
+      final ConfigChangeResult ccr = storage.applyConfigurationChange(createBackendCfg());
+
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.getMessages()).isEmpty();
+      assertThat(Files.getPosixFilePermissions(directoryAtOpen.toPath()))
+          .isEqualTo(PosixFilePermissions.fromString("rwxr-xr-x"));
     }
     finally
     {

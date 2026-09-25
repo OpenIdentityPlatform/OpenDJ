@@ -1001,6 +1001,12 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
   private final ServerContext serverContext;
   private final File backendDirectory;
+  /**
+   * The mode last written to the directory the storage runs on. A mode changed along with a move of
+   * db-directory is written to the directory moved to alone, so the configuration as last changed
+   * does not say what the running directory has.
+   */
+  private String runningDirectoryPermissions;
   private CommitPolicy commitPolicy;
   private AccessMode accessMode;
   /** It is NULL when opening the storage READ-ONLY and no files have been created yet. */
@@ -1068,6 +1074,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     this.maxRetries = maxRetries;
     this.retryWindowNanos = retryWindowNanos;
     backendDirectory = getBackendDirectory(cfg);
+    runningDirectoryPermissions = cfg.getDBDirectoryPermissions();
     config = cfg;
     cfg.addPDBChangeListener(this);
   }
@@ -1235,6 +1242,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   private void open0(final Configuration dbCfg) throws ConfigException
   {
     setupStorageFiles(backendDirectory, config.getDBDirectoryPermissions(), config.dn());
+    runningDirectoryPermissions = config.getDBDirectoryPermissions();
     try
     {
       db = new Persistit(dbCfg);
@@ -1642,7 +1650,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         ccr.addMessage(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.get(backendDirectory, newBackendDirectory));
       }
 
-      if (!cfg.getDBDirectoryPermissions().equalsIgnoreCase(config.getDBDirectoryPermissions())
+      if (!cfg.getDBDirectoryPermissions().equalsIgnoreCase(runningDirectoryPermissions)
           || moved)
       {
         checkDBDirPermissions(cfg.getDBDirectoryPermissions(), cfg.dn(), ccr);
@@ -1657,6 +1665,10 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         if (ccr.getResultCode() != ResultCode.SUCCESS)
         {
           return ccr;
+        }
+        if (!moved)
+        {
+          runningDirectoryPermissions = cfg.getDBDirectoryPermissions();
         }
       }
       final long newCacheSize = computeSize(cfg);

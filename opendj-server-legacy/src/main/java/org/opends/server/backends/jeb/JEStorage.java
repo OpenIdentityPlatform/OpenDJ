@@ -725,6 +725,12 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
 
   private final ServerContext serverContext;
   private final File backendDirectory;
+  /**
+   * The mode last written to the directory the storage runs on. A mode changed along with a move of
+   * db-directory is written to the directory moved to alone, so the configuration as last changed
+   * does not say what the running directory has.
+   */
+  private String runningDirectoryPermissions;
   private JEBackendCfg config;
   private AccessMode accessMode;
 
@@ -795,6 +801,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     this.maxRetries = maxRetries;
     this.retryWindowNanos = retryWindowNanos;
     backendDirectory = getBackendDirectory(cfg);
+    runningDirectoryPermissions = cfg.getDBDirectoryPermissions();
     config = cfg;
     cfg.addJEChangeListener(this);
   }
@@ -992,6 +999,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
   private void open0() throws ConfigException
   {
     setupStorageFiles(backendDirectory, config.getDBDirectoryPermissions(), config.dn());
+    runningDirectoryPermissions = config.getDBDirectoryPermissions();
     try
     {
       env = new Environment(backendDirectory, envConfig);
@@ -1578,7 +1586,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
         ccr.addMessage(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.get(backendDirectory, newBackendDirectory));
       }
 
-      if (!cfg.getDBDirectoryPermissions().equalsIgnoreCase(config.getDBDirectoryPermissions())
+      if (!cfg.getDBDirectoryPermissions().equalsIgnoreCase(runningDirectoryPermissions)
           || moved)
       {
         checkDBDirPermissions(cfg.getDBDirectoryPermissions(), cfg.dn(), ccr);
@@ -1593,6 +1601,10 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
         if (ccr.getResultCode() != ResultCode.SUCCESS)
         {
           return ccr;
+        }
+        if (!moved)
+        {
+          runningDirectoryPermissions = cfg.getDBDirectoryPermissions();
         }
       }
       final long newCacheSize = computeSize(cfg);
@@ -1647,8 +1659,9 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
       final String runningValue = running.getConfigParam(param.getName());
       final String nextValue = next.getConfigParam(param.getName());
       if (Objects.equals(runningValue, nextValue)
-          || (param.isMutable() && (next.isConfigParamSet(param.getName())
-                                    || resetsToDefault(next, param.getName(), nextValue))))
+          || (param.isMutable()
+              && !switchesOffHeapCache(param.getName(), runningValue, nextValue)
+              && (next.isConfigParamSet(param.getName()) || resetsToDefault(next, param.getName(), nextValue))))
       {
         continue;
       }
@@ -1658,8 +1671,31 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     }
     next.setConfigParam(MAX_MEMORY, running.getConfigParam(MAX_MEMORY));
     next.setConfigParam(MAX_MEMORY_PERCENT, running.getConfigParam(MAX_MEMORY_PERCENT));
+    // The off-heap cache is switched on or off by the next open alone, which the change asks for above.
+    final String offHeapRunning = running.getConfigParam(MAX_OFF_HEAP_MEMORY);
+    if (switchesOffHeapCache(MAX_OFF_HEAP_MEMORY, offHeapRunning, next.getConfigParam(MAX_OFF_HEAP_MEMORY)))
+    {
+      next.setConfigParam(MAX_OFF_HEAP_MEMORY, offHeapRunning);
+    }
     // What JE takes while it runs, of the properties the configuration sets; the rest it ignores.
     env.setMutableConfig(next);
+  }
+
+  /**
+   * Tells whether a change of the given parameter switches JE's off-heap cache on or off. JE takes a
+   * change of the off-heap cache size while it runs, but not one between zero and non-zero: it throws
+   * once it has already taken the new value as its own, and so throws again on every change which
+   * follows, until the next open - which does it.
+   *
+   * @param name the name of the parameter
+   * @param runningValue the value the environment runs with
+   * @param nextValue the value configured
+   * @return whether the change switches the off-heap cache on or off
+   */
+  private static boolean switchesOffHeapCache(String name, String runningValue, String nextValue)
+  {
+    return MAX_OFF_HEAP_MEMORY.equals(name)
+        && (Long.parseLong(runningValue) > 0) != (Long.parseLong(nextValue) > 0);
   }
 
   /**
