@@ -609,7 +609,8 @@ jobs:
         run: |
           # the ERR trap below has to fire for a check failing inside stays_healthy too
           set -o errtrace
-          trap 'code=$?; for c in test_health test_health_bind; do echo "::group::container logs ($c)"; docker logs $c 2>&1 || true; docker inspect --format="{{json .State.Health}}" $c 2>&1 || true; echo "::endgroup::"; done; exit $code' ERR
+          # the containers are run without --rm, so that one whose bootstrap failed is still there for the trap to print
+          trap 'code=$?; for c in test_health test_health_bind; do echo "::group::container logs ($c)"; docker logs $c 2>&1 || true; docker inspect --format="{{json .State.Health}}" $c 2>&1 || true; echo "::endgroup::"; done; docker rm -f test_health test_health_bind >/dev/null 2>&1 || true; exit $code' ERR
           IMAGE=localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
           # a failed probe leaves a failing streak until the next probe passes, 5 s later at the
           # earliest, so a container found "healthy 0" every 2 s for 45 s passed every probe since
@@ -621,16 +622,18 @@ jobs:
             done
           }
           # ROOT_PASSWORD is only the initial root password: changing it must not turn the container unhealthy
-          docker run --rm -it -d --memory="512m" --health-interval=5s -e ROOT_PASSWORD=initial_password --name=test_health $IMAGE
+          docker run -it -d --memory="512m" --health-interval=5s -e ROOT_PASSWORD=initial_password --name=test_health $IMAGE
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_health | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_health /opt/opendj/bin/ldappasswordmodify --hostname localhost --port 1636 --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword initial_password --currentPassword initial_password --newPassword rotated_password
+          # bind settings kept for the CLI in the home of the image user must not reach the probe
+          docker exec test_health sh -c 'mkdir -p /home/opendj/.opendj && printf "bindDN=cn=Directory Manager\nbindPassword=wrong_password\n" > /home/opendj/.opendj/tools.properties'
           stays_healthy test_health
-          docker kill test_health
+          docker rm -f test_health
           # an instance rejecting unauthenticated requests is probed with the account it is given, whose password is read from a file
           # a password of its own, so the command lines below can be searched for it
           printf hc_secret_1092 > "$RUNNER_TEMP/healthcheck_password"
           chmod 644 "$RUNNER_TEMP/healthcheck_password"
-          docker run --rm -it -d --memory="512m" --health-interval=5s -v "$RUNNER_TEMP/healthcheck_password:/tmp/healthcheck_password:ro" -e ROOT_PASSWORD=hc_secret_1092 -e HEALTHCHECK_BIND_DN="cn=Directory Manager" -e HEALTHCHECK_BIND_PASSWORD_FILE=/tmp/healthcheck_password --name=test_health_bind $IMAGE
+          docker run -it -d --memory="512m" --health-interval=5s -v "$RUNNER_TEMP/healthcheck_password:/tmp/healthcheck_password:ro" -e ROOT_PASSWORD=hc_secret_1092 -e HEALTHCHECK_BIND_DN="cn=Directory Manager" -e HEALTHCHECK_BIND_PASSWORD_FILE=/tmp/healthcheck_password --name=test_health_bind $IMAGE
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_health_bind | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_health_bind /opt/opendj/bin/dsconfig set-global-configuration-prop --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPasswordFile /tmp/healthcheck_password --set reject-unauthenticated-requests:true --no-prompt --trustAll
           # the setting has taken: the anonymous probe would now be refused
@@ -641,15 +644,19 @@ jobs:
           rc=0
           docker exec -e HEALTHCHECK_BIND_DN= test_health_bind /opt/opendj/healthcheck.sh || rc=$?
           test "$rc" = 1
-          # a password file it cannot read is reported as such
-          rc=0
-          out=$(docker exec -e HEALTHCHECK_BIND_PASSWORD_FILE=/nonexistent test_health_bind /opt/opendj/healthcheck.sh) || rc=$?
-          test "$rc" = 1
-          grep -q 'is not a readable file' <<< "$out"
+          # a password file it cannot read is reported as such, whether it is missing or there but not
+          # readable: the image runs as its own user, not root, so mode 000 keeps the probe out
+          docker exec test_health_bind sh -c 'touch /tmp/unreadable_password && chmod 000 /tmp/unreadable_password'
+          for f in /nonexistent /tmp/unreadable_password; do
+            rc=0
+            out=$(docker exec -e HEALTHCHECK_BIND_PASSWORD_FILE=$f test_health_bind /opt/opendj/healthcheck.sh) || rc=$?
+            test "$rc" = 1
+            grep -q 'is not a readable file' <<< "$out"
+          done
           stays_healthy test_health_bind
           # the password never shows on a command line: sample every process's for two probe intervals
           docker exec test_health_bind sh -c 'end=$(($(date +%s) + 12)); while [ "$(date +%s)" -lt "$end" ]; do for f in /proc/[0-9]*/cmdline; do tr "\0" " " < "$f" 2>/dev/null; echo; done | grep -q "[h]c_secret_1092" && exit 1; sleep 0.2; done; exit 0'
-          docker kill test_health_bind
+          docker rm -f test_health_bind
       - name: Scan image for vulnerabilities (Trivy)
         # trivy resolves the image from the local Docker daemon, so only the runner's
         # linux/amd64 manifest is scanned; cache: false keeps the ~1GB trivy DBs from
@@ -869,7 +876,8 @@ jobs:
         run: |
           # the ERR trap below has to fire for a check failing inside stays_healthy too
           set -o errtrace
-          trap 'code=$?; for c in test_health test_health_bind; do echo "::group::container logs ($c)"; docker logs $c 2>&1 || true; docker inspect --format="{{json .State.Health}}" $c 2>&1 || true; echo "::endgroup::"; done; exit $code' ERR
+          # the containers are run without --rm, so that one whose bootstrap failed is still there for the trap to print
+          trap 'code=$?; for c in test_health test_health_bind; do echo "::group::container logs ($c)"; docker logs $c 2>&1 || true; docker inspect --format="{{json .State.Health}}" $c 2>&1 || true; echo "::endgroup::"; done; docker rm -f test_health test_health_bind >/dev/null 2>&1 || true; exit $code' ERR
           IMAGE=localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
           # a failed probe leaves a failing streak until the next probe passes, 5 s later at the
           # earliest, so a container found "healthy 0" every 2 s for 45 s passed every probe since
@@ -881,16 +889,18 @@ jobs:
             done
           }
           # ROOT_PASSWORD is only the initial root password: changing it must not turn the container unhealthy
-          docker run --rm -it -d --memory="1g" --health-interval=5s -e ROOT_PASSWORD=initial_password --name=test_health $IMAGE
+          docker run -it -d --memory="1g" --health-interval=5s -e ROOT_PASSWORD=initial_password --name=test_health $IMAGE
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_health | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_health /opt/opendj/bin/ldappasswordmodify --hostname localhost --port 1636 --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword initial_password --currentPassword initial_password --newPassword rotated_password
+          # bind settings kept for the CLI in the home of the image user must not reach the probe
+          docker exec test_health sh -c 'mkdir -p /home/opendj/.opendj && printf "bindDN=cn=Directory Manager\nbindPassword=wrong_password\n" > /home/opendj/.opendj/tools.properties'
           stays_healthy test_health
-          docker kill test_health
+          docker rm -f test_health
           # an instance rejecting unauthenticated requests is probed with the account it is given, whose password is read from a file
           # a password of its own, so the command lines below can be searched for it
           printf hc_secret_1092 > "$RUNNER_TEMP/healthcheck_password"
           chmod 644 "$RUNNER_TEMP/healthcheck_password"
-          docker run --rm -it -d --memory="1g" --health-interval=5s -v "$RUNNER_TEMP/healthcheck_password:/tmp/healthcheck_password:ro" -e ROOT_PASSWORD=hc_secret_1092 -e HEALTHCHECK_BIND_DN="cn=Directory Manager" -e HEALTHCHECK_BIND_PASSWORD_FILE=/tmp/healthcheck_password --name=test_health_bind $IMAGE
+          docker run -it -d --memory="1g" --health-interval=5s -v "$RUNNER_TEMP/healthcheck_password:/tmp/healthcheck_password:ro" -e ROOT_PASSWORD=hc_secret_1092 -e HEALTHCHECK_BIND_DN="cn=Directory Manager" -e HEALTHCHECK_BIND_PASSWORD_FILE=/tmp/healthcheck_password --name=test_health_bind $IMAGE
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_health_bind | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_health_bind /opt/opendj/bin/dsconfig set-global-configuration-prop --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPasswordFile /tmp/healthcheck_password --set reject-unauthenticated-requests:true --no-prompt --trustAll
           # the setting has taken: the anonymous probe would now be refused
@@ -901,15 +911,19 @@ jobs:
           rc=0
           docker exec -e HEALTHCHECK_BIND_DN= test_health_bind /opt/opendj/healthcheck.sh || rc=$?
           test "$rc" = 1
-          # a password file it cannot read is reported as such
-          rc=0
-          out=$(docker exec -e HEALTHCHECK_BIND_PASSWORD_FILE=/nonexistent test_health_bind /opt/opendj/healthcheck.sh) || rc=$?
-          test "$rc" = 1
-          grep -q 'is not a readable file' <<< "$out"
+          # a password file it cannot read is reported as such, whether it is missing or there but not
+          # readable: the image runs as its own user, not root, so mode 000 keeps the probe out
+          docker exec test_health_bind sh -c 'touch /tmp/unreadable_password && chmod 000 /tmp/unreadable_password'
+          for f in /nonexistent /tmp/unreadable_password; do
+            rc=0
+            out=$(docker exec -e HEALTHCHECK_BIND_PASSWORD_FILE=$f test_health_bind /opt/opendj/healthcheck.sh) || rc=$?
+            test "$rc" = 1
+            grep -q 'is not a readable file' <<< "$out"
+          done
           stays_healthy test_health_bind
           # the password never shows on a command line: sample every process's for two probe intervals
           docker exec test_health_bind sh -c 'end=$(($(date +%s) + 12)); while [ "$(date +%s)" -lt "$end" ]; do for f in /proc/[0-9]*/cmdline; do tr "\0" " " < "$f" 2>/dev/null; echo; done | grep -q "[h]c_secret_1092" && exit 1; sleep 0.2; done; exit 0'
-          docker kill test_health_bind
+          docker rm -f test_health_bind
       - name: Scan image for vulnerabilities (Trivy)
         # trivy resolves the image from the local Docker daemon, so only the runner's
         # linux/amd64 manifest is scanned; cache: false keeps the ~1GB trivy DBs from
