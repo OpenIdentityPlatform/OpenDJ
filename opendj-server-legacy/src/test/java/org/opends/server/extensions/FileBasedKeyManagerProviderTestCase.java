@@ -29,8 +29,10 @@ import java.nio.file.StandardCopyOption;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.net.ssl.X509ExtendedKeyManager;
 
@@ -355,12 +357,114 @@ public class FileBasedKeyManagerProviderTestCase
 
       replace(keyStore, "not a key store".getBytes(StandardCharsets.UTF_8));
       assertThat(serverCertificateOf(keyManager)).isEqualTo(serverCertificate);
+
+      // the failed load above kept the aliases the last key store loaded holds its key under
+      replace(keyStore, rewritten(new File(configDir, "client.keystore"), "password", "changed", "other-cert"));
+      assertThat(serverCertificateOf(keyManager)).isEqualTo(serverCertificate);
     }
     finally
     {
       provider.finalizeKeyManagerProvider();
       Files.deleteIfExists(keyStore.toPath());
       Files.deleteIfExists(pinFile.toPath());
+    }
+  }
+
+  /**
+   * Each key manager handed out loads the key store on its own. Asking the provider again, as a
+   * connection handler does to check a configuration change, leaves the key managers handed out
+   * before alone, and the new key manager presents what the file holds: the key under the alias
+   * a handler is being configured with, which the key managers in use refused.
+   */
+  @Test
+  public void testKeyManagerHandedOutAgainLeavesEarlierOnesAlone() throws Exception
+  {
+    final File configDir = new File(DirectoryServer.getInstanceRoot(), "config");
+    final File keyStore = new File(configDir, "handed-out-test.keystore");
+    replace(keyStore, Files.readAllBytes(new File(configDir, "server.keystore").toPath()));
+    FileBasedKeyManagerProvider provider = initializeKeyManagerProvider(TestCaseUtils.makeEntry(
+        "dn: cn=Handed Out Key Manager Provider,cn=SSL,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-key-manager-provider",
+        "objectClass: ds-cfg-file-based-key-manager-provider",
+        "cn: Handed Out Key Manager Provider",
+        "ds-cfg-java-class: org.opends.server.extensions.FileBasedKeyManagerProvider",
+        "ds-cfg-enabled: true",
+        "ds-cfg-key-store-file: config/handed-out-test.keystore",
+        "ds-cfg-key-store-pin: password"));
+    try
+    {
+      final X509ExtendedKeyManager keyManager = (X509ExtendedKeyManager) provider.getKeyManagers()[0];
+      final String serverCertificate = serverCertificateOf(keyManager);
+
+      // renewed under an alias the key manager in use does not know: refused
+      replace(keyStore, rewritten(new File(configDir, "client.keystore"), "password", "password", "other-cert"));
+      assertThat(serverCertificateOf(keyManager)).isEqualTo(serverCertificate);
+
+      final X509ExtendedKeyManager renamed = (X509ExtendedKeyManager) provider.getKeyManagers()[0];
+      assertThat(renamed.getServerAliases("RSA", null)).containsExactly("other-cert");
+      assertThat(serverCertificateByAliasesOf(renamed)).isNotEqualTo(serverCertificate);
+      assertThat(serverCertificateOf(keyManager)).isEqualTo(serverCertificate);
+    }
+    finally
+    {
+      provider.finalizeKeyManagerProvider();
+      Files.deleteIfExists(keyStore.toPath());
+    }
+  }
+
+  /**
+   * Every way a key manager handed out chooses an alias looks at the key store file first: the
+   * client side, which the OAuth2 client uses, and the server side over a socket, which JMX uses.
+   */
+  @Test
+  public void testEveryAliasChoiceLoadsAgain() throws Exception
+  {
+    final File configDir = new File(DirectoryServer.getInstanceRoot(), "config");
+    final File keyStore = new File(configDir, "alias-choice-test.keystore");
+    replace(keyStore, Files.readAllBytes(new File(configDir, "server.keystore").toPath()));
+    FileBasedKeyManagerProvider provider = initializeKeyManagerProvider(TestCaseUtils.makeEntry(
+        "dn: cn=Alias Choice Key Manager Provider,cn=SSL,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-key-manager-provider",
+        "objectClass: ds-cfg-file-based-key-manager-provider",
+        "cn: Alias Choice Key Manager Provider",
+        "ds-cfg-java-class: org.opends.server.extensions.FileBasedKeyManagerProvider",
+        "ds-cfg-enabled: true",
+        "ds-cfg-key-store-file: config/alias-choice-test.keystore",
+        "ds-cfg-key-store-pin: password"));
+    try
+    {
+      final X509ExtendedKeyManager keyManager = (X509ExtendedKeyManager) provider.getKeyManagers()[0];
+      final String serverCertificate = serverCertificateOf(keyManager);
+      final byte[] serverKeyStore = Files.readAllBytes(keyStore.toPath());
+      final byte[] clientKeyStore =
+          rewritten(new File(configDir, "client.keystore"), "password", "password", "server-cert");
+      final String[] rsa = { "RSA" };
+      final List<Function<X509ExtendedKeyManager, String>> choices = Arrays.asList(
+          km -> km.getClientAliases("RSA", null)[0],
+          km -> km.chooseClientAlias(rsa, null, null),
+          km -> km.chooseEngineClientAlias(rsa, null, null),
+          km -> km.chooseServerAlias("RSA", null, null));
+
+      boolean client = false;
+      String previous = serverCertificate;
+      for (Function<X509ExtendedKeyManager, String> choice : choices)
+      {
+        client = !client;
+        replace(keyStore, client ? clientKeyStore : serverKeyStore);
+        // server.keystore holds ads-certificate too, which a client side choice may take
+        final String alias = choice.apply(keyManager);
+        assertThat(alias).isNotNull();
+        final String certificate = keyManager.getCertificateChain(alias)[0].getSubjectX500Principal().getName();
+        assertThat(certificate).isNotEqualTo(previous);
+        previous = certificate;
+      }
+    }
+    finally
+    {
+      provider.finalizeKeyManagerProvider();
+      Files.deleteIfExists(keyStore.toPath());
     }
   }
 

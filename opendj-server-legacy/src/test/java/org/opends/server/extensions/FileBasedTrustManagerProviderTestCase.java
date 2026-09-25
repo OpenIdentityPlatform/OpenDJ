@@ -419,6 +419,171 @@ public class FileBasedTrustManagerProviderTestCase
     }
   }
 
+  /**
+   * A changed configuration makes the trust managers already handed out load the trust store
+   * again on their next check, even where the file has not changed since they last looked at it.
+   */
+  @Test
+  public void testTrustStoreLoadedAgainWhenPinChangesInConfiguration() throws Exception
+  {
+    final File configDir = new File(DirectoryServer.getInstanceRoot(), "config");
+    final File trustStore = new File(configDir, "reconfigured-test.truststore");
+    replace(trustStore, Files.readAllBytes(new File(configDir, "server.truststore").toPath()));
+    FileBasedTrustManagerProvider provider = initializeTrustManagerProvider(
+        providerEntry("Reconfigured", "reconfigured-test.truststore", "password"));
+    try
+    {
+      final X509TrustManager trustManager = (X509TrustManager) provider.getTrustManagers()[0];
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
+
+      // a trust store under a PIN the configuration does not have yet: the failed load records its stamps
+      replace(trustStore, withPassword(new File(configDir, "client.truststore"), "password", "changed"));
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
+
+      provider.applyConfigurationChange(InitializationUtils.getConfiguration(
+          FileBasedTrustManagerProviderCfgDefn.getInstance(),
+          providerEntry("Reconfigured", "reconfigured-test.truststore", "changed")));
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
+    }
+    finally
+    {
+      provider.finalizeTrustManagerProvider();
+      Files.deleteIfExists(trustStore.toPath());
+    }
+  }
+
+  /**
+   * Each trust manager handed out loads the trust store on its own. Asking the provider again, as
+   * a component does to check a configuration change, leaves the trust managers handed out before
+   * alone: the one below keeps the trust store it last loaded, for its file has not changed since
+   * it failed to load it.
+   */
+  @Test
+  public void testTrustManagerHandedOutAgainLeavesEarlierOnesAlone() throws Exception
+  {
+    final File configDir = new File(DirectoryServer.getInstanceRoot(), "config");
+    final File trustStore = new File(configDir, "handed-out-test.truststore");
+    replace(trustStore, Files.readAllBytes(new File(configDir, "server.truststore").toPath()));
+    System.setProperty("handed.out.test.trust.store.pin", "password");
+    FileBasedTrustManagerProvider provider = initializeTrustManagerProvider(TestCaseUtils.makeEntry(
+        "dn: cn=Handed Out Trust Manager Provider,cn=SSL,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-trust-manager-provider",
+        "objectClass: ds-cfg-file-based-trust-manager-provider",
+        "cn: Handed Out Trust Manager Provider",
+        "ds-cfg-java-class: org.opends.server.extensions.FileBasedTrustManagerProvider",
+        "ds-cfg-enabled: true",
+        "ds-cfg-trust-store-file: config/handed-out-test.truststore",
+        "ds-cfg-trust-store-pin-property: handed.out.test.trust.store.pin"));
+    try
+    {
+      final X509TrustManager trustManager = (X509TrustManager) provider.getTrustManagers()[0];
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
+
+      replace(trustStore, withPassword(new File(configDir, "client.truststore"), "password", "changed"));
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
+      System.setProperty("handed.out.test.trust.store.pin", "changed");
+
+      assertThat(((X509TrustManager) provider.getTrustManagers()[0]).getAcceptedIssuers()).hasSize(2);
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
+    }
+    finally
+    {
+      provider.finalizeTrustManagerProvider();
+      System.clearProperty("handed.out.test.trust.store.pin");
+      Files.deleteIfExists(trustStore.toPath());
+    }
+  }
+
+  /**
+   * A plain trust manager handed out outside FIPS mode takes the extended trust manager the
+   * provider loads once the server has turned to FIPS mode.
+   */
+  @Test
+  public void testPlainTrustManagerTakesExtendedOneWhenFipsModeTurnsOn() throws Exception
+  {
+    final File configDir = new File(DirectoryServer.getInstanceRoot(), "config");
+    final File trustStore = new File(configDir, "fips-on-test.truststore");
+    replace(trustStore, Files.readAllBytes(new File(configDir, "server.truststore").toPath()));
+    final FipsSwitchedTrustManagerProvider provider = InitializationUtils.initializeTrustManagerProvider(
+        new FipsSwitchedTrustManagerProvider(), providerEntry("FIPS On", "fips-on-test.truststore", "password"),
+        FileBasedTrustManagerProviderCfgDefn.getInstance());
+    try
+    {
+      final X509TrustManager trustManager = (X509TrustManager) provider.getTrustManagers()[0];
+      assertThat(trustManager).isNotInstanceOf(X509ExtendedTrustManager.class);
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
+
+      provider.fips = true;
+      replace(trustStore, Files.readAllBytes(new File(configDir, "client.truststore").toPath()));
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
+    }
+    finally
+    {
+      provider.finalizeTrustManagerProvider();
+      Files.deleteIfExists(trustStore.toPath());
+    }
+  }
+
+  /**
+   * In FIPS mode the provider hands out an extended trust manager, over the extended trust
+   * manager it loads, and loads the trust store again the same way.
+   */
+  @Test
+  public void testTrustManagerHandedOutInFipsModeIsExtended() throws Exception
+  {
+    final File configDir = new File(DirectoryServer.getInstanceRoot(), "config");
+    final File trustStore = new File(configDir, "fips-test.truststore");
+    replace(trustStore, Files.readAllBytes(new File(configDir, "server.truststore").toPath()));
+    final FipsSwitchedTrustManagerProvider provider = new FipsSwitchedTrustManagerProvider();
+    provider.fips = true;
+    InitializationUtils.initializeTrustManagerProvider(provider,
+        providerEntry("FIPS", "fips-test.truststore", "password"), FileBasedTrustManagerProviderCfgDefn.getInstance());
+    try
+    {
+      final X509TrustManager trustManager = (X509TrustManager) provider.getTrustManagers()[0];
+      assertThat(trustManager).isInstanceOf(X509ExtendedTrustManager.class);
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
+
+      replace(trustStore, Files.readAllBytes(new File(configDir, "client.truststore").toPath()));
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
+    }
+    finally
+    {
+      provider.finalizeTrustManagerProvider();
+      Files.deleteIfExists(trustStore.toPath());
+    }
+  }
+
+  /**
+   * A provider whose FIPS mode the test turns on, instead of inserting a FIPS security provider
+   * into the JVM, where it would stay for every test class run after this one.
+   */
+  private static final class FipsSwitchedTrustManagerProvider extends FileBasedTrustManagerProvider
+  {
+    private volatile boolean fips;
+
+    @Override
+    boolean isFipsMode()
+    {
+      return fips;
+    }
+  }
+
+  private static Entry providerEntry(String name, String trustStoreFile, String pin) throws Exception
+  {
+    return TestCaseUtils.makeEntry(
+        "dn: cn=" + name + " Trust Manager Provider,cn=SSL,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-trust-manager-provider",
+        "objectClass: ds-cfg-file-based-trust-manager-provider",
+        "cn: " + name + " Trust Manager Provider",
+        "ds-cfg-java-class: org.opends.server.extensions.FileBasedTrustManagerProvider",
+        "ds-cfg-enabled: true",
+        "ds-cfg-trust-store-file: config/" + trustStoreFile,
+        "ds-cfg-trust-store-pin: " + pin);
+  }
+
   private FileBasedTrustManagerProvider initializeTrustManagerProvider(Entry e) throws Exception {
     return InitializationUtils.initializeTrustManagerProvider(
         new FileBasedTrustManagerProvider(), e, FileBasedTrustManagerProviderCfgDefn.getInstance());

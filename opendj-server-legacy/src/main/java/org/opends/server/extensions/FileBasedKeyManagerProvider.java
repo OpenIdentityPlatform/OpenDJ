@@ -76,24 +76,35 @@ public class FileBasedKeyManagerProvider
   private String keyStoreFile;
   /** The key store type to use. */
   private String keyStoreType;
-  /** What the key managers handed out by {@link #getKeyManagers()} delegate to. */
-  private volatile LoadedKeyManager loaded;
+  /**
+   * The number of configuration changes applied. It is counted after the fields above are set,
+   * and read before them.
+   */
+  private volatile int configurationChanges;
 
   /**
-   * A key manager loaded from the key store file, with the stamps of the files it was loaded
-   * from and the aliases the file held private keys under.
+   * A key manager loaded from the key store file, with the configuration change and the stamps
+   * of the files it was loaded under, and the aliases the file held private keys under.
    */
   private static final class LoadedKeyManager
   {
+    private final int configurationChanges;
     private final List<FileStamp> stamps;
     private final Set<String> keyAliases;
     private final X509ExtendedKeyManager keyManager;
 
-    private LoadedKeyManager(List<FileStamp> stamps, Set<String> keyAliases, X509ExtendedKeyManager keyManager)
+    private LoadedKeyManager(int configurationChanges, List<FileStamp> stamps, Set<String> keyAliases,
+        X509ExtendedKeyManager keyManager)
     {
+      this.configurationChanges = configurationChanges;
       this.stamps = stamps;
       this.keyAliases = keyAliases;
       this.keyManager = keyManager;
+    }
+
+    private boolean isLoadedFrom(int configurationChanges, List<FileStamp> stamps)
+    {
+      return this.configurationChanges == configurationChanges && this.stamps.equals(stamps);
     }
   }
 
@@ -102,9 +113,85 @@ public class FileBasedKeyManagerProvider
    * again when a handshake chooses its alias, and only then: the certificate chain and the
    * private key of the alias chosen come from the key manager that alias was chosen from,
    * unless the file is loaded again, by another handshake, in between.
+   * <p>
+   * Each key manager handed out loads the file on its own, so asking the provider again, as a
+   * connection handler does to check a configuration change, leaves those in use alone.
    */
   private final class ReloadingKeyManager extends X509ExtendedKeyManager
   {
+    /** The key manager last loaded, when this one was handed out or by a handshake since. */
+    private volatile LoadedKeyManager loaded;
+
+    private ReloadingKeyManager(LoadedKeyManager loaded)
+    {
+      this.loaded = loaded;
+    }
+
+    /**
+     * Returns the key manager to use for a new handshake, first loading the key store file again
+     * when it has changed since it was last loaded, or the configuration has. A file that cannot
+     * be loaded - caught half written, or not matching its PIN - leaves the key manager last
+     * loaded in use, and is not tried again until it changes again. So does a file with no private
+     * key, or one that shares no alias with the file last loaded. A connection handler presents
+     * the key named by its ssl-cert-nickname, which the provider does not see, and the aliases of
+     * the file last loaded stand in for it: a file that keeps one of them, but not the one a
+     * handler names, is still taken.
+     */
+    private X509ExtendedKeyManager currentKeyManager()
+    {
+      LoadedKeyManager current = loaded;
+      if (current.isLoadedFrom(configurationChanges, stampFiles()))
+      {
+        return current.keyManager;
+      }
+      synchronized (this)
+      {
+        // stamped again under the lock: stamps taken before it may be those of a write another
+        // thread has loaded past meanwhile
+        final int changes = configurationChanges;
+        final List<FileStamp> stamps = stampFiles();
+        current = loaded;
+        if (current.isLoadedFrom(changes, stamps))
+        {
+          return current.keyManager;
+        }
+        // the key store a changed configuration names may hold its keys under any aliases
+        final Set<String> knownAliases =
+            current.configurationChanges == changes ? current.keyAliases : Collections.<String> emptySet();
+        try
+        {
+          final char[] pin = currentPIN();
+          final KeyStore keyStore = getKeystore(pin);
+          final Set<String> keyAliases = keyAliases(keyStore);
+          if (keyAliases.isEmpty())
+          {
+            throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+                ERR_NO_KEY_ENTRY_IN_KEYSTORE.get(keyStoreFile));
+          }
+          if (!knownAliases.isEmpty() && Collections.disjoint(knownAliases, keyAliases))
+          {
+            throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+                ERR_FILE_KEYMANAGER_NO_KNOWN_KEY_ALIAS.get(keyStoreFile, knownAliases));
+          }
+          final KeyManager[] keyManagers = loadKeyManagers(keyStore, pin);
+          if (keyManagers.length != 1 || !(keyManagers[0] instanceof X509ExtendedKeyManager))
+          {
+            throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+                ERR_FILE_KEYMANAGER_CANNOT_CREATE_FACTORY.get(keyStoreFile, Arrays.toString(keyManagers)));
+          }
+          loaded = new LoadedKeyManager(changes, stamps, keyAliases, (X509ExtendedKeyManager) keyManagers[0]);
+          logger.info(NOTE_FILE_KEYMANAGER_RELOADED, keyStoreFile, currentConfig.dn());
+        }
+        catch (DirectoryException e)
+        {
+          logger.traceException(e);
+          loaded = new LoadedKeyManager(changes, stamps, knownAliases, current.keyManager);
+          logger.error(ERR_FILE_KEYMANAGER_CANNOT_RELOAD, keyStoreFile, currentConfig.dn(), e.getMessageObject());
+        }
+        return loaded.keyManager;
+      }
+    }
+
     @Override
     public String[] getClientAliases(String keyType, Principal[] issuers)
     {
@@ -247,6 +334,7 @@ public class FileBasedKeyManagerProvider
   @Override
   public KeyManager[] getKeyManagers() throws DirectoryException
   {
+    final int changes = configurationChanges;
     final List<FileStamp> stamps = stampFiles();
     final char[] pin = currentPIN();
     final KeyStore keyStore = getKeystore(pin);
@@ -261,73 +349,14 @@ public class FileBasedKeyManagerProvider
     {
       return keyManagers;
     }
-    loaded = new LoadedKeyManager(stamps, keyAliases, (X509ExtendedKeyManager) keyManagers[0]);
-    return new KeyManager[] { new ReloadingKeyManager() };
+    return new KeyManager[] { new ReloadingKeyManager(
+        new LoadedKeyManager(changes, stamps, keyAliases, (X509ExtendedKeyManager) keyManagers[0])) };
   }
 
   private List<FileStamp> stampFiles()
   {
     final String pinFile = currentConfig.getKeyStorePinFile();
     return FileStamp.of(getFileForPath(keyStoreFile), pinFile != null ? getFileForPath(pinFile) : null);
-  }
-
-  /**
-   * Returns the key manager to use for a new handshake, first loading the key store file again
-   * when it has changed since it was last loaded. A file that cannot be loaded - caught half
-   * written, or not matching its PIN - leaves the key manager last loaded in use, and is not
-   * tried again until it changes again. So does a file with no private key, or with none under
-   * the aliases the file held private keys under before: a connection handler presents the key
-   * named by its ssl-cert-nickname, and would find none to present.
-   */
-  private X509ExtendedKeyManager currentKeyManager()
-  {
-    LoadedKeyManager current = loaded;
-    if (current.stamps.equals(stampFiles()))
-    {
-      return current.keyManager;
-    }
-    synchronized (this)
-    {
-      // stamped again under the lock: stamps taken before it may be those of a write another
-      // thread has loaded past meanwhile
-      final List<FileStamp> stamps = stampFiles();
-      current = loaded;
-      if (current.stamps.equals(stamps))
-      {
-        return current.keyManager;
-      }
-      try
-      {
-        final char[] pin = currentPIN();
-        final KeyStore keyStore = getKeystore(pin);
-        final Set<String> keyAliases = keyAliases(keyStore);
-        if (keyAliases.isEmpty())
-        {
-          throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
-              ERR_NO_KEY_ENTRY_IN_KEYSTORE.get(keyStoreFile));
-        }
-        if (!current.keyAliases.isEmpty() && Collections.disjoint(current.keyAliases, keyAliases))
-        {
-          throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
-              ERR_FILE_KEYMANAGER_NO_KNOWN_KEY_ALIAS.get(keyStoreFile, current.keyAliases));
-        }
-        final KeyManager[] keyManagers = loadKeyManagers(keyStore, pin);
-        if (keyManagers.length != 1 || !(keyManagers[0] instanceof X509ExtendedKeyManager))
-        {
-          throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
-              ERR_FILE_KEYMANAGER_CANNOT_CREATE_FACTORY.get(keyStoreFile, Arrays.toString(keyManagers)));
-        }
-        loaded = new LoadedKeyManager(stamps, keyAliases, (X509ExtendedKeyManager) keyManagers[0]);
-        logger.info(NOTE_FILE_KEYMANAGER_RELOADED, keyStoreFile, currentConfig.dn());
-      }
-      catch (DirectoryException e)
-      {
-        logger.traceException(e);
-        loaded = new LoadedKeyManager(stamps, current.keyAliases, current.keyManager);
-        logger.error(ERR_FILE_KEYMANAGER_CANNOT_RELOAD, keyStoreFile, currentConfig.dn(), e.getMessageObject());
-      }
-      return loaded.keyManager;
-    }
   }
 
   private KeyManager[] loadKeyManagers(KeyStore keyStore, char[] keyStorePIN) throws DirectoryException
@@ -425,11 +454,7 @@ public class FileBasedKeyManagerProvider
         // the key managers already handed out load the key store the new configuration names
         // on their next handshake, even where its files are those they were loaded from, and
         // whatever aliases it holds its keys under
-        if (loaded != null)
-        {
-          loaded = new LoadedKeyManager(Collections.<FileStamp> emptyList(), Collections.<String> emptySet(),
-              loaded.keyManager);
-        }
+        configurationChanges++;
       }
     }
 
