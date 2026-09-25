@@ -128,15 +128,19 @@ if [ -n "${MASTER_SERVER}" ] && [ -n "${OPENDJ_REPLICATION_TYPE}" ]; then
   fi
 fi
 
+# Setup started the server in the background, and it cannot stay that way: the container's
+# PID 1 would be this script, which the kernel delivers no SIGTERM to, and the server would
+# keep the certificate it was set up with rather than the one on the secret volume. So it is
+# stopped here and started again in the foreground, the way every later start runs it. It is
+# stopped before the marker below is written, so that the health check never reports the
+# server of the bootstrap healthy just before it goes down. stop-ds exits 0 when the server
+# is not running.
+./bin/stop-ds
+
 # Everything the instance was asked to be set up with - its backend, its base entry, its
 # replication - is in place from here on, so the health check may start probing the server
 if [ "$BOOTSTRAPPED" = true ]; then
   touch "$BOOTSTRAP_COMPLETE"
 fi
 
-# Setup started the server in the background, and it cannot stay that way: the container's
-# PID 1 would be this script, which the kernel delivers no SIGTERM to, and the server would
-# keep the certificate it was set up with rather than the one on the secret volume. So it is
-# stopped here and started again in the foreground, the way every later start runs it.
-./bin/stop-ds
 start_server
