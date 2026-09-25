@@ -64,9 +64,6 @@ public class FileBasedTrustManagerProvider
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** The PIN needed to access the trust store. */
-  private char[] trustStorePIN;
-
   /** The handle to the configuration for this trust manager. */
   private FileBasedTrustManagerProviderCfg currentConfig;
 
@@ -188,7 +185,7 @@ public class FileBasedTrustManagerProvider
     currentConfig = cfg;
     trustStoreFile = getTrustStoreFile(cfg, ccr);
     trustStoreType = getTrustStoreType(cfg, ccr);
-    trustStorePIN = getTrustStorePIN(cfg, ccr);
+    getTrustStorePIN(cfg, ccr);
     if (!ccr.getMessages().isEmpty())
     {
       throw new InitializationException(ccr.getMessages().get(0));
@@ -214,7 +211,7 @@ public class FileBasedTrustManagerProvider
   public TrustManager[] getTrustManagers() throws DirectoryException
   {
     final List<FileStamp> stamps = stampFiles();
-    final TrustManager[] trustManagers = loadTrustManagers();
+    final TrustManager[] trustManagers = loadTrustManagers(currentPIN());
     if (trustManagers.length != 1 || !(trustManagers[0] instanceof X509TrustManager))
     {
       return trustManagers;
@@ -224,6 +221,21 @@ public class FileBasedTrustManagerProvider
     // of its own around a plain one
     return new TrustManager[] { trustManagers[0] instanceof X509ExtendedTrustManager
         ? new ReloadingExtendedTrustManager() : new ReloadingTrustManager() };
+  }
+
+  /**
+   * Returns the PIN the configuration names now, rather than the one it named when the provider
+   * was configured: a PIN file may have been renewed since, together with the trust store.
+   */
+  private char[] currentPIN() throws DirectoryException
+  {
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    final char[] pin = getTrustStorePIN(currentConfig, ccr);
+    if (ccr.getResultCode() != ResultCode.SUCCESS)
+    {
+      throw new DirectoryException(ccr.getResultCode(), ccr.getMessages().get(0));
+    }
+    return pin;
   }
 
   private List<FileStamp> stampFiles()
@@ -239,14 +251,16 @@ public class FileBasedTrustManagerProvider
    */
   private X509TrustManager currentTrustManager()
   {
-    final List<FileStamp> stamps = stampFiles();
     LoadedTrustManager current = loaded;
-    if (current.stamps.equals(stamps))
+    if (current.stamps.equals(stampFiles()))
     {
       return current.trustManager;
     }
     synchronized (this)
     {
+      // stamped again under the lock: stamps taken before it may be those of a write another
+      // thread has loaded past meanwhile
+      final List<FileStamp> stamps = stampFiles();
       current = loaded;
       if (current.stamps.equals(stamps))
       {
@@ -254,15 +268,13 @@ public class FileBasedTrustManagerProvider
       }
       try
       {
-        final ConfigChangeResult ccr = new ConfigChangeResult();
-        final char[] pin = getTrustStorePIN(currentConfig, ccr);
-        if (ccr.getResultCode() != ResultCode.SUCCESS)
-        {
-          throw new DirectoryException(ccr.getResultCode(), ccr.getMessages().get(0));
-        }
-        trustStorePIN = pin;
-        final TrustManager[] trustManagers = loadTrustManagers();
-        if (trustManagers.length != 1 || trustManagers[0].getClass() != current.trustManager.getClass())
+        final TrustManager[] trustManagers = loadTrustManagers(currentPIN());
+        // an extended trust manager handed out needs an extended one to delegate to; a plain one
+        // takes either, for the server may have turned to FIPS mode since, which leaves out the
+        // expiration check, as getTrustManagers() does then
+        if (trustManagers.length != 1 || !(trustManagers[0] instanceof X509TrustManager)
+            || current.trustManager instanceof X509ExtendedTrustManager
+                && !(trustManagers[0] instanceof X509ExtendedTrustManager))
         {
           throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
               ERR_FILE_TRUSTMANAGER_CANNOT_CREATE_FACTORY.get(trustStoreFile, Arrays.toString(trustManagers)));
@@ -280,7 +292,7 @@ public class FileBasedTrustManagerProvider
     }
   }
 
-  private TrustManager[] loadTrustManagers() throws DirectoryException
+  private TrustManager[] loadTrustManagers(char[] trustStorePIN) throws DirectoryException
   {
     KeyStore trustStore;
     try (FileInputStream inputStream = new FileInputStream(getFileForPath(trustStoreFile)))
@@ -350,14 +362,13 @@ public class FileBasedTrustManagerProvider
     final ConfigChangeResult ccr = new ConfigChangeResult();
     String newTrustStoreFile = getTrustStoreFile(cfg, ccr);
     String newTrustStoreType = getTrustStoreType(cfg, ccr);
-    char[] newPIN = getTrustStorePIN(cfg, ccr);
+    getTrustStorePIN(cfg, ccr);
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       synchronized (this)
       {
         currentConfig = cfg;
-        trustStorePIN   = newPIN;
         trustStoreFile  = newTrustStoreFile;
         trustStoreType  = newTrustStoreType;
         // the trust managers already handed out load the trust store the new configuration

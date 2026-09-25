@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
 
+import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.forgerock.opendj.config.server.ConfigException;
@@ -35,8 +36,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static com.forgerock.opendj.util.StaticUtils.isFips;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.opends.server.extensions.FileBasedKeyManagerProviderTestCase.replace;
+import static org.opends.server.extensions.FileBasedKeyManagerProviderTestCase.withPassword;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -290,15 +293,18 @@ public class FileBasedTrustManagerProviderTestCase
 
   /**
    * A trust manager handed out by the provider checks certificates against what the trust
-   * store file holds at the time of the check: a file replaced with other certificates is
-   * loaded again, and a file that cannot be loaded leaves the last certificates loaded in use.
+   * store file holds at the time of the check: a file replaced with other certificates, or with
+   * the same certificates under another PIN, is loaded again, and a file that cannot be loaded
+   * leaves the last certificates loaded in use.
    */
   @Test
   public void testTrustStoreLoadedAgainWhenChanged() throws Exception
   {
     final File configDir = new File(DirectoryServer.getInstanceRoot(), "config");
     final File trustStore = new File(configDir, "reload-test.truststore");
+    final File pinFile = new File(configDir, "reload-test.truststore.pin");
     replace(trustStore, Files.readAllBytes(new File(configDir, "server.truststore").toPath()));
+    replace(pinFile, ("password" + EOL).getBytes(StandardCharsets.UTF_8));
 
     FileBasedTrustManagerProvider provider = initializeTrustManagerProvider(TestCaseUtils.makeEntry(
         "dn: cn=Reloaded Trust Manager Provider,cn=SSL,cn=config",
@@ -309,13 +315,19 @@ public class FileBasedTrustManagerProviderTestCase
         "ds-cfg-java-class: org.opends.server.extensions.FileBasedTrustManagerProvider",
         "ds-cfg-enabled: true",
         "ds-cfg-trust-store-file: config/reload-test.truststore",
-        "ds-cfg-trust-store-pin: password"));
+        "ds-cfg-trust-store-pin-file: config/reload-test.truststore.pin"));
     try
     {
       final X509TrustManager trustManager = (X509TrustManager) provider.getTrustManagers()[0];
+      // a plain trust manager stays plain, for JSSE adds checks of its own around it; outside
+      // FIPS mode the provider wraps what it loads in a plain ExpirationCheckTrustManager
+      assertThat(trustManager instanceof X509ExtendedTrustManager).isEqualTo(isFips());
       assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
 
-      replace(trustStore, Files.readAllBytes(new File(configDir, "client.truststore").toPath()));
+      // the PIN changes with the trust store, but the new PIN is not there yet
+      replace(trustStore, withPassword(new File(configDir, "client.truststore"), "password", "changed"));
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
+      replace(pinFile, ("changed" + EOL).getBytes(StandardCharsets.UTF_8));
       assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
 
       replace(trustStore, "not a trust store".getBytes(StandardCharsets.UTF_8));
@@ -324,6 +336,46 @@ public class FileBasedTrustManagerProviderTestCase
     finally
     {
       provider.finalizeTrustManagerProvider();
+      Files.deleteIfExists(trustStore.toPath());
+      Files.deleteIfExists(pinFile.toPath());
+    }
+  }
+
+  /**
+   * A trust store file that cannot be loaded is not tried again until it changes again, even
+   * where it would load by then: the PIN below comes from a system property, which is not stamped.
+   */
+  @Test
+  public void testTrustStoreNotLoadedAgainUntilChanged() throws Exception
+  {
+    final File configDir = new File(DirectoryServer.getInstanceRoot(), "config");
+    final File trustStore = new File(configDir, "retry-test.truststore");
+    replace(trustStore, Files.readAllBytes(new File(configDir, "server.truststore").toPath()));
+    System.setProperty("retry.test.trust.store.pin", "password");
+    FileBasedTrustManagerProvider provider = initializeTrustManagerProvider(TestCaseUtils.makeEntry(
+        "dn: cn=Retried Trust Manager Provider,cn=SSL,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-trust-manager-provider",
+        "objectClass: ds-cfg-file-based-trust-manager-provider",
+        "cn: Retried Trust Manager Provider",
+        "ds-cfg-java-class: org.opends.server.extensions.FileBasedTrustManagerProvider",
+        "ds-cfg-enabled: true",
+        "ds-cfg-trust-store-file: config/retry-test.truststore",
+        "ds-cfg-trust-store-pin-property: retry.test.trust.store.pin"));
+    try
+    {
+      final X509TrustManager trustManager = (X509TrustManager) provider.getTrustManagers()[0];
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
+
+      replace(trustStore, withPassword(new File(configDir, "client.truststore"), "password", "changed"));
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
+      System.setProperty("retry.test.trust.store.pin", "changed");
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
+    }
+    finally
+    {
+      provider.finalizeTrustManagerProvider();
+      System.clearProperty("retry.test.trust.store.pin");
       Files.deleteIfExists(trustStore.toPath());
     }
   }
