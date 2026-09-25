@@ -617,7 +617,9 @@ jobs:
       - name: Docker test secret volume
         # a keystore mounted at SECRET_VOLUME is what LDAPS serves from the first start on,
         # a renewed one reaches the data volume while the server runs and is served after a
-        # restart, and the server is PID 1 of the container, stopping on SIGTERM (#1087, #1085)
+        # restart, and the server is PID 1 of the container, stopping on SIGTERM (#1087, #1085);
+        # one renewed while no container ran is copied by the start over the instance already
+        # there, and SECRET_VOLUME_REFRESH=0 copies nothing while the server runs
         shell: bash
         env:
           IMAGE: localhost:5000/${{ env.image_repository }}:${{ env.release_version }}
@@ -632,7 +634,7 @@ jobs:
             mv -f "$SECRETS/keystore.new" "$SECRETS/keystore"
             printf changeit > "$SECRETS/keystore.pin"
           }
-          served() { echo | openssl s_client -connect 127.0.0.1:1637 2>/dev/null | openssl x509 -noout -subject; }
+          served() { echo | openssl s_client -connect 127.0.0.1:1637 2>/dev/null | openssl x509 -noout -subject -nameopt RFC2253; }
           healthy() { timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_secret | grep -q \"healthy\"; do sleep 10; done'; }
           keystore secret-v1
           docker run -d --memory="512m" -e SECRET_VOLUME_REFRESH=5 -p 127.0.0.1:1637:1636 --name=test_secret \
@@ -650,6 +652,16 @@ jobs:
           docker start test_secret
           healthy
           grep -q "CN=secret-v2" <<< "$(served)"
+          docker stop -t 60 test_secret
+          docker rm test_secret
+          keystore secret-v3
+          docker run -d --memory="512m" -e SECRET_VOLUME_REFRESH=0 -p 127.0.0.1:1637:1636 --name=test_secret \
+            -v "$SECRETS":/var/secrets/opendj:ro -v test_secret_data:/opt/opendj/data "$IMAGE"
+          healthy
+          grep -q "CN=secret-v3" <<< "$(served)"
+          keystore secret-v4
+          sleep 15
+          docker exec test_secret sh -c '! cmp -s /var/secrets/opendj/keystore /opt/opendj/data/config/keystore'
           docker rm -f test_secret
           docker volume rm test_secret_data
       - name: Scan image for vulnerabilities (Trivy)
@@ -879,7 +891,9 @@ jobs:
       - name: Docker test secret volume
         # a keystore mounted at SECRET_VOLUME is what LDAPS serves from the first start on,
         # a renewed one reaches the data volume while the server runs and is served after a
-        # restart, and the server is PID 1 of the container, stopping on SIGTERM (#1087, #1085)
+        # restart, and the server is PID 1 of the container, stopping on SIGTERM (#1087, #1085);
+        # one renewed while no container ran is copied by the start over the instance already
+        # there, and SECRET_VOLUME_REFRESH=0 copies nothing while the server runs
         shell: bash
         env:
           IMAGE: localhost:5000/${{ env.image_repository }}:${{ env.release_version }}-alpine
@@ -894,7 +908,7 @@ jobs:
             mv -f "$SECRETS/keystore.new" "$SECRETS/keystore"
             printf changeit > "$SECRETS/keystore.pin"
           }
-          served() { echo | openssl s_client -connect 127.0.0.1:1637 2>/dev/null | openssl x509 -noout -subject; }
+          served() { echo | openssl s_client -connect 127.0.0.1:1637 2>/dev/null | openssl x509 -noout -subject -nameopt RFC2253; }
           healthy() { timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_secret | grep -q \"healthy\"; do sleep 10; done'; }
           keystore secret-v1
           docker run -d --memory="1g" -e SECRET_VOLUME_REFRESH=5 -p 127.0.0.1:1637:1636 --name=test_secret \
@@ -912,6 +926,16 @@ jobs:
           docker start test_secret
           healthy
           grep -q "CN=secret-v2" <<< "$(served)"
+          docker stop -t 60 test_secret
+          docker rm test_secret
+          keystore secret-v3
+          docker run -d --memory="1g" -e SECRET_VOLUME_REFRESH=0 -p 127.0.0.1:1637:1636 --name=test_secret \
+            -v "$SECRETS":/var/secrets/opendj:ro -v test_secret_data:/opt/opendj/data "$IMAGE"
+          healthy
+          grep -q "CN=secret-v3" <<< "$(served)"
+          keystore secret-v4
+          sleep 15
+          docker exec test_secret sh -c '! cmp -s /var/secrets/opendj/keystore /opt/opendj/data/config/keystore'
           docker rm -f test_secret
           docker volume rm test_secret_data
       - name: Scan image for vulnerabilities (Trivy)

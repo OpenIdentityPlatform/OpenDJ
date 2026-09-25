@@ -36,13 +36,20 @@ over an instance that is already there - never reports healthy: what failed is i
 logs`, and where the server is up at all the container is left running to be looked at,
 turning `unhealthy` once the start period is over.
 
+The server runs as PID 1 of the container, and a JVM does not reap the processes left
+behind to it - those of a health check that ran past its timeout, say. Run the container
+with `docker run --init` (`init: true` in Compose) to put a PID 1 in front of the server
+that reaps them and passes SIGTERM on to it.
+
 ## Certificates
 
 With the default `OPENDJ_SSL_OPTIONS` the instance serves LDAPS and StartTLS with a
 self-signed certificate from `config/keystore`, whose password is in `config/keystore.pin`.
 To serve your own certificate, mount a directory holding a `keystore` (JKS or PKCS12) and
 its `keystore.pin` at `SECRET_VOLUME`, and a `truststore` next to them if clients present
-certificates:
+certificates. With the default options the connection handlers are not bound to an alias,
+so the key entry of the keystore may have any alias; if `OPENDJ_SSL_OPTIONS` sets a
+`--certNickname`, the key has to be under that alias:
 
 ```bash
 docker run -d --name opendj -v opendj-data:/opt/opendj/data \
@@ -54,7 +61,8 @@ before the server starts - on the first start and on every later one, so a certi
 renewed on the volume reaches an instance kept on a persistent volume. While the server
 runs, the directory is checked again every `SECRET_VOLUME_REFRESH` seconds and a changed
 file is copied again. The server reads the copied keystore when it starts, so a certificate
-renewed while it runs is served from its next restart. The administration connector and
+renewed while it runs is served from its next restart. The same holds for a new keystore
+password: the server keeps the one it started with. The administration connector and
 replication keep keys of their own and are not affected.
 
 On Kubernetes, the PEM files of a `kubernetes.io/tls` Secret cannot be used as they are:

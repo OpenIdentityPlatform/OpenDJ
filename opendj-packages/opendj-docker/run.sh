@@ -49,26 +49,36 @@ SECRET_VOLUME_REFRESH=${SECRET_VOLUME_REFRESH:-60}
 # Copies the key* and trust* files of the secret volume that differ from those in
 # ./data/config. Each one is written next to its target and renamed over it, so the server
 # never reads a file half copied, and it is readable by the server's user only: a keystore
-# holds the private key, a .pin file its password.
+# holds the private key, a .pin file its password. Succeeds when it copied a file.
 copy_secrets() {
-  local src dst tmp
-  [ -d "$SECRET_VOLUME" ] || return 0
+  local src dst tmp copied=1
+  [ -d "$SECRET_VOLUME" ] || return 1
   for src in "$SECRET_VOLUME"/key* "$SECRET_VOLUME"/trust*; do
     [ -f "$src" ] || continue
     dst=./data/config/$(basename -- "$src")
     cmp -s "$src" "$dst" && continue
     if tmp=$(mktemp "$dst.XXXXXX") && cp "$src" "$tmp" && chmod 600 "$tmp" && mv -f "$tmp" "$dst"; then
       echo "Copied $(basename -- "$src") from the secret volume"
+      copied=0
     else
       rm -f "$tmp"
       echo "Could not copy $(basename -- "$src") from the secret volume"
     fi
   done
+  return $copied
+}
+
+# The files are compared one at a time, so a Secret updated in the middle of a pass can leave
+# a keystore of one version next to the .pin of the other. Passes are repeated until one finds
+# nothing left to copy, which puts the files of a single version back together.
+sync_secrets() {
+  local passes=0
+  while copy_secrets && [ $((passes += 1)) -lt 5 ]; do :; done
 }
 
 watch_secrets() {
   while sleep "$SECRET_VOLUME_REFRESH"; do
-    copy_secrets
+    sync_secrets
   done
 }
 
@@ -77,9 +87,11 @@ watch_secrets() {
 start_server() {
   if [ -d "$SECRET_VOLUME" ]; then
     echo "Secret volume is present. Will copy any keystores and truststore"
-    copy_secrets
+    sync_secrets
     if [ "$SECRET_VOLUME_REFRESH" -gt 0 ] 2>/dev/null; then
       watch_secrets &
+    elif [ "$SECRET_VOLUME_REFRESH" != 0 ]; then
+      echo "SECRET_VOLUME_REFRESH=$SECRET_VOLUME_REFRESH is not a whole number of seconds above 0, the secret volume is copied on start only"
     fi
   fi
   echo "Starting OpenDJ"
