@@ -45,6 +45,54 @@ rm -f "$BOOTSTRAP_COMPLETE"
 rm -f /dev/shm/opendj-replicate."$ADMIN_PORT".*
 rm -f /dev/shm/opendj-setup-password."$ADMIN_PORT".* /tmp/opendj-setup-password.*
 
+# Keystores and truststores mounted as a volume (a Kubernetes Secret, say) are copied into
+# the instance on every start, not only on the one that bootstraps it: the instance lives on
+# a persistent volume, and a renewed certificate in the Secret has to reach it.
+SECRET_VOLUME=${SECRET_VOLUME:-/var/secrets/opendj}
+# Kubernetes updates a mounted Secret in place, so while the server runs the volume is
+# checked again every that many seconds; 0 checks it on start only
+SECRET_VOLUME_REFRESH=${SECRET_VOLUME_REFRESH:-60}
+
+# Copies the key* and trust* files of the secret volume that differ from those in
+# ./data/config. Each one is written next to its target and renamed over it, so the server
+# never reads a file half copied, and it is readable by the server's user only: a keystore
+# holds the private key, a .pin file its password.
+copy_secrets() {
+  local src dst tmp
+  [ -d "$SECRET_VOLUME" ] || return 0
+  for src in "$SECRET_VOLUME"/key* "$SECRET_VOLUME"/trust*; do
+    [ -f "$src" ] || continue
+    dst=./data/config/$(basename -- "$src")
+    cmp -s "$src" "$dst" && continue
+    if tmp=$(mktemp "$dst.XXXXXX") && cp "$src" "$tmp" && chmod 600 "$tmp" && mv -f "$tmp" "$dst"; then
+      echo "Copied $(basename -- "$src") from the secret volume"
+    else
+      rm -f "$tmp"
+      echo "Could not copy $(basename -- "$src") from the secret volume"
+    fi
+  done
+}
+
+watch_secrets() {
+  while sleep "$SECRET_VOLUME_REFRESH"; do
+    copy_secrets
+  done
+}
+
+# Both kinds of start end here, with the server as PID 1 of the container: that is the
+# process the container runtime sends SIGTERM to, and the server stops cleanly on it.
+start_server() {
+  if [ -d "$SECRET_VOLUME" ]; then
+    echo "Secret volume is present. Will copy any keystores and truststore"
+    copy_secrets
+    if [ "$SECRET_VOLUME_REFRESH" -gt 0 ] 2>/dev/null; then
+      watch_secrets &
+    fi
+  fi
+  echo "Starting OpenDJ"
+  exec ./bin/start-ds --nodetach
+}
+
 #if default data folder exists do not change it
 if [ ! -d ./db ]; then
   echo "/opt/opendj/data" >/opt/opendj/instance.loc && \
@@ -60,8 +108,7 @@ if [ -d ./data/config ]; then
   else
     echo "Upgrade failed, this container will not report itself healthy"
   fi
-  exec ./bin/start-ds --nodetach
-  exit
+  start_server
 fi
 
 # If we are here, opendj is not installed & we need to run setup
@@ -92,7 +139,9 @@ fi
 # started again below with exec, so that the server is PID 1 on the first start just as
 # on a restart: a shell as PID 1 without a SIGTERM handler never receives the signal, and
 # the container would then be killed at the end of the stop timeout instead of stopping
-# the server. It is stopped before the marker below is written, so that the health check
+# the server. Left running, it would also keep the certificate it was set up with rather
+# than the one on the secret volume, which start_server copies in before it starts the
+# server. It is stopped before the marker below is written, so that the health check
 # never reports the server of the bootstrap healthy just before it goes down. stop-ds
 # exits 0 when the server is not running. When it fails the server may still be stopping,
 # so the start below is tried anyway: it either runs the server or fails on the lock of
@@ -102,21 +151,10 @@ if ! ./bin/stop-ds; then
   echo "Could not stop the server started by the bootstrap, starting OpenDJ may fail"
 fi
 
-# Check if keystores are mounted as a volume, and if so
-# Copy any keystores over
-SECRET_VOLUME=${SECRET_VOLUME:-/var/secrets/opendj}
-
-if [ -d "${SECRET_VOLUME}" ]; then
-  echo "Secret volume is present. Will copy any keystores and truststore"
-  # We send errors to /dev/null in case no data exists.
-  cp -f ${SECRET_VOLUME}/key* ${SECRET_VOLUME}/trust* ./data/config 2>/dev/null
-fi
-
 # Everything the instance was asked to be set up with - its backend, its base entry, its
 # replication - is in place from here on, so the health check may start probing the server
 if [ "$BOOTSTRAPPED" = true ]; then
   touch "$BOOTSTRAP_COMPLETE"
 fi
 
-echo "Starting OpenDJ"
-exec ./bin/start-ds --nodetach
+start_server
