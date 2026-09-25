@@ -40,7 +40,9 @@ echo "Replication type: $OPENDJ_REPLICATION_TYPE, base DN: $BASE_DN"
 # its owner only. It goes to the tmpfs of /dev/shm where there is one: the EXIT trap does not
 # run if the script is killed, and a file left in /tmp would stay in the writable layer of the
 # container, where no later start removes it, since replicate.sh runs only on the first one.
-PASSWORD_FILE=$(mktemp -p /dev/shm 2>/dev/null || mktemp) || exit 1
+# On Kubernetes /dev/shm belongs to the pod: it is shared by all its containers and outlives a
+# restart of this one, so run.sh removes a file left there by name on every start.
+PASSWORD_FILE=$(mktemp -p /dev/shm opendj-replicate.XXXXXX 2>/dev/null || mktemp) || exit 1
 trap 'rm -f "$PASSWORD_FILE"' EXIT
 printf '%s\n' "$ROOT_PASSWORD" >"$PASSWORD_FILE" || exit 1
 

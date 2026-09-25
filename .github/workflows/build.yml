@@ -566,15 +566,22 @@ jobs:
           trap 'code=$?; for c in test_master $REPLICAS; do echo "::group::container logs ($c)"; docker logs $c 2>&1 || true; echo "::endgroup::"; done; cleanup; exit $code' ERR
           # every tool reads the root password from a file (#1084); dsreplication run with -n prints
           # no command line, so a password put back on one would pass every check below
-          if docker run --rm --entrypoint grep "$IMAGE" -nE -- '--(bindPassword[12]?|adminPassword) ' /opt/opendj/bootstrap/replicate.sh; then echo "::error::replicate.sh passes the root password on a command line"; false; fi
+          rc=0; docker run --rm --entrypoint grep "$IMAGE" -nE -- '(^|[[:space:]])(-w|--(bindPassword[12]?|adminPassword))([[:space:]=]|$)' /opt/opendj/bootstrap/replicate.sh || rc=$?
+          if [ $rc -ne 1 ]; then echo "::error::replicate.sh passes the root password on a command line, or grep could not read it"; false; fi
+          # the password file goes to /dev/shm, off the writable layer of the container, and the mktemp of the image puts it there
+          docker run --rm --entrypoint grep "$IMAGE" -qF -- 'mktemp -p /dev/shm opendj-replicate.' /opt/opendj/bootstrap/replicate.sh || { echo "::error::replicate.sh no longer puts the password file on /dev/shm"; false; }
+          docker run --rm --entrypoint sh "$IMAGE" -c 'f=$(mktemp -p /dev/shm opendj-replicate.XXXXXX) && rm -f "$f" && case $f in /dev/shm/opendj-replicate.*) ;; *) exit 1;; esac' || { echo "::error::mktemp in the image does not create the password file on /dev/shm"; false; }
           # a password with a space in it reaches every tool as one value
           ROOT_PASSWORD='replication secret'
           docker network create test_replication
-          docker run --rm -it -d --memory="512m" --network test_replication --name=test_master --hostname=dj-master -e ADD_BASE_ENTRY="--addBaseEntry" -e ROOT_PASSWORD="$ROOT_PASSWORD" "$IMAGE"
+          docker run --rm -it -d --memory="512m" --network test_replication --ipc=shareable --name=test_master --hostname=dj-master -e ADD_BASE_ENTRY="--addBaseEntry" -e ROOT_PASSWORD="$ROOT_PASSWORD" "$IMAGE"
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_master | grep -q \"healthy\"; do sleep 10; done'
           # a replica reports itself healthy only once replicate.sh has succeeded; the sdsr replica joins after
           # the simple one, as two dsreplication enable at once would both rewrite the admin data of the master
-          docker run --rm -it -d --memory="512m" --network test_replication --name=test_replica --hostname=dj-replica -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=simple "$IMAGE"
+          # a Kubernetes pod keeps its /dev/shm across container restarts: the replica shares the /dev/shm of the master, where
+          # a password file waits as a killed replicate.sh would have left it, and its run.sh has to remove it (checked below)
+          docker exec test_master sh -c 'printf "%s\n" "$ROOT_PASSWORD" >/dev/shm/opendj-replicate.killed'
+          docker run --rm -it -d --memory="512m" --network test_replication --ipc=container:test_master --name=test_replica --hostname=dj-replica -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=simple "$IMAGE"
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica | grep -q \"healthy\"; do sleep 10; done'
           docker run --rm -it -d --memory="512m" --network test_replication --name=test_replica_sdsr --hostname=dj-replica-sdsr -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=sdsr "$IMAGE"
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica_sdsr | grep -q \"healthy\"; do sleep 10; done'
@@ -591,7 +598,8 @@ jobs:
             if docker logs $c 2>&1 | grep -F "$ROOT_PASSWORD"; then echo "::error::The root password is in the log of $c"; false; fi
           done
           for c in $REPLICAS; do
-            left=$(docker exec $c grep -rlsF -- "$ROOT_PASSWORD" /tmp /dev/shm || true)
+            # the JVM of the HEALTHCHECK's ldapsearch keeps its command line, root password included, in /tmp/hsperfdata_* while it runs
+            left=$(docker exec $c grep -rlsF -- "$ROOT_PASSWORD" /tmp /dev/shm | grep -v '^/tmp/hsperfdata_' || true)
             if [ -n "$left" ]; then echo "::error::The root password is left in $left of $c"; false; fi
           done
           cleanup
@@ -771,15 +779,22 @@ jobs:
           trap 'code=$?; for c in test_master $REPLICAS; do echo "::group::container logs ($c)"; docker logs $c 2>&1 || true; echo "::endgroup::"; done; cleanup; exit $code' ERR
           # every tool reads the root password from a file (#1084); dsreplication run with -n prints
           # no command line, so a password put back on one would pass every check below
-          if docker run --rm --entrypoint grep "$IMAGE" -nE -- '--(bindPassword[12]?|adminPassword) ' /opt/opendj/bootstrap/replicate.sh; then echo "::error::replicate.sh passes the root password on a command line"; false; fi
+          rc=0; docker run --rm --entrypoint grep "$IMAGE" -nE -- '(^|[[:space:]])(-w|--(bindPassword[12]?|adminPassword))([[:space:]=]|$)' /opt/opendj/bootstrap/replicate.sh || rc=$?
+          if [ $rc -ne 1 ]; then echo "::error::replicate.sh passes the root password on a command line, or grep could not read it"; false; fi
+          # the password file goes to /dev/shm, off the writable layer of the container, and the mktemp of the image puts it there
+          docker run --rm --entrypoint grep "$IMAGE" -qF -- 'mktemp -p /dev/shm opendj-replicate.' /opt/opendj/bootstrap/replicate.sh || { echo "::error::replicate.sh no longer puts the password file on /dev/shm"; false; }
+          docker run --rm --entrypoint sh "$IMAGE" -c 'f=$(mktemp -p /dev/shm opendj-replicate.XXXXXX) && rm -f "$f" && case $f in /dev/shm/opendj-replicate.*) ;; *) exit 1;; esac' || { echo "::error::mktemp in the image does not create the password file on /dev/shm"; false; }
           # a password with a space in it reaches every tool as one value
           ROOT_PASSWORD='replication secret'
           docker network create test_replication
-          docker run --rm -it -d --memory="1g" --network test_replication --name=test_master --hostname=dj-master -e ADD_BASE_ENTRY="--addBaseEntry" -e ROOT_PASSWORD="$ROOT_PASSWORD" "$IMAGE"
+          docker run --rm -it -d --memory="1g" --network test_replication --ipc=shareable --name=test_master --hostname=dj-master -e ADD_BASE_ENTRY="--addBaseEntry" -e ROOT_PASSWORD="$ROOT_PASSWORD" "$IMAGE"
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_master | grep -q \"healthy\"; do sleep 10; done'
           # a replica reports itself healthy only once replicate.sh has succeeded; the sdsr replica joins after
           # the simple one, as two dsreplication enable at once would both rewrite the admin data of the master
-          docker run --rm -it -d --memory="1g" --network test_replication --name=test_replica --hostname=dj-replica -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=simple "$IMAGE"
+          # a Kubernetes pod keeps its /dev/shm across container restarts: the replica shares the /dev/shm of the master, where
+          # a password file waits as a killed replicate.sh would have left it, and its run.sh has to remove it (checked below)
+          docker exec test_master sh -c 'printf "%s\n" "$ROOT_PASSWORD" >/dev/shm/opendj-replicate.killed'
+          docker run --rm -it -d --memory="1g" --network test_replication --ipc=container:test_master --name=test_replica --hostname=dj-replica -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=simple "$IMAGE"
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica | grep -q \"healthy\"; do sleep 10; done'
           docker run --rm -it -d --memory="1g" --network test_replication --name=test_replica_sdsr --hostname=dj-replica-sdsr -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=sdsr "$IMAGE"
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica_sdsr | grep -q \"healthy\"; do sleep 10; done'
@@ -796,7 +811,8 @@ jobs:
             if docker logs $c 2>&1 | grep -F "$ROOT_PASSWORD"; then echo "::error::The root password is in the log of $c"; false; fi
           done
           for c in $REPLICAS; do
-            left=$(docker exec $c grep -rlsF -- "$ROOT_PASSWORD" /tmp /dev/shm || true)
+            # the JVM of the HEALTHCHECK's ldapsearch keeps its command line, root password included, in /tmp/hsperfdata_* while it runs
+            left=$(docker exec $c grep -rlsF -- "$ROOT_PASSWORD" /tmp /dev/shm | grep -v '^/tmp/hsperfdata_' || true)
             if [ -n "$left" ]; then echo "::error::The root password is left in $left of $c"; false; fi
           done
           cleanup
