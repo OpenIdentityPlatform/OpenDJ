@@ -177,8 +177,15 @@ jobs:
 
       - name: Wait for OpenDJ + seed ou=People
         run: |
-          for i in $(seq 1 90); do
-            if ldapsearch -x -H ldap://localhost:1389 -D "cn=Directory Manager" -w password \
+          # An image with a HEALTHCHECK has to report healthy first: on a first start the
+          # server the bootstrap started answers, then is stopped and started again, and
+          # whatever is added in between is lost. An older image's health check may pass
+          # before the bootstrap is done, so the base entry is searched for in both cases.
+          # The wait lasts as long as the start period of the health check, 5 minutes.
+          for i in $(seq 1 150); do
+            health="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' opendj 2>/dev/null || true)"
+            if { [ -z "$health" ] || [ "$health" = healthy ]; } && \
+               ldapsearch -x -H ldap://localhost:1389 -D "cn=Directory Manager" -w password \
                  -b "$BASEDN" -s base dn >/dev/null 2>&1; then
               echo "OpenDJ is up"; break
             fi

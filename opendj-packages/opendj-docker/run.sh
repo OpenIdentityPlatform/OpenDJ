@@ -87,9 +87,13 @@ fi
 # the container would then be killed at the end of the stop timeout instead of stopping
 # the server. It is stopped before the marker below is written, so that the health check
 # never reports the server of the bootstrap healthy just before it goes down. stop-ds
-# exits 0 when the server is not running.
+# exits 0 when the server is not running. When it fails the server may still be stopping,
+# so the start below is tried anyway: it either runs the server or fails on the lock of
+# the one still there.
 echo "Stopping the server started by the bootstrap"
-./bin/stop-ds
+if ! ./bin/stop-ds; then
+  echo "Could not stop the server started by the bootstrap, starting OpenDJ may fail"
+fi
 
 # Check if keystores are mounted as a volume, and if so
 # Copy any keystores over

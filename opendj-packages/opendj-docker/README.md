@@ -30,6 +30,10 @@ without `ADD_BASE_ENTRY` nothing creates the base entry, so `BASE_DN` is an empt
 a healthy container - the health check itself searches the root DSE, which every instance
 serves whatever it was set up to hold.
 
+The server answering is not enough on a first start: the bootstrap starts the server, and
+once it is done that server is stopped and started again in the foreground, so a client
+that only waits for the port can have its first requests fail in between.
+
 A bootstrap that imports `SAMPLE_DATA` can take minutes on a small container, which is what
 the start period allows for. A bootstrap that fails - or an upgrade that fails when starting
 over an instance that is already there - never reports healthy: what failed is in `docker

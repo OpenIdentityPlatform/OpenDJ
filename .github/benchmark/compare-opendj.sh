@@ -50,10 +50,19 @@ if [ ! -x "$JM" ]; then
   tar -xzf /tmp/jmeter.tgz -C "$HOME/jmeter"
 fi
 
-wait_dj() {  # poll OpenDJ readiness on localhost:1389
-  for _ in $(seq 1 90); do
-    ldapsearch -x -H ldap://localhost:1389 -D "cn=Directory Manager" -w password \
-      -b "$BASEDN" -s base dn >/dev/null 2>&1 && return 0
+# Poll OpenDJ readiness on localhost:1389. An image with a HEALTHCHECK has to report healthy
+# first: on a first start the server the bootstrap started answers, then is stopped and
+# started again, and whatever is added in between is lost. An older image's health check
+# may pass before the bootstrap is done, so the base entry is searched for in both cases.
+# The wait lasts as long as the start period of the health check, 5 minutes.
+wait_dj() {
+  local health
+  for _ in $(seq 1 150); do
+    health="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' opendj-bench 2>/dev/null || true)"
+    if [ -z "$health" ] || [ "$health" = healthy ]; then
+      ldapsearch -x -H ldap://localhost:1389 -D "cn=Directory Manager" -w password \
+        -b "$BASEDN" -s base dn >/dev/null 2>&1 && return 0
+    fi
     sleep 2
   done
   return 1
