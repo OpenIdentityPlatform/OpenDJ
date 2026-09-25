@@ -45,6 +45,11 @@ docker run -d --name opendj -v /path/to/secrets:/var/secrets/healthcheck:ro \
   openidentityplatform/opendj
 ```
 
+Images before this one probed as the root user, so an existing instance that rejects
+unauthenticated requests was healthy with them. Started on this image without these two
+variables, the same instance is probed anonymously and turns `unhealthy` although it serves:
+set them before the upgrade.
+
 A bootstrap that imports `SAMPLE_DATA` can take minutes on a small container, which is what
 the start period allows for. A bootstrap that fails - or an upgrade that fails when starting
 over an instance that is already there - never reports healthy: what failed is in `docker
