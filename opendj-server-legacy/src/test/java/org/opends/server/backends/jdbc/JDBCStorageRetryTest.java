@@ -1136,6 +1136,91 @@ public class JDBCStorageRetryTest extends DirectoryServerTestCase
   }
 
   /**
+   * On mysql the guards of {@code openTree()} ask in the database of the connection. A table name carries no
+   * database, so two directories on one server - the stock backend id in two databases - hold the same table
+   * and the same index, and Connector/J reads a null catalog as "any database": asked that way, the index of
+   * the neighbour answers for this one and the create behind it is skipped for good, leaving every
+   * {@code where k>? order by k} batch of every cursor a full scan (#1075). The catalog passed here is one of
+   * two layers - {@code TableScope.covers()} reads the database of every row besides, as the case below pins -
+   * and a live server cannot tell a loss of either one from their both holding, since each covers for the
+   * other: what is pinned here is the question put to the driver.
+   */
+  @Test
+  public void testTheMySqlGuardsAskInTheDatabaseOfTheConnection() throws Exception
+  {
+    final JDBCStorage storage = storageOverAnEngine(mysqlConnection.class, true);
+    when(engineConnection.getCatalog()).thenReturn(THIS_DATABASE);
+    final DatabaseMetaData metaData = engineConnection.getMetaData();
+
+    storage.write(txn -> txn.openTree(TREE, true));
+
+    verify(metaData, atLeastOnce()).getTables(eq(THIS_DATABASE), any(), eq(storage.getTableName(TREE)), any());
+    verify(metaData).getIndexInfo(eq(THIS_DATABASE), any(), eq(storage.getTableName(TREE)), anyBoolean(),
+        anyBoolean());
+  }
+
+  /**
+   * The other layer of the two: an index a driver reports in another database is not this backend's, however
+   * it came to be listed - a driver ignoring the catalog it is given, or a caller no longer passing one. Found
+   * there, it must leave the create of this database's own index to go ahead (#1075).
+   */
+  @Test
+  public void testAnIndexOfAnotherDatabaseAnswersForNoneOfThisOne() throws Exception
+  {
+    final JDBCStorage storage = storageOverAnEngine(mysqlConnection.class, true);
+    when(engineConnection.getCatalog()).thenReturn(THIS_DATABASE);
+    answerTheIndexFrom(engineConnection.getMetaData(), storage, NEIGHBOUR_DATABASE, null);
+
+    storage.write(txn -> txn.openTree(TREE, true));
+
+    verify(engineConnection).prepareStatement(startsWith("create index k_"));
+  }
+
+  /**
+   * And the same under {@code databaseTerm=SCHEMA}, the setting of Connector/J that names the database a
+   * schema: the connection then names no catalog, the lookup is asked of the whole server, and every row comes
+   * back under the catalog {@code def} with the database in its schema - measured against mysql 9.2 with the
+   * Connector/J this backend ships (#1075). The schema path {@code TableScope} reads off the connection is the
+   * only thing left to tell the neighbour's index from this one's; {@code MySqlTestCase} pins how the driver
+   * lists such a row against a live server.
+   */
+  @Test
+  public void testUnderDatabaseTermSchemaAnIndexOfAnotherDatabaseAnswersForNoneOfThisOne() throws Exception
+  {
+    final JDBCStorage storage = storageOverAnEngine(mysqlConnection.class, true);
+    when(engineConnection.getSchema()).thenReturn(THIS_DATABASE);
+    answerTheIndexFrom(engineConnection.getMetaData(), storage, "def", NEIGHBOUR_DATABASE);
+
+    storage.write(txn -> txn.openTree(TREE, true));
+
+    verify(engineConnection).prepareStatement(startsWith("create index k_"));
+  }
+
+  /** The database of the connection of the three cases above, and that of the directory next to it. */
+  private static final String THIS_DATABASE = "this_directory";
+  private static final String NEIGHBOUR_DATABASE = "neighbour_directory";
+
+  /**
+   * Has the index lookup of the fixture report the {@code k_} index of the table of {@link #TREE} as the one of
+   * the given catalog and schema, the way a driver lists the index of another database of the server.
+   */
+  private static void answerTheIndexFrom(DatabaseMetaData metaData, JDBCStorage storage, String catalog,
+      String schema) throws SQLException
+  {
+    final String tableName = storage.getTableName(TREE);
+    // stubbed over the answer of the fixture with doAnswer(): when() would call that answer, which stubs a
+    // result set of its own in the middle of this stubbing
+    doAnswer(invocation -> {
+      final ResultSet indexes = mock(ResultSet.class);
+      when(indexes.next()).thenReturn(true, false);
+      when(indexes.getString("INDEX_NAME")).thenReturn("k_" + tableName.substring("opendj_".length()));
+      when(indexes.getString("TABLE_CAT")).thenReturn(catalog);
+      when(indexes.getString("TABLE_SCHEM")).thenReturn(schema);
+      return indexes;
+    }).when(metaData).getIndexInfo(any(), any(), any(), anyBoolean(), anyBoolean());
+  }
+
+  /**
    * postgresql runs DDL inside the transaction, so a create index the engine rolled back has committed nothing:
    * {@code write()} rolls the attempt back whole and replays it. Raising the flag in front of the statement -
    * which is what mysql and oracle need, since they commit before a DDL of their own accord - would turn a
