@@ -597,6 +597,14 @@ jobs:
           # a password file waits as a killed replicate.sh would have left it, and its run.sh has to remove it (checked below)
           docker exec test_master sh -c 'printf "%s\n" "$ROOT_PASSWORD" >/dev/shm/opendj-replicate.killed'
           docker run --rm -it -d --memory="512m" --network test_replication --ipc=container:test_master --name=test_replica --hostname=dj-replica -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=simple "$IMAGE"
+          # on a first start the master stops the server its bootstrap started and starts it again, and a replica
+          # started together with it can reach it in between: replicate.sh tries a dsreplication that could not
+          # connect again. The master is taken off the network while the replica sleeps before its first try, and
+          # comes back only once the replica has said it will try again
+          timeout 5m bash -c 'until docker logs test_replica 2>&1 | grep -q "Will sleep for a bit"; do sleep 0.2; done'
+          docker network disconnect test_replication test_master
+          timeout 2m bash -c 'until docker logs test_replica 2>&1 | grep -q "exited with 8, trying again"; do sleep 1; done'
+          docker network connect --alias dj-master test_replication test_master
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica | grep -q \"healthy\"; do sleep 10; done'
           docker run --rm -it -d --memory="512m" --network test_replication --name=test_replica_sdsr --hostname=dj-replica-sdsr -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=sdsr "$IMAGE"
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica_sdsr | grep -q \"healthy\"; do sleep 10; done'
@@ -825,6 +833,14 @@ jobs:
           # a password file waits as a killed replicate.sh would have left it, and its run.sh has to remove it (checked below)
           docker exec test_master sh -c 'printf "%s\n" "$ROOT_PASSWORD" >/dev/shm/opendj-replicate.killed'
           docker run --rm -it -d --memory="1g" --network test_replication --ipc=container:test_master --name=test_replica --hostname=dj-replica -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=simple "$IMAGE"
+          # on a first start the master stops the server its bootstrap started and starts it again, and a replica
+          # started together with it can reach it in between: replicate.sh tries a dsreplication that could not
+          # connect again. The master is taken off the network while the replica sleeps before its first try, and
+          # comes back only once the replica has said it will try again
+          timeout 5m bash -c 'until docker logs test_replica 2>&1 | grep -q "Will sleep for a bit"; do sleep 0.2; done'
+          docker network disconnect test_replication test_master
+          timeout 2m bash -c 'until docker logs test_replica 2>&1 | grep -q "exited with 8, trying again"; do sleep 1; done'
+          docker network connect --alias dj-master test_replication test_master
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica | grep -q \"healthy\"; do sleep 10; done'
           docker run --rm -it -d --memory="1g" --network test_replication --name=test_replica_sdsr --hostname=dj-replica-sdsr -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=sdsr "$IMAGE"
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica_sdsr | grep -q \"healthy\"; do sleep 10; done'

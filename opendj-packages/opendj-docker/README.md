@@ -32,7 +32,9 @@ serves whatever it was set up to hold.
 
 The server answering is not enough on a first start: the bootstrap starts the server, and
 once it is done that server is stopped and started again in the foreground, so a client
-that only waits for the port can have its first requests fail in between.
+that only waits for the port can have its first requests fail in between. A replica set up
+with `MASTER_SERVER` tries a master it cannot connect to again, every 10 s for up to 5
+minutes, so that window does not fail its replication setup.
 
 A bootstrap that imports `SAMPLE_DATA` can take minutes on a small container, which is what
 the start period allows for. A bootstrap that fails - or an upgrade that fails when starting
