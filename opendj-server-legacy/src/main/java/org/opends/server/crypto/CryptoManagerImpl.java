@@ -351,7 +351,8 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
                   requestedCipherTransformation,
                   requestedCipherTransformationKeyLengthBits);
         }
-        catch (Exception ex) {
+        catch (Exception | Error ex) {
+          rethrowIfVirtualMachineError(ex);
           logger.traceException(ex);
           unacceptableReasons.add(
              ERR_CRYPTOMGR_CANNOT_GET_REQUESTED_ENCRYPTION_CIPHER.get(
@@ -373,7 +374,8 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
              requestedMACAlgorithm,
              requestedMACAlgorithmKeyLengthBits);
       }
-      catch (Exception ex) {
+      catch (Exception | Error ex) {
+        rethrowIfVirtualMachineError(ex);
         logger.traceException(ex);
         unacceptableReasons.add(
                 ERR_CRYPTOMGR_CANNOT_GET_REQUESTED_MAC_ENGINE.get(
@@ -400,28 +402,36 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
           /* Note that the TrustStoreBackend not available at initial,
          CryptoManager configuration, hence a "dummy" certificate must be used
          to validate the choice of secret key wrapping cipher. Otherwise, call
-         getInstanceKeyCertificateFromLocalTruststore() */
+         getInstanceKeyCertificateFromLocalTruststore(). Its key has 2048 bits,
+         the least a FIPS approved-only provider wraps with, and the key
+         identifier is not computed from it: the wrapped key is thrown away. */
           final String certificateBase64 =
-                "MIIB2jCCAUMCBEb7wpYwDQYJKoZIhvcNAQEEBQAwNDEbMBkGA1UEChMST3B" +
-                "lbkRTIENlcnRpZmljYXRlMRUwEwYDVQQDEwwxMC4wLjI0OC4yNTEwHhcNMD" +
-                "cwOTI3MTQ0NzUwWhcNMjcwOTIyMTQ0NzUwWjA0MRswGQYDVQQKExJPcGVuR" +
-                "FMgQ2VydGlmaWNhdGUxFTATBgNVBAMTDDEwLjAuMjQ4LjI1MTCBnzANBgkq" +
-                "hkiG9w0BAQEFAAOBjQAwgYkCgYEAnIm6ELyuNVbpaacBQ7fzHlHMmQO/CYJ" +
-                "b2gPTdb9n1HLOBqh2lmLLHvt2SgBeN5TSa1PAHW8zJy9LDhpWKZvsUOIdQD" +
-                "8Ula/0d/jvMEByEj/hr00P6yqgLXk+EudPgOkFXHA+IfkkOSghMooWc/L8H" +
-                "nD1REdqeZuxp+ARNU+cc/ECAwEAATANBgkqhkiG9w0BAQQFAAOBgQBemyCU" +
-                "jucN34MZwvzbmFHT/leUu3/cpykbGM9HL2QUX7iKvv2LJVqexhj7CLoXxZP" +
-                "oNL+HHKW0vi5/7W5KwOZsPqKI2SdYV7nDqTZklm5ZP0gmIuNO6mTqBRtC2D" +
-                "lplX1Iq+BrQJAmteiPtwhdZD+EIghe51CaseImjlLlY2ZK8w==";
+                "MIIDGTCCAgGgAwIBAgIICGFHa+OJNiMwDQYJKoZIhvcNAQELBQAwOjEbMBkG" +
+                "A1UEChMST3BlbkRKIENlcnRpZmljYXRlMRswGQYDVQQDExJLZXkgd3JhcHBpbmcg" +
+                "Y2hlY2swIBcNMjYwOTI1MDYzNTAwWhgPMjEyNjA5MDEwNjM1MDBaMDoxGzAZBgNV" +
+                "BAoTEk9wZW5ESiBDZXJ0aWZpY2F0ZTEbMBkGA1UEAxMSS2V5IHdyYXBwaW5nIGNo" +
+                "ZWNrMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkLf2hk4cc4FiL0lG" +
+                "1efFX7hZ/RB5pvb5bKfQAlE3l/YYHmQNjdM+JgIP7t5l/vveoWkkgwSjWj2sh10H" +
+                "VDpXBxDBdoLNScoKrlDryY+FKO9nDogPJDtQRaTs3ntQDtRR90qASUuw/+gmjitY" +
+                "fNPHhWy1o/tiwjyz2df/y/pqGEb+VPL0zoyxat+TjCprfmYOwstlsjVhrZhbe96W" +
+                "WYF8qOMiqx8lu/L9fPJcKg2zSyMnLk0KZJ9iVKWuhyojKdmHSpqSEAzjKaG15qfF" +
+                "ykotuYMh+gdyMjbdvmSyRZV+XK8/2w26f3Cve3ivOPAmse6Z2aDC4AiIoFsyvAJT" +
+                "dI2c4QIDAQABoyEwHzAdBgNVHQ4EFgQU0ElK+Aaz5nAV/mTc5zT2//fGtEswDQYJ" +
+                "KoZIhvcNAQELBQADggEBAA0+IjrK0HWw+0nHdl4f0JI5pvyIotUbbYgZrwYWqc8V" +
+                "GrHu2RzhsUDTlg/o1L/8f5rM8vKFgg73gmIGHtS16UpBp5PuKi9UXtpZ1G11yH8/" +
+                "P+4PkmlWl5XNFD6sTy8sOyt0Lv3aVCXt2tkQKu5HFhoXTfLn7JsrSWp52I+QTfYT" +
+                "KjB2J0IB2AsLtKeAU8r1CepS3YS+/npq4bvwjo0z7kwt6NNXbD2frC1AVVFTUNar" +
+                "nop82WUyMl94WXHWCe5Q0h67a1RB8i/KTS8ro0pEhMmoHHPc8zY/hyp5Of/m9pJ5" +
+                "ThBjQlyDccG+81IemDAcwmCqMnEJUcceEmy7VEZT/y4=";
           final byte[] certificate = Base64.decode(certificateBase64).toByteArray();
-          final String keyID = getInstanceKeyID(certificate);
           final SecretKey macKey = macCryptoManager.generateKeyEntry(
                   requestedMACAlgorithm,
                   requestedMACAlgorithmKeyLengthBits).getSecretKey();
           encodeSymmetricKeyAttribute(requestedKeyWrappingTransformation,
-                  keyID, certificate, macKey);
+                  "key-wrapping-check", certificate, macKey);
         }
-        catch (Exception ex) {
+        catch (Exception | Error ex) {
+          rethrowIfVirtualMachineError(ex);
           logger.traceException(ex);
           unacceptableReasons.add(
                   ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_KEY_WRAPPING_CIPHER.get(
@@ -434,10 +444,23 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
   }
 
   /**
+   * Rethrows what no configuration can be refused for. The checks ask the JCE providers for keys
+   * and ciphers, and a provider may refuse with an Error rather than an exception: the BC-FIPS
+   * provider in approved-only mode throws its FipsUnapprovedOperationError.
+   */
+  private static void rethrowIfVirtualMachineError(final Throwable t)
+  {
+    if (t instanceof VirtualMachineError)
+    {
+      throw (VirtualMachineError) t;
+    }
+  }
+
+  /**
    * Checks that this Java runtime provides the key wrapping transformation. Only a refusal here
-   * names the key-wrapping-transformation property: the wrap which follows it also needs an MD5
-   * digest and a 1024-bit RSA key, and changing the property does not help when one of those is
-   * what the runtime refuses.
+   * names the key-wrapping-transformation property: the wrap which follows it also needs a MAC
+   * key of the mac-algorithm property, and changing the key wrapping property does not help when
+   * that is what the runtime refuses.
    */
   private static boolean isKeyWrappingTransformationSupported(
       final String transformation, final List<LocalizableMessage> unacceptableReasons)
