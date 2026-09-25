@@ -51,6 +51,8 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.server.config.meta.PDBBackendCfgDefn;
 import org.forgerock.opendj.server.config.server.PDBBackendCfg;
 import org.forgerock.util.Reject;
 import org.opends.server.api.Backupable;
@@ -999,6 +1001,12 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
   private final ServerContext serverContext;
   private final File backendDirectory;
+  /**
+   * The mode last written to the directory the storage runs on. A mode changed along with a move of
+   * db-directory is written to the directory moved to alone, so the configuration as last changed
+   * does not say what the running directory has.
+   */
+  private String runningDirectoryPermissions;
   private CommitPolicy commitPolicy;
   private AccessMode accessMode;
   /** It is NULL when opening the storage READ-ONLY and no files have been created yet. */
@@ -1066,6 +1074,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     this.maxRetries = maxRetries;
     this.retryWindowNanos = retryWindowNanos;
     backendDirectory = getBackendDirectory(cfg);
+    runningDirectoryPermissions = cfg.getDBDirectoryPermissions();
     config = cfg;
     cfg.addPDBChangeListener(this);
   }
@@ -1233,6 +1242,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   private void open0(final Configuration dbCfg) throws ConfigException
   {
     setupStorageFiles(backendDirectory, config.getDBDirectoryPermissions(), config.dn());
+    runningDirectoryPermissions = config.getDBDirectoryPermissions();
     try
     {
       db = new Persistit(dbCfg);
@@ -1335,7 +1345,9 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   @Override
   public File getDirectory()
   {
-    return getBackendDirectory(config);
+    // The directory the storage runs on: a db-directory moved while it runs is used from the next open,
+    // which a new storage makes.
+    return backendDirectory;
   }
 
   private static File getBackendDirectory(PDBBackendCfg cfg)
@@ -1621,9 +1633,12 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     try
     {
       File newBackendDirectory = getBackendDirectory(cfg);
+      // Against the directory the storage runs on rather than the configuration as last changed, so
+      // that a later change still asks for the restart a move is waiting for.
+      final boolean moved = !newBackendDirectory.equals(backendDirectory);
 
       // Create the directory if it doesn't exist.
-      if(!cfg.getDBDirectory().equals(config.getDBDirectory()))
+      if (moved)
       {
         checkDBDirExistsOrCanCreate(newBackendDirectory, ccr, false);
         if (!ccr.getMessages().isEmpty())
@@ -1632,22 +1647,28 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         }
 
         ccr.setAdminActionRequired(true);
-        ccr.addMessage(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.get(config.getDBDirectory(), cfg.getDBDirectory()));
+        ccr.addMessage(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.get(backendDirectory, newBackendDirectory));
       }
 
-      if (!cfg.getDBDirectoryPermissions().equalsIgnoreCase(config.getDBDirectoryPermissions())
-          || !cfg.getDBDirectory().equals(config.getDBDirectory()))
+      if (!cfg.getDBDirectoryPermissions().equalsIgnoreCase(runningDirectoryPermissions)
+          || moved)
       {
         checkDBDirPermissions(cfg.getDBDirectoryPermissions(), cfg.dn(), ccr);
-        if (!ccr.getMessages().isEmpty())
+        // By its result code: the note of a moved directory is in the result already, and the rest of
+        // the change is still applied and reported alongside it.
+        if (ccr.getResultCode() != ResultCode.SUCCESS)
         {
           return ccr;
         }
 
         setDBDirPermissions(newBackendDirectory, cfg.getDBDirectoryPermissions(), cfg.dn(), ccr);
-        if (!ccr.getMessages().isEmpty())
+        if (ccr.getResultCode() != ResultCode.SUCCESS)
         {
           return ccr;
+        }
+        if (!moved)
+        {
+          runningDirectoryPermissions = cfg.getDBDirectoryPermissions();
         }
       }
       final long newCacheSize = computeSize(cfg);
@@ -1659,6 +1680,15 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         ccr.setAdminActionRequired(true);
         ccr.addMessage(
             NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART.get(cfg.getBackendId(), configuredCacheSize, newCacheSize));
+      }
+      if (db != null && cfg.getDBCheckpointerWakeupInterval() != db.getConfiguration().getCheckpointInterval())
+      {
+        // The checkpoint interval is set on the PersistIt configuration when the database opens, and
+        // PersistIt takes no configuration once one is set: the next open of the backend applies it.
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART.get(
+            PDBBackendCfgDefn.getInstance().getDBCheckpointerWakeupIntervalPropertyDefinition().getName(),
+            cfg.getBackendId(), db.getConfiguration().getCheckpointInterval(), cfg.getDBCheckpointerWakeupInterval()));
       }
       registerMonitoredDirectory(cfg);
       config = cfg;

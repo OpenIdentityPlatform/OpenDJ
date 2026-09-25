@@ -22,8 +22,13 @@ import static org.forgerock.opendj.config.ConfigurationMock.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.opendj.ldap.ByteString.*;
 import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ConfigMessages.ERR_CONFIG_BACKEND_INSANE_MODE;
 
 import java.io.File;
+import java.lang.reflect.Field;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,8 +38,10 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.mockito.ArgumentCaptor;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.forgerock.opendj.server.config.server.PDBBackendCfg;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
@@ -48,12 +55,14 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.MemoryQuota;
 import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
+import org.testng.SkipException;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.persistit.Exchange;
+import com.persistit.Persistit;
 import com.persistit.exception.RollbackException;
 
 public class PDBStorageTest extends DirectoryServerTestCase
@@ -864,6 +873,225 @@ public class PDBStorageTest extends DirectoryServerTestCase
   protected PDBBackendCfg createBackendCfg()
   {
     return createBackendCfg(0L);
+  }
+
+  /**
+   * The checkpoint interval is set on the PersistIt configuration when the database opens, and
+   * PersistIt takes no configuration once one is set: a change of it asks for a restart, naming
+   * the interval the database runs with and the one now configured, and the database keeps the
+   * former. The property's definition says so as well now, which reaches the reference
+   * documentation; the change result reaches the error log of the server which took the change.
+   */
+  @Test
+  public void aCheckpointIntervalChangedWhileOpenAsksForARestart() throws Exception
+  {
+    final long intervalAtOpen = createBackendCfg().getDBCheckpointerWakeupInterval();
+    assertThat(checkpointIntervalOf(storage)).isEqualTo(intervalAtOpen);
+    final PDBBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBCheckpointerWakeupInterval()).thenReturn(4 * intervalAtOpen);
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isTrue();
+    assertThat(ccr.getMessages()).hasSize(1);
+    assertThat(ccr.getMessages().get(0).toString()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART
+        .get("db-checkpointer-wakeup-interval", "PDBStorageTest", intervalAtOpen, 4 * intervalAtOpen)
+        .toString());
+    assertThat(checkpointIntervalOf(storage)).isEqualTo(intervalAtOpen);
+
+    // held against the interval the database runs with, not against the configuration the last change left:
+    // a later change which leaves the interval where the first one put it still asks for the restart,
+    assertThat(storage.applyConfigurationChange(cfg).adminActionRequired()).isTrue();
+    // and one which puts it back to what the database runs with asks for nothing
+    assertThat(storage.applyConfigurationChange(createBackendCfg()).getMessages()).isEmpty();
+  }
+
+  /**
+   * A change which moves db-directory as well is still reported whole: the note of the moved
+   * directory, which asks for a restart of its own, does not end the change before the rest of it.
+   * The storage keeps naming the directory it runs on, which a backup lists and the disk monitor
+   * watches, and the move is held against that directory: a later change still asks for the restart,
+   * and one which moves back asks for nothing.
+   */
+  @Test
+  public void aChangeWhichMovesTheDirectoryStillReportsTheRest() throws Exception
+  {
+    final DiskSpaceMonitor monitor = serverContext.getDiskSpaceMonitor();
+    final File directoryAtOpen = storage.getDirectory();
+    final long intervalAtOpen = createBackendCfg().getDBCheckpointerWakeupInterval();
+    final PDBBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBDirectory()).thenReturn("PDBStorageTest-moved");
+    when(cfg.getDBCheckpointerWakeupInterval()).thenReturn(4 * intervalAtOpen);
+    try
+    {
+      final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.adminActionRequired()).isTrue();
+      assertThat(ccr.getMessages()).hasSize(2);
+      assertThat(ccr.getMessages().get(0).ordinal()).isEqualTo(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.ordinal());
+      assertThat(ccr.getMessages().get(1).ordinal()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART.ordinal());
+      assertThat(storage.getDirectory()).isEqualTo(directoryAtOpen);
+
+      final ConfigChangeResult again = storage.applyConfigurationChange(cfg);
+      assertThat(again.getMessages()).hasSize(2);
+      assertThat(again.getMessages().get(0).ordinal()).isEqualTo(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.ordinal());
+
+      assertThat(storage.applyConfigurationChange(createBackendCfg()).getMessages()).isEmpty();
+
+      final ArgumentCaptor<File> registered = ArgumentCaptor.forClass(File.class);
+      verify(monitor, atLeastOnce()).registerMonitoredDirectory(
+          anyString(), registered.capture(), anyLong(), anyLong(), any(DiskSpaceMonitorHandler.class));
+      assertThat(registered.getAllValues()).containsOnly(directoryAtOpen);
+    }
+    finally
+    {
+      recursiveDelete(getFileForPath("PDBStorageTest-moved"));
+    }
+  }
+
+  /**
+   * A storage closed while a move of its directory waits for the restart deregisters from the disk
+   * monitor the directory it ran on, the one it registered.
+   */
+  @Test
+  public void aStorageClosedWithAMovePendingDeregistersTheDirectoryItRanOn() throws Exception
+  {
+    final DiskSpaceMonitor monitor = serverContext.getDiskSpaceMonitor();
+    final File directoryAtOpen = storage.getDirectory();
+    final PDBBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBDirectory()).thenReturn("PDBStorageTest-moved");
+    try
+    {
+      assertThat(storage.applyConfigurationChange(cfg).getResultCode()).isEqualTo(ResultCode.SUCCESS);
+
+      storage.close();
+
+      verify(monitor).deregisterMonitoredDirectory(directoryAtOpen, storage);
+    }
+    finally
+    {
+      recursiveDelete(getFileForPath("PDBStorageTest-moved"));
+    }
+  }
+
+  /**
+   * A mode changed along with a move is written to the directory moved to alone, the one the
+   * database runs on keeps its own: a later change which moves back with the same mode still writes
+   * it to the running directory.
+   */
+  @Test
+  public void aModeChangedAlongWithAMoveReachesTheRunningDirectoryWhenMovedBack() throws Exception
+  {
+    if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix"))
+    {
+      throw new SkipException("the directory mode is POSIX alone");
+    }
+    final File directoryAtOpen = storage.getDirectory();
+    final PDBBackendCfg movedOut = createBackendCfg();
+    when(movedOut.getDBDirectory()).thenReturn("PDBStorageTest-moved");
+    when(movedOut.getDBDirectoryPermissions()).thenReturn("700");
+    final PDBBackendCfg movedBack = createBackendCfg();
+    when(movedBack.getDBDirectoryPermissions()).thenReturn("700");
+    try
+    {
+      assertThat(storage.applyConfigurationChange(movedOut).getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(Files.getPosixFilePermissions(directoryAtOpen.toPath()))
+          .isEqualTo(PosixFilePermissions.fromString("rwxr-xr-x"));
+
+      final ConfigChangeResult ccr = storage.applyConfigurationChange(movedBack);
+
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.getMessages()).isEmpty();
+      assertThat(Files.getPosixFilePermissions(directoryAtOpen.toPath()))
+          .isEqualTo(PosixFilePermissions.fromString("rwx------"));
+    }
+    finally
+    {
+      recursiveDelete(getFileForPath("PDBStorageTest-moved"));
+    }
+  }
+
+  /**
+   * The open writes the configured mode to the directory it runs on, a mode which came with a move
+   * made while the storage was closed as well: a later change back to the former mode writes that
+   * one to the running directory again.
+   */
+  @Test
+  public void aModeTheOpenWroteIsWhatALaterChangeIsHeldAgainst() throws Exception
+  {
+    if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix"))
+    {
+      throw new SkipException("the directory mode is POSIX alone");
+    }
+    final File directoryAtOpen = storage.getDirectory();
+    final PDBBackendCfg movedOut = createBackendCfg();
+    when(movedOut.getDBDirectory()).thenReturn("PDBStorageTest-moved");
+    when(movedOut.getDBDirectoryPermissions()).thenReturn("700");
+    storage.close();
+    try
+    {
+      assertThat(storage.applyConfigurationChange(movedOut).getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      storage.open(AccessMode.READ_WRITE);
+      assertThat(Files.getPosixFilePermissions(directoryAtOpen.toPath()))
+          .isEqualTo(PosixFilePermissions.fromString("rwx------"));
+
+      final ConfigChangeResult ccr = storage.applyConfigurationChange(createBackendCfg());
+
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.getMessages()).isEmpty();
+      assertThat(Files.getPosixFilePermissions(directoryAtOpen.toPath()))
+          .isEqualTo(PosixFilePermissions.fromString("rwxr-xr-x"));
+    }
+    finally
+    {
+      recursiveDelete(getFileForPath("PDBStorageTest-moved"));
+    }
+  }
+
+  /**
+   * A directory mode the server itself could not use refuses the change whole: nothing of it is
+   * written to the running directory, and the rest of it is not reported as waiting for a restart.
+   */
+  @Test
+  public void aChangeToAnInsaneDirectoryModeIsRefusedWhole() throws Exception
+  {
+    final long intervalAtOpen = createBackendCfg().getDBCheckpointerWakeupInterval();
+    final PDBBackendCfg insaneMode = createBackendCfg();
+    when(insaneMode.getDBDirectoryPermissions()).thenReturn("500");
+    when(insaneMode.getDBCheckpointerWakeupInterval()).thenReturn(4 * intervalAtOpen);
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(insaneMode);
+
+    assertThat(ccr.getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.getMessages()).hasSize(1);
+    assertThat(ccr.getMessages().get(0).ordinal()).isEqualTo(ERR_CONFIG_BACKEND_INSANE_MODE.ordinal());
+    assertThat(storage.getDirectory().canWrite()).isTrue();
+  }
+
+  /** A storage which is closed has no database to hold a change against: the next open takes it. */
+  @Test
+  public void aCheckpointIntervalChangedWhileClosedAsksForNothing() throws Exception
+  {
+    storage.close();
+    final long intervalAtOpen = createBackendCfg().getDBCheckpointerWakeupInterval();
+    final PDBBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBCheckpointerWakeupInterval()).thenReturn(4 * intervalAtOpen);
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isFalse();
+    assertThat(ccr.getMessages()).isEmpty();
+  }
+
+  /** The checkpoint interval of the database the given storage runs, in seconds. */
+  private static long checkpointIntervalOf(PDBStorage storage) throws Exception
+  {
+    final Field db = PDBStorage.class.getDeclaredField("db");
+    db.setAccessible(true);
+    return ((Persistit) db.get(storage)).getConfiguration().getCheckpointInterval();
   }
 
   /** A configuration whose cache is the given size in bytes, or a fifth of the quota when it is zero. */

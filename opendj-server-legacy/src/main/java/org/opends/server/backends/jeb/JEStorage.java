@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +53,7 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.JEBackendCfg;
@@ -95,6 +97,8 @@ import com.sleepycat.je.LockConflictException;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
 import com.sleepycat.je.TransactionConfig;
+import com.sleepycat.je.config.ConfigParam;
+import com.sleepycat.je.config.EnvironmentParams;
 
 /** Berkeley DB Java Edition (JE for short) database implementation of the {@link Storage} engine. */
 public final class JEStorage implements Storage, Backupable, ConfigurationChangeListener<JEBackendCfg>,
@@ -721,6 +725,12 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
 
   private final ServerContext serverContext;
   private final File backendDirectory;
+  /**
+   * The mode last written to the directory the storage runs on. A mode changed along with a move of
+   * db-directory is written to the directory moved to alone, so the configuration as last changed
+   * does not say what the running directory has.
+   */
+  private String runningDirectoryPermissions;
   private JEBackendCfg config;
   private AccessMode accessMode;
 
@@ -791,6 +801,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     this.maxRetries = maxRetries;
     this.retryWindowNanos = retryWindowNanos;
     backendDirectory = getBackendDirectory(cfg);
+    runningDirectoryPermissions = cfg.getDBDirectoryPermissions();
     config = cfg;
     cfg.addJEChangeListener(this);
   }
@@ -988,6 +999,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
   private void open0() throws ConfigException
   {
     setupStorageFiles(backendDirectory, config.getDBDirectoryPermissions(), config.dn());
+    runningDirectoryPermissions = config.getDBDirectoryPermissions();
     try
     {
       env = new Environment(backendDirectory, envConfig);
@@ -1209,7 +1221,9 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
   @Override
   public File getDirectory()
   {
-    return getBackendDirectory(config);
+    // The directory the storage runs on: a db-directory moved while it runs is used from the next open,
+    // which a new storage makes.
+    return backendDirectory;
   }
 
   private static File getBackendDirectory(JEBackendCfg cfg)
@@ -1470,7 +1484,8 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     final MemoryQuota quota = serverContext.getMemoryQuota();
     return (newSize <= Math.max(reservedCacheSize, computeSize(config))
             || quota.isMemoryAvailable(newSize - reservedCacheSize))
-        && checkConfigurationDirectories(newCfg, unacceptableReasons);
+        && checkConfigurationDirectories(newCfg, unacceptableReasons)
+        && checkEnvironmentConfiguration(newCfg, unacceptableReasons);
   }
 
   private long computeSize(JEBackendCfg cfg)
@@ -1506,7 +1521,28 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
         return false;
       }
     }
-    return checkConfigurationDirectories(cfg, unacceptableReasons);
+    return checkConfigurationDirectories(cfg, unacceptableReasons)
+        && checkEnvironmentConfiguration(cfg, unacceptableReasons);
+  }
+
+  /**
+   * Whether an environment can be configured from the given configuration. A durability which
+   * sets both flags, or a native property JE does not know, is refused here, before the change
+   * is written - rather than by the next open of the backend, which is where a configuration
+   * nothing checked used to fail.
+   */
+  private static boolean checkEnvironmentConfiguration(JEBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
+  {
+    try
+    {
+      ConfigurableEnvironment.toEnvironmentConfig(cfg);
+      return true;
+    }
+    catch (ConfigException e)
+    {
+      unacceptableReasons.add(e.getMessageObject());
+      return false;
+    }
   }
 
   private static boolean checkConfigurationDirectories(JEBackendCfg cfg,
@@ -1533,9 +1569,12 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     try
     {
       File newBackendDirectory = getBackendDirectory(cfg);
+      // Against the directory the storage runs on rather than the configuration as last changed, so
+      // that a later change still asks for the restart a move is waiting for.
+      final boolean moved = !newBackendDirectory.equals(backendDirectory);
 
       // Create the directory if it doesn't exist.
-      if (!cfg.getDBDirectory().equals(config.getDBDirectory()))
+      if (moved)
       {
         checkDBDirExistsOrCanCreate(newBackendDirectory, ccr, false);
         if (!ccr.getMessages().isEmpty())
@@ -1544,22 +1583,28 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
         }
 
         ccr.setAdminActionRequired(true);
-        ccr.addMessage(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.get(config.getDBDirectory(), cfg.getDBDirectory()));
+        ccr.addMessage(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.get(backendDirectory, newBackendDirectory));
       }
 
-      if (!cfg.getDBDirectoryPermissions().equalsIgnoreCase(config.getDBDirectoryPermissions())
-          || !cfg.getDBDirectory().equals(config.getDBDirectory()))
+      if (!cfg.getDBDirectoryPermissions().equalsIgnoreCase(runningDirectoryPermissions)
+          || moved)
       {
         checkDBDirPermissions(cfg.getDBDirectoryPermissions(), cfg.dn(), ccr);
-        if (!ccr.getMessages().isEmpty())
+        // By its result code: the note of a moved directory is in the result already, and the rest of
+        // the change is still applied and reported alongside it.
+        if (ccr.getResultCode() != ResultCode.SUCCESS)
         {
           return ccr;
         }
 
         setDBDirPermissions(newBackendDirectory, cfg.getDBDirectoryPermissions(), cfg.dn(), ccr);
-        if (!ccr.getMessages().isEmpty())
+        if (ccr.getResultCode() != ResultCode.SUCCESS)
         {
           return ccr;
+        }
+        if (!moved)
+        {
+          runningDirectoryPermissions = cfg.getDBDirectoryPermissions();
         }
       }
       final long newCacheSize = computeSize(cfg);
@@ -1572,6 +1617,12 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
         ccr.addMessage(
             NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART.get(cfg.getBackendId(), configuredCacheSize, newCacheSize));
       }
+      // An import runs the environment on a configuration of its own, which goes with it: the backend
+      // opens again on the configuration as changed once the import is over.
+      if (env != null && envConfig.getTransactional())
+      {
+        applyToEnvironment(cfg, ccr);
+      }
       registerMonitoredDirectory(cfg);
       config = cfg;
     }
@@ -1580,6 +1631,99 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
       addErrorMessage(ccr, LocalizableMessage.raw(stackTraceToSingleLineString(e)));
     }
     return ccr;
+  }
+
+  /**
+   * Applies to the running environment what JE takes while it runs, and asks for a restart for what
+   * it takes at the open alone. The environment is configured when it opens, from the configuration
+   * as it is then: a change of a property JE accepts as mutable is handed to the environment here,
+   * and a change of one it does not is reported - the change result reaches the error log, where a
+   * change reported as applied while the environment ran on unchanged until its next open did not.
+   * <p>
+   * The cache is the one mutable setting left where the open put it: it is sized with the memory
+   * reserved for it, and a change of its size asks for a restart above, at which the next open
+   * reserves the new size.
+   */
+  private void applyToEnvironment(JEBackendCfg cfg, ConfigChangeResult ccr) throws ConfigException
+  {
+    final EnvironmentConfig next = ConfigurableEnvironment.toEnvironmentConfig(cfg);
+    final EnvironmentConfig running = env.getConfig();
+    for (ConfigParam param : new TreeMap<>(EnvironmentParams.SUPPORTED_PARAMS).values())
+    {
+      // Replication parameters are not set through an environment configuration; a multi-value
+      // parameter is not read as one value. Neither is set by this storage.
+      if (param.isForReplication() || param.isMultiValueParam())
+      {
+        continue;
+      }
+      final String runningValue = running.getConfigParam(param.getName());
+      final String nextValue = next.getConfigParam(param.getName());
+      if (Objects.equals(runningValue, nextValue)
+          || (param.isMutable()
+              && !switchesOffHeapCache(param.getName(), runningValue, nextValue)
+              && (next.isConfigParamSet(param.getName()) || resetsToDefault(next, param.getName(), nextValue))))
+      {
+        continue;
+      }
+      ccr.setAdminActionRequired(true);
+      ccr.addMessage(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART.get(
+          ConfigurableEnvironment.configuredNameOf(param.getName()), cfg.getBackendId(), runningValue, nextValue));
+    }
+    next.setConfigParam(MAX_MEMORY, running.getConfigParam(MAX_MEMORY));
+    next.setConfigParam(MAX_MEMORY_PERCENT, running.getConfigParam(MAX_MEMORY_PERCENT));
+    // The off-heap cache is switched on or off by the next open alone, which the change asks for above.
+    final String offHeapRunning = running.getConfigParam(MAX_OFF_HEAP_MEMORY);
+    if (switchesOffHeapCache(MAX_OFF_HEAP_MEMORY, offHeapRunning, next.getConfigParam(MAX_OFF_HEAP_MEMORY)))
+    {
+      next.setConfigParam(MAX_OFF_HEAP_MEMORY, offHeapRunning);
+    }
+    // What JE takes while it runs, of the properties the configuration sets; the rest it ignores.
+    env.setMutableConfig(next);
+  }
+
+  /**
+   * Tells whether a change of the given parameter switches JE's off-heap cache on or off. JE takes a
+   * change of the off-heap cache size while it runs, but not one between zero and non-zero: it throws
+   * once it has already taken the new value as its own, and so throws again on every change which
+   * follows, until the next open - which does it.
+   *
+   * @param name the name of the parameter
+   * @param runningValue the value the environment runs with
+   * @param nextValue the value configured
+   * @return whether the change switches the off-heap cache on or off
+   */
+  private static boolean switchesOffHeapCache(String name, String runningValue, String nextValue)
+  {
+    return MAX_OFF_HEAP_MEMORY.equals(name)
+        && (Long.parseLong(runningValue) > 0) != (Long.parseLong(nextValue) > 0);
+  }
+
+  /**
+   * Sets a mutable parameter the configuration no longer sets - a je-property removed - to JE's
+   * default, since the environment keeps the value it runs with of every parameter it is not handed.
+   * A default JE does not take as a value, such as the 0 of je.cleaner.readSize, which JE reads as
+   * "computed at the open", leaves the parameter to the next open.
+   *
+   * @param next the environment configuration handed to the running environment
+   * @param name the name of the parameter
+   * @param defaultValue JE's default of the parameter, as the configuration reads it
+   * @return whether the default is handed to the environment along with the rest
+   */
+  private static boolean resetsToDefault(EnvironmentConfig next, String name, String defaultValue)
+  {
+    if (defaultValue == null)
+    {
+      return false;
+    }
+    try
+    {
+      next.setConfigParam(name, defaultValue);
+      return true;
+    }
+    catch (IllegalArgumentException e)
+    {
+      return false;
+    }
   }
 
   private void registerMonitoredDirectory(JEBackendCfg cfg)

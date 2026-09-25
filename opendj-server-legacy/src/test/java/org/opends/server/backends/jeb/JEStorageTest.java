@@ -15,26 +15,54 @@
  */
 package org.opends.server.backends.jeb;
 
+import static com.sleepycat.je.EnvironmentConfig.CLEANER_MIN_AGE;
+import static com.sleepycat.je.EnvironmentConfig.CLEANER_MIN_UTILIZATION;
+import static com.sleepycat.je.EnvironmentConfig.CLEANER_READ_SIZE;
+import static com.sleepycat.je.EnvironmentConfig.CLEANER_THREADS;
+import static com.sleepycat.je.EnvironmentConfig.ENV_RUN_CLEANER;
+import static com.sleepycat.je.EnvironmentConfig.EVICTOR_CORE_THREADS;
+import static com.sleepycat.je.EnvironmentConfig.EVICTOR_KEEP_ALIVE;
+import static com.sleepycat.je.EnvironmentConfig.EVICTOR_MAX_THREADS;
+import static com.sleepycat.je.EnvironmentConfig.LOG_FILE_MAX;
+import static com.sleepycat.je.EnvironmentConfig.LOG_ITERATOR_READ_SIZE;
+import static com.sleepycat.je.EnvironmentConfig.MAX_OFF_HEAP_MEMORY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.forgerock.opendj.ldap.ByteString.valueOfUtf8;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.opends.messages.BackendMessages.ERR_CONFIG_JEB_DURABILITY_CONFLICT;
 import static org.opends.messages.BackendMessages.NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART;
+import static org.opends.messages.BackendMessages.NOTE_CONFIG_DB_DIR_REQUIRES_RESTART;
+import static org.opends.messages.BackendMessages.NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART;
+import static org.opends.messages.ConfigMessages.ERR_CONFIG_BACKEND_INSANE_MODE;
+import static org.opends.messages.ConfigMessages.ERR_CONFIG_JE_PROPERTY_INVALID;
 import static org.opends.server.util.CollectionUtils.newTreeSet;
 import static org.opends.server.util.StaticUtils.MB;
+import static org.opends.server.util.StaticUtils.getFileForPath;
+import static org.opends.server.util.StaticUtils.recursiveDelete;
 
 import java.io.File;
+import java.lang.reflect.Field;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -43,9 +71,12 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.server.JEBackendCfg;
+import org.mockito.ArgumentCaptor;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.backends.pluggable.spi.AccessMode;
+import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
@@ -55,18 +86,23 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.MemoryQuota;
 import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
+import org.testng.SkipException;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.sleepycat.je.Durability;
+import com.sleepycat.je.Environment;
+import com.sleepycat.je.EnvironmentMutableConfig;
 import com.sleepycat.je.LockConflictException;
 import com.sleepycat.je.LockTimeoutException;
 
 /**
  * Tests what a {@link JEStorage} takes as it opens and gives back when the open fails - the twin
- * of the same cases on {@code PDBStorageTest} - and the replay of a {@link JEStorage#write} whose
- * transaction JE ends with a {@link LockConflictException}.
+ * of the same cases on {@code PDBStorageTest} - what a configuration change reaches of the
+ * environment it runs, and the replay of a {@link JEStorage#write} whose transaction JE ends with a
+ * {@link LockConflictException}.
  * <p>
  * The conflicts are the engine's own. A deadlock is made by two writers locking two records in opposite order,
  * which JE resolves by throwing at a random victim; a conflict on every attempt is made by a transaction which
@@ -86,6 +122,8 @@ public class JEStorageTest extends DirectoryServerTestCase
    * what a backend whose directory the server cannot use meets.
    */
   private static final String BLOCKED_DB_DIRECTORY = BACKEND_ID + "-blocked";
+  /** Where a change moves db-directory to; the environment stays where it opened until a restart. */
+  private static final String MOVED_DB_DIRECTORY = BACKEND_ID + "-moved";
   /** A window no run of replays can spend, so that a test of the attempt cap is only ever ended by the cap. */
   private static final long UNREACHABLE_RETRY_WINDOW_NANOS = 300L * 1000L * 1000L * 1000L; //5 min
   /** A window a single attempt outlasts, so that a test of the window reaches it without seconds of build time. */
@@ -338,6 +376,7 @@ public class JEStorageTest extends DirectoryServerTestCase
     storage.open(AccessMode.READ_WRITE);
     final JEBackendCfg unchangedCache = createBackendCfg(0L, 10);
     when(unchangedCache.isDBTxnNoSync()).thenReturn(true);
+    when(unchangedCache.isDBTxnWriteNoSync()).thenReturn(false);
 
     final ConfigChangeResult unchanged = storage.applyConfigurationChange(unchangedCache);
     assertThat(unchanged.adminActionRequired()).isFalse();
@@ -383,6 +422,7 @@ public class JEStorageTest extends DirectoryServerTestCase
     storage.open(AccessMode.READ_WRITE);
     final JEBackendCfg unchangedCache = createBackendCfg(SMALL_CACHE);
     when(unchangedCache.isDBTxnNoSync()).thenReturn(true);
+    when(unchangedCache.isDBTxnWriteNoSync()).thenReturn(false);
 
     final ConfigChangeResult ccr = storage.applyConfigurationChange(unchangedCache);
 
@@ -448,6 +488,7 @@ public class JEStorageTest extends DirectoryServerTestCase
     openWithTheReservationRefused();
     final JEBackendCfg unchangedCache = createBackendCfg(SMALL_CACHE);
     when(unchangedCache.isDBTxnNoSync()).thenReturn(true);
+    when(unchangedCache.isDBTxnWriteNoSync()).thenReturn(false);
 
     assertThat(storage.isConfigurationChangeAcceptable(unchangedCache, new ArrayList<LocalizableMessage>()))
         .isTrue();
@@ -530,6 +571,534 @@ public class JEStorageTest extends DirectoryServerTestCase
     storage = new JEStorage(createBackendCfg(SMALL_CACHE), serverContext);
     storage.open(AccessMode.READ_WRITE);
     assertThat(quota.getAvailableMemory()).isEqualTo(availableBefore);
+  }
+
+  /**
+   * What JE takes while it runs - the cleaner, the evictor pool and the durability - is applied
+   * to the running environment by a configuration change, and the operator is asked for nothing.
+   * Built at the open and never touched again, the environment ran on unchanged until the next
+   * open while the change was reported as applied.
+   */
+  @Test
+  public void aChangeOfWhatJETakesWhileItRunsReachesTheEnvironment() throws Exception
+  {
+    final Environment env = environmentOf(storage);
+    assertThat(env.getMutableConfig().getConfigParam(CLEANER_MIN_UTILIZATION)).isEqualTo("50");
+
+    final JEBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBCleanerMinUtilization()).thenReturn(60);
+    when(cfg.isDBRunCleaner()).thenReturn(false);
+    when(cfg.getDBEvictorCoreThreads()).thenReturn(2);
+    when(cfg.getDBEvictorMaxThreads()).thenReturn(4);
+    when(cfg.getDBEvictorKeepAlive()).thenReturn(120L);
+    when(cfg.getDBNumCleanerThreads()).thenReturn(3);
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isFalse();
+    assertThat(ccr.getMessages()).isEmpty();
+    final EnvironmentMutableConfig running = env.getMutableConfig();
+    assertThat(running.getConfigParam(CLEANER_MIN_UTILIZATION)).isEqualTo("60");
+    assertThat(running.getConfigParam(ENV_RUN_CLEANER)).isEqualTo("false");
+    assertThat(running.getConfigParam(EVICTOR_CORE_THREADS)).isEqualTo("2");
+    assertThat(running.getConfigParam(EVICTOR_MAX_THREADS)).isEqualTo("4");
+    // a JE duration, in microseconds
+    assertThat(running.getConfigParam(EVICTOR_KEEP_ALIVE)).isEqualTo("120000000");
+    assertThat(running.getConfigParam(CLEANER_THREADS)).isEqualTo("3");
+  }
+
+  /**
+   * The durability follows the change every way. It is what the transactions of this storage
+   * commit with, taken from the environment handle: a change set on the handle reaches the next
+   * transaction - a change which sets neither flag included, which commits synchronously, set as
+   * such rather than left to what JE falls back on, since JE leaves a durability it has in place
+   * when it is handed none.
+   */
+  @Test
+  public void aChangeOfTheDurabilityReachesTheEnvironmentEveryWay() throws Exception
+  {
+    final Environment env = environmentOf(storage);
+    // db-txn-write-no-sync is on by default
+    assertThat(env.getConfig().getDurability()).isEqualTo(Durability.COMMIT_WRITE_NO_SYNC);
+
+    final JEBackendCfg noSync = createBackendCfg();
+    when(noSync.isDBTxnNoSync()).thenReturn(true);
+    when(noSync.isDBTxnWriteNoSync()).thenReturn(false);
+    assertThat(storage.applyConfigurationChange(noSync).getMessages()).isEmpty();
+    assertThat(env.getConfig().getDurability()).isEqualTo(Durability.COMMIT_NO_SYNC);
+
+    final JEBackendCfg sync = createBackendCfg();
+    when(sync.isDBTxnWriteNoSync()).thenReturn(false);
+    assertThat(storage.applyConfigurationChange(sync).getMessages()).isEmpty();
+    assertThat(env.getConfig().getDurability()).isEqualTo(Durability.COMMIT_SYNC);
+
+    assertThat(storage.applyConfigurationChange(createBackendCfg()).getMessages()).isEmpty();
+    assertThat(env.getConfig().getDurability()).isEqualTo(Durability.COMMIT_WRITE_NO_SYNC);
+  }
+
+  /**
+   * A native property set through je-property is applied when JE takes it while it runs, and
+   * asks for a restart when JE takes it at the open alone: the change result names the property,
+   * what the environment runs with and what is now configured, and the environment keeps the
+   * former.
+   */
+  @Test
+  public void aNativePropertyIsAppliedOrAsksForARestartAsJETakesIt() throws Exception
+  {
+    final Environment env = environmentOf(storage);
+    final String readSizeAtOpen = env.getConfig().getConfigParam(LOG_ITERATOR_READ_SIZE);
+    assertThat(readSizeAtOpen).isNotEqualTo("16384");
+
+    final JEBackendCfg cfg = createBackendCfg();
+    when(cfg.getJEProperty()).thenReturn(
+        new TreeSet<>(Arrays.asList(CLEANER_MIN_AGE + "=5", LOG_ITERATOR_READ_SIZE + "=16384")));
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isTrue();
+    assertThat(ccr.getMessages()).hasSize(1);
+    assertThat(ccr.getMessages().get(0).toString()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART
+        .get(LOG_ITERATOR_READ_SIZE, BACKEND_ID, readSizeAtOpen, "16384").toString());
+    assertThat(env.getMutableConfig().getConfigParam(CLEANER_MIN_AGE)).isEqualTo("5");
+    assertThat(env.getConfig().getConfigParam(LOG_ITERATOR_READ_SIZE)).isEqualTo(readSizeAtOpen);
+  }
+
+  /**
+   * A native property JE takes while it runs goes back to JE's default when it is removed from
+   * je-property: the environment keeps the value it runs with of every parameter it is not handed,
+   * so the removal hands it the default explicitly.
+   */
+  @Test
+  public void aRemovedNativePropertyGoesBackToJEsDefault() throws Exception
+  {
+    final Environment env = environmentOf(storage);
+    final String minAgeAtOpen = env.getMutableConfig().getConfigParam(CLEANER_MIN_AGE);
+    assertThat(minAgeAtOpen).isNotEqualTo("5");
+    final JEBackendCfg cfg = createBackendCfg();
+    when(cfg.getJEProperty()).thenReturn(new TreeSet<>(Arrays.asList(CLEANER_MIN_AGE + "=5")));
+    assertThat(storage.applyConfigurationChange(cfg).getMessages()).isEmpty();
+    assertThat(env.getMutableConfig().getConfigParam(CLEANER_MIN_AGE)).isEqualTo("5");
+
+    final ConfigChangeResult removed = storage.applyConfigurationChange(createBackendCfg());
+
+    assertThat(removed.adminActionRequired()).isFalse();
+    assertThat(removed.getMessages()).isEmpty();
+    assertThat(env.getMutableConfig().getConfigParam(CLEANER_MIN_AGE)).isEqualTo(minAgeAtOpen);
+  }
+
+  /**
+   * A native property whose default JE does not take as a value - the 0 of je.cleaner.readSize
+   * stands for "computed at the open" - cannot be put back while the environment runs: its removal
+   * asks for a restart instead of failing the change, and the environment keeps what it runs with.
+   */
+  @Test
+  public void aRemovedNativePropertyJECannotPutBackWhileItRunsAsksForARestart() throws Exception
+  {
+    final Environment env = environmentOf(storage);
+    final JEBackendCfg cfg = createBackendCfg();
+    when(cfg.getJEProperty()).thenReturn(new TreeSet<>(Arrays.asList(CLEANER_READ_SIZE + "=16384")));
+    assertThat(storage.applyConfigurationChange(cfg).getMessages()).isEmpty();
+    assertThat(env.getMutableConfig().getConfigParam(CLEANER_READ_SIZE)).isEqualTo("16384");
+
+    final ConfigChangeResult removed = storage.applyConfigurationChange(createBackendCfg());
+
+    assertThat(removed.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(removed.adminActionRequired()).isTrue();
+    assertThat(removed.getMessages()).hasSize(1);
+    assertThat(removed.getMessages().get(0).toString()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART
+        .get(CLEANER_READ_SIZE, BACKEND_ID, "16384", "0").toString());
+    assertThat(env.getMutableConfig().getConfigParam(CLEANER_READ_SIZE)).isEqualTo("16384");
+  }
+
+  /**
+   * JE takes a change of its off-heap cache size while it runs, but not one which switches the cache
+   * on: switching it on asks for a restart, and the environment keeps running without it and takes
+   * the changes which follow.
+   */
+  @Test
+  public void aNativePropertyWhichSwitchesTheOffHeapCacheOnAsksForARestart() throws Exception
+  {
+    final Environment env = environmentOf(storage);
+    assertThat(env.getConfig().getConfigParam(MAX_OFF_HEAP_MEMORY)).isEqualTo("0");
+    final JEBackendCfg cfg = createBackendCfg();
+    when(cfg.getJEProperty()).thenReturn(newTreeSet(MAX_OFF_HEAP_MEMORY + "=" + MB));
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isTrue();
+    assertThat(ccr.getMessages()).hasSize(1);
+    assertThat(ccr.getMessages().get(0).toString()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART
+        .get(MAX_OFF_HEAP_MEMORY, BACKEND_ID, "0", String.valueOf(MB)).toString());
+    assertThat(env.getConfig().getConfigParam(MAX_OFF_HEAP_MEMORY)).isEqualTo("0");
+
+    final ConfigChangeResult removed = storage.applyConfigurationChange(createBackendCfg());
+    assertThat(removed.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(removed.getMessages()).isEmpty();
+  }
+
+  /**
+   * Nor does JE take a change which switches its off-heap cache off: the removal of the native
+   * property asks for a restart, and the environment keeps its cache and takes the changes which
+   * follow - a change of its size among them.
+   */
+  @Test
+  public void aRemovedNativePropertyWhichSwitchesTheOffHeapCacheOffAsksForARestart() throws Exception
+  {
+    final JEBackendCfg withOffHeapCache = createBackendCfg();
+    when(withOffHeapCache.getJEProperty()).thenReturn(newTreeSet(MAX_OFF_HEAP_MEMORY + "=" + MB));
+    closeAndRemove(storage);
+    storage = new JEStorage(withOffHeapCache, serverContext);
+    storage.open(AccessMode.READ_WRITE);
+    final Environment env = environmentOf(storage);
+    assertThat(env.getConfig().getConfigParam(MAX_OFF_HEAP_MEMORY)).isEqualTo(String.valueOf(MB));
+
+    final JEBackendCfg resized = createBackendCfg();
+    when(resized.getJEProperty()).thenReturn(newTreeSet(MAX_OFF_HEAP_MEMORY + "=" + 2 * MB));
+    assertThat(storage.applyConfigurationChange(resized).getMessages()).isEmpty();
+    assertThat(env.getConfig().getConfigParam(MAX_OFF_HEAP_MEMORY)).isEqualTo(String.valueOf(2 * MB));
+
+    final ConfigChangeResult removed = storage.applyConfigurationChange(createBackendCfg());
+
+    assertThat(removed.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(removed.adminActionRequired()).isTrue();
+    assertThat(removed.getMessages()).hasSize(1);
+    assertThat(removed.getMessages().get(0).toString()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART
+        .get(MAX_OFF_HEAP_MEMORY, BACKEND_ID, String.valueOf(2 * MB), "0").toString());
+    assertThat(env.getConfig().getConfigParam(MAX_OFF_HEAP_MEMORY)).isEqualTo(String.valueOf(2 * MB));
+
+    final JEBackendCfg durabilityChanged = createBackendCfg();
+    when(durabilityChanged.isDBTxnNoSync()).thenReturn(true);
+    when(durabilityChanged.isDBTxnWriteNoSync()).thenReturn(false);
+    assertThat(storage.applyConfigurationChange(durabilityChanged).getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(env.getConfig().getDurability()).isEqualTo(Durability.COMMIT_NO_SYNC);
+  }
+
+  /**
+   * A change which moves db-directory as well is still applied and reported: the note of the moved
+   * directory, which asks for a restart of its own, does not end the change before the rest of it.
+   * The storage keeps naming the directory the environment runs on, which a backup lists and the
+   * disk monitor watches, and the move is held against that directory: a later change still asks for
+   * the restart, and one which moves back asks for nothing.
+   */
+  @Test
+  public void aChangeWhichMovesTheDirectoryIsStillAppliedToTheEnvironment() throws Exception
+  {
+    final DiskSpaceMonitor monitor = serverContext.getDiskSpaceMonitor();
+    final Environment env = environmentOf(storage);
+    final File directoryAtOpen = storage.getDirectory();
+    final String fileMaxAtOpen = env.getConfig().getConfigParam(LOG_FILE_MAX);
+    final JEBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBDirectory()).thenReturn(MOVED_DB_DIRECTORY);
+    when(cfg.isDBTxnNoSync()).thenReturn(true);
+    when(cfg.isDBTxnWriteNoSync()).thenReturn(false);
+    when(cfg.getDBLogFileMax()).thenReturn(2 * Long.parseLong(fileMaxAtOpen));
+    try
+    {
+      final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.adminActionRequired()).isTrue();
+      assertThat(ccr.getMessages()).hasSize(2);
+      assertThat(ccr.getMessages().get(0).ordinal()).isEqualTo(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.ordinal());
+      assertThat(ccr.getMessages().get(1).ordinal()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART.ordinal());
+      assertThat(env.getConfig().getDurability()).isEqualTo(Durability.COMMIT_NO_SYNC);
+      assertThat(storage.getDirectory()).isEqualTo(directoryAtOpen);
+      assertThat(storage.getFilesToBackup().hasNext()).isTrue();
+
+      final ConfigChangeResult again = storage.applyConfigurationChange(cfg);
+      assertThat(again.getMessages()).hasSize(2);
+      assertThat(again.getMessages().get(0).ordinal()).isEqualTo(NOTE_CONFIG_DB_DIR_REQUIRES_RESTART.ordinal());
+
+      assertThat(storage.applyConfigurationChange(createBackendCfg()).getMessages()).isEmpty();
+
+      final ArgumentCaptor<File> registered = ArgumentCaptor.forClass(File.class);
+      verify(monitor, atLeastOnce()).registerMonitoredDirectory(
+          anyString(), registered.capture(), anyLong(), anyLong(), any(DiskSpaceMonitorHandler.class));
+      assertThat(registered.getAllValues()).containsOnly(directoryAtOpen);
+    }
+    finally
+    {
+      recursiveDelete(getFileForPath(MOVED_DB_DIRECTORY));
+    }
+  }
+
+  /**
+   * A storage closed while a move of its directory waits for the restart deregisters from the disk
+   * monitor the directory it ran on, the one it registered.
+   */
+  @Test
+  public void aStorageClosedWithAMovePendingDeregistersTheDirectoryItRanOn() throws Exception
+  {
+    final DiskSpaceMonitor monitor = serverContext.getDiskSpaceMonitor();
+    final File directoryAtOpen = storage.getDirectory();
+    final JEBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBDirectory()).thenReturn(MOVED_DB_DIRECTORY);
+    try
+    {
+      assertThat(storage.applyConfigurationChange(cfg).getResultCode()).isEqualTo(ResultCode.SUCCESS);
+
+      storage.close();
+
+      verify(monitor).deregisterMonitoredDirectory(directoryAtOpen, storage);
+    }
+    finally
+    {
+      recursiveDelete(getFileForPath(MOVED_DB_DIRECTORY));
+    }
+  }
+
+  /**
+   * A mode changed along with a move is written to the directory moved to alone, the one the
+   * environment runs on keeps its own: a later change which moves back with the same mode still
+   * writes it to the running directory.
+   */
+  @Test
+  public void aModeChangedAlongWithAMoveReachesTheRunningDirectoryWhenMovedBack() throws Exception
+  {
+    if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix"))
+    {
+      throw new SkipException("the directory mode is POSIX alone");
+    }
+    final File directoryAtOpen = storage.getDirectory();
+    final JEBackendCfg movedOut = createBackendCfg();
+    when(movedOut.getDBDirectory()).thenReturn(MOVED_DB_DIRECTORY);
+    when(movedOut.getDBDirectoryPermissions()).thenReturn("700");
+    final JEBackendCfg movedBack = createBackendCfg();
+    when(movedBack.getDBDirectoryPermissions()).thenReturn("700");
+    try
+    {
+      assertThat(storage.applyConfigurationChange(movedOut).getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(Files.getPosixFilePermissions(directoryAtOpen.toPath()))
+          .isEqualTo(PosixFilePermissions.fromString("rwxr-xr-x"));
+
+      final ConfigChangeResult ccr = storage.applyConfigurationChange(movedBack);
+
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.getMessages()).isEmpty();
+      assertThat(Files.getPosixFilePermissions(directoryAtOpen.toPath()))
+          .isEqualTo(PosixFilePermissions.fromString("rwx------"));
+    }
+    finally
+    {
+      recursiveDelete(getFileForPath(MOVED_DB_DIRECTORY));
+    }
+  }
+
+  /**
+   * The open writes the configured mode to the directory it runs on, a mode which came with a move
+   * made while the storage was closed as well: a later change back to the former mode writes that
+   * one to the running directory again.
+   */
+  @Test
+  public void aModeTheOpenWroteIsWhatALaterChangeIsHeldAgainst() throws Exception
+  {
+    if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix"))
+    {
+      throw new SkipException("the directory mode is POSIX alone");
+    }
+    final File directoryAtOpen = storage.getDirectory();
+    final JEBackendCfg movedOut = createBackendCfg();
+    when(movedOut.getDBDirectory()).thenReturn(MOVED_DB_DIRECTORY);
+    when(movedOut.getDBDirectoryPermissions()).thenReturn("700");
+    storage.close();
+    try
+    {
+      assertThat(storage.applyConfigurationChange(movedOut).getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      storage.open(AccessMode.READ_WRITE);
+      assertThat(Files.getPosixFilePermissions(directoryAtOpen.toPath()))
+          .isEqualTo(PosixFilePermissions.fromString("rwx------"));
+
+      final ConfigChangeResult ccr = storage.applyConfigurationChange(createBackendCfg());
+
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.getMessages()).isEmpty();
+      assertThat(Files.getPosixFilePermissions(directoryAtOpen.toPath()))
+          .isEqualTo(PosixFilePermissions.fromString("rwxr-xr-x"));
+    }
+    finally
+    {
+      recursiveDelete(getFileForPath(MOVED_DB_DIRECTORY));
+    }
+  }
+
+  /**
+   * A directory mode the server itself could not use refuses the change whole: nothing of it is
+   * written to the running directory, and nothing else of it reaches the environment.
+   */
+  @Test
+  public void aChangeToAnInsaneDirectoryModeIsRefusedWhole() throws Exception
+  {
+    final Environment env = environmentOf(storage);
+    final Durability before = env.getConfig().getDurability();
+    final JEBackendCfg insaneMode = createBackendCfg();
+    when(insaneMode.getDBDirectoryPermissions()).thenReturn("500");
+    when(insaneMode.isDBTxnNoSync()).thenReturn(true);
+    when(insaneMode.isDBTxnWriteNoSync()).thenReturn(false);
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(insaneMode);
+
+    assertThat(ccr.getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.getMessages()).hasSize(1);
+    assertThat(ccr.getMessages().get(0).ordinal()).isEqualTo(ERR_CONFIG_BACKEND_INSANE_MODE.ordinal());
+    assertThat(env.getConfig().getDurability()).isEqualTo(before);
+    assertThat(storage.getDirectory().canWrite()).isTrue();
+  }
+
+  /**
+   * The cache a percentage sizes stays where the open put it as well: the percentage the environment
+   * runs with is handed back to it along with its size, or a change of db-cache-percent would resize
+   * the live cache while the quota still holds what the open reserved.
+   */
+  @Test
+  public void aCachePercentChangedWhileOpenLeavesTheCacheWhereTheOpenReservedIt() throws Exception
+  {
+    final Environment env = environmentOf(storage);
+    final long cacheAtOpen = env.getMutableConfig().getCacheSize();
+    final JEBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBCachePercent()).thenReturn(30);
+
+    assertThat(storage.applyConfigurationChange(cfg).adminActionRequired()).isTrue();
+    assertThat(env.getMutableConfig().getCacheSize()).isEqualTo(cacheAtOpen);
+  }
+
+  /**
+   * A property JE takes at the open alone asks for a restart in the change result as well, not
+   * only in the property's definition: the definition reaches the reference documentation, the
+   * change result reaches the error log of the server which took the change.
+   */
+  @Test
+  public void aChangeOfWhatJETakesAtTheOpenAloneAsksForARestart() throws Exception
+  {
+    final Environment env = environmentOf(storage);
+    final String fileMaxAtOpen = env.getConfig().getConfigParam(LOG_FILE_MAX);
+
+    final JEBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBLogFileMax()).thenReturn(2 * Long.parseLong(fileMaxAtOpen));
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isTrue();
+    assertThat(ccr.getMessages()).hasSize(1);
+    assertThat(ccr.getMessages().get(0).toString()).isEqualTo(NOTE_CONFIG_DB_PROPERTY_REQUIRES_RESTART
+        .get("db-log-file-max", BACKEND_ID, fileMaxAtOpen, String.valueOf(2 * Long.parseLong(fileMaxAtOpen)))
+        .toString());
+    assertThat(env.getConfig().getConfigParam(LOG_FILE_MAX)).isEqualTo(fileMaxAtOpen);
+  }
+
+  /**
+   * The cache is the one thing JE takes while it runs which a change leaves alone: it stays at
+   * the size the open reserved, with the reservation, until the next open - the restart the
+   * change result asks for. What is applied to the environment is applied around it.
+   */
+  @Test
+  public void aChangeWhileOpenLeavesTheCacheWhereTheOpenReservedIt() throws Exception
+  {
+    closeAndRemove(storage);
+    storage = new JEStorage(createBackendCfg(SMALL_CACHE), serverContext);
+    storage.open(AccessMode.READ_WRITE);
+    final Environment env = environmentOf(storage);
+    assertThat(env.getMutableConfig().getCacheSize()).isEqualTo(SMALL_CACHE);
+
+    final JEBackendCfg cfg = createBackendCfg(2 * SMALL_CACHE);
+    when(cfg.getDBCleanerMinUtilization()).thenReturn(60);
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+    assertThat(ccr.adminActionRequired()).isTrue();
+    assertThat(ccr.getMessages()).hasSize(1);
+    assertThat(ccr.getMessages().get(0).ordinal()).isEqualTo(NOTE_CONFIG_DB_CACHE_REQUIRES_RESTART.ordinal());
+    final EnvironmentMutableConfig running = env.getMutableConfig();
+    assertThat(running.getCacheSize()).isEqualTo(SMALL_CACHE);
+    assertThat(running.getConfigParam(CLEANER_MIN_UTILIZATION)).isEqualTo("60");
+  }
+
+  /**
+   * An import runs the environment on a configuration of its own, which is thrown away with it:
+   * the backend opens again on the configuration as changed once the import is over, so a change
+   * which lands during one is neither applied to the import's environment nor reported against
+   * it - held to the import's configuration, every property the import sets differently would
+   * ask for a restart.
+   */
+  @Test
+  public void aChangeDuringAnImportLeavesTheImportsEnvironmentAlone() throws Exception
+  {
+    closeAndRemove(storage);
+    storage = new JEStorage(createBackendCfg(), serverContext);
+    final Importer importer = storage.startImport();
+    try
+    {
+      final Environment env = environmentOf(storage);
+      final JEBackendCfg cfg = createBackendCfg();
+      when(cfg.getDBCleanerMinUtilization()).thenReturn(60);
+      final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+      assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(ccr.adminActionRequired()).isFalse();
+      assertThat(ccr.getMessages()).isEmpty();
+      assertThat(env.getMutableConfig().getConfigParam(CLEANER_MIN_UTILIZATION)).isEqualTo("50");
+    }
+    finally
+    {
+      importer.close();
+    }
+  }
+
+  /**
+   * A configuration no environment can be built from is refused before it is written: a
+   * durability which sets both flags - db-txn-write-no-sync is on by default, so setting
+   * db-txn-no-sync alone is one - and a native property JE does not know. Nothing checked either
+   * before, and the backend failed to open on them at its next restart.
+   */
+  @Test
+  public void aConfigurationNoEnvironmentCanBeBuiltFromIsRefused() throws Exception
+  {
+    final JEBackendCfg bothFlags = createBackendCfg();
+    when(bothFlags.isDBTxnNoSync()).thenReturn(true);
+    final List<LocalizableMessage> reasons = new ArrayList<>();
+    assertThat(storage.isConfigurationChangeAcceptable(bothFlags, reasons)).isFalse();
+    assertThat(reasons).hasSize(1);
+    assertThat(reasons.get(0).toString()).isEqualTo(ERR_CONFIG_JEB_DURABILITY_CONFLICT.get().toString());
+
+    final JEBackendCfg unknownProperty = createBackendCfg();
+    when(unknownProperty.getJEProperty()).thenReturn(new TreeSet<>(Arrays.asList("je.no.such.property=1")));
+    reasons.clear();
+    assertThat(storage.isConfigurationChangeAcceptable(unknownProperty, reasons)).isFalse();
+    assertThat(reasons).hasSize(1);
+    assertThat(reasons.get(0).ordinal()).isEqualTo(ERR_CONFIG_JE_PROPERTY_INVALID.get("", "").ordinal());
+
+    reasons.clear();
+    assertThat(JEStorage.isConfigurationAcceptable(bothFlags, reasons, serverContext)).isFalse();
+    assertThat(reasons).hasSize(1);
+    assertThat(reasons.get(0).toString()).isEqualTo(ERR_CONFIG_JEB_DURABILITY_CONFLICT.get().toString());
+
+    reasons.clear();
+    assertThat(JEStorage.isConfigurationAcceptable(unknownProperty, reasons, serverContext)).isFalse();
+    assertThat(reasons).hasSize(1);
+    assertThat(reasons.get(0).ordinal()).isEqualTo(ERR_CONFIG_JE_PROPERTY_INVALID.get("", "").ordinal());
+    assertThat(storage.isConfigurationChangeAcceptable(createBackendCfg(), new ArrayList<LocalizableMessage>())).isTrue();
+  }
+
+  /** A storage which is closed has no environment to apply a change to: the next open takes it. */
+  @Test
+  public void aChangeWhileClosedTouchesNoEnvironment() throws Exception
+  {
+    storage.close();
+    final JEBackendCfg cfg = createBackendCfg();
+    when(cfg.getDBCleanerMinUtilization()).thenReturn(60);
+
+    final ConfigChangeResult ccr = storage.applyConfigurationChange(cfg);
+
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isFalse();
+    assertThat(ccr.getMessages()).isEmpty();
+  }
+
+  /** The environment of the given storage, which it keeps to itself. */
+  private static Environment environmentOf(JEStorage storage) throws Exception
+  {
+    final Field env = JEStorage.class.getDeclaredField("env");
+    env.setAccessible(true);
+    return (Environment) env.get(storage);
   }
 
   /** A storage whose directory is a regular file, which no open of it can use. */
