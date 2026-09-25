@@ -343,6 +343,34 @@
    </listitem>
   </varlistentry>
 
+  <varlistentry xml:id="replication-repair-request-control">
+   <term>Replication Repair request control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Replication repair</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.26027.1.5.2</para>
+    <para>OpenDJ specific, for writing the attributes replication owns,
+    such as <literal>entryUUID</literal> and <literal>ds-sync-hist</literal>,
+    on the replica the request is sent to, and on that replica only: the
+    change is neither published to the replication servers nor recorded in
+    the history of the entry. The control marks the whole request a
+    synchronization operation, so schema and value-syntax checking, the
+    pre-operation plugins - attribute uniqueness, referential integrity,
+    <literal>modifiersName</literal> and <literal>modifyTimestamp</literal> -
+    and password policy handling do not run for it either: a mistyped value
+    is accepted without an error, and a <literal>userPassword</literal> value
+    is stored in the clear rather than encoded. The server honours the control
+    only for a client that has the <literal>bypass-acl</literal> privilege, or
+    that an ACI allows to use it at the entry being repaired, and never on an
+    add or a delete that also carries a proxied authorization control;
+    otherwise it drops the control and processes the request as if the
+    control had not been sent. Put nothing but the repair in the request, and
+    send it as not critical.</para>
+   </listitem>
+  </varlistentry>
+
   <varlistentry xml:id="server-side-sort-request-control">
    <term>Server Side Sort Request Control</term>
    <listitem>

@@ -52,6 +52,7 @@ import org.opends.server.api.ExportTaskListener;
 import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.RestoreTaskListener;
 import org.opends.server.api.SynchronizationProvider;
+import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
@@ -64,6 +65,7 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SynchronizationProviderResult;
 import org.opends.server.types.operation.PluginOperation;
@@ -161,6 +163,15 @@ public class MultimasterReplication
           Control c = it.next();
           if (OID_REPLICATION_REPAIR_CONTROL.equals(c.getOID()))
           {
+            if (!mayUseRepairControl(dn, op, c))
+            {
+              /*
+              Leave the control on the request: the backend drops it when it is not critical,
+              and refuses the request when it is, as it does with any control the client may
+              not use.
+              */
+              break;
+            }
             op.setSynchronizationOperation(true);
             op.setDontSynchronize(true);
             /*
@@ -194,6 +205,50 @@ public class MultimasterReplication
     }
 
     return domain;
+  }
+
+  /**
+   * Whether the client may use the repair control on this operation, as the access control of
+   * the controls decides it: a client with the {@code bypass-acl} privilege, or one an ACI allows
+   * to use the control. The question is asked at the entry being repaired, on every operation:
+   * on an add as well, where the backend judges the other controls at the parent entry.
+   * <p>
+   * On a modify and a modify DN the backend has already asked it of every control by the time
+   * the replication plugin runs. An add and a delete reach the plugin before the backend checks
+   * their controls, and the plugin takes the control off the request, so on those operations the
+   * answer given here is the only one. They also reach it before the backend has applied a
+   * proxied authorization control: the answer would be given for the bound client rather than
+   * for the one the operation runs as, so a repair is refused on an add or a delete which
+   * carries one.
+   */
+  private static boolean mayUseRepairControl(DN dn, Operation op, Control control)
+  {
+    final OperationType type = op.getOperationType();
+    if ((type == OperationType.ADD || type == OperationType.DELETE) && carriesProxiedAuthorization(op))
+    {
+      return false;
+    }
+    try
+    {
+      return AccessControlConfigManager.getInstance().getAccessControlHandler().isAllowed(dn, op, control);
+    }
+    catch (DirectoryException e)
+    {
+      logger.traceException(e);
+      return false;
+    }
+  }
+
+  private static boolean carriesProxiedAuthorization(Operation op)
+  {
+    for (Control c : op.getRequestControls())
+    {
+      if (OID_PROXIED_AUTH_V1.equals(c.getOID()) || OID_PROXIED_AUTH_V2.equals(c.getOID()))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
