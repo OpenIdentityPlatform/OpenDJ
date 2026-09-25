@@ -24,7 +24,8 @@
 # the password on a command line every interval. An instance configured to reject
 # unauthenticated requests answers the anonymous search with 53 (Unwilling to Perform); for
 # such an instance HEALTHCHECK_BIND_DN names an account to bind with, and its password is
-# read from HEALTHCHECK_BIND_PASSWORD_FILE, never passed on a command line.
+# read from HEALTHCHECK_BIND_PASSWORD_FILE, never passed on a command line. --noPropertiesFile
+# keeps a tools.properties in the user's home from turning the probe into a bind of its own.
 #
 # Docker reserves exit code 2, so whatever failed is reported as 1.
 
@@ -39,5 +40,5 @@ if [ -n "${HEALTHCHECK_BIND_DN}" ]; then
   BIND_ARGS=(--bindDN "${HEALTHCHECK_BIND_DN}" --bindPasswordFile "${HEALTHCHECK_BIND_PASSWORD_FILE}")
 fi
 
-/opt/opendj/bin/ldapsearch --hostname localhost --port "${LDAPS_PORT:-1636}" --useSsl --trustAll \
+/opt/opendj/bin/ldapsearch --noPropertiesFile --hostname localhost --port "${LDAPS_PORT:-1636}" --useSsl --trustAll \
   "${BIND_ARGS[@]}" --baseDN "" --searchScope base "(objectClass=*)" 1.1 || exit 1

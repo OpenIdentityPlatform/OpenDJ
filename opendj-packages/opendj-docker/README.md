@@ -45,6 +45,11 @@ docker run -d --name opendj -v /path/to/secrets:/var/secrets/healthcheck:ro \
   openidentityplatform/opendj
 ```
 
+Images before this one probed as the root user, so an existing instance that rejects
+unauthenticated requests was healthy with them. Started on this image without these two
+variables, the same instance is probed anonymously and turns `unhealthy` although it serves:
+set them before the upgrade.
+
 The server answering is not enough on a first start: the bootstrap starts the server, and
 once it is done that server is stopped and started again in the foreground, so a client
 that only waits for the port can have its first requests fail in between. A replica set up
