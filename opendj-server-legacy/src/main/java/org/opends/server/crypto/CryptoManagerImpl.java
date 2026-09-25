@@ -352,7 +352,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
                   requestedCipherTransformationKeyLengthBits);
         }
         catch (Exception | Error ex) {
-          rethrowIfVirtualMachineError(ex);
+          rethrowIfNotARefusal(ex);
           logger.traceException(ex);
           unacceptableReasons.add(
              ERR_CRYPTOMGR_CANNOT_GET_REQUESTED_ENCRYPTION_CIPHER.get(
@@ -375,7 +375,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
              requestedMACAlgorithmKeyLengthBits);
       }
       catch (Exception | Error ex) {
-        rethrowIfVirtualMachineError(ex);
+        rethrowIfNotARefusal(ex);
         logger.traceException(ex);
         unacceptableReasons.add(
                 ERR_CRYPTOMGR_CANNOT_GET_REQUESTED_MAC_ENGINE.get(
@@ -431,7 +431,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
                   "key-wrapping-check", certificate, macKey);
         }
         catch (Exception | Error ex) {
-          rethrowIfVirtualMachineError(ex);
+          rethrowIfNotARefusal(ex);
           logger.traceException(ex);
           unacceptableReasons.add(
                   ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_KEY_WRAPPING_CIPHER.get(
@@ -446,13 +446,15 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
   /**
    * Rethrows what no configuration can be refused for. The checks ask the JCE providers for keys
    * and ciphers, and a provider may refuse with an Error rather than an exception: the BC-FIPS
-   * provider in approved-only mode throws its FipsUnapprovedOperationError.
+   * provider in approved-only mode throws its FipsUnapprovedOperationError. A VirtualMachineError
+   * is not a refusal, and neither is a LinkageError, which a broken provider jar throws: reported
+   * as a refusal, it would lose its cause, since a refusal carries only a message.
    */
-  private static void rethrowIfVirtualMachineError(final Throwable t)
+  private static void rethrowIfNotARefusal(final Throwable t)
   {
-    if (t instanceof VirtualMachineError)
+    if (t instanceof VirtualMachineError || t instanceof LinkageError)
     {
-      throw (VirtualMachineError) t;
+      throw (Error) t;
     }
   }
 

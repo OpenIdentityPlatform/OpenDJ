@@ -38,9 +38,13 @@ import java.io.OutputStream;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.AlgorithmParameters;
+import java.security.Key;
 import java.security.MessageDigest;
 import java.security.Provider;
+import java.security.SecureRandom;
 import java.security.Security;
+import java.security.spec.AlgorithmParameterSpec;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -51,7 +55,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
+import javax.crypto.CipherSpi;
+import javax.crypto.KeyGeneratorSpi;
 import javax.crypto.Mac;
+import javax.crypto.SecretKey;
 
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
@@ -444,6 +451,167 @@ public class CryptoManagerTestCase extends CryptoTestCase {
           .as("%s", why).isTrue();
       return null;
     }, sunWithoutMd5);
+  }
+
+  /** The error the probe provider fails with, set by the case using it. */
+  private static volatile Error probeError;
+
+  @DataProvider
+  public Object[][] errorsWhichAreNotRefusals()
+  {
+    final List<Object[]> cases = new ArrayList<>();
+    for (final String[] check : new String[][] {
+        { "getCipherTransformation", "ErrorProbe/CBC/PKCS5Padding" },
+        { "getMacAlgorithm", "ErrorProbe" },
+        { "getKeyWrappingTransformation", "ErrorProbeWrap/ECB/NoPadding" } })
+    {
+      cases.add(new Object[] { check[0], check[1], new StackOverflowError("probe") });
+      cases.add(new Object[] { check[0], check[1], new ExceptionInInitializerError(new IllegalStateException("probe")) });
+    }
+    return cases.toArray(new Object[0][]);
+  }
+
+  /**
+   An Error which is not a refusal of the configuration, of the virtual machine or of a broken
+   provider jar, propagates out of the cipher, MAC and key wrapping checks with its cause.
+   */
+  @Test(dataProvider = "errorsWhichAreNotRefusals")
+  public void testErrorWhichIsNotARefusalPropagates(final String getter, final String value, final Error error)
+      throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+    final Provider probe = new Provider("ErrorProbe", "1.0", "Fails with the error of the case") {};
+    probe.put("KeyGenerator.ErrorProbe", FailingKeyGenerator.class.getName());
+    probe.put("Cipher.ErrorProbeWrap", FailingCipher.class.getName());
+    probeError = error;
+    Security.insertProviderAt(probe, 1);
+    try
+    {
+      final List<LocalizableMessage> why = new ArrayList<>();
+      assertThatThrownBy(() -> cm.isConfigurationChangeAcceptable(withProperty(cfg, getter, value), why))
+          .isSameAs(error);
+      assertThat(why).isEmpty();
+    }
+    finally
+    {
+      Security.removeProvider("ErrorProbe");
+      probeError = null;
+    }
+  }
+
+  /** A key generator failing with the error of the case. */
+  public static final class FailingKeyGenerator extends KeyGeneratorSpi
+  {
+    @Override
+    protected void engineInit(final SecureRandom random)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected void engineInit(final AlgorithmParameterSpec params, final SecureRandom random)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected void engineInit(final int keySize, final SecureRandom random)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected SecretKey engineGenerateKey()
+    {
+      throw probeError;
+    }
+  }
+
+  /** A cipher which is found, and fails with the error of the case once initialized. */
+  public static final class FailingCipher extends CipherSpi
+  {
+    @Override
+    protected void engineSetMode(final String mode)
+    {
+      // Any mode.
+    }
+
+    @Override
+    protected void engineSetPadding(final String padding)
+    {
+      // Any padding.
+    }
+
+    @Override
+    protected int engineGetBlockSize()
+    {
+      return 0;
+    }
+
+    @Override
+    protected int engineGetOutputSize(final int inputLen)
+    {
+      return 0;
+    }
+
+    @Override
+    protected byte[] engineGetIV()
+    {
+      return null;
+    }
+
+    @Override
+    protected AlgorithmParameters engineGetParameters()
+    {
+      return null;
+    }
+
+    @Override
+    protected void engineInit(final int opmode, final Key key, final SecureRandom random)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected void engineInit(final int opmode, final Key key, final AlgorithmParameterSpec params,
+        final SecureRandom random)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected void engineInit(final int opmode, final Key key, final AlgorithmParameters params,
+        final SecureRandom random)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected byte[] engineUpdate(final byte[] input, final int inputOffset, final int inputLen)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected int engineUpdate(final byte[] input, final int inputOffset, final int inputLen, final byte[] output,
+        final int outputOffset)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected byte[] engineDoFinal(final byte[] input, final int inputOffset, final int inputLen)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected int engineDoFinal(final byte[] input, final int inputOffset, final int inputLen, final byte[] output,
+        final int outputOffset)
+    {
+      throw probeError;
+    }
   }
 
   /**
