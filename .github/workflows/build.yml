@@ -607,6 +607,11 @@ jobs:
           docker network connect --alias dj-master test_replication test_master
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica | grep -q \"healthy\"; do sleep 10; done'
           docker run --rm -it -d --memory="512m" --network test_replication --name=test_replica_sdsr --hostname=dj-replica-sdsr -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=sdsr "$IMAGE"
+          # the same for the sdsr replica, whose dsreplication enable is another command of replicate.sh
+          timeout 5m bash -c 'until docker logs test_replica_sdsr 2>&1 | grep -q "Will sleep for a bit"; do sleep 0.2; done'
+          docker network disconnect test_replication test_master
+          timeout 2m bash -c 'until docker logs test_replica_sdsr 2>&1 | grep -q "exited with 8, trying again"; do sleep 1; done'
+          docker network connect --alias dj-master test_replication test_master
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica_sdsr | grep -q \"healthy\"; do sleep 10; done'
           # the replicas were initialized from the master, and a change made on the master reaches them
           for c in $REPLICAS; do
@@ -616,6 +621,12 @@ jobs:
           for c in $REPLICAS; do
             timeout 1m bash -c 'until docker exec $1 /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword "$0" --useSsl --trustAll --baseDN "ou=replicated,dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1; do sleep 5; done' "$ROOT_PASSWORD" $c
           done
+          # replicate.sh tries dsreplication enable again only when it exits 8, and a failed enable ends it: run once more
+          # on the replica, the enable of a base DN already replicated exits 5 and nothing is tried again or initialized
+          rc=0; out=$(docker exec -e BASE_DN=dc=example,dc=com -e ROOT_USER_DN="cn=Directory Manager" test_replica timeout 90 /opt/opendj/bootstrap/replicate.sh 2>&1) || rc=$?
+          if [ $rc -ne 5 ] || grep -qE "trying again|initializing replication" <<<"$out"; then
+            echo "$out"; echo "::error::a second replicate.sh exited with $rc, not with the 5 of its dsreplication enable, or went on after it"; false
+          fi
           # the root password shows in no container log, and the file replicate.sh passed it in is gone (#1084)
           for c in test_master $REPLICAS; do
             if docker logs $c 2>&1 | grep -F "$ROOT_PASSWORD"; then echo "::error::The root password is in the log of $c"; false; fi
@@ -843,6 +854,11 @@ jobs:
           docker network connect --alias dj-master test_replication test_master
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica | grep -q \"healthy\"; do sleep 10; done'
           docker run --rm -it -d --memory="1g" --network test_replication --name=test_replica_sdsr --hostname=dj-replica-sdsr -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=sdsr "$IMAGE"
+          # the same for the sdsr replica, whose dsreplication enable is another command of replicate.sh
+          timeout 5m bash -c 'until docker logs test_replica_sdsr 2>&1 | grep -q "Will sleep for a bit"; do sleep 0.2; done'
+          docker network disconnect test_replication test_master
+          timeout 2m bash -c 'until docker logs test_replica_sdsr 2>&1 | grep -q "exited with 8, trying again"; do sleep 1; done'
+          docker network connect --alias dj-master test_replication test_master
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica_sdsr | grep -q \"healthy\"; do sleep 10; done'
           # the replicas were initialized from the master, and a change made on the master reaches them
           for c in $REPLICAS; do
@@ -852,6 +868,12 @@ jobs:
           for c in $REPLICAS; do
             timeout 1m bash -c 'until docker exec $1 /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword "$0" --useSsl --trustAll --baseDN "ou=replicated,dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1; do sleep 5; done' "$ROOT_PASSWORD" $c
           done
+          # replicate.sh tries dsreplication enable again only when it exits 8, and a failed enable ends it: run once more
+          # on the replica, the enable of a base DN already replicated exits 5 and nothing is tried again or initialized
+          rc=0; out=$(docker exec -e BASE_DN=dc=example,dc=com -e ROOT_USER_DN="cn=Directory Manager" test_replica timeout 90 /opt/opendj/bootstrap/replicate.sh 2>&1) || rc=$?
+          if [ $rc -ne 5 ] || grep -qE "trying again|initializing replication" <<<"$out"; then
+            echo "$out"; echo "::error::a second replicate.sh exited with $rc, not with the 5 of its dsreplication enable, or went on after it"; false
+          fi
           # the root password shows in no container log, and the file replicate.sh passed it in is gone (#1084)
           for c in test_master $REPLICAS; do
             if docker logs $c 2>&1 | grep -F "$ROOT_PASSWORD"; then echo "::error::The root password is in the log of $c"; false; fi
