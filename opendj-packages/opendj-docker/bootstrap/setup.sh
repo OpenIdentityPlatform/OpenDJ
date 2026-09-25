@@ -22,6 +22,13 @@
 
 echo "Setting up default OpenDJ instance"
 
+# The tools read the root password from a file, so that any password setup accepts reaches
+# them as one value, and it does not show on the command line of a process while the tool
+# runs. mktemp creates the file readable by its owner only.
+PASSWORD_FILE=$(mktemp) || exit 1
+trap 'rm -f "$PASSWORD_FILE"' EXIT
+printf '%s\n' "$ROOT_PASSWORD" >"$PASSWORD_FILE" || exit 1
+
 # If any optional LDIF files are present load them
 
 # There are multiple types of ldif files.
@@ -45,7 +52,7 @@ fi
   --enableStartTLS $OPENDJ_SSL_OPTIONS \
   --adminConnectorPort $ADMIN_PORT \
   --rootUserDN "$ROOT_USER_DN" \
-  --rootUserPassword "$ROOT_PASSWORD" \
+  --rootUserPasswordFile "$PASSWORD_FILE" \
   --acceptLicense \
   --no-prompt \
   --noPropertiesFile \
@@ -55,7 +62,7 @@ BACKEND_TYPE=${BACKEND_TYPE:-je}
 BACKEND_DB_DIRECTORY=${BACKEND_DB_DIRECTORY:-db}
 echo "creating backend: $BACKEND_TYPE db-directory: ${BACKEND_DB_DIRECTORY}"
 
-/opt/opendj/bin/dsconfig create-backend -h localhost -p $ADMIN_PORT --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD" \
+/opt/opendj/bin/dsconfig create-backend -h localhost -p $ADMIN_PORT --bindDN "$ROOT_USER_DN" --bindPasswordFile "$PASSWORD_FILE" \
   --backend-name=userRoot --type $BACKEND_TYPE --set base-dn:$BASE_DN --set "db-directory:$BACKEND_DB_DIRECTORY" \
   --set enabled:true --no-prompt --trustAll || exit 1
 
@@ -65,13 +72,12 @@ if [ "$ADD_BASE_ENTRY" = "--addBaseEntry"  ]; then
     echo "generating sample data..."
     /opt/opendj/bin/makeldif -o $BASE_TEMPLATE -c suffix="$BASE_DN" -c numusers=$SAMPLE_DATA /opt/opendj/template/config/MakeLDIF/example.template || exit 1
     /opt/opendj/bin/import-ldif --ldifFile $BASE_TEMPLATE \
-        --backendID=userRoot --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD" || exit 1
+        --backendID=userRoot --bindDN "$ROOT_USER_DN" --bindPasswordFile "$PASSWORD_FILE" || exit 1
   else
     echo "creating base entry..."
-    BASE_TEMPLATE=$(mktemp)
     echo "branch: $BASE_DN" > $BASE_TEMPLATE
     /opt/opendj/bin/import-ldif --templateFile $BASE_TEMPLATE \
-        --backendID=userRoot --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD" || exit 1
+        --backendID=userRoot --bindDN "$ROOT_USER_DN" --bindPasswordFile "$PASSWORD_FILE" || exit 1
   fi
   rm $BASE_TEMPLATE
 fi
@@ -85,16 +91,19 @@ if [ -d /opt/opendj/bootstrap/schema/ ]; then
   echo "Loading initial schema:"
   for file in /opt/opendj/bootstrap/schema/*; do
     echo "Loading $file ..."
-    /opt/opendj/bin/ldapmodify -D "$ROOT_USER_DN" -h localhost -p $PORT -w $ROOT_PASSWORD -f $file
+    /opt/opendj/bin/ldapmodify -D "$ROOT_USER_DN" -h localhost -p $PORT -j "$PASSWORD_FILE" -f "$file"
   done
 fi
 
 if [ -d /opt/opendj/bootstrap/data/ ]; then
-  #allow pre encoded passwords
+  # allow pre encoded passwords; the port is named, as the tool would otherwise go to 4444
+  # whatever ADMIN_PORT the server listens on, and the entries carrying them would be refused
   /opt/opendj/bin/dsconfig \
     set-password-policy-prop \
+    -h localhost \
+    -p $ADMIN_PORT \
     --bindDN "$ROOT_USER_DN" \
-    --bindPassword "$ROOT_PASSWORD" \
+    --bindPasswordFile "$PASSWORD_FILE" \
     --policy-name "Default Password Policy" \
     --set allow-pre-encoded-passwords:true \
     --trustAll \
@@ -102,6 +111,6 @@ if [ -d /opt/opendj/bootstrap/data/ ]; then
 
   for file in /opt/opendj/bootstrap/data/*; do
     echo "Loading $file ..."
-    /opt/opendj/bin/ldapmodify -D "$ROOT_USER_DN" -h localhost -p $PORT -w $ROOT_PASSWORD -f $file --continueOnError
+    /opt/opendj/bin/ldapmodify -D "$ROOT_USER_DN" -h localhost -p $PORT -j "$PASSWORD_FILE" -f "$file" --continueOnError
   done
 fi

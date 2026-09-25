@@ -603,6 +603,28 @@ jobs:
             if [ -n "$left" ]; then echo "::error::The root password is left in $left of $c"; false; fi
           done
           cleanup
+      - name: Docker test bootstrap LDIFs
+        shell: bash
+        run: |
+          trap 'code=$?; echo "::group::container logs (test_bootstrap)"; docker logs test_bootstrap 2>&1 || true; echo "::endgroup::"; exit $code' ERR
+          # a password with a space and a pattern that matches files in /opt/opendj: every tool
+          # of the bootstrap must get it as one value (#1093)
+          ROOT_PASSWORD='p@ss b*'
+          BOOTSTRAP_DIR=$(mktemp -d)
+          mkdir "$BOOTSTRAP_DIR/schema" "$BOOTSTRAP_DIR/data"
+          printf "dn: cn=schema\nchangetype: modify\nadd: attributeTypes\nattributeTypes: ( 1.3.6.1.4.1.99999.1.1 NAME 'bootstrapProbe' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )\n" > "$BOOTSTRAP_DIR/schema/10-schema.ldif"
+          # a pre-encoded password is accepted only once the bootstrap has allowed it on the admin
+          # port the server listens on, which is not the default one here
+          USER_PASSWORD=$(python3 -c 'import base64, hashlib, os; s = os.urandom(8); print("{SSHA}" + base64.b64encode(hashlib.sha1(b"userpw" + s).digest() + s).decode())')
+          printf 'dn: ou=probe,dc=example,dc=com\nobjectClass: organizationalUnit\nou: probe\n\ndn: uid=pre,ou=probe,dc=example,dc=com\nobjectClass: inetOrgPerson\nuid: pre\ncn: pre\nsn: pre\nuserPassword: %s\n' "$USER_PASSWORD" > "$BOOTSTRAP_DIR/data/10 probe.ldif"
+          chmod -R a+rX "$BOOTSTRAP_DIR"
+          docker run --rm -it -d --memory="512m" -e ADD_BASE_ENTRY="--addBaseEntry" -e ROOT_PASSWORD="$ROOT_PASSWORD" -e ADMIN_PORT=5444 -v "$BOOTSTRAP_DIR/schema:/opt/opendj/bootstrap/schema:ro" -v "$BOOTSTRAP_DIR/data:/opt/opendj/bootstrap/data:ro" --name=test_bootstrap localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
+          timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_bootstrap | grep -q \"healthy\"; do sleep 10; done'
+          # the schema and the data LDIFs were loaded: the user of the data LDIF binds with its pre-encoded password
+          docker exec test_bootstrap /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --useSsl --trustAll --baseDN "cn=schema" --searchScope base "(objectClass=*)" attributeTypes | grep bootstrapProbe >/dev/null
+          docker exec test_bootstrap /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "uid=pre,ou=probe,dc=example,dc=com" --bindPassword userpw --useSsl --trustAll --baseDN "" --searchScope base "(objectClass=*)" 1.1
+          if docker logs test_bootstrap 2>&1 | grep -F "$ROOT_PASSWORD"; then echo "::error::The root password is in the container log"; false; fi
+          docker kill test_bootstrap
       - name: Scan image for vulnerabilities (Trivy)
         # trivy resolves the image from the local Docker daemon, so only the runner's
         # linux/amd64 manifest is scanned; cache: false keeps the ~1GB trivy DBs from
@@ -816,6 +838,28 @@ jobs:
             if [ -n "$left" ]; then echo "::error::The root password is left in $left of $c"; false; fi
           done
           cleanup
+      - name: Docker test bootstrap LDIFs
+        shell: bash
+        run: |
+          trap 'code=$?; echo "::group::container logs (test_bootstrap)"; docker logs test_bootstrap 2>&1 || true; echo "::endgroup::"; exit $code' ERR
+          # a password with a space and a pattern that matches files in /opt/opendj: every tool
+          # of the bootstrap must get it as one value (#1093)
+          ROOT_PASSWORD='p@ss b*'
+          BOOTSTRAP_DIR=$(mktemp -d)
+          mkdir "$BOOTSTRAP_DIR/schema" "$BOOTSTRAP_DIR/data"
+          printf "dn: cn=schema\nchangetype: modify\nadd: attributeTypes\nattributeTypes: ( 1.3.6.1.4.1.99999.1.1 NAME 'bootstrapProbe' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )\n" > "$BOOTSTRAP_DIR/schema/10-schema.ldif"
+          # a pre-encoded password is accepted only once the bootstrap has allowed it on the admin
+          # port the server listens on, which is not the default one here
+          USER_PASSWORD=$(python3 -c 'import base64, hashlib, os; s = os.urandom(8); print("{SSHA}" + base64.b64encode(hashlib.sha1(b"userpw" + s).digest() + s).decode())')
+          printf 'dn: ou=probe,dc=example,dc=com\nobjectClass: organizationalUnit\nou: probe\n\ndn: uid=pre,ou=probe,dc=example,dc=com\nobjectClass: inetOrgPerson\nuid: pre\ncn: pre\nsn: pre\nuserPassword: %s\n' "$USER_PASSWORD" > "$BOOTSTRAP_DIR/data/10 probe.ldif"
+          chmod -R a+rX "$BOOTSTRAP_DIR"
+          docker run --rm -it -d --memory="1g" -e ADD_BASE_ENTRY="--addBaseEntry" -e ROOT_PASSWORD="$ROOT_PASSWORD" -e ADMIN_PORT=5444 -v "$BOOTSTRAP_DIR/schema:/opt/opendj/bootstrap/schema:ro" -v "$BOOTSTRAP_DIR/data:/opt/opendj/bootstrap/data:ro" --name=test_bootstrap localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
+          timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_bootstrap | grep -q \"healthy\"; do sleep 10; done'
+          # the schema and the data LDIFs were loaded: the user of the data LDIF binds with its pre-encoded password
+          docker exec test_bootstrap /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --useSsl --trustAll --baseDN "cn=schema" --searchScope base "(objectClass=*)" attributeTypes | grep bootstrapProbe >/dev/null
+          docker exec test_bootstrap /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "uid=pre,ou=probe,dc=example,dc=com" --bindPassword userpw --useSsl --trustAll --baseDN "" --searchScope base "(objectClass=*)" 1.1
+          if docker logs test_bootstrap 2>&1 | grep -F "$ROOT_PASSWORD"; then echo "::error::The root password is in the container log"; false; fi
+          docker kill test_bootstrap
       - name: Scan image for vulnerabilities (Trivy)
         # trivy resolves the image from the local Docker daemon, so only the runner's
         # linux/amd64 manifest is scanned; cache: false keeps the ~1GB trivy DBs from
