@@ -47,9 +47,11 @@ With the default `OPENDJ_SSL_OPTIONS` the instance serves LDAPS and StartTLS wit
 self-signed certificate from `config/keystore`, whose password is in `config/keystore.pin`.
 To serve your own certificate, mount a directory holding a `keystore` (JKS or PKCS12) and
 its `keystore.pin` at `SECRET_VOLUME`, and a `truststore` next to them if clients present
-certificates. With the default options the connection handlers are not bound to an alias,
-so the key entry of the keystore may have any alias; if `OPENDJ_SSL_OPTIONS` sets a
-`--certNickname`, the key has to be under that alias:
+certificates. With `--generateSelfSignedCertificate` setup binds the connection handlers to
+no alias, even when a `--certNickname` is given as well, so the key entry of the keystore
+may have any alias. Only when `OPENDJ_SSL_OPTIONS` sets up a keystore of its own
+(`--useJavaKeystore`, `--usePkcs12keyStore`) with a `--certNickname` does the key have to be
+under that alias:
 
 ```bash
 docker run -d --name opendj -v opendj-data:/opt/opendj/data \
@@ -61,9 +63,13 @@ before the server starts - on the first start and on every later one, so a certi
 renewed on the volume reaches an instance kept on a persistent volume. While the server
 runs, the directory is checked again every `SECRET_VOLUME_REFRESH` seconds and a changed
 file is copied again. The server reads the copied keystore when it starts, so a certificate
-renewed while it runs is served from its next restart. The same holds for a new keystore
-password: the server keeps the one it started with. The administration connector and
-replication keep keys of their own and are not affected.
+renewed while it runs is served from its next restart. A new password is left to the next
+start altogether: the server keeps the one it started with, and a keystore it could no longer
+open would disable the LDAPS handler on the next change to its configuration. So while a
+`keystore.pin` or `truststore.pin` on the volume differs from the one the server started
+with, nothing is copied until the next start, which copies the stores along with their new
+password. The administration connector and replication keep keys of their own and are not
+affected.
 
 On Kubernetes, the PEM files of a `kubernetes.io/tls` Secret cannot be used as they are:
 OpenDJ reads keystores, not PEM. cert-manager can add a PKCS12 keystore to the Secret it
