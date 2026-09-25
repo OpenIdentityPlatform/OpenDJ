@@ -22,6 +22,18 @@
 
 echo "Setting up default OpenDJ instance"
 
+# The tools read only the first line of a password file, and a CR ends it as an LF does, so a
+# password with a line break would be cut there - silently, as the root password set up would
+# not be the one the container was given
+cr=$(printf '\r')
+nl='
+'
+case $ROOT_PASSWORD in
+  *"$cr"*|*"$nl"*)
+    echo "ROOT_PASSWORD must not contain a line break: the tools read only the first line of the password file" >&2
+    exit 1 ;;
+esac
+
 # The tools read the root password from a file, so that any password setup accepts reaches
 # them as one value, and it does not show on the command line of a process while the tool
 # runs. mktemp creates the file readable by its owner only. The EXIT trap does not run when the
@@ -29,10 +41,13 @@ echo "Setting up default OpenDJ instance"
 # there is one, rather than to the writable layer of the container, and run.sh removes what a
 # killed bootstrap left behind before anything else. On Kubernetes /dev/shm is shared by all
 # the containers of the pod and outlives a restart of this one, which is what the removal in
-# run.sh is for there. Busybox mktemp replaces only the last six X of the template.
-PASSWORD_FILE=$(mktemp -p /dev/shm opendj-setup-password.XXXXXX 2>/dev/null \
-  || mktemp /tmp/opendj-setup-password.XXXXXX) || exit 1
-trap 'rm -f "$PASSWORD_FILE"' EXIT
+# run.sh is for there; the name carries ADMIN_PORT, so that it removes only the file of this
+# container. Busybox mktemp replaces only the last six X of the template.
+PASSWORD_FILE=$(mktemp -p /dev/shm "opendj-setup-password.$ADMIN_PORT.XXXXXX" 2>/dev/null \
+  || mktemp "/tmp/opendj-setup-password.$ADMIN_PORT.XXXXXX") || exit 1
+# the trap also removes the base entry template below, which a failed import would leave in /tmp
+BASE_TEMPLATE=
+trap 'rm -f "$PASSWORD_FILE" ${BASE_TEMPLATE:+"$BASE_TEMPLATE"}' EXIT
 printf '%s\n' "$ROOT_PASSWORD" >"$PASSWORD_FILE" || exit 1
 
 # If any optional LDIF files are present load them
@@ -44,7 +59,7 @@ if [ -d /opt/opendj/bootstrap/config/schema/ ]; then
   echo "Copying schema:"
   mkdir -p /opt/opendj/template/config/schema
   for file in /opt/opendj/bootstrap/config/schema/*; do
-    target_file="/opt/opendj/template/config/schema/$(basename -- $file)"
+    target_file="/opt/opendj/template/config/schema/$(basename -- "$file")"
     echo "Copying $file to $target_file"
     cp "$file" "$target_file"
   done
