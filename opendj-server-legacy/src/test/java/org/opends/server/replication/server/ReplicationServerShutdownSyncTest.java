@@ -368,6 +368,21 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
           .as("the peer speaking protocol version %s was %stold that the replica went offline",
               peerVersion, expectedToBeTold ? "not " : "")
           .isEqualTo(expectedToBeTold);
+      /*
+       * The peer gives no credit back, so what its window lacks is what it was sent. The writer
+       * which dropped the announcement had been charged a permit for it all the same, and gives
+       * it back - the peer never received it, so no credit will ever come for it (issue #1080).
+       */
+      final ReplicationServerHandler peerHandler = domain.getConnectedRSs().get(REMOTE_RS_ID);
+      final int sent = expectedToBeTold ? 2 : 1;
+      assertThat(FilteredUpdateSendWindowTest.monitorValue(peerHandler, "current-send-window"))
+          .as("the send window of the peer speaking protocol version %s is short of what it "
+              + "was not sent", peerVersion)
+          .isEqualTo(PEER_WINDOW - sent);
+      assertThat(FilteredUpdateSendWindowTest.monitorValue(peerHandler, "sent-updates"))
+          .as("the peer speaking protocol version %s was counted as sent what it was not sent",
+              peerVersion)
+          .isEqualTo(sent);
       assertThat(shutdownSync.dispatchedTo())
           .as("the message was never queued for the peer, so its writer had nothing to report")
           .containsExactly(REMOTE_RS_ID);

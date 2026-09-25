@@ -115,21 +115,30 @@ public class ServerWriter extends DirectoryThread
            * ReplicationServerDomain.put() applied when it queued the message, so a peer RS can
            * be given a message this drops - the shutdown must stop waiting for a forward which
            * will never be reported.
+           * <p>
+           * The permit take() charged it is given back as well, whichever filter dropped it: the
+           * server never receives it, so no credit will ever come for it, and nor is it counted
+           * as sent (issue #1080).
            */
+          handler.releasePermitInSendWindow();
           if (updateMsg instanceof ReplicaOfflineMsg && !handler.isDataServer())
           {
             dsrsShutdownSync.replicaOfflineMsgNotForwarded(
                 replicationServerDomain.getBaseDN(), handler.getServerId());
           }
         }
-        else if (updateMsg instanceof ReplicaOfflineMsg && !handler.isDataServer())
-        {
-          forwardReplicaOfflineMsg((ReplicaOfflineMsg) updateMsg);
-        }
         else
         {
-          // Publish the update to the remote server using a protocol version it supports
-          session.publish(updateMsg);
+          handler.countSentUpdate(updateMsg);
+          if (updateMsg instanceof ReplicaOfflineMsg && !handler.isDataServer())
+          {
+            forwardReplicaOfflineMsg((ReplicaOfflineMsg) updateMsg);
+          }
+          else
+          {
+            // Publish the update to the remote server using a protocol version it supports
+            session.publish(updateMsg);
+          }
         }
       }
     }
