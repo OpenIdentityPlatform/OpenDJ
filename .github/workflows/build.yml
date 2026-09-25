@@ -542,6 +542,20 @@ jobs:
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_custom | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_custom 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword custom_password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1'
           docker kill test_custom
+      - name: Docker test arbitrary uid
+        # OpenShift runs a container under an arbitrary uid that is only in group 0 (#1088)
+        shell: bash
+        run: |
+          trap 'code=$?; echo "::group::container logs (test_uid)"; docker logs test_uid 2>&1 || true; echo "::endgroup::"; exit $code' ERR
+          uid=$((1000000000 + RANDOM))
+          docker run --rm -it -d --memory="512m" --user $uid:0 -e ADD_BASE_ENTRY="--addBaseEntry" --name=test_uid localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
+          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_uid | grep -q \"healthy\"; do sleep 10; done'
+          docker exec test_uid 'sh' '-c' "test \"\$(stat -c %u /opt/opendj/instance.loc)\" = $uid"
+          docker exec test_uid 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1'
+          docker restart test_uid
+          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_uid | grep -q \"healthy\"; do sleep 10; done'
+          docker exec test_uid 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1'
+          docker kill test_uid
       - name: Scan image for vulnerabilities (Trivy)
         # trivy resolves the image from the local Docker daemon, so only the runner's
         # linux/amd64 manifest is scanned; cache: false keeps the ~1GB trivy DBs from
@@ -694,6 +708,20 @@ jobs:
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_custom | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_custom 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword custom_password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1'
           docker kill test_custom
+      - name: Docker test arbitrary uid
+        # OpenShift runs a container under an arbitrary uid that is only in group 0 (#1088)
+        shell: bash
+        run: |
+          trap 'code=$?; echo "::group::container logs (test_uid)"; docker logs test_uid 2>&1 || true; echo "::endgroup::"; exit $code' ERR
+          uid=$((1000000000 + RANDOM))
+          docker run --rm -it -d --memory="1g" --user $uid:0 -e ADD_BASE_ENTRY="--addBaseEntry" --name=test_uid localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
+          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_uid | grep -q \"healthy\"; do sleep 10; done'
+          docker exec test_uid 'sh' '-c' "test \"\$(stat -c %u /opt/opendj/instance.loc)\" = $uid"
+          docker exec test_uid 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1'
+          docker restart test_uid
+          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_uid | grep -q \"healthy\"; do sleep 10; done'
+          docker exec test_uid 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1'
+          docker kill test_uid
       - name: Scan image for vulnerabilities (Trivy)
         # trivy resolves the image from the local Docker daemon, so only the runner's
         # linux/amd64 manifest is scanned; cache: false keeps the ~1GB trivy DBs from
