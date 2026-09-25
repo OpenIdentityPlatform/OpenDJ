@@ -40,7 +40,10 @@ import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.SQLNonTransientConnectionException;
+import java.sql.SQLRecoverableException;
 import java.sql.SQLTimeoutException;
+import java.sql.SQLTransientConnectionException;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
@@ -939,6 +942,72 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		}
 		assertTrue(String.valueOf(last.getMessage()).contains("left out"),
 			"the tail a rebuild had no budget for has to say so: " + last.getMessage());
+	}
+
+	/**
+	 * A link that says the connection is gone by its type alone still says so once it is rebuilt
+	 * (#1074). The type is what the JDBC contract gives a driver to say it - write() asks it before
+	 * the SQLState - so a copy made as a plain SQLException reads as a failure that says nothing of
+	 * the connection, and only at the deployment whose url has a password in it.
+	 */
+	@Test(timeOut = 60000)
+	public void testALinkThatSaysTheConnectionIsGoneByItsTypeKeepsItThroughRedaction() throws Exception {
+		final String url = "jdbc:postgresql://opendj:S3cretOfTheBackend@127.0.0.1:5432/opendj";
+		for (final SQLException gone : new SQLException[] { new SQLRecoverableException("io error"),
+				new SQLNonTransientConnectionException("closed"), new SQLTransientConnectionException("reset") }) {
+			final SQLException failure = new SQLException("login to " + url + " failed", "S0001", 18456);
+			failure.setNextException(gone);
+
+			final SQLException reported = CachedConnection.reported(failure, url);
+
+			assertNoCredentials(reported);
+			assertTrue(JDBCStorage.isConnectionFailure(reported),
+				"a rebuilt " + gone.getClass().getSimpleName() + " no longer says the connection is gone");
+		}
+	}
+
+	/**
+	 * ... and so does one standing past the budget of the rebuild, whatever it says it by: the link
+	 * that stands for the rest of the chain there is all that the classification of write() gets to
+	 * read of it. The url has no password, and the chain is rebuilt all the same - it is longer than
+	 * the walk looking for credentials, which answers "yes" past it.
+	 */
+	@Test(timeOut = 60000)
+	public void testALinkThatSaysTheConnectionIsGonePastTheBudgetOfARebuildStillSaysSo() throws Exception {
+		final String url = "jdbc:postgresql://127.0.0.1:5432/opendj";
+		for (final SQLException gone : new SQLException[] { new SQLException("connection reset", "08S01", 10054),
+				new SQLRecoverableException("io error") }) {
+			final SQLException failure = plainChain(40);
+			failure.setNextException(gone);
+
+			final SQLException reported = CachedConnection.reported(failure, url);
+
+			assertTrue(reported != failure, "a chain this long is expected to be rebuilt");
+			assertTrue(JDBCStorage.isConnectionFailure(reported),
+				gone + " past the budget of the rebuild no longer says the connection is gone");
+		}
+	}
+
+	/**
+	 * The link standing for the rest says only what the rest says: a chain that says nothing of the
+	 * connection is not made to say it is gone by being cut. That would replay the write and distrust
+	 * the pool over a database that refused a connection for a reason of its own.
+	 */
+	@Test(timeOut = 60000)
+	public void testALongChainThatSaysNothingOfTheConnectionIsNotMadeToSayItByTheRebuild() throws Exception {
+		final SQLException reported = CachedConnection.reported(plainChain(40), "jdbc:postgresql://127.0.0.1:5432/opendj");
+
+		assertFalse(JDBCStorage.isConnectionFailure(reported),
+			"the rebuild made a failure that says nothing of the connection say it is gone");
+	}
+
+	/** That many plain links of the next exception chain, none of which says the connection is gone. */
+	private static SQLException plainChain(int links) {
+		final SQLException head = new SQLException("error 0", "S0001", 1);
+		for (int i = 1; i < links; i++) {
+			head.setNextException(new SQLException("error " + i, "S0001", 1));
+		}
+		return head;
 	}
 
 	/**
