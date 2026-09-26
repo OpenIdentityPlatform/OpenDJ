@@ -258,7 +258,8 @@ public class CachedConnection implements Connection {
      * How many links of the cause and getNextException() chains of a failure the two walks that
      * have a reason to stop look at: {@link #holdsCredentials} answers "yes" past it, since the
      * cost of the other answer is the password of the backend in the log, and
-     * {@link #redactedCopy} rebuilds that far and names the rest in one link. The walk whose verdict
+     * {@link #redactedCopy} rebuilds that far and names the rest in one link - carrying, where the
+     * rest says the connection is gone, what says it (#1074). The walk whose verdict
      * decides something, {@link #isWorthRetrying}, is not one of them: a count does not leave that
      * question unanswered, it answers it with the verdict of a failure that carries nothing
      * (issue #1076), and the visited set of every walk here terminates it on its own.
@@ -2135,8 +2136,11 @@ public class CachedConnection implements Connection {
      * prints a failure prints the causes along with it - a debug build of
      * stackTraceToSingleLineString walks them, the config manager traces them, and
      * RootContainer.open() makes the message of the cause the message of what it throws - so a
-     * link left as it stands would carry the password past the wrapper. The SQLState and the
-     * vendor code of every link survive it: they are what tells a caller what happened.
+     * link left as it stands would carry the password past the wrapper. The SQLState, the vendor
+     * code and the standard JDBC type of every link survive it: they are what tells a caller what
+     * happened, and JDBCStorage.write() asks the type before the state whether the connection is
+     * gone. Past the budget of the rebuild the one link standing for the rest says that much of it
+     * where the rest says so (#1074).
      * <p>
      * The whole chain is the causes, the further exceptions of {@code getNextException()} and what
      * was suppressed on each of them - the last being where this class puts the failure of a close
@@ -2223,17 +2227,66 @@ public class CachedConnection implements Connection {
     private static SQLException redactedCopy(SQLException e, String connectionString, int[] budget) {
         budget[0]--;
         final SQLException copy =
-            new SQLException(redact(e.getMessage(), connectionString), e.getSQLState(), e.getErrorCode());
+            sameKind(e, redact(e.getMessage(), connectionString), e.getSQLState(), e.getErrorCode());
         copy.setStackTrace(e.getStackTrace());
         if (e.getNextException() != null) {
             copy.setNextException(budget[0] > 0
-                ? redactedCopy(e.getNextException(), connectionString, budget) : droppedTail());
+                ? redactedCopy(e.getNextException(), connectionString, budget)
+                : droppedTail(Collections.<Throwable>singletonList(e.getNextException())));
         }
         if (e.getCause() != null) {
-            copy.initCause(budget[0] > 0 ? redactedLink(e.getCause(), connectionString, budget) : droppedTail());
+            copy.initCause(budget[0] > 0 ? redactedLink(e.getCause(), connectionString, budget)
+                : droppedTail(Collections.singletonList(e.getCause())));
         }
         copySuppressed(e, copy, connectionString, budget);
         return copy;
+    }
+
+    /**
+     * A new exception of the kind JDBC names the given one as. Not the class of the driver itself,
+     * which this cannot be sure of building, but the standard type it extends: that type is what
+     * the JDBC contract gives a driver to say what happened beside the SQLState, and JDBCStorage
+     * reads it first - a SQLRecoverableException says the connection is gone whatever state it
+     * carries, and a copy made as a plain SQLException says nothing of the kind (#1074).
+     */
+    private static SQLException sameKind(SQLException e, String message, String sqlState, int vendorCode) {
+        if (e instanceof SQLRecoverableException) {
+            return new SQLRecoverableException(message, sqlState, vendorCode);
+        }
+        if (e instanceof SQLNonTransientConnectionException) {
+            return new SQLNonTransientConnectionException(message, sqlState, vendorCode);
+        }
+        if (e instanceof SQLTransientConnectionException) {
+            return new SQLTransientConnectionException(message, sqlState, vendorCode);
+        }
+        if (e instanceof SQLTimeoutException) {
+            return new SQLTimeoutException(message, sqlState, vendorCode);
+        }
+        if (e instanceof SQLTransactionRollbackException) {
+            return new SQLTransactionRollbackException(message, sqlState, vendorCode);
+        }
+        if (e instanceof SQLFeatureNotSupportedException) {
+            return new SQLFeatureNotSupportedException(message, sqlState, vendorCode);
+        }
+        if (e instanceof SQLIntegrityConstraintViolationException) {
+            return new SQLIntegrityConstraintViolationException(message, sqlState, vendorCode);
+        }
+        if (e instanceof SQLInvalidAuthorizationSpecException) {
+            return new SQLInvalidAuthorizationSpecException(message, sqlState, vendorCode);
+        }
+        if (e instanceof SQLSyntaxErrorException) {
+            return new SQLSyntaxErrorException(message, sqlState, vendorCode);
+        }
+        if (e instanceof SQLDataException) {
+            return new SQLDataException(message, sqlState, vendorCode);
+        }
+        if (e instanceof SQLTransientException) {
+            return new SQLTransientException(message, sqlState, vendorCode);
+        }
+        if (e instanceof SQLNonTransientException) {
+            return new SQLNonTransientException(message, sqlState, vendorCode);
+        }
+        return new SQLException(message, sqlState, vendorCode);
     }
 
     // The suppressed links of a failure are rebuilt with the rest of it and counted against the
@@ -2242,21 +2295,58 @@ public class CachedConnection implements Connection {
     // would lose it at the one deployment whose log is redacted - which is the deployment whose
     // url has a password in it, the log that is worth reading.
     private static void copySuppressed(Throwable from, Throwable to, String connectionString, int[] budget) {
-        for (final Throwable suppressed : from.getSuppressed()) {
+        final Throwable[] suppressed = from.getSuppressed();
+        for (int i = 0; i < suppressed.length; i++) {
             if (budget[0] <= 0) {
-                to.addSuppressed(droppedTail());
+                to.addSuppressed(droppedTail(Arrays.asList(suppressed).subList(i, suppressed.length)));
                 return;
             }
-            to.addSuppressed(redactedLink(suppressed, connectionString, budget));
+            to.addSuppressed(redactedLink(suppressed[i], connectionString, budget));
         }
     }
 
     // What stands where the budget ran out. Without it the same failure logs its root cause when
     // the url of the backend has no password in it and loses it without a word when it has, which
     // is a report of a connect nobody can read against a report of one they can.
-    private static SQLException droppedTail() {
-        return new SQLException("the rest of this failure was left out: a chain of more than "
-            + MAX_CHAIN_LENGTH + " links is rebuilt only that far");
+    // It also says what the rest says about the connection, where the rest says it is gone: that
+    // is a verdict JDBCStorage.write() reads off every link of the failure - it replays the attempt
+    // and distrusts the pool on it - and a tail saying nothing would answer it with the "no" of a
+    // failure that carries nothing (#1074, the #961 thesis on the budget of this rebuild). Only
+    // that, and only where the rest does say it, so that the cut makes no failure say it either.
+    private static SQLException droppedTail(List<Throwable> rest) {
+        final String message = "the rest of this failure was left out: a chain of more than "
+            + MAX_CHAIN_LENGTH + " links is rebuilt only that far";
+        final SQLException gone = firstLinkSayingTheConnectionIsGone(rest);
+        return gone == null
+            ? new SQLException(message)
+            : sameKind(gone, message + "; a link of it says the connection is gone", gone.getSQLState(),
+                gone.getErrorCode());
+    }
+
+    // Every link of the rest, by the edges JDBCStorage.isConnectionFailure() walks - the causes, the
+    // further exceptions and what was suppressed - and to its end: the visited set terminates it, and
+    // it builds nothing, so what it costs is a walk of the links the driver has already allocated.
+    private static SQLException firstLinkSayingTheConnectionIsGone(List<Throwable> rest) {
+        final Deque<Throwable> pending = new ArrayDeque<>();
+        final Set<Throwable> visited = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
+        for (final Throwable t : rest) {
+            enqueue(pending, visited, t);
+        }
+        while (!pending.isEmpty()) {
+            final Throwable t = pending.poll();
+            if (t instanceof SQLException) {
+                final SQLException sql = (SQLException) t;
+                if (JDBCStorage.saysTheConnectionIsGone(sql)) {
+                    return sql;
+                }
+                enqueue(pending, visited, sql.getNextException());
+            }
+            enqueue(pending, visited, t.getCause());
+            for (final Throwable suppressed : t.getSuppressed()) {
+                enqueue(pending, visited, suppressed);
+            }
+        }
+        return null;
     }
 
     // A link that is no SQLException keeps its class name in the message: its type is not one this
@@ -2270,7 +2360,8 @@ public class CachedConnection implements Connection {
             + (t.getMessage() == null ? "" : ": " + redact(t.getMessage(), connectionString)));
         copy.setStackTrace(t.getStackTrace());
         if (t.getCause() != null) {
-            copy.initCause(budget[0] > 0 ? redactedLink(t.getCause(), connectionString, budget) : droppedTail());
+            copy.initCause(budget[0] > 0 ? redactedLink(t.getCause(), connectionString, budget)
+                : droppedTail(Collections.singletonList(t.getCause())));
         }
         copySuppressed(t, copy, connectionString, budget);
         return copy;

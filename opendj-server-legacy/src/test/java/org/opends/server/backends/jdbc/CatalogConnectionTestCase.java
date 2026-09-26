@@ -685,6 +685,64 @@ public class CatalogConnectionTestCase extends DirectoryServerTestCase {
 		verify(failing).close();
 	}
 
+	/**
+	 * A refusal that says the connection is gone reaches {@code write()} saying so, however deep in its
+	 * chain the driver put the link that says it (#1074). The failure leaves this connect redacted, and
+	 * a chain longer than the walk looking for credentials is rebuilt whether or not anything in it names
+	 * them - this url has no password at all - so what the rebuild leaves past its budget is what {@code
+	 * isConnectionFailure()} reads: the attempt is replayed where the same refusal a few links shorter is.
+	 */
+	@Test
+	public void testARefusalThatSaysTheConnectionIsGoneDeepInItsChainStillSaysSo() throws Exception {
+		final SQLException refusal = deepChain(40, new SQLException("connection reset", "08S01", 10054));
+		probeDriver.refusal = refusal;
+		probeDriver.refusalsLeft.set(Integer.MAX_VALUE);
+		try {
+			storageFor(ProbeDriver.URL).newCatalogConnection(NO_REPLAY_WINDOW, DEFAULT_BOUND, 60);
+			fail("a connect that will not clear was retried instead of being reported");
+		} catch (SQLException expected) {
+			assertTrue(JDBCStorage.isConnectionFailure(refusal), "the refusal of the driver says the connection is gone");
+			assertTrue(JDBCStorage.isConnectionFailure(expected),
+				"the refusal as it left the connect lost what said the connection is gone: " + expected);
+		}
+	}
+
+	/**
+	 * ... and so does the timeout a refusal worth waiting out ends in, whose cause is that refusal
+	 * redacted the same way: the retry changes no classification.
+	 */
+	@Test
+	public void testATimedOutRefusalThatSaysTheConnectionIsGoneDeepInItsChainStillSaysSo() throws Exception {
+		final SQLException refusal = new SQLException("too many clients already", "53300");
+		refusal.setNextException(deepChain(40, new SQLException("connection reset", "08S01", 10054)));
+		probeDriver.refusal = refusal;
+		probeDriver.refusalsLeft.set(Integer.MAX_VALUE);
+		try {
+			storageFor(ProbeDriver.URL).newCatalogConnection(NO_REPLAY_WINDOW, DEFAULT_BOUND, 1);
+			fail("a connect refused for the whole deadline was not given up on");
+		} catch (SQLTimeoutException expected) {
+			assertTrue(JDBCStorage.isConnectionFailure(refusal), "the refusal of the driver says the connection is gone");
+			assertTrue(JDBCStorage.isConnectionFailure(expected),
+				"the timeout lost what its last refusal said about the connection: " + expected);
+		}
+	}
+
+	/**
+	 * A driver's failure the way mssql-jdbc chains every error of a message it received: that many
+	 * plain links of the next exception chain, and the given one last.
+	 */
+	private static SQLException deepChain(int links, SQLException last) {
+		final SQLException head = new SQLException("error 0 of the login", "S0001", 1);
+		SQLException tail = head;
+		for (int i = 1; i < links; i++) {
+			final SQLException next = new SQLException("error " + i + " of the login", "S0001", 1);
+			tail.setNextException(next);
+			tail = next;
+		}
+		tail.setNextException(last);
+		return head;
+	}
+
 	/** What the dialect of this url declares, at the given number of seconds. */
 	private static void assertBoundedAt(Properties handed, long seconds) {
 		assertNotNull(handed, "no properties were handed to the driver at all");
