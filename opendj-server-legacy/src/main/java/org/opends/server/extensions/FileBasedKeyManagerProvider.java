@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -24,13 +25,23 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.Socket;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.Principal;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.X509ExtendedKeyManager;
 
 import com.forgerock.opendj.util.FipsStaticUtils;
 import org.forgerock.i18n.LocalizableMessage;
@@ -61,12 +72,174 @@ public class FileBasedKeyManagerProvider
   /** The configuration for this key manager provider. */
   private FileBasedKeyManagerProviderCfg currentConfig;
 
-  /** The PIN needed to access the keystore. */
-  private char[] keyStorePIN;
   /** The path to the key store backing file. */
   private String keyStoreFile;
   /** The key store type to use. */
   private String keyStoreType;
+  /**
+   * The number of configuration changes applied. It is counted after the fields above are set,
+   * and read before them.
+   */
+  private volatile int configurationChanges;
+
+  /**
+   * A key manager loaded from the key store file, with the configuration change and the stamps
+   * of the files it was loaded under, and the aliases the file held private keys under.
+   */
+  private static final class LoadedKeyManager
+  {
+    private final int configurationChanges;
+    private final List<FileStamp> stamps;
+    private final Set<String> keyAliases;
+    private final X509ExtendedKeyManager keyManager;
+
+    private LoadedKeyManager(int configurationChanges, List<FileStamp> stamps, Set<String> keyAliases,
+        X509ExtendedKeyManager keyManager)
+    {
+      this.configurationChanges = configurationChanges;
+      this.stamps = stamps;
+      this.keyAliases = keyAliases;
+      this.keyManager = keyManager;
+    }
+
+    private boolean isLoadedFrom(int configurationChanges, List<FileStamp> stamps)
+    {
+      return this.configurationChanges == configurationChanges && this.stamps.equals(stamps);
+    }
+  }
+
+  /**
+   * The key manager handed out by {@link #getKeyManagers()}. The key store file is looked at
+   * again when a handshake chooses its alias, and only then: the certificate chain and the
+   * private key of the alias chosen come from the key manager that alias was chosen from,
+   * unless the file is loaded again, by another handshake, in between.
+   * <p>
+   * Each key manager handed out loads the file on its own, so asking the provider again, as a
+   * connection handler does to check a configuration change, leaves those in use alone.
+   */
+  private final class ReloadingKeyManager extends X509ExtendedKeyManager
+  {
+    /** The key manager last loaded, when this one was handed out or by a handshake since. */
+    private volatile LoadedKeyManager loaded;
+
+    private ReloadingKeyManager(LoadedKeyManager loaded)
+    {
+      this.loaded = loaded;
+    }
+
+    /**
+     * Returns the key manager to use for a new handshake, first loading the key store file again
+     * when it has changed since it was last loaded, or the configuration has. A file that cannot
+     * be loaded - caught half written, or not matching its PIN - leaves the key manager last
+     * loaded in use, and is not tried again until it changes again. So does a file with no private
+     * key, or one that shares no alias with the file last loaded. A connection handler presents
+     * the key named by its ssl-cert-nickname, which the provider does not see, and the aliases of
+     * the file last loaded stand in for it: a file that keeps one of them, but not the one a
+     * handler names, is still taken.
+     */
+    private X509ExtendedKeyManager currentKeyManager()
+    {
+      LoadedKeyManager current = loaded;
+      if (current.isLoadedFrom(configurationChanges, stampFiles()))
+      {
+        return current.keyManager;
+      }
+      synchronized (this)
+      {
+        // stamped again under the lock: stamps taken before it may be those of a write another
+        // thread has loaded past meanwhile
+        final int changes = configurationChanges;
+        final List<FileStamp> stamps = stampFiles();
+        current = loaded;
+        if (current.isLoadedFrom(changes, stamps))
+        {
+          return current.keyManager;
+        }
+        // the key store a changed configuration names may hold its keys under any aliases
+        final Set<String> knownAliases =
+            current.configurationChanges == changes ? current.keyAliases : Collections.<String> emptySet();
+        try
+        {
+          final char[] pin = currentPIN();
+          final KeyStore keyStore = getKeystore(pin);
+          final Set<String> keyAliases = keyAliases(keyStore);
+          if (keyAliases.isEmpty())
+          {
+            throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+                ERR_NO_KEY_ENTRY_IN_KEYSTORE.get(keyStoreFile));
+          }
+          if (!knownAliases.isEmpty() && Collections.disjoint(knownAliases, keyAliases))
+          {
+            throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+                ERR_FILE_KEYMANAGER_NO_KNOWN_KEY_ALIAS.get(keyStoreFile, knownAliases));
+          }
+          final KeyManager[] keyManagers = loadKeyManagers(keyStore, pin);
+          if (keyManagers.length != 1 || !(keyManagers[0] instanceof X509ExtendedKeyManager))
+          {
+            throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+                ERR_FILE_KEYMANAGER_CANNOT_CREATE_FACTORY.get(keyStoreFile, Arrays.toString(keyManagers)));
+          }
+          loaded = new LoadedKeyManager(changes, stamps, keyAliases, (X509ExtendedKeyManager) keyManagers[0]);
+          logger.info(NOTE_FILE_KEYMANAGER_RELOADED, keyStoreFile, currentConfig.dn());
+        }
+        catch (DirectoryException e)
+        {
+          logger.traceException(e);
+          loaded = new LoadedKeyManager(changes, stamps, knownAliases, current.keyManager);
+          logger.error(ERR_FILE_KEYMANAGER_CANNOT_RELOAD, keyStoreFile, currentConfig.dn(), e.getMessageObject());
+        }
+        return loaded.keyManager;
+      }
+    }
+
+    @Override
+    public String[] getClientAliases(String keyType, Principal[] issuers)
+    {
+      return currentKeyManager().getClientAliases(keyType, issuers);
+    }
+
+    @Override
+    public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket)
+    {
+      return currentKeyManager().chooseClientAlias(keyType, issuers, socket);
+    }
+
+    @Override
+    public String chooseEngineClientAlias(String[] keyType, Principal[] issuers, SSLEngine engine)
+    {
+      return currentKeyManager().chooseEngineClientAlias(keyType, issuers, engine);
+    }
+
+    @Override
+    public String[] getServerAliases(String keyType, Principal[] issuers)
+    {
+      return currentKeyManager().getServerAliases(keyType, issuers);
+    }
+
+    @Override
+    public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket)
+    {
+      return currentKeyManager().chooseServerAlias(keyType, issuers, socket);
+    }
+
+    @Override
+    public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine engine)
+    {
+      return currentKeyManager().chooseEngineServerAlias(keyType, issuers, engine);
+    }
+
+    @Override
+    public X509Certificate[] getCertificateChain(String alias)
+    {
+      return loaded.keyManager.getCertificateChain(alias);
+    }
+
+    @Override
+    public PrivateKey getPrivateKey(String alias)
+    {
+      return loaded.keyManager.getPrivateKey(alias);
+    }
+  }
 
   /**
    * Creates a new instance of this file-based key manager provider.  The
@@ -87,7 +260,7 @@ public class FileBasedKeyManagerProvider
     currentConfig = cfg;
     keyStoreFile = getKeyStoreFile(cfg, ccr);
     keyStoreType = getKeyStoreType(cfg, ccr);
-    keyStorePIN = getKeyStorePIN(cfg, ccr);
+    getKeyStorePIN(cfg, ccr);
     if (!ccr.getMessages().isEmpty())
     {
       throw new InitializationException(ccr.getMessages().get(0));
@@ -107,18 +280,9 @@ public class FileBasedKeyManagerProvider
   {
     try
     {
-      KeyStore keyStore = getKeystore();
-      Enumeration<String> aliases = keyStore.aliases();
-      while (aliases.hasMoreElements())
-      {
-        String theAlias = aliases.nextElement();
-        if (alias.equals(theAlias) && keyStore.entryInstanceOf(alias, KeyStore.PrivateKeyEntry.class))
-        {
-          return true;
-        }
-      }
+      return keyAliases(getKeystore(currentPIN())).contains(alias);
     }
-    catch (DirectoryException | KeyStoreException e)
+    catch (DirectoryException e)
     {
       // Ignore.
       logger.traceException(e);
@@ -126,7 +290,22 @@ public class FileBasedKeyManagerProvider
     return false;
   }
 
-  private KeyStore getKeystore() throws DirectoryException
+  /**
+   * Returns the PIN the configuration names now, rather than the one it named when the provider
+   * was configured: a PIN file may have been renewed since, together with the key store.
+   */
+  private char[] currentPIN() throws DirectoryException
+  {
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    final char[] pin = getKeyStorePIN(currentConfig, ccr);
+    if (ccr.getResultCode() != ResultCode.SUCCESS)
+    {
+      throw new DirectoryException(ccr.getResultCode(), ccr.getMessages().get(0));
+    }
+    return pin;
+  }
+
+  private KeyStore getKeystore(char[] keyStorePIN) throws DirectoryException
   {
     try
     {
@@ -145,19 +324,45 @@ public class FileBasedKeyManagerProvider
     }
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * The key manager returned reads the key store file again when a handshake starts after the
+   * file, or the PIN file, has changed, so that a renewed certificate is presented without
+   * restarting the server or the component using it.
+   */
   @Override
   public KeyManager[] getKeyManagers() throws DirectoryException
   {
-    KeyStore keyStore = getKeystore();
+    final int changes = configurationChanges;
+    final List<FileStamp> stamps = stampFiles();
+    final char[] pin = currentPIN();
+    final KeyStore keyStore = getKeystore(pin);
+    final Set<String> keyAliases = keyAliases(keyStore);
+    if (keyAliases.isEmpty())
+    {
+      // Troubleshooting message to let now of possible config error
+      logger.error(ERR_NO_KEY_ENTRY_IN_KEYSTORE, keyStoreFile);
+    }
+    final KeyManager[] keyManagers = loadKeyManagers(keyStore, pin);
+    if (keyManagers.length != 1 || !(keyManagers[0] instanceof X509ExtendedKeyManager))
+    {
+      return keyManagers;
+    }
+    return new KeyManager[] { new ReloadingKeyManager(
+        new LoadedKeyManager(changes, stamps, keyAliases, (X509ExtendedKeyManager) keyManagers[0])) };
+  }
 
+  private List<FileStamp> stampFiles()
+  {
+    final String pinFile = currentConfig.getKeyStorePinFile();
+    return FileStamp.of(getFileForPath(keyStoreFile), pinFile != null ? getFileForPath(pinFile) : null);
+  }
+
+  private KeyManager[] loadKeyManagers(KeyStore keyStore, char[] keyStorePIN) throws DirectoryException
+  {
     try
     {
-      if (! findOneKeyEntry(keyStore))
-      {
-        // Troubleshooting message to let now of possible config error
-        logger.error(ERR_NO_KEY_ENTRY_IN_KEYSTORE, keyStoreFile);
-      }
-
       String keyManagerAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
       KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(keyManagerAlgorithm);
       keyManagerFactory.init(keyStore, keyStorePIN);
@@ -177,7 +382,7 @@ public class FileBasedKeyManagerProvider
   {
     try
     {
-      return findOneKeyEntry(getKeystore());
+      return !keyAliases(getKeystore(currentPIN())).isEmpty();
     }
     catch (Exception e) {
       logger.traceException(e);
@@ -185,18 +390,28 @@ public class FileBasedKeyManagerProvider
     }
   }
 
-  private boolean findOneKeyEntry(KeyStore keyStore) throws KeyStoreException
+  /** Returns the aliases the key store holds private keys under. */
+  private Set<String> keyAliases(KeyStore keyStore) throws DirectoryException
   {
-    Enumeration<String> aliases = keyStore.aliases();
-    while (aliases.hasMoreElements())
+    try
     {
-      String alias = aliases.nextElement();
-      if (keyStore.entryInstanceOf(alias, KeyStore.PrivateKeyEntry.class))
+      final Set<String> keyAliases = new TreeSet<>();
+      final Enumeration<String> aliases = keyStore.aliases();
+      while (aliases.hasMoreElements())
       {
-        return true;
+        final String alias = aliases.nextElement();
+        if (keyStore.entryInstanceOf(alias, KeyStore.PrivateKeyEntry.class))
+        {
+          keyAliases.add(alias);
+        }
       }
+      return keyAliases;
     }
-    return false;
+    catch (KeyStoreException e)
+    {
+      LocalizableMessage message = ERR_FILE_KEYMANAGER_CANNOT_LOAD.get(keyStoreFile, getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
+    }
   }
 
   @Override
@@ -227,14 +442,20 @@ public class FileBasedKeyManagerProvider
     final ConfigChangeResult ccr = new ConfigChangeResult();
     String newKeyStoreFile = getKeyStoreFile(cfg, ccr);
     String newKeyStoreType = getKeyStoreType(cfg, ccr);
-    char[] newPIN = getKeyStorePIN(cfg, ccr);
+    getKeyStorePIN(cfg, ccr);
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
-      currentConfig = cfg;
-      keyStorePIN   = newPIN;
-      keyStoreFile  = newKeyStoreFile;
-      keyStoreType  = newKeyStoreType;
+      synchronized (this)
+      {
+        currentConfig = cfg;
+        keyStoreFile  = newKeyStoreFile;
+        keyStoreType  = newKeyStoreType;
+        // the key managers already handed out load the key store the new configuration names
+        // on their next handshake, even where its files are those they were loaded from, and
+        // whatever aliases it holds its keys under
+        configurationChanges++;
+      }
     }
 
     return ccr;
