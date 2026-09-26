@@ -30,6 +30,17 @@ without `ADD_BASE_ENTRY` nothing creates the base entry, so `BASE_DN` is an empt
 a healthy container - the health check itself searches the root DSE, which every instance
 serves whatever it was set up to hold.
 
+The server answering is not enough on a first start: the bootstrap starts the server, and
+once it is done that server is stopped and started again in the foreground, so a client
+that only waits for the port can have its first requests fail in between. A replica set up
+with `MASTER_SERVER` tries a master it cannot connect to again, every 10 s for up to 5
+minutes, so a master that is down when the replica reaches it does not fail its replication
+setup; one that stops while `dsreplication enable` is writing to it still does.
+
+With `OPENDJ_REPLICATION_TYPE=srs`, start the directory server replicas one at a time, each
+once the previous one is healthy: every replica pushes its data to the replicas connected at
+that moment, and one that is restarting at the end of its own first start misses it.
+
 A bootstrap that imports `SAMPLE_DATA` can take minutes on a small container, which is what
 the start period allows for. A bootstrap that fails - or an upgrade that fails when starting
 over an instance that is already there - never reports healthy: what failed is in `docker

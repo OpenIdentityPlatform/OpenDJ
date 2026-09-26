@@ -523,17 +523,32 @@ jobs:
         shell: bash
         run: |
           trap 'code=$?; echo "::group::container logs (test)"; docker logs test 2>&1 || true; echo "::endgroup::"; exit $code' ERR
-          docker run --rm -it -d --memory="512m" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
+          docker run -it -d --memory="512m" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
+          # the bootstrap's server is down before the marker the health check waits for is
+          # written: the stop has logged its record by the time the marker is there
+          timeout 3m bash -c 'until docker exec test sh -c "test -f \"\$BOOTSTRAP_COMPLETE\"" 2>/dev/null; do sleep 0.2; done'
+          test "$(docker exec test grep -c "The Directory Server is now stopped" /opt/opendj/data/logs/errors)" -ge 1
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test | grep -q \"healthy\"; do sleep 10; done'
           docker exec test 'sh' '-c' '/opt/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll'
           docker exec test 'sh' '-c' '/opt/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example2,dc=com /opt/opendj/data/config/MakeLDIF/example.template'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/stop-ds'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/import-ldif --offline --ldifFile /tmp/test.ldif --backendID=example2'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --offline --bindDN "cn=Directory Manager" --bindPassword password  --baseDN "dc=example2,dc=com" --rebuildAll'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/start-ds'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/import-ldif --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --ldifFile /tmp/test.ldif --backendID=example2 --trustAll'
+          # the server is PID 1 of the container, so stopping it stops the container; the
+          # container that bootstrapped the instance has to stop the server on SIGTERM, not
+          # sit out the timeout and be killed. The server run in the foreground reports its
+          # shutdown only in the error log, which is read once the container is back up
+          stopped=$(docker exec test grep -c "The Directory Server is now stopped" /opt/opendj/data/logs/errors || true)
+          start=$SECONDS
+          docker stop -t 60 test
+          echo "stopped in $((SECONDS - start)) s, exit code $(docker inspect --format='{{.State.ExitCode}}' test)"
+          test $((SECONDS - start)) -lt 50
+          test "$(docker inspect --format='{{.State.ExitCode}}' test)" -ne 137
+          # a restart runs the server of the instance already there
+          docker start test
+          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test | grep -q \"healthy\"; do sleep 10; done'
+          test "$(docker exec test grep -c "The Directory Server is now stopped" /opt/opendj/data/logs/errors)" -gt "$stopped"
+          docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll'
           docker exec test 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000'
-          docker kill test
+          docker rm -f test
       - name: Docker test custom password
         shell: bash
         run: |
@@ -582,8 +597,21 @@ jobs:
           # a password file waits as a killed replicate.sh would have left it, and its run.sh has to remove it (checked below)
           docker exec test_master sh -c 'printf "%s\n" "$ROOT_PASSWORD" >/dev/shm/opendj-replicate.killed'
           docker run --rm -it -d --memory="512m" --network test_replication --ipc=container:test_master --name=test_replica --hostname=dj-replica -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=simple "$IMAGE"
+          # on a first start the master stops the server its bootstrap started and starts it again, and a replica
+          # started together with it can reach it in between: replicate.sh tries a dsreplication that could not
+          # connect again. The master is taken off the network while the replica sleeps before its first try, and
+          # comes back only once the replica has said it will try again
+          timeout 5m bash -c 'until docker logs test_replica 2>&1 | grep -q "Will sleep for a bit"; do sleep 0.2; done'
+          docker network disconnect test_replication test_master
+          timeout 2m bash -c 'until docker logs test_replica 2>&1 | grep -q "exited with 8, trying again"; do sleep 1; done'
+          docker network connect --alias dj-master test_replication test_master
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica | grep -q \"healthy\"; do sleep 10; done'
           docker run --rm -it -d --memory="512m" --network test_replication --name=test_replica_sdsr --hostname=dj-replica-sdsr -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=sdsr "$IMAGE"
+          # the same for the sdsr replica, whose dsreplication enable is another command of replicate.sh
+          timeout 5m bash -c 'until docker logs test_replica_sdsr 2>&1 | grep -q "Will sleep for a bit"; do sleep 0.2; done'
+          docker network disconnect test_replication test_master
+          timeout 2m bash -c 'until docker logs test_replica_sdsr 2>&1 | grep -q "exited with 8, trying again"; do sleep 1; done'
+          docker network connect --alias dj-master test_replication test_master
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica_sdsr | grep -q \"healthy\"; do sleep 10; done'
           # the replicas were initialized from the master, and a change made on the master reaches them
           for c in $REPLICAS; do
@@ -593,6 +621,12 @@ jobs:
           for c in $REPLICAS; do
             timeout 1m bash -c 'until docker exec $1 /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword "$0" --useSsl --trustAll --baseDN "ou=replicated,dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1; do sleep 5; done' "$ROOT_PASSWORD" $c
           done
+          # replicate.sh tries dsreplication enable again only when it exits 8, and a failed enable ends it: run once more
+          # on the replica, the enable of a base DN already replicated exits 5 and nothing is tried again or initialized
+          rc=0; out=$(docker exec -e BASE_DN=dc=example,dc=com -e ROOT_USER_DN="cn=Directory Manager" test_replica timeout 90 /opt/opendj/bootstrap/replicate.sh 2>&1) || rc=$?
+          if [ $rc -ne 5 ] || grep -qE "trying again|initializing replication" <<<"$out"; then
+            echo "$out"; echo "::error::a second replicate.sh exited with $rc, not with the 5 of its dsreplication enable, or went on after it"; false
+          fi
           # the root password shows in no container log, and the file replicate.sh passed it in is gone (#1084)
           for c in test_master $REPLICAS; do
             if docker logs $c 2>&1 | grep -F "$ROOT_PASSWORD"; then echo "::error::The root password is in the log of $c"; false; fi
@@ -736,17 +770,32 @@ jobs:
         shell: bash
         run: |
           trap 'code=$?; echo "::group::container logs (test)"; docker logs test 2>&1 || true; echo "::endgroup::"; exit $code' ERR
-          docker run --rm -it -d --memory="1g" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
+          docker run -it -d --memory="1g" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
+          # the bootstrap's server is down before the marker the health check waits for is
+          # written: the stop has logged its record by the time the marker is there
+          timeout 3m bash -c 'until docker exec test sh -c "test -f \"\$BOOTSTRAP_COMPLETE\"" 2>/dev/null; do sleep 0.2; done'
+          test "$(docker exec test grep -c "The Directory Server is now stopped" /opt/opendj/data/logs/errors)" -ge 1
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test | grep -q \"healthy\"; do sleep 10; done'
           docker exec test 'sh' '-c' '/opt/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=example2 --type je --set=base-dn:dc=example2,dc=com --set=enabled:true --no-prompt --trustAll'
           docker exec test 'sh' '-c' '/opt/opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example2,dc=com /opt/opendj/data/config/MakeLDIF/example.template'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/stop-ds'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/import-ldif --offline --ldifFile /tmp/test.ldif --backendID=example2'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --offline --bindDN "cn=Directory Manager" --bindPassword password  --baseDN "dc=example2,dc=com" --rebuildAll'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/start-ds'
-          docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll'
+          docker exec test 'sh' '-c' '/opt/opendj/bin/import-ldif --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --ldifFile /tmp/test.ldif --backendID=example2 --trustAll'
+          # the server is PID 1 of the container, so stopping it stops the container; the
+          # container that bootstrapped the instance has to stop the server on SIGTERM, not
+          # sit out the timeout and be killed. The server run in the foreground reports its
+          # shutdown only in the error log, which is read once the container is back up
+          stopped=$(docker exec test grep -c "The Directory Server is now stopped" /opt/opendj/data/logs/errors || true)
+          start=$SECONDS
+          docker stop -t 60 test
+          echo "stopped in $((SECONDS - start)) s, exit code $(docker inspect --format='{{.State.ExitCode}}' test)"
+          test $((SECONDS - start)) -lt 50
+          test "$(docker inspect --format='{{.State.ExitCode}}' test)" -ne 137
+          # a restart runs the server of the instance already there
+          docker start test
+          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test | grep -q \"healthy\"; do sleep 10; done'
+          test "$(docker exec test grep -c "The Directory Server is now stopped" /opt/opendj/data/logs/errors)" -gt "$stopped"
+          docker exec test 'sh' '-c' '/opt/opendj/bin/rebuild-index --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --baseDN "dc=example2,dc=com" --rebuildAll --trustAll'
           docker exec test 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example2,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 10000'
-          docker kill test
+          docker rm -f test
       - name: Docker test custom password
         shell: bash
         run: |
@@ -795,8 +844,21 @@ jobs:
           # a password file waits as a killed replicate.sh would have left it, and its run.sh has to remove it (checked below)
           docker exec test_master sh -c 'printf "%s\n" "$ROOT_PASSWORD" >/dev/shm/opendj-replicate.killed'
           docker run --rm -it -d --memory="1g" --network test_replication --ipc=container:test_master --name=test_replica --hostname=dj-replica -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=simple "$IMAGE"
+          # on a first start the master stops the server its bootstrap started and starts it again, and a replica
+          # started together with it can reach it in between: replicate.sh tries a dsreplication that could not
+          # connect again. The master is taken off the network while the replica sleeps before its first try, and
+          # comes back only once the replica has said it will try again
+          timeout 5m bash -c 'until docker logs test_replica 2>&1 | grep -q "Will sleep for a bit"; do sleep 0.2; done'
+          docker network disconnect test_replication test_master
+          timeout 2m bash -c 'until docker logs test_replica 2>&1 | grep -q "exited with 8, trying again"; do sleep 1; done'
+          docker network connect --alias dj-master test_replication test_master
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica | grep -q \"healthy\"; do sleep 10; done'
           docker run --rm -it -d --memory="1g" --network test_replication --name=test_replica_sdsr --hostname=dj-replica-sdsr -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=sdsr "$IMAGE"
+          # the same for the sdsr replica, whose dsreplication enable is another command of replicate.sh
+          timeout 5m bash -c 'until docker logs test_replica_sdsr 2>&1 | grep -q "Will sleep for a bit"; do sleep 0.2; done'
+          docker network disconnect test_replication test_master
+          timeout 2m bash -c 'until docker logs test_replica_sdsr 2>&1 | grep -q "exited with 8, trying again"; do sleep 1; done'
+          docker network connect --alias dj-master test_replication test_master
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica_sdsr | grep -q \"healthy\"; do sleep 10; done'
           # the replicas were initialized from the master, and a change made on the master reaches them
           for c in $REPLICAS; do
@@ -806,6 +868,12 @@ jobs:
           for c in $REPLICAS; do
             timeout 1m bash -c 'until docker exec $1 /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword "$0" --useSsl --trustAll --baseDN "ou=replicated,dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1; do sleep 5; done' "$ROOT_PASSWORD" $c
           done
+          # replicate.sh tries dsreplication enable again only when it exits 8, and a failed enable ends it: run once more
+          # on the replica, the enable of a base DN already replicated exits 5 and nothing is tried again or initialized
+          rc=0; out=$(docker exec -e BASE_DN=dc=example,dc=com -e ROOT_USER_DN="cn=Directory Manager" test_replica timeout 90 /opt/opendj/bootstrap/replicate.sh 2>&1) || rc=$?
+          if [ $rc -ne 5 ] || grep -qE "trying again|initializing replication" <<<"$out"; then
+            echo "$out"; echo "::error::a second replicate.sh exited with $rc, not with the 5 of its dsreplication enable, or went on after it"; false
+          fi
           # the root password shows in no container log, and the file replicate.sh passed it in is gone (#1084)
           for c in test_master $REPLICAS; do
             if docker logs $c 2>&1 | grep -F "$ROOT_PASSWORD"; then echo "::error::The root password is in the log of $c"; false; fi
