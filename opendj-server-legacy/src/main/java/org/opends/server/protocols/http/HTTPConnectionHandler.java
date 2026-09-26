@@ -283,7 +283,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     protocol = config.isUseSSL() ? "HTTPS" : "HTTP";
     if (config.isUseSSL())
     {
-      sslEngineConfigurator = createSSLEngineConfigurator(config);
+      sslEngineConfigurator = createSSLEngineConfigurator(config, true);
     }
     else
     {
@@ -497,7 +497,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     {
       try
       {
-        createSSLEngineConfigurator(config);
+        createSSLEngineConfigurator(config, false);
       }
       catch (DirectoryException e)
       {
@@ -817,7 +817,22 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     buffer.append(handlerName);
   }
 
-  private SSLEngineConfigurator createSSLEngineConfigurator(HTTPConnectionHandlerCfg config) throws DirectoryException
+  /**
+   * Creates the SSL engine configurator for the provided configuration.
+   *
+   * @param config
+   *          the configuration to create the SSL engine configurator for
+   * @param forUse
+   *          {@code true} when the handler is going to use the configurator, at its start or when
+   *          a change is applied, so that a handler without a usable key is disabled;
+   *          {@code false} when the configurator only checks a proposed configuration, which must
+   *          leave the running handler as it is
+   * @return the SSL engine configurator, or {@code null} if the configuration does not use SSL
+   * @throws DirectoryException
+   *           if the SSL context cannot be created
+   */
+  private SSLEngineConfigurator createSSLEngineConfigurator(HTTPConnectionHandlerCfg config, boolean forUse)
+      throws DirectoryException
   {
     if (!config.isUseSSL())
     {
@@ -826,7 +841,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
 
     try
     {
-      SSLContext sslContext = createSSLContext(config);
+      SSLContext sslContext = createSSLContext(config, forUse);
       SSLEngineConfigurator configurator = new SSLEngineConfigurator(sslContext);
       configurator.setClientMode(false);
 
@@ -874,7 +889,16 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     }
   }
 
-  private SSLContext createSSLContext(HTTPConnectionHandlerCfg config) throws Exception
+  private void disableAndWarn(boolean forUse)
+  {
+    if (forUse)
+    {
+      logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
+      enabled = false;
+    }
+  }
+
+  private SSLContext createSSLContext(HTTPConnectionHandlerCfg config, boolean forUse) throws Exception
   {
     if (!config.isUseSSL())
     {
@@ -886,15 +910,13 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     if (keyManagerProvider == null)
     {
       logger.error(ERR_NULL_KEY_PROVIDER_MANAGER, keyMgrDN, friendlyName);
-      logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
       keyManagerProvider = new NullKeyManagerProvider();
-      enabled = false;
+      disableAndWarn(forUse);
     }
     else if (!keyManagerProvider.containsAtLeastOneKey())
     {
       logger.error(ERR_INVALID_KEYSTORE, friendlyName);
-      logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
-      enabled = false;
+      disableAndWarn(forUse);
     }
 
     final SortedSet<String> aliases = new TreeSet<>(config.getSSLCertNickname());
@@ -916,8 +938,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
       }
       if (aliases.isEmpty())
       {
-        logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
-        enabled = false;
+        disableAndWarn(forUse);
       }
       keyManagers = SelectableCertificateKeyManager.wrap(keyManagerProvider.getKeyManagers(), aliases, friendlyName);
     }

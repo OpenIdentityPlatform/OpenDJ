@@ -331,7 +331,7 @@ public final class LDAPConnectionHandler extends
     protocol = config.isUseSSL() ? "LDAPS" : "LDAP";
     if (config.isUseSSL() || config.isAllowStartTLS())
     {
-      sslContext = createSSLContext(config);
+      sslContext = createSSLContext(config, true);
       sslEngine = createSSLEngine(config, sslContext);
     }
     else
@@ -717,7 +717,7 @@ public final class LDAPConnectionHandler extends
     {
       try
       {
-        createSSLEngine(config, createSSLContext(config));
+        createSSLEngine(config, createSSLContext(config, false));
       }
       catch (DirectoryException e)
       {
@@ -1291,16 +1291,30 @@ public final class LDAPConnectionHandler extends
     }
   }
 
-  private void disableAndWarnIfUseSSL(LDAPConnectionHandlerCfg config)
+  private void disableAndWarnIfUseSSL(LDAPConnectionHandlerCfg config, boolean forUse)
   {
-    if (config.isUseSSL())
+    if (forUse && config.isUseSSL())
     {
       logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
       enabled = false;
     }
   }
 
-  private SSLContext createSSLContext(LDAPConnectionHandlerCfg config)
+  /**
+   * Creates the SSL context for the provided configuration.
+   *
+   * @param config
+   *          the configuration to create the SSL context for
+   * @param forUse
+   *          {@code true} when the handler is going to use the SSL context, at its start or when
+   *          a change is applied, so that an SSL handler without a usable key is disabled;
+   *          {@code false} when the SSL context only checks a proposed configuration, which must
+   *          leave the running handler as it is
+   * @return the SSL context
+   * @throws DirectoryException
+   *           if the SSL context cannot be created
+   */
+  private SSLContext createSSLContext(LDAPConnectionHandlerCfg config, boolean forUse)
       throws DirectoryException
   {
     try
@@ -1311,14 +1325,14 @@ public final class LDAPConnectionHandler extends
       if (keyManagerProvider == null)
       {
         logger.error(ERR_NULL_KEY_PROVIDER_MANAGER, keyMgrDN, friendlyName);
-        disableAndWarnIfUseSSL(config);
+        disableAndWarnIfUseSSL(config, forUse);
         keyManagerProvider = new NullKeyManagerProvider();
         // The SSL connection is unusable without a key manager provider
       }
       else if (! keyManagerProvider.containsAtLeastOneKey())
       {
         logger.error(ERR_INVALID_KEYSTORE, friendlyName);
-        disableAndWarnIfUseSSL(config);
+        disableAndWarnIfUseSSL(config, forUse);
       }
 
       final SortedSet<String> aliases = new TreeSet<>(config.getSSLCertNickname());
@@ -1341,7 +1355,7 @@ public final class LDAPConnectionHandler extends
 
         if (aliases.isEmpty())
         {
-          disableAndWarnIfUseSSL(config);
+          disableAndWarnIfUseSSL(config, forUse);
         }
         keyManagers = SelectableCertificateKeyManager.wrap(keyManagerProvider.getKeyManagers(), aliases, friendlyName);
       }
