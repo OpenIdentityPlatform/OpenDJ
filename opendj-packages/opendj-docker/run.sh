@@ -34,9 +34,16 @@ cd /opt/opendj
 BOOTSTRAP_COMPLETE=${BOOTSTRAP_COMPLETE:-/opt/opendj/.bootstrap-complete}
 rm -f "$BOOTSTRAP_COMPLETE"
 
-# A replicate.sh killed before its EXIT trap ran leaves the root password in /dev/shm, and on
-# Kubernetes that outlives the container: the pod keeps its /dev/shm across container restarts
-rm -f /dev/shm/opendj-replicate.*
+# A replicate.sh or a setup.sh killed before its EXIT trap ran leaves the root password in
+# /dev/shm, and on Kubernetes that outlives the container: the pod keeps its /dev/shm across
+# container restarts. It is also shared by all the containers of the pod, and another one may
+# be bootstrapping right now, so only the files of this container are removed: they carry
+# ADMIN_PORT in their name, which the containers of a pod cannot share as they share one
+# network namespace. Containers in distinct network namespaces that share /dev/shm through
+# --ipc=host, and listen on the same ADMIN_PORT, are not told apart. /tmp belongs to this
+# container alone, so a password file left there is removed whatever its name.
+rm -f /dev/shm/opendj-replicate."$ADMIN_PORT".*
+rm -f /dev/shm/opendj-setup-password."$ADMIN_PORT".* /tmp/opendj-setup-password.*
 
 #if default data folder exists do not change it
 if [ ! -d ./db ]; then

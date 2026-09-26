@@ -22,6 +22,34 @@
 
 echo "Setting up default OpenDJ instance"
 
+# The tools read only the first line of a password file, and a CR ends it as an LF does, so a
+# password with a line break would be cut there - silently, as the root password set up would
+# not be the one the container was given
+cr=$(printf '\r')
+nl='
+'
+case $ROOT_PASSWORD in
+  *"$cr"*|*"$nl"*)
+    echo "ROOT_PASSWORD must not contain a line break: the tools read only the first line of the password file" >&2
+    exit 1 ;;
+esac
+
+# The tools read the root password from a file, so that any password setup accepts reaches
+# them as one value, and it does not show on the command line of a process while the tool
+# runs. mktemp creates the file readable by its owner only. The EXIT trap does not run when the
+# container is killed during the bootstrap, so the file goes to the tmpfs of /dev/shm where
+# there is one, rather than to the writable layer of the container, and run.sh removes what a
+# killed bootstrap left behind before anything else. On Kubernetes /dev/shm is shared by all
+# the containers of the pod and outlives a restart of this one, which is what the removal in
+# run.sh is for there; the name carries ADMIN_PORT, so that it removes only the file of this
+# container. Busybox mktemp replaces only the last six X of the template.
+PASSWORD_FILE=$(mktemp -p /dev/shm "opendj-setup-password.$ADMIN_PORT.XXXXXX" 2>/dev/null \
+  || mktemp "/tmp/opendj-setup-password.$ADMIN_PORT.XXXXXX") || exit 1
+# the trap also removes the base entry template below, which a failed import would leave in /tmp
+BASE_TEMPLATE=
+trap 'rm -f "$PASSWORD_FILE" ${BASE_TEMPLATE:+"$BASE_TEMPLATE"}' EXIT
+printf '%s\n' "$ROOT_PASSWORD" >"$PASSWORD_FILE" || exit 1
+
 # If any optional LDIF files are present load them
 
 # There are multiple types of ldif files.
@@ -31,7 +59,7 @@ if [ -d /opt/opendj/bootstrap/config/schema/ ]; then
   echo "Copying schema:"
   mkdir -p /opt/opendj/template/config/schema
   for file in /opt/opendj/bootstrap/config/schema/*; do
-    target_file="/opt/opendj/template/config/schema/$(basename -- $file)"
+    target_file="/opt/opendj/template/config/schema/$(basename -- "$file")"
     echo "Copying $file to $target_file"
     cp "$file" "$target_file"
   done
@@ -45,7 +73,7 @@ fi
   --enableStartTLS $OPENDJ_SSL_OPTIONS \
   --adminConnectorPort $ADMIN_PORT \
   --rootUserDN "$ROOT_USER_DN" \
-  --rootUserPassword "$ROOT_PASSWORD" \
+  --rootUserPasswordFile "$PASSWORD_FILE" \
   --acceptLicense \
   --no-prompt \
   --noPropertiesFile \
@@ -55,7 +83,7 @@ BACKEND_TYPE=${BACKEND_TYPE:-je}
 BACKEND_DB_DIRECTORY=${BACKEND_DB_DIRECTORY:-db}
 echo "creating backend: $BACKEND_TYPE db-directory: ${BACKEND_DB_DIRECTORY}"
 
-/opt/opendj/bin/dsconfig create-backend -h localhost -p $ADMIN_PORT --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD" \
+/opt/opendj/bin/dsconfig create-backend -h localhost -p $ADMIN_PORT --bindDN "$ROOT_USER_DN" --bindPasswordFile "$PASSWORD_FILE" \
   --backend-name=userRoot --type $BACKEND_TYPE --set base-dn:$BASE_DN --set "db-directory:$BACKEND_DB_DIRECTORY" \
   --set enabled:true --no-prompt --trustAll || exit 1
 
@@ -65,13 +93,12 @@ if [ "$ADD_BASE_ENTRY" = "--addBaseEntry"  ]; then
     echo "generating sample data..."
     /opt/opendj/bin/makeldif -o $BASE_TEMPLATE -c suffix="$BASE_DN" -c numusers=$SAMPLE_DATA /opt/opendj/template/config/MakeLDIF/example.template || exit 1
     /opt/opendj/bin/import-ldif --ldifFile $BASE_TEMPLATE \
-        --backendID=userRoot --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD" || exit 1
+        --backendID=userRoot --bindDN "$ROOT_USER_DN" --bindPasswordFile "$PASSWORD_FILE" || exit 1
   else
     echo "creating base entry..."
-    BASE_TEMPLATE=$(mktemp)
     echo "branch: $BASE_DN" > $BASE_TEMPLATE
     /opt/opendj/bin/import-ldif --templateFile $BASE_TEMPLATE \
-        --backendID=userRoot --bindDN "$ROOT_USER_DN" --bindPassword "$ROOT_PASSWORD" || exit 1
+        --backendID=userRoot --bindDN "$ROOT_USER_DN" --bindPasswordFile "$PASSWORD_FILE" || exit 1
   fi
   rm $BASE_TEMPLATE
 fi
@@ -85,16 +112,19 @@ if [ -d /opt/opendj/bootstrap/schema/ ]; then
   echo "Loading initial schema:"
   for file in /opt/opendj/bootstrap/schema/*; do
     echo "Loading $file ..."
-    /opt/opendj/bin/ldapmodify -D "$ROOT_USER_DN" -h localhost -p $PORT -w $ROOT_PASSWORD -f $file
+    /opt/opendj/bin/ldapmodify -D "$ROOT_USER_DN" -h localhost -p $PORT -j "$PASSWORD_FILE" -f "$file"
   done
 fi
 
 if [ -d /opt/opendj/bootstrap/data/ ]; then
-  #allow pre encoded passwords
+  # allow pre encoded passwords; the port is named, as the tool would otherwise go to 4444
+  # whatever ADMIN_PORT the server listens on, and the entries carrying them would be refused
   /opt/opendj/bin/dsconfig \
     set-password-policy-prop \
+    -h localhost \
+    -p $ADMIN_PORT \
     --bindDN "$ROOT_USER_DN" \
-    --bindPassword "$ROOT_PASSWORD" \
+    --bindPasswordFile "$PASSWORD_FILE" \
     --policy-name "Default Password Policy" \
     --set allow-pre-encoded-passwords:true \
     --trustAll \
@@ -102,6 +132,6 @@ if [ -d /opt/opendj/bootstrap/data/ ]; then
 
   for file in /opt/opendj/bootstrap/data/*; do
     echo "Loading $file ..."
-    /opt/opendj/bin/ldapmodify -D "$ROOT_USER_DN" -h localhost -p $PORT -w $ROOT_PASSWORD -f $file --continueOnError
+    /opt/opendj/bin/ldapmodify -D "$ROOT_USER_DN" -h localhost -p $PORT -j "$PASSWORD_FILE" -f "$file" --continueOnError
   done
 fi

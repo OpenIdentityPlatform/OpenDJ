@@ -569,8 +569,8 @@ jobs:
           rc=0; docker run --rm --entrypoint grep "$IMAGE" -nE -- '(^|[[:space:]])(-w|--(bindPassword[12]?|adminPassword))([[:space:]=]|$)' /opt/opendj/bootstrap/replicate.sh || rc=$?
           if [ $rc -ne 1 ]; then echo "::error::replicate.sh passes the root password on a command line, or grep could not read it"; false; fi
           # the password file goes to /dev/shm, off the writable layer of the container, and the mktemp of the image puts it there
-          docker run --rm --entrypoint grep "$IMAGE" -qF -- 'mktemp -p /dev/shm opendj-replicate.' /opt/opendj/bootstrap/replicate.sh || { echo "::error::replicate.sh no longer puts the password file on /dev/shm"; false; }
-          docker run --rm --entrypoint sh "$IMAGE" -c 'f=$(mktemp -p /dev/shm opendj-replicate.XXXXXX) && rm -f "$f" && case $f in /dev/shm/opendj-replicate.*) ;; *) exit 1;; esac' || { echo "::error::mktemp in the image does not create the password file on /dev/shm"; false; }
+          docker run --rm --entrypoint grep "$IMAGE" -qF -- 'mktemp -p /dev/shm "opendj-replicate.$ADMIN_PORT.' /opt/opendj/bootstrap/replicate.sh || { echo "::error::replicate.sh no longer puts the password file on /dev/shm"; false; }
+          docker run --rm --entrypoint sh "$IMAGE" -c 'f=$(mktemp -p /dev/shm "opendj-replicate.$ADMIN_PORT.XXXXXX") && rm -f "$f" && case $f in /dev/shm/opendj-replicate.4444.*) ;; *) exit 1;; esac' || { echo "::error::mktemp in the image does not create the password file on /dev/shm"; false; }
           # a password with a space in it reaches every tool as one value
           ROOT_PASSWORD='replication secret'
           docker network create test_replication
@@ -579,8 +579,10 @@ jobs:
           # a replica reports itself healthy only once replicate.sh has succeeded; the sdsr replica joins after
           # the simple one, as two dsreplication enable at once would both rewrite the admin data of the master
           # a Kubernetes pod keeps its /dev/shm across container restarts: the replica shares the /dev/shm of the master, where
-          # a password file waits as a killed replicate.sh would have left it, and its run.sh has to remove it (checked below)
-          docker exec test_master sh -c 'printf "%s\n" "$ROOT_PASSWORD" >/dev/shm/opendj-replicate.killed'
+          # a password file waits as a killed replicate.sh would have left it, and its run.sh has to remove it (checked below);
+          # the file of another container of the pod, which listens on another admin port, has to be kept
+          docker exec test_master sh -c 'printf "%s\n" "$ROOT_PASSWORD" >/dev/shm/opendj-replicate.4444.killed'
+          docker exec test_master sh -c ': >/dev/shm/opendj-replicate.5444.other'
           docker run --rm -it -d --memory="512m" --network test_replication --ipc=container:test_master --name=test_replica --hostname=dj-replica -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=simple "$IMAGE"
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica | grep -q \"healthy\"; do sleep 10; done'
           docker run --rm -it -d --memory="512m" --network test_replication --name=test_replica_sdsr --hostname=dj-replica-sdsr -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=sdsr "$IMAGE"
@@ -602,7 +604,66 @@ jobs:
             left=$(docker exec $c grep -rlsF -- "$ROOT_PASSWORD" /tmp /dev/shm | grep -v '^/tmp/hsperfdata_' || true)
             if [ -n "$left" ]; then echo "::error::The root password is left in $left of $c"; false; fi
           done
+          docker exec test_replica test -e /dev/shm/opendj-replicate.5444.other || { echo "::error::run.sh of test_replica removed the password file of another container"; false; }
           cleanup
+      - name: Docker test bootstrap LDIFs
+        shell: bash
+        run: |
+          IMAGE=localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
+          trap 'code=$?; for c in test_bootstrap_lf test_bootstrap_cr test_bootstrap; do echo "::group::container logs ($c)"; docker logs $c 2>&1 || true; echo "::endgroup::"; done; exit $code' ERR
+          # a root password with a line break is refused: the tools read only the first line of the password file
+          docker run -d --memory="512m" -e ROOT_PASSWORD=$'ab\ncd' --name=test_bootstrap_lf "$IMAGE"
+          docker run -d --memory="512m" -e ROOT_PASSWORD=$'ab\rcd' --name=test_bootstrap_cr "$IMAGE"
+          for c in test_bootstrap_lf test_bootstrap_cr; do
+            timeout 2m bash -c 'until docker logs $0 2>&1 | grep -qF "ROOT_PASSWORD must not contain a line break"; do sleep 2; done' $c
+          done
+          docker rm -f test_bootstrap_lf test_bootstrap_cr
+          # a password with a space and a pattern that matches files in /opt/opendj: every tool
+          # of the bootstrap must get it as one value (#1093); the LDIF names have a space as well
+          ROOT_PASSWORD='p@ss b*'
+          BOOTSTRAP_DIR=$(mktemp -d)
+          mkdir -p "$BOOTSTRAP_DIR/schema" "$BOOTSTRAP_DIR/data" "$BOOTSTRAP_DIR/config/schema"
+          printf "dn: cn=schema\nchangetype: modify\nadd: attributeTypes\nattributeTypes: ( 1.3.6.1.4.1.99999.1.1 NAME 'bootstrapProbe' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )\n" > "$BOOTSTRAP_DIR/schema/10 schema.ldif"
+          # a schema file of bootstrap/config/schema is copied into the configuration of the instance before setup runs
+          printf "dn: cn=schema\nobjectClass: top\nobjectClass: ldapSubentry\nobjectClass: subschema\ncn: schema\nattributeTypes: ( 1.3.6.1.4.1.99999.1.2 NAME 'bootstrapConfigProbe' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )\n" > "$BOOTSTRAP_DIR/config/schema/99 config.ldif"
+          # a pre-encoded password is accepted only once the bootstrap has allowed it on the admin
+          # port the server listens on, which is not the default one here
+          USER_PASSWORD=$(python3 -c 'import base64, hashlib, os; s = os.urandom(8); print("{SSHA}" + base64.b64encode(hashlib.sha1(b"userpw" + s).digest() + s).decode())')
+          printf 'dn: ou=probe,dc=example,dc=com\nobjectClass: organizationalUnit\nou: probe\n\ndn: uid=pre,ou=probe,dc=example,dc=com\nobjectClass: inetOrgPerson\nuid: pre\ncn: pre\nsn: pre\nuserPassword: %s\n' "$USER_PASSWORD" > "$BOOTSTRAP_DIR/data/10 probe.ldif"
+          chmod -R a+rX "$BOOTSTRAP_DIR"
+          # the containers of a Kubernetes pod share its /dev/shm, which outlives a restart of one of them: the holder stands in for the pod
+          docker run -d --no-healthcheck --ipc=shareable --entrypoint sleep --name=test_bootstrap_shm "$IMAGE" 3600
+          docker run -it -d --memory="512m" --ipc=container:test_bootstrap_shm -e ADD_BASE_ENTRY="--addBaseEntry" -e ROOT_PASSWORD="$ROOT_PASSWORD" -e ADMIN_PORT=5444 -v "$BOOTSTRAP_DIR/schema:/opt/opendj/bootstrap/schema:ro" -v "$BOOTSTRAP_DIR/data:/opt/opendj/bootstrap/data:ro" -v "$BOOTSTRAP_DIR/config/schema:/opt/opendj/bootstrap/config/schema:ro" --name=test_bootstrap "$IMAGE"
+          # while the bootstrap runs, the password file is on the tmpfs of /dev/shm rather than in the writable
+          # layer, and its name carries the admin port of the container
+          timeout 2m bash -c 'until docker exec test_bootstrap sh -c "ls /dev/shm/opendj-setup-password.5444.*" >/dev/null 2>&1; do sleep 1; done'
+          timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_bootstrap | grep -q \"healthy\"; do sleep 10; done'
+          # the schema and the data LDIFs were loaded: the user of the data LDIF binds with its pre-encoded password
+          docker exec test_bootstrap /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --useSsl --trustAll --baseDN "cn=schema" --searchScope base "(objectClass=*)" attributeTypes > "$BOOTSTRAP_DIR/schema.out"
+          grep -q bootstrapProbe "$BOOTSTRAP_DIR/schema.out"
+          grep -q bootstrapConfigProbe "$BOOTSTRAP_DIR/schema.out"
+          docker exec test_bootstrap /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "uid=pre,ou=probe,dc=example,dc=com" --bindPassword userpw --useSsl --trustAll --baseDN "" --searchScope base "(objectClass=*)" 1.1
+          if docker logs test_bootstrap 2>&1 | grep -F "$ROOT_PASSWORD"; then echo "::error::The root password is in the container log"; false; fi
+          # the password file of setup.sh is gone once the bootstrap is over; the perf data of the
+          # JVM of the HEALTHCHECK's ldapsearch holds the password too while it runs (#1092)
+          left=$(docker exec test_bootstrap grep -rlsF -- "$ROOT_PASSWORD" /tmp /dev/shm | grep -v '^/tmp/hsperfdata_' || true)
+          if [ -n "$left" ]; then echo "::error::The root password is left in $left"; false; fi
+          # no tool of the bootstrap gets the password on its command line, which only a sample taken
+          # while that tool runs would show; grep exits with 1 only when it has read the file and found nothing
+          rc=0; docker exec test_bootstrap grep -nE -- '(^|[[:space:]])(-w|--(bindPassword|rootUserPassword))([[:space:]=]|$)' /opt/opendj/bootstrap/setup.sh || rc=$?
+          if [ $rc -ne 1 ]; then echo "::error::setup.sh passes the root password on a command line, or grep could not read it"; false; fi
+          # run.sh removes the password file that a bootstrap killed before its EXIT trap leaves behind, in /tmp
+          # and in /dev/shm, but not the one of another container of the pod, which listens on another admin port
+          left=$(docker exec test_bootstrap mktemp /tmp/opendj-setup-password.5444.XXXXXX)
+          shm_left=$(docker exec test_bootstrap mktemp -p /dev/shm opendj-setup-password.5444.XXXXXX)
+          shm_other=$(docker exec test_bootstrap mktemp -p /dev/shm opendj-setup-password.4444.XXXXXX)
+          docker restart test_bootstrap
+          timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_bootstrap | grep -q \"healthy\"; do sleep 10; done'
+          for f in "$left" "$shm_left"; do
+            docker exec test_bootstrap test ! -e "$f" || { echo "::error::$f is still there after a restart"; false; }
+          done
+          docker exec test_bootstrap test -e "$shm_other" || { echo "::error::run.sh removed $shm_other, the password file of another container"; false; }
+          docker kill test_bootstrap test_bootstrap_shm
       - name: Scan image for vulnerabilities (Trivy)
         # trivy resolves the image from the local Docker daemon, so only the runner's
         # linux/amd64 manifest is scanned; cache: false keeps the ~1GB trivy DBs from
@@ -782,8 +843,8 @@ jobs:
           rc=0; docker run --rm --entrypoint grep "$IMAGE" -nE -- '(^|[[:space:]])(-w|--(bindPassword[12]?|adminPassword))([[:space:]=]|$)' /opt/opendj/bootstrap/replicate.sh || rc=$?
           if [ $rc -ne 1 ]; then echo "::error::replicate.sh passes the root password on a command line, or grep could not read it"; false; fi
           # the password file goes to /dev/shm, off the writable layer of the container, and the mktemp of the image puts it there
-          docker run --rm --entrypoint grep "$IMAGE" -qF -- 'mktemp -p /dev/shm opendj-replicate.' /opt/opendj/bootstrap/replicate.sh || { echo "::error::replicate.sh no longer puts the password file on /dev/shm"; false; }
-          docker run --rm --entrypoint sh "$IMAGE" -c 'f=$(mktemp -p /dev/shm opendj-replicate.XXXXXX) && rm -f "$f" && case $f in /dev/shm/opendj-replicate.*) ;; *) exit 1;; esac' || { echo "::error::mktemp in the image does not create the password file on /dev/shm"; false; }
+          docker run --rm --entrypoint grep "$IMAGE" -qF -- 'mktemp -p /dev/shm "opendj-replicate.$ADMIN_PORT.' /opt/opendj/bootstrap/replicate.sh || { echo "::error::replicate.sh no longer puts the password file on /dev/shm"; false; }
+          docker run --rm --entrypoint sh "$IMAGE" -c 'f=$(mktemp -p /dev/shm "opendj-replicate.$ADMIN_PORT.XXXXXX") && rm -f "$f" && case $f in /dev/shm/opendj-replicate.4444.*) ;; *) exit 1;; esac' || { echo "::error::mktemp in the image does not create the password file on /dev/shm"; false; }
           # a password with a space in it reaches every tool as one value
           ROOT_PASSWORD='replication secret'
           docker network create test_replication
@@ -792,8 +853,10 @@ jobs:
           # a replica reports itself healthy only once replicate.sh has succeeded; the sdsr replica joins after
           # the simple one, as two dsreplication enable at once would both rewrite the admin data of the master
           # a Kubernetes pod keeps its /dev/shm across container restarts: the replica shares the /dev/shm of the master, where
-          # a password file waits as a killed replicate.sh would have left it, and its run.sh has to remove it (checked below)
-          docker exec test_master sh -c 'printf "%s\n" "$ROOT_PASSWORD" >/dev/shm/opendj-replicate.killed'
+          # a password file waits as a killed replicate.sh would have left it, and its run.sh has to remove it (checked below);
+          # the file of another container of the pod, which listens on another admin port, has to be kept
+          docker exec test_master sh -c 'printf "%s\n" "$ROOT_PASSWORD" >/dev/shm/opendj-replicate.4444.killed'
+          docker exec test_master sh -c ': >/dev/shm/opendj-replicate.5444.other'
           docker run --rm -it -d --memory="1g" --network test_replication --ipc=container:test_master --name=test_replica --hostname=dj-replica -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=simple "$IMAGE"
           timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_replica | grep -q \"healthy\"; do sleep 10; done'
           docker run --rm -it -d --memory="1g" --network test_replication --name=test_replica_sdsr --hostname=dj-replica-sdsr -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-master -e OPENDJ_REPLICATION_TYPE=sdsr "$IMAGE"
@@ -815,7 +878,66 @@ jobs:
             left=$(docker exec $c grep -rlsF -- "$ROOT_PASSWORD" /tmp /dev/shm | grep -v '^/tmp/hsperfdata_' || true)
             if [ -n "$left" ]; then echo "::error::The root password is left in $left of $c"; false; fi
           done
+          docker exec test_replica test -e /dev/shm/opendj-replicate.5444.other || { echo "::error::run.sh of test_replica removed the password file of another container"; false; }
           cleanup
+      - name: Docker test bootstrap LDIFs
+        shell: bash
+        run: |
+          IMAGE=localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
+          trap 'code=$?; for c in test_bootstrap_lf test_bootstrap_cr test_bootstrap; do echo "::group::container logs ($c)"; docker logs $c 2>&1 || true; echo "::endgroup::"; done; exit $code' ERR
+          # a root password with a line break is refused: the tools read only the first line of the password file
+          docker run -d --memory="1g" -e ROOT_PASSWORD=$'ab\ncd' --name=test_bootstrap_lf "$IMAGE"
+          docker run -d --memory="1g" -e ROOT_PASSWORD=$'ab\rcd' --name=test_bootstrap_cr "$IMAGE"
+          for c in test_bootstrap_lf test_bootstrap_cr; do
+            timeout 2m bash -c 'until docker logs $0 2>&1 | grep -qF "ROOT_PASSWORD must not contain a line break"; do sleep 2; done' $c
+          done
+          docker rm -f test_bootstrap_lf test_bootstrap_cr
+          # a password with a space and a pattern that matches files in /opt/opendj: every tool
+          # of the bootstrap must get it as one value (#1093); the LDIF names have a space as well
+          ROOT_PASSWORD='p@ss b*'
+          BOOTSTRAP_DIR=$(mktemp -d)
+          mkdir -p "$BOOTSTRAP_DIR/schema" "$BOOTSTRAP_DIR/data" "$BOOTSTRAP_DIR/config/schema"
+          printf "dn: cn=schema\nchangetype: modify\nadd: attributeTypes\nattributeTypes: ( 1.3.6.1.4.1.99999.1.1 NAME 'bootstrapProbe' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )\n" > "$BOOTSTRAP_DIR/schema/10 schema.ldif"
+          # a schema file of bootstrap/config/schema is copied into the configuration of the instance before setup runs
+          printf "dn: cn=schema\nobjectClass: top\nobjectClass: ldapSubentry\nobjectClass: subschema\ncn: schema\nattributeTypes: ( 1.3.6.1.4.1.99999.1.2 NAME 'bootstrapConfigProbe' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )\n" > "$BOOTSTRAP_DIR/config/schema/99 config.ldif"
+          # a pre-encoded password is accepted only once the bootstrap has allowed it on the admin
+          # port the server listens on, which is not the default one here
+          USER_PASSWORD=$(python3 -c 'import base64, hashlib, os; s = os.urandom(8); print("{SSHA}" + base64.b64encode(hashlib.sha1(b"userpw" + s).digest() + s).decode())')
+          printf 'dn: ou=probe,dc=example,dc=com\nobjectClass: organizationalUnit\nou: probe\n\ndn: uid=pre,ou=probe,dc=example,dc=com\nobjectClass: inetOrgPerson\nuid: pre\ncn: pre\nsn: pre\nuserPassword: %s\n' "$USER_PASSWORD" > "$BOOTSTRAP_DIR/data/10 probe.ldif"
+          chmod -R a+rX "$BOOTSTRAP_DIR"
+          # the containers of a Kubernetes pod share its /dev/shm, which outlives a restart of one of them: the holder stands in for the pod
+          docker run -d --no-healthcheck --ipc=shareable --entrypoint sleep --name=test_bootstrap_shm "$IMAGE" 3600
+          docker run -it -d --memory="1g" --ipc=container:test_bootstrap_shm -e ADD_BASE_ENTRY="--addBaseEntry" -e ROOT_PASSWORD="$ROOT_PASSWORD" -e ADMIN_PORT=5444 -v "$BOOTSTRAP_DIR/schema:/opt/opendj/bootstrap/schema:ro" -v "$BOOTSTRAP_DIR/data:/opt/opendj/bootstrap/data:ro" -v "$BOOTSTRAP_DIR/config/schema:/opt/opendj/bootstrap/config/schema:ro" --name=test_bootstrap "$IMAGE"
+          # while the bootstrap runs, the password file is on the tmpfs of /dev/shm rather than in the writable
+          # layer, and its name carries the admin port of the container
+          timeout 2m bash -c 'until docker exec test_bootstrap sh -c "ls /dev/shm/opendj-setup-password.5444.*" >/dev/null 2>&1; do sleep 1; done'
+          timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_bootstrap | grep -q \"healthy\"; do sleep 10; done'
+          # the schema and the data LDIFs were loaded: the user of the data LDIF binds with its pre-encoded password
+          docker exec test_bootstrap /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --useSsl --trustAll --baseDN "cn=schema" --searchScope base "(objectClass=*)" attributeTypes > "$BOOTSTRAP_DIR/schema.out"
+          grep -q bootstrapProbe "$BOOTSTRAP_DIR/schema.out"
+          grep -q bootstrapConfigProbe "$BOOTSTRAP_DIR/schema.out"
+          docker exec test_bootstrap /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "uid=pre,ou=probe,dc=example,dc=com" --bindPassword userpw --useSsl --trustAll --baseDN "" --searchScope base "(objectClass=*)" 1.1
+          if docker logs test_bootstrap 2>&1 | grep -F "$ROOT_PASSWORD"; then echo "::error::The root password is in the container log"; false; fi
+          # the password file of setup.sh is gone once the bootstrap is over; the perf data of the
+          # JVM of the HEALTHCHECK's ldapsearch holds the password too while it runs (#1092)
+          left=$(docker exec test_bootstrap grep -rlsF -- "$ROOT_PASSWORD" /tmp /dev/shm | grep -v '^/tmp/hsperfdata_' || true)
+          if [ -n "$left" ]; then echo "::error::The root password is left in $left"; false; fi
+          # no tool of the bootstrap gets the password on its command line, which only a sample taken
+          # while that tool runs would show; grep exits with 1 only when it has read the file and found nothing
+          rc=0; docker exec test_bootstrap grep -nE -- '(^|[[:space:]])(-w|--(bindPassword|rootUserPassword))([[:space:]=]|$)' /opt/opendj/bootstrap/setup.sh || rc=$?
+          if [ $rc -ne 1 ]; then echo "::error::setup.sh passes the root password on a command line, or grep could not read it"; false; fi
+          # run.sh removes the password file that a bootstrap killed before its EXIT trap leaves behind, in /tmp
+          # and in /dev/shm, but not the one of another container of the pod, which listens on another admin port
+          left=$(docker exec test_bootstrap mktemp /tmp/opendj-setup-password.5444.XXXXXX)
+          shm_left=$(docker exec test_bootstrap mktemp -p /dev/shm opendj-setup-password.5444.XXXXXX)
+          shm_other=$(docker exec test_bootstrap mktemp -p /dev/shm opendj-setup-password.4444.XXXXXX)
+          docker restart test_bootstrap
+          timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_bootstrap | grep -q \"healthy\"; do sleep 10; done'
+          for f in "$left" "$shm_left"; do
+            docker exec test_bootstrap test ! -e "$f" || { echo "::error::$f is still there after a restart"; false; }
+          done
+          docker exec test_bootstrap test -e "$shm_other" || { echo "::error::run.sh removed $shm_other, the password file of another container"; false; }
+          docker kill test_bootstrap test_bootstrap_shm
       - name: Scan image for vulnerabilities (Trivy)
         # trivy resolves the image from the local Docker daemon, so only the runner's
         # linux/amd64 manifest is scanned; cache: false keeps the ~1GB trivy DBs from
