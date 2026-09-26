@@ -97,6 +97,12 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				throw new SkipException(getContainerDockerCommand());
 			}
 		}
+		try {
+			dropStaleNeighbours();
+		} catch (SQLException e) {
+			// nothing left behind to drop, or an account the suite cannot log in with: either way the
+			// listing below decides, and it fails only where such a leftover is actually there
+		}
 		try(Connection con = DriverManager.getConnection(createBackendCfg().getDBDirectory())){
 			dropStaleTrees(con);
 		} catch (Exception e) {
@@ -133,6 +139,18 @@ public abstract class TestCase extends PluggableBackendImplTestCase<JDBCBackendC
 				st.execute("drop table " + name);
 			}
 		}
+	}
+
+	/**
+	 * Drops what a case of a suite made outside the database or the schema of its own connections - a
+	 * neighbouring directory of the same table names - where a run killed in the middle of that case left
+	 * it behind. It goes before {@link #dropStaleTrees}, whose listing reaches such a table and whose drop
+	 * then fails - unqualified on mysql, where the table is in another database, and without the privilege
+	 * on oracle, where it is another user's - skipping the whole class on every run after it. A container
+	 * the suite starts is a fresh one; the database of {@link #getContainerDockerCommand()}, which a run
+	 * without docker falls back on, outlives every run made against it.
+	 */
+	protected void dropStaleNeighbours() throws SQLException {
 	}
 
 	@Override
