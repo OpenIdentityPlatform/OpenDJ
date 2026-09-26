@@ -24,7 +24,8 @@ ENV BASE_DN="dc=example,dc=com"
 ENV ROOT_USER_DN="cn=Directory Manager"
 # ROOT_PASSWORD should be passed at runtime via: docker run -e ROOT_PASSWORD=...
 # Default value if not provided: "password"
-#ENV SECRET_VOLUME
+#ENV SECRET_VOLUME="/var/secrets/opendj"
+#ENV SECRET_VOLUME_REFRESH=60
 ENV OPENDJ_SSL_OPTIONS="--generateSelfSignedCertificate"
 #ENV MASTER_SERVER
 #ENV OPENDJ_REPLICATION_TYPE
