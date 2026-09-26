@@ -34,9 +34,10 @@ cd /opt/opendj
 BOOTSTRAP_COMPLETE=${BOOTSTRAP_COMPLETE:-/opt/opendj/.bootstrap-complete}
 rm -f "$BOOTSTRAP_COMPLETE"
 
-# A replicate.sh killed before its EXIT trap ran leaves the root password in /dev/shm, and on
-# Kubernetes that outlives the container: the pod keeps its /dev/shm across container restarts
-rm -f /dev/shm/opendj-replicate.*
+# A setup.sh or replicate.sh killed before its EXIT trap ran leaves the root password in
+# /dev/shm, and on Kubernetes that outlives the container: the pod keeps its /dev/shm across
+# container restarts
+rm -f /dev/shm/opendj-setup.* /dev/shm/opendj-replicate.*
 
 #if default data folder exists do not change it
 if [ ! -d ./db ]; then

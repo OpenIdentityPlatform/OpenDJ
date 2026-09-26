@@ -69,8 +69,9 @@ RUN apk add --update --no-cache --virtual builddeps curl unzip \
 # root. The scripts copied below are only read and run, so they just keep the same group.
 COPY --chown=$OPENDJ_USER:0 bootstrap/ /opt/opendj/bootstrap/
 COPY --chown=$OPENDJ_USER:0 run.sh /opt/opendj/run.sh
+COPY --chown=$OPENDJ_USER:0 healthcheck.sh /opt/opendj/healthcheck.sh
 
-RUN chmod +x /opt/opendj/run.sh /opt/opendj/bootstrap/setup.sh /opt/opendj/bootstrap/replicate.sh
+RUN chmod +x /opt/opendj/run.sh /opt/opendj/healthcheck.sh /opt/opendj/bootstrap/setup.sh /opt/opendj/bootstrap/replicate.sh
 
 EXPOSE $PORT/tcp $LDAPS_PORT/tcp $ADMIN_PORT/tcp
 
@@ -79,10 +80,11 @@ USER $OPENDJ_USER
 # "healthy" has to mean the instance is ready to serve, not just that it answers: setup
 # starts the server in the middle of the bootstrap, before the backend of BASE_DN is
 # created and its entries imported, so probing the root DSE alone reports ready while a
-# search of BASE_DN still fails with "No Such Entry". Testing the marker first also keeps
-# the probe from launching a JVM every interval until the bootstrap is through. The start
-# period is what a bootstrap importing SAMPLE_DATA into a small container can take; a
-# probe that succeeds ends it early, and a bootstrap that failed never writes the marker.
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5m --retries=3 CMD test -f "$BOOTSTRAP_COMPLETE" && opendj/bin/ldapsearch --hostname localhost --port $LDAPS_PORT --bindDN "$ROOT_USER_DN" --bindPassword "${ROOT_PASSWORD:-password}" --useSsl --trustAll --baseDN "" --searchScope base "(objectClass=*)" 1.1 || exit 1
+# search of BASE_DN still fails with "No Such Entry". healthcheck.sh tests the marker
+# first, then searches the root DSE without binding as the root user, whose password the
+# operator is expected to change. The start period is what a bootstrap importing
+# SAMPLE_DATA into a small container can take; a probe that succeeds ends it early, and a
+# bootstrap that failed never writes the marker.
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5m --retries=3 CMD ["/opt/opendj/healthcheck.sh"]
 
 ENTRYPOINT ["/opt/opendj/run.sh"]
