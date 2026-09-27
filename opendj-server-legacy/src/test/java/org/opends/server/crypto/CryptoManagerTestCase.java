@@ -38,16 +38,30 @@ import java.io.OutputStream;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.AlgorithmParameters;
+import java.security.Key;
 import java.security.MessageDigest;
 import java.security.Provider;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.spec.AlgorithmParameterSpec;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
+import javax.crypto.CipherSpi;
+import javax.crypto.KeyGeneratorSpi;
 import javax.crypto.Mac;
+import javax.crypto.SecretKey;
 
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldap.Attribute;
@@ -324,12 +338,12 @@ public class CryptoManagerTestCase extends CryptoTestCase {
   }
 
   /**
-   A transformation the runtime provides, refused because of the rest of the check (here the
-   MD5 digest of the instance key identifier), is not reported as a matter of the property:
-   changing key-wrapping-transformation would not help.
+   The check wraps with a key which a provider running in FIPS approved-only mode accepts: BC-FIPS
+   in that mode refuses RSA keys under 2048 bits with an Error, and the check runs at every start,
+   so a smaller key keeps the server from starting whatever the transformation.
    */
   @Test
-  public void testKeyWrappingRefusalForAnotherCauseDoesNotNameTheProperty() throws Exception
+  public void testKeyWrappingCheckPassesUnderApprovedOnlyBcFips() throws Exception
   {
     final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
     final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
@@ -337,22 +351,315 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     assertThat(supported).isNotEqualTo(cfg.getKeyWrappingTransformation());
     final List<LocalizableMessage> why = new ArrayList<>();
 
-    // Withdrawing MD5 withdraws the SUN provider, whose SHA-1 digest the OAEP cipher still needs.
-    final Provider sha1Only = new Provider("Sha1OnlyDigest", "1.0", "SHA-1 digest only") {};
-    sha1Only.put("MessageDigest.SHA-1", "sun.security.provider.SHA");
-    sha1Only.put("Alg.Alias.MessageDigest.SHA1", "SHA-1");
+    final boolean acceptable = inApprovedOnlyBcFipsThread(() -> cm.isConfigurationChangeAcceptable(
+        withProperty(withMacKeyFromSunJce(cfg), "getKeyWrappingTransformation", supported), why));
+
+    assertThat(why).isEmpty();
+    assertThat(acceptable).isTrue();
+  }
+
+  /**
+   A provider refusing the wrap with an Error, as BC-FIPS in approved-only mode refuses PKCS#1 v1.5
+   encryption, is reported as a refusal of the configuration rather than escaping from the check.
+   */
+  @Test
+  public void testKeyWrappingRefusedWithAnErrorIsReported() throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+    final String unapproved = "RSA/ECB/PKCS1Padding";
+    final List<LocalizableMessage> why = new ArrayList<>();
+
+    final boolean acceptable = inApprovedOnlyBcFipsThread(() -> cm.isConfigurationChangeAcceptable(
+        withProperty(withMacKeyFromSunJce(cfg), "getKeyWrappingTransformation", unapproved), why));
+
+    assertThat(acceptable).isFalse();
+    assertThat(why).hasSize(1);
+    final String reason = why.get(0).toString();
+    assertThat(why.get(0).ordinal()).as(reason).isEqualTo(ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_KEY_WRAPPING_CIPHER.ordinal());
+    assertThat(reason).contains("PKCS1.5");
+  }
+
+  /**
+   A provider refusing to generate a MAC key with an Error, as BC-FIPS in approved-only mode
+   refuses a random generator it has not approved, is reported as a refusal of the MAC algorithm.
+   */
+  @Test
+  public void testMacKeyGenerationRefusedWithAnErrorIsReported() throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+    final List<LocalizableMessage> why = new ArrayList<>();
+
+    final boolean acceptable = inApprovedOnlyBcFipsThread(() -> cm.isConfigurationChangeAcceptable(
+        withProperty(cfg, "getMacKeyLength", cfg.getMacKeyLength() + 64), why));
+
+    assertThat(acceptable).isFalse();
+    assertThat(why).hasSize(1);
+    final String reason = why.get(0).toString();
+    assertThat(why.get(0).ordinal()).as(reason).isEqualTo(ERR_CRYPTOMGR_CANNOT_GET_REQUESTED_MAC_ENGINE.ordinal());
+    assertThat(reason).contains("unapproved RNG");
+  }
+
+  /**
+   A provider refusing to generate a cipher key with an Error is reported as a refusal of the
+   cipher transformation.
+   */
+  @Test
+  public void testCipherKeyGenerationRefusedWithAnErrorIsReported() throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+    final String transformation = "AES/CTR/NoPadding";
+    assertThat(transformation).isNotEqualTo(cfg.getCipherTransformation());
+    final List<LocalizableMessage> why = new ArrayList<>();
+
+    final boolean acceptable = inApprovedOnlyBcFipsThread(() -> cm.isConfigurationChangeAcceptable(
+        withProperty(cfg, "getCipherTransformation", transformation), why));
+
+    assertThat(acceptable).isFalse();
+    assertThat(why).hasSize(1);
+    final String reason = why.get(0).toString();
+    assertThat(why.get(0).ordinal()).as(reason).isEqualTo(ERR_CRYPTOMGR_CANNOT_GET_REQUESTED_ENCRYPTION_CIPHER.ordinal());
+    assertThat(reason).contains("unapproved RNG");
+  }
+
+  /** The check does not need an MD5 digest, which a restricted runtime may not offer. */
+  @Test
+  public void testKeyWrappingCheckDoesNotNeedMd5() throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+    final String supported = "RSA/ECB/OAEPWITHSHA1ANDMGF1PADDING";
+    assertThat(supported).isNotEqualTo(cfg.getKeyWrappingTransformation());
+    final List<LocalizableMessage> why = new ArrayList<>();
+
+    // Withdrawing MD5 withdraws the SUN provider, and with it what the rest of the check needs of
+    // that provider: the SHA-1 digest of the OAEP cipher and of the default random generator the
+    // cipher is initialized with, the SHA-256 digest of the HmacSHA256 MAC of SunJCE, and the
+    // X.509 certificate factory.
+    final Provider sunWithoutMd5 = new Provider("SunWithoutMd5", "1.0", "SUN services the check needs") {};
+    sunWithoutMd5.put("MessageDigest.SHA-1", "sun.security.provider.SHA");
+    sunWithoutMd5.put("Alg.Alias.MessageDigest.SHA1", "SHA-1");
+    sunWithoutMd5.put("Alg.Alias.MessageDigest.SHA", "SHA-1");
+    sunWithoutMd5.put("MessageDigest.SHA-256", "sun.security.provider.SHA2$SHA256");
+    sunWithoutMd5.put("CertificateFactory.X.509", "sun.security.provider.X509Factory");
 
     withoutJceService("MessageDigest", "MD5", () ->
     {
       assertThat(cm.isConfigurationChangeAcceptable(withProperty(cfg, "getKeyWrappingTransformation", supported), why))
-          .isFalse();
+          .as("%s", why).isTrue();
       return null;
-    }, sha1Only);
+    }, sunWithoutMd5);
+  }
 
-    assertThat(why).hasSize(1);
-    final String reason = why.get(0).toString();
-    assertThat(why.get(0).ordinal()).as(reason).isEqualTo(ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_KEY_WRAPPING_CIPHER.ordinal());
-    assertThat(reason).contains("MD5").doesNotContain("key-wrapping-transformation");
+  /** The error the probe provider fails with, set by the case using it. */
+  private static volatile Error probeError;
+
+  @DataProvider
+  public Object[][] errorsWhichAreNotRefusals()
+  {
+    final List<Object[]> cases = new ArrayList<>();
+    for (final String[] check : new String[][] {
+        { "getCipherTransformation", "ErrorProbe/CBC/PKCS5Padding" },
+        { "getMacAlgorithm", "ErrorProbe" },
+        { "getKeyWrappingTransformation", "ErrorProbeWrap/ECB/NoPadding" } })
+    {
+      cases.add(new Object[] { check[0], check[1], new StackOverflowError("probe") });
+      cases.add(new Object[] { check[0], check[1], new ExceptionInInitializerError(new IllegalStateException("probe")) });
+    }
+    return cases.toArray(new Object[0][]);
+  }
+
+  /**
+   An Error which is not a refusal of the configuration, of the virtual machine or of a broken
+   provider jar, propagates out of the cipher, MAC and key wrapping checks with its cause.
+   */
+  @Test(dataProvider = "errorsWhichAreNotRefusals")
+  public void testErrorWhichIsNotARefusalPropagates(final String getter, final String value, final Error error)
+      throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+    final Provider probe = new Provider("ErrorProbe", "1.0", "Fails with the error of the case") {};
+    probe.put("KeyGenerator.ErrorProbe", FailingKeyGenerator.class.getName());
+    probe.put("Cipher.ErrorProbeWrap", FailingCipher.class.getName());
+    probeError = error;
+    Security.insertProviderAt(probe, 1);
+    try
+    {
+      final List<LocalizableMessage> why = new ArrayList<>();
+      assertThatThrownBy(() -> cm.isConfigurationChangeAcceptable(withProperty(cfg, getter, value), why))
+          .isSameAs(error);
+      assertThat(why).isEmpty();
+    }
+    finally
+    {
+      Security.removeProvider("ErrorProbe");
+      probeError = null;
+    }
+  }
+
+  /** A key generator failing with the error of the case. */
+  public static final class FailingKeyGenerator extends KeyGeneratorSpi
+  {
+    @Override
+    protected void engineInit(final SecureRandom random)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected void engineInit(final AlgorithmParameterSpec params, final SecureRandom random)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected void engineInit(final int keySize, final SecureRandom random)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected SecretKey engineGenerateKey()
+    {
+      throw probeError;
+    }
+  }
+
+  /** A cipher which is found, and fails with the error of the case once initialized. */
+  public static final class FailingCipher extends CipherSpi
+  {
+    @Override
+    protected void engineSetMode(final String mode)
+    {
+      // Any mode.
+    }
+
+    @Override
+    protected void engineSetPadding(final String padding)
+    {
+      // Any padding.
+    }
+
+    @Override
+    protected int engineGetBlockSize()
+    {
+      return 0;
+    }
+
+    @Override
+    protected int engineGetOutputSize(final int inputLen)
+    {
+      return 0;
+    }
+
+    @Override
+    protected byte[] engineGetIV()
+    {
+      return null;
+    }
+
+    @Override
+    protected AlgorithmParameters engineGetParameters()
+    {
+      return null;
+    }
+
+    @Override
+    protected void engineInit(final int opmode, final Key key, final SecureRandom random)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected void engineInit(final int opmode, final Key key, final AlgorithmParameterSpec params,
+        final SecureRandom random)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected void engineInit(final int opmode, final Key key, final AlgorithmParameters params,
+        final SecureRandom random)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected byte[] engineUpdate(final byte[] input, final int inputOffset, final int inputLen)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected int engineUpdate(final byte[] input, final int inputOffset, final int inputLen, final byte[] output,
+        final int outputOffset)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected byte[] engineDoFinal(final byte[] input, final int inputOffset, final int inputLen)
+    {
+      throw probeError;
+    }
+
+    @Override
+    protected int engineDoFinal(final byte[] input, final int inputOffset, final int inputLen, final byte[] output,
+        final int outputOffset)
+    {
+      throw probeError;
+    }
+  }
+
+  /**
+   Returns the crypto manager configuration with a MAC algorithm which BC-FIPS does not offer in
+   approved-only mode, so that SunJCE generates the MAC key the check wraps. The crypto manager
+   generates keys with a random generator of the provider that came first when it was loaded, SUN
+   in the test JVM, and BC-FIPS in approved-only mode refuses to generate a key with it.
+   */
+  private static CryptoManagerCfg withMacKeyFromSunJce(final CryptoManagerCfg cfg)
+  {
+    return withProperty(cfg, "getMacAlgorithm", "HmacMD5");
+  }
+
+  /**
+   Runs {@code action} in a thread of its own which BC-FIPS serves in approved-only mode (a mode
+   a thread cannot leave), with that provider installed first for the duration.
+   */
+  private static <T> T inApprovedOnlyBcFipsThread(final Callable<T> action) throws Exception
+  {
+    final List<Provider> installed = Arrays.asList(Security.getProviders());
+    final Provider previous = Security.getProvider("BCFIPS");
+    Security.removeProvider("BCFIPS");
+    Security.insertProviderAt(previous != null ? previous : new BouncyCastleFipsProvider(), 1);
+    try
+    {
+      final FutureTask<T> task = new FutureTask<>(() ->
+      {
+        assertThat(CryptoServicesRegistrar.setApprovedOnlyMode(true)).isTrue();
+        return action.call();
+      });
+      new Thread(task, "approved-only BC-FIPS").start();
+      try
+      {
+        return task.get(1, TimeUnit.MINUTES);
+      }
+      catch (ExecutionException e)
+      {
+        throw new AssertionError("the action failed in approved-only mode", e.getCause());
+      }
+    }
+    finally
+    {
+      Security.removeProvider("BCFIPS");
+      if (previous != null)
+      {
+        Security.insertProviderAt(previous, installed.indexOf(previous) + 1);
+      }
+    }
   }
 
   /**
