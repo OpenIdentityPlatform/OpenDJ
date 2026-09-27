@@ -15,12 +15,20 @@
  */
 package org.opends.server.backends.jdbc;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.backends.pluggable.spi.AccessMode;
+import org.opends.server.backends.pluggable.spi.TreeName;
+import org.opends.server.backends.pluggable.spi.WriteOperation;
+import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.MySQLContainer;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -172,6 +180,121 @@ public class MySqlTestCase extends TestCase {
             }
         }
         throw new AssertionError("an account granted one query an hour must be refused within four connects");
+    }
+
+    /** The database of the case below: a directory next to the one of this suite, on the same server. */
+    private static final String NEIGHBOUR = "opendj_neighbour1075";
+
+    @Override
+    protected void dropStaleNeighbours() throws SQLException {
+        grant(getJdbcUrl(), "drop database if exists " + NEIGHBOUR);
+    }
+
+    @DataProvider
+    public Object[][] databaseTerms() {
+        return new Object[][] {
+            // the default of Connector/J: the database is the catalog, and the lookups are asked in it
+            { "catalog", "" },
+            // the database is the schema: the connection names no catalog, the lookups span the server,
+            // and only the schema path read off the connection tells the neighbour apart
+            { "schema", "?databaseTerm=SCHEMA" },
+        };
+    }
+
+    /**
+     * A table and an index of another database of this server answer for none of this backend's, however
+     * the connection names its database (#1075) - the mysql twin of the postgres case of #902.
+     * <p>
+     * A table is named after its tree and an index after its table, so two directories on one server - the
+     * stock backend id in two databases - hold the same table and the same index. Connector/J asked with no
+     * catalog lists the tables of every database, and both guards of {@code openTree()} would then skip a
+     * create this backend needs: the table one leaves every statement addressing a table that is not there,
+     * and the index one - the quiet half - leaves the {@code where k>? order by k} batches of every cursor
+     * a full scan for the life of the deployment.
+     * <p>
+     * Under the default {@code databaseTerm} the guards hold by two layers at once - the catalog they pass
+     * and the database {@code TableScope.covers()} reads off every row - and this case goes red only when
+     * both give way; the unit cases of {@code JDBCStorageRetryTest} pin each of them. Under
+     * {@code databaseTerm=SCHEMA} the connection names no catalog and the schema path is the one layer
+     * there is, which is what this case exists for: what it rests on is how the driver lists a table of
+     * another database, and only a live server answers that.
+     */
+    @Test(dataProvider = "databaseTerms")
+    public void testAnOpenIsAnsweredForByNoTableOfAnotherDatabase(String term, String urlOptions) throws Exception {
+        final TreeName tree = new TreeName("testAnotherDatabase", "tree");
+        final JDBCStorage storage =
+            new JDBCStorage(createBackendCfg(getBackendId() + "_" + term, getJdbcUrl() + urlOptions), null);
+        final String tableName = storage.getTableName(tree);
+        final String indexName = "k_" + tableName.substring("opendj_".length());
+        try {
+            // the neighbouring directory: the same table and the same index, in a database this storage
+            // reaches through no unqualified name of its own. Spelled out rather than opened by a storage,
+            // so that the fixture is the collision and nothing else
+            grant(getJdbcUrl(), "drop database if exists " + NEIGHBOUR,
+                "create database " + NEIGHBOUR,
+                "create table " + NEIGHBOUR + "." + tableName
+                    + " (h char(128),k varbinary(255),v longblob,primary key(h,k))",
+                "create index " + indexName + " on " + NEIGHBOUR + "." + tableName + " (k)");
+            assertFalse(isExistsIn(DATABASE, tableName, null),
+                "the case did not start with the table of this backend absent from its database");
+
+            storage.open(AccessMode.READ_WRITE);
+            storage.write(new WriteOperation() {
+                @Override
+                public void run(WriteableTransaction txn) throws Exception {
+                    txn.openTree(tree, true);
+                    // the destructive half of the table guard, and the reason it is loud: found abroad, the
+                    // table is created nowhere and this statement addresses a table that is not there
+                    txn.put(tree, ByteString.valueOfUtf8("a key of this backend"),
+                        ByteString.valueOfUtf8("a value of this backend"));
+                }
+            });
+
+            assertTrue(isExistsIn(DATABASE, tableName, null),
+                "the open took the table of another database for its own and created none");
+            assertTrue(isExistsIn(DATABASE, tableName, indexName),
+                "the open took the index of another database for its own: the cursor batches of this tree are full scans behind it");
+            assertEquals(rowCountIn(DATABASE, tableName), 1,
+                "the write of this backend landed in a table other than the one the open made");
+            assertEquals(rowCountIn(NEIGHBOUR, tableName), 0,
+                "the write of this backend landed in the table of the neighbouring database");
+        } finally {
+            clearQuietly(storage);
+            grant(getJdbcUrl(), "drop database if exists " + NEIGHBOUR);
+        }
+    }
+
+    /** The database of the connections of this suite. */
+    private static final String DATABASE = "database_name";
+
+    /**
+     * Whether that one database holds the table - or, given an index name, that index of it - asked of
+     * information_schema by name rather than through the catalog lookups under test.
+     */
+    private boolean isExistsIn(String database, String tableName, String indexName) throws SQLException {
+        final String query = indexName == null
+            ? "select 1 from information_schema.tables where table_schema=? and table_name=?"
+            : "select 1 from information_schema.statistics where table_schema=? and table_name=? and index_name=?";
+        try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+             final PreparedStatement st = con.prepareStatement(query)) {
+            st.setString(1, database);
+            st.setString(2, tableName);
+            if (indexName != null) {
+                st.setString(3, indexName);
+            }
+            try (final ResultSet rs = st.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    /** What the table of that one database holds, which says which of the two tables a write went to. */
+    private int rowCountIn(String database, String tableName) throws SQLException {
+        try (final Connection con = DriverManager.getConnection(getJdbcUrl());
+             final Statement st = con.createStatement();
+             final ResultSet rs = st.executeQuery("select count(*) from " + database + "." + tableName)) {
+            return rs.next() ? rs.getInt(1) : -1;
+        }
     }
 
     /** The account of the test is made and unmade on the connection of the suite's own credentials. */
