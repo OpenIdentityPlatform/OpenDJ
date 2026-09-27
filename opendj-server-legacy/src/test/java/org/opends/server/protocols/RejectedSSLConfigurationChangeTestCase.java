@@ -15,6 +15,7 @@
  */
 package org.opends.server.protocols;
 
+import static org.opends.messages.ProtocolMessages.ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE;
 import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
@@ -49,6 +50,7 @@ import org.opends.admin.ads.util.BlindTrustManager;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ConnectionHandler;
+import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -65,7 +67,8 @@ import org.testng.annotations.Test;
 
 /**
  * A change to an SSL connection handler that is rejected because its key store cannot be loaded
- * must leave the running handler as it was: listening, with the SSL context it had.
+ * must leave the running handler as it was: listening, with the SSL context it had. The start of a handler, and a
+ * change applied to an LDAP handler, still disable it when it has no key it can present.
  */
 @SuppressWarnings("javadoc")
 @Test(groups = { "precommit" }, sequential = true)
@@ -76,6 +79,8 @@ public class RejectedSSLConfigurationChangeTestCase extends DirectoryServerTestC
 
   /** How long the handler must keep serving TLS after the rejected change: its thread checks every second. */
   private static final long KEEPS_SERVING_MS = TimeUnit.SECONDS.toMillis(3);
+  /** How long a handler that has been disabled may take to stop listening: its thread checks every second. */
+  private static final long STOPS_LISTENING_MS = TimeUnit.SECONDS.toMillis(10);
 
   private enum Kind
   {
@@ -172,21 +177,13 @@ public class RejectedSSLConfigurationChangeTestCase extends DirectoryServerTestC
       assertFalse(handler.isConfigurationAcceptable(configuration(kind, port, certNickname, "6 megabytes", true), reasons),
           "a change needing a key store that cannot be loaded was accepted");
       assertFalse(reasons.isEmpty(), "the change was rejected without a reason");
+      assertEquals(reasons.get(0).ordinal(), ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE.ordinal(), String.valueOf(reasons));
 
-      final long deadline = System.currentTimeMillis() + KEEPS_SERVING_MS;
-      do
-      {
-        assertServesTLS(port);
-        Thread.sleep(250);
-      }
-      while (System.currentTimeMillis() < deadline);
+      assertKeepsServingTLS(port);
     }
     finally
     {
-      ((ServerShutdownListener) handler).processServerShutdown(STOP_REASON);
-      handler.finalizeConnectionHandler(STOP_REASON);
-      handler.join(10000);
-      assertFalse(handler.isAlive(), "the connection handler thread is still running");
+      stop(handler);
     }
   }
 
@@ -194,6 +191,42 @@ public class RejectedSSLConfigurationChangeTestCase extends DirectoryServerTestC
   public Object[][] kinds()
   {
     return new Object[][] { { Kind.LDAP2 }, { Kind.LDAP_LEGACY }, { Kind.HTTP } };
+  }
+
+  /**
+   * A check that finds no key manager provider registered under the configured DN leaves the running handler as it
+   * is. The configuration entry of an enabled provider whose key store could not be loaded at the start of the
+   * server exists, but the provider is not registered.
+   */
+  @Test(dataProvider = "kinds")
+  public void checkWithoutKeyManagerProviderKeepsTheHandlerListening(Kind kind) throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final ConnectionHandler<?> handler = start(kind, configuration(kind, port, null, "5 megabytes", true));
+    try
+    {
+      assertServesTLS(port);
+
+      final KeyManagerProvider<?> provider = DirectoryServer.getKeyManagerProvider(KEY_MANAGER_DN);
+      assertNotNull(provider, "the key manager provider of the test is not registered");
+      DirectoryServer.deregisterKeyManagerProvider(KEY_MANAGER_DN);
+      try
+      {
+        // Whether the change is accepted does not matter here: the running handler must not change either way.
+        handler.isConfigurationAcceptable(configuration(kind, port, null, "6 megabytes", true),
+            new ArrayList<LocalizableMessage>());
+      }
+      finally
+      {
+        DirectoryServer.registerKeyManagerProvider(KEY_MANAGER_DN, provider);
+      }
+
+      assertKeepsServingTLS(port);
+    }
+    finally
+    {
+      stop(handler);
+    }
   }
 
   /** The start of a handler still disables it when its key store holds no key it can present. */
@@ -212,10 +245,50 @@ public class RejectedSSLConfigurationChangeTestCase extends DirectoryServerTestC
     }
     finally
     {
-      ((ServerShutdownListener) handler).processServerShutdown(STOP_REASON);
-      handler.finalizeConnectionHandler(STOP_REASON);
-      handler.join(10000);
-      assertFalse(handler.isAlive(), "the connection handler thread is still running");
+      stop(handler);
+    }
+  }
+
+  /**
+   * An applied change that leaves an LDAP handler without the certificate it is configured to present still disables
+   * it. The check accepts such a change, so dsconfig reaches this road. Only {@link LDAPConnectionHandler2} is
+   * covered: the legacy handler keeps accepting TCP connections while it is disabled, so a refused connect cannot
+   * tell, and the HTTP handler sets {@code enabled} from the configuration after the SSL context is built.
+   */
+  @SuppressWarnings("unchecked")
+  @Test
+  public void appliedChangeWithoutItsCertificateStopsListening() throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final ConnectionHandler<?> handler = start(Kind.LDAP2, configuration(Kind.LDAP2, port, null, "5 megabytes", true));
+    try
+    {
+      assertServesTLS(port);
+
+      final LDAPConnectionHandlerCfg change =
+          (LDAPConnectionHandlerCfg) configuration(Kind.LDAP2, port, "no-such-cert", "5 megabytes", true);
+      final List<LocalizableMessage> reasons = new ArrayList<>();
+      assertTrue(handler.isConfigurationAcceptable(change, reasons), String.valueOf(reasons));
+      ((ConfigurationChangeListener<LDAPConnectionHandlerCfg>) handler).applyConfigurationChange(change);
+
+      final long deadline = System.currentTimeMillis() + STOPS_LISTENING_MS;
+      while (true)
+      {
+        try (Socket socket = new Socket("127.0.0.1", port))
+        {
+          assertTrue(System.currentTimeMillis() < deadline,
+              "the handler still listens on port " + port + " after a change took its certificate away");
+        }
+        catch (ConnectException expected)
+        {
+          break;
+        }
+        Thread.sleep(250);
+      }
+    }
+    finally
+    {
+      stop(handler);
     }
   }
 
@@ -290,6 +363,25 @@ public class RejectedSSLConfigurationChangeTestCase extends DirectoryServerTestC
     }
     handler.start();
     return handler;
+  }
+
+  private static void stop(ConnectionHandler<?> handler) throws InterruptedException
+  {
+    ((ServerShutdownListener) handler).processServerShutdown(STOP_REASON);
+    handler.finalizeConnectionHandler(STOP_REASON);
+    handler.join(10000);
+    assertFalse(handler.isAlive(), "the connection handler thread is still running");
+  }
+
+  private static void assertKeepsServingTLS(int port) throws Exception
+  {
+    final long deadline = System.currentTimeMillis() + KEEPS_SERVING_MS;
+    do
+    {
+      assertServesTLS(port);
+      Thread.sleep(250);
+    }
+    while (System.currentTimeMillis() < deadline);
   }
 
   private static void assertServesTLS(int port) throws Exception

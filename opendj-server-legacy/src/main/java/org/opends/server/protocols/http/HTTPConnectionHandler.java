@@ -823,10 +823,10 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
    * @param config
    *          the configuration to create the SSL engine configurator for
    * @param forUse
-   *          {@code true} when the handler is going to use the configurator, at its start or when
-   *          a change is applied, so that a handler without a usable key is disabled;
-   *          {@code false} when the configurator only checks a proposed configuration, which must
-   *          leave the running handler as it is
+   *          {@code true} when the handler is going to use the configurator: at its start a handler
+   *          without a usable key is disabled ({@link #applyConfigurationChange} sets {@code enabled}
+   *          from the configuration afterwards); {@code false} when the configurator only checks a
+   *          proposed configuration, which must leave the running handler as it is
    * @return the SSL engine configurator, or {@code null} if the configuration does not use SSL
    * @throws DirectoryException
    *           if the SSL context cannot be created
