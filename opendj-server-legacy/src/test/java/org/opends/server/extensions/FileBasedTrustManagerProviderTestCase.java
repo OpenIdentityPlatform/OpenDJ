@@ -18,11 +18,23 @@
 package org.opends.server.extensions;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.security.KeyStore;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.List;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
 
@@ -38,6 +50,7 @@ import org.testng.annotations.Test;
 
 import static com.forgerock.opendj.util.StaticUtils.isFips;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.opends.server.extensions.FileBasedKeyManagerProviderTestCase.replace;
 import static org.opends.server.extensions.FileBasedKeyManagerProviderTestCase.withPassword;
 import static org.opends.server.util.ServerConstants.*;
@@ -496,11 +509,12 @@ public class FileBasedTrustManagerProviderTestCase
   }
 
   /**
-   * A plain trust manager handed out outside FIPS mode takes the extended trust manager the
-   * provider loads once the server has turned to FIPS mode.
+   * A plain trust manager handed out outside FIPS mode loads the trust store as it was loaded
+   * then, within an expiration check, after the server has turned to FIPS mode, and after it has
+   * turned away from it again: a renewal is taken either way.
    */
   @Test
-  public void testPlainTrustManagerTakesExtendedOneWhenFipsModeTurnsOn() throws Exception
+  public void testPlainTrustManagerLoadedAgainAsHandedOutWhenFipsModeChanges() throws Exception
   {
     final File configDir = new File(DirectoryServer.getInstanceRoot(), "config");
     final File trustStore = new File(configDir, "fips-on-test.truststore");
@@ -517,6 +531,10 @@ public class FileBasedTrustManagerProviderTestCase
       provider.fips = true;
       replace(trustStore, Files.readAllBytes(new File(configDir, "client.truststore").toPath()));
       assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
+
+      provider.fips = false;
+      replace(trustStore, Files.readAllBytes(new File(configDir, "server.truststore").toPath()));
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
     }
     finally
     {
@@ -527,7 +545,8 @@ public class FileBasedTrustManagerProviderTestCase
 
   /**
    * In FIPS mode the provider hands out an extended trust manager, over the extended trust
-   * manager it loads, and loads the trust store again the same way.
+   * manager it loads, and loads the trust store again the same way, even after the server has
+   * turned away from FIPS mode, as it does once it has generated a certificate outside FIPS mode.
    */
   @Test
   public void testTrustManagerHandedOutInFipsModeIsExtended() throws Exception
@@ -547,12 +566,109 @@ public class FileBasedTrustManagerProviderTestCase
 
       replace(trustStore, Files.readAllBytes(new File(configDir, "client.truststore").toPath()));
       assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
+
+      provider.fips = false;
+      replace(trustStore, Files.readAllBytes(new File(configDir, "server.truststore").toPath()));
+      assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
     }
     finally
     {
       provider.finalizeTrustManagerProvider();
       Files.deleteIfExists(trustStore.toPath());
     }
+  }
+
+  /**
+   * Each certificate check of a trust manager handed out, of either kind, loads a renewed trust
+   * store first: the certificate a renewal drops is refused by the first check after it, and
+   * taken again by the first check after the next renewal brings it back. A check given a socket
+   * or an engine hands it on, and the one it delegates to refuses a check outside a handshake.
+   */
+  @Test
+  public void testEveryCertificateCheckLoadsAgain() throws Exception
+  {
+    final File configDir = new File(DirectoryServer.getInstanceRoot(), "config");
+    final File trustStore = new File(configDir, "check-test.truststore");
+    final byte[] serverTrustStore = Files.readAllBytes(new File(configDir, "server.truststore").toPath());
+    final byte[] clientTrustStore = Files.readAllBytes(new File(configDir, "client.truststore").toPath());
+    // client.truststore does not hold this self-signed certificate
+    final X509Certificate[] dropped =
+        { trustedCertificate(new File(configDir, "server.truststore"), "client-emailaddress-cert") };
+    replace(trustStore, serverTrustStore);
+    final FipsSwitchedTrustManagerProvider plainProvider = InitializationUtils.initializeTrustManagerProvider(
+        new FipsSwitchedTrustManagerProvider(), providerEntry("Plain Check", "check-test.truststore", "password"),
+        FileBasedTrustManagerProviderCfgDefn.getInstance());
+    final FipsSwitchedTrustManagerProvider extendedProvider = new FipsSwitchedTrustManagerProvider();
+    extendedProvider.fips = true;
+    InitializationUtils.initializeTrustManagerProvider(extendedProvider,
+        providerEntry("Extended Check", "check-test.truststore", "password"),
+        FileBasedTrustManagerProviderCfgDefn.getInstance());
+    try (ServerSocket serverSocket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
+        Socket socket = SSLSocketFactory.getDefault().createSocket(
+            InetAddress.getLoopbackAddress(), serverSocket.getLocalPort()))
+    {
+      final X509TrustManager plain = (X509TrustManager) plainProvider.getTrustManagers()[0];
+      assertThat(plain).isNotInstanceOf(X509ExtendedTrustManager.class);
+      final X509ExtendedTrustManager extended = (X509ExtendedTrustManager) extendedProvider.getTrustManagers()[0];
+      final List<CertificateCheck> checks = Arrays.asList(
+          chain -> plain.checkClientTrusted(chain, "RSA"),
+          chain -> plain.checkServerTrusted(chain, "RSA"),
+          chain -> extended.checkClientTrusted(chain, "RSA"),
+          chain -> extended.checkServerTrusted(chain, "RSA"),
+          chain -> extended.checkClientTrusted(chain, "RSA", (Socket) null),
+          chain -> extended.checkServerTrusted(chain, "RSA", (Socket) null),
+          chain -> extended.checkClientTrusted(chain, "RSA", (SSLEngine) null),
+          chain -> extended.checkServerTrusted(chain, "RSA", (SSLEngine) null));
+      for (int i = 0; i < checks.size(); i++)
+      {
+        replace(trustStore, clientTrustStore);
+        assertRefused(checks.get(i), dropped, "check " + i + " after the renewal that drops the certificate");
+        replace(trustStore, serverTrustStore);
+        checks.get(i).check(dropped);
+      }
+
+      // a socket connected, or an engine, with no handshake under way
+      final SSLEngine engine = SSLContext.getDefault().createSSLEngine();
+      assertRefused(chain -> extended.checkClientTrusted(chain, "RSA", socket), dropped, "client check, socket");
+      assertRefused(chain -> extended.checkServerTrusted(chain, "RSA", socket), dropped, "server check, socket");
+      assertRefused(chain -> extended.checkClientTrusted(chain, "RSA", engine), dropped, "client check, engine");
+      assertRefused(chain -> extended.checkServerTrusted(chain, "RSA", engine), dropped, "server check, engine");
+    }
+    finally
+    {
+      plainProvider.finalizeTrustManagerProvider();
+      extendedProvider.finalizeTrustManagerProvider();
+      Files.deleteIfExists(trustStore.toPath());
+    }
+  }
+
+  /** A certificate check of a trust manager. */
+  private interface CertificateCheck
+  {
+    void check(X509Certificate[] chain) throws CertificateException;
+  }
+
+  private static void assertRefused(CertificateCheck check, X509Certificate[] chain, String description)
+  {
+    try
+    {
+      check.check(chain);
+      fail(description + ": the certificate is taken");
+    }
+    catch (CertificateException expected)
+    {
+      // refused, as expected
+    }
+  }
+
+  private static X509Certificate trustedCertificate(File trustStore, String alias) throws Exception
+  {
+    final KeyStore keyStore = KeyStore.getInstance("JKS");
+    try (InputStream in = new FileInputStream(trustStore))
+    {
+      keyStore.load(in, "password".toCharArray());
+    }
+    return (X509Certificate) keyStore.getCertificate(alias);
   }
 
   /**

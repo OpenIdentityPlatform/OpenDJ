@@ -108,13 +108,20 @@ public class FileBasedTrustManagerProvider
    */
   private final class TrustStoreFollower
   {
+    /**
+     * Whether the server ran in FIPS mode when the trust manager was handed out. The trust store
+     * is loaded again as it was loaded then, so that what is loaded stays of the kind handed
+     * out, even where the server has turned to FIPS mode since, or away from it.
+     */
+    private final boolean fipsMode;
     /** Whether the trust manager handed out is an extended one, which needs an extended one to delegate to. */
     private final boolean extended;
     /** The trust manager last loaded, when this one was handed out or by a check since. */
     private volatile LoadedTrustManager loaded;
 
-    private TrustStoreFollower(LoadedTrustManager loaded)
+    private TrustStoreFollower(boolean fipsMode, LoadedTrustManager loaded)
     {
+      this.fipsMode = fipsMode;
       this.extended = loaded.trustManager instanceof X509ExtendedTrustManager;
       this.loaded = loaded;
     }
@@ -132,7 +139,9 @@ public class FileBasedTrustManagerProvider
       {
         return current.trustManager;
       }
-      synchronized (this)
+      // the provider's lock, which applyConfigurationChange takes too: a load reads the
+      // configuration as it was before a change or after it, never a mix of both
+      synchronized (FileBasedTrustManagerProvider.this)
       {
         // stamped again under the lock: stamps taken before it may be those of a write another
         // thread has loaded past meanwhile
@@ -145,11 +154,9 @@ public class FileBasedTrustManagerProvider
         }
         try
         {
-          final TrustManager[] trustManagers = loadTrustManagers(currentPIN());
-          // a plain trust manager handed out takes either kind, for the server may have turned to
-          // FIPS mode since, which leaves out the expiration check, as getTrustManagers() does then
+          final TrustManager[] trustManagers = loadTrustManagers(currentPIN(), fipsMode);
           if (trustManagers.length != 1 || !(trustManagers[0] instanceof X509TrustManager)
-              || extended && !(trustManagers[0] instanceof X509ExtendedTrustManager))
+              || extended != trustManagers[0] instanceof X509ExtendedTrustManager)
           {
             throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                 ERR_FILE_TRUSTMANAGER_CANNOT_CREATE_FACTORY.get(trustStoreFile, Arrays.toString(trustManagers)));
@@ -169,7 +176,7 @@ public class FileBasedTrustManagerProvider
   }
 
   /** The trust manager handed out by {@link #getTrustManagers()} over a plain trust manager. */
-  private final class ReloadingTrustManager implements X509TrustManager
+  private static final class ReloadingTrustManager implements X509TrustManager
   {
     private final TrustStoreFollower follower;
 
@@ -198,7 +205,7 @@ public class FileBasedTrustManagerProvider
   }
 
   /** The trust manager handed out by {@link #getTrustManagers()} over an extended trust manager. */
-  private final class ReloadingExtendedTrustManager extends X509ExtendedTrustManager
+  private static final class ReloadingExtendedTrustManager extends X509ExtendedTrustManager
   {
     private final TrustStoreFollower follower;
 
@@ -305,13 +312,14 @@ public class FileBasedTrustManagerProvider
   {
     final int changes = configurationChanges;
     final List<FileStamp> stamps = stampFiles();
-    final TrustManager[] trustManagers = loadTrustManagers(currentPIN());
+    final boolean fipsMode = isFipsMode();
+    final TrustManager[] trustManagers = loadTrustManagers(currentPIN(), fipsMode);
     if (trustManagers.length != 1 || !(trustManagers[0] instanceof X509TrustManager))
     {
       return trustManagers;
     }
-    final TrustStoreFollower follower =
-        new TrustStoreFollower(new LoadedTrustManager(changes, stamps, (X509TrustManager) trustManagers[0]));
+    final TrustStoreFollower follower = new TrustStoreFollower(
+        fipsMode, new LoadedTrustManager(changes, stamps, (X509TrustManager) trustManagers[0]));
     // an extended trust manager stays one, and a plain one stays plain, for JSSE adds checks
     // of its own around a plain one
     return new TrustManager[] { follower.extended
@@ -339,7 +347,11 @@ public class FileBasedTrustManagerProvider
     return FileStamp.of(getFileForPath(trustStoreFile), pinFile != null ? getFileForPath(pinFile) : null);
   }
 
-  private TrustManager[] loadTrustManagers(char[] trustStorePIN) throws DirectoryException
+  /**
+   * Loads the trust managers of the trust store file: in FIPS mode as they are, and otherwise each
+   * within an expiration check.
+   */
+  private TrustManager[] loadTrustManagers(char[] trustStorePIN, boolean fipsMode) throws DirectoryException
   {
     KeyStore trustStore;
     try (FileInputStream inputStream = new FileInputStream(getFileForPath(trustStoreFile)))
@@ -361,7 +373,7 @@ public class FileBasedTrustManagerProvider
       trustManagerFactory.init(trustStore);
       TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
       TrustManager[] newTrustManagers = new TrustManager[trustManagers.length];
-      if (isFipsMode()) {
+      if (fipsMode) {
     	  newTrustManagers = trustManagers;
       } else {
 	      for (int i=0; i < trustManagers.length; i++)

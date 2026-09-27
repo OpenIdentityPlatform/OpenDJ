@@ -144,7 +144,9 @@ public class FileBasedKeyManagerProvider
       {
         return current.keyManager;
       }
-      synchronized (this)
+      // the provider's lock, which applyConfigurationChange takes too: a load reads the
+      // configuration as it was before a change or after it, never a mix of both
+      synchronized (FileBasedKeyManagerProvider.this)
       {
         // stamped again under the lock: stamps taken before it may be those of a write another
         // thread has loaded past meanwhile
