@@ -2313,40 +2313,24 @@ public class CachedConnection implements Connection {
     // and distrusts the pool on it - and a tail saying nothing would answer it with the "no" of a
     // failure that carries nothing (#1074, the #961 thesis on the budget of this rebuild). Only
     // that, and only where the rest does say it, so that the cut makes no failure say it either.
+    // The rest is read by the very walk isConnectionFailure() answers from, to its end, rather than
+    // by a copy of it here: the two would read the same edges today and drift the day one of them
+    // changes. It builds nothing, so what it costs is a walk of the links the driver has already
+    // allocated.
     private static SQLException droppedTail(List<Throwable> rest) {
         final String message = "the rest of this failure was left out: a chain of more than "
             + MAX_CHAIN_LENGTH + " links is rebuilt only that far";
-        final SQLException gone = firstLinkSayingTheConnectionIsGone(rest);
+        SQLException gone = null;
+        for (final Throwable t : rest) {
+            gone = JDBCStorage.connectionFailureLink(t);
+            if (gone != null) {
+                break;
+            }
+        }
         return gone == null
             ? new SQLException(message)
             : sameKind(gone, message + "; a link of it says the connection is gone", gone.getSQLState(),
                 gone.getErrorCode());
-    }
-
-    // Every link of the rest, by the edges JDBCStorage.isConnectionFailure() walks - the causes, the
-    // further exceptions and what was suppressed - and to its end: the visited set terminates it, and
-    // it builds nothing, so what it costs is a walk of the links the driver has already allocated.
-    private static SQLException firstLinkSayingTheConnectionIsGone(List<Throwable> rest) {
-        final Deque<Throwable> pending = new ArrayDeque<>();
-        final Set<Throwable> visited = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
-        for (final Throwable t : rest) {
-            enqueue(pending, visited, t);
-        }
-        while (!pending.isEmpty()) {
-            final Throwable t = pending.poll();
-            if (t instanceof SQLException) {
-                final SQLException sql = (SQLException) t;
-                if (JDBCStorage.saysTheConnectionIsGone(sql)) {
-                    return sql;
-                }
-                enqueue(pending, visited, sql.getNextException());
-            }
-            enqueue(pending, visited, t.getCause());
-            for (final Throwable suppressed : t.getSuppressed()) {
-                enqueue(pending, visited, suppressed);
-            }
-        }
-        return null;
     }
 
     // A link that is no SQLException keeps its class name in the message: its type is not one this

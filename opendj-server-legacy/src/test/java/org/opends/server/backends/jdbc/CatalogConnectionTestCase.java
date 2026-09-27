@@ -701,6 +701,11 @@ public class CatalogConnectionTestCase extends DirectoryServerTestCase {
 			storageFor(ProbeDriver.URL).newCatalogConnection(NO_REPLAY_WINDOW, DEFAULT_BOUND, 60);
 			fail("a connect that will not clear was retried instead of being reported");
 		} catch (SQLException expected) {
+			// the road this case is about: the timeout of a refusal waited out carries the same tail
+			// as its cause and would pass the rest of this case just as well
+			assertFalse(expected instanceof SQLTimeoutException,
+				"the refusal was retried to the deadline instead of being reported at once");
+			assertEquals(probeDriver.attempts.get(), 1, "the refusal was retried instead of being reported at once");
 			assertTrue(JDBCStorage.isConnectionFailure(refusal), "the refusal of the driver says the connection is gone");
 			assertTrue(JDBCStorage.isConnectionFailure(expected),
 				"the refusal as it left the connect lost what said the connection is gone: " + expected);
