@@ -25,6 +25,7 @@ import java.net.InetAddress;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.RMIServerSocketFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
@@ -319,8 +320,10 @@ public class RmiConnector
       // ---------------------
       // init an ssl context
       // ---------------------
+      // Both server socket factories listen on the configured listen address:
+      // the default RMI factory would listen on every interface.
       SslRMIClientSocketFactory rmiClientSockeyFactory = null;
-      DirectoryRMIServerSocketFactory rmiServerSockeyFactory = null;
+      RMIServerSocketFactory rmiServerSockeyFactory;
       if (jmxConnectionHandler.isUseSSL())
       {
         if (logger.isTraceEnabled())
@@ -355,7 +358,8 @@ public class RmiConnector
         SSLSocketFactory ssf = ctx.getSocketFactory();
 
         // set the Server socket factory in the JMX map
-        rmiServerSockeyFactory = new DirectoryRMIServerSocketFactory(ssf, false);
+        rmiServerSockeyFactory = new DirectoryRMIServerSocketFactory(
+            ssf, false, jmxConnectionHandler.getListenAddress());
         env.put(
             "jmx.remote.rmi.server.socket.factory",
             rmiServerSockeyFactory);
@@ -376,6 +380,8 @@ public class RmiConnector
         {
           logger.trace("UNSECURE CONNECTION");
         }
+        rmiServerSockeyFactory = new OpendsRmiServerSocketFactory(
+            jmxConnectionHandler.getListenAddress());
       }
 
       // specify the rmi JMX authenticator to be used

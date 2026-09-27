@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.protocols.jmx;
 
@@ -136,7 +137,7 @@ public final class JmxConnectionHandler extends
       }
 
       listeners.clear();
-      listeners.add(HostPort.allAddresses(config.getListenPort()));
+      listeners.add(new HostPort(config.getListenAddress().getHostAddress(), config.getListenPort()));
 
       rmiConnector.finalizeConnectionHandler(portChanged);
       try
@@ -302,7 +303,7 @@ public final class JmxConnectionHandler extends
     }
 
     listeners.clear();
-    listeners.add(HostPort.allAddresses(config.getListenPort()));
+    listeners.add(new HostPort(config.getListenAddress().getHostAddress(), config.getListenPort()));
     connectionHandlerName = "JMX Connection Handler " + config.getListenPort();
 
     // Create a system property to store the JMX port the server is

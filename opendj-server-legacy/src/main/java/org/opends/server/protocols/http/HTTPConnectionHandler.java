@@ -770,7 +770,17 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     this.httpServer = createHttpServer();
     this.httpServer.getServerConfiguration().addHttpHandler(newGrizzlyHttpHandler(new RootHttpApplication()));
     logger.trace("Starting HTTP server...");
-    this.httpServer.start();
+    try
+    {
+      this.httpServer.start();
+    }
+    catch (IOException | RuntimeException e)
+    {
+      // HttpServer.start() stops at the first listener that cannot bind and leaves the listeners started before it
+      // bound: release their addresses, since the caller only forgets about the server.
+      this.httpServer.shutdownNow();
+      throw e;
+    }
     logger.trace("HTTP server started");
     logger.info(NOTE_CONNHANDLER_STARTED_LISTENING, handlerName);
   }
@@ -790,13 +800,29 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
       setHttpStatsProbe(server);
     }
 
-    // Configure the network listener
-    final NetworkListener listener = new NetworkListener(
-        "OpenDJ-HTTP", NetworkListener.DEFAULT_NETWORK_HOST, initConfig.getListenPort());
-    server.addListener(listener);
+    // Configure one network listener per listen address, on the addresses and the port that getListeners() reports.
+    // HttpServer keys its listeners by name, and each listener owns its transport, so neither can be shared.
+    final int numRequestHandlers = getNumRequestHandlers(currentConfig.getNumRequestHandlers(), friendlyName);
+    for (InetAddress address : initConfig.getListenAddress())
+    {
+      final String host = address.getHostAddress();
+      final NetworkListener listener = new NetworkListener("OpenDJ-HTTP " + host, host, initConfig.getListenPort());
+      server.addListener(listener);
+      configureTransport(listener.getTransport(), numRequestHandlers);
 
-    // Configure the network transport
-    final TCPNIOTransport transport = listener.getTransport();
+      // Configure SSL
+      if (sslEngineConfigurator != null)
+      {
+        listener.setSecure(true);
+        listener.setSSLEngineConfig(sslEngineConfigurator);
+      }
+    }
+
+    return server;
+  }
+
+  private void configureTransport(TCPNIOTransport transport, int numRequestHandlers)
+  {
     transport.setReuseAddress(currentConfig.isAllowTCPReuseAddress());
     transport.setKeepAlive(currentConfig.isUseTCPKeepAlive());
     transport.setTcpNoDelay(currentConfig.isUseTCPNoDelay());
@@ -807,18 +833,8 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     transport.setWriteBufferSize(bufferSize);
     transport.setIOStrategy(SameThreadIOStrategy.getInstance());
 
-    final int numRequestHandlers = getNumRequestHandlers(currentConfig.getNumRequestHandlers(), friendlyName);
     transport.setSelectorRunnersCount(numRequestHandlers);
     transport.setServerConnectionBackLog(currentConfig.getAcceptBacklog());
-
-    // Configure SSL
-    if (sslEngineConfigurator != null)
-    {
-      listener.setSecure(true);
-      listener.setSSLEngineConfig(sslEngineConfigurator);
-    }
-
-    return server;
   }
 
   private void setHttpStatsProbe(HttpServer server)

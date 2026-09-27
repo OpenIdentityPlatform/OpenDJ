@@ -15,7 +15,17 @@
  */
 package org.opends.server.protocols.http;
 
+import static java.util.concurrent.TimeUnit.*;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.server.config.meta.HTTPConnectionHandlerCfgDefn;
@@ -25,6 +35,8 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.types.Entry;
+import org.opends.server.types.HostPort;
+import org.opends.server.util.TestTimer;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -33,6 +45,9 @@ import org.testng.annotations.Test;
 public class HTTPConnectionHandlerTestCase extends DirectoryServerTestCase
 {
   private static final LocalizableMessage STOP_REASON = LocalizableMessage.raw("Don't need a reason.");
+
+  /** An address of TEST-NET-1 (RFC 5737), which is never assigned to an interface of the host. */
+  private static final String UNASSIGNED_ADDRESS = "192.0.2.1";
 
   @BeforeClass
   public void setUp() throws Exception
@@ -53,15 +68,115 @@ public class HTTPConnectionHandlerTestCase extends DirectoryServerTestCase
   public void testStartWaitsForListenPort() throws Exception
   {
     final int listenPort = TestCaseUtils.findFreePort();
-    Entry handlerEntry = TestCaseUtils.makeEntry(
+    HTTPConnectionHandler handler = newHandler(listenPort, "127.0.0.1");
+    try
+    {
+      handler.start();
+
+      // No retry loop here on purpose: once start() has returned, the port must already be open.
+      TestCaseUtils.assertPortIsAcceptingConnections(listenPort);
+    }
+    finally
+    {
+      stop(handler);
+    }
+  }
+
+  /** A handler restricted to the loopback address must not answer on the other addresses of the host. */
+  @Test
+  public void listensOnlyOnTheConfiguredListenAddress() throws Exception
+  {
+    final InetAddress external = getNonLoopbackAddress();
+    final int listenPort = TestCaseUtils.findFreePort();
+    HTTPConnectionHandler handler = newHandler(listenPort, "127.0.0.1");
+    try
+    {
+      handler.start();
+
+      assertTrue(isAcceptingConnections(loopback(), listenPort), "the configured address is not listened on");
+      assertFalse(isAcceptingConnections(external, listenPort),
+          "the handler answers on " + external.getHostAddress() + ", which is not one of its listen addresses");
+      assertThat(handler.getListeners()).containsExactly(new HostPort("127.0.0.1", listenPort));
+    }
+    finally
+    {
+      stop(handler);
+    }
+  }
+
+  /** Each of several listen addresses gets its own listener. */
+  @Test
+  public void listensOnEveryConfiguredListenAddress() throws Exception
+  {
+    final InetAddress external = getNonLoopbackAddress();
+    final int listenPort = TestCaseUtils.findFreePort();
+    HTTPConnectionHandler handler = newHandler(listenPort, "127.0.0.1", external.getHostAddress());
+    try
+    {
+      handler.start();
+
+      assertTrue(isAcceptingConnections(loopback(), listenPort), "127.0.0.1 is not listened on");
+      assertTrue(isAcceptingConnections(external, listenPort), external.getHostAddress() + " is not listened on");
+      assertThat(handler.getListeners()).containsOnly(
+          new HostPort("127.0.0.1", listenPort), new HostPort(external.getHostAddress(), listenPort));
+    }
+    finally
+    {
+      stop(handler);
+    }
+  }
+
+  /**
+   * When one listen address cannot be bound, the handler does not start, and must not keep the
+   * addresses it has already bound: nothing would ever release them.
+   * <p>
+   * The listener of 127.0.0.1 starts before the one of {@value #UNASSIGNED_ADDRESS}: the embedded
+   * server starts its listeners in the order of a hash map of their names.
+   */
+  @Test
+  public void releasesTheBoundListenAddressesWhenAnotherCannotBeBound() throws Exception
+  {
+    final int listenPort = TestCaseUtils.findFreePort();
+    HTTPConnectionHandler handler = newHandler(listenPort, "127.0.0.1", UNASSIGNED_ADDRESS);
+    try
+    {
+      handler.start();
+
+      // The handler thread tries twice, then disables the handler: wait for it to give up.
+      final InetAddress loopback = loopback();
+      new TestTimer.Builder().maxSleep(10, SECONDS).sleepTimes(100, MILLISECONDS).toTimer()
+          .repeatUntilSuccess(new TestTimer.CallableVoid()
+          {
+            @Override
+            public void call() throws Exception
+            {
+              assertFalse(isAcceptingConnections(loopback, listenPort),
+                  "127.0.0.1 is still listened on although the handler could not start");
+            }
+          });
+    }
+    finally
+    {
+      stop(handler);
+    }
+  }
+
+  private static HTTPConnectionHandler newHandler(int listenPort, String... listenAddresses) throws Exception
+  {
+    final List<String> ldif = new ArrayList<>();
+    Collections.addAll(ldif,
         "dn: cn=HTTP Connection Handler,cn=Connection Handlers,cn=config",
         "objectClass: top",
         "objectClass: ds-cfg-connection-handler",
         "objectClass: ds-cfg-http-connection-handler",
         "cn: HTTP Connection Handler",
         "ds-cfg-java-class: org.opends.server.protocols.http.HTTPConnectionHandler",
-        "ds-cfg-enabled: true",
-        "ds-cfg-listen-address: 127.0.0.1",
+        "ds-cfg-enabled: true");
+    for (String listenAddress : listenAddresses)
+    {
+      ldif.add("ds-cfg-listen-address: " + listenAddress);
+    }
+    Collections.addAll(ldif,
         "ds-cfg-listen-port: " + listenPort,
         "ds-cfg-accept-backlog: 128",
         "ds-cfg-keep-stats: false",
@@ -74,24 +189,25 @@ public class HTTPConnectionHandlerTestCase extends DirectoryServerTestCase
         "ds-cfg-use-ssl: false",
         "ds-cfg-ssl-client-auth-policy: optional",
         "ds-cfg-ssl-cert-nickname: server-cert");
+    Entry handlerEntry = TestCaseUtils.makeEntry(ldif.toArray(new String[0]));
     HTTPConnectionHandlerCfg config =
         InitializationUtils.getConfiguration(HTTPConnectionHandlerCfgDefn.getInstance(), handlerEntry);
 
     HTTPConnectionHandler handler = new HTTPConnectionHandler();
     handler.initializeConnectionHandler(DirectoryServer.getInstance().getServerContext(), config);
-    try
-    {
-      handler.start();
+    return handler;
+  }
 
-      // No retry loop here on purpose: once start() has returned, the port must already be open.
-      TestCaseUtils.assertPortIsAcceptingConnections(listenPort);
-    }
-    finally
-    {
-      handler.processServerShutdown(STOP_REASON);
-      handler.finalizeConnectionHandler(STOP_REASON);
-      handler.join(10000);
-      assertFalse(handler.isAlive(), "the connection handler thread is still running");
-    }
+  private static InetAddress loopback() throws UnknownHostException
+  {
+    return InetAddress.getByName("127.0.0.1");
+  }
+
+  private static void stop(HTTPConnectionHandler handler) throws InterruptedException
+  {
+    handler.processServerShutdown(STOP_REASON);
+    handler.finalizeConnectionHandler(STOP_REASON);
+    handler.join(10000);
+    assertFalse(handler.isAlive(), "the connection handler thread is still running");
   }
 }
