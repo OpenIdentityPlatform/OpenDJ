@@ -56,6 +56,12 @@ jobs:
       with:
         fetch-depth: 0
         submodules: recursive
+    # deploy.yml runs these two scripts only after a push build, so this is the check they
+    # get before merge. It needs the history above: it compares launchers committed on master.
+    - name: Check same-pe-code.py and refresh-launchers.sh against committed launchers
+      if: runner.os == 'Linux' && matrix.java == '11'
+      shell: bash
+      run: bash .github/scripts/test-refresh-launchers.sh
     - name: Java ${{ matrix.Java }} (${{ matrix.os }})
       uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
       with:
@@ -86,9 +92,10 @@ jobs:
         git status
     # Also the source of truth for the committed opendj-server-legacy/lib/*.exe: on a
     # successful push build, deploy.yml downloads windows-exe-11 from this very run and
-    # commits its contents back to the branch. Nothing here compares them with what is
-    # committed - an MSVC toolchain bump on the runner image changes the bytes on its own,
-    # so a byte-for-byte gate would fire without a source change.
+    # commits each launcher that differs from the committed one in more than the toolchain
+    # stamp (.github/scripts/refresh-launchers.sh). Nothing here compares them with what
+    # is committed - an MSVC toolchain bump on the runner image changes the bytes on its
+    # own, so a byte-for-byte gate would fire without a source change.
     - name: Upload Windows exe artifacts
       if: runner.os == 'Windows'
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
