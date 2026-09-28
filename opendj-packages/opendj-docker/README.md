@@ -93,13 +93,15 @@ Every `key*` and `trust*` file of that directory is copied into `/opt/opendj/dat
 before the server starts - on the first start and on every later one, so a certificate
 renewed on the volume reaches an instance kept on a persistent volume. While the server
 runs, the directory is checked again every `SECRET_VOLUME_REFRESH` seconds and a changed
-file is copied again. The server reads the copied keystore when it starts, so a certificate
-renewed while it runs is served from its next restart. A new password is left to the next
-start altogether: the server keeps the one it started with, and a keystore it could no longer
-open would disable the LDAPS handler on the next change to its configuration. So while a
-`keystore.pin` or `truststore.pin` on the volume differs from the one the server started
-with, nothing is copied until the next start, which copies the stores along with their new
-password. The administration connector and replication keep keys of their own and are not
+file is copied again. The server loads a copied keystore or truststore on the next TLS
+handshake, so a renewed certificate is served without a restart, a new password in
+`keystore.pin` or `truststore.pin` included; connections already open keep the certificate
+they were set up with. While it runs, the server takes a renewed keystore only if it holds
+its key under an alias the previous one used as well - cert-manager keeps the alias from
+one renewal to the next. A keystore with only new aliases is served from the next restart,
+and until then the server logs that it could not load it. So does a keystore caught by a
+handshake between its copy and that of its `.pin` file, until the second file is copied as
+well. The administration connector and replication keep keys of their own and are not
 affected.
 
 On Kubernetes, the PEM files of a `kubernetes.io/tls` Secret cannot be used as they are:
