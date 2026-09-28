@@ -39,8 +39,19 @@ import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.PreparedStatement;
+import java.sql.SQLDataException;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.SQLInvalidAuthorizationSpecException;
+import java.sql.SQLNonTransientConnectionException;
+import java.sql.SQLNonTransientException;
+import java.sql.SQLRecoverableException;
+import java.sql.SQLSyntaxErrorException;
 import java.sql.SQLTimeoutException;
+import java.sql.SQLTransactionRollbackException;
+import java.sql.SQLTransientConnectionException;
+import java.sql.SQLTransientException;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
@@ -939,6 +950,157 @@ public class CachedConnectionTestCase extends DirectoryServerTestCase {
 		}
 		assertTrue(String.valueOf(last.getMessage()).contains("left out"),
 			"the tail a rebuild had no budget for has to say so: " + last.getMessage());
+	}
+
+	/**
+	 * A link that says the connection is gone by its type alone still says so once it is rebuilt
+	 * (#1074). The type is what the JDBC contract gives a driver to say it - write() asks it before
+	 * the SQLState - so a copy made as a plain SQLException reads as a failure that says nothing of
+	 * the connection, and only at the deployment whose url has a password in it.
+	 */
+	@Test(timeOut = 60000)
+	public void testALinkThatSaysTheConnectionIsGoneByItsTypeKeepsItThroughRedaction() throws Exception {
+		final String url = "jdbc:postgresql://opendj:S3cretOfTheBackend@127.0.0.1:5432/opendj";
+		for (final SQLException gone : new SQLException[] { new SQLRecoverableException("io error"),
+				new SQLNonTransientConnectionException("closed"), new SQLTransientConnectionException("reset") }) {
+			final SQLException failure = new SQLException("login to " + url + " failed", "S0001", 18456);
+			failure.setNextException(gone);
+
+			final SQLException reported = CachedConnection.reported(failure, url);
+
+			assertNoCredentials(reported);
+			assertTrue(JDBCStorage.isConnectionFailure(reported),
+				"a rebuilt " + gone.getClass().getSimpleName() + " no longer says the connection is gone");
+		}
+	}
+
+	/**
+	 * ... and so does one standing past the budget of the rebuild, whatever it says it by: the link
+	 * that stands for the rest of the chain there is all that the classification of write() gets to
+	 * read of it. The url has no password, and the chain is rebuilt all the same - it is longer than
+	 * the walk looking for credentials, which answers "yes" past it.
+	 */
+	@Test(timeOut = 60000)
+	public void testALinkThatSaysTheConnectionIsGonePastTheBudgetOfARebuildStillSaysSo() throws Exception {
+		final String url = "jdbc:postgresql://127.0.0.1:5432/opendj";
+		for (final SQLException gone : new SQLException[] { new SQLException("connection reset", "08S01", 10054),
+				new SQLRecoverableException("io error") }) {
+			final SQLException failure = plainChain(40);
+			failure.setNextException(gone);
+
+			final SQLException reported = CachedConnection.reported(failure, url);
+
+			assertTrue(reported != failure, "a chain this long is expected to be rebuilt");
+			assertTrue(JDBCStorage.isConnectionFailure(reported),
+				gone + " past the budget of the rebuild no longer says the connection is gone");
+		}
+	}
+
+	/**
+	 * ... and so does one past the budget on any other edge the rebuild cuts: the cause of a link, what
+	 * was suppressed on it - where establish() puts the close that failed (#929) - and the cause of a
+	 * link that is no SQLException, which is rebuilt on a road of its own. Each chain spends the budget
+	 * before the rebuild reaches the edge, so the link that says the connection is gone is behind the
+	 * one that stands for the rest; the last one has it on what was suppressed on a link that is cut,
+	 * which the rest is read for as well.
+	 */
+	@Test(timeOut = 60000)
+	public void testALinkThatSaysTheConnectionIsGoneOnACauseOrASuppressedEdgePastTheBudgetStillSaysSo()
+			throws Exception {
+		final String url = "jdbc:postgresql://127.0.0.1:5432/opendj";
+		final SQLException byCause = plainChain(40);
+		byCause.initCause(new IOException("socket closed", new SQLException("connection reset", "08S01", 10054)));
+		final SQLException bySuppressed = plainChain(40);
+		bySuppressed.addSuppressed(new SQLException("the connection is closed", "08003"));
+		final SQLException byTheCauseOfALinkThatIsNoSQLException = new SQLException("login failed", "S0001", 18456);
+		Throwable wrapper = new SQLException("connection reset", "08S01", 10054);
+		for (int i = 0; i < 40; i++) {
+			wrapper = new IOException("wrapper " + i, wrapper);
+		}
+		byTheCauseOfALinkThatIsNoSQLException.initCause(wrapper);
+		final SQLException byTheSuppressedOfALinkCut = plainChain(40);
+		lastOf(byTheSuppressedOfALinkCut).addSuppressed(new SQLException("the connection is closed", "08003"));
+		final Object[][] cases = {
+			{ "the cause", byCause },
+			{ "the suppressed", bySuppressed },
+			{ "the cause of a link that is no SQLException", byTheCauseOfALinkThatIsNoSQLException },
+			{ "what was suppressed on a link cut", byTheSuppressedOfALinkCut } };
+		for (final Object[] edge : cases) {
+			final SQLException failure = (SQLException) edge[1];
+			assertTrue(JDBCStorage.isConnectionFailure(failure), edge[0] + ": the failure itself says the connection is gone");
+
+			final SQLException reported = CachedConnection.reported(failure, url);
+
+			assertNotSame(reported, failure, edge[0] + ": a chain this long is expected to be rebuilt");
+			assertTrue(JDBCStorage.isConnectionFailure(reported),
+				edge[0] + " cut past the budget no longer says the connection is gone");
+		}
+	}
+
+	/**
+	 * Every standard type of JDBC a link can be of survives its rebuild, not only the three that say
+	 * the connection is gone: each is read somewhere - a SQLTimeoutException is what sends a borrow of
+	 * an import to the debug log rather than the warn one (borrowedOrShared()) - and a rebuild that
+	 * turned one into its supertype would classify the same failure one way where the url of the
+	 * backend has no password and the other where it does. Each type is asked for before its
+	 * supertype, so a check out of order fails here as well.
+	 */
+	@Test(timeOut = 60000)
+	public void testEveryStandardTypeOfALinkIsKeptThroughRedaction() throws Exception {
+		final String url = "jdbc:postgresql://opendj:S3cretOfTheBackend@127.0.0.1:5432/opendj";
+		final String message = "login to " + url + " failed";
+		for (final SQLException original : new SQLException[] {
+				new SQLRecoverableException(message, "08006", 17002),
+				new SQLNonTransientConnectionException(message, "08001", 0),
+				new SQLTransientConnectionException(message, "08001", 0),
+				new SQLTimeoutException(message, "HYT00", 0),
+				new SQLTransactionRollbackException(message, "40001", 1205),
+				new SQLFeatureNotSupportedException(message, "0A000", 0),
+				new SQLIntegrityConstraintViolationException(message, "23000", 2627),
+				new SQLInvalidAuthorizationSpecException(message, "28000", 18456),
+				new SQLSyntaxErrorException(message, "42000", 0),
+				new SQLDataException(message, "22000", 0),
+				new SQLTransientException(message, "S1000", 0),
+				new SQLNonTransientException(message, "S1000", 0),
+				new SQLException(message, "S1000", 0) }) {
+			final SQLException reported = CachedConnection.reported(original, url);
+
+			assertNoCredentials(reported);
+			assertEquals(reported.getClass(), original.getClass(), "the rebuild changed the type of the link");
+			assertEquals(reported.getSQLState(), original.getSQLState(), "the rebuild changed the SQLState of the link");
+			assertEquals(reported.getErrorCode(), original.getErrorCode(), "the rebuild changed the vendor code of the link");
+		}
+	}
+
+	/**
+	 * The link standing for the rest says only what the rest says: a chain that says nothing of the
+	 * connection is not made to say it is gone by being cut. That would replay the write and distrust
+	 * the pool over a database that refused a connection for a reason of its own.
+	 */
+	@Test(timeOut = 60000)
+	public void testALongChainThatSaysNothingOfTheConnectionIsNotMadeToSayItByTheRebuild() throws Exception {
+		final SQLException reported = CachedConnection.reported(plainChain(40), "jdbc:postgresql://127.0.0.1:5432/opendj");
+
+		assertFalse(JDBCStorage.isConnectionFailure(reported),
+			"the rebuild made a failure that says nothing of the connection say it is gone");
+	}
+
+	/** That many plain links of the next exception chain, none of which says the connection is gone. */
+	private static SQLException plainChain(int links) {
+		final SQLException head = new SQLException("error 0", "S0001", 1);
+		for (int i = 1; i < links; i++) {
+			head.setNextException(new SQLException("error " + i, "S0001", 1));
+		}
+		return head;
+	}
+
+	/** The last link of the next exception chain of a failure. */
+	private static SQLException lastOf(SQLException failure) {
+		SQLException last = failure;
+		while (last.getNextException() != null) {
+			last = last.getNextException();
+		}
+		return last;
 	}
 
 	/**

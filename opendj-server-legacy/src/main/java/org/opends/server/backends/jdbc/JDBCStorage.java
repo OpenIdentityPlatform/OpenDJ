@@ -4842,7 +4842,20 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 	 * failover took, and {@link #replayReason} fails an attempt that was worth replaying (issue #961).
 	 */
 	static boolean isConnectionFailure(Throwable failure) {
-		return firstLinkMatching(failure, WITH_THE_RELEASE, EVERY_LINK, JDBCStorage::saysTheConnectionIsGone)!=null;
+		return connectionFailureLink(failure)!=null;
+	}
+
+	/**
+	 * The link of a failure that says the connection is gone, found by the walk {@link #isConnectionFailure} answers
+	 * from, or null where none says so.
+	 * <p>
+	 * Package-private for the one other reader it has, the redaction of a connect failure in {@link
+	 * CachedConnection}: what that rebuild leaves in place of a chain past its budget has to say what this reads
+	 * off the links it cuts (#1074). It asks for the walk rather than for the question alone, so that a change to
+	 * the edges this walks changes what the tail carries along with what {@link #write} reads.
+	 */
+	static SQLException connectionFailureLink(Throwable failure) {
+		return firstLinkMatching(failure, WITH_THE_RELEASE, EVERY_LINK, JDBCStorage::saysTheConnectionIsGone);
 	}
 
 	/**
@@ -7071,8 +7084,9 @@ public class JDBCStorage implements org.opends.server.backends.pluggable.spi.Sto
 		 * database that its dialect table does not recognize is raised at once instead: a mysql
 		 * account with a {@code MAX_USER_CONNECTIONS} of its own answers 1226 on SQLState 42000, and
 		 * a driver of no known dialect has no vendor code read at all (issue #1011). The type is no
-		 * rule either: a failure whose chain names the credentials of the backend is rebuilt as a
-		 * plain {@code SQLException} whatever the driver threw. Sorting them here would be that
+		 * rule either: a driver need not raise the standard JDBC type that names what happened, and a
+		 * failure whose chain names the credentials of the backend keeps only that standard type, not
+		 * the class of the driver (#1074). Sorting them here would be that
 		 * classification written out a second time, with the failure of a multi-hour import as the
 		 * cost of getting it wrong (issue #1013).
 		 * <p>
