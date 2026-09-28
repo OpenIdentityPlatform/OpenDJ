@@ -24,6 +24,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -211,9 +212,10 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     }
 
     // Reconfigure SSL if needed.
+    final List<LocalizableMessage> noKeyReasons;
     try
     {
-      configureSSL(config);
+      noKeyReasons = configureSSL(config);
     }
     catch (DirectoryException e)
     {
@@ -221,6 +223,20 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
       ccr.setResultCode(e.getResultCode());
       ccr.addMessage(e.getMessageObject());
       return ccr;
+    }
+    if (!noKeyReasons.isEmpty())
+    {
+      // The check refuses such a configuration, but the key store may have changed since.
+      // The SSL settings take effect only when the handler restarts, and it will not start with these.
+      for (LocalizableMessage reason : noKeyReasons)
+      {
+        logger.error(reason);
+        ccr.addMessage(reason);
+      }
+      final LocalizableMessage warning = WARN_CONNHANDLER_NO_KEY_UNTIL_RESTART.get(friendlyName);
+      logger.warn(warning);
+      ccr.addMessage(warning);
+      ccr.setAdminActionRequired(true);
     }
 
     if (config.isEnabled() && this.currentConfig.isEnabled() && isListening())
@@ -242,7 +258,9 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
 
     this.initConfig = config;
     this.currentConfig = config;
-    this.enabled = this.currentConfig.isEnabled();
+    // Without a key it can present, a running handler keeps serving with the SSL settings it started with,
+    // and a handler that is down does not start.
+    this.enabled = config.isEnabled() && (noKeyReasons.isEmpty() || isListening());
 
     return ccr;
   }
@@ -277,18 +295,22 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     return b1 == b2;
   }
 
-  private void configureSSL(HTTPConnectionHandlerCfg config)
+  /**
+   * Sets the SSL engine configurator that the handler starts its HTTP server with.
+   *
+   * @param config
+   *          the configuration to take the SSL settings from
+   * @return why the configuration leaves the handler without a key it can present, empty when it has one
+   * @throws DirectoryException
+   *           if the SSL context cannot be created
+   */
+  private List<LocalizableMessage> configureSSL(HTTPConnectionHandlerCfg config)
       throws DirectoryException
   {
     protocol = config.isUseSSL() ? "HTTPS" : "HTTP";
-    if (config.isUseSSL())
-    {
-      sslEngineConfigurator = createSSLEngineConfigurator(config, true);
-    }
-    else
-    {
-      sslEngineConfigurator = null;
-    }
+    final List<LocalizableMessage> noKeyReasons = new ArrayList<>();
+    sslEngineConfigurator = createSSLEngineConfigurator(config, noKeyReasons);
+    return noKeyReasons;
   }
 
   @Override
@@ -435,15 +457,25 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     handlerName = getHandlerName(config);
 
     // Configure SSL if needed.
+    final List<LocalizableMessage> noKeyReasons;
     try
     {
-      // This call may disable the connector if wrong SSL settings
-      configureSSL(config);
+      noKeyReasons = configureSSL(config);
     }
     catch (DirectoryException e)
     {
       logger.traceException(e);
       throw new InitializationException(e.getMessageObject());
+    }
+    if (!noKeyReasons.isEmpty())
+    {
+      // A handler without a key it can present does not start.
+      for (LocalizableMessage reason : noKeyReasons)
+      {
+        logger.error(reason);
+      }
+      logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
+      this.enabled = false;
     }
 
     // Create and register monitors.
@@ -495,14 +527,21 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
 
     if (config.isEnabled() && config.isUseSSL())
     {
+      final List<LocalizableMessage> noKeyReasons = new ArrayList<>();
       try
       {
-        createSSLEngineConfigurator(config, false);
+        createSSLEngineConfigurator(config, noKeyReasons);
       }
       catch (DirectoryException e)
       {
         logger.traceException(e);
         unacceptableReasons.add(e.getMessageObject());
+        return false;
+      }
+      if (!noKeyReasons.isEmpty())
+      {
+        // The SSL settings take effect only when the handler restarts, and it would not start with these.
+        unacceptableReasons.addAll(noKeyReasons);
         return false;
       }
     }
@@ -822,17 +861,15 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
    *
    * @param config
    *          the configuration to create the SSL engine configurator for
-   * @param forUse
-   *          {@code true} when the handler is going to use the configurator: at its start a handler
-   *          without a usable key is disabled ({@link #applyConfigurationChange} sets {@code enabled}
-   *          from the configuration afterwards); {@code false} when the configurator only checks a
-   *          proposed configuration, which must leave the running handler as it is
+   * @param noKeyReasons
+   *          receives why the configuration leaves the handler without a key it can present; the
+   *          caller decides what that means for the handler, which this method leaves as it is
    * @return the SSL engine configurator, or {@code null} if the configuration does not use SSL
    * @throws DirectoryException
    *           if the SSL context cannot be created
    */
-  private SSLEngineConfigurator createSSLEngineConfigurator(HTTPConnectionHandlerCfg config, boolean forUse)
-      throws DirectoryException
+  private SSLEngineConfigurator createSSLEngineConfigurator(HTTPConnectionHandlerCfg config,
+      List<LocalizableMessage> noKeyReasons) throws DirectoryException
   {
     if (!config.isUseSSL())
     {
@@ -841,7 +878,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
 
     try
     {
-      SSLContext sslContext = createSSLContext(config, forUse);
+      SSLContext sslContext = createSSLContext(config, noKeyReasons);
       SSLEngineConfigurator configurator = new SSLEngineConfigurator(sslContext);
       configurator.setClientMode(false);
 
@@ -889,16 +926,20 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     }
   }
 
-  private void disableAndWarn(boolean forUse)
-  {
-    if (forUse)
-    {
-      logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
-      enabled = false;
-    }
-  }
-
-  private SSLContext createSSLContext(HTTPConnectionHandlerCfg config, boolean forUse) throws Exception
+  /**
+   * Creates the SSL context for the provided configuration. The configuration is named by its own name
+   * rather than by {@code friendlyName}, which is not set yet when the check runs on a new instance.
+   *
+   * @param config
+   *          the configuration to create the SSL context for
+   * @param noKeyReasons
+   *          receives why the configuration leaves the handler without a key it can present
+   * @return the SSL context, or {@code null} if the configuration does not use SSL
+   * @throws Exception
+   *           if the SSL context cannot be created
+   */
+  private SSLContext createSSLContext(HTTPConnectionHandlerCfg config, List<LocalizableMessage> noKeyReasons)
+      throws Exception
   {
     if (!config.isUseSSL())
     {
@@ -909,14 +950,12 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     KeyManagerProvider<?> keyManagerProvider = serverContext.getKeyManagerProvider(keyMgrDN);
     if (keyManagerProvider == null)
     {
-      logger.error(ERR_NULL_KEY_PROVIDER_MANAGER, keyMgrDN, friendlyName);
+      noKeyReasons.add(ERR_NULL_KEY_PROVIDER_MANAGER.get(keyMgrDN, config.name()));
       keyManagerProvider = new NullKeyManagerProvider();
-      disableAndWarn(forUse);
     }
     else if (!keyManagerProvider.containsAtLeastOneKey())
     {
-      logger.error(ERR_INVALID_KEYSTORE, friendlyName);
-      disableAndWarn(forUse);
+      noKeyReasons.add(ERR_INVALID_KEYSTORE.get(config.name()));
     }
 
     final SortedSet<String> aliases = new TreeSet<>(config.getSSLCertNickname());
@@ -927,18 +966,28 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     }
     else
     {
+      final List<LocalizableMessage> missingAliases = new ArrayList<>();
       final Iterator<String> it = aliases.iterator();
       while (it.hasNext())
       {
-        if (!keyManagerProvider.containsKeyWithAlias(it.next()))
+        final String alias = it.next();
+        if (!keyManagerProvider.containsKeyWithAlias(alias))
         {
-          logger.error(ERR_KEYSTORE_DOES_NOT_CONTAIN_ALIAS, aliases, friendlyName);
+          missingAliases.add(ERR_KEYSTORE_DOES_NOT_CONTAIN_ALIAS.get(alias, config.name()));
           it.remove();
         }
       }
       if (aliases.isEmpty())
       {
-        disableAndWarn(forUse);
+        noKeyReasons.addAll(missingAliases);
+      }
+      else
+      {
+        // One of the other aliases is there, so the handler still has a key it can present.
+        for (LocalizableMessage missingAlias : missingAliases)
+        {
+          logger.error(missingAlias);
+        }
       }
       keyManagers = SelectableCertificateKeyManager.wrap(keyManagerProvider.getKeyManagers(), aliases, friendlyName);
     }

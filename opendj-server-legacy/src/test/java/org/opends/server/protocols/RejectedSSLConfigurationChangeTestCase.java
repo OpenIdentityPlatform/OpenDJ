@@ -15,17 +15,19 @@
  */
 package org.opends.server.protocols;
 
-import static org.opends.messages.ProtocolMessages.ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE;
+import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -68,7 +70,9 @@ import org.testng.annotations.Test;
 /**
  * A change to an SSL connection handler that is rejected because its key store cannot be loaded
  * must leave the running handler as it was: listening, with the SSL context it had. The start of a handler, and a
- * change applied to an LDAP handler, still disable it when it has no key it can present.
+ * change applied to an LDAP handler, still disable it when it has no key it can present. The SSL settings of the HTTP
+ * handler take effect only when it restarts, so its check refuses a configuration without such a key, and a change
+ * applied without one leaves the handler as it is.
  */
 @SuppressWarnings("javadoc")
 @Test(groups = { "precommit" }, sequential = true)
@@ -81,10 +85,23 @@ public class RejectedSSLConfigurationChangeTestCase extends DirectoryServerTestC
   private static final long KEEPS_SERVING_MS = TimeUnit.SECONDS.toMillis(3);
   /** How long a handler that has been disabled may take to stop listening: its thread checks every second. */
   private static final long STOPS_LISTENING_MS = TimeUnit.SECONDS.toMillis(10);
+  /** How long a handler that has been enabled may take to start listening: its thread checks every second. */
+  private static final long STARTS_LISTENING_MS = TimeUnit.SECONDS.toMillis(10);
 
   private enum Kind
   {
     LDAP2, LDAP_LEGACY, HTTP
+  }
+
+  /** Why a configuration leaves the handler without a key it can present. */
+  private enum MissingKey
+  {
+    /** The key store holds no key with the configured {@code ssl-cert-nickname}. */
+    ALIAS,
+    /** The key store can be loaded, but holds no key. */
+    EMPTY_KEY_STORE,
+    /** No key manager provider is registered under the configured DN. */
+    NO_PROVIDER
   }
 
   private static final class NoChanges<C extends Configuration> implements ConfigurationChangeListener<C>
@@ -253,7 +270,8 @@ public class RejectedSSLConfigurationChangeTestCase extends DirectoryServerTestC
    * An applied change that leaves an LDAP handler without the certificate it is configured to present still disables
    * it. The check accepts such a change, so dsconfig reaches this road. Only {@link LDAPConnectionHandler2} is
    * covered: the legacy handler keeps accepting TCP connections while it is disabled, so a refused connect cannot
-   * tell, and the HTTP handler sets {@code enabled} from the configuration after the SSL context is built.
+   * tell, and the SSL settings of the HTTP handler take effect only when it restarts
+   * ({@link #httpAppliedChangeWithoutAKeyKeepsServingUntilTheRestart}).
    */
   @SuppressWarnings("unchecked")
   @Test
@@ -292,6 +310,276 @@ public class RejectedSSLConfigurationChangeTestCase extends DirectoryServerTestC
     }
   }
 
+  @DataProvider
+  public Object[][] missingKeys()
+  {
+    return new Object[][] {
+      { MissingKey.ALIAS, true }, { MissingKey.ALIAS, false },
+      { MissingKey.EMPTY_KEY_STORE, true }, { MissingKey.EMPTY_KEY_STORE, false },
+      { MissingKey.NO_PROVIDER, true }, { MissingKey.NO_PROVIDER, false },
+    };
+  }
+
+  /**
+   * The SSL settings of the HTTP handler take effect only when it restarts, and a handler without a key it can present
+   * does not start. So its check refuses a configuration without such a key, with the reason, both as a change to a
+   * running handler and as a handler being added or enabled, which is checked on a new instance.
+   */
+  @Test(dataProvider = "missingKeys")
+  public void httpCheckRefusesAConfigurationWithoutAKey(MissingKey missing, boolean running) throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final HTTPConnectionHandler handler = running
+        ? (HTTPConnectionHandler) start(Kind.HTTP, configuration(Kind.HTTP, port, null, "5 megabytes", true))
+        : new HTTPConnectionHandler();
+    try
+    {
+      if (running)
+      {
+        assertServesTLS(port);
+      }
+
+      final ConnectionHandlerCfg change = configuration(
+          Kind.HTTP, port, missing == MissingKey.ALIAS ? "no-such-cert" : null, "6 megabytes", true);
+      final List<LocalizableMessage> reasons = new ArrayList<>();
+      final boolean accepted;
+      switch (missing)
+      {
+      case EMPTY_KEY_STORE:
+        writeEmptyKeyStore();
+        accepted = handler.isConfigurationAcceptable(change, reasons);
+        break;
+      case NO_PROVIDER:
+        final KeyManagerProvider<?> provider = DirectoryServer.getKeyManagerProvider(KEY_MANAGER_DN);
+        assertNotNull(provider, "the key manager provider of the test is not registered");
+        DirectoryServer.deregisterKeyManagerProvider(KEY_MANAGER_DN);
+        try
+        {
+          accepted = handler.isConfigurationAcceptable(change, reasons);
+        }
+        finally
+        {
+          DirectoryServer.registerKeyManagerProvider(KEY_MANAGER_DN, provider);
+        }
+        break;
+      default:
+        accepted = handler.isConfigurationAcceptable(change, reasons);
+        break;
+      }
+
+      assertFalse(accepted, "a configuration without a key the handler can present was accepted");
+      assertEquals(reasons.size(), 1, String.valueOf(reasons));
+      final int expected;
+      switch (missing)
+      {
+      case ALIAS:
+        expected = ERR_KEYSTORE_DOES_NOT_CONTAIN_ALIAS.ordinal();
+        break;
+      case EMPTY_KEY_STORE:
+        expected = ERR_INVALID_KEYSTORE.ordinal();
+        break;
+      default:
+        expected = ERR_NULL_KEY_PROVIDER_MANAGER.ordinal();
+        break;
+      }
+      assertEquals(reasons.get(0).ordinal(), expected, String.valueOf(reasons));
+      assertTrue(reasons.get(0).toString().contains("'Rejected Change Handler'"),
+          "the reason does not name the handler: " + reasons);
+
+      if (running)
+      {
+        assertKeepsServingTLS(port);
+      }
+    }
+    finally
+    {
+      if (running)
+      {
+        stop(handler);
+      }
+    }
+  }
+
+  @DataProvider
+  public Object[][] appliedMissingKeys()
+  {
+    return new Object[][] { { MissingKey.ALIAS }, { MissingKey.EMPTY_KEY_STORE } };
+  }
+
+  /**
+   * A configuration of the HTTP handler that names several certificates, only some of which are in the key store,
+   * still leaves it a key it can present, so the check accepts it.
+   */
+  @Test
+  public void httpCheckAcceptsAConfigurationWithOneOfItsCertificates() throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final HTTPConnectionHandler handler =
+        (HTTPConnectionHandler) start(Kind.HTTP, configuration(Kind.HTTP, port, null, "5 megabytes", true));
+    try
+    {
+      final List<LocalizableMessage> reasons = new ArrayList<>();
+      assertTrue(handler.isConfigurationAcceptable(
+          configuration(Kind.HTTP, port, "no-such-cert,server-cert", "5 megabytes", true), reasons),
+          String.valueOf(reasons));
+    }
+    finally
+    {
+      stop(handler);
+    }
+  }
+
+  /**
+   * A change applied to a running HTTP handler that leaves it without a key it can present does not stop it: its SSL
+   * settings take effect only when it restarts. The check refuses such a change, but the key store can change between
+   * the check and the apply. The handler keeps serving with the key it has, does not log that it is disabled, and the
+   * result asks for administrative action and warns that it will not start with this configuration. With
+   * {@link MissingKey#EMPTY_KEY_STORE} the applied configuration is the one the handler runs with, so nothing but the
+   * missing key asks for that action.
+   */
+  @Test(dataProvider = "appliedMissingKeys")
+  public void httpAppliedChangeWithoutAKeyKeepsServingUntilTheRestart(MissingKey missing) throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final HTTPConnectionHandler handler =
+        (HTTPConnectionHandler) start(Kind.HTTP, configuration(Kind.HTTP, port, null, "5 megabytes", true));
+    try
+    {
+      assertServesTLS(port);
+
+      if (missing == MissingKey.EMPTY_KEY_STORE)
+      {
+        writeEmptyKeyStore();
+      }
+      TestCaseUtils.ERROR_TEXT_WRITER.clear();
+      final ConfigChangeResult result = handler.applyConfigurationChange((HTTPConnectionHandlerCfg) configuration(
+          Kind.HTTP, port, missing == MissingKey.ALIAS ? "no-such-cert" : null, "5 megabytes", true));
+
+      assertEquals(result.getResultCode(), ResultCode.SUCCESS, String.valueOf(result.getMessages()));
+      assertTrue(result.adminActionRequired(), String.valueOf(result.getMessages()));
+      assertTrue(containsOrdinal(result.getMessages(), WARN_CONNHANDLER_NO_KEY_UNTIL_RESTART.ordinal()),
+          "the result does not warn that the handler will not start: " + result.getMessages());
+      final int reason = missing == MissingKey.ALIAS
+          ? ERR_KEYSTORE_DOES_NOT_CONTAIN_ALIAS.ordinal() : ERR_INVALID_KEYSTORE.ordinal();
+      assertTrue(containsOrdinal(result.getMessages(), reason),
+          "the result does not say why the key is missing: " + result.getMessages());
+      assertKeepsServingTLS(port);
+      final String disabling = "msgID=" + INFO_DISABLE_CONNECTION.ordinal() + " ";
+      for (String logged : TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+      {
+        assertFalse(logged.contains(disabling), "logged although the handler keeps serving: " + logged);
+      }
+    }
+    finally
+    {
+      stop(handler);
+    }
+  }
+
+  /**
+   * An HTTP handler that its start disabled for want of a key stays down when a change that still leaves it without one
+   * is applied: it does not start listening without a key it can present.
+   */
+  @Test
+  public void httpHandlerDisabledAtItsStartStaysDownOnAChangeStillWithoutAKey() throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final HTTPConnectionHandler handler =
+        (HTTPConnectionHandler) start(Kind.HTTP, configuration(Kind.HTTP, port, "no-such-cert", "5 megabytes", true));
+    try
+    {
+      assertDoesNotListen(port);
+
+      handler.applyConfigurationChange(
+          (HTTPConnectionHandlerCfg) configuration(Kind.HTTP, port, "no-such-cert", "6 megabytes", true));
+
+      final long deadline = System.currentTimeMillis() + KEEPS_SERVING_MS;
+      do
+      {
+        assertDoesNotListen(port);
+        Thread.sleep(250);
+      }
+      while (System.currentTimeMillis() < deadline);
+    }
+    finally
+    {
+      stop(handler);
+    }
+  }
+
+  /** An HTTP handler that its start disabled for want of a key starts once a change that gives it one is applied. */
+  @Test
+  public void httpHandlerDisabledAtItsStartStartsOnAChangeThatGivesItAKey() throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final HTTPConnectionHandler handler =
+        (HTTPConnectionHandler) start(Kind.HTTP, configuration(Kind.HTTP, port, "no-such-cert", "5 megabytes", true));
+    try
+    {
+      assertDoesNotListen(port);
+
+      final HTTPConnectionHandlerCfg change =
+          (HTTPConnectionHandlerCfg) configuration(Kind.HTTP, port, "server-cert", "5 megabytes", true);
+      final List<LocalizableMessage> reasons = new ArrayList<>();
+      assertTrue(handler.isConfigurationAcceptable(change, reasons), String.valueOf(reasons));
+      handler.applyConfigurationChange(change);
+
+      final long deadline = System.currentTimeMillis() + STARTS_LISTENING_MS;
+      while (true)
+      {
+        try (Socket socket = new Socket("127.0.0.1", port))
+        {
+          break;
+        }
+        catch (ConnectException e)
+        {
+          assertTrue(System.currentTimeMillis() < deadline,
+              "the handler does not listen on port " + port + " after a change gave it its certificate");
+        }
+        Thread.sleep(250);
+      }
+      assertServesTLS(port);
+    }
+    finally
+    {
+      stop(handler);
+    }
+  }
+
+  private static boolean containsOrdinal(List<LocalizableMessage> messages, int ordinal)
+  {
+    for (LocalizableMessage message : messages)
+    {
+      if (message.ordinal() == ordinal)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private void writeEmptyKeyStore() throws Exception
+  {
+    final KeyStore empty = KeyStore.getInstance("JKS");
+    empty.load(null, null);
+    try (OutputStream out = Files.newOutputStream(keyStore.toPath()))
+    {
+      empty.store(out, "password".toCharArray());
+    }
+  }
+
+  private static void assertDoesNotListen(int port) throws IOException
+  {
+    try (Socket socket = new Socket("127.0.0.1", port))
+    {
+      fail("the handler listens on port " + port + " without a key it can present");
+    }
+    catch (ConnectException expected)
+    {
+      // not listening
+    }
+  }
+
   private static ConnectionHandlerCfg configuration(Kind kind, int port, String certNickname, String maxRequestSize,
       boolean useSSL) throws Exception
   {
@@ -317,7 +605,11 @@ public class RejectedSSLConfigurationChangeTestCase extends DirectoryServerTestC
     }
     if (certNickname != null)
     {
-      lines.add("ds-cfg-ssl-cert-nickname: " + certNickname);
+      // several nicknames are separated by commas
+      for (String nickname : certNickname.split(","))
+      {
+        lines.add("ds-cfg-ssl-cert-nickname: " + nickname);
+      }
     }
     if (kind == Kind.HTTP)
     {
