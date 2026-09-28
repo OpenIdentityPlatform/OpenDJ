@@ -89,6 +89,14 @@ public final class JmxConnectionHandler extends
   private final List<HostPort> listeners = new LinkedList<>();
 
   /**
+   * The address the RMI registry and the RMI connector listen on. A change of
+   * listen-address takes effect when the handler restarts, as its
+   * configuration says: the registry, the connector and the listeners stay
+   * on the same address until then.
+   */
+  private InetAddress listenAddress;
+
+  /**
    * Creates a new instance of this JMX connection handler. It must be
    * initialized before it may be used.
    */
@@ -106,17 +114,10 @@ public final class JmxConnectionHandler extends
     // Determine whether the RMI connection needs restarting.
     boolean rmiConnectorRestart = false;
     boolean portChanged = false;
-    boolean addressChanged = false;
 
     if (currentConfig.getListenPort() != config.getListenPort()) {
       rmiConnectorRestart = true;
       portChanged = true;
-    }
-
-    // The RMI registry listens on the listen address too: it moves with the connector.
-    if (!currentConfig.getListenAddress().equals(config.getListenAddress())) {
-      rmiConnectorRestart = true;
-      addressChanged = true;
     }
 
     if (currentConfig.getRmiPort() != config.getRmiPort())
@@ -144,9 +145,9 @@ public final class JmxConnectionHandler extends
       }
 
       listeners.clear();
-      listeners.add(new HostPort(config.getListenAddress().getHostAddress(), config.getListenPort()));
+      listeners.add(new HostPort(listenAddress.getHostAddress(), config.getListenPort()));
 
-      rmiConnector.finalizeConnectionHandler(portChanged || addressChanged);
+      rmiConnector.finalizeConnectionHandler(portChanged);
       try
       {
         rmiConnector.initialize();
@@ -232,13 +233,14 @@ public final class JmxConnectionHandler extends
 
 
   /**
-   * Get the JMX connection handler's listen address.
+   * Get the JMX connection handler's listen address: the one it was
+   * initialized with, until it restarts.
    *
    * @return Returns the JMX connection handler's listen address.
    */
   public InetAddress getListenAddress()
   {
-    return currentConfig.getListenAddress();
+    return listenAddress;
   }
 
   /**
@@ -309,8 +311,9 @@ public final class JmxConnectionHandler extends
       protocol = "JMX";
     }
 
+    listenAddress = config.getListenAddress();
     listeners.clear();
-    listeners.add(new HostPort(config.getListenAddress().getHostAddress(), config.getListenPort()));
+    listeners.add(new HostPort(listenAddress.getHostAddress(), config.getListenPort()));
     connectionHandlerName = "JMX Connection Handler " + config.getListenPort();
 
     // Create a system property to store the JMX port the server is

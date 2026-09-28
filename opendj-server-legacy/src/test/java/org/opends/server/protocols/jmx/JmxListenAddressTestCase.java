@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +46,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.HostPort;
+import org.testng.SkipException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -220,23 +223,67 @@ public class JmxListenAddressTestCase extends DirectoryServerTestCase
     }
   }
 
-  /** The RMI registry moves with the RMI connector to a new listen address. */
+  /**
+   * A change of listen-address takes effect when the handler restarts: until then, the RMI
+   * registry, the RMI connector restarted by another change and the listeners stay on the address
+   * the handler was initialized with.
+   */
   @Test
-  public void movesToANewListenAddress() throws Exception
+  public void keepsItsListenAddressUntilItRestarts() throws Exception
   {
-    final int[] ports = TestCaseUtils.findFreePorts(2);
+    final int[] ports = TestCaseUtils.findFreePorts(3);
     final int listenPort = ports[0];
-    final int rmiPort = ports[1];
 
-    JmxConnectionHandler handler = newHandler(listenAddress, listenPort, rmiPort, false);
+    JmxConnectionHandler handler = newHandler(listenAddress, listenPort, ports[1], false);
     try
     {
       handler.run();
-      applyConfigurationChange(handler, newConfig(otherAddress, listenPort, rmiPort, false));
+      applyConfigurationChange(handler, newConfig(otherAddress, listenPort, ports[2], false));
 
-      assertListensOnlyOn(otherAddress, listenPort, rmiPort);
-      assertThat(handler.getListeners()).containsExactly(new HostPort(otherAddress.getHostAddress(), listenPort));
-      assertOpensASession(otherAddress, listenPort);
+      assertListensOnlyOn(listenAddress, listenPort, ports[2]);
+      assertThat(handler.getListeners()).containsExactly(new HostPort(listenAddress.getHostAddress(), listenPort));
+      assertOpensASession(listenAddress, listenPort);
+    }
+    finally
+    {
+      handler.finalizeConnectionHandler(STOP_REASON);
+    }
+  }
+
+  /**
+   * A handler restarted on the wildcard address no longer sends clients to the loopback address a
+   * previous one listened on.
+   */
+  @Test
+  public void stopsAdvertisingTheLoopbackAddressOnTheWildcardAddress() throws Exception
+  {
+    if (InetAddress.getLocalHost().isLoopbackAddress())
+    {
+      throw new SkipException("the JDK advertises a loopback address anyway");
+    }
+    final int[] ports = TestCaseUtils.findFreePorts(4);
+    JmxConnectionHandler handler = newHandler(InetAddress.getByName("127.0.0.1"), ports[0], ports[1], false);
+    try
+    {
+      handler.run();
+    }
+    finally
+    {
+      handler.finalizeConnectionHandler(STOP_REASON);
+    }
+
+    handler = newHandler(InetAddress.getByName("0.0.0.0"), ports[2], ports[3], false);
+    try
+    {
+      handler.run();
+
+      final Registry registry = LocateRegistry.getRegistry("127.0.0.1", ports[2]);
+      final String[] names = registry.list();
+      assertThat(names).isNotEmpty();
+      for (String name : names)
+      {
+        assertThat(registry.lookup(name).toString()).doesNotContain("[127.0.0.1:").doesNotContain("[0.0.0.0:");
+      }
     }
     finally
     {
@@ -247,13 +294,15 @@ public class JmxListenAddressTestCase extends DirectoryServerTestCase
   /**
    * The host that the operator gives the stubs to advertise, behind a NAT for instance, is kept.
    * <p>
-   * Runs last: once cleared, the property leaves the JDK advertising the host it last read.
+   * The name is one the server never records itself, which advertises addresses only. It is
+   * reachable, since the registry calls the stubs bound in it. Runs last: once cleared, the property
+   * leaves the JDK advertising the host it last read.
    */
   @Test(priority = 1)
   public void keepsTheOperatorsRmiServerHostname() throws Exception
   {
     final int[] ports = TestCaseUtils.findFreePorts(2);
-    final String operatorsHostname = otherAddress.getHostAddress();
+    final String operatorsHostname = "localhost";
     System.setProperty(RMI_SERVER_HOSTNAME, operatorsHostname);
     JmxConnectionHandler handler = newHandler(listenAddress, ports[0], ports[1], false);
     try

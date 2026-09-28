@@ -22,6 +22,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -466,15 +467,40 @@ public class RmiConnector
     }
     if (listenAddress.isAnyLocalAddress())
     {
-      // Without the property, the JDK keeps advertising the last host it read,
-      // which a connector listening on every address accepts as well.
-      System.clearProperty(RMI_SERVER_HOSTNAME);
-      rmiServerHostnameSetByServer = null;
+      // Cleared, the property would leave the JDK advertising the host it last
+      // read: the address a connector of this server listened on before, which
+      // a remote client cannot reach if it was a loopback one. Advertise the
+      // local host instead, as the JDK does by default.
+      final InetAddress localHost = getLocalHostOrNull();
+      if (rmiServerHostnameSetByServer != null
+          && localHost != null && !localHost.isLoopbackAddress())
+      {
+        rmiServerHostnameSetByServer = localHost.getHostAddress();
+        System.setProperty(RMI_SERVER_HOSTNAME, rmiServerHostnameSetByServer);
+      }
+      else
+      {
+        System.clearProperty(RMI_SERVER_HOSTNAME);
+        rmiServerHostnameSetByServer = null;
+      }
     }
     else
     {
       rmiServerHostnameSetByServer = listenAddress.getHostAddress();
       System.setProperty(RMI_SERVER_HOSTNAME, rmiServerHostnameSetByServer);
+    }
+  }
+
+  private static InetAddress getLocalHostOrNull()
+  {
+    try
+    {
+      return InetAddress.getLocalHost();
+    }
+    catch (UnknownHostException e)
+    {
+      logger.traceException(e);
+      return null;
     }
   }
 

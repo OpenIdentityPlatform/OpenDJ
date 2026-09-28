@@ -201,14 +201,15 @@ public class HTTPConnectionHandlerTestCase extends DirectoryServerTestCase
               .as("the handler has not given up starting").isGreaterThan(givenUp);
         }
       });
-      handler.applyConfigurationChange(newConfig(false, listenPort, "127.0.0.1"));
-
+      final HTTPConnectionHandlerCfg changedConfig = newConfig(false, listenPort, "127.0.0.1");
       final InetAddress loopback = loopback();
       timer.repeatUntilSuccess(new TestTimer.CallableVoid()
           {
             @Override
             public void call() throws Exception
             {
+              // Applied again until it holds: the handler thread disables the handler just after it sends the alert.
+              handler.applyConfigurationChange(changedConfig);
               assertTrue(isAcceptingConnections(loopback, listenPort), "the new listen address is not listened on");
             }
           });
