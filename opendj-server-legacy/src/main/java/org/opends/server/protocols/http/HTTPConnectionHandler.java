@@ -30,7 +30,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -133,8 +132,8 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
   /** Indicates whether this connection handler is enabled. */
   private boolean enabled;
 
-  /** The set of listeners for this connection handler. */
-  private final List<HostPort> listeners = new LinkedList<>();
+  /** The addresses and the port the HTTP server listens on, or starts with next. */
+  private volatile List<HostPort> listeners = Collections.emptyList();
 
   /** The HTTP server embedded in OpenDJ. */
   private HttpServer httpServer;
@@ -448,11 +447,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
       friendlyName = config.name();
     }
 
-    int listenPort = config.getListenPort();
-    for (InetAddress a : config.getListenAddress())
-    {
-      listeners.add(new HostPort(a.getHostAddress(), listenPort));
-    }
+    listeners = toListeners(config);
 
     handlerName = getHandlerName(config);
 
@@ -800,8 +795,10 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
       setHttpStatsProbe(server);
     }
 
-    // Configure one network listener per listen address, on the addresses and the port that getListeners() reports.
-    // HttpServer keys its listeners by name, and each listener owns its transport, so neither can be shared.
+    // Configure one network listener per listen address, and report them: a configuration change can replace
+    // initConfig after the initialization. HttpServer keys its listeners by name, and each listener owns its
+    // transport, so neither can be shared.
+    listeners = toListeners(initConfig);
     final int numRequestHandlers = getNumRequestHandlers(currentConfig.getNumRequestHandlers(), friendlyName);
     for (InetAddress address : initConfig.getListenAddress())
     {
@@ -819,6 +816,16 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     }
 
     return server;
+  }
+
+  private static List<HostPort> toListeners(HTTPConnectionHandlerCfg config)
+  {
+    final List<HostPort> hostPorts = new ArrayList<>();
+    for (InetAddress address : config.getListenAddress())
+    {
+      hostPorts.add(new HostPort(address.getHostAddress(), config.getListenPort()));
+    }
+    return Collections.unmodifiableList(hostPorts);
   }
 
   private void configureTransport(TCPNIOTransport transport, int numRequestHandlers)

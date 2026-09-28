@@ -106,10 +106,17 @@ public final class JmxConnectionHandler extends
     // Determine whether the RMI connection needs restarting.
     boolean rmiConnectorRestart = false;
     boolean portChanged = false;
+    boolean addressChanged = false;
 
     if (currentConfig.getListenPort() != config.getListenPort()) {
       rmiConnectorRestart = true;
       portChanged = true;
+    }
+
+    // The RMI registry listens on the listen address too: it moves with the connector.
+    if (!currentConfig.getListenAddress().equals(config.getListenAddress())) {
+      rmiConnectorRestart = true;
+      addressChanged = true;
     }
 
     if (currentConfig.getRmiPort() != config.getRmiPort())
@@ -139,7 +146,7 @@ public final class JmxConnectionHandler extends
       listeners.clear();
       listeners.add(new HostPort(config.getListenAddress().getHostAddress(), config.getListenPort()));
 
-      rmiConnector.finalizeConnectionHandler(portChanged);
+      rmiConnector.finalizeConnectionHandler(portChanged || addressChanged);
       try
       {
         rmiConnector.initialize();

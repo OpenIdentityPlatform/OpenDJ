@@ -169,6 +169,18 @@ public class RmiConnector
    */
   private String rmiVersion;
 
+  /**
+   * The system property that names the host the stubs of the objects exported
+   * through RMI advertise.
+   */
+  private static final String RMI_SERVER_HOSTNAME = "java.rmi.server.hostname";
+
+  /**
+   * The value this server gave to {@code java.rmi.server.hostname}, or
+   * {@code null} if the server did not set it.
+   */
+  private static String rmiServerHostnameSetByServer;
+
   // ===================================================================
   // CONSTRUCTOR
   // ===================================================================
@@ -405,6 +417,7 @@ public class RmiConnector
       {
         logger.trace("Create and start the JMX RMI connector");
       }
+      advertiseListenAddress(jmxConnectionHandler.getListenAddress());
       OpendsRMIJRMPServerImpl opendsRmiConnectorServer =
           new OpendsRMIJRMPServerImpl(jmxConnectionHandler.getRmiPort(),
               rmiClientSockeyFactory, rmiServerSockeyFactory, env);
@@ -430,6 +443,39 @@ public class RmiConnector
       throw e;
     }
 
+  }
+
+  /**
+   * Makes the stub of the RMI connector advertise the listen address.
+   * <p>
+   * The stub that a client gets from the RMI registry advertises the host that
+   * {@code java.rmi.server.hostname} names, or else the address of the local host,
+   * whatever address the connector listens on: a connector bound to another
+   * address refuses the client. The JDK reads the property again at each export.
+   * A value that this server did not set is the operator's, and is kept.
+   *
+   * @param listenAddress
+   *          the address the connector listens on
+   */
+  private static synchronized void advertiseListenAddress(InetAddress listenAddress)
+  {
+    final String hostname = System.getProperty(RMI_SERVER_HOSTNAME);
+    if (hostname != null && !hostname.equals(rmiServerHostnameSetByServer))
+    {
+      return;
+    }
+    if (listenAddress.isAnyLocalAddress())
+    {
+      // Without the property, the JDK keeps advertising the last host it read,
+      // which a connector listening on every address accepts as well.
+      System.clearProperty(RMI_SERVER_HOSTNAME);
+      rmiServerHostnameSetByServer = null;
+    }
+    else
+    {
+      rmiServerHostnameSetByServer = listenAddress.getHostAddress();
+      System.setProperty(RMI_SERVER_HOSTNAME, rmiServerHostnameSetByServer);
+    }
   }
 
   static void configureJmxDeserializationProtection(Map<String, Object> env)

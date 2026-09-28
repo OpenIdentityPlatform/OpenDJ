@@ -19,25 +19,34 @@ import static java.util.concurrent.TimeUnit.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManager;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.server.config.meta.HTTPConnectionHandlerCfgDefn;
 import org.forgerock.opendj.server.config.server.HTTPConnectionHandlerCfg;
+import org.opends.admin.ads.util.BlindTrustManager;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.extensions.DummyAlertHandler;
 import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.HostPort;
 import org.opends.server.util.TestTimer;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
@@ -104,19 +113,25 @@ public class HTTPConnectionHandlerTestCase extends DirectoryServerTestCase
     }
   }
 
-  /** Each of several listen addresses gets its own listener. */
-  @Test
-  public void listensOnEveryConfiguredListenAddress() throws Exception
+  @DataProvider
+  public Object[][] useSSL()
+  {
+    return new Object[][] { { false }, { true } };
+  }
+
+  /** Each of several listen addresses gets its own listener, with the handler's SSL settings. */
+  @Test(dataProvider = "useSSL")
+  public void listensOnEveryConfiguredListenAddress(boolean useSSL) throws Exception
   {
     final InetAddress external = getNonLoopbackAddress();
     final int listenPort = TestCaseUtils.findFreePort();
-    HTTPConnectionHandler handler = newHandler(listenPort, "127.0.0.1", external.getHostAddress());
+    HTTPConnectionHandler handler = newHandler(useSSL, listenPort, "127.0.0.1", external.getHostAddress());
     try
     {
       handler.start();
 
-      assertTrue(isAcceptingConnections(loopback(), listenPort), "127.0.0.1 is not listened on");
-      assertTrue(isAcceptingConnections(external, listenPort), external.getHostAddress() + " is not listened on");
+      assertAnswers(loopback(), listenPort, useSSL);
+      assertAnswers(external, listenPort, useSSL);
       assertThat(handler.getListeners()).containsOnly(
           new HostPort("127.0.0.1", listenPort), new HostPort(external.getHostAddress(), listenPort));
     }
@@ -161,7 +176,90 @@ public class HTTPConnectionHandlerTestCase extends DirectoryServerTestCase
     }
   }
 
+  /**
+   * A handler that could not start starts again after a change of its listen address, and then
+   * reports the address it listens on, not the one it was initialized with.
+   */
+  @Test
+  public void reportsTheListenAddressItStartsWithAfterAChange() throws Exception
+  {
+    final int listenPort = TestCaseUtils.findFreePort();
+    final int givenUp = DummyAlertHandler.getAlertCount(ALERT_TYPE_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES);
+    HTTPConnectionHandler handler = newHandler(listenPort, UNASSIGNED_ADDRESS);
+    try
+    {
+      handler.start();
+
+      // The handler thread tries twice, then disables the handler: a change applied before it gives up is undone.
+      final TestTimer timer = new TestTimer.Builder().maxSleep(10, SECONDS).sleepTimes(100, MILLISECONDS).toTimer();
+      timer.repeatUntilSuccess(new TestTimer.CallableVoid()
+      {
+        @Override
+        public void call() throws Exception
+        {
+          assertThat(DummyAlertHandler.getAlertCount(ALERT_TYPE_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES))
+              .as("the handler has not given up starting").isGreaterThan(givenUp);
+        }
+      });
+      handler.applyConfigurationChange(newConfig(false, listenPort, "127.0.0.1"));
+
+      final InetAddress loopback = loopback();
+      timer.repeatUntilSuccess(new TestTimer.CallableVoid()
+          {
+            @Override
+            public void call() throws Exception
+            {
+              assertTrue(isAcceptingConnections(loopback, listenPort), "the new listen address is not listened on");
+            }
+          });
+      assertThat(handler.getListeners()).containsExactly(new HostPort("127.0.0.1", listenPort));
+    }
+    finally
+    {
+      stop(handler);
+    }
+  }
+
+  /**
+   * Asserts that a listener answers on the address: over TLS, a completed handshake, which a
+   * listener without the handler's SSL settings cannot give.
+   */
+  private static void assertAnswers(InetAddress address, int port, boolean useSSL) throws Exception
+  {
+    if (!useSSL)
+    {
+      assertTrue(isAcceptingConnections(address, port), address.getHostAddress() + " is not listened on");
+      return;
+    }
+    final SSLContext client = SSLContext.getInstance("TLS");
+    client.init(null, new TrustManager[] { new BlindTrustManager() }, null);
+    try (SSLSocket socket = (SSLSocket) client.getSocketFactory().createSocket(address, port))
+    {
+      socket.setSoTimeout(10000);
+      socket.startHandshake();
+    }
+    catch (IOException e)
+    {
+      throw new AssertionError(address.getHostAddress() + " does not complete a TLS handshake", e);
+    }
+  }
+
   private static HTTPConnectionHandler newHandler(int listenPort, String... listenAddresses) throws Exception
+  {
+    return newHandler(false, listenPort, listenAddresses);
+  }
+
+  private static HTTPConnectionHandler newHandler(boolean useSSL, int listenPort, String... listenAddresses)
+      throws Exception
+  {
+    HTTPConnectionHandler handler = new HTTPConnectionHandler();
+    handler.initializeConnectionHandler(DirectoryServer.getInstance().getServerContext(),
+        newConfig(useSSL, listenPort, listenAddresses));
+    return handler;
+  }
+
+  private static HTTPConnectionHandlerCfg newConfig(boolean useSSL, int listenPort, String... listenAddresses)
+      throws Exception
   {
     final List<String> ldif = new ArrayList<>();
     Collections.addAll(ldif,
@@ -186,16 +284,12 @@ public class HTTPConnectionHandlerTestCase extends DirectoryServerTestCase
         "ds-cfg-max-request-size: 5 megabytes",
         "ds-cfg-buffer-size: 4096 bytes",
         "ds-cfg-max-blocked-write-time-limit: 2 minutes",
-        "ds-cfg-use-ssl: false",
+        "ds-cfg-use-ssl: " + useSSL,
+        "ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config",
         "ds-cfg-ssl-client-auth-policy: optional",
         "ds-cfg-ssl-cert-nickname: server-cert");
     Entry handlerEntry = TestCaseUtils.makeEntry(ldif.toArray(new String[0]));
-    HTTPConnectionHandlerCfg config =
-        InitializationUtils.getConfiguration(HTTPConnectionHandlerCfgDefn.getInstance(), handlerEntry);
-
-    HTTPConnectionHandler handler = new HTTPConnectionHandler();
-    handler.initializeConnectionHandler(DirectoryServer.getInstance().getServerContext(), config);
-    return handler;
+    return InitializationUtils.getConfiguration(HTTPConnectionHandlerCfgDefn.getInstance(), handlerEntry);
   }
 
   private static InetAddress loopback() throws UnknownHostException
