@@ -37,7 +37,7 @@ public class ConfigurationMockTest extends ConfigTestCase {
     public void testPropertyWithStringReturnValue() {
         GoverningStructureRuleVirtualAttributeCfg mock = mockCfg(GoverningStructureRuleVirtualAttributeCfg.class);
         assertThat(mock.getJavaClass()).
-            isEqualTo("org.opends.server.extensions.GoverningSturctureRuleVirtualAttributeProvider");
+            isEqualTo("org.opends.server.extensions.GoverningStructureRuleVirtualAttributeProvider");
     }
 
     @Test

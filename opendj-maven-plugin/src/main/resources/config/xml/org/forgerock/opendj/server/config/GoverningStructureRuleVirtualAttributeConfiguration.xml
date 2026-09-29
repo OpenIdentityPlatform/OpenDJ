@@ -36,7 +36,7 @@
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
-          org.opends.server.extensions.GoverningSturctureRuleVirtualAttributeProvider
+          org.opends.server.extensions.GoverningStructureRuleVirtualAttributeProvider
         </adm:value>
       </adm:defined>
     </adm:default-behavior>
