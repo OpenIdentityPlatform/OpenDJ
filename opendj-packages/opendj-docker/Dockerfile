@@ -29,6 +29,13 @@ ENV ROOT_USER_DN="cn=Directory Manager"
 ENV OPENDJ_SSL_OPTIONS="--generateSelfSignedCertificate"
 #ENV MASTER_SERVER
 #ENV OPENDJ_REPLICATION_TYPE
+# every server of the replication topology, comma separated; the first entry may seed a new
+# topology. MASTER_SERVER keeps working as a one-element list. See bootstrap/join.sh
+#ENV REPLICATION_PEERS
+#ENV REPLICATION_PORT=8989
+#ENV REPLICATION_RETRY_COUNT=30
+#ENV REPLICATION_RETRY_INTERVAL=10
+#ENV REPLICATION_ATTEMPT_TIMEOUT=120
 ENV OPENDJ_USER="opendj"
 #ENV OPENDJ_JAVA_ARGS=""
 ENV BACKEND_TYPE="je"
@@ -68,7 +75,7 @@ COPY --chown=$OPENDJ_USER:0 bootstrap/ /opt/opendj/bootstrap/
 COPY --chown=$OPENDJ_USER:0 run.sh /opt/opendj/run.sh
 COPY --chown=$OPENDJ_USER:0 healthcheck.sh /opt/opendj/healthcheck.sh
 
-RUN chmod +x /opt/opendj/run.sh /opt/opendj/healthcheck.sh /opt/opendj/bootstrap/setup.sh /opt/opendj/bootstrap/replicate.sh
+RUN chmod +x /opt/opendj/run.sh /opt/opendj/healthcheck.sh /opt/opendj/bootstrap/setup.sh /opt/opendj/bootstrap/replicate.sh /opt/opendj/bootstrap/join.sh
 
 EXPOSE $PORT/tcp $LDAPS_PORT/tcp $ADMIN_PORT/tcp
 

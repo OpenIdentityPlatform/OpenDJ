@@ -15,12 +15,18 @@
 
 # Replicate to the master server hostname defined in $1
 # If that server is ourself this is a no-op
+#
+# This is the one-shot bootstrap path of the srs, sdsr and rg replication types, kept as it
+# is for compatibility; OPENDJ_REPLICATION_TYPE=simple is served by bootstrap/join.sh, which
+# runs in the background next to the server on every start (#1086)
 
 # This is a bit  kludgy.
 # The hostname has to be a fully resolvable DNS name in the cluster
 # If the service is called
 
 MYHOSTNAME=${MYHOSTNAME:-$(hostname -f)}
+ADMIN_PORT=${ADMIN_PORT:-4444}
+REPLICATION_PORT=${REPLICATION_PORT:-8989}
 export PATH=/opt/opendj/bin:$PATH
 
 echo "Setting up replication from $MYHOSTNAME to $MASTER_SERVER"
@@ -77,43 +83,22 @@ echo "Will sleep for a bit to ensure master is up"
 
 sleep 5
 
-if [ "$OPENDJ_REPLICATION_TYPE" == "simple" ]; then
-  echo "Enabling Standard Replication..."
-  retry 8 /opt/opendj/bin/dsreplication \
-    enable \
-    --host1 $MASTER_SERVER \
-    --port1 4444 \
-    --bindDN1 "$ROOT_USER_DN" \
-    --bindPasswordFile1 "$PASSWORD_FILE" --replicationPort1 8989 \
-    --host2 $MYHOSTNAME --port2 4444 --bindDN2 "$ROOT_USER_DN" \
-    --bindPasswordFile2 "$PASSWORD_FILE" --replicationPort2 8989 \
-    --adminUID admin --adminPasswordFile "$PASSWORD_FILE" \
-    --baseDN "$BASE_DN" -X -n || exit
-
-  echo "initializing replication"
-
-  # replicating data in MASTER_SERVER to MYHOSTNAME:
-  retry any /opt/opendj/bin/dsreplication initialize --baseDN "$BASE_DN" \
-    --adminUID admin --adminPasswordFile "$PASSWORD_FILE" \
-    --hostSource $MASTER_SERVER --portSource 4444 \
-    --hostDestination $MYHOSTNAME --portDestination 4444 -X -n
-
-elif [ "$OPENDJ_REPLICATION_TYPE" == "srs" ]; then
+if [ "$OPENDJ_REPLICATION_TYPE" == "srs" ]; then
   echo "Enabling Standalone Replication Servers..."
   retry 8 dsreplication enable \
     --adminUID admin \
     --adminPasswordFile "$PASSWORD_FILE" \
     --baseDN "$BASE_DN" \
     --host1 $MYHOSTNAME \
-    --port1 4444 \
+    --port1 "$ADMIN_PORT" \
     --bindDN1 "$ROOT_USER_DN" \
     --bindPasswordFile1 "$PASSWORD_FILE" \
     --noReplicationServer1 \
     --host2 $MASTER_SERVER \
-    --port2 4444 \
+    --port2 "$ADMIN_PORT" \
     --bindDN2 "$ROOT_USER_DN" \
     --bindPasswordFile2 "$PASSWORD_FILE" \
-    --replicationPort2 8989 \
+    --replicationPort2 "$REPLICATION_PORT" \
     --onlyReplicationServer2 \
     --trustAll \
     --no-prompt || exit
@@ -126,7 +111,7 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "srs" ]; then
     --adminPasswordFile "$PASSWORD_FILE" \
     --baseDN "$BASE_DN" \
     --hostname $MYHOSTNAME \
-    --port 4444 \
+    --port "$ADMIN_PORT" \
     --trustAll \
     --no-prompt
 
@@ -138,11 +123,11 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "sdsr" ]; then
     --adminPasswordFile "$PASSWORD_FILE" \
     --baseDN "$BASE_DN" \
     --host1 $MASTER_SERVER \
-    --port1 4444 \
+    --port1 "$ADMIN_PORT" \
     --bindDN1 "$ROOT_USER_DN" \
     --bindPasswordFile1 "$PASSWORD_FILE" \
     --host2 $MYHOSTNAME \
-    --port2 4444 \
+    --port2 "$ADMIN_PORT" \
     --bindDN2 "$ROOT_USER_DN" \
     --bindPasswordFile2 "$PASSWORD_FILE" \
     --noReplicationServer2 \
@@ -157,9 +142,9 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "sdsr" ]; then
     --adminPasswordFile "$PASSWORD_FILE" \
     --baseDN "$BASE_DN" \
     --hostSource $MASTER_SERVER \
-    --portSource 4444 \
+    --portSource "$ADMIN_PORT" \
     --hostDestination $MYHOSTNAME \
-    --portDestination 4444 \
+    --portDestination "$ADMIN_PORT" \
     --trustAll \
     --no-prompt
 
@@ -168,7 +153,7 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "rg" ]; then
 
   dsconfig \
     set-replication-domain-prop \
-    --port 4444 \
+    --port "$ADMIN_PORT" \
     --hostname $MYHOSTNAME \
     --bindDN "$ROOT_USER_DN" \
     --bindPasswordFile "$PASSWORD_FILE" \
@@ -180,7 +165,7 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "rg" ]; then
 
   retry any dsconfig \
     set-replication-server-prop \
-    --port 4444 \
+    --port "$ADMIN_PORT" \
     --hostname $MASTER_SERVER \
     --bindDN "$ROOT_USER_DN" \
     --bindPasswordFile "$PASSWORD_FILE" \

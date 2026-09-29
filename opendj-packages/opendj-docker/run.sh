@@ -42,8 +42,19 @@ rm -f "$BOOTSTRAP_COMPLETE"
 # network namespace. Containers in distinct network namespaces that share /dev/shm through
 # --ipc=host, and listen on the same ADMIN_PORT, are not told apart. /tmp belongs to this
 # container alone, so a password file left there is removed whatever its name.
-rm -f /dev/shm/opendj-replicate."$ADMIN_PORT".*
+rm -f /dev/shm/opendj-replicate."$ADMIN_PORT".* /dev/shm/opendj-join."$ADMIN_PORT".*
 rm -f /dev/shm/opendj-setup-password."$ADMIN_PORT".* /tmp/opendj-setup-password.*
+
+# What the volume went through is recorded next to the instance: a volume this script
+# bootstrapped carries the marker until the join has initialized it from the topology
+# (see bootstrap/join.sh), however many restarts that takes
+export INITIALIZE_PENDING=${INITIALIZE_PENDING:-/opt/opendj/data/.replication-initialize-pending}
+
+# The background join (bootstrap/join.sh) serves OPENDJ_REPLICATION_TYPE=simple on every
+# start; srs, sdsr and rg keep the one-shot replicate.sh of the first bootstrap
+join_requested() {
+  [ "$OPENDJ_REPLICATION_TYPE" = "simple" ] && [ -n "${REPLICATION_PEERS:-$MASTER_SERVER}" ]
+}
 
 # Keystores and truststores mounted as a volume (a Kubernetes Secret, say) are copied into
 # the instance on every start, not only on the one that bootstraps it: the instance lives on
@@ -122,7 +133,21 @@ if [ -d ./data/config ]; then
   # nothing is bootstrapped here, the instance is already there - but a half-migrated one
   # is not ready to serve either, so the marker follows the upgrade
   if sh ./upgrade -n; then
-    touch "$BOOTSTRAP_COMPLETE"
+    # A server whose replication domain is already configured is ready as soon as it
+    # serves: gating it on its peers would deadlock a whole-cluster restart under
+    # OrderedReady, where -0 would wait for peers the StatefulSet starts only once -0 is
+    # ready. Only a volume that was asked to join and never did waits for the join, so a
+    # join that failed before a restart no longer turns into a healthy, unreplicated
+    # server the way it did when the marker followed the upgrade alone.
+    if ! join_requested || grep -q "ds-cfg-replication-domain" ./data/config/config.ldif; then
+      touch "$BOOTSTRAP_COMPLETE"
+    else
+      echo "This instance never joined its replication topology, the join decides whether it is healthy"
+    fi
+    # the join also repairs membership that changed while no container ran, on every start
+    if join_requested; then
+      /opt/opendj/bootstrap/join.sh &
+    fi
   else
     echo "Upgrade failed, this container will not report itself healthy"
   fi
@@ -146,7 +171,14 @@ if ! sh "${BOOTSTRAP}"; then
 fi
 
 # Check if OPENDJ_REPLICATION_TYPE var is set. If it is - replicate to that server
-if [ -n "${MASTER_SERVER}" ] && [ -n "${OPENDJ_REPLICATION_TYPE}" ]; then
+if join_requested; then
+  # the join runs in the background next to the server, below; a bootstrapped volume has
+  # entries whether or not it was asked for any, so it is marked to be initialized from
+  # the topology (see bootstrap/join.sh)
+  if [ "$BOOTSTRAPPED" = true ]; then
+    touch "$INITIALIZE_PENDING"
+  fi
+elif [ -n "${MASTER_SERVER}" ] && [ -n "${OPENDJ_REPLICATION_TYPE}" ]; then
   if ! /opt/opendj/bootstrap/replicate.sh; then
     BOOTSTRAPPED=false
     echo "Replication setup failed, this container will not report itself healthy"
@@ -170,10 +202,17 @@ if ! ./bin/stop-ds; then
 fi
 
 # Everything the instance was asked to be set up with - its backend, its base entry, its
-# replication - is in place from here on, so the health check may start probing the server
+# replication - is in place from here on, so the health check may start probing the server.
+# With the background join, replication is the one thing still outstanding: the join writes
+# the health marker once this server is a member of its topology, and not before.
 if [ "$BOOTSTRAPPED" = true ]; then
-  touch "$BOOTSTRAP_COMPLETE"
-  echo "The instance is bootstrapped, the health check may probe it"
+  if join_requested; then
+    /opt/opendj/bootstrap/join.sh &
+    echo "The instance is bootstrapped, joining the replication topology decides whether it is healthy"
+  else
+    touch "$BOOTSTRAP_COMPLETE"
+    echo "The instance is bootstrapped, the health check may probe it"
+  fi
 fi
 
 start_server
