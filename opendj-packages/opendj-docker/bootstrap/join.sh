@@ -254,15 +254,6 @@ registered_hosts() {
     | awk 'tolower($1) == "hostname:" { print $2 }'
 }
 
-is_registered() {
-  local host peer
-  peer=$(lower "$1")
-  for host in $(registered_hosts); do
-    names_match "$peer" "$(lower "$host")" && return 0
-  done
-  return 1
-}
-
 # a member holds the replication domain for BASE_DN in its configuration and is registered
 # in cn=admin data - under the name the enable that registered it connected with, which for
 # a server that never ran an enable of its own is the name a peer listed it by; both are made
@@ -426,8 +417,15 @@ repair_replication_servers() {
   [ "$PEERS_ARE_EXPLICIT" = yes ] || return 0
   for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
     waiting=
+    # one search a round: every ldapsearch starts a JVM
+    hosts=$(registered_hosts)
     for peer in "${PEERS[@]}"; do
-      is_self "$peer" || is_registered "$peer" || waiting="$waiting $peer"
+      is_self "$peer" && continue
+      found=no
+      for host in $hosts; do
+        names_match "$(lower "$peer")" "$(lower "$host")" && { found=yes; break; }
+      done
+      [ "$found" = yes ] || waiting="$waiting $peer"
     done
     [ -z "$waiting" ] && break
     [ "$i" -eq "$REPLICATION_RETRY_COUNT" ] && break
