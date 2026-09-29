@@ -133,16 +133,18 @@ if [ -d ./data/config ]; then
   # nothing is bootstrapped here, the instance is already there - but a half-migrated one
   # is not ready to serve either, so the marker follows the upgrade
   if sh ./upgrade -n; then
-    # A server whose replication domain is already configured is ready as soon as it
-    # serves: gating it on its peers would deadlock a whole-cluster restart under
-    # OrderedReady, where -0 would wait for peers the StatefulSet starts only once -0 is
-    # ready. Only a volume that was asked to join and never did waits for the join, so a
-    # join that failed before a restart no longer turns into a healthy, unreplicated
-    # server the way it did when the marker followed the upgrade alone.
-    if ! join_requested || grep -q "ds-cfg-replication-domain" ./data/config/config.ldif; then
+    # A server whose replication domain is already configured, and whose volume holds the
+    # data of the topology, is ready as soon as it serves: gating it on its peers would
+    # deadlock a whole-cluster restart under OrderedReady, where -0 would wait for peers
+    # the StatefulSet starts only once -0 is ready. A volume that was asked to join and
+    # never did, or that joined but never received the data of the topology, waits for the
+    # join, so a join or an initialize that failed before a restart no longer turns into a
+    # healthy server with bootstrap data only, the way it did when the marker followed the
+    # upgrade alone.
+    if ! join_requested || { grep -q "ds-cfg-replication-domain" ./data/config/config.ldif && [ ! -f "$INITIALIZE_PENDING" ]; }; then
       touch "$BOOTSTRAP_COMPLETE"
     else
-      echo "This instance never joined its replication topology, the join decides whether it is healthy"
+      echo "This instance never joined its replication topology or never received its data, the join decides whether it is healthy"
     fi
     # the join also repairs membership that changed while no container ran, on every start
     if join_requested; then
