@@ -33,7 +33,10 @@ cleanup() {
   docker volume rm -f $VOLUMES >/dev/null 2>&1 || true
 }
 cleanup
-trap 'code=$?; for c in $NODES; do echo "::group::container logs ($c)"; docker logs $c 2>&1 || true; echo "::endgroup::"; done; cleanup; exit $code' ERR
+# set -E hands the trap to every $(...) as well, where a failing command would dump the logs
+# into the value being captured and remove the containers under the running test: there the
+# failure only ends the subshell, and the main shell decides
+trap 'code=$?; [ "$BASH_SUBSHELL" -eq 0 ] || exit $code; for c in $NODES; do echo "::group::container logs ($c)"; docker logs $c 2>&1 || true; echo "::endgroup::"; done; cleanup; exit $code' ERR
 
 fail() {
   echo "::error::$1"
