@@ -14,6 +14,7 @@
 
   Copyright 2007-2009 Sun Microsystems, Inc.
   Portions Copyright 2013-2015 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <adm:managed-object name="jmx-connection-handler"
   plural-name="jmx-connection-handlers"
@@ -66,7 +67,15 @@
     <adm:description>
       If no value is provided, then the
       <adm:user-friendly-name />
-      listens on all interfaces.
+      listens on all interfaces. The RMI stubs that JMX clients receive
+      name the host to connect to: with a specific address, the server sets
+      the java.rmi.server.hostname system property to that address, unless
+      the property is already set, for instance with
+      -Djava.rmi.server.hostname in the Java arguments of the server. The
+      property applies to every RMI object that the Java virtual machine
+      exports, including those of the platform JMX agent. With several JMX
+      connection handlers on different specific addresses, the last one
+      started sets it.
     </adm:description>
     <adm:requires-admin-action>
       <adm:server-restart />

@@ -47,6 +47,9 @@ public class DirectoryRMIServerSocketFactory implements
   /** Indicate if we required the client authentication via SSL. */
   private final boolean needClientCertificate;
 
+  /** The address to listen on, which could be INADDR_ANY. */
+  private final InetAddress listenAddress;
+
   /**
    * Constructs a new <code>DirectoryRMIServerSocketFactory</code> with the
    * specified SSL socket configuration.
@@ -59,13 +62,18 @@ public class DirectoryRMIServerSocketFactory implements
    *            connections accepted by server sockets created by this
    *            factory; <code>false</code> to not require client
    *            authentication.
+   *
+   * @param listenAddress
+   *            the address the server sockets created by this factory
+   *            listen on
    */
   public DirectoryRMIServerSocketFactory(SSLSocketFactory sslSocketFactory,
-      boolean needClientCertificate)
+      boolean needClientCertificate, InetAddress listenAddress)
   {
     // Initialize the configuration parameters.
     this.needClientCertificate = needClientCertificate;
     this.sslSocketFactory = sslSocketFactory;
+    this.listenAddress = listenAddress;
   }
 
   /**
@@ -97,7 +105,7 @@ public class DirectoryRMIServerSocketFactory implements
   @Override
   public ServerSocket createServerSocket(int port) throws IOException
   {
-    return new ServerSocket(port, 0, InetAddress.getByName("0.0.0.0"))
+    return new ServerSocket(port, 0, listenAddress)
     {
       @Override
       public Socket accept() throws IOException
@@ -162,7 +170,8 @@ public class DirectoryRMIServerSocketFactory implements
   private boolean checkParameters(DirectoryRMIServerSocketFactory that)
   {
     return needClientCertificate == that.needClientCertificate
-        && sslSocketFactory.equals(that.sslSocketFactory);
+        && sslSocketFactory.equals(that.sslSocketFactory)
+        && listenAddress.equals(that.listenAddress);
   }
 
   /**
@@ -177,6 +186,7 @@ public class DirectoryRMIServerSocketFactory implements
   {
     return getClass().hashCode()
         + Boolean.valueOf(needClientCertificate).hashCode()
-        + sslSocketFactory.hashCode();
+        + sslSocketFactory.hashCode()
+        + listenAddress.hashCode();
   }
 }

@@ -22,9 +22,11 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.RMIServerSocketFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
@@ -167,6 +169,18 @@ public class RmiConnector
    * The RMI protocol version used by this connector.
    */
   private String rmiVersion;
+
+  /**
+   * The system property that names the host the stubs of the objects exported
+   * through RMI advertise.
+   */
+  private static final String RMI_SERVER_HOSTNAME = "java.rmi.server.hostname";
+
+  /**
+   * The value this server gave to {@code java.rmi.server.hostname}, or
+   * {@code null} if the server did not set it.
+   */
+  private static String rmiServerHostnameSetByServer;
 
   // ===================================================================
   // CONSTRUCTOR
@@ -319,8 +333,10 @@ public class RmiConnector
       // ---------------------
       // init an ssl context
       // ---------------------
+      // Both server socket factories listen on the configured listen address:
+      // the default RMI factory would listen on every interface.
       SslRMIClientSocketFactory rmiClientSockeyFactory = null;
-      DirectoryRMIServerSocketFactory rmiServerSockeyFactory = null;
+      RMIServerSocketFactory rmiServerSockeyFactory;
       if (jmxConnectionHandler.isUseSSL())
       {
         if (logger.isTraceEnabled())
@@ -355,7 +371,8 @@ public class RmiConnector
         SSLSocketFactory ssf = ctx.getSocketFactory();
 
         // set the Server socket factory in the JMX map
-        rmiServerSockeyFactory = new DirectoryRMIServerSocketFactory(ssf, false);
+        rmiServerSockeyFactory = new DirectoryRMIServerSocketFactory(
+            ssf, false, jmxConnectionHandler.getListenAddress());
         env.put(
             "jmx.remote.rmi.server.socket.factory",
             rmiServerSockeyFactory);
@@ -376,6 +393,8 @@ public class RmiConnector
         {
           logger.trace("UNSECURE CONNECTION");
         }
+        rmiServerSockeyFactory = new OpendsRmiServerSocketFactory(
+            jmxConnectionHandler.getListenAddress());
       }
 
       // specify the rmi JMX authenticator to be used
@@ -399,6 +418,7 @@ public class RmiConnector
       {
         logger.trace("Create and start the JMX RMI connector");
       }
+      advertiseListenAddress(jmxConnectionHandler.getListenAddress());
       OpendsRMIJRMPServerImpl opendsRmiConnectorServer =
           new OpendsRMIJRMPServerImpl(jmxConnectionHandler.getRmiPort(),
               rmiClientSockeyFactory, rmiServerSockeyFactory, env);
@@ -424,6 +444,64 @@ public class RmiConnector
       throw e;
     }
 
+  }
+
+  /**
+   * Makes the stub of the RMI connector advertise the listen address.
+   * <p>
+   * The stub that a client gets from the RMI registry advertises the host that
+   * {@code java.rmi.server.hostname} names, or else the address of the local host,
+   * whatever address the connector listens on: a connector bound to another
+   * address refuses the client. The JDK reads the property again at each export.
+   * A value that this server did not set is the operator's, and is kept.
+   *
+   * @param listenAddress
+   *          the address the connector listens on
+   */
+  private static synchronized void advertiseListenAddress(InetAddress listenAddress)
+  {
+    final String hostname = System.getProperty(RMI_SERVER_HOSTNAME);
+    if (hostname != null && !hostname.equals(rmiServerHostnameSetByServer))
+    {
+      return;
+    }
+    if (listenAddress.isAnyLocalAddress())
+    {
+      // Cleared, the property would leave the JDK advertising the host it last
+      // read: the address a connector of this server listened on before, which
+      // a remote client cannot reach if it was a loopback one. Advertise the
+      // local host instead, as the JDK does by default.
+      final InetAddress localHost = getLocalHostOrNull();
+      if (rmiServerHostnameSetByServer != null
+          && localHost != null && !localHost.isLoopbackAddress())
+      {
+        rmiServerHostnameSetByServer = localHost.getHostAddress();
+        System.setProperty(RMI_SERVER_HOSTNAME, rmiServerHostnameSetByServer);
+      }
+      else
+      {
+        System.clearProperty(RMI_SERVER_HOSTNAME);
+        rmiServerHostnameSetByServer = null;
+      }
+    }
+    else
+    {
+      rmiServerHostnameSetByServer = listenAddress.getHostAddress();
+      System.setProperty(RMI_SERVER_HOSTNAME, rmiServerHostnameSetByServer);
+    }
+  }
+
+  private static InetAddress getLocalHostOrNull()
+  {
+    try
+    {
+      return InetAddress.getLocalHost();
+    }
+    catch (UnknownHostException e)
+    {
+      logger.traceException(e);
+      return null;
+    }
   }
 
   static void configureJmxDeserializationProtection(Map<String, Object> env)

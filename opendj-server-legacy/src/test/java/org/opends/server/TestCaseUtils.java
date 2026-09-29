@@ -52,7 +52,10 @@ import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.net.BindException;
 import java.net.ConnectException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -130,6 +133,7 @@ import org.opends.server.util.BuildVersion;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.TestTimer;
+import org.testng.SkipException;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
@@ -963,6 +967,58 @@ public final class TestCaseUtils {
     }
     while (System.currentTimeMillis() < deadline);
     return false;
+  }
+
+  /**
+   * Returns an IPv4 address of the local host other than a loopback one, for the tests of a listen
+   * address: a listener bound to the loopback address refuses connections to it, while a listener
+   * bound to the wildcard address accepts them.
+   *
+   * @return an IPv4 address of an interface of the local host which is up and not a loopback one
+   * @throws IOException
+   *           if the network interfaces cannot be listed
+   * @throws SkipException
+   *           if the local host has no such address
+   */
+  public static InetAddress getNonLoopbackAddress() throws IOException
+  {
+    for (NetworkInterface nif : Collections.list(NetworkInterface.getNetworkInterfaces()))
+    {
+      if (!nif.isUp() || nif.isLoopback())
+      {
+        continue;
+      }
+      for (InetAddress address : Collections.list(nif.getInetAddresses()))
+      {
+        if (address instanceof Inet4Address && !address.isLinkLocalAddress())
+        {
+          return address;
+        }
+      }
+    }
+    throw new SkipException("the local host has no IPv4 address other than a loopback one");
+  }
+
+  /**
+   * Tells whether a connection to the given address and port is accepted right now.
+   *
+   * @param address
+   *          the address to connect to
+   * @param port
+   *          the port to connect to
+   * @return {@code true} if the connection is accepted, {@code false} if it fails
+   */
+  public static boolean isAcceptingConnections(InetAddress address, int port)
+  {
+    try (Socket socket = new Socket())
+    {
+      socket.connect(new InetSocketAddress(address, port), 5000);
+      return true;
+    }
+    catch (IOException e)
+    {
+      return false;
+    }
   }
 
   /**
