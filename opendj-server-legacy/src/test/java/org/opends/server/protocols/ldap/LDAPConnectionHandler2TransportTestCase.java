@@ -15,16 +15,17 @@
  */
 package org.opends.server.protocols.ldap;
 
+import static org.opends.messages.CoreMessages.INFO_CONNHANDLER_CLOSED_BY_SHUTDOWN;
 import static org.testng.Assert.*;
 
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -33,15 +34,18 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.reactive.LDAPConnectionHandler2;
 import org.forgerock.opendj.server.config.meta.LDAPConnectionHandlerCfgDefn;
 import org.forgerock.opendj.server.config.server.LDAPConnectionHandlerCfg;
+import org.glassfish.grizzly.memory.Buffers;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOServerConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.InitializationUtils;
+import org.opends.server.tools.LDAPReader;
 import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -66,6 +70,10 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
   private static final long TIMEOUT_MS = 10000;
   /** How long the connection of a stopped handler must stay open. */
   private static final long KEEPS_OPEN_MS = 3000;
+  /** What is written at a time to fill the socket buffers of both ends and then the write queue of the server. */
+  private static final int UNREAD_CHUNK = 64 * 1024;
+  /** Far more than any socket buffers hold. */
+  private static final int MAX_UNREAD_BYTES = 64 * 1024 * 1024;
 
   @BeforeClass
   public void setUp() throws Exception
@@ -163,6 +171,24 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
   }
 
   @Test
+  public void numRequestHandlersTakesPrecedenceOverTheSelectorsProperty() throws Exception
+  {
+    final String saved = System.getProperty(SELECTORS_PROPERTY);
+    System.setProperty(SELECTORS_PROPERTY, "13");
+    try
+    {
+      assertSelectorThreads(configuration(TestCaseUtils.findFreePort(), true, true, true, 3), 3);
+    }
+    finally
+    {
+      restore(saved);
+    }
+  }
+
+  /**
+   * Decisive only on hosts with 6 processors or more: below that the count is 2, which a constant would give too.
+   */
+  @Test
   public void selectorThreadsAreChosenFromTheProcessorsWhenNothingIsSet() throws Exception
   {
     final String saved = System.getProperty(SELECTORS_PROPERTY);
@@ -223,27 +249,275 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
     {
       acceptedConnection(handler);
       stop(handler);
-      final Collection<?> drains = (Collection<?>) field(handler, "drains");
-      assertEquals(drains.size(), 1, "no transport is left serving the connection of the stopped handler");
+      final ServerShutdownListener drain = onlyDrain(handler);
+      assertTrue(((Collection<?>) field(DirectoryServer.getInstance(), "shutdownListeners")).contains(drain),
+          "the drain is not registered as a shutdown listener");
 
-      ((ServerShutdownListener) drains.iterator().next()).processServerShutdown(STOP_REASON);
+      drain.processServerShutdown(STOP_REASON);
 
-      client.setSoTimeout((int) TIMEOUT_MS);
-      final ByteArrayOutputStream received = new ByteArrayOutputStream();
-      final InputStream in = client.getInputStream();
-      final byte[] buffer = new byte[256];
-      for (int read; (read = in.read(buffer)) != -1;)
-      {
-        received.write(buffer, 0, read);
-      }
-      assertTrue(new String(received.toByteArray(), StandardCharsets.ISO_8859_1).contains(NOTICE_OF_DISCONNECTION_OID),
-          "the connection was closed without a notice of disconnection");
+      assertNoticeOfDisconnection(client, STOP_REASON);
     }
     finally
     {
       stop(handler);
     }
     assertThreadsStop(threadPrefix);
+  }
+
+  /**
+   * A notice of disconnection queued behind data the client has not read yet still reaches the client: the transport
+   * is not shut down before the client has read up to it.
+   */
+  @Test
+  public void serverShutdownDeliversANoticeQueuedBehindUnreadData() throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final LDAPConnectionHandler2 handler = start(configuration(port, true, true, true, 2));
+    try (Socket client = new Socket())
+    {
+      // Keeps what the client side holds small, so that the backlog is quick to read once the client reads.
+      client.setReceiveBufferSize(8 * 1024);
+      client.connect(new InetSocketAddress("127.0.0.1", port));
+      final TCPNIOConnection accepted = acceptedConnection(handler);
+      final TCPNIOTransport transport = transport(handler);
+      // Written below the LDAP filters, as raw bytes the client will skip, until the socket buffers are full and some
+      // are left waiting in the write queue.
+      final byte[] chunk = new byte[UNREAD_CHUNK];
+      int unread = 0;
+      while (accepted.getAsyncWriteQueue().spaceInBytes() == 0)
+      {
+        assertTrue(unread < MAX_UNREAD_BYTES, "the socket buffers took " + unread + " bytes");
+        transport.getAsyncQueueIO().getWriter().write(accepted, Buffers.wrap(transport.getMemoryManager(), chunk), null);
+        unread += chunk.length;
+        // Let the selector move what it can into the socket.
+        Thread.sleep(50);
+      }
+      stop(handler);
+      final ServerShutdownListener drain = onlyDrain(handler);
+
+      final Thread shutdown = new Thread(() -> drain.processServerShutdown(STOP_REASON));
+      shutdown.start();
+      // Let the notice join the queue while the client reads nothing.
+      Thread.sleep(300);
+
+      client.setSoTimeout((int) TIMEOUT_MS);
+      final InputStream in = client.getInputStream();
+      final byte[] buffer = new byte[64 * 1024];
+      for (int left = unread; left > 0;)
+      {
+        final int read = in.read(buffer, 0, Math.min(buffer.length, left));
+        assertTrue(read > 0, "the connection ended with " + left + " unread bytes still queued");
+        left -= read;
+      }
+      assertNoticeOfDisconnection(client, STOP_REASON);
+      shutdown.join(TIMEOUT_MS);
+      assertFalse(shutdown.isAlive(), "the drain is still waiting for a closed connection");
+    }
+    finally
+    {
+      stop(handler);
+    }
+  }
+
+  /**
+   * The server shutting down, here for an in-core restart, ends the connections of a handler that is still listening
+   * with a notice of disconnection. The handler stops its listener on its own thread, after the server has moved on.
+   */
+  @Test
+  public void serverRestartEndsTheConnectionsOfAListeningHandler() throws Exception
+  {
+    try (Socket client = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort()))
+    {
+      awaitServerConnection(client.getLocalPort());
+
+      TestCaseUtils.restartServer();
+
+      assertNoticeOfDisconnection(client, INFO_CONNHANDLER_CLOSED_BY_SHUTDOWN.get());
+    }
+  }
+
+  /**
+   * A handler that stops listening and starts again, as it does when an SSL change it cannot use is applied and then
+   * undone, runs two transports. The drained one ends with its own connections, whatever the other one serves.
+   */
+  @Test
+  public void drainEndsWithTheConnectionsOfItsOwnTransport() throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final LDAPConnectionHandler2 handler = start(configuration(port, true, true, true, 2));
+    try (Socket first = new Socket("127.0.0.1", port))
+    {
+      acceptedConnection(handler);
+      final TCPNIOTransport drained = listenAgain(handler);
+      final TCPNIOTransport live = transport(handler);
+      try (Socket second = new Socket("127.0.0.1", port))
+      {
+        awaitClientConnections(handler, 2);
+
+        first.close();
+
+        awaitStopped(drained);
+        assertFalse(live.isStopped(), "the transport of the listening handler stopped");
+      }
+    }
+    finally
+    {
+      stop(handler);
+    }
+  }
+
+  /** The server shutting down ends, through a drain, only the connections of the drained transport. */
+  @Test
+  public void drainEndsAtServerShutdownOnlyTheConnectionsOfItsOwnTransport() throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final LDAPConnectionHandler2 handler = start(configuration(port, true, true, true, 2));
+    try (Socket first = new Socket("127.0.0.1", port))
+    {
+      acceptedConnection(handler);
+      final TCPNIOTransport drained = listenAgain(handler);
+      try (Socket second = new Socket("127.0.0.1", port))
+      {
+        awaitClientConnections(handler, 2);
+
+        onlyDrain(handler).processServerShutdown(STOP_REASON);
+
+        assertNoticeOfDisconnection(first, STOP_REASON);
+        awaitStopped(drained);
+        second.setSoTimeout((int) KEEPS_OPEN_MS);
+        try
+        {
+          final int read = second.getInputStream().read();
+          fail("the connection of the listening transport was " + (read == -1 ? "closed" : "written to"));
+        }
+        catch (SocketTimeoutException expected)
+        {
+          // still open
+        }
+      }
+    }
+    finally
+    {
+      stop(handler);
+    }
+  }
+
+  /** A listener that cannot bind leaves no transport behind: the transport it started for it is shut down. */
+  @Test
+  public void failedListenLeavesNoSelectorThreads() throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final LDAPConnectionHandler2 handler = new LDAPConnectionHandler2();
+    // Both initialization and the configuration check verify the port first: take it only afterwards.
+    handler.initializeConnectionHandler(DirectoryServer.getInstance().getServerContext(),
+        configuration(port, true, true, false, 2));
+    try (ServerSocket taken = new ServerSocket())
+    {
+      taken.bind(new InetSocketAddress("127.0.0.1", port));
+      handler.start();
+      final long deadline = System.currentTimeMillis() + TIMEOUT_MS;
+      while ((Boolean) field(handler, "enabled"))
+      {
+        assertTrue(System.currentTimeMillis() < deadline, "the handler did not give up listening");
+        Thread.sleep(50);
+      }
+      assertThreadsStop(handler.getConnectionHandlerName() + " Request Handler");
+    }
+    finally
+    {
+      stop(handler);
+    }
+  }
+
+  /**
+   * Makes the handler stop listening and start again in the same instance, and returns the transport it stopped with.
+   */
+  private static TCPNIOTransport listenAgain(LDAPConnectionHandler2 handler) throws Exception
+  {
+    final TCPNIOTransport stopped = transport(handler);
+    // What the handler does to itself when it cannot use an SSL change: its configuration still enables it.
+    setField(handler, "enabled", false);
+    awaitDrains(handler, 1);
+    setField(handler, "enabled", true);
+    final long deadline = System.currentTimeMillis() + TIMEOUT_MS;
+    // The transport starts before the listener binds: only the listener tells that the port accepts connections.
+    while (field(handler, "listener") == null)
+    {
+      assertTrue(System.currentTimeMillis() < deadline, "the handler did not listen again");
+      Thread.sleep(50);
+    }
+    return stopped;
+  }
+
+  private static ServerShutdownListener onlyDrain(LDAPConnectionHandler2 handler) throws Exception
+  {
+    final Collection<?> drains = (Collection<?>) field(handler, "drains");
+    assertEquals(drains.size(), 1, "no transport is left serving the connections of the stopped listener");
+    return (ServerShutdownListener) drains.iterator().next();
+  }
+
+  private static void awaitDrains(LDAPConnectionHandler2 handler, int expected) throws Exception
+  {
+    final long deadline = System.currentTimeMillis() + TIMEOUT_MS;
+    while (((Collection<?>) field(handler, "drains")).size() != expected)
+    {
+      assertTrue(System.currentTimeMillis() < deadline, "the handler did not stop listening");
+      Thread.sleep(50);
+    }
+  }
+
+  private static void awaitClientConnections(LDAPConnectionHandler2 handler, int expected) throws Exception
+  {
+    final long deadline = System.currentTimeMillis() + TIMEOUT_MS;
+    while (handler.getClientConnections().size() != expected)
+    {
+      assertTrue(System.currentTimeMillis() < deadline, "the handler did not accept the connections");
+      Thread.sleep(50);
+    }
+  }
+
+  /** Waits for a connection handler of the server to accept the connection from the given client port. */
+  private static void awaitServerConnection(int clientPort) throws Exception
+  {
+    final long deadline = System.currentTimeMillis() + TIMEOUT_MS;
+    while (true)
+    {
+      for (ConnectionHandler<?> connectionHandler : DirectoryServer.getConnectionHandlers())
+      {
+        for (ClientConnection connection : connectionHandler.getClientConnections())
+        {
+          if (connection.getClientPort() == clientPort)
+          {
+            return;
+          }
+        }
+      }
+      assertTrue(System.currentTimeMillis() < deadline, "the server did not accept the connection");
+      Thread.sleep(50);
+    }
+  }
+
+  private static void awaitStopped(TCPNIOTransport transport) throws InterruptedException
+  {
+    final long deadline = System.currentTimeMillis() + TIMEOUT_MS;
+    while (!transport.isStopped())
+    {
+      assertTrue(System.currentTimeMillis() < deadline, "the drained transport is still running");
+      Thread.sleep(50);
+    }
+  }
+
+  /** Reads the next message from the client, checks it is the expected notice of disconnection, then the end. */
+  private static void assertNoticeOfDisconnection(Socket client, LocalizableMessage reason) throws Exception
+  {
+    client.setSoTimeout((int) TIMEOUT_MS);
+    final LDAPMessage message = new LDAPReader(client).readMessage();
+    assertNotNull(message, "the connection was closed without a notice of disconnection");
+    final ExtendedResponseProtocolOp notice = message.getExtendedResponseProtocolOp();
+    assertEquals(notice.getOID(), NOTICE_OF_DISCONNECTION_OID);
+    assertEquals(notice.getResultCode(), LDAPResultCode.UNAVAILABLE, "result code");
+    assertEquals(String.valueOf(notice.getErrorMessage()), reason.toString(), "diagnostic message");
+    assertEquals(client.getInputStream().read(), -1, "the connection stayed open after the notice");
   }
 
   /** Returns the prefix of the names of the selector threads of the handler, after checking that some run. */
@@ -268,6 +542,7 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
   private static void assertSelectorThreads(LDAPConnectionHandlerCfg config, int expected) throws Exception
   {
     final LDAPConnectionHandler2 handler = start(config);
+    final String threadPrefix = selectorThreadPrefix(handler);
     try
     {
       final TCPNIOTransport transport = transport(handler);
@@ -278,6 +553,7 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
     {
       stop(handler);
     }
+    assertThreadsStop(threadPrefix);
   }
 
   private static void restore(String selectors)
@@ -336,6 +612,13 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
       value = field.get(value);
     }
     return value;
+  }
+
+  private static void setField(Object target, String name, Object value) throws Exception
+  {
+    final Field field = target.getClass().getDeclaredField(name);
+    field.setAccessible(true);
+    field.set(target, value);
   }
 
   private static LDAPConnectionHandlerCfg configuration(int port, boolean keepAlive, boolean noDelay,

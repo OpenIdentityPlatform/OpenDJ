@@ -72,6 +72,8 @@ import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.forgerock.opendj.server.config.server.LDAPConnectionHandlerCfg;
 import org.forgerock.util.Function;
 import org.forgerock.util.Options;
+import org.glassfish.grizzly.Connection;
+import org.glassfish.grizzly.ConnectionProbe;
 import org.glassfish.grizzly.memory.MemoryManager;
 import org.glassfish.grizzly.memory.PooledMemoryManager;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
@@ -144,27 +146,70 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     }
 
     /**
+     * Tracks the connections a transport has accepted and not yet closed, down to the socket. A connection leaves the
+     * set of client connections as soon as it is disconnected, before its notice of disconnection is written, so only
+     * this tracking tells when shutting the transport down can no longer drop a write.
+     */
+    private static final class OpenConnections extends ConnectionProbe.Adapter {
+        private final Collection<Connection<?>> open = ConcurrentHashMap.newKeySet();
+
+        @Override
+        public void onAcceptEvent(Connection serverConnection, Connection clientConnection) {
+            open.add(clientConnection);
+        }
+
+        @Override
+        public void onCloseEvent(Connection connection) {
+            if (open.remove(connection)) {
+                synchronized (this) {
+                    notifyAll();
+                }
+            }
+        }
+
+        /** Waits until every accepted connection is closed, for at most the given time. */
+        private synchronized void awaitClosed(long timeoutMs) throws InterruptedException {
+            final long deadlineNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMs);
+            while (!open.isEmpty()) {
+                final long remainingMs = TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime());
+                if (remainingMs <= 0) {
+                    return;
+                }
+                wait(remainingMs);
+            }
+        }
+    }
+
+    /**
      * Keeps the transport of a stopped listener running for the connections it has accepted, so that disabling,
      * deleting or restarting the handler leaves them open, as the transport the SDK shares between listeners did. The
      * transport is shut down once the last of them is closed, or when the server shuts down.
      */
     private final class TransportDrain implements ServerShutdownListener {
         private final TCPNIOTransport drained;
+        /** The client connections accepted by the drained transport, and only those. */
+        private final Collection<ClientConnection> accepted;
+        private final OpenConnections open;
         private final AtomicBoolean finished = new AtomicBoolean();
+        /** Whether this drain is registered as a shutdown listener, which only {@link #start()} does. */
+        private volatile boolean registered;
 
-        private TransportDrain(TCPNIOTransport drained) {
+        private TransportDrain(TCPNIOTransport drained, Collection<ClientConnection> accepted, OpenConnections open) {
             this.drained = drained;
+            this.accepted = accepted;
+            this.open = open;
         }
 
         private void start() {
             drains.add(this);
+            registered = true;
             DirectoryServer.registerShutdownListener(this);
             connectionClosed();
         }
 
-        /** Shuts the transport down if no connection of this handler is left. */
+        /** Shuts the transport down if no connection it has accepted is left. */
         private void connectionClosed() {
-            if (clientConnections.isEmpty() && finish()) {
+            if (accepted.isEmpty() && finish()) {
                 // The last connection may be closed on a selector thread of the transport being shut down.
                 new DirectoryThread(this::shutdownTransport, getShutdownListenerName()).start();
             }
@@ -180,7 +225,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
             if (finish()) {
                 // Shutting the transport down closes every connection it accepted: end them as a server shutdown
                 // first, as the legacy connection handler does, rather than let them fail as protocol errors.
-                for (ClientConnection clientConnection : clientConnections) {
+                for (ClientConnection clientConnection : accepted) {
                     clientConnection.disconnect(DisconnectReason.SERVER_SHUTDOWN, true, reason);
                 }
                 shutdownTransport();
@@ -192,11 +237,22 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                 return false;
             }
             drains.remove(this);
-            DirectoryServer.deregisterShutdownListener(this);
+            if (registered) {
+                // An unregistered drain must not touch the listeners: during an in-core restart they may already
+                // belong to the next server instance, which has none yet.
+                DirectoryServer.deregisterShutdownListener(this);
+            }
             return true;
         }
 
         private void shutdownTransport() {
+            try {
+                // A notice of disconnection queued behind a response the client has not read yet is written once the
+                // client reads, and a shutdown drops it: give the connections a bounded time to take it and close.
+                open.awaitClosed(NOTICE_DELIVERY_TIMEOUT_MS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
             try {
                 drained.shutdownNow();
             } catch (IOException e) {
@@ -213,6 +269,9 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
      */
     private static final String SELECTORS_PROPERTY = "org.forgerock.opendj.transport.selectors";
 
+    /** How long a transport being shut down waits for its connections to write what they have queued and close. */
+    private static final long NOTICE_DELIVERY_TIMEOUT_MS = 2000;
+
     /** Default friendly name for the LDAP connection handler. */
     private static final String DEFAULT_FRIENDLY_NAME = "LDAP Connection Handler";
 
@@ -226,6 +285,12 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
      * handed over to a {@link TransportDrain} when the listener stops.
      */
     private TCPNIOTransport transport;
+
+    /** The client connections accepted by {@link #transport}, handed over with it to a {@link TransportDrain}. */
+    private Collection<ClientConnection> transportConnections;
+
+    /** The connections {@link #transport} has accepted and not yet closed, handed over with it. */
+    private OpenConnections transportOpenConnections;
 
     /** The transports of stopped listeners still serving the connections they accepted. */
     private final Collection<TransportDrain> drains = new CopyOnWriteArrayList<>();
@@ -264,6 +329,12 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
 
     /** The reason given to the client connections still open when the server shuts down. */
     private volatile LocalizableMessage closeReason;
+
+    /**
+     * Whether the server was shutting down when this handler was finalized. Read then rather than when the listener
+     * stops, up to a second later: after an in-core restart the server instance is by then the next one.
+     */
+    private volatile boolean serverShuttingDown;
 
     /* Internal LDAP connection handler state */
 
@@ -437,6 +508,8 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
 
     @Override
     public void finalizeConnectionHandler(LocalizableMessage finalizeReason) {
+        // DirectoryServer.shutDown sets its flag before it finalizes the connection handlers, on this thread.
+        serverShuttingDown = DirectoryServer.getInstance().isShuttingDown();
         closeReason = finalizeReason;
         shutdownRequested = true;
         currentConfig.removeLDAPChangeListener(this);
@@ -772,9 +845,11 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
             logger.info(NOTE_CONNHANDLER_STOPPED_LISTENING, handlerName);
         }
         if (transport != null) {
-            final TransportDrain drain = new TransportDrain(transport);
+            final TransportDrain drain = new TransportDrain(transport, transportConnections, transportOpenConnections);
             transport = null;
-            if (DirectoryServer.getInstance().isShuttingDown()) {
+            transportConnections = null;
+            transportOpenConnections = null;
+            if (serverShuttingDown) {
                 drain.processServerShutdown(closeReason);
             } else {
                 drain.start();
@@ -782,7 +857,8 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
         }
     }
 
-    private void connectionClosed(ClientConnection connection) {
+    private void connectionClosed(ClientConnection connection, Collection<ClientConnection> accepted) {
+        accepted.remove(connection);
         clientConnections.remove(connection);
         for (TransportDrain drain : drains) {
             drain.connectionClosed();
@@ -794,7 +870,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
      * threads and its socket options follow its configuration rather than the JVM-wide settings of the transport the
      * SDK shares between listeners.
      */
-    private TCPNIOTransport newTransport() throws IOException {
+    private TCPNIOTransport newTransport(OpenConnections openConnections) throws IOException {
         final TCPNIOTransport newTransport = TCPNIOTransportBuilder.newInstance()
                 .setIOStrategy(SameThreadIOStrategy.getInstance())
                 .setSelectorThreadPoolConfig(ThreadPoolConfig.defaultConfig()
@@ -807,6 +883,8 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                 .build();
         // As in the SDK server transport: fewer selector runners than selector threads cause deadlocks.
         newTransport.setSelectorRunnersCount(numRequestHandlers);
+        // Before the transport binds: a connection takes the probes of its transport when it is created.
+        newTransport.getConnectionMonitoringConfig().addProbes(openConnections);
         try {
             newTransport.start();
         } catch (IOException e) {
@@ -817,7 +895,11 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     }
 
     private void startListener() throws IOException {
-        transport = newTransport();
+        final OpenConnections openConnections = new OpenConnections();
+        final Collection<ClientConnection> accepted = ConcurrentHashMap.newKeySet();
+        transport = newTransport(openConnections);
+        transportConnections = accepted;
+        transportOpenConnections = openConnections;
         listener = new LDAPListener(
                 listenAddresses,
                 new Function<LDAPClientContext,
@@ -828,23 +910,24 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                             LDAPClientContext clientContext) throws LdapException {
                         final LDAPClientConnection2 conn = canAccept(clientContext);
                         clientConnections.add(conn);
+                        accepted.add(conn);
                         logConnect(conn);
                         clientContext.addListener(new LDAPClientContextEventListener() {
                             @Override
                             public void handleConnectionError(final LDAPClientContext context, final Throwable error) {
-                                connectionClosed(conn);
+                                connectionClosed(conn, accepted);
                             }
 
                             @Override
                             public void handleConnectionDisconnected(final LDAPClientContext context,
                                     final ResultCode resultCode, String diagnosticMessage) {
-                                connectionClosed(conn);
+                                connectionClosed(conn, accepted);
                             }
 
                             @Override
                             public void handleConnectionClosed(final LDAPClientContext context,
                                     final UnbindRequest unbindRequest) {
-                                connectionClosed(conn);
+                                connectionClosed(conn, accepted);
                             }
                         });
                         return new ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>() {
