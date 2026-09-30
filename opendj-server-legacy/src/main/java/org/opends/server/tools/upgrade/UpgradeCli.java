@@ -218,7 +218,7 @@ public final class UpgradeCli extends ConsoleApplication implements
                       .buildArgument();
       force =
               BooleanArgument.builder(OPTION_LONG_FORCE_UPGRADE)
-                      .description(INFO_UPGRADE_OPTION_FORCE.get(OPTION_LONG_NO_PROMPT))
+                      .description(INFO_UPGRADE_OPTION_FORCE.get(OPTION_LONG_ACCEPT_LICENSE, OPTION_LONG_NO_PROMPT))
                       .buildArgument();
       acceptLicense = acceptLicenseArgument();
       showUsageArgument = showUsageArgument();
