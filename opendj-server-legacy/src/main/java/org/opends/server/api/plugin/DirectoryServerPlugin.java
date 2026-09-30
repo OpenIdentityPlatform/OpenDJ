@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.api.plugin;
 
@@ -167,7 +168,11 @@ public abstract class DirectoryServerPlugin
   /**
    * Performs any necessary finalization for this plugin.  This will
    * be called just after the plugin has been deregistered with the
-   * server but before it has been unloaded.
+   * server but before it has been unloaded.  It is also called when
+   * {@link #initializePlugin} throws, on an instance that was never
+   * registered: it must then release whatever
+   * {@code initializePlugin} acquired before it failed, and must not
+   * assume that it completed.
    */
   public void finalizePlugin()
   {

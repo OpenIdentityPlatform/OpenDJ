@@ -677,6 +677,14 @@ public class PluginConfigManagerTestCase
       assertEquals(countChangeListeners(pluginDN), changeListeners);
       assertEquals(modifyTestEntryAndCountPreOperation(), 1);
 
+      // A change that leaves the plugin types alone keeps the running instance.
+      assertEquals(setInvokeForInternalOperations(pluginDN, false), ResultCode.SUCCESS);
+      assertSame(getTrackingPlugin(pluginDN), replacement);
+      assertFalse(replacement.isFinalized());
+      assertFalse(replacement.invokeForInternalOperations());
+      assertEquals(setInvokeForInternalOperations(pluginDN, true), ResultCode.SUCCESS);
+      assertSame(getTrackingPlugin(pluginDN), replacement);
+
       assertEquals(setPluginTypes(pluginDN, "postOperationModify"), ResultCode.SUCCESS);
 
       assertEquals(getTrackingPlugin(pluginDN).getPluginTypes(), EnumSet.of(POST_OPERATION_MODIFY));
@@ -721,8 +729,7 @@ public class PluginConfigManagerTestCase
 
       // The stored plugin types are still the refused ones, so the plugin is re-created again, and
       // refuses again, but the other properties are applied to the running instance.
-      resultCode = getRootConnection().processModify(newModifyRequest(pluginDN)
-          .addModification(REPLACE, "ds-cfg-invoke-for-internal-operations", "false")).getResultCode();
+      resultCode = setInvokeForInternalOperations(pluginDN, false);
 
       assertNotEquals(resultCode, ResultCode.SUCCESS);
       assertSame(getTrackingPlugin(pluginDN), running);
@@ -832,6 +839,13 @@ public class PluginConfigManagerTestCase
   private static ResultCode setPluginTypes(DN pluginDN, String... pluginTypes)
   {
     ModifyRequest request = newModifyRequest(pluginDN).addModification(REPLACE, "ds-cfg-plugin-type", pluginTypes);
+    return getRootConnection().processModify(request).getResultCode();
+  }
+
+  private static ResultCode setInvokeForInternalOperations(DN pluginDN, boolean invoke)
+  {
+    ModifyRequest request = newModifyRequest(pluginDN)
+        .addModification(REPLACE, "ds-cfg-invoke-for-internal-operations", String.valueOf(invoke));
     return getRootConnection().processModify(request).getResultCode();
   }
 

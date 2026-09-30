@@ -170,13 +170,16 @@ public class ReferentialIntegrityPlugin
                                      ReferentialIntegrityPluginCfg pluginCfg)
          throws ConfigException
   {
-    pluginCfg.addReferentialIntegrityChangeListener(this);
     LinkedList<LocalizableMessage> unacceptableReasons = new LinkedList<>();
 
     if (!isConfigurationAcceptableIgnoringCheckReferencesPluginTypes(pluginCfg, unacceptableReasons))
     {
       throw new ConfigException(unacceptableReasons.getFirst());
     }
+
+    // Only after the check: finalizePlugin() cannot remove a listener registered by a refused
+    // configuration, because the configuration it removes it from is set in applyConfigurationChange().
+    pluginCfg.addReferentialIntegrityChangeListener(this);
 
     // Enabling the plugin or changing its configuration is refused without these types, but a configuration
     // already stored without them (the entry shipped before issue #1118) is loaded with a warning: refusing
@@ -928,6 +931,11 @@ public class ReferentialIntegrityPlugin
 
   @Override
   public final void finalizePlugin() {
+    if (currentConfiguration == null)
+    {
+      // initializePlugin() refused the configuration before registering anything.
+      return;
+    }
     currentConfiguration.removeReferentialIntegrityChangeListener(this);
     if(interval > 0)
     {
