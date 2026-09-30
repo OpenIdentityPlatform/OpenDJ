@@ -18,6 +18,8 @@ package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.messages.ToolMessages.INFO_LABEL_BACKEND_DEBUG_INDEX_CONFIDENTIAL;
+import static org.opends.messages.ToolMessages.INFO_LABEL_BACKEND_DEBUG_RECORD_COUNT;
 import static org.mockito.Mockito.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
 import static org.opends.server.protocols.internal.Requests.newSearchRequest;
@@ -39,6 +41,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.google.common.io.Resources;
+import com.forgerock.opendj.cli.TableBuilder;
+import com.forgerock.opendj.cli.TablePrinter;
+import com.forgerock.opendj.cli.TableSerializer;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
@@ -1176,6 +1181,88 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
       config.addCleanIndex(indexName);
     }
     assertThat(backend.verifyBackend(config)).isEqualTo(0);
+  }
+
+  /**
+   * Every row {@code backendstat show-index-status} prints has a cell under each of its headings.
+   * A VLV index, which has no confidentiality, shows {@code -} under Confidential, so that its
+   * record count lands under Record Count; the key counts that follow are {@code -} as well.
+   */
+  @Test
+  public void testShowIndexStatusPutsEachCellOfAVlvRowUnderItsHeading() throws Exception
+  {
+    final EntryContainer ec = backend.getRootContainer().getEntryContainer(testBaseDN);
+    final VLVIndex vlvIndex = ec.getVLVIndexes().iterator().next();
+    final long recordCount = backend.getRootContainer().getStorage().read(new ReadOperation<Long>()
+    {
+      @Override
+      public Long run(ReadableTransaction txn) throws Exception
+      {
+        return vlvIndex.getRecordCount(txn);
+      }
+    });
+
+    final ByteArrayOutputStream err = new ByteArrayOutputStream();
+    final TableBuilder builder = new TableBuilder();
+    final int count =
+        new BackendStat(null, err).appendIndexStatusTable(builder, ec, new HashMap<Index, StringBuilder>());
+    final CapturedTable table = new CapturedTable();
+    builder.print(table);
+
+    assertThat(err.toString()).as("errors").isEmpty();
+    assertThat(table.rows).hasSize(count);
+    for (List<String> row : table.rows)
+    {
+      assertThat(row).as("the cells of " + row.get(0) + " under " + table.headings).doesNotContain("");
+    }
+
+    List<String> vlvRow = null;
+    for (List<String> row : table.rows)
+    {
+      if (row.get(0).equals(vlvIndex.getName().getIndexId()))
+      {
+        vlvRow = row;
+      }
+    }
+    assertThat(vlvRow).as("the row of " + vlvIndex.getName()).isNotNull();
+    final int confidential = table.headings.indexOf(INFO_LABEL_BACKEND_DEBUG_INDEX_CONFIDENTIAL.get().toString());
+    final int recordCountColumn = table.headings.indexOf(INFO_LABEL_BACKEND_DEBUG_RECORD_COUNT.get().toString());
+    assertThat(vlvRow.get(confidential)).as(table.headings.get(confidential)).isEqualTo("-");
+    assertThat(vlvRow.get(recordCountColumn)).as(table.headings.get(recordCountColumn))
+        .isEqualTo(String.valueOf(recordCount));
+    assertThat(vlvRow.subList(recordCountColumn + 1, vlvRow.size())).containsExactly("-", "-", "-", "-");
+  }
+
+  /** The headings and the cells of a table, as a table printer is handed them. */
+  private static final class CapturedTable extends TablePrinter
+  {
+    private final List<String> headings = new ArrayList<>();
+    private final List<List<String>> rows = new ArrayList<>();
+
+    @Override
+    protected TableSerializer getSerializer()
+    {
+      return new TableSerializer()
+      {
+        @Override
+        public void addHeading(String s)
+        {
+          headings.add(s);
+        }
+
+        @Override
+        public void startRow()
+        {
+          rows.add(new ArrayList<String>());
+        }
+
+        @Override
+        public void addCell(String s)
+        {
+          rows.get(rows.size() - 1).add(s);
+        }
+      };
+    }
   }
 
   @Test
