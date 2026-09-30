@@ -23,6 +23,7 @@ import java.util.EnumSet;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
+import org.opends.server.plugins.OtherPluginTypeTrackingPlugin;
 import org.opends.server.plugins.PluginTypeTrackingPlugin;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -650,7 +651,8 @@ public class PluginConfigManagerTestCase
 
   /**
    * A change to the plugin types of an enabled plugin takes effect at once: the plugin is
-   * re-created for the new types, and the instance registered for the old ones is finalized.
+   * re-created for the new types, and the instance registered for the old ones is finalized once
+   * the new one is registered in its place.
    */
   @Test
   public void testPluginTypeChangeAppliesToEnabledPlugin() throws Exception
@@ -668,6 +670,8 @@ public class PluginConfigManagerTestCase
       PluginTypeTrackingPlugin replacement = getTrackingPlugin(pluginDN);
       assertNotSame(replacement, original);
       assertTrue(original.isFinalized(), "The instance registered for the old plugin types is not finalized");
+      assertSame(original.getRegisteredWhenFinalized(), replacement,
+          "The old instance was finalized before the new one was registered in its place");
       assertFalse(replacement.isFinalized());
       assertEquals(replacement.getPluginTypes(), EnumSet.of(POST_OPERATION_MODIFY, PRE_OPERATION_MODIFY));
       assertEquals(countChangeListeners(pluginDN), changeListeners);
@@ -678,6 +682,8 @@ public class PluginConfigManagerTestCase
       assertEquals(getTrackingPlugin(pluginDN).getPluginTypes(), EnumSet.of(POST_OPERATION_MODIFY));
       assertTrue(replacement.isFinalized());
       assertEquals(countChangeListeners(pluginDN), changeListeners);
+      assertEquals(PluginTypeTrackingPlugin.takeChangesSeenWhenFinalized(), 0,
+          "A finalized instance received a change of its configuration entry");
       assertEquals(modifyTestEntryAndCountPreOperation(), 0);
     }
     finally
@@ -688,7 +694,9 @@ public class PluginConfigManagerTestCase
 
   /**
    * When the plugin cannot be initialized for the new plugin types, the change fails and the
-   * instance registered for the old plugin types stays registered and in use.
+   * instance registered for the old plugin types stays registered and in use. The rejected
+   * instance leaves nothing behind, and later changes of the entry still reach the running
+   * instance.
    */
   @Test
   public void testPluginTypeChangeRefusedByPluginKeepsRunningPlugin() throws Exception
@@ -699,6 +707,7 @@ public class PluginConfigManagerTestCase
     {
       assertEquals(setPluginTypes(pluginDN, "postOperationModify", "preOperationModify"), ResultCode.SUCCESS);
       PluginTypeTrackingPlugin running = getTrackingPlugin(pluginDN);
+      int changeListeners = countChangeListeners(pluginDN);
 
       ResultCode resultCode = setPluginTypes(pluginDN, "postOperationModify", "preOperationDelete");
 
@@ -706,7 +715,85 @@ public class PluginConfigManagerTestCase
       assertSame(getTrackingPlugin(pluginDN), running);
       assertFalse(running.isFinalized());
       assertEquals(running.getPluginTypes(), EnumSet.of(POST_OPERATION_MODIFY, PRE_OPERATION_MODIFY));
+      assertEquals(countChangeListeners(pluginDN), changeListeners,
+          "The instance which refused the new plugin types is still listening to the entry");
       assertEquals(modifyTestEntryAndCountPreOperation(), 1);
+
+      // The stored plugin types are still the refused ones, so the plugin is re-created again, and
+      // refuses again, but the other properties are applied to the running instance.
+      resultCode = getRootConnection().processModify(newModifyRequest(pluginDN)
+          .addModification(REPLACE, "ds-cfg-invoke-for-internal-operations", "false")).getResultCode();
+
+      assertNotEquals(resultCode, ResultCode.SUCCESS);
+      assertSame(getTrackingPlugin(pluginDN), running);
+      assertFalse(running.invokeForInternalOperations());
+      assertEquals(countChangeListeners(pluginDN), changeListeners);
+    }
+    finally
+    {
+      TestCaseUtils.deleteEntry(pluginDN);
+    }
+  }
+
+  /**
+   * When the instance registered for the old plugin types fails to finalize, the new instance is
+   * already registered in its place and stays in use.
+   */
+  @Test
+  public void testPluginTypeChangeWhenOldInstanceFailsToFinalize() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    DN pluginDN = addTrackingPlugin();
+    try
+    {
+      PluginTypeTrackingPlugin original = getTrackingPlugin(pluginDN);
+
+      PluginTypeTrackingPlugin.setFailToFinalize(true);
+      ResultCode resultCode;
+      try
+      {
+        resultCode = setPluginTypes(pluginDN, "postOperationModify", "preOperationModify");
+      }
+      finally
+      {
+        PluginTypeTrackingPlugin.setFailToFinalize(false);
+      }
+
+      assertEquals(resultCode, ResultCode.SUCCESS);
+      assertTrue(original.isFinalized());
+      PluginTypeTrackingPlugin replacement = getTrackingPlugin(pluginDN);
+      assertNotSame(replacement, original);
+      assertEquals(replacement.getPluginTypes(), EnumSet.of(POST_OPERATION_MODIFY, PRE_OPERATION_MODIFY));
+      assertEquals(modifyTestEntryAndCountPreOperation(), 1);
+    }
+    finally
+    {
+      TestCaseUtils.deleteEntry(pluginDN);
+    }
+  }
+
+  /**
+   * A change of the Java class needs administrative action, so a change of the plugin types which
+   * comes with it is not applied: the running instance stays registered for its plugin types.
+   */
+  @Test
+  public void testPluginTypeChangeWithJavaClassChangeKeepsRunningPlugin() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    DN pluginDN = addTrackingPlugin();
+    try
+    {
+      PluginTypeTrackingPlugin original = getTrackingPlugin(pluginDN);
+
+      ModifyRequest request = newModifyRequest(pluginDN)
+          .addModification(REPLACE, "ds-cfg-java-class", OtherPluginTypeTrackingPlugin.class.getName())
+          .addModification(REPLACE, "ds-cfg-plugin-type", "postOperationModify", "preOperationModify");
+      assertEquals(getRootConnection().processModify(request).getResultCode(), ResultCode.SUCCESS);
+
+      assertSame(getTrackingPlugin(pluginDN), original);
+      assertFalse(original.isFinalized());
+      assertEquals(original.getPluginTypes(), EnumSet.of(POST_OPERATION_MODIFY));
+      assertEquals(modifyTestEntryAndCountPreOperation(), 0);
     }
     finally
     {
@@ -726,6 +813,7 @@ public class PluginConfigManagerTestCase
         "ds-cfg-enabled: true",
         "ds-cfg-plugin-type: postOperationModify",
         "ds-cfg-invoke-for-internal-operations: true");
+    PluginTypeTrackingPlugin.takeChangesSeenWhenFinalized();
     return pluginDN;
   }
 
@@ -747,14 +835,19 @@ public class PluginConfigManagerTestCase
     return getRootConnection().processModify(request).getResultCode();
   }
 
-  /** Modifies the test entry and returns how many times the tracking plugin was invoked before it. */
+  /**
+   * Modifies the test entry and returns how many times the tracking plugin was invoked before it.
+   * The plugin always has the post-operation modify type, so it must be invoked once after it.
+   */
   private static int modifyTestEntryAndCountPreOperation() throws Exception
   {
     DN testEntryDN = DN.valueOf(TestCaseUtils.TEST_ROOT_DN_STRING);
     PluginTypeTrackingPlugin.takePreOperationModifyCount(testEntryDN);
+    PluginTypeTrackingPlugin.takePostOperationModifyCount(testEntryDN);
     ModifyRequest request = newModifyRequest(testEntryDN).addModification(REPLACE, "description", "modified");
     assertEquals(getRootConnection().processModify(request).getResultCode(), ResultCode.SUCCESS);
+    assertEquals(PluginTypeTrackingPlugin.takePostOperationModifyCount(testEntryDN), 1,
+        "The tracking plugin was not invoked once after the modify of the test entry");
     return PluginTypeTrackingPlugin.takePreOperationModifyCount(testEntryDN);
   }
 }
-

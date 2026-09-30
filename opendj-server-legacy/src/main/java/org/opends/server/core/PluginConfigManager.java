@@ -396,7 +396,18 @@ public class PluginConfigManager
       {
         plugin.initializeInternal(serverContext, configuration.dn(), pluginTypes,
             configuration.isInvokeForInternalOperations());
-        plugin.initializePlugin(pluginTypes, configuration);
+        try
+        {
+          plugin.initializePlugin(pluginTypes, configuration);
+        }
+        catch (Exception e)
+        {
+          // The plugin may have registered a change listener or started a
+          // thread before it failed, and it is never registered, so nothing
+          // else would finalize it.
+          finalizePluginQuietly(plugin);
+          throw e;
+        }
       }
       else
       {
@@ -416,6 +427,24 @@ public class PluginConfigManager
       LocalizableMessage message = ERR_CONFIG_PLUGIN_CANNOT_INITIALIZE.
           get(className, configuration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
+    }
+  }
+
+  /**
+   * Finalizes the provided plugin, logging rather than throwing anything its
+   * {@code finalizePlugin()} method throws.
+   *
+   * @param  plugin  The plugin to finalize.
+   */
+  private void finalizePluginQuietly(DirectoryServerPlugin<?> plugin)
+  {
+    try
+    {
+      plugin.finalizePlugin();
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
     }
   }
 
@@ -2322,9 +2351,12 @@ public class PluginConfigManager
       throws CanceledOperationException {
     PluginResult.PreOperation result = null;
 
-    for (int i = 0; i < preOperationAddPlugins.length; i++)
+    // Read the array once: it is replaced when a plugin is registered or
+    // deregistered, and the index must stay within the one being iterated.
+    DirectoryServerPlugin[] plugins = preOperationAddPlugins;
+    for (int i = 0; i < plugins.length; i++)
     {
-      DirectoryServerPlugin p = preOperationAddPlugins[i];
+      DirectoryServerPlugin p = plugins[i];
       if (isInternalOperation(addOperation, p))
       {
         continue;
@@ -2340,18 +2372,18 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        return handlePreOperationException(e, i, preOperationAddPlugins,
+        return handlePreOperationException(e, i, plugins,
             addOperation, p);
       }
 
       if (result == null)
       {
-        return handlePreOperationResult(addOperation, i, preOperationAddPlugins,
+        return handlePreOperationResult(addOperation, i, plugins,
             p);
       }
       else if (!result.continuePluginProcessing())
       {
-        registerSkippedPreOperationPlugins(i, preOperationAddPlugins,
+        registerSkippedPreOperationPlugins(i, plugins,
             addOperation);
         return result;
       }
@@ -2381,9 +2413,12 @@ public class PluginConfigManager
   {
     PluginResult.PreOperation result = null;
 
-    for (int i = 0; i < preOperationBindPlugins.length; i++)
+    // Read the array once: it is replaced when a plugin is registered or
+    // deregistered, and the index must stay within the one being iterated.
+    DirectoryServerPlugin[] plugins = preOperationBindPlugins;
+    for (int i = 0; i < plugins.length; i++)
     {
-      DirectoryServerPlugin p = preOperationBindPlugins[i];
+      DirectoryServerPlugin p = plugins[i];
       if (isInternalOperation(bindOperation, p))
       {
         continue;
@@ -2395,18 +2430,18 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        return handlePreOperationException(e, i, preOperationBindPlugins,
+        return handlePreOperationException(e, i, plugins,
             bindOperation, p);
       }
 
       if (result == null)
       {
         return handlePreOperationResult(bindOperation, i,
-            preOperationBindPlugins, p);
+            plugins, p);
       }
       else if (!result.continuePluginProcessing())
       {
-        registerSkippedPreOperationPlugins(i, preOperationBindPlugins,
+        registerSkippedPreOperationPlugins(i, plugins,
             bindOperation);
 
         return result;
@@ -2439,9 +2474,12 @@ public class PluginConfigManager
       throws CanceledOperationException {
     PluginResult.PreOperation result = null;
 
-    for (int i = 0; i < preOperationComparePlugins.length; i++)
+    // Read the array once: it is replaced when a plugin is registered or
+    // deregistered, and the index must stay within the one being iterated.
+    DirectoryServerPlugin[] plugins = preOperationComparePlugins;
+    for (int i = 0; i < plugins.length; i++)
     {
-      DirectoryServerPlugin p = preOperationComparePlugins[i];
+      DirectoryServerPlugin p = plugins[i];
       if (isInternalOperation(compareOperation, p))
       {
         continue;
@@ -2457,14 +2495,14 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        return handlePreOperationException(e, i, preOperationComparePlugins,
+        return handlePreOperationException(e, i, plugins,
             compareOperation, p);
       }
 
       if (result == null)
       {
         return handlePreOperationResult(compareOperation, i,
-            preOperationComparePlugins, p);
+            plugins, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -2498,9 +2536,12 @@ public class PluginConfigManager
       throws CanceledOperationException {
     PluginResult.PreOperation result = null;
 
-    for (int i = 0; i < preOperationDeletePlugins.length; i++)
+    // Read the array once: it is replaced when a plugin is registered or
+    // deregistered, and the index must stay within the one being iterated.
+    DirectoryServerPlugin[] plugins = preOperationDeletePlugins;
+    for (int i = 0; i < plugins.length; i++)
     {
-      DirectoryServerPlugin p = preOperationDeletePlugins[i];
+      DirectoryServerPlugin p = plugins[i];
       if (isInternalOperation(deleteOperation, p))
       {
         continue;
@@ -2516,18 +2557,18 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        return handlePreOperationException(e, i, preOperationDeletePlugins,
+        return handlePreOperationException(e, i, plugins,
             deleteOperation, p);
       }
 
       if (result == null)
       {
         return handlePreOperationResult(deleteOperation, i,
-            preOperationDeletePlugins, p);
+            plugins, p);
       }
       else if (!result.continuePluginProcessing())
       {
-        registerSkippedPreOperationPlugins(i, preOperationDeletePlugins,
+        registerSkippedPreOperationPlugins(i, plugins,
             deleteOperation);
 
         return result;
@@ -2596,9 +2637,12 @@ public class PluginConfigManager
       throws CanceledOperationException {
     PluginResult.PreOperation result = null;
 
-    for (int i = 0; i < preOperationExtendedPlugins.length; i++)
+    // Read the array once: it is replaced when a plugin is registered or
+    // deregistered, and the index must stay within the one being iterated.
+    DirectoryServerPlugin[] plugins = preOperationExtendedPlugins;
+    for (int i = 0; i < plugins.length; i++)
     {
-      DirectoryServerPlugin p = preOperationExtendedPlugins[i];
+      DirectoryServerPlugin p = plugins[i];
       if (isInternalOperation(extendedOperation, p))
       {
         registerSkippedPreOperationPlugin(p, extendedOperation);
@@ -2615,18 +2659,18 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        return handlePreOperationException(e, i, preOperationExtendedPlugins,
+        return handlePreOperationException(e, i, plugins,
             extendedOperation, p);
       }
 
       if (result == null)
       {
         return handlePreOperationResult(extendedOperation, i,
-            preOperationExtendedPlugins, p);
+            plugins, p);
       }
       else if (!result.continuePluginProcessing())
       {
-        registerSkippedPreOperationPlugins(i, preOperationExtendedPlugins,
+        registerSkippedPreOperationPlugins(i, plugins,
             extendedOperation);
 
         return result;
@@ -2659,9 +2703,12 @@ public class PluginConfigManager
       throws CanceledOperationException {
     PluginResult.PreOperation result = null;
 
-    for (int i = 0; i < preOperationModifyPlugins.length; i++)
+    // Read the array once: it is replaced when a plugin is registered or
+    // deregistered, and the index must stay within the one being iterated.
+    DirectoryServerPlugin[] plugins = preOperationModifyPlugins;
+    for (int i = 0; i < plugins.length; i++)
     {
-      DirectoryServerPlugin p = preOperationModifyPlugins[i];
+      DirectoryServerPlugin p = plugins[i];
       if (isInternalOperation(modifyOperation, p))
       {
         continue;
@@ -2677,18 +2724,18 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        return handlePreOperationException(e, i, preOperationModifyPlugins,
+        return handlePreOperationException(e, i, plugins,
             modifyOperation, p);
       }
 
       if (result == null)
       {
         return handlePreOperationResult(modifyOperation, i,
-            preOperationModifyPlugins, p);
+            plugins, p);
       }
       else if (!result.continuePluginProcessing())
       {
-        registerSkippedPreOperationPlugins(i, preOperationModifyPlugins,
+        registerSkippedPreOperationPlugins(i, plugins,
             modifyOperation);
 
         return result;
@@ -2721,9 +2768,12 @@ public class PluginConfigManager
       throws CanceledOperationException {
     PluginResult.PreOperation result = null;
 
-    for (int i = 0; i < preOperationModifyDNPlugins.length; i++)
+    // Read the array once: it is replaced when a plugin is registered or
+    // deregistered, and the index must stay within the one being iterated.
+    DirectoryServerPlugin[] plugins = preOperationModifyDNPlugins;
+    for (int i = 0; i < plugins.length; i++)
     {
-      DirectoryServerPlugin p = preOperationModifyDNPlugins[i];
+      DirectoryServerPlugin p = plugins[i];
       if (isInternalOperation(modifyDNOperation, p))
       {
         continue;
@@ -2739,18 +2789,18 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        return handlePreOperationException(e, i, preOperationModifyDNPlugins,
+        return handlePreOperationException(e, i, plugins,
             modifyDNOperation, p);
       }
 
       if (result == null)
       {
         return handlePreOperationResult(modifyDNOperation, i,
-            preOperationModifyDNPlugins, p);
+            plugins, p);
       }
       else if (!result.continuePluginProcessing())
       {
-        registerSkippedPreOperationPlugins(i, preOperationModifyDNPlugins,
+        registerSkippedPreOperationPlugins(i, plugins,
             modifyDNOperation);
 
         return result;
@@ -2783,9 +2833,12 @@ public class PluginConfigManager
       throws CanceledOperationException {
     PluginResult.PreOperation result = null;
 
-    for (int i = 0; i < preOperationSearchPlugins.length; i++)
+    // Read the array once: it is replaced when a plugin is registered or
+    // deregistered, and the index must stay within the one being iterated.
+    DirectoryServerPlugin[] plugins = preOperationSearchPlugins;
+    for (int i = 0; i < plugins.length; i++)
     {
-      DirectoryServerPlugin p = preOperationSearchPlugins[i];
+      DirectoryServerPlugin p = plugins[i];
       if (isInternalOperation(searchOperation, p))
       {
         continue;
@@ -2801,18 +2854,18 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        return handlePreOperationException(e, i, preOperationSearchPlugins,
+        return handlePreOperationException(e, i, plugins,
             searchOperation, p);
       }
 
       if (result == null)
       {
         return handlePreOperationResult(searchOperation, i,
-            preOperationSearchPlugins, p);
+            plugins, p);
       }
       else if (!result.continuePluginProcessing())
       {
-        registerSkippedPreOperationPlugins(i, preOperationSearchPlugins,
+        registerSkippedPreOperationPlugins(i, plugins,
              searchOperation);
 
         return result;
@@ -4490,6 +4543,11 @@ public class PluginConfigManager
     String className = configuration.getJavaClass();
     if (existingPlugin != null)
     {
+      // Update the running instance first, so that it has the new value even
+      // when it stays in use because a replacement cannot be initialized.
+      existingPlugin.setInvokeForInternalOperations(
+                          configuration.isInvokeForInternalOperations());
+
       if (! className.equals(existingPlugin.getClass().getName()))
       {
         ccr.setAdminActionRequired(true);
@@ -4500,12 +4558,8 @@ public class PluginConfigManager
         if (!pluginTypes.equals(existingPlugin.getPluginTypes()))
         {
           replacePlugin(configuration, pluginTypes, ccr);
-          return ccr;
         }
       }
-
-      existingPlugin.setInvokeForInternalOperations(
-                          configuration.isInvokeForInternalOperations());
 
       return ccr;
     }
@@ -4537,7 +4591,11 @@ public class PluginConfigManager
    * plugin types of its new configuration. A plugin receives its plugin types, and may refuse
    * them, only when it is initialized, so the registered instance cannot be moved to other types
    * in place. The new instance is initialized first: if that fails, the registered one stays in
-   * use for the plugin types it was initialized for.
+   * use for the plugin types it was initialized for. Otherwise the registered instance is
+   * deregistered, the new one is registered in its place, and only then is the old one
+   * finalized, so that the plugin is missing only for the time the arrays are rewritten, not for
+   * the time the old instance takes to finalize, and a failure to finalize does not leave the
+   * plugin unregistered.
    *
    * @param configuration
    *          The new configuration of the plugin.
@@ -4561,15 +4619,25 @@ public class PluginConfigManager
       return;
     }
 
+    DirectoryServerPlugin<? extends PluginCfg> oldPlugin;
     pluginLock.lock();
     try
     {
-      deregisterPlugin(configuration.dn());
+      oldPlugin = registeredPlugins.remove(configuration.dn());
+      if (oldPlugin != null)
+      {
+        deregisterPlugin0(oldPlugin);
+      }
       registerPlugin(plugin, configuration.dn(), pluginTypes);
     }
     finally
     {
       pluginLock.unlock();
+    }
+
+    if (oldPlugin != null)
+    {
+      finalizePluginQuietly(oldPlugin);
     }
   }
 
