@@ -29,6 +29,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.server.config.server.LDAPConnectionHandlerCfg;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.api.ConnectionHandler;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
@@ -365,5 +366,39 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     //apply it
     LDAPConnHandler.applyConfigurationChange(config);
     LDAPConnHandler.finalizeConnectionHandler(reasonMsg);
+  }
+
+  /**
+   * A handler created with {@code dsconfig create-connection-handler --type ldap} and no explicit
+   * {@code java-class} must run on the same class as the shipped LDAP listeners, not on the legacy
+   * {@link LDAPConnectionHandler} (issue #1116).
+   */
+  @Test
+  public void testCreatedHandlerDefaultsToLDAPConnectionHandler2() throws Exception {
+    final String handlerName = "Default Class LDAP Connection Handler";
+    final DN handlerDN = DN.valueOf("cn=" + handlerName + ",cn=Connection Handlers,cn=config");
+    TestCaseUtils.dsconfig(
+        "create-connection-handler",
+        "--type", "ldap",
+        "--handler-name", handlerName,
+        "--set", "enabled:true",
+        "--set", "listen-address:127.0.0.1",
+        "--set", "listen-port:" + TestCaseUtils.findFreePort());
+    try {
+      Entry handlerEntry = DirectoryServer.getEntry(handlerDN);
+      assertEquals(handlerEntry.parseAttribute("ds-cfg-java-class").asString(),
+          LDAPConnectionHandler2.class.getName());
+
+      ConnectionHandler<?> running = null;
+      for (ConnectionHandler<?> handler : DirectoryServer.getConnectionHandlers()) {
+        if (handlerDN.equals(handler.getComponentEntryDN())) {
+          running = handler;
+        }
+      }
+      assertNotNull(running, "the created handler is not registered");
+      assertEquals(running.getClass(), LDAPConnectionHandler2.class);
+    } finally {
+      TestCaseUtils.dsconfig("delete-connection-handler", "--handler-name", handlerName);
+    }
   }
 }
