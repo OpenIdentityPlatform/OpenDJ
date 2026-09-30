@@ -89,7 +89,11 @@ of them (an `--add-host` or a `hostAliases` entry for itself). Names are compare
 `opendj-1` is not `opendj-10`, and `opendj-0.opendj.east` is not `opendj-0.opendj.west`.
 List DNS names rather than addresses in `REPLICATION_PEERS`: the servers register in
 `cn=admin data` by name, and a server listed by address alone would be taken for one that
-left the topology and removed from it (see below).
+left the topology and removed from it (see below). A server registered by an address - a
+master that `MASTER_SERVER=<address>` named, which its replicas registered under that address
+- is never removed that way, as nothing tells it from a listed name: moving such a topology
+to a `REPLICATION_PEERS` of names keeps the master, and once it really is gone, it is
+removed by hand.
 
 The join decides from what is there, not from an exit code: this server is a member once
 its configuration holds the replication domain for `BASE_DN` and it is registered in
@@ -97,12 +101,15 @@ its configuration holds the replication domain for `BASE_DN` and it is registere
 `REPLICATION_RETRY_COUNT` times every `REPLICATION_RETRY_INTERVAL` seconds, each enable
 bounded by `REPLICATION_ATTEMPT_TIMEOUT` seconds, and the container reports itself healthy
 only once the join succeeded and the volume holds the data of the topology - across
-restarts too. A server that already is a member and holds that data is ready as soon as it
-serves, without waiting for its peers, so a whole cluster restart does not deadlock under
-`OrderedReady`.
+restarts too. A server whose volume holds that data is ready as soon as it serves, without
+waiting for its peers or for its join, so a whole cluster restart does not deadlock under
+`OrderedReady`, and a changed root password does not keep it unready either (the join,
+which binds with `ROOT_PASSWORD`, then only logs that it cannot).
 
-A volume the container bootstrapped is initialized from the topology once the join
-succeeds, whether or not `BASE_DN` already holds entries: every fresh volume holds what
+A volume the container bootstraps is marked before the bootstrap starts, and initialized
+from the topology once the join succeeds, whether or not `BASE_DN` already holds entries - so
+a bootstrap that failed or was killed half-way is initialized as well, never taken for data
+of the topology: every fresh volume holds what
 `ADD_BASE_ENTRY` or `SAMPLE_DATA` imported, which says nothing about which server holds
 the data of the topology. `dsreplication initialize` is a full import of `BASE_DN` and runs
 without a bound unless `REPLICATION_INITIALIZE_TIMEOUT` sets one. Each server publishes to
@@ -110,10 +117,15 @@ its peers whether its volume still waits for that data (`pending`) or holds it (
 the local entry `cn=Docker Join,cn=config`, and a pending server joins and initializes only
 through a ready one. So servers may start together - Compose, or a StatefulSet with
 `podManagementPolicy: Parallel` - without any of them taking the bootstrap data of another
-fresh one for the topology's. Only the first entry of `REPLICATION_PEERS` may decide that
+fresh one for the topology's. Servers that join through the same peer take turns: two
+`dsreplication enable` runs through one server at once leave the loser a member only in
+part, for good. The turn is the entry `cn=Docker Join Lock,cn=config` on that peer, which a
+join adds before its enable and removes after it; one left behind by a killed join is taken
+over once it is older than `REPLICATION_ATTEMPT_TIMEOUT` plus a minute. Only the first entry of `REPLICATION_PEERS` may decide that
 there is no topology yet and seed it with its own data: at once when every other peer
 answers and waits for data as well, or once its retries are exhausted without any peer
-that could hold the data answering. The residual risk of that rule: with every other server
+that could hold the data answering - a ready one, or a server of an earlier image that
+publishes no state but replicates `BASE_DN`. The residual risk of that rule: with every other server
 down *and* the volume of the first peer lost, the first peer seeds an empty topology and the
 others initialize from it; keep backups accordingly. A volume that joined but whose
 initialize never completed keeps waiting for a ready peer on every start, so under
@@ -131,7 +143,10 @@ ran at the same time cannot leave two replication servers that know nothing of e
 With only `MASTER_SERVER` set nothing is removed or added, so servers joined by hand stay.
 
 The one-shot types `srs`, `sdsr` and `rg` keep their previous behaviour - they run once,
-during the first bootstrap only - and are deprecated in favour of `simple`. With
+during the first bootstrap only - and are deprecated in favour of `simple`. Like `simple`,
+they need one `ADMIN_PORT` and one `REPLICATION_PORT` on every server: the tools reach the
+master on the ports of the container they run in (images before this one used 4444 and
+8989 on both sides, whatever the container was set up with). With
 `OPENDJ_REPLICATION_TYPE=srs`, start the directory server replicas one at a time, each
 once the previous one is healthy: every replica pushes its data to the replicas connected
 at that moment, and one that is restarting at the end of its own first start misses it.
