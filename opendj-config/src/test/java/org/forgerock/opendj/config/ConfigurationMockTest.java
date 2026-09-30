@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.config;
 
@@ -37,7 +38,7 @@ public class ConfigurationMockTest extends ConfigTestCase {
     public void testPropertyWithStringReturnValue() {
         GoverningStructureRuleVirtualAttributeCfg mock = mockCfg(GoverningStructureRuleVirtualAttributeCfg.class);
         assertThat(mock.getJavaClass()).
-            isEqualTo("org.opends.server.extensions.GoverningSturctureRuleVirtualAttributeProvider");
+            isEqualTo("org.opends.server.extensions.GoverningStructureRuleVirtualAttributeProvider");
     }
 
     @Test
