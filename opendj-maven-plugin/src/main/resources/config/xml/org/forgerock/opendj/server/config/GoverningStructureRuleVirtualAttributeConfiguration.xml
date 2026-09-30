@@ -13,6 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2009 Sun Microsystems, Inc.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <adm:managed-object name="governing-structure-rule-virtual-attribute"
   plural-name="governing-structure-rule-virtual-attributes"
@@ -36,7 +37,7 @@
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
-          org.opends.server.extensions.GoverningSturctureRuleVirtualAttributeProvider
+          org.opends.server.extensions.GoverningStructureRuleVirtualAttributeProvider
         </adm:value>
       </adm:defined>
     </adm:default-behavior>
