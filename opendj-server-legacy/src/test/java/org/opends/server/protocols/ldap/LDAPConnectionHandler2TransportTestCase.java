@@ -18,9 +18,11 @@ package org.opends.server.protocols.ldap;
 import static org.opends.messages.CoreMessages.INFO_CONNHANDLER_CLOSED_BY_SHUTDOWN;
 import static org.testng.Assert.*;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.net.BindException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -141,7 +143,7 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
   public void listenSocketUsesTheConfiguredReuseAddress(boolean reuseAddress) throws Exception
   {
     final LDAPConnectionHandler2 handler =
-        start(configuration(TestCaseUtils.findFreePort(), true, true, reuseAddress, 2));
+        start(configuration(freePort(reuseAddress), true, true, reuseAddress, 2));
     try
     {
       final Collection<?> serverConnections = (Collection<?>) field(field(handler, "listener"), "impl", "serverConnections");
@@ -469,7 +471,7 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
   @Test
   public void failedListenLeavesNoSelectorThreads() throws Exception
   {
-    final int port = TestCaseUtils.findFreePort();
+    final int port = freePort(false);
     final LDAPConnectionHandler2 handler = new LDAPConnectionHandler2();
     // Both initialization and the configuration check verify the port first: take it only afterwards.
     handler.initializeConnectionHandler(DirectoryServer.getInstance().getServerContext(),
@@ -489,6 +491,34 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
     finally
     {
       stop(handler);
+    }
+  }
+
+  /**
+   * Returns a free port that a listen socket with the given SO_REUSEADDR setting can bind to on 127.0.0.1.
+   * {@link TestCaseUtils#findFreePort()} checks its ports with SO_REUSEADDR only, and every test class counts them down
+   * from the same number in a JVM of its own: a port can still carry a connection a previous class left in TIME_WAIT,
+   * which refuses only a socket without SO_REUSEADDR.
+   */
+  private static int freePort(boolean reuseAddress) throws IOException
+  {
+    while (true)
+    {
+      final int port = TestCaseUtils.findFreePort();
+      if (reuseAddress)
+      {
+        return port;
+      }
+      try (ServerSocket probe = new ServerSocket())
+      {
+        probe.setReuseAddress(false);
+        probe.bind(new InetSocketAddress("127.0.0.1", port));
+        return port;
+      }
+      catch (BindException inUse)
+      {
+        // Try the next one: findFreePort() hands out each port once, and throws when none is left.
+      }
     }
   }
 
