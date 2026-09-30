@@ -97,6 +97,11 @@
 
     <dependency>
       <groupId>org.openidentityplatform.opendj</groupId>
+      <artifactId>opendj-grizzly</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-ldap-toolkit</artifactId>
       <version>${project.version}</version>
     </dependency>
