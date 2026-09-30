@@ -19,6 +19,7 @@ import static org.opends.messages.CoreMessages.INFO_CONNHANDLER_CLOSED_BY_SHUTDO
 import static org.testng.Assert.*;
 
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -29,6 +30,10 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.reactive.LDAPConnectionHandler2;
@@ -74,6 +79,11 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
   private static final int UNREAD_CHUNK = 64 * 1024;
   /** Far more than any socket buffers hold. */
   private static final int MAX_UNREAD_BYTES = 64 * 1024 * 1024;
+  /**
+   * How soon a drain ends once its last connection is closed: well below the 2 s it waits at most for connections to
+   * close, which the notice queued behind unread data takes about 1.3 s to reach.
+   */
+  private static final long CLOSED_DRAIN_ENDS_MS = 1000;
 
   @BeforeClass
   public void setUp() throws Exception
@@ -310,7 +320,8 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
         left -= read;
       }
       assertNoticeOfDisconnection(client, STOP_REASON);
-      shutdown.join(TIMEOUT_MS);
+      // The client has read everything and the server has closed: the drain must not wait out its bound.
+      shutdown.join(CLOSED_DRAIN_ENDS_MS);
       assertFalse(shutdown.isAlive(), "the drain is still waiting for a closed connection");
     }
     finally
@@ -321,7 +332,9 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
 
   /**
    * The server shutting down, here for an in-core restart, ends the connections of a handler that is still listening
-   * with a notice of disconnection. The handler stops its listener on its own thread, after the server has moved on.
+   * with a notice of disconnection. The handler stops its listener on its own thread, which may wake before or after
+   * the next server instance is current: {@link #drainEndsTheConnectionsWhenTheServerOfItsHandlerIsShuttingDown()}
+   * covers the latter.
    */
   @Test
   public void serverRestartEndsTheConnectionsOfAListeningHandler() throws Exception
@@ -329,11 +342,61 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
     try (Socket client = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       awaitServerConnection(client.getLocalPort());
+      // Read while the server restarts: macOS resets a closed loopback connection after net.inet.tcp.fin_timeout
+      // (60 s), and drops what the client has not read yet.
+      final ExecutorService reader = Executors.newSingleThreadExecutor();
+      try
+      {
+        final Future<?> notice = reader.submit(() -> {
+          assertNoticeOfDisconnection(client, INFO_CONNHANDLER_CLOSED_BY_SHUTDOWN.get());
+          return null;
+        });
+        TestCaseUtils.restartServer();
+        notice.get(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      }
+      finally
+      {
+        reader.shutdownNow();
+      }
+    }
+  }
 
-      TestCaseUtils.restartServer();
+  /**
+   * A handler finalized while its server runs, as disabling or deleting it does, may stop its listener after that
+   * server has begun shutting down, and even after the next server instance is current. The drain then ends the
+   * connections with a notice of disconnection as the server shutdown would have, and registers with no server.
+   */
+  @Test
+  public void drainEndsTheConnectionsWhenTheServerOfItsHandlerIsShuttingDown() throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final LDAPConnectionHandler2 handler = start(configuration(port, true, true, true, 2));
+    final String threadPrefix = selectorThreadPrefix(handler);
+    try (Socket client = new Socket("127.0.0.1", port))
+    {
+      acceptedConnection(handler);
+      // The server of the handler is shutting down, and the current instance is another one that is not.
+      final Constructor<DirectoryServer> newServer = DirectoryServer.class.getDeclaredConstructor();
+      newServer.setAccessible(true);
+      final DirectoryServer previous = newServer.newInstance();
+      setField(previous, "shuttingDown", true);
+      setField(handler, "server", previous);
+
+      stop(handler);
 
       assertNoticeOfDisconnection(client, INFO_CONNHANDLER_CLOSED_BY_SHUTDOWN.get());
+      assertTrue(((Collection<?>) field(handler, "drains")).isEmpty(), "the drain is still serving the connections");
+      for (Object listener : (Collection<?>) field(DirectoryServer.getInstance(), "shutdownListeners"))
+      {
+        assertNotEquals(((ServerShutdownListener) listener).getShutdownListenerName(),
+            "Transport drain of " + handler.getConnectionHandlerName(), "the drain registered with the current server");
+      }
     }
+    finally
+    {
+      stop(handler);
+    }
+    assertThreadsStop(threadPrefix);
   }
 
   /**

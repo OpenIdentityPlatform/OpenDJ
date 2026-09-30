@@ -18,6 +18,7 @@
 package org.forgerock.opendj.reactive;
 
 import static java.util.Collections.*;
+import static org.opends.messages.CoreMessages.INFO_CONNHANDLER_CLOSED_BY_SHUTDOWN;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.AccessLogger.logConnect;
 import static org.opends.server.util.ServerConstants.*;
@@ -202,9 +203,22 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
 
         private void start() {
             drains.add(this);
-            registered = true;
-            DirectoryServer.registerShutdownListener(this);
-            connectionClosed();
+            if (!server.isShuttingDown()) {
+                // Registers with the server of this handler: another one is current only once this one shut down.
+                registered = true;
+                DirectoryServer.registerShutdownListener(this);
+                if (finished.get()) {
+                    // The last connection closed while this drain registered, and finished it before it was registered.
+                    DirectoryServer.deregisterShutdownListener(this);
+                }
+            }
+            if (server.isShuttingDown()) {
+                // The server began shutting down before this drain registered, and may have notified its listeners
+                // already: end the connections as it would have. Their handler is not finalized again by then.
+                processServerShutdown(INFO_CONNHANDLER_CLOSED_BY_SHUTDOWN.get());
+            } else {
+                connectionClosed();
+            }
         }
 
         /** Shuts the transport down if no connection it has accepted is left. */
@@ -327,14 +341,12 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     /** Indicates whether the Directory Server is in the process of shutting down. */
     private volatile boolean shutdownRequested;
 
-    /** The reason given to the client connections still open when the server shuts down. */
-    private volatile LocalizableMessage closeReason;
-
     /**
-     * Whether the server was shutting down when this handler was finalized. Read then rather than when the listener
-     * stops, up to a second later: after an in-core restart the server instance is by then the next one.
+     * The server this handler was initialized for. The listener stops on the thread of the handler, up to a second
+     * after the handler is finalized: after an in-core restart the current server instance is by then the next one,
+     * so only this one tells whether the server of the connections is shutting down.
      */
-    private volatile boolean serverShuttingDown;
+    private DirectoryServer server;
 
     /* Internal LDAP connection handler state */
 
@@ -508,9 +520,6 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
 
     @Override
     public void finalizeConnectionHandler(LocalizableMessage finalizeReason) {
-        // DirectoryServer.shutDown sets its flag before it finalizes the connection handlers, on this thread.
-        serverShuttingDown = DirectoryServer.getInstance().isShuttingDown();
-        closeReason = finalizeReason;
         shutdownRequested = true;
         currentConfig.removeLDAPChangeListener(this);
 
@@ -669,6 +678,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
             friendlyName = config.name();
         }
 
+        server = DirectoryServer.getInstance();
         // Save this configuration for future reference.
         currentConfig = config;
         enabled = config.isEnabled();
@@ -849,11 +859,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
             transport = null;
             transportConnections = null;
             transportOpenConnections = null;
-            if (serverShuttingDown) {
-                drain.processServerShutdown(closeReason);
-            } else {
-                drain.start();
-            }
+            drain.start();
         }
     }
 
