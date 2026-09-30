@@ -18,6 +18,7 @@
 :figure-caption!:
 :example-caption!:
 :table-caption!:
+:opendj-version: x.y.z
 
 
 [#chap-uninstall]

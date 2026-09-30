@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -29,7 +29,7 @@ In addition to the indications concerning interface stability in the documentati
 
 * Client tools—`ldap*`, `ldif*`, and `*rate` commands—are Evolving.
 
-* The following classes, interfaces, and methods in the link:../javadoc/index.html[OpenDJ APIs, window=\_blank] are Evolving:
+* The following classes, interfaces, and methods in the link:https://doc.openidentityplatform.org/opendj/apidocs/index.html[OpenDJ APIs, window=\_blank] are Evolving:
 +
 
 ** `org.forgerock.opendj.ldap.Connections#newInternalConnection`
