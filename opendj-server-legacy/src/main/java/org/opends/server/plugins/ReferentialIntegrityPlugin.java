@@ -173,9 +173,17 @@ public class ReferentialIntegrityPlugin
     pluginCfg.addReferentialIntegrityChangeListener(this);
     LinkedList<LocalizableMessage> unacceptableReasons = new LinkedList<>();
 
-    if (!isConfigurationAcceptable(pluginCfg, unacceptableReasons))
+    if (!isConfigurationAcceptableIgnoringCheckReferencesPluginTypes(pluginCfg, unacceptableReasons))
     {
       throw new ConfigException(unacceptableReasons.getFirst());
+    }
+
+    // Enabling the plugin or changing its configuration is refused without these types, but a configuration
+    // already stored without them (the entry shipped before issue #1118) is loaded with a warning: refusing
+    // it would also stop the delete and modify DN clean-up, which does not need them.
+    for (PluginCfgDefn.PluginType t : getMissingCheckReferencesPluginTypes(pluginCfg))
+    {
+      logger.warn(WARN_PLUGIN_REFERENT_CHECK_REFERENCES_WITHOUT_PLUGIN_TYPE.get(pluginCfg.dn(), t, t));
     }
 
     applyConfigurationChange(pluginCfg);
@@ -259,9 +267,39 @@ public class ReferentialIntegrityPlugin
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {
-    boolean isAcceptable = true;
     ReferentialIntegrityPluginCfg pluginCfg =
          (ReferentialIntegrityPluginCfg) configuration;
+    boolean isAcceptable = isConfigurationAcceptableIgnoringCheckReferencesPluginTypes(pluginCfg, unacceptableReasons);
+
+    for (PluginCfgDefn.PluginType t : getMissingCheckReferencesPluginTypes(pluginCfg))
+    {
+      isAcceptable = false;
+      unacceptableReasons.add(ERR_PLUGIN_REFERENT_CHECK_REFERENCES_WITHOUT_PLUGIN_TYPE.get(t, t));
+    }
+    return isAcceptable;
+  }
+
+  /**
+   * Returns the plugin types {@code check-references} needs that the configuration does not list. The references
+   * are checked in the pre-operation add and modify hooks, which the plugin manager only calls for the plugin types
+   * listed in the configuration.
+   */
+  private static Set<PluginCfgDefn.PluginType> getMissingCheckReferencesPluginTypes(
+      ReferentialIntegrityPluginCfg pluginCfg)
+  {
+    if (!pluginCfg.isCheckReferences())
+    {
+      return Collections.emptySet();
+    }
+    Set<PluginCfgDefn.PluginType> missing = EnumSet.copyOf(CHECK_REFERENCES_PLUGIN_TYPES);
+    missing.removeAll(pluginCfg.getPluginType());
+    return missing;
+  }
+
+  private boolean isConfigurationAcceptableIgnoringCheckReferencesPluginTypes(
+      ReferentialIntegrityPluginCfg pluginCfg, List<LocalizableMessage> unacceptableReasons)
+  {
+    boolean isAcceptable = true;
 
     for (PluginCfgDefn.PluginType t : pluginCfg.getPluginType())
     {
@@ -279,20 +317,6 @@ public class ReferentialIntegrityPlugin
         default:
           isAcceptable = false;
           unacceptableReasons.add(ERR_PLUGIN_REFERENT_INVALID_PLUGIN_TYPE.get(t));
-      }
-    }
-
-    // The references are checked in the pre-operation add and modify hooks, which the plugin
-    // manager only calls for the plugin types listed in the configuration.
-    if (pluginCfg.isCheckReferences())
-    {
-      for (PluginCfgDefn.PluginType t : CHECK_REFERENCES_PLUGIN_TYPES)
-      {
-        if (!pluginCfg.getPluginType().contains(t))
-        {
-          isAcceptable = false;
-          unacceptableReasons.add(ERR_PLUGIN_REFERENT_CHECK_REFERENCES_WITHOUT_PLUGIN_TYPE.get(t, t));
-        }
       }
     }
 

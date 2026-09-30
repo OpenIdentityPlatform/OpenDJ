@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
@@ -34,6 +35,7 @@ import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
+import org.forgerock.opendj.server.config.meta.PluginCfgDefn.PluginType;
 import org.forgerock.opendj.server.config.meta.ReferentialIntegrityPluginCfgDefn;
 import org.opends.server.api.Group;
 import org.opends.server.controls.SubtreeDeleteControl;
@@ -58,6 +60,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
@@ -756,8 +759,44 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
             "ds-cfg-base-dn: o=test",
             "ds-cfg-base-dn: dc=example, dc=com",
             "ds-cfg-check-references: true",
-            "ds-cfg-check-references-filter-criteria: :",
-            "",
+            "ds-cfg-check-references-filter-criteria: :"
+    );
+    Object[][] array = new Object[entries.size()][1];
+    for (int i=0; i < array.length; i++)
+    {
+      array[i] = new Object[] { entries.get(i) };
+    }
+
+    return array;
+  }
+
+
+  /**
+   * Tests the process of initializing the server with inValid configurations.
+   *
+   * @param  e  The configuration entry to use for the initialization.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   *
+   */
+  @Test(dataProvider = "invalidConfigs",
+        expectedExceptions = { ConfigException.class })
+  public void testInitializeWithInValidConfigs(Entry e)
+          throws Exception
+  {
+    ReferentialIntegrityPlugin plugin = initializePlugin(e);
+    plugin.finalizePlugin();
+  }
+
+  /**
+   * Issue #1118: configurations with {@code check-references} set to true that lack a pre-operation plugin type,
+   * with the plugin types each one lacks.
+   */
+  @DataProvider(name = "checkReferencesWithoutPreOperationTypes")
+  public Object[][] createCheckReferencesWithoutPreOperationTypes()
+         throws Exception
+  {
+    List<Entry> entries = TestCaseUtils.makeEntries(
             // check-references true, plugin types of the entry shipped before issue #1118
             "dn: cn=Referential Integrity,cn=Plugins,cn=config",
             "objectClass: top",
@@ -799,31 +838,96 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
             "ds-cfg-attribute-type: member",
             "ds-cfg-check-references: true"
     );
-    Object[][] array = new Object[entries.size()][1];
-    for (int i=0; i < array.length; i++)
-    {
-      array[i] = new Object[] { entries.get(i) };
-    }
-
-    return array;
+    return new Object[][] {
+      { entries.get(0), new PluginType[] { PluginType.PREOPERATIONADD, PluginType.PREOPERATIONMODIFY } },
+      { entries.get(1), new PluginType[] { PluginType.PREOPERATIONMODIFY } },
+      { entries.get(2), new PluginType[] { PluginType.PREOPERATIONADD } },
+    };
   }
 
-
   /**
-   * Tests the process of initializing the server with inValid configurations.
-   *
-   * @param  e  The configuration entry to use for the initialization.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   *
+   * Issue #1118: enabling the plugin or changing its configuration is refused when
+   * {@code check-references} lacks a pre-operation plugin type, with one reason for each missing type.
    */
-  @Test(dataProvider = "invalidConfigs",
-        expectedExceptions = { ConfigException.class })
-  public void testInitializeWithInValidConfigs(Entry e)
+  @Test(dataProvider = "checkReferencesWithoutPreOperationTypes")
+  public void testCheckReferencesWithoutPreOperationTypesIsNotAcceptable(Entry e, PluginType[] missing)
           throws Exception
   {
+    List<String> expected = new ArrayList<>();
+    for (PluginType t : missing)
+    {
+      expected.add(ERR_PLUGIN_REFERENT_CHECK_REFERENCES_WITHOUT_PLUGIN_TYPE.get(t, t).toString());
+    }
+    List<LocalizableMessage> reasons = new ArrayList<>();
+
+    boolean acceptable = new ReferentialIntegrityPlugin().isConfigurationAcceptable(
+        InitializationUtils.getConfiguration(ReferentialIntegrityPluginCfgDefn.getInstance(), e), reasons);
+
+    assertFalse(acceptable);
+    List<String> actual = new ArrayList<>();
+    for (LocalizableMessage reason : reasons)
+    {
+      actual.add(reason.toString());
+    }
+    assertEquals(actual, expected);
+  }
+
+  /**
+   * Issue #1118: a configuration stored before the check existed is still loaded when the server starts, with a
+   * warning for each missing type, so that the delete and modify DN clean-up keeps running.
+   */
+  @Test(dataProvider = "checkReferencesWithoutPreOperationTypes")
+  public void testCheckReferencesWithoutPreOperationTypesIsLoadedWithWarning(Entry e, PluginType[] missing)
+          throws Exception
+  {
+    TestCaseUtils.ERROR_TEXT_WRITER.clear();
+
     ReferentialIntegrityPlugin plugin = initializePlugin(e);
     plugin.finalizePlugin();
+
+    List<String> logged = TestCaseUtils.ERROR_TEXT_WRITER.getMessages();
+    for (PluginType t : missing)
+    {
+      LocalizableMessage warning = WARN_PLUGIN_REFERENT_CHECK_REFERENCES_WITHOUT_PLUGIN_TYPE.get(e.getName(), t, t);
+      String record = "msgID=" + warning.ordinal() + " msg=" + warning;
+      assertTrue(logged.stream().anyMatch(line -> line.contains(record)), logged.toString());
+    }
+  }
+
+  /**
+   * Issue #1118: on a disabled plugin {@code check-references} can be set without the pre-operation types, but the
+   * plugin cannot then be enabled.
+   */
+  @Test
+  public void testEnablingCheckReferencesWithoutPreOperationTypesIsRejected() throws Exception
+  {
+    try
+    {
+      assertEquals(replaceAttrEntry(configDN, "ds-cfg-enabled", "false").getResultCode(), ResultCode.SUCCESS);
+      assertEquals(replaceAttrEntry(configDN, dsConfigPluginType,
+                                 "postoperationdelete",
+                                 "postoperationmodifydn",
+                                 "subordinatemodifydn",
+                                 "subordinatedelete").getResultCode(), ResultCode.SUCCESS);
+      assertEquals(replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true").getResultCode(), ResultCode.SUCCESS);
+
+      ModifyOperation op = replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+      assertNotEquals(op.getResultCode(), ResultCode.SUCCESS);
+      String reason = op.getErrorMessage().toString();
+      assertTrue(reason.contains("preoperationadd") && reason.contains("preoperationmodify"), reason);
+    }
+    finally
+    {
+      deleteAttrsEntry(configDN, dsConfigEnforceIntegrity);
+      replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+      assertEquals(replaceAttrEntry(configDN, "ds-cfg-enabled", "true").getResultCode(), ResultCode.SUCCESS);
+    }
   }
 
   /**

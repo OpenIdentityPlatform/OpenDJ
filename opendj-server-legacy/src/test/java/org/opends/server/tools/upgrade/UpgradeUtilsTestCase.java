@@ -32,11 +32,13 @@ import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.ChangeOperationType;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.messages.ToolMessages.INFO_UPGRADE_TASK_ADD_REFERENTIAL_INTEGRITY_PRE_OPERATION_PLUGIN_TYPES;
 import static org.testng.Assert.*;
 
 /**
@@ -132,6 +134,19 @@ public class UpgradeUtilsTestCase extends DirectoryServerTestCase
     {
       StaticUtils.recursiveDelete(tempDir);
     }
+  }
+
+  /** Issue #1118: an upgrade from 5.1.x to 5.2.0 runs the task that adds the plugin types. */
+  @Test
+  public void testAddReferentialIntegrityPluginTypesTaskRunsOnUpgradeTo520() throws Exception
+  {
+    final List<String> summaries = new ArrayList<>();
+    for (final UpgradeTask task : Upgrade.getUpgradeTasks(BuildVersion.valueOf("5.1.2"), BuildVersion.valueOf("5.2.0")))
+    {
+      summaries.add(task.toString());
+    }
+    assertTrue(summaries.contains(INFO_UPGRADE_TASK_ADD_REFERENTIAL_INTEGRITY_PRE_OPERATION_PLUGIN_TYPES.get().toString()),
+        summaries.toString());
   }
 
   private int applyAdd(final File config, final String... ldifLines) throws Exception

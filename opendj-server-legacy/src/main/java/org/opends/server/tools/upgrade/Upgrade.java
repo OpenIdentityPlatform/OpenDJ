@@ -779,7 +779,7 @@ public final class Upgrade
    * @return A list containing all the tasks which are required in order to upgrade
    *         from {@code fromVersion} to {@code toVersion}.
    */
-  private static List<UpgradeTask> getUpgradeTasks(final BuildVersion fromVersion, final BuildVersion toVersion)
+  static List<UpgradeTask> getUpgradeTasks(final BuildVersion fromVersion, final BuildVersion toVersion)
   {
     final List<UpgradeTask> tasks = new LinkedList<>();
     try {
