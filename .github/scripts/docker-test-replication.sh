@@ -23,13 +23,18 @@
 set -eE -o pipefail
 
 IMAGE=${1:?usage: $0 <image>}
-NODES="dj-0 dj-1 dj-2 dj-x dj-p0 dj-p1 dj-p2 dj-ipm dj-ipr dj-sdsr dj-shm-probe dj-shm"
-VOLUMES="vol-dj-0 vol-dj-1 vol-dj-2 vol-dj-x vol-dj-p0 vol-dj-p1 vol-dj-p2"
+NODES="dj-0 dj-1 dj-2 dj-x dj-solo dj-bf dj-fi dj-p0 dj-p1 dj-p2 dj-ipm dj-ipr dj-sdsr dj-shm-probe dj-shm"
+VOLUMES="vol-dj-0 vol-dj-1 vol-dj-2 vol-dj-x vol-dj-solo vol-dj-bf vol-dj-fi vol-dj-p0 vol-dj-p1 vol-dj-p2"
+# a bootstrap that imports the base entry and then fails, mounted into dj-bf
+FAILING_BOOTSTRAP=$(mktemp)
 NETWORK=test_replication
+# where dj-sdsr starts: it resolves its own name there, and no other server
+NETWORK_ALONE=test_replication_alone
 
 cleanup() {
+  rm -f "$FAILING_BOOTSTRAP"
   docker rm -f $NODES >/dev/null 2>&1 || true
-  docker network rm $NETWORK >/dev/null 2>&1 || true
+  docker network rm $NETWORK $NETWORK_ALONE >/dev/null 2>&1 || true
   docker volume rm -f $VOLUMES >/dev/null 2>&1 || true
 }
 cleanup
@@ -197,13 +202,30 @@ ldaps_has dj-1 "uid=user.0,ou=People,dc=example,dc=com" || fail "dj-1 lacks the 
 add_ou dj-0 replicated
 wait_has dj-1 "ou=replicated,dc=example,dc=com"
 
-# a member is ready again right after a restart, without waiting for its peers, and
-# replication still flows
-docker restart dj-0 dj-1 >/dev/null
-wait_healthy dj-0
+# a member is ready again right after a restart, without waiting for its peers - gating it
+# on them would deadlock a whole-cluster restart under OrderedReady - and replication still
+# flows
+docker stop dj-1 >/dev/null
+docker restart dj-0 >/dev/null
+wait_until 120 "dj-0 is healthy while dj-1 is down" is_healthy dj-0
+docker start dj-1 >/dev/null
 wait_healthy dj-1
 add_ou dj-1 replicated2
 wait_has dj-0 "ou=replicated2,dc=example,dc=com"
+
+# a seed that no peer joined holds the data without a replication domain, and its join binds
+# with the ROOT_PASSWORD of the bootstrap: once the root password is changed, a restart is
+# still healthy, as it is without replication
+start_node dj-solo dj-solo
+wait_healthy dj-solo
+logs_have dj-solo "seeding it with this server's data" || fail "dj-solo did not seed its topology"
+docker exec dj-solo /opt/opendj/bin/ldappasswordmodify --noPropertiesFile --hostname localhost --port 1636 \
+  --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" \
+  --authzID "dn:cn=Directory Manager" --currentPassword "$ROOT_PASSWORD" --newPassword "changed $ROOT_PASSWORD" >/dev/null
+docker restart dj-solo >/dev/null
+wait_until 180 "dj-solo is healthy again with its root password changed" is_healthy dj-solo
+docker rm -f dj-solo >/dev/null
+docker volume rm vol-dj-solo >/dev/null
 
 # a Kubernetes pod keeps its /dev/shm across container restarts, shared by all its
 # containers: a starting container removes the password files a killed join or replicate.sh
@@ -245,6 +267,31 @@ if logs_have dj-0 "seeding it with this server's data"; then fail "the reborn dj
 ldaps_has dj-0 "ou=replicated,dc=example,dc=com" || fail "the reborn dj-0 lacks the data of the topology"
 ldaps_has dj-0 "uid=user.0,ou=People,dc=example,dc=com" || fail "the reborn dj-0 lacks the entries of the seed"
 
+# a bootstrap that failed after it imported the base entry leaves a volume that never counts
+# as holding the data of the topology: once restarted, dj-bf initializes from dj-0 rather
+# than joining with what its bootstrap left
+printf 'sh /opt/opendj/bootstrap/setup.sh\nexit 1\n' >"$FAILING_BOOTSTRAP"
+chmod 644 "$FAILING_BOOTSTRAP"
+start_node dj-bf dj-0,dj-1,dj-bf -v "$FAILING_BOOTSTRAP:/opt/opendj/failing-bootstrap.sh:ro" \
+  -e BOOTSTRAP=/opt/opendj/failing-bootstrap.sh
+wait_until 300 "the bootstrap of dj-bf fails" logs_have dj-bf "failing-bootstrap.sh failed"
+docker restart dj-bf >/dev/null
+wait_healthy dj-bf
+logs_have dj-bf "initializing from dj-0" || fail "dj-bf joined with the data of its failed bootstrap"
+ldaps_has dj-bf "uid=user.0,ou=People,dc=example,dc=com" || fail "dj-bf lacks the entries only an initialize from dj-0 brings"
+docker rm -f dj-bf >/dev/null
+docker volume rm vol-dj-bf >/dev/null
+
+# an initialize that fails keeps the volume waiting for the data of the topology: a
+# one-second bound cuts the dsreplication JVM off before it connects
+start_node dj-fi dj-0,dj-fi -e REPLICATION_INITIALIZE_TIMEOUT=1 -e REPLICATION_RETRY_COUNT=2
+wait_until 300 "the initialize of dj-fi is cut off" logs_have dj-fi "initialize from dj-0 exited with 124"
+stays_unhealthy dj-fi "its initialize failed"
+docker exec dj-fi test -f /opt/opendj/data/.replication-initialize-pending \
+  || fail "dj-fi dropped its pending marker after a failed initialize"
+docker rm -f dj-fi >/dev/null
+docker volume rm vol-dj-fi >/dev/null
+
 # scale up to three - the peer list is configuration, so the running servers are replaced
 # with the longer list before the third one starts, as a rolling update would
 docker rm -f dj-0 dj-1 >/dev/null
@@ -259,9 +306,9 @@ ldaps_has dj-2 "ou=replicated,dc=example,dc=com" || fail "dj-2 lacks the data of
 # scale down to two: the survivors, restarted with the shorter list, remove dj-2 from
 # cn=admin data and from every replication server list they hold - that of BASE_DN, and
 # those of cn=schema and cn=admin data that dsreplication enable configures next to it.
-# dsreplication disable cannot, dj-2 being already gone
+# dsreplication disable cannot, dj-2 being already gone. dj-2 keeps its volume, for the
+# scale-up below
 docker rm -f dj-2 >/dev/null
-docker volume rm vol-dj-2 >/dev/null
 docker rm -f dj-0 dj-1 >/dev/null
 start_node dj-0 dj-0,dj-1
 start_node dj-1 dj-0,dj-1
@@ -279,17 +326,29 @@ done
 add_ou dj-0 replicated3
 wait_has dj-1 "ou=replicated3,dc=example,dc=com"
 
+# scaled up again on the volume it kept: dj-2 still replicates, but the survivors no longer
+# register it, and an enable between two servers whose cn=admin data is replicated registers
+# nobody - so dj-2 takes its replication configuration down, enables again and registers
+start_node dj-2 dj-0,dj-1,dj-2
+wait_healthy dj-2
+registered_dj2() { ! admin_data_lacks dj-0 dj-2; }
+wait_until 300 "dj-2 registers in the topology again" registered_dj2
+add_ou dj-2 rejoined
+wait_has dj-0 "ou=rejoined,dc=example,dc=com"
+
 # the deprecated one-shot sdsr path of replicate.sh still bootstraps a replica. On a first
 # start a server stops the server its bootstrap started and starts it again, and a replica
 # can reach it in between: replicate.sh tries a dsreplication enable that could not connect
-# again (exit 8). dj-0 is taken off the network while the replica sleeps before its first try,
-# and comes back only once the replica has said it will try again
-docker run -d --memory="512m" --network $NETWORK --name dj-sdsr --hostname dj-sdsr \
+# again (exit 8). The replica starts on a network of its own, where dj-0 does not resolve, and
+# moves to the network of the topology only once it has said it will try again: taking dj-0
+# off the network for as long instead would leave its replication server holding the dead
+# connection of dj-0's own directory server, and route the initialize of the replica into it
+docker network create $NETWORK_ALONE >/dev/null
+docker run -d --memory="512m" --network $NETWORK_ALONE --name dj-sdsr --hostname dj-sdsr \
   -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-0 -e OPENDJ_REPLICATION_TYPE=sdsr "$IMAGE" >/dev/null
-wait_until 300 "dj-sdsr sleeps before its first try" logs_have dj-sdsr "Will sleep for a bit"
-docker network disconnect $NETWORK dj-0
-wait_until 120 "dj-sdsr tries again" logs_have dj-sdsr "exited with 8, trying again"
-docker network connect --alias dj-0 $NETWORK dj-0
+wait_until 420 "dj-sdsr tries again" logs_have dj-sdsr "exited with 8, trying again"
+docker network connect $NETWORK dj-sdsr
+docker network disconnect $NETWORK_ALONE dj-sdsr
 wait_healthy dj-sdsr
 wait_has dj-sdsr "ou=replicated3,dc=example,dc=com"
 # replicate.sh tries dsreplication enable again only when it exits 8, and a failed enable
@@ -304,13 +363,13 @@ if [ "$rc" -ne 5 ] || grep -E "trying again|initializing replication" <<<"$out" 
 fi
 
 # the root password shows in no container log, and the files the tools read it from are gone
-for c in dj-0 dj-1 dj-sdsr; do
+for c in dj-0 dj-1 dj-2 dj-sdsr; do
   if docker logs $c 2>&1 | grep -F -- "$ROOT_PASSWORD"; then fail "the root password is in the log of $c"; fi
   left=$(docker exec $c grep -rlsF -- "$ROOT_PASSWORD" /tmp /dev/shm || true)
   [ -z "$left" ] || fail "the root password is left in $left of $c"
 done
-docker rm -f dj-0 dj-1 dj-sdsr >/dev/null
-docker volume rm vol-dj-0 vol-dj-1 >/dev/null
+docker rm -f dj-0 dj-1 dj-2 dj-sdsr >/dev/null
+docker volume rm vol-dj-0 vol-dj-1 vol-dj-2 >/dev/null
 
 # MASTER_SERVER may name the master by its address, as the grep of /etc/hosts in the base
 # replicate.sh allowed: a master given its own address recognises itself and seeds at once,
@@ -355,6 +414,10 @@ wait_until 120 "the replication server of dj-p2 knows dj-p0 and dj-p1" server_li
 add_ou dj-p1 parallel
 wait_has dj-p0 "ou=parallel,dc=example,dc=com"
 wait_has dj-p2 "ou=parallel,dc=example,dc=com"
+# dj-p1 and dj-p2 enabled through dj-p0 one at a time, and each removed its lock after
+if admin_search dj-p0 "cn=Docker Join Lock,cn=config" base "(objectClass=*)" 1.1 | grep "^dn:" >/dev/null; then
+  fail "a join left its lock on dj-p0"
+fi
 for c in dj-p0 dj-p1 dj-p2; do
   if docker logs $c 2>&1 | grep -F -- "$ROOT_PASSWORD"; then fail "the root password is in the log of $c"; fi
 done
