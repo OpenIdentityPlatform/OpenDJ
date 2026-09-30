@@ -1062,9 +1062,10 @@ public class BackendStat
     builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_CONFIDENTIAL.get());
     builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_RECORD_COUNT.get());
     builder.appendHeading(INFO_LABEL_BACKEND_TOOL_INDEX_UNDEFINED_RECORD_COUNT.get());
-    builder.appendHeading(LocalizableMessage.raw("95%"));
-    builder.appendHeading(LocalizableMessage.raw("90%"));
-    builder.appendHeading(LocalizableMessage.raw("85%"));
+    for (int percent : NEAR_LIMIT_PERCENTS)
+    {
+      builder.appendHeading(LocalizableMessage.raw(percent + "%"));
+    }
 
     int count = 0;
     for (AttributeIndex attrIndex : ec.getAttributeIndexes())
@@ -1113,12 +1114,30 @@ public class BackendStat
   }
 
   /**
-   * Whether a key holding this many entries has come near the entry limit of its index. An
-   * index-entry-limit of 0 is no limit at all, and no key is near it.
+   * The percentages of the index entry limit heading the columns of keys near the limit, highest
+   * first. Each column counts the keys holding from its percentage of the limit up to the
+   * percentage of the column before it.
    */
-  static boolean nearLimit(long size, long entryLimit)
+  static final int[] NEAR_LIMIT_PERCENTS = { 95, 90, 80 };
+
+  /**
+   * The column of {@link #NEAR_LIMIT_PERCENTS} that counts a key holding this many entries, or -1
+   * when the key has not come near the entry limit of its index. An index-entry-limit of 0 is no
+   * limit at all, and no key is near it.
+   */
+  static int nearLimitColumn(long size, long entryLimit)
   {
-    return entryLimit > 0 && size >= entryLimit * 0.8;
+    if (entryLimit > 0)
+    {
+      for (int column = 0; column < NEAR_LIMIT_PERCENTS.length; column++)
+      {
+        if (size * 100 >= entryLimit * NEAR_LIMIT_PERCENTS[column])
+        {
+          return column;
+        }
+      }
+    }
+    return -1;
   }
 
   private void appendIndexStats(final TableBuilder builder, EntryContainer ec, final Index index,
@@ -1133,9 +1152,7 @@ public class BackendStat
         @Override
         public Void run(ReadableTransaction txn) throws Exception
         {
-          long eighty = 0;
-          long ninety = 0;
-          long ninetyFive = 0;
+          long[] nearLimit = new long[NEAR_LIMIT_PERCENTS.length];
           long undefined = 0;
           long count = 0;
           BackendTreeKeyValue keyDecoder = new BackendTreeKeyValue(index);
@@ -1157,20 +1174,10 @@ public class BackendStat
 
               if (entryIDSet.isDefined())
               {
-                if (nearLimit(entryIDSet.size(), entryLimit))
+                int column = nearLimitColumn(entryIDSet.size(), entryLimit);
+                if (column >= 0)
                 {
-                  if (entryIDSet.size() >= entryLimit * 0.95)
-                  {
-                    ninetyFive++;
-                  }
-                  else if (entryIDSet.size() >= entryLimit * 0.9)
-                  {
-                    ninety++;
-                  }
-                  else
-                  {
-                    eighty++;
-                  }
+                  nearLimit[column]++;
                 }
               }
               else
@@ -1192,9 +1199,10 @@ public class BackendStat
           }
           builder.appendCell(count);
           builder.appendCell(undefined);
-          builder.appendCell(ninetyFive);
-          builder.appendCell(ninety);
-          builder.appendCell(eighty);
+          for (long keys : nearLimit)
+          {
+            builder.appendCell(keys);
+          }
           return null;
         }
       });
