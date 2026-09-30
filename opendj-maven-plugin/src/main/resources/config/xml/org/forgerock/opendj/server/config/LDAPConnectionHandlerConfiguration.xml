@@ -14,7 +14,7 @@
 
   Copyright 2007-2009 Sun Microsystems, Inc.
   Portions copyright 2011-2016 ForgeRock AS.
-  Portions copyright 2025 3A Systems, LLC
+  Portions copyright 2025-2026 3A Systems, LLC
   ! -->
 <adm:managed-object name="ldap-connection-handler"
   plural-name="ldap-connection-handlers"
@@ -80,7 +80,7 @@
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
-          org.opends.server.protocols.ldap.LDAPConnectionHandler
+          org.forgerock.opendj.reactive.LDAPConnectionHandler2
         </adm:value>
       </adm:defined>
     </adm:default-behavior>
