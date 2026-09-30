@@ -19,25 +19,33 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.ChangeOperationType;
 import org.opends.server.util.StaticUtils;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.messages.ToolMessages.INFO_UPGRADE_TASK_ADD_REFERENTIAL_INTEGRITY_PRE_OPERATION_PLUGIN_TYPES;
 import static org.testng.Assert.*;
 
 /**
  * Tests that the issue #851 upgrade task payloads, applied through
  * {@link UpgradeUtils#updateConfigFile}, add the RFC 5805 transaction extended operation handler
- * entries exactly once and match the fresh-install template.
+ * entries exactly once and match the fresh-install template, and that the issue #1118 payload
+ * gives the Referential Integrity plugin the plugin types of the fresh-install template.
  */
 @SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "tools" }, sequential = true)
@@ -45,6 +53,10 @@ public class UpgradeUtilsTestCase extends DirectoryServerTestCase
 {
   /** Unknown config attributes must not fail parsing, as in the upgrade tool's own schema. */
   private final Schema schema = Schema.getCoreSchema().asNonStrictSchema();
+
+  private static final String PLUGIN_TYPE = "ds-cfg-plugin-type";
+  private final DN referentialIntegrityPluginDN =
+      DN.valueOf("cn=Referential Integrity,cn=Plugins,cn=config", schema);
 
   /** The config.ldif template a fresh install starts from. */
   private File freshInstallTemplate()
@@ -88,9 +100,109 @@ public class UpgradeUtilsTestCase extends DirectoryServerTestCase
     }
   }
 
+  @DataProvider
+  public Object[][] referentialIntegrityPluginTypesBeforeUpgrade()
+  {
+    return new Object[][] {
+      // The entry shipped before issue #1118.
+      { new String[] { "postOperationDelete", "postOperationModifyDN", "subordinateModifyDN",
+                       "subordinateDelete" } },
+      // The same entry with one type already added by hand, in the lower case dsconfig writes.
+      { new String[] { "postOperationDelete", "postOperationModifyDN", "subordinateModifyDN",
+                       "subordinateDelete", "preoperationadd" } },
+    };
+  }
+
+  /** Issue #1118: the task leaves the plugin with the plugin types a fresh install ships, each once. */
+  @Test(dataProvider = "referentialIntegrityPluginTypesBeforeUpgrade")
+  public void testAddReferentialIntegrityPluginTypesMirrorsFreshInstallTemplate(final String[] pluginTypes)
+      throws Exception
+  {
+    final File tempDir = TestCaseUtils.createTemporaryDirectory("upgradeTask1118");
+    try
+    {
+      final File config = new File(tempDir, "config.ldif");
+      writeConfigWithReferentialIntegrityPluginTypes(config, pluginTypes);
+
+      assertEquals(applyAddReferentialIntegrityPluginTypes(config), 1);
+      assertEquals(applyAddReferentialIntegrityPluginTypes(config), 1);
+
+      assertEquals(referentialIntegrityPluginTypes(config),
+                   referentialIntegrityPluginTypes(freshInstallTemplate()));
+    }
+    finally
+    {
+      StaticUtils.recursiveDelete(tempDir);
+    }
+  }
+
+  /** Issue #1118: an upgrade from 5.1.x to 5.2.0 runs the task that adds the plugin types. */
+  @Test
+  public void testAddReferentialIntegrityPluginTypesTaskRunsOnUpgradeTo520() throws Exception
+  {
+    final List<String> summaries = new ArrayList<>();
+    for (final UpgradeTask task : Upgrade.getUpgradeTasks(BuildVersion.valueOf("5.1.2"), BuildVersion.valueOf("5.2.0")))
+    {
+      summaries.add(task.toString());
+    }
+    assertTrue(summaries.contains(INFO_UPGRADE_TASK_ADD_REFERENTIAL_INTEGRITY_PRE_OPERATION_PLUGIN_TYPES.get().toString()),
+        summaries.toString());
+  }
+
   private int applyAdd(final File config, final String... ldifLines) throws Exception
   {
     return UpgradeUtils.updateConfigFile(config, null, ChangeOperationType.ADD, ldifLines);
+  }
+
+  private int applyAddReferentialIntegrityPluginTypes(final File config) throws Exception
+  {
+    return UpgradeUtils.updateConfigFile(config, Filter.valueOf(Upgrade.REFERENTIAL_INTEGRITY_PLUGIN_FILTER),
+        ChangeOperationType.MODIFY, Upgrade.ADD_REFERENTIAL_INTEGRITY_PRE_OPERATION_PLUGIN_TYPES);
+  }
+
+  private void writeConfigWithReferentialIntegrityPluginTypes(final File config, final String... pluginTypes)
+      throws Exception
+  {
+    int replaced = 0;
+    try (LDIFEntryReader reader =
+            new LDIFEntryReader(new FileInputStream(freshInstallTemplate())).setSchema(schema);
+        LDIFEntryWriter writer = new LDIFEntryWriter(new FileOutputStream(config)))
+    {
+      while (reader.hasNext())
+      {
+        final Entry entry = reader.readEntry();
+        if (entry.getName().equals(referentialIntegrityPluginDN))
+        {
+          entry.replaceAttribute(PLUGIN_TYPE, (Object[]) pluginTypes);
+          replaced++;
+        }
+        writer.writeEntry(entry);
+      }
+    }
+    assertEquals(replaced, 1, "fresh-install template no longer ships the Referential Integrity plugin");
+  }
+
+  /**
+   * The plugin types of the Referential Integrity plugin, lower-cased and sorted. Duplicates are
+   * kept: the schema used to read matches the unknown config attribute case-exactly, so two
+   * values differing only in case both show.
+   */
+  private List<String> referentialIntegrityPluginTypes(final File config) throws Exception
+  {
+    for (final Entry entry : readEntries(config))
+    {
+      if (entry.getName().equals(referentialIntegrityPluginDN))
+      {
+        final List<String> types = new ArrayList<>();
+        for (final ByteString value : entry.getAttribute(PLUGIN_TYPE))
+        {
+          types.add(value.toString().toLowerCase(Locale.ROOT));
+        }
+        Collections.sort(types);
+        return types;
+      }
+    }
+    throw new AssertionError("no entry " + referentialIntegrityPluginDN + " in " + config);
   }
 
   private void writeConfigWithoutTransactionEntries(final File config) throws Exception

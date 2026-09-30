@@ -728,6 +728,12 @@ final class UpgradeUtils
         + " EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15"
         + " X-ORIGIN 'OpenDS Directory Server' )", false);
 
+    // Adds ds-cfg-plugin-type / ignore match syntax: dsconfig writes plugin types in lower case,
+    // while config.ldif spells them in camel case (issue #1118)
+    sb.addAttributeType("( 1.3.6.1.4.1.26027.1.1.54 NAME 'ds-cfg-plugin-type'"
+        + " EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15"
+        + " X-ORIGIN 'OpenDS Directory Server' )", false);
+
     return sb.toSchema().asNonStrictSchema();
   }
 
