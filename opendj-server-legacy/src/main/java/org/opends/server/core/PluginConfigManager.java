@@ -4485,12 +4485,23 @@ public class PluginConfigManager
     // required.  If the mapper is disabled, then instantiate the class and
     // initialize and register it as an identity mapper.  Also, update the
     // plugin to indicate whether it should be invoked for internal operations.
+    // If only the plugin types have changed, then replace the plugin with one
+    // initialized for the new types.
     String className = configuration.getJavaClass();
     if (existingPlugin != null)
     {
       if (! className.equals(existingPlugin.getClass().getName()))
       {
         ccr.setAdminActionRequired(true);
+      }
+      else
+      {
+        HashSet<PluginType> pluginTypes = getPluginTypes(configuration);
+        if (!pluginTypes.equals(existingPlugin.getPluginTypes()))
+        {
+          replacePlugin(configuration, pluginTypes, ccr);
+          return ccr;
+        }
       }
 
       existingPlugin.setInvokeForInternalOperations(
@@ -4519,6 +4530,47 @@ public class PluginConfigManager
     }
 
     return ccr;
+  }
+
+  /**
+   * Replaces the registered instance of an enabled plugin with a new one initialized for the
+   * plugin types of its new configuration. A plugin receives its plugin types, and may refuse
+   * them, only when it is initialized, so the registered instance cannot be moved to other types
+   * in place. The new instance is initialized first: if that fails, the registered one stays in
+   * use for the plugin types it was initialized for.
+   *
+   * @param configuration
+   *          The new configuration of the plugin.
+   * @param pluginTypes
+   *          The plugin types of the new configuration.
+   * @param ccr
+   *          The result of the configuration change, which receives the failure, if any.
+   */
+  private void replacePlugin(PluginCfg configuration, Set<PluginType> pluginTypes,
+                             ConfigChangeResult ccr)
+  {
+    DirectoryServerPlugin<? extends PluginCfg> plugin;
+    try
+    {
+      plugin = loadPlugin(configuration.getJavaClass(), pluginTypes, configuration, true);
+    }
+    catch (InitializationException ie)
+    {
+      ccr.setResultCodeIfSuccess(serverContext.getCoreConfigManager().getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
+      return;
+    }
+
+    pluginLock.lock();
+    try
+    {
+      deregisterPlugin(configuration.dn());
+      registerPlugin(plugin, configuration.dn(), pluginTypes);
+    }
+    finally
+    {
+      pluginLock.unlock();
+    }
   }
 
   private HashSet<PluginType> getPluginTypes(PluginCfg configuration)

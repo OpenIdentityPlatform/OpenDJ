@@ -1694,6 +1694,54 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
   /**
    * Test case:
+   * - the plugin is enabled for the post-operation and subordinate plugin
+   *   types only
+   * - while it stays enabled, the pre-operation add and modify plugin types
+   *   are added and integrity is enforced on the attribute 'member'
+   * - add a group 'referent group' to the 'dc=example,dc=com' with the
+   *   'member' attribute pointing to the existing user entries and one missing
+   * - CONSTRAINT VIOLATION: the new plugin types take effect without the
+   *   plugin being disabled and enabled again
+   * @throws Exception
+   */
+  @Test
+  public void testEnforceIntegrityAfterPluginTypesAddedToEnabledPlugin() throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigAttrType, "member");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    assertEquals(replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify").getResultCode(), ResultCode.SUCCESS);
+    assertEquals(replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true").getResultCode(),
+                 ResultCode.SUCCESS);
+
+    Entry entry = TestCaseUtils.makeEntry(
+      "dn: cn=referent group,ou=groups,dc=example,dc=com",
+      "objectclass: top",
+      "objectclass: groupofnames",
+      "cn: refetent group",
+      "member: uid=user.1,ou=people,ou=dept,dc=example,dc=com",
+      "member: uid=bad,ou=people,ou=dept,dc=example,dc=com"
+      );
+
+    AddOperation addOperation = getRootConnection().processAdd(entry);
+    assertEquals(addOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
+  }
+
+  /**
+   * Test case:
    * - integrity is enforced on the attribute 'member'
    * - value of the 'manager' attribute should match the filter:
    *  (objectclass=person)
