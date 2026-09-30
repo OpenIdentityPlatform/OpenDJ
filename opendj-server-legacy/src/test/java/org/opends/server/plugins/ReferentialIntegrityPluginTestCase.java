@@ -18,6 +18,10 @@
  */
 package org.opends.server.plugins;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
@@ -752,7 +756,48 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
             "ds-cfg-base-dn: o=test",
             "ds-cfg-base-dn: dc=example, dc=com",
             "ds-cfg-check-references: true",
-            "ds-cfg-check-references-filter-criteria: :"
+            "ds-cfg-check-references-filter-criteria: :",
+            "",
+            // check-references true, plugin types of the entry shipped before issue #1118
+            "dn: cn=Referential Integrity,cn=Plugins,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-plugin",
+            "objectClass: ds-cfg-referential-integrity-plugin",
+            "cn: Referential Integrity",
+            "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+            "ds-cfg-enabled: true",
+            "ds-cfg-plugin-type: postOperationDelete",
+            "ds-cfg-plugin-type: postOperationModifyDN",
+            "ds-cfg-plugin-type: subordinateModifyDN",
+            "ds-cfg-plugin-type: subordinateDelete",
+            "ds-cfg-attribute-type: member",
+            "ds-cfg-check-references: true",
+            "",
+            // check-references true, preOperationModify missing
+            "dn: cn=Referential Integrity,cn=Plugins,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-plugin",
+            "objectClass: ds-cfg-referential-integrity-plugin",
+            "cn: Referential Integrity",
+            "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+            "ds-cfg-enabled: true",
+            "ds-cfg-plugin-type: postOperationDelete",
+            "ds-cfg-plugin-type: preOperationAdd",
+            "ds-cfg-attribute-type: member",
+            "ds-cfg-check-references: true",
+            "",
+            // check-references true, preOperationAdd missing
+            "dn: cn=Referential Integrity,cn=Plugins,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-plugin",
+            "objectClass: ds-cfg-referential-integrity-plugin",
+            "cn: Referential Integrity",
+            "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+            "ds-cfg-enabled: true",
+            "ds-cfg-plugin-type: postOperationDelete",
+            "ds-cfg-plugin-type: preOperationModify",
+            "ds-cfg-attribute-type: member",
+            "ds-cfg-check-references: true"
     );
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
@@ -779,6 +824,73 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   {
     ReferentialIntegrityPlugin plugin = initializePlugin(e);
     plugin.finalizePlugin();
+  }
+
+  /**
+   * Issue #1118: the entry a fresh install ships must be able to check references once
+   * {@code check-references} is turned on, so it has to list the pre-operation plugin types.
+   */
+  @Test
+  public void testShippedEntryAcceptsCheckReferences() throws Exception
+  {
+    List<String> ldif = shippedEntryLines();
+    ldif.add("ds-cfg-check-references: true");
+
+    ReferentialIntegrityPlugin plugin = initializePlugin(TestCaseUtils.makeEntry(ldif.toArray(new String[0])));
+    plugin.finalizePlugin();
+  }
+
+  /**
+   * Issue #1118: turning {@code check-references} on for a running plugin whose plugin types
+   * lack the pre-operation types must be refused rather than stored and silently ignored.
+   */
+  @Test
+  public void testCheckReferencesWithoutPreOperationTypesIsRejected() throws Exception
+  {
+    assertEquals(replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete").getResultCode(), ResultCode.SUCCESS);
+    assertEquals(replaceAttrEntry(configDN, "ds-cfg-enabled", "true").getResultCode(), ResultCode.SUCCESS);
+    try
+    {
+      ModifyOperation op = replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+      assertNotEquals(op.getResultCode(), ResultCode.SUCCESS);
+      String reason = op.getErrorMessage().toString();
+      assertTrue(reason.contains("preoperationadd") && reason.contains("preoperationmodify"), reason);
+    }
+    finally
+    {
+      replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    }
+  }
+
+  /** The lines of the Referential Integrity plugin entry in the fresh-install config.ldif template. */
+  private List<String> shippedEntryLines() throws Exception
+  {
+    File template = new File(TestCaseUtils.getBuildRoot(), "resource/config/config.ldif");
+    List<String> entry = new ArrayList<>();
+    for (String line : Files.readAllLines(template.toPath(), StandardCharsets.UTF_8))
+    {
+      if (entry.isEmpty() && !line.equalsIgnoreCase("dn: cn=Referential Integrity,cn=Plugins,cn=config"))
+      {
+        continue;
+      }
+      if (line.isEmpty())
+      {
+        break;
+      }
+      entry.add(line);
+    }
+    assertFalse(entry.isEmpty(), "config.ldif template no longer ships the Referential Integrity plugin");
+    return entry;
   }
 
   private ReferentialIntegrityPlugin initializePlugin(Entry e) throws ConfigException, InitializationException {

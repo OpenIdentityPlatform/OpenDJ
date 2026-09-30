@@ -33,6 +33,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -105,6 +106,9 @@ public class ReferentialIntegrityPlugin
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /** The plugin types {@code check-references} needs: the references are checked in these hooks. */
+  private static final Set<PluginCfgDefn.PluginType> CHECK_REFERENCES_PLUGIN_TYPES = Collections.unmodifiableSet(
+      EnumSet.of(PluginCfgDefn.PluginType.PREOPERATIONADD, PluginCfgDefn.PluginType.PREOPERATIONMODIFY));
 
 
   /** Current plugin configuration. */
@@ -275,6 +279,20 @@ public class ReferentialIntegrityPlugin
         default:
           isAcceptable = false;
           unacceptableReasons.add(ERR_PLUGIN_REFERENT_INVALID_PLUGIN_TYPE.get(t));
+      }
+    }
+
+    // The references are checked in the pre-operation add and modify hooks, which the plugin
+    // manager only calls for the plugin types listed in the configuration.
+    if (pluginCfg.isCheckReferences())
+    {
+      for (PluginCfgDefn.PluginType t : CHECK_REFERENCES_PLUGIN_TYPES)
+      {
+        if (!pluginCfg.getPluginType().contains(t))
+        {
+          isAcceptable = false;
+          unacceptableReasons.add(ERR_PLUGIN_REFERENT_CHECK_REFERENCES_WITHOUT_PLUGIN_TYPE.get(t, t));
+        }
       }
     }
 

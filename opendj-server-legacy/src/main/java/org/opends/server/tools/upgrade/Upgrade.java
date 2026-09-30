@@ -97,6 +97,12 @@ public final class Upgrade
       "cn: End Transaction",
       "ds-cfg-java-class: org.opends.server.extensions.EndTransactionExtendedOperation",
       "ds-cfg-enabled: true" };
+  static final String REFERENTIAL_INTEGRITY_PLUGIN_FILTER =
+      "(objectClass=ds-cfg-referential-integrity-plugin)";
+  static final String[] ADD_REFERENTIAL_INTEGRITY_PRE_OPERATION_PLUGIN_TYPES = {
+      "add: ds-cfg-plugin-type",
+      "ds-cfg-plugin-type: preOperationAdd",
+      "ds-cfg-plugin-type: preOperationModify" };
 
   static
   {
@@ -637,6 +643,16 @@ public final class Upgrade
         addConfigEntry(INFO_UPGRADE_TASK_ADD_TRANSACTION_EXTENDED_OPERATIONS.get(),
             START_TRANSACTION_HANDLER_ENTRY),
         addConfigEntry(END_TRANSACTION_HANDLER_ENTRY));
+
+    /* See issue #1118: the shipped Referential Integrity plugin entry lacked the pre-operation plugin
+     * types that check-references runs in, so turning check-references on checked nothing. The plugin
+     * now refuses check-references without them, so every referential integrity plugin entry gets them:
+     * the add is permissive, and the upgrade schema matches plugin types ignoring case, so a type an
+     * administrator already added is not added a second time. */
+    register("5.2.0",
+        modifyConfigEntry(INFO_UPGRADE_TASK_ADD_REFERENTIAL_INTEGRITY_PRE_OPERATION_PLUGIN_TYPES.get(),
+            REFERENTIAL_INTEGRITY_PLUGIN_FILTER,
+            ADD_REFERENTIAL_INTEGRITY_PRE_OPERATION_PLUGIN_TYPES));
 
     /*
      * See issue #746. Builds before #661 (fixed in 5.1.2) shipped a duplicate
