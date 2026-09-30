@@ -33,7 +33,7 @@ Valid::
 This is `true` for valid indexes. If this is `false`, the index might be degraded. Verify the index, and rebuild the index if necessary. The record count and the key counts that follow it show `-` for an index that is not valid.
 
 Confidential::
-This is `true` for indexes with `confidentiality-enabled`, whose keys are stored encrypted.
+This is `true` for indexes with `confidentiality-enabled`, whose keys are stored encrypted. This is recorded as `-` for VLV indexes, which have no confidentiality setting.
 
 Record Count::
 Number of indexed keys. Use the `backendstat dump-tree` command to see how many entry IDs correspond to each key.
