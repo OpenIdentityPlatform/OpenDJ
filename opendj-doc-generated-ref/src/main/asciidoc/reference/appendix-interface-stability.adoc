@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -29,7 +29,7 @@ In addition to the indications concerning interface stability in the documentati
 
 * Client tools—`ldap*`, `ldif*`, and `*rate` commands—are Evolving.
 
-* The following classes, interfaces, and methods in the link:../javadoc/index.html[OpenDJ APIs, window=\_blank] are Evolving:
+* The following classes, interfaces, and methods in the link:https://doc.openidentityplatform.org/opendj/apidocs/index.html[OpenDJ APIs, window=\_blank] are Evolving:
 +
 
 ** `org.forgerock.opendj.ldap.Connections#newInternalConnection`
@@ -38,13 +38,11 @@ In addition to the indications concerning interface stability in the documentati
 
 ** `org.forgerock.opendj.ldap.Connections#newServerConnectionFactory`
 
-** `org.forgerock.opendj.ldap.FutureResult`
-
 ** `org.forgerock.opendj.ldap.LDAPClientContext`
 
 ** `org.forgerock.opendj.ldap.LDAPListener`
 
-** `org.forgerock.opendj.ldap.LDAPListenerOptions`
+** `org.forgerock.opendj.ldap.LdapPromise`
 
 ** `org.forgerock.opendj.ldap.MemoryBackend`
 
@@ -75,21 +73,7 @@ In addition to the indications concerning interface stability in the documentati
 ** `org.forgerock.opendj.ldap.schema.SyntaxImpl`
 
 
-* The following methods are Deprecated:
-+
-
-** `org.forgerock.opendj.ldap.Connections#newHeartBeatConnectionFactory`
-
-** `org.forgerock.opendj.ldap.LDAPListenerOptions#getTCPNIOTransport`
-
-** `org.forgerock.opendj.ldap.LDAPListenerOptions#setTCPNIOTransport`
-
-** `org.forgerock.opendj.ldap.LDAPOptions#getTCPNIOTransport`
-
-** `org.forgerock.opendj.ldap.LDAPOptions#setTCPNIOTransport`
-
-
-* The class `org.forgerock.opendj.ldap.CoreMessages` is Internal.
+* The class `com.forgerock.opendj.ldap.CoreMessages` is Internal.
 
 * For all Java APIs, `com.*` packages are Internal.
 

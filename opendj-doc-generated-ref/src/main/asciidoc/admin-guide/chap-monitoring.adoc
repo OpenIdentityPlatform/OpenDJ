@@ -79,7 +79,7 @@ SNMP is not enabled by default. SNMP-based monitoring depends on OpenDMK, which 
 
 To run the OpenDMK installer, use the self-extracting .jar:
 
-[source, console]
+[source, console, subs="attributes"]
 ----
 $ java -jar ~/Downloads/opendmk-1.0-b02-*.jar
 $ cd ~/Downloads/
