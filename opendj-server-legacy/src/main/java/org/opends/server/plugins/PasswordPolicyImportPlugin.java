@@ -74,6 +74,8 @@ public final class PasswordPolicyImportPlugin
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /** The configuration which this plugin is registered with as a change listener. */
+  private PasswordPolicyImportPluginCfg currentConfig;
   /** The attribute type used to specify the password policy for an entry. */
   private AttributeType customPolicyAttribute;
   /** The set of attribute types defined in the schema with the auth password syntax. */
@@ -107,6 +109,7 @@ public final class PasswordPolicyImportPlugin
          throws ConfigException
   {
     configuration.addPasswordPolicyImportChangeListener(this);
+    currentConfig = configuration;
 
     Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
     customPolicyAttribute = schema.getAttributeType(OP_ATTR_PWPOLICY_POLICY_DN);
@@ -221,6 +224,12 @@ public final class PasswordPolicyImportPlugin
     }
 
     processImportBegin(null, null);
+  }
+
+  @Override
+  public final void finalizePlugin()
+  {
+    currentConfig.removePasswordPolicyImportChangeListener(this);
   }
 
   @Override

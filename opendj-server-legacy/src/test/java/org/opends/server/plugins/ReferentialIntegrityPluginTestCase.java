@@ -37,6 +37,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.server.config.meta.PluginCfgDefn.PluginType;
 import org.forgerock.opendj.server.config.meta.ReferentialIntegrityPluginCfgDefn;
+import org.forgerock.opendj.server.config.server.ReferentialIntegrityPluginCfg;
 import org.opends.server.api.Group;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.AddOperation;
@@ -786,6 +787,82 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   {
     ReferentialIntegrityPlugin plugin = initializePlugin(e);
     plugin.finalizePlugin();
+  }
+
+  /**
+   * Configurations that the plugin refuses in {@code initializePlugin()}: one in its configuration check, one when it
+   * sets up the log file. Their DN is not the one of the running plugin, so that an instance left listening does not
+   * take part in the changes the other cases make.
+   */
+  @DataProvider(name = "configsRefusedByInitializePlugin")
+  public Object[][] createConfigsRefusedByInitializePlugin() throws Exception
+  {
+    List<Entry> entries = TestCaseUtils.makeEntries(
+            "dn: cn=Refused Referential Integrity,cn=Plugins,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-plugin",
+            "objectClass: ds-cfg-referential-integrity-plugin",
+            "cn: Refused Referential Integrity",
+            "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+            "ds-cfg-enabled: true",
+            "ds-cfg-plugin-type: postOperationDelete",
+            "ds-cfg-plugin-type: postOperationModifyDN",
+            "ds-cfg-plugin-type: subordinateModifyDN",
+            "ds-cfg-attribute-type: cn",
+            "",
+            "dn: cn=Refused Referential Integrity,cn=Plugins,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-plugin",
+            "objectClass: ds-cfg-referential-integrity-plugin",
+            "cn: Refused Referential Integrity",
+            "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+            "ds-cfg-enabled: true",
+            "ds-cfg-plugin-type: postOperationDelete",
+            "ds-cfg-plugin-type: postOperationModifyDN",
+            "ds-cfg-plugin-type: subordinateModifyDN",
+            "ds-cfg-attribute-type: member",
+            "ds-cfg-update-interval: 300 seconds",
+            "ds-cfg-log-file: /hopefully/doesn't/file/exist");
+    Object[][] array = new Object[entries.size()][];
+    for (int i = 0; i < array.length; i++)
+    {
+      array[i] = new Object[] { entries.get(i) };
+    }
+    return array;
+  }
+
+  /**
+   * An instance whose {@code initializePlugin()} refused its configuration is finalized by the plugin manager, which
+   * never registers it. That must remove whatever change listener it registered, and must not fail. When the server
+   * starts there is no acceptance phase, so this is the only thing that stops a refused instance from listening to
+   * its configuration entry.
+   */
+  @Test(dataProvider = "configsRefusedByInitializePlugin")
+  public void testConfigurationRefusedByInitializePluginLeavesNoChangeListenerBehind(Entry e) throws Exception
+  {
+    ReferentialIntegrityPluginCfg configuration =
+        InitializationUtils.getConfiguration(ReferentialIntegrityPluginCfgDefn.getInstance(), e);
+    int changeListeners = countChangeListeners(configuration.dn());
+
+    ReferentialIntegrityPlugin plugin = new ReferentialIntegrityPlugin();
+    try
+    {
+      plugin.initializePlugin(TestCaseUtils.getPluginTypes(e), configuration);
+      fail("The plugin accepted a configuration it must refuse: " + e);
+    }
+    catch (ConfigException expected)
+    {
+      // As expected.
+    }
+    plugin.finalizePlugin();
+
+    assertEquals(countChangeListeners(configuration.dn()), changeListeners,
+        "The refused instance is still listening to its configuration entry");
+  }
+
+  private static int countChangeListeners(DN dn)
+  {
+    return TestCaseUtils.getServerContext().getConfigurationHandler().getChangeListeners(dn).size();
   }
 
   /**
@@ -1686,6 +1763,54 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       "member: uid=bad,ou=people,ou=dept,dc=example,dc=com",
       "member: uid=user.4,ou=people,ou=dept,dc=example,dc=com",
       "member: uid=user.5,ou=people,ou=dept,dc=example,dc=com"
+      );
+
+    AddOperation addOperation = getRootConnection().processAdd(entry);
+    assertEquals(addOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
+  }
+
+  /**
+   * Test case:
+   * - the plugin is enabled for the post-operation and subordinate plugin
+   *   types only
+   * - while it stays enabled, the pre-operation add and modify plugin types
+   *   are added and integrity is enforced on the attribute 'member'
+   * - add a group 'referent group' to the 'dc=example,dc=com' with the
+   *   'member' attribute pointing to the existing user entries and one missing
+   * - CONSTRAINT VIOLATION: the new plugin types take effect without the
+   *   plugin being disabled and enabled again
+   * @throws Exception
+   */
+  @Test
+  public void testEnforceIntegrityAfterPluginTypesAddedToEnabledPlugin() throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigAttrType, "member");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    assertEquals(replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify").getResultCode(), ResultCode.SUCCESS);
+    assertEquals(replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true").getResultCode(),
+                 ResultCode.SUCCESS);
+
+    Entry entry = TestCaseUtils.makeEntry(
+      "dn: cn=referent group,ou=groups,dc=example,dc=com",
+      "objectclass: top",
+      "objectclass: groupofnames",
+      "cn: refetent group",
+      "member: uid=user.1,ou=people,ou=dept,dc=example,dc=com",
+      "member: uid=bad,ou=people,ou=dept,dc=example,dc=com"
       );
 
     AddOperation addOperation = getRootConnection().processAdd(entry);

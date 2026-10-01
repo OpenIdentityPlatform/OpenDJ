@@ -14,6 +14,7 @@
 
   Copyright 2007-2010 Sun Microsystems, Inc.
   Portions Copyright 2011 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <adm:managed-object name="plugin" plural-name="plugins"
   package="org.forgerock.opendj.server.config"
@@ -72,11 +73,8 @@
   <adm:property name="plugin-type" mandatory="true"
     multi-valued="true">
     <adm:synopsis>
-      Specifies the set of plug-in types for the plug-in, which specifies the times at which the plug-in is invoked. 
+      Specifies the set of plug-in types for the plug-in, which specifies the times at which the plug-in is invoked.
     </adm:synopsis>
-    <adm:requires-admin-action>
-      <adm:component-restart />
-    </adm:requires-admin-action>
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="startup">

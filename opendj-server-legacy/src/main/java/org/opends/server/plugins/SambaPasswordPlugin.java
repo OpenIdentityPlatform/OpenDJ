@@ -865,6 +865,16 @@ public final class SambaPasswordPlugin extends
     this.config = configuration;
   }
 
+  @Override
+  public void finalizePlugin()
+  {
+    // Null when initializePlugin() refused the configuration before registering the listener.
+    if (config != null)
+    {
+      config.removeSambaPasswordChangeListener(this);
+    }
+  }
+
 
 
   /**

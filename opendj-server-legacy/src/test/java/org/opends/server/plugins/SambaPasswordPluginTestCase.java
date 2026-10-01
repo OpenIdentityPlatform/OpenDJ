@@ -13,6 +13,7 @@
  *
  * Copyright 2011-2012 profiq s.r.o.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.plugins;
 
@@ -793,5 +794,38 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     {
       plugin.setTimeStampProvider(null);
     }
+  }
+
+  /**
+   * A change of the plugin types re-creates the plugin, and the finalized instance no longer
+   * listens to the configuration entry.
+   */
+  @Test
+  public void testPluginTypeChangeLeavesNoChangeListenerBehind() throws Exception
+  {
+    DN pluginDN = DN.valueOf("cn=samba password,cn=Plugins,cn=config");
+    int changeListeners = countChangeListeners(pluginDN);
+    try
+    {
+      assertEquals(setPluginTypes(pluginDN, "preoperationmodify"), ResultCode.SUCCESS);
+      assertEquals(countChangeListeners(pluginDN), changeListeners);
+    }
+    finally
+    {
+      assertEquals(setPluginTypes(pluginDN, "postoperationextended", "preoperationmodify"), ResultCode.SUCCESS);
+    }
+    assertEquals(countChangeListeners(pluginDN), changeListeners);
+  }
+
+  private static int countChangeListeners(DN pluginDN)
+  {
+    return TestCaseUtils.getServerContext().getConfigurationHandler().getChangeListeners(pluginDN).size();
+  }
+
+  private static ResultCode setPluginTypes(DN pluginDN, String... pluginTypes)
+  {
+    ModifyRequest request = Requests.newModifyRequest(pluginDN)
+        .addModification(REPLACE, "ds-cfg-plugin-type", pluginTypes);
+    return getRootConnection().processModify(request).getResultCode();
   }
 }

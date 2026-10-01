@@ -13,13 +13,21 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.plugins;
+
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.testng.Assert.*;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.server.config.meta.PasswordPolicyImportPluginCfgDefn;
 import org.opends.server.api.plugin.PluginType;
@@ -290,6 +298,39 @@ public class PasswordPolicyImportPluginTestCase
     {
       plugin.doLDIFImport(importConfig, e);
     }
+  }
+
+  /**
+   * Disabling the plugin finalizes it, and the finalized instance no longer listens to the
+   * configuration entry, so enabling the plugin again adds no listener.
+   */
+  @Test
+  public void testDisableAndEnableLeavesNoChangeListenerBehind()
+         throws Exception
+  {
+    DN dn = DN.valueOf("cn=Password Policy Import,cn=plugins,cn=config");
+    int changeListeners = countChangeListeners(dn);
+    try
+    {
+      assertEquals(setEnabled(dn, false), ResultCode.SUCCESS);
+    }
+    finally
+    {
+      assertEquals(setEnabled(dn, true), ResultCode.SUCCESS);
+    }
+    assertNotNull(DirectoryServer.getPluginConfigManager().getRegisteredPlugin(dn));
+    assertEquals(countChangeListeners(dn), changeListeners);
+  }
+
+  private static int countChangeListeners(DN dn)
+  {
+    return TestCaseUtils.getServerContext().getConfigurationHandler().getChangeListeners(dn).size();
+  }
+
+  private static ResultCode setEnabled(DN dn, boolean enabled)
+  {
+    ModifyRequest request = newModifyRequest(dn).addModification(REPLACE, "ds-cfg-enabled", String.valueOf(enabled));
+    return getRootConnection().processModify(request).getResultCode();
   }
 }
 
