@@ -82,10 +82,10 @@ import org.reactivestreams.Subscription;
 
 import com.forgerock.reactive.Action;
 import com.forgerock.reactive.Completable;
+import com.forgerock.reactive.Consumer;
 import com.forgerock.reactive.ReactiveHandler;
 import com.forgerock.reactive.Stream;
 
-import io.reactivex.rxjava3.exceptions.OnErrorNotImplementedException;
 import org.openidentityplatform.rxjava3.internal.util.BackpressureHelper;
 
 /**
@@ -542,7 +542,19 @@ public final class LDAPServerFilter extends BaseFilter {
                     // handleClose() will be invoked once this connection has been closed.
                     connection.closeSilently();
                 }
-            }).subscribe();
+            }).subscribe(new Action() {
+                @Override
+                public void run() throws Exception {
+                    // Nothing to do: the connection is closed on either outcome.
+                }
+            }, new Consumer<Throwable>() {
+                @Override
+                public void accept(final Throwable error) throws Exception {
+                    // Expected when the client has already closed its end: the notice cannot be delivered,
+                    // and the connection is closed anyway.
+                    logger.traceException(error);
+                }
+            });
         }
 
         private void notifyConnectionClosedRawUnbind(final LdapRequestEnvelope rawUnbindRequest) {
@@ -645,13 +657,7 @@ public final class LDAPServerFilter extends BaseFilter {
                     }).thenOnException(new ExceptionHandler<Exception>() {
                         @Override
                         public void handleException(Exception exception) {
-                            try {
-                            	 s.onError(exception);
-                            } catch (Throwable t) {
-                                if (!(t instanceof OnErrorNotImplementedException)) {
-                                    throw t;
-                                }
-                            }
+                            s.onError(exception);
                         }
                     }).thenOnRuntimeException(new RuntimeExceptionHandler() {
                         @Override
