@@ -50,6 +50,10 @@ rm -f /tmp/opendj-setup-password.* /tmp/opendj-replicate.* /tmp/opendj-join.*
 # bootstraps carries the marker from before its bootstrap until the join has initialized it
 # from the topology (see bootstrap/join.sh), however many restarts that takes
 export INITIALIZE_PENDING=${INITIALIZE_PENDING:-/opt/opendj/data/.replication-initialize-pending}
+# and a volume whose replication the join took down to enable it anew carries this one until
+# the enable registered it again: it holds the data of the topology, but takes writes that
+# replicate nowhere meanwhile
+export REJOIN_PENDING=${REJOIN_PENDING:-/opt/opendj/data/.replication-rejoin-pending}
 
 # The background join (bootstrap/join.sh) serves OPENDJ_REPLICATION_TYPE=simple on every
 # start; srs, sdsr and rg keep the one-shot replicate.sh of the first bootstrap
@@ -143,11 +147,16 @@ if [ -d ./data/config ]; then
     # completed - still carries the marker and waits for the join, so none of these turns
     # into a healthy server with bootstrap data only, the way they did when the marker
     # followed the upgrade alone. A seed that no peer joined yet holds the data without a
-    # replication domain, which is why the domain is not what decides.
-    if ! join_requested || [ ! -f "$INITIALIZE_PENDING" ]; then
+    # replication domain, which is why the domain is not what decides. Nor does a volume
+    # whose replication the join took down turn healthy before the enable that follows
+    # registered it again: the join could bind with ROOT_PASSWORD when it took it down, and
+    # the peer it enables through answered then.
+    if ! join_requested || { [ ! -f "$INITIALIZE_PENDING" ] && [ ! -f "$REJOIN_PENDING" ]; }; then
       touch "$BOOTSTRAP_COMPLETE"
-    else
+    elif [ -f "$INITIALIZE_PENDING" ]; then
       echo "This instance never joined its replication topology or never received its data, the join decides whether it is healthy"
+    else
+      echo "This instance was taken out of its replication topology to join it anew, the join decides whether it is healthy"
     fi
     # the join also repairs membership that changed while no container ran, on every start
     if join_requested; then

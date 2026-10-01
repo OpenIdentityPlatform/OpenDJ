@@ -117,15 +117,20 @@ its peers whether its volume still waits for that data (`pending`) or holds it (
 the local entry `cn=Docker Join,cn=config`, and a pending server joins and initializes only
 through a ready one. So servers may start together - Compose, or a StatefulSet with
 `podManagementPolicy: Parallel` - without any of them taking the bootstrap data of another
-fresh one for the topology's. Servers that join through the same peer take turns: two
+fresh one for the topology's. Servers whose enables involve the same server take turns: two
 `dsreplication enable` runs through one server at once leave the loser a member only in
-part, for good. The turn is the entry `cn=Docker Join Lock,cn=config` on that peer, which a
-join adds before its enable and removes after it; one left behind by a killed join is taken
-over once it is older than `REPLICATION_ATTEMPT_TIMEOUT` plus a minute. Only the first entry of `REPLICATION_PEERS` may decide that
+part, for good. The turn is the entry `cn=Docker Join Lock,cn=config`, which a join adds
+before its enable on the peer it enables through and on its own server, and removes after
+it; one left behind by a killed join is taken over once it is older than
+`REPLICATION_ATTEMPT_TIMEOUT` plus a minute, or at once by a later join of the server that
+left it. A join that finds a turn taken tries the next peer, and waits a random part of
+`REPLICATION_RETRY_INTERVAL` on top of it between rounds, so two joins that each hold the
+other's turn do not keep meeting. Only the first entry of `REPLICATION_PEERS` may decide that
 there is no topology yet and seed it with its own data: at once when every other peer
 answers and waits for data as well, or once its retries are exhausted without any peer
-that could hold the data answering - a ready one, or a server of an earlier image that
-publishes no state but replicates `BASE_DN`. The residual risk of that rule: with every other server
+that could hold the data answering - a ready one, a server of an earlier image that
+publishes no state but replicates `BASE_DN`, or one that refuses the bind with
+`ROOT_PASSWORD` (only a server past its bootstrap has another root password). The residual risk of that rule: with every other server
 down *and* the volume of the first peer lost, the first peer seeds an empty topology and the
 others initialize from it; keep backups accordingly. A volume that joined but whose
 initialize never completed keeps waiting for a ready peer on every start, so under
@@ -141,6 +146,15 @@ on every rolling restart, and cannot clean up a server that is already gone. It 
 every listed peer registered in the topology to the local lists that lack it, so joins that
 ran at the same time cannot leave two replication servers that know nothing of each other.
 With only `MASTER_SERVER` set nothing is removed or added, so servers joined by hand stay.
+
+A server that was removed this way and is scaled up again on the volume it kept still holds
+the data and its replication configuration, but no peer registers it any more, and
+`dsreplication enable` would not register it again. Its join takes its replication
+configuration down and enables it anew, and from that moment until the enable has registered
+it again the container does not report itself healthy, across restarts too: writes it took
+meanwhile would replicate nowhere. It does so only when at least one peer that replicates
+`BASE_DN` answered and none of them registers it - a peer that cannot be asked decides
+nothing.
 
 The one-shot types `srs`, `sdsr` and `rg` keep their previous behaviour - they run once,
 during the first bootstrap only - and are deprecated in favour of `simple`. Like `simple`,
@@ -233,8 +247,8 @@ with `subPath` when the Secret changes.
 | REPLICATION_PEERS       | value of MASTER_SERVER          | every server of the replication topology by DNS name, comma separated; the first entry may seed a new topology, and servers no longer listed are removed from it, see [Replication](#replication) |
 | REPLICATION_PORT        | 8989                            | replication port, the same on every server of the topology                                                                                                                                                                                              |
 | REPLICATION_RETRY_COUNT | 30                              | rounds of join attempts through every peer before the join gives up: the first peer of `REPLICATION_PEERS` then seeds the topology, any other server stays `unhealthy`                                                                                  |
-| REPLICATION_RETRY_INTERVAL | 10                           | seconds between rounds of join attempts                                                                                                                                                                                                                 |
-| REPLICATION_ATTEMPT_TIMEOUT | 120                             | seconds a single `dsreplication enable` may take before it is killed and tried again; it can hang on a peer that stops mid-operation |
+| REPLICATION_RETRY_INTERVAL | 10                           | seconds between rounds of join attempts, plus a random part of as much again                                                                                                                                                                             |
+| REPLICATION_ATTEMPT_TIMEOUT | 120                             | seconds a single `dsreplication enable` may take before it is killed and tried again; it can hang on a peer that stops mid-operation, so a value that is not a positive number falls back to 120 |
 | REPLICATION_INITIALIZE_TIMEOUT | 0                               | seconds a single `dsreplication initialize` - a full import of `BASE_DN` - may take before it is killed and tried again; `0` sets no bound |
 | VERSION                 | -                               | OpenDJ version                                                                                                                                                                                                                                          |
 | OPENDJ_USER             | opendj                          | user which runs OpenDJ                                                                                                                                                                                                                                  |
