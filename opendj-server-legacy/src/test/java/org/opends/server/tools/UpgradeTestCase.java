@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools;
 
@@ -29,6 +30,7 @@ import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.ArgumentParser.PROPERTY_SCRIPT_NAME;
 import static org.opends.messages.ToolMessages.*;
 import static org.testng.Assert.*;
 
@@ -111,6 +113,35 @@ public class UpgradeTestCase extends ToolsTestCase
       // The 'main' should exit with success code.
       assertEquals(UpgradeCli.main(setArgs("-?"), true, ps, ps), 0);
       assertContainsMessage(baos.toString(), INFO_UPGRADE_DESCRIPTION_CLI.get());
+    }
+  }
+
+  /** The generated reference of the upgrade tool includes its AsciiDoc description (#1128). */
+  @Test
+  public void testUpgradeToolGenerateDocIncludesItsDescriptionSupplement() throws Exception
+  {
+    final String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
+    System.setProperty("org.forgerock.opendj.gendoc", "true");
+    System.setProperty(PROPERTY_SCRIPT_NAME, "upgrade");
+    try (final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final PrintStream ps = new PrintStream(baos))
+    {
+      assertEquals(UpgradeCli.main(setArgs("-?"), true, ps, ps), 0);
+      Assertions.assertThat(baos.toString())
+          .contains("include::./_description-upgrade.adoc[]")
+          .doesNotContain("<xinclude:include");
+    }
+    finally
+    {
+      System.clearProperty("org.forgerock.opendj.gendoc");
+      if (scriptName != null)
+      {
+        System.setProperty(PROPERTY_SCRIPT_NAME, scriptName);
+      }
+      else
+      {
+        System.clearProperty(PROPERTY_SCRIPT_NAME);
+      }
     }
   }
 

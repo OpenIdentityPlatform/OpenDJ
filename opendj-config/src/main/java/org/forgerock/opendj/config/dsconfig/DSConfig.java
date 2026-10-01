@@ -414,7 +414,7 @@ public final class DSConfig extends ConsoleApplication {
 
                 @Override
                 public String visitACI(ACIPropertyDefinition prop, Void p) {
-                    b.append(op).append(REF_DSCFG_ACI_SYNTAX_REL_URL.get()).append(cp).append(EOL);
+                    b.append(op).append(REF_DSCFG_ACI_SYNTAX.get()).append(cp).append(EOL);
                     return null;
                 }
 
@@ -470,14 +470,14 @@ public final class DSConfig extends ConsoleApplication {
 
                 @Override
                 public String visitDuration(DurationPropertyDefinition prop, Void p) {
-                    b.append(REF_DSCFG_DURATION_SYNTAX_REL_URL.get()).append(EOL);
+                    b.append(REF_DSCFG_DURATION_SYNTAX.get()).append(EOL);
                     b.append(op);
                     if (prop.isAllowUnlimited()) {
                         b.append(REF_DSCFG_ALLOW_UNLIMITED.get()).append(" ");
                     }
                     if (prop.getMaximumUnit() != null) {
                         final String maxUnitName = prop.getMaximumUnit().getLongName();
-                        b.append(REF_DSCFG_DURATION_MAX_UNIT.get(maxUnitName)).append(".");
+                        b.append(REF_DSCFG_DURATION_MAX_UNIT.get(maxUnitName)).append(". ");
                     }
                     final DurationUnit baseUnit = prop.getBaseUnit();
                     final long lowerLimit = valueOf(baseUnit, prop.getLowerLimit());
@@ -485,7 +485,7 @@ public final class DSConfig extends ConsoleApplication {
                     b.append(REF_DSCFG_DURATION_LOWER_LIMIT.get(lowerLimit, unitName)).append(".");
                     if (prop.getUpperLimit() != null) {
                         final long upperLimit = valueOf(baseUnit, prop.getUpperLimit());
-                        b.append(REF_DSCFG_DURATION_UPPER_LIMIT.get(upperLimit, unitName)).append(".");
+                        b.append(" ").append(REF_DSCFG_DURATION_UPPER_LIMIT.get(upperLimit, unitName)).append(".");
                     }
                     b.append(cp).append(EOL);
                     return null;
@@ -540,14 +540,17 @@ public final class DSConfig extends ConsoleApplication {
                 @Override
                 public String visitSize(SizePropertyDefinition prop, Void p) {
                     b.append(op);
+                    String separator = "";
                     if (prop.getLowerLimit() != 0) {
                         b.append(REF_DSCFG_INT_LOWER_LIMIT.get(prop.getLowerLimit())).append(".");
+                        separator = " ";
                     }
                     if (prop.getUpperLimit() != null) {
-                        b.append(REF_DSCFG_INT_UPPER_LIMIT.get(prop.getUpperLimit())).append(".");
+                        b.append(separator).append(REF_DSCFG_INT_UPPER_LIMIT.get(prop.getUpperLimit())).append(".");
+                        separator = " ";
                     }
                     if (prop.isAllowUnlimited()) {
-                        b.append(REF_DSCFG_ALLOW_UNLIMITED.get());
+                        b.append(separator).append(REF_DSCFG_ALLOW_UNLIMITED.get());
                     }
                     b.append(cp).append(EOL);
                     return null;
