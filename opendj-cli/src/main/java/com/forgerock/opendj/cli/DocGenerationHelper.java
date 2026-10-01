@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -23,6 +24,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * This class provides utility functions to help generate reference documentation.
@@ -36,6 +38,13 @@ public final class DocGenerationHelper {
 
     /** FreeMarker template configuration. */
     private static Configuration configuration;
+
+    /**
+     * An AsciiDoc attribute reference, such as {@code {name}}, that no backslash escapes.
+     * Word characters are Unicode ones, as in Asciidoctor.
+     */
+    private static final Pattern ATTRIBUTE_REFERENCE =
+            Pattern.compile("(?<!\\\\)(\\{\\w[\\w-]*\\})", Pattern.UNICODE_CHARACTER_CLASS);
 
     /**
      * Gets a FreeMarker configuration for applying templates.
@@ -71,10 +80,27 @@ public final class DocGenerationHelper {
             Writer writer = new OutputStreamWriter(outputStream)) {
             Template configurationTemplate = configuration.getTemplate(template);
             configurationTemplate.process(map, writer);
-            builder.append(outputStream.toString());
+            builder.append(escapeAttributeReferences(outputStream.toString()));
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Escapes the AsciiDoc attribute references in generated reference text.
+     *
+     * <br>
+     *
+     * The generated reference refers to no AsciiDoc attribute: a {@code {name}} in it is the placeholder
+     * of an option value, written as is in the messages, which AsciiDoc would read as a reference
+     * to a missing attribute. A reference that is already escaped is left as is,
+     * so the result of a template can go through another template that includes it.
+     *
+     * @param text  The generated AsciiDoc text.
+     * @return      The text with each attribute reference escaped by a backslash.
+     */
+    static String escapeAttributeReferences(final String text) {
+        return ATTRIBUTE_REFERENCE.matcher(text).replaceAll("\\\\$1");
     }
 
     /**
