@@ -29,6 +29,7 @@ import static org.forgerock.util.Options.defaultOptions;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Arrays;
@@ -72,6 +73,8 @@ import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.util.Options;
 import org.forgerock.util.promise.PromiseImpl;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -277,6 +280,43 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
             assertThat(serverConnection.isClosed.await(10, TimeUnit.SECONDS)).isTrue();
         } finally {
             listener.close();
+        }
+    }
+
+    /**
+     * A listener given a transport with {@link GrizzlyLDAPListener#GRIZZLY_TRANSPORT} serves its connections with that
+     * transport, and leaves it running when it is closed.
+     */
+    @Test(timeOut = 10000)
+    public void testLDAPListenerWithProvidedTransport() throws Exception {
+        final TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance().build();
+        transport.start();
+        try {
+            final MockServerConnection serverConnection = new MockServerConnection();
+            final Options options = defaultOptions().set(GrizzlyLDAPListener.GRIZZLY_TRANSPORT, transport);
+            final LDAPListener listener = new LDAPListener(Collections.singleton(loopbackWithDynamicPort()),
+                    new ServerConnectionFactoryAdapter(options.get(LDAP_DECODE_OPTIONS),
+                            new MockServerConnectionFactory(serverConnection)),
+                    options);
+            try {
+                final InetSocketAddress addr = listener.firstSocketAddress();
+                final Connection connection =
+                        new LDAPConnectionFactory(addr.getHostName(), addr.getPort()).getConnection();
+                try {
+                    final LDAPClientContext context = serverConnection.context.get(10, TimeUnit.SECONDS);
+                    final Field field = context.getClass().getDeclaredField("connection");
+                    field.setAccessible(true);
+                    assertThat(((org.glassfish.grizzly.Connection<?>) field.get(context)).getTransport())
+                            .isSameAs(transport);
+                } finally {
+                    connection.close();
+                }
+            } finally {
+                listener.close();
+            }
+            assertThat(transport.isStopped()).isFalse();
+        } finally {
+            transport.shutdownNow();
         }
     }
 

@@ -13,7 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
- * Portions copyright 2025 3A Systems, LLC.
+ * Portions copyright 2025-2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -37,6 +37,7 @@ import org.forgerock.opendj.ldap.responses.Response;
 import org.forgerock.opendj.ldap.spi.LDAPListenerImpl;
 import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRequestEnvelope;
 import org.forgerock.util.Function;
+import org.forgerock.util.Option;
 import org.forgerock.util.Options;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.nio.transport.TCPNIOBindingHandler;
@@ -52,6 +53,13 @@ import com.forgerock.reactive.Stream;
  * LDAP listener implementation using Grizzly for transport.
  */
 public final class GrizzlyLDAPListener implements LDAPListenerImpl {
+    /**
+     * Grizzly TCP Transport NIO implementation to bind the listener to and to serve its connections with. If
+     * {@code null}, the default server transport shared by every listener in the JVM will be used. A transport
+     * provided here is not shut down when the listener is closed: its owner remains responsible for it.
+     */
+    public static final Option<TCPNIOTransport> GRIZZLY_TRANSPORT = Option.of(TCPNIOTransport.class, null);
+
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     private final ReferenceCountedObject<TCPNIOTransport>.Reference transport;
     private final Collection<TCPNIOServerConnection> serverConnections;
@@ -66,7 +74,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
      * @param addresses
      *            The addresses to listen on.
      * @param options
-     *            The LDAP listener options.
+     *            The LDAP listener options, including the optional {@link #GRIZZLY_TRANSPORT}.
      * @param requestHandlerFactory
      *            The server connection factory which will be used to create server connections.
      * @throws IOException
@@ -76,7 +84,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
             final Function<LDAPClientContext,
                            ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
                            LdapException> requestHandlerFactory) throws IOException {
-        this(addresses, requestHandlerFactory, options, null);
+        this(addresses, requestHandlerFactory, options, options.get(GRIZZLY_TRANSPORT));
     }
 
     /**
