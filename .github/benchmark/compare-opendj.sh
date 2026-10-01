@@ -50,6 +50,14 @@ if [ ! -x "$JM" ]; then
   tar -xzf /tmp/jmeter.tgz -C "$HOME/jmeter"
 fi
 
+# ---------------------------------------------------------------- ephemeral ports
+# BIND opens a new connection per iteration (~500/s), and docker-proxy relays each one to the
+# container over a second connection from an ephemeral port. With the default range
+# (32768-60999) and 60 s of TIME_WAIT that leg runs out of ports within a minute, and BIND then
+# fails with "LDAP connection has been closed". Widen the range and let connect() reuse
+# TIME_WAIT ports.
+sudo sysctl -w net.ipv4.ip_local_port_range="1024 65535" net.ipv4.tcp_tw_reuse=1
+
 # Poll OpenDJ readiness on localhost:1389. An image with a HEALTHCHECK has to report healthy
 # first: on a first start the server the bootstrap started answers, then is stopped and
 # started again, and a request sent in between fails. An older image's health check
