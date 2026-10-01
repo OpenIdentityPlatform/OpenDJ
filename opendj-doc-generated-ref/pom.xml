@@ -603,6 +603,52 @@
                                     <outputDirectory>${project.build.directory}/asciidoc/man-pages</outputDirectory>
                                 </configuration>
                             </execution>
+                            <!--
+                              Fail the build when a page would publish an attribute reference as literal
+                              text, which neither the PDF below nor the Antora site reports. Every .adoc of
+                              the pre-processed sources is rendered on its own, the way Antora renders each
+                              chapter as a page, so a page that relies on an attribute another chapter
+                              defines fails here although the PDF book resolves it. attribute-missing=warn
+                              reports a reference to an attribute that is not defined;
+                              literal-attribute-references.rb reports one in a verbatim block without
+                              subs="attributes". The HTML output is thrown away.
+
+                              The plugin stops at the first page that fails, so fix it and run again to see
+                              the next one: mvn -pl opendj-doc-generated-ref
+                              asciidoctor:process-asciidoc@check-attribute-references, after a build of this
+                              module. Asciidoctor names no file for a missing attribute: it is the page of
+                              the "Converted" line that follows the warning. A literal {name} in text is
+                              written \{name}.
+                            -->
+                            <execution>
+                                <id>check-attribute-references</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>process-asciidoc</goal>
+                                </goals>
+                                <configuration>
+                                    <requires>
+                                        <require>${project.basedir}/src/main/resources/asciidoc/extensions/nested-open-block.rb</require>
+                                        <require>${project.basedir}/src/main/resources/asciidoc/extensions/literal-attribute-references.rb</require>
+                                    </requires>
+                                    <backend>html5</backend>
+                                    <sourceDirectory>${project.build.directory}/asciidoc/source</sourceDirectory>
+                                    <outputDirectory>${project.build.directory}/asciidoc/attribute-check</outputDirectory>
+                                    <preserveDirectories>true</preserveDirectories>
+                                    <relativeBaseDir>true</relativeBaseDir>
+                                    <sourcemap>true</sourcemap>
+                                    <attributes>
+                                        <attribute-missing>warn</attribute-missing>
+                                        <literal-attribute-sources>${project.build.directory}/asciidoc/source</literal-attribute-sources>
+                                    </attributes>
+                                    <logHandler>
+                                        <failIf>
+                                            <severity>WARN</severity>
+                                            <containsText>attribute</containsText>
+                                        </failIf>
+                                    </logHandler>
+                                </configuration>
+                            </execution>
                         </executions>
                     </plugin>
 
