@@ -314,6 +314,7 @@ public class BackendStat
    */
   public static int main(String[] args, OutputStream outStream, OutputStream errStream)
   {
+    JDKLogging.disableLogging();
     BackendStat app = new BackendStat(outStream, errStream);
     return app.run(args);
   }
@@ -328,7 +329,6 @@ public class BackendStat
   {
     this.out = NullOutputStream.wrapOrNullStream(out);
     this.err = NullOutputStream.wrapOrNullStream(err);
-    JDKLogging.disableLogging();
 
     LocalizableMessage toolDescription = INFO_DESCRIPTION_BACKEND_TOOL.get();
     this.parser = new SubCommandArgumentParser(getClass().getName(), toolDescription, false);
@@ -1022,58 +1022,16 @@ public class BackendStat
 
     try
     {
-      // Create a table of their properties.
-      TableBuilder builder = new TableBuilder();
-      int count = 0;
-
-      builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_NAME.get());
-      builder.appendHeading(INFO_LABEL_BACKEND_TOOL_RAW_DB_NAME.get());
-      builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_STATUS.get());
-      builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_CONFIDENTIAL.get());
-      builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_RECORD_COUNT.get());
-      builder.appendHeading(INFO_LABEL_BACKEND_TOOL_INDEX_UNDEFINED_RECORD_COUNT.get());
-      builder.appendHeading(LocalizableMessage.raw("95%"));
-      builder.appendHeading(LocalizableMessage.raw("90%"));
-      builder.appendHeading(LocalizableMessage.raw("85%"));
-
       EntryContainer ec = rc.getEntryContainer(base);
       if (ec == null)
       {
         return printEntryContainerError(backend, base);
       }
 
+      // Create a table of their properties.
+      TableBuilder builder = new TableBuilder();
       Map<Index, StringBuilder> undefinedKeys = new HashMap<>();
-      for (AttributeIndex attrIndex : ec.getAttributeIndexes())
-      {
-        for (AttributeIndex.MatchingRuleIndex index : attrIndex.getNameToIndexes().values())
-        {
-          builder.startRow();
-          builder.appendCell(index.getName().getIndexId());
-          builder.appendCell(index.getName());
-          builder.appendCell(index.isTrusted());
-          builder.appendCell(index.isEncrypted());
-          if (index.isTrusted())
-          {
-            appendIndexStats(builder, ec, index, undefinedKeys);
-          }
-          else
-          {
-            appendStatsNoData(builder, 5);
-          }
-          count++;
-        }
-      }
-
-      for (VLVIndex vlvIndex : ec.getVLVIndexes())
-      {
-        builder.startRow();
-        builder.appendCell(vlvIndex.getName().getIndexId());
-        builder.appendCell(vlvIndex.getName());
-        builder.appendCell(vlvIndex.isTrusted());
-        builder.appendCell(getTreeRecordCount(ec, vlvIndex));
-        appendStatsNoData(builder, 4);
-        count++;
-      }
+      int count = appendIndexStatusTable(builder, ec, undefinedKeys);
 
       builder.print(new TextTablePrinter(out));
       out.print(INFO_LABEL_BACKEND_TOOL_TOTAL.get(count).toString());
@@ -1089,6 +1047,60 @@ public class BackendStat
       printWrappedText(err, ERR_BACKEND_TOOL_ERROR_READING_TREE.get(stackTraceToSingleLineString(de)));
       return 1;
     }
+  }
+
+  /**
+   * Fills the table {@code show-index-status} prints for the indexes of an entry container, a row
+   * per index, and returns the number of its rows. The keys of an index that are over its entry
+   * limit are collected into {@code undefinedKeys}.
+   */
+  int appendIndexStatusTable(TableBuilder builder, EntryContainer ec, Map<Index, StringBuilder> undefinedKeys)
+  {
+    builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_NAME.get());
+    builder.appendHeading(INFO_LABEL_BACKEND_TOOL_RAW_DB_NAME.get());
+    builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_STATUS.get());
+    builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_CONFIDENTIAL.get());
+    builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_RECORD_COUNT.get());
+    builder.appendHeading(INFO_LABEL_BACKEND_TOOL_INDEX_UNDEFINED_RECORD_COUNT.get());
+    builder.appendHeading(LocalizableMessage.raw("95%"));
+    builder.appendHeading(LocalizableMessage.raw("90%"));
+    builder.appendHeading(LocalizableMessage.raw("85%"));
+
+    int count = 0;
+    for (AttributeIndex attrIndex : ec.getAttributeIndexes())
+    {
+      for (AttributeIndex.MatchingRuleIndex index : attrIndex.getNameToIndexes().values())
+      {
+        builder.startRow();
+        builder.appendCell(index.getName().getIndexId());
+        builder.appendCell(index.getName());
+        builder.appendCell(index.isTrusted());
+        builder.appendCell(index.isEncrypted());
+        if (index.isTrusted())
+        {
+          appendIndexStats(builder, ec, index, undefinedKeys);
+        }
+        else
+        {
+          appendStatsNoData(builder, 5);
+        }
+        count++;
+      }
+    }
+
+    for (VLVIndex vlvIndex : ec.getVLVIndexes())
+    {
+      builder.startRow();
+      builder.appendCell(vlvIndex.getName().getIndexId());
+      builder.appendCell(vlvIndex.getName());
+      builder.appendCell(vlvIndex.isTrusted());
+      // A VLV index has no confidentiality setting, but its row still needs the cell of that column
+      appendStatsNoData(builder, 1);
+      builder.appendCell(getTreeRecordCount(ec, vlvIndex));
+      appendStatsNoData(builder, 4);
+      count++;
+    }
+    return count;
   }
 
   private void appendStatsNoData(TableBuilder builder, int columns)
