@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -849,7 +849,7 @@ $ stop-ds
 [source, console]
 ----
 $ backendstat show-index-status --backendID userRoot --baseDN dc=example,dc=com
-Index Name                            ... Index Valid  Record Count  Over Entry Limit  95%  90%  85%
+Index Name                            ... Index Valid  Record Count  Over Entry Limit  95%  90%  80%
 --------------------------------------...-----------------------------------------------------------
 uniqueMember.uniqueMemberMatch        ... true         0             0                 0    0    0
 mail.caseIgnoreIA5Match               ... true         10000         0                 0    0    0

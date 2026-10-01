@@ -16,6 +16,7 @@
 package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.backends.pluggable.BackendStat.*;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.Test;
@@ -29,15 +30,56 @@ public class BackendStatTest extends DirectoryServerTestCase
   @Test
   public void testAKeyIsNearItsLimitFromEightyPercentOn()
   {
-    assertThat(BackendStat.nearLimit(79, 100)).isFalse();
-    assertThat(BackendStat.nearLimit(80, 100)).isTrue();
+    assertThat(nearLimitColumn(79, 100)).isEqualTo(-1);
+    assertThat(nearLimitColumn(80, 100)).isNotEqualTo(-1);
   }
 
   /** An index-entry-limit of 0 is no limit at all, and no key is near it (#1059). */
   @Test
   public void testNoKeyIsNearNoLimit()
   {
-    assertThat(BackendStat.nearLimit(1, 0)).isFalse();
-    assertThat(BackendStat.nearLimit(Integer.MAX_VALUE, 0)).isFalse();
+    assertThat(nearLimitColumn(1, 0)).isEqualTo(-1);
+    assertThat(nearLimitColumn(Integer.MAX_VALUE, 0)).isEqualTo(-1);
+  }
+
+  /** The columns are headed 95%, 90% and 80%: the last one counts keys from 80% of the limit (#1135). */
+  @Test
+  public void testTheColumnsAreHeadedByTheirThresholds()
+  {
+    assertThat(NEAR_LIMIT_PERCENTS).containsExactly(95, 90, 80);
+    assertThat(NEAR_LIMIT_PERCENTS[nearLimitColumn(80, 100)]).isEqualTo(80);
+    assertThat(NEAR_LIMIT_PERCENTS[nearLimitColumn(89, 100)]).isEqualTo(80);
+    assertThat(NEAR_LIMIT_PERCENTS[nearLimitColumn(90, 100)]).isEqualTo(90);
+    assertThat(NEAR_LIMIT_PERCENTS[nearLimitColumn(94, 100)]).isEqualTo(90);
+    assertThat(NEAR_LIMIT_PERCENTS[nearLimitColumn(95, 100)]).isEqualTo(95);
+    assertThat(NEAR_LIMIT_PERCENTS[nearLimitColumn(100, 100)]).isEqualTo(95);
+  }
+
+  /**
+   * Every key a column counts holds at least the percentage of the limit that heads the column, and
+   * less than the percentage heading the column before it.
+   */
+  @Test
+  public void testEachColumnCountsTheKeysFromItsHeadingUpToThePreviousOne()
+  {
+    for (long entryLimit : new long[] { 1, 7, 100, 4000, 4001 })
+    {
+      for (long size = 0; size <= entryLimit; size++)
+      {
+        int column = nearLimitColumn(size, entryLimit);
+        boolean nearLimit = size * 100 >= entryLimit * NEAR_LIMIT_PERCENTS[NEAR_LIMIT_PERCENTS.length - 1];
+        assertThat(column >= 0).as("size %d of %d", size, entryLimit).isEqualTo(nearLimit);
+        if (column >= 0)
+        {
+          assertThat(size * 100).as("size %d of %d", size, entryLimit)
+              .isGreaterThanOrEqualTo(entryLimit * NEAR_LIMIT_PERCENTS[column]);
+          if (column > 0)
+          {
+            assertThat(size * 100).as("size %d of %d", size, entryLimit)
+                .isLessThan(entryLimit * NEAR_LIMIT_PERCENTS[column - 1]);
+          }
+        }
+      }
+    }
   }
 }
