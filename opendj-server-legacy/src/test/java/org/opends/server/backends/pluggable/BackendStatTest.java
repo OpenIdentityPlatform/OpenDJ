@@ -15,8 +15,11 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static com.forgerock.opendj.cli.ArgumentParser.PROPERTY_SCRIPT_NAME;
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.backends.pluggable.BackendStat.*;
+
+import java.io.ByteArrayOutputStream;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.Test;
@@ -80,6 +83,40 @@ public class BackendStatTest extends DirectoryServerTestCase
           }
         }
       }
+    }
+  }
+
+  /** The generated reference of show-index-status includes its AsciiDoc description of the columns (#1128). */
+  @Test
+  public void testGenerateDocIncludesTheIndexStatusSupplement() throws Exception
+  {
+    final String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
+    System.setProperty("org.forgerock.opendj.gendoc", "true");
+    System.setProperty(PROPERTY_SCRIPT_NAME, "backendstat");
+    final ByteArrayOutputStream out = new ByteArrayOutputStream();
+    try
+    {
+      assertThat(BackendStat.main(new String[] { "-?" }, out, System.err)).isEqualTo(0);
+    }
+    finally
+    {
+      System.clearProperty("org.forgerock.opendj.gendoc");
+      restoreProperty(PROPERTY_SCRIPT_NAME, scriptName);
+    }
+    assertThat(out.toString("UTF-8"))
+        .contains("include::./_variablelist-backendstat-index-status.adoc[]")
+        .doesNotContain("<xinclude:include");
+  }
+
+  private static void restoreProperty(String name, String value)
+  {
+    if (value != null)
+    {
+      System.setProperty(name, value);
+    }
+    else
+    {
+      System.clearProperty(name);
     }
   }
 }

@@ -540,14 +540,17 @@ public final class DSConfig extends ConsoleApplication {
                 @Override
                 public String visitSize(SizePropertyDefinition prop, Void p) {
                     b.append(op);
+                    String separator = "";
                     if (prop.getLowerLimit() != 0) {
                         b.append(REF_DSCFG_INT_LOWER_LIMIT.get(prop.getLowerLimit())).append(".");
+                        separator = " ";
                     }
                     if (prop.getUpperLimit() != null) {
-                        b.append(REF_DSCFG_INT_UPPER_LIMIT.get(prop.getUpperLimit())).append(".");
+                        b.append(separator).append(REF_DSCFG_INT_UPPER_LIMIT.get(prop.getUpperLimit())).append(".");
+                        separator = " ";
                     }
                     if (prop.isAllowUnlimited()) {
-                        b.append(REF_DSCFG_ALLOW_UNLIMITED.get());
+                        b.append(separator).append(REF_DSCFG_ALLOW_UNLIMITED.get());
                     }
                     b.append(cp).append(EOL);
                     return null;

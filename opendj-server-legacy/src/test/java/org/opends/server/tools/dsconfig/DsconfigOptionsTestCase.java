@@ -187,7 +187,7 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
 
   /**
    * Tests that the generated reference describes the duration and ACI values in AsciiDoc,
-   * and keeps the duration limits apart.
+   * and keeps the duration and size limits apart.
    */
   @Test
   public void testGenerateDocHasNoDocBookLeftovers() throws Exception
@@ -210,6 +210,8 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
     assertFalse(doc.contains("<xinclude:include"), "DocBook xinclude leftover");
     assertFalse(doc.contains("<olink"), "DocBook olink leftover");
     assertFalse(doc.contains(".Lower limit") || doc.contains(".Upper limit"), "duration sentences glued together");
+    assertTrue(doc.contains("Lower value is 512"), "no size property with a lower limit was generated");
+    assertFalse(doc.contains(".Upper value"), "size sentences glued together");
   }
 
   private int dsconfigMain(String[] args)
