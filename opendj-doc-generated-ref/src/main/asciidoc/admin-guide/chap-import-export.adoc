@@ -498,7 +498,7 @@ The default settings for confidentiality are `cipher-transformation: AES/CBC/PKC
 
 OpenDJ directory server encrypts data using a symmetric key that is stored with the server configuration. The symmetric key is encrypted in turn with the server's public key that is also stored with the server configuration. When multiple servers are configured to replicate data as described in xref:chap-replication.adoc#configure-repl["Configuring Replication"], the servers replicate the keys as well, allowing any server replica to decrypt the data.
 
-In addition to entry encryption, you can enable confidentiality by backend index, as long as confidentiality is enabled for the backend itself. Confidentiality hashes keys for equality type indexes using SHA-1, and encrypts the list of entries matching a substring key for substring indexes. The following example shows how to enable confidentiality for the `mail` index:
+In addition to entry encryption, you can enable confidentiality by backend index, as long as confidentiality is enabled for the backend itself. Confidentiality encrypts the list of entries matching each key, for every index type of the attribute, and hashes the keys of the equality index using SHA-1. The keys of the other index types are stored as they are. The following example shows how to enable confidentiality for the `mail` index:
 
 [source, console]
 ----

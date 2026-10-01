@@ -14,6 +14,7 @@
 
   Copyright 2007-2009 Sun Microsystems, Inc.
   Portions copyright 2014-2016 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <adm:managed-object name="backend-index" plural-name="backend-indexes"
   package="org.forgerock.opendj.server.config"
@@ -224,8 +225,9 @@
       Specifies whether contents of the index should be confidential.
     </adm:synopsis>
     <adm:description>
-      Setting the flag to true will hash keys for equality type indexes using SHA-1
-      and encrypt the list of entries matching a substring key for substring indexes.
+      Setting the flag to true will encrypt the list of entries matching each key, for
+      every index type of the attribute, and hash the keys of the equality index using SHA-1.
+      The keys of the other index types are stored as they are.
     </adm:description>
     <adm:requires-admin-action>
       <adm:other>
