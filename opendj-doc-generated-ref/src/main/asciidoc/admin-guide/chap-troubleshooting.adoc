@@ -808,7 +808,7 @@ OpenDJ maintains historical information about changes in order to bring replicas
 
 When you cannot resolve a problem yourself, and want to ask for help, clearly identify the problem and how you reproduce it, and also the version of OpenDJ you use to reproduce the problem. The version includes both a version number and also a build time stamp:
 
-[source, console, subs="attributes"]
+[source, console, subs="+attributes"]
 ----
 $ dsconfig --version
 OpenDJ {opendj-version}

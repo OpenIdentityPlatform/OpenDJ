@@ -34,7 +34,23 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <docTargetVersion>${project.version}</docTargetVersion>
         <sdkDocTargetVersion>${project.version}</sdkDocTargetVersion>
+        <!-- The Asciidoctor of asciidoctor-maven-plugin, which the tests of the doc extensions also run on -->
+        <asciidoctorj.version>2.5.11</asciidoctorj.version>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.asciidoctor</groupId>
+            <artifactId>asciidoctorj</artifactId>
+            <version>${asciidoctorj.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openidentityplatform.commons</groupId>
+            <artifactId>build-tools</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
 
     <build><finalName>${project.groupId}.${project.artifactId}</finalName>
@@ -356,6 +372,34 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- A pom module compiles and runs no tests by itself: these test the Asciidoctor extensions -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>compile-extension-tests</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>test-extensions</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -611,14 +655,20 @@
                               defines fails here although the PDF book resolves it. attribute-missing=warn
                               reports a reference to an attribute that is not defined;
                               literal-attribute-references.rb reports one in a verbatim block without
-                              subs="attributes". The HTML output is thrown away.
+                              subs="+attributes" or in a literal table cell. The HTML output is thrown away.
+                              LiteralAttributeReferencesTest renders its pages with the configuration of
+                              this execution.
 
                               The plugin stops at the first page that fails, so fix it and run again to see
-                              the next one: mvn -pl opendj-doc-generated-ref
+                              the next one: mvn -Pdistribution-unix,man-pages -pl opendj-doc-generated-ref
                               asciidoctor:process-asciidoc@check-attribute-references, after a build of this
-                              module. Asciidoctor names no file for a missing attribute: it is the page of
-                              the "Converted" line that follows the warning. A literal {name} in text is
-                              written \{name}.
+                              module (both profiles activate by themselves only on Linux). Asciidoctor names
+                              no file for a missing attribute: it is the page of the "Converted" line that
+                              follows the warning. A literal {name} in text is written \{name}.
+
+                              Maven project properties are attributes here (product.name is {product-name})
+                              but not on the site, so a page that uses one passes this check and still shows
+                              the braces there.
                             -->
                             <execution>
                                 <id>check-attribute-references</id>
@@ -650,6 +700,13 @@
                                 </configuration>
                             </execution>
                         </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.asciidoctor</groupId>
+                                <artifactId>asciidoctorj</artifactId>
+                                <version>${asciidoctorj.version}</version>
+                            </dependency>
+                        </dependencies>
                     </plugin>
 
                     <!-- Format man pages -->

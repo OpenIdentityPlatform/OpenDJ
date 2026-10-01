@@ -170,7 +170,7 @@ $ mvn install
 . Install the example plugin in OpenDJ directory server:
 +
 
-[source, console, subs="attributes"]
+[source, console, subs="+attributes"]
 ----
 $ cd /path/to/opendj
 

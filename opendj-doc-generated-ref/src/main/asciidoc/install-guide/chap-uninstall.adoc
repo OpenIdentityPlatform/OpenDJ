@@ -176,7 +176,7 @@ C:\path\to\opendj\bat> windows-service.bat --disableService
 . Uninstall the package, either through __Settings > Apps__ (or __Control Panel > Programs and Features__) by selecting OpenDJ and choosing Uninstall, or from the command-line:
 +
 
-[source, console, subs="attributes"]
+[source, console, subs="+attributes"]
 ----
 C:\> msiexec /x opendj-{opendj-version}.msi /quiet
 ----
