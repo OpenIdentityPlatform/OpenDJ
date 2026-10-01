@@ -38,13 +38,11 @@ In addition to the indications concerning interface stability in the documentati
 
 ** `org.forgerock.opendj.ldap.Connections#newServerConnectionFactory`
 
-** `org.forgerock.opendj.ldap.FutureResult`
-
 ** `org.forgerock.opendj.ldap.LDAPClientContext`
 
 ** `org.forgerock.opendj.ldap.LDAPListener`
 
-** `org.forgerock.opendj.ldap.LDAPListenerOptions`
+** `org.forgerock.opendj.ldap.LdapPromise`
 
 ** `org.forgerock.opendj.ldap.MemoryBackend`
 
@@ -75,21 +73,7 @@ In addition to the indications concerning interface stability in the documentati
 ** `org.forgerock.opendj.ldap.schema.SyntaxImpl`
 
 
-* The following methods are Deprecated:
-+
-
-** `org.forgerock.opendj.ldap.Connections#newHeartBeatConnectionFactory`
-
-** `org.forgerock.opendj.ldap.LDAPListenerOptions#getTCPNIOTransport`
-
-** `org.forgerock.opendj.ldap.LDAPListenerOptions#setTCPNIOTransport`
-
-** `org.forgerock.opendj.ldap.LDAPOptions#getTCPNIOTransport`
-
-** `org.forgerock.opendj.ldap.LDAPOptions#setTCPNIOTransport`
-
-
-* The class `org.forgerock.opendj.ldap.CoreMessages` is Internal.
+* The class `com.forgerock.opendj.ldap.CoreMessages` is Internal.
 
 * For all Java APIs, `com.*` packages are Internal.
 
