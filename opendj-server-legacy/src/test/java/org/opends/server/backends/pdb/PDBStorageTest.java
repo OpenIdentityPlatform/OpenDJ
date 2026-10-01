@@ -71,12 +71,12 @@ import com.persistit.exception.RollbackException;
 
 public class PDBStorageTest extends DirectoryServerTestCase
 {
-  /** A window no run of replays can spend, so that a test of the attempt cap is only ever ended by the cap. */
-  private static final long UNREACHABLE_RETRY_WINDOW_NANOS = 300L * 1000L * 1000L * 1000L; //5 min
-  /** A window a single attempt outlasts, so that a test of the window reaches it without seconds of build time. */
-  private static final long SHORT_RETRY_WINDOW_NANOS = 200L * 1000L * 1000L; //200 ms
-  /** An attempt long enough to outlast {@link #SHORT_RETRY_WINDOW_NANOS} on its own, in milliseconds. */
-  private static final long ATTEMPT_LONGER_THAN_SHORT_WINDOW_MS = 300;
+  /** A retry time limit a single attempt outlasts, so that a test of the limit reaches it in under a second. */
+  private static final long SHORT_RETRY_TIME_LIMIT_MS = 200;
+  /** An attempt long enough to outlast {@link #SHORT_RETRY_TIME_LIMIT_MS} on its own, in milliseconds. */
+  private static final long ATTEMPT_LONGER_THAN_SHORT_LIMIT_MS = 300;
+  /** The attempt cap #937 shipped, which ordinary concurrent writes spent (#1149). */
+  private static final int FORMER_ATTEMPT_CAP = 10;
   /** The buffer pool {@link #testCanAddLargeValues()} writes through, well under the 20% of the other methods. */
   private static final long LARGE_VALUES_DB_CACHE_SIZE = 16L * MB;
 
@@ -151,17 +151,33 @@ public class PDBStorageTest extends DirectoryServerTestCase
     }
   }
 
-  /**
-   * Replaces the storage under test with one bounded by the given values, so that the bound a test is about is
-   * the one that ends its replays. With the shipped values the two race: the nine backoffs of a full ladder draw
-   * from 50+100+200+400+800+1000x4, so an attempt cap test can be ended by the ten second window instead, and a
-   * window test has to make every attempt outlast seconds of that window to reach it.
-   */
-  private void reopenWithReplayBounds(int maxRetries, long retryWindowNanos) throws Exception
+  /** Replaces the storage under test with one whose db-txn-retry-time-limit is the given one. */
+  private void reopenWithRetryTimeLimit(long retryTimeLimitMs) throws Exception
   {
     closeAndRemove(storage);
-    storage = new PDBStorage(createBackendCfg(), serverContext, maxRetries, retryWindowNanos);
+    storage = new PDBStorage(createBackendCfgWithRetryTimeLimit(retryTimeLimitMs), serverContext);
     storage.open(AccessMode.READ_WRITE);
+  }
+
+  private static PDBBackendCfg createBackendCfgWithRetryTimeLimit(long retryTimeLimitMs)
+  {
+    final PDBBackendCfg cfg = createBackendCfg(0L);
+    when(cfg.getDBTxnRetryTimeLimit()).thenReturn(retryTimeLimitMs);
+    return cfg;
+  }
+
+  /**
+   * Fails an attempt of a conflict that never clears once {@link #SHORT_RETRY_TIME_LIMIT_MS} should long have ended
+   * the replays, with something other than a rollback: a write that ignores the limit would otherwise replay for as
+   * long as the default allows, and hang the test rather than fail it.
+   */
+  private static void failIfReplayedPastTheLimit(int attempt)
+  {
+    if (attempt > 4)
+    {
+      throw new IllegalStateException(
+          "replayed " + attempt + " times past a retry time limit of " + SHORT_RETRY_TIME_LIMIT_MS + " ms");
+    }
   }
 
   /**
@@ -318,36 +334,36 @@ public class PDBStorageTest extends DirectoryServerTestCase
     assertThat(storage.getNewExchange(treeName, true)).isNotSameAs(initial);
   }
 
+  /**
+   * A rollback is how persistit resolves two transactions writing the same key, so a healthy write under concurrent
+   * load loses several in a row - ADD and DELETE did, on the index keys their entries shared, and failed with
+   * result 80 once they had lost ten (#1149). With the default configuration, nothing but the conflict clearing
+   * ends the replays: neither a count of attempts nor a limit of 0 read as a window already spent.
+   */
   @Test
-  public void testWriteGivesUpAfterTheAttemptCap() throws Exception
+  public void testWriteOutlastsAnyNumberOfConflictsByDefault() throws Exception
   {
-    // the shipped cap, against a window the ladder of backoffs cannot reach: on the shipped window those nine
-    // backoffs draw from up to 5550 ms, so a loaded machine ends this loop on the window and the cap goes untested
-    reopenWithReplayBounds(PDBStorage.MAX_RETRIES, UNREACHABLE_RETRY_WINDOW_NANOS);
+    assertThat(createBackendCfg().getDBTxnRetryTimeLimit()).isZero();
     createTree();
 
-    final RollbackException conflict = new RollbackException();
+    final int conflicts = FORMER_ATTEMPT_CAP + 1;
     final AtomicInteger attempts = new AtomicInteger();
-    try
+    storage.write(new WriteOperation()
     {
-      storage.write(new WriteOperation()
+      @Override
+      public void run(WriteableTransaction txn) throws Exception
       {
-        @Override
-        public void run(WriteableTransaction txn) throws Exception
+        // written before the conflict, as a rolled back attempt of a real write would have
+        txn.put(treeName, valueOfUtf8("contended"), valueOfUtf8("attempt " + attempts.incrementAndGet()));
+        if (attempts.get() <= conflicts)
         {
-          attempts.incrementAndGet();
-          txn.put(treeName, valueOfUtf8("abandoned"), valueOfUtf8("value"));
-          throw conflict;
+          throw new RollbackException();
         }
-      });
-      failBecauseExceptionWasNotThrown(StorageRuntimeException.class);
-    }
-    catch (StorageRuntimeException e)
-    {
-      assertThat(e.getSuppressed()).contains(conflict);
-    }
-    assertThat(attempts.get()).isEqualTo(PDBStorage.MAX_RETRIES);
-    assertThat(read("abandoned")).isNull();
+      }
+    });
+
+    assertThat(attempts.get()).isEqualTo(conflicts + 1);
+    assertThat(read("contended")).isEqualTo(valueOfUtf8("attempt " + (conflicts + 1)));
   }
 
   @Test
@@ -376,13 +392,13 @@ public class PDBStorageTest extends DirectoryServerTestCase
   /**
    * PersistIt reports a write-write conflict only once it has waited on it - up to
    * {@code SharedResource.DEFAULT_MAX_WAIT_TIME}, a minute, which this backend never lowers - so a single attempt
-   * can outlast the whole window. Giving up on the window alone would then replay nothing, in the very case where
-   * the replay is likeliest to succeed: the transaction that was blocking this one has just finished.
+   * can outlast the whole retry time limit. Giving up on the limit alone would then replay nothing, in the very
+   * case where the replay is likeliest to succeed: the transaction that was blocking this one has just finished.
    */
   @Test
-  public void testWriteIsReplayedOnceWhenTheFirstAttemptOutlastsTheWindow() throws Exception
+  public void testWriteIsReplayedOnceWhenTheFirstAttemptOutlastsTheRetryTimeLimit() throws Exception
   {
-    reopenWithReplayBounds(PDBStorage.MAX_RETRIES, SHORT_RETRY_WINDOW_NANOS);
+    reopenWithRetryTimeLimit(SHORT_RETRY_TIME_LIMIT_MS);
     createTree();
 
     final AtomicInteger attempts = new AtomicInteger();
@@ -393,7 +409,7 @@ public class PDBStorageTest extends DirectoryServerTestCase
       {
         if (attempts.incrementAndGet() == 1)
         {
-          Thread.sleep(ATTEMPT_LONGER_THAN_SHORT_WINDOW_MS);
+          Thread.sleep(ATTEMPT_LONGER_THAN_SHORT_LIMIT_MS);
           throw new RollbackException();
         }
         txn.put(treeName, valueOfUtf8("outlasted"), valueOfUtf8("written"));
@@ -407,38 +423,7 @@ public class PDBStorageTest extends DirectoryServerTestCase
   @Test
   public void testExhaustedWriteNamesTheAttemptsItSpent() throws Exception
   {
-    // the message is the same at any cap, so this one is spent in two backoffs rather than in the shipped ladder
-    final int maxRetries = 3;
-    reopenWithReplayBounds(maxRetries, UNREACHABLE_RETRY_WINDOW_NANOS);
-    createTree();
-
-    try
-    {
-      storage.write(new WriteOperation()
-      {
-        @Override
-        public void run(WriteableTransaction txn) throws Exception
-        {
-          throw new RollbackException();
-        }
-      });
-      failBecauseExceptionWasNotThrown(StorageRuntimeException.class);
-    }
-    catch (StorageRuntimeException e)
-    {
-      assertThat(e.getMessage()).contains("PDBStorageTest").contains(maxRetries + " attempts");
-      // and which of the two bounds ran out, since the attempt count alone does not say
-      assertThat(e.getMessage()).contains("attempt cap");
-      // write() unwraps a StorageRuntimeException that carries a cause, which would replace this message with
-      // the bare RollbackException, and it is the message the config change paths report
-      assertThat(e.getCause()).isNull();
-    }
-  }
-
-  @Test
-  public void testWriteGivesUpOnTheWindowWhenAttemptsAreSlow() throws Exception
-  {
-    reopenWithReplayBounds(PDBStorage.MAX_RETRIES, SHORT_RETRY_WINDOW_NANOS);
+    reopenWithRetryTimeLimit(SHORT_RETRY_TIME_LIMIT_MS);
     createTree();
 
     final AtomicInteger attempts = new AtomicInteger();
@@ -449,9 +434,8 @@ public class PDBStorageTest extends DirectoryServerTestCase
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          attempts.incrementAndGet();
-          // a conflict this slow to report spends the wall clock window long before the attempt cap
-          Thread.sleep(ATTEMPT_LONGER_THAN_SHORT_WINDOW_MS);
+          failIfReplayedPastTheLimit(attempts.incrementAndGet());
+          Thread.sleep(ATTEMPT_LONGER_THAN_SHORT_LIMIT_MS);
           throw new RollbackException();
         }
       });
@@ -459,12 +443,83 @@ public class PDBStorageTest extends DirectoryServerTestCase
     }
     catch (StorageRuntimeException e)
     {
-      // the window is what ended it, and it says so: an assertion on the attempt count alone would also pass for
-      // a give up on attempt 1, which is the regression the attempt > 1 exemption exists to prevent
-      assertThat(e.getMessage()).contains("retry window");
+      assertThat(e.getMessage()).contains("PDBStorageTest").contains("2 attempts");
+      // and the property whose value ran out, since that is what an operator would raise
+      assertThat(e.getMessage()).contains("db-txn-retry-time-limit of " + SHORT_RETRY_TIME_LIMIT_MS + " ms");
+      // write() unwraps a StorageRuntimeException that carries a cause, which would replace this message with
+      // the bare RollbackException, and it is the message the config change paths report
+      assertThat(e.getCause()).isNull();
     }
-    // one attempt beyond the first: the first spends the window, the exemption grants the replay, and the check
-    // after that replay is the one that gives up
+  }
+
+  @Test
+  public void testWriteGivesUpOnTheRetryTimeLimitWhenAttemptsAreSlow() throws Exception
+  {
+    reopenWithRetryTimeLimit(SHORT_RETRY_TIME_LIMIT_MS);
+    createTree();
+
+    final RollbackException conflict = new RollbackException();
+    final AtomicInteger attempts = new AtomicInteger();
+    try
+    {
+      storage.write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableTransaction txn) throws Exception
+        {
+          failIfReplayedPastTheLimit(attempts.incrementAndGet());
+          txn.put(treeName, valueOfUtf8("abandoned"), valueOfUtf8("value"));
+          Thread.sleep(ATTEMPT_LONGER_THAN_SHORT_LIMIT_MS);
+          throw conflict;
+        }
+      });
+      failBecauseExceptionWasNotThrown(StorageRuntimeException.class);
+    }
+    catch (StorageRuntimeException e)
+    {
+      assertThat(e.getSuppressed()).contains(conflict);
+    }
+    // one attempt beyond the first: the first spends the limit, the exemption grants the replay, and the check
+    // after that replay is the one that gives up - an assertion on the failure alone would also pass for a give up
+    // on attempt 1, which is the regression the attempt > 1 exemption exists to prevent
+    assertThat(attempts.get()).isEqualTo(2);
+    // and what the attempts wrote is rolled back with them
+    assertThat(read("abandoned")).isNull();
+  }
+
+  /**
+   * The limit is read by every write rather than once by the open, so that an administrator who sets it on a
+   * running backend - to bound a configuration change about to be made - has it apply without a restart.
+   */
+  @Test
+  public void testRetryTimeLimitChangedWhileOpenAppliesToTheNextWrite() throws Exception
+  {
+    createTree();
+
+    final ConfigChangeResult ccr =
+        storage.applyConfigurationChange(createBackendCfgWithRetryTimeLimit(SHORT_RETRY_TIME_LIMIT_MS));
+    assertThat(ccr.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(ccr.adminActionRequired()).isFalse();
+
+    final AtomicInteger attempts = new AtomicInteger();
+    try
+    {
+      storage.write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableTransaction txn) throws Exception
+        {
+          failIfReplayedPastTheLimit(attempts.incrementAndGet());
+          Thread.sleep(ATTEMPT_LONGER_THAN_SHORT_LIMIT_MS);
+          throw new RollbackException();
+        }
+      });
+      failBecauseExceptionWasNotThrown(StorageRuntimeException.class);
+    }
+    catch (StorageRuntimeException e)
+    {
+      assertThat(e.getMessage()).contains("db-txn-retry-time-limit of " + SHORT_RETRY_TIME_LIMIT_MS + " ms");
+    }
     assertThat(attempts.get()).isEqualTo(2);
   }
 
@@ -521,7 +576,7 @@ public class PDBStorageTest extends DirectoryServerTestCase
   public void testRetryDelayGrowsAndStaysBounded()
   {
     long previousBound = 0;
-    for (int attempt = 1; attempt <= PDBStorage.MAX_RETRIES; attempt++)
+    for (int attempt = 1; attempt <= FORMER_ATTEMPT_CAP; attempt++)
     {
       long bound = 0;
       for (int i = 0; i < 100; i++)
@@ -543,7 +598,7 @@ public class PDBStorageTest extends DirectoryServerTestCase
     long grown = 0;
     for (int i = 0; i < 100; i++)
     {
-      grown = Math.max(grown, PDBStorage.retryDelayMillis(PDBStorage.MAX_RETRIES));
+      grown = Math.max(grown, PDBStorage.retryDelayMillis(FORMER_ATTEMPT_CAP));
     }
     assertThat(grown).as("the last attempts still sleep within the first attempt's bound").isGreaterThan(500);
   }

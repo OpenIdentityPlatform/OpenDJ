@@ -194,6 +194,42 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="db-txn-retry-time-limit" advanced="true">
+    <adm:synopsis>
+      Specifies how long a write transaction which the database rolled back is
+      run again before the operation which issued it fails.
+    </adm:synopsis>
+    <adm:description>
+      Persistit resolves two transactions which write the same record by rolling
+      one of them back once the other commits, and the transaction rolled back is
+      then run again. Under concurrent writes this is routine rather than a
+      failure: every entry added or deleted rewrites the index keys it shares
+      with other entries, such as its object classes, for as long as those keys
+      hold fewer entries than the index entry limit. A value of 0 runs the
+      transaction again for as long as it keeps being rolled back, the way a
+      writer of a JE backend waits for a lock. A positive value bounds that time:
+      once it is spent, the operation fails with the result code "other". The
+      bound is checked between two runs of the transaction, so a single run can
+      outlast it, and a transaction rolled back is always run once more. A bound
+      matters to the configuration changes of an index or of a base DN, which
+      write while they hold their suffix exclusively, so that every operation on
+      that suffix waits for them. Changes to this property take effect with the
+      next write transaction.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>0s</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="ms" lower-limit="0" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-db-txn-retry-time-limit</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
   <adm:property name="disk-low-threshold" advanced="true">
       <adm:synopsis>
         Low disk threshold to limit database updates

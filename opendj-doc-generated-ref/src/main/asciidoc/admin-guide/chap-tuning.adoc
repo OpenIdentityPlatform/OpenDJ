@@ -248,6 +248,8 @@ Import task 20120917100628767 scheduled to start Sep 17, 2012 10:06:28 AM CEST
 ----
 If write traffic to your directory service occurs in short bursts, and you use database backends of type `pdb`, you can potentially improve short-term performance during the bursts by increasing the `db-checkpointer-wakeup-interval` setting. This setting specifies the maximum length of time between attempts to write a checkpoint to the journal. Longer intervals allow more updates to accumulate in buffers before they are required to be written to disk. The transaction log is still written to disk, but the modified pages are kept in memory longer before being written. Longer intervals potentially cause recovery from an abrupt termination to take more time.
 
+Database backends of type `pdb` resolve two concurrent updates of the same record by rolling one of them back and running it again. This is routine under concurrent write load, for example while index keys shared by many entries, such as their object classes, hold fewer entries than the index entry limit. By default, an update is run again for as long as it keeps being rolled back. The `db-txn-retry-time-limit` setting bounds that time: once it is spent, the operation fails with result code 80 (`other`). Set it only when a bounded wait matters more than the update, for example while you change the indexes or base DNs of a busy backend, which hold their suffix exclusively while they write. The change takes effect without a restart.
+
 
 [#perf-import]
 ==== LDIF Import Settings
