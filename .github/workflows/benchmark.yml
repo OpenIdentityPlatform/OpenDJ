@@ -94,6 +94,15 @@ jobs:
           fi
           echo "JMETER_BIN=$HOME/jmeter/apache-jmeter-$JMETER/bin/jmeter" >> "$GITHUB_ENV"
 
+      - name: Widen the ephemeral port range
+        run: |
+          # BIND opens a new connection per iteration, and docker-proxy relays each one to the
+          # container over a second connection from an ephemeral port. With the default range
+          # (32768-60999) and 60 s of TIME_WAIT that leg runs out of ports within a minute, and
+          # BIND then fails with "LDAP connection has been closed". Widen the range and let
+          # connect() reuse TIME_WAIT ports.
+          sudo sysctl -w net.ipv4.ip_local_port_range="1024 65535" net.ipv4.tcp_tw_reuse=1
+
       - name: Start OpenLDAP
         run: |
           docker run -d --name openldap -p 2389:389 \
