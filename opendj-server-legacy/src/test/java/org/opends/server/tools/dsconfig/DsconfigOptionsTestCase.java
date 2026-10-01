@@ -12,12 +12,15 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools.dsconfig;
 
 import static com.forgerock.opendj.cli.ReturnCode.*;
 
 import static org.testng.Assert.*;
+
+import java.io.ByteArrayOutputStream;
 
 import org.forgerock.opendj.config.dsconfig.DSConfig;
 import org.opends.server.DirectoryServerTestCase;
@@ -180,6 +183,33 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
     {
       System.clearProperty("org.forgerock.opendj.gendoc");
     }
+  }
+
+  /**
+   * Tests that the generated reference describes the duration and ACI values in AsciiDoc,
+   * and keeps the duration limits apart.
+   */
+  @Test
+  public void testGenerateDocHasNoDocBookLeftovers() throws Exception
+  {
+    System.setProperty("org.forgerock.opendj.gendoc", "true");
+    System.setProperty("com.forgerock.opendj.ldap.tools.scriptName", "dsconfig");
+    final ByteArrayOutputStream out = new ByteArrayOutputStream();
+    try
+    {
+      assertEquals(DSConfig.main(new String[] { "--no-prompt", "-?" }, out, System.err), SUCCESS.get());
+    }
+    finally
+    {
+      System.clearProperty("org.forgerock.opendj.gendoc");
+    }
+    final String doc = out.toString("UTF-8");
+    assertTrue(doc.contains("Upper limit is"), "no duration property with an upper limit was generated");
+    assertTrue(doc.contains("A duration: a number followed by a unit"), "duration syntax");
+    assertTrue(doc.contains("xref:../admin-guide/chap-privileges-acis.adoc#about-acis"), "ACI syntax");
+    assertFalse(doc.contains("<xinclude:include"), "DocBook xinclude leftover");
+    assertFalse(doc.contains("<olink"), "DocBook olink leftover");
+    assertFalse(doc.contains(".Lower limit") || doc.contains(".Upper limit"), "duration sentences glued together");
   }
 
   private int dsconfigMain(String[] args)

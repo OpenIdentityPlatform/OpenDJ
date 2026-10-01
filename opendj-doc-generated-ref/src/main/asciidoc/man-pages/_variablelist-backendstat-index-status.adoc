@@ -27,16 +27,16 @@ Example: `givenName.caseIgnoreSubstringsMatch:6`
 Raw DB Name::
 Name of the backend tree, which reflects how OpenDJ directory server organizes the data in the database.
 +
-Example: `/dc=example,dc=com/givenName.caseIgnoreSubstringsMatch:6`
+Example: `/dc=com,dc=example/givenName.caseIgnoreSubstringsMatch:6`
 
 Valid::
-This is `true` for valid indexes. If this is `false`, the index might be degraded. Verify the index, and rebuild the index if necessary. The record count and the key counts that follow it show `-` for an index that is not valid.
+This is `true` for valid indexes. If this is `false`, the index might be degraded. Verify the index, and rebuild the index if necessary. For an attribute index that is not valid, the record count and the key counts that follow it show `-`.
 
 Confidential::
 This is `true` for indexes with `confidentiality-enabled`, whose keys are stored encrypted. This is recorded as `-` for VLV indexes, which have no confidentiality setting.
 
 Record Count::
-Number of indexed keys. Use the `backendstat dump-tree` command to see how many entry IDs correspond to each key.
+Number of indexed keys. Use the `backendstat dump-index` command to see how many entry IDs correspond to each key.
 
 Over Entry Limit::
 Number of keys for which there are too many values to maintain an index, based on the index entry limit. This is recorded as `-` for VLV indexes.
