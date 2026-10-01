@@ -23,8 +23,8 @@
 set -eE -o pipefail
 
 IMAGE=${1:?usage: $0 <image>}
-NODES="dj-0 dj-1 dj-2 dj-x dj-solo dj-bf dj-fi dj-p0 dj-p1 dj-p2 dj-ipm dj-ipr dj-sdsr dj-shm-probe dj-shm"
-VOLUMES="vol-dj-0 vol-dj-1 vol-dj-2 vol-dj-x vol-dj-solo vol-dj-bf vol-dj-fi vol-dj-p0 vol-dj-p1 vol-dj-p2"
+NODES="dj-0 dj-1 dj-2 dj-x dj-solo dj-bf dj-fi dj-f dj-p0 dj-p1 dj-p2 dj-ipm dj-ipr dj-sdsr dj-shm-probe dj-shm"
+VOLUMES="vol-dj-0 vol-dj-1 vol-dj-2 vol-dj-x vol-dj-solo vol-dj-bf vol-dj-fi vol-dj-f vol-dj-ipr vol-dj-p0 vol-dj-p1 vol-dj-p2"
 # a bootstrap that imports the base entry and then fails, mounted into dj-bf
 FAILING_BOOTSTRAP=$(mktemp)
 NETWORK=test_replication
@@ -129,6 +129,19 @@ admin_data_lacks() { # <container> <name>
   ! admin_search "$1" "cn=Servers,cn=admin data" one "(objectClass=*)" hostname | grep -F -- "$2" >/dev/null
 }
 
+# the join lock of a server, held by hand as a join of a server named dj-held would hold it
+hold_lock() { # <container>
+  printf 'dn: cn=Docker Join Lock,cn=config\nobjectClass: top\nobjectClass: ds-cfg-branch\nobjectClass: extensibleObject\ncn: Docker Join Lock\ndescription: dj-held %s\n' "$(date +%s)" \
+    | docker exec -i "$1" /opt/opendj/bin/ldapmodify --noPropertiesFile --hostname localhost --port 4444 \
+      --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --useSsl --trustAll --defaultAdd >/dev/null
+}
+
+drop_lock() { # <container>
+  printf 'dn: cn=Docker Join Lock,cn=config\nchangetype: delete\n' \
+    | docker exec -i "$1" /opt/opendj/bin/ldapmodify --noPropertiesFile --hostname localhost --port 4444 \
+      --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --useSsl --trustAll >/dev/null
+}
+
 # the replication server of the container lists every one of the other names
 server_lists() { # <container> <name>...
   local container=$1 list name
@@ -212,6 +225,12 @@ docker start dj-1 >/dev/null
 wait_healthy dj-1
 add_ou dj-1 replicated2
 wait_has dj-0 "ou=replicated2,dc=example,dc=com"
+# and neither of them took its replication down to enable it anew: only a server that no
+# peer registers any more does that, and a reset followed by a new enable passes every
+# check above
+for n in dj-0 dj-1; do
+  if logs_have $n "the peers no longer register this server"; then fail "$n reset its replication on a plain restart"; fi
+done
 
 # a seed that no peer joined holds the data without a replication domain, and its join binds
 # with the ROOT_PASSWORD of the bootstrap: once the root password is changed, a restart is
@@ -328,8 +347,30 @@ wait_has dj-1 "ou=replicated3,dc=example,dc=com"
 
 # scaled up again on the volume it kept: dj-2 still replicates, but the survivors no longer
 # register it, and an enable between two servers whose cn=admin data is replicated registers
-# nobody - so dj-2 takes its replication configuration down, enables again and registers
-start_node dj-2 dj-0,dj-1,dj-2
+# nobody - so dj-2 takes its replication configuration down, enables again and registers.
+# The join locks of both survivors are held by hand meanwhile: dj-2 must wait for each of
+# them rather than enable, and with its replication down it must not report itself ready,
+# not even after a restart. Its enables are bounded generously, so that it does not break
+# the held locks as left behind by a killed join
+hold_lock dj-0
+hold_lock dj-1
+start_node dj-2 dj-0,dj-1,dj-2 -e REPLICATION_RETRY_COUNT=30 -e REPLICATION_ATTEMPT_TIMEOUT=600
+wait_until 300 "dj-2 takes its replication down" logs_have dj-2 "the peers no longer register this server"
+wait_until 120 "dj-2 waits for dj-0" logs_have dj-2 "dj-held is enabling replication through dj-0, waiting for it"
+wait_until 120 "dj-2 waits for dj-1" logs_have dj-2 "dj-held is enabling replication through dj-1, waiting for it"
+docker exec dj-2 test ! -e /opt/opendj/.bootstrap-complete || fail "dj-2 reports itself ready while its replication is down"
+# two rounds at most: start_node passes REPLICATION_RETRY_INTERVAL=3, and a round waits up to
+# twice as long
+sleep 12
+admin_data_lacks dj-0 dj-2 || fail "dj-2 enabled while the locks of both peers were held"
+waits_before=$(logs_count dj-2 "dj-held is enabling replication through dj-0, waiting for it")
+docker restart dj-2 >/dev/null
+wait_until 300 "the restarted dj-2 leaves its health to the join" logs_have dj-2 "was taken out of its replication topology"
+waits_again() { [ "$(logs_count dj-2 "dj-held is enabling replication through dj-0, waiting for it")" -gt "$waits_before" ]; }
+wait_until 300 "the restarted dj-2 waits for dj-0 again" waits_again
+docker exec dj-2 test ! -e /opt/opendj/.bootstrap-complete || fail "the restarted dj-2 reports itself ready while its replication is down"
+drop_lock dj-0
+drop_lock dj-1
 wait_healthy dj-2
 registered_dj2() { ! admin_data_lacks dj-0 dj-2; }
 wait_until 300 "dj-2 registers in the topology again" registered_dj2
@@ -351,6 +392,15 @@ docker network connect $NETWORK dj-sdsr
 docker network disconnect $NETWORK_ALONE dj-sdsr
 wait_healthy dj-sdsr
 wait_has dj-sdsr "ou=replicated3,dc=example,dc=com"
+# dj-sdsr publishes no state, as a server of an image before this one does, and it
+# replicates BASE_DN, so it may hold the data of the topology: a fresh first peer whose only
+# other peer it is gives up rather than seed next to it
+start_node dj-f dj-f,dj-sdsr -e REPLICATION_RETRY_COUNT=2 -e REPLICATION_RETRY_INTERVAL=5
+wait_until 300 "dj-f gives up" logs_have dj-f "could not join the replication topology after 2 attempts"
+if logs_have dj-f "seeding it with this server's data"; then fail "dj-f seeded next to a member that publishes no state"; fi
+stays_unhealthy dj-f "a peer that may hold the data answers"
+docker rm -f dj-f >/dev/null
+docker volume rm vol-dj-f >/dev/null
 # replicate.sh tries dsreplication enable again only when it exits 8, and a failed enable
 # ends it: run once more on the replica for a base DN neither server holds, the enable exits
 # 5 (REPLICATION_CANNOT_BE_ENABLED_ON_BASEDN) and nothing is tried again or initialized
@@ -375,7 +425,7 @@ docker volume rm vol-dj-0 vol-dj-1 vol-dj-2 >/dev/null
 # replicate.sh allowed: a master given its own address recognises itself and seeds at once,
 # and a replica joins and initializes through that address
 for n in dj-ipm dj-ipr; do
-  if [ $n = dj-ipm ]; then extra="--ip $MASTER_ADDRESS -e SAMPLE_DATA=10"; else extra=; fi
+  if [ $n = dj-ipm ]; then extra="--ip $MASTER_ADDRESS -e SAMPLE_DATA=10"; else extra="-v vol-dj-ipr:/opt/opendj/data"; fi
   docker run -d --memory="512m" --network $NETWORK --name $n --hostname $n $extra \
     -e ROOT_PASSWORD="$ROOT_PASSWORD" -e ADD_BASE_ENTRY="--addBaseEntry" \
     -e OPENDJ_REPLICATION_TYPE=simple -e MASTER_SERVER=$MASTER_ADDRESS \
@@ -385,7 +435,20 @@ done
 logs_have dj-ipm "seeding it with this server's data" || fail "dj-ipm did not recognise itself by its address"
 logs_have dj-ipr "initializing from $MASTER_ADDRESS" || fail "dj-ipr did not initialize from the master's address"
 ldaps_has dj-ipr "uid=user.0,ou=People,dc=example,dc=com" || fail "dj-ipr lacks the entries of the master"
+# moved from MASTER_SERVER to a REPLICATION_PEERS of names, the replica keeps the master that
+# is registered by its address - in cn=admin data and in its replication server lists -
+# rather than taking it for a server that left the topology
+docker rm -f dj-ipr >/dev/null
+docker run -d --memory="512m" --network $NETWORK --name dj-ipr --hostname dj-ipr -v vol-dj-ipr:/opt/opendj/data \
+  -e ROOT_PASSWORD="$ROOT_PASSWORD" -e OPENDJ_REPLICATION_TYPE=simple -e REPLICATION_PEERS=dj-ipm,dj-ipr \
+  -e REPLICATION_RETRY_COUNT=2 -e REPLICATION_RETRY_INTERVAL=3 "$IMAGE" >/dev/null
+wait_until 300 "the moved dj-ipr has looked for departed servers" logs_have dj-ipr "the health check may probe it"
+if logs_have dj-ipr "removing departed server $MASTER_ADDRESS" || logs_have dj-ipr "removing departed replication server $MASTER_ADDRESS:"; then
+  fail "dj-ipr removed the master registered by its address"
+fi
+if admin_data_lacks dj-ipr "$MASTER_ADDRESS"; then fail "the master registered by its address left cn=admin data of dj-ipr"; fi
 docker rm -f dj-ipm dj-ipr >/dev/null
+docker volume rm vol-dj-ipr >/dev/null
 
 # three fresh servers started together, as Compose or a StatefulSet with
 # podManagementPolicy: Parallel start them: none of them takes the bootstrap data of another

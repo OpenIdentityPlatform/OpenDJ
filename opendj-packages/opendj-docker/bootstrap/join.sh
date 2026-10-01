@@ -54,14 +54,18 @@
 # replicate.sh trusted its master. The seed is only the first entry of REPLICATION_PEERS: at
 # once when every other peer answers and is pending (all of them start from scratch,
 # together or not), or once the retries are exhausted while no other peer answers that may
-# hold the data - a ready one, or one of an image before this one that publishes no state but
-# replicates BASE_DN. The residual risk is documented in the README: every other server down
-# *and* the first peer's volume lost means the first peer seeds empty.
+# hold the data - a ready one, one of an image before this one that publishes no state but
+# replicates BASE_DN, or one that refuses the bind with ROOT_PASSWORD (only a server past its
+# bootstrap can have another root password). The residual risk is documented in the README:
+# every other server down *and* the first peer's volume lost means the first peer seeds empty.
 #
-# The health marker is written only once the join succeeded or the seed rule fired, so a
-# container that never joined stays unhealthy - across restarts too, which the bootstrap-only
-# replicate.sh could not say (a restart wrote the marker right after upgrade and a failed
-# join turned into a healthy, unreplicated server).
+# On a volume that waits for the data of the topology, the health marker is written only
+# once the join succeeded or the seed rule fired, so a container that never joined stays
+# unhealthy - across restarts too, which the bootstrap-only replicate.sh could not say (a
+# restart wrote the marker right after upgrade and a failed join turned into a healthy,
+# unreplicated server). A volume that holds the data is healthy as soon as it serves (see
+# run.sh) - unless the join takes its replication down to enable it anew: from then until the
+# enable registered it again it is not, across restarts too ($REJOIN_PENDING).
 
 cd /opt/opendj || exit 1
 export PATH=/opt/opendj/bin:$PATH
@@ -74,6 +78,7 @@ REPLICATION_PORT=${REPLICATION_PORT:-8989}
 MYHOSTNAME=${MYHOSTNAME:-$(hostname -f)}
 BOOTSTRAP_COMPLETE=${BOOTSTRAP_COMPLETE:-/opt/opendj/.bootstrap-complete}
 INITIALIZE_PENDING=${INITIALIZE_PENDING:-/opt/opendj/data/.replication-initialize-pending}
+REJOIN_PENDING=${REJOIN_PENDING:-/opt/opendj/data/.replication-rejoin-pending}
 # not replicated: cn=config is this server's alone, and it lives on the volume next to the
 # marker, so the two cannot tell different stories
 STATE_DN="cn=Docker Join,cn=config"
@@ -83,6 +88,14 @@ REPLICATION_RETRY_INTERVAL=${REPLICATION_RETRY_INTERVAL:-10}
 # dsreplication enable can hang rather than fail (a peer that stops mid-operation), so no
 # enable runs without a bound
 REPLICATION_ATTEMPT_TIMEOUT=${REPLICATION_ATTEMPT_TIMEOUT:-120}
+if ! [ "$REPLICATION_ATTEMPT_TIMEOUT" -gt 0 ] 2>/dev/null; then
+  echo "join: REPLICATION_ATTEMPT_TIMEOUT is not a positive number of seconds, using 120"
+  REPLICATION_ATTEMPT_TIMEOUT=120
+fi
+if ! [ "$REPLICATION_RETRY_INTERVAL" -ge 0 ] 2>/dev/null; then
+  echo "join: REPLICATION_RETRY_INTERVAL is not a number of seconds, using 10"
+  REPLICATION_RETRY_INTERVAL=10
+fi
 # a total update is a full import of BASE_DN, which takes as long as the data needs; a killed
 # dsreplication initialize leaves its task running on the server, and the next attempt asks
 # for another full import, so by default it runs without a bound
@@ -232,7 +245,7 @@ publish_state() {
 }
 
 # ready or pending as the peer publishes it, absent when it answers without publishing any,
-# down when it does not answer
+# refused when it answers but no longer takes ROOT_PASSWORD, down when it does not answer
 peer_state() {
   local out state
   out=$(search "$1" --baseDN "$STATE_DN" --searchScope base "(objectClass=*)" description)
@@ -245,6 +258,9 @@ peer_state() {
       esac
       ;;
     32) echo absent ;;
+    # 49: invalidCredentials - the root password of a server is changed in its cn=config,
+    # which is not replicated, and only a server past its bootstrap has another one
+    49) echo refused ;;
     *) echo down ;;
   esac
 }
@@ -257,9 +273,12 @@ trusted() {
   esac
 }
 
+# fails when the search does, rather than answering with an empty list
 registered_hosts() { # [<host>, localhost by default]
-  search "${1:-localhost}" --baseDN "cn=Servers,cn=admin data" --searchScope one "(objectClass=*)" hostname \
-    | awk 'tolower($1) == "hostname:" { print $2 }'
+  local out
+  out=$(search "${1:-localhost}" --baseDN "cn=Servers,cn=admin data" --searchScope one "(objectClass=*)" hostname) \
+    || return 1
+  printf '%s\n' "$out" | awk 'tolower($1) == "hostname:" { print $2 }'
 }
 
 # a member holds the replication domain for BASE_DN in its configuration and is registered
@@ -283,19 +302,24 @@ is_member() {
 
 # cn=admin data is replicated, but a server that was away while the survivors removed it
 # from the topology still holds its own entry until that delete reaches it, and it may not
-# have yet when the join looks: the first other peer that answers and replicates BASE_DN has
-# the say. With no such peer the local view stands - nothing else can be asked.
+# have yet when the join looks: the other peers that answer and replicate BASE_DN have the
+# say. Being unregistered takes this server's replication down (reset_replication), so it is
+# concluded only when at least one of them listed its registrations and none of them lists
+# this server: a search that failed, or a peer whose copy of cn=admin data still lags behind
+# the others, decides nothing while another peer lists it. With no such peer the local view
+# stands - nothing else can be asked.
 registered_with_peers() {
-  local peer host
+  local peer host hosts asked=no
   for peer in "${PEERS[@]}"; do
     is_self "$peer" && continue
     replicates_base_dn "$peer" || continue
-    for host in $(registered_hosts "$peer"); do
+    hosts=$(registered_hosts "$peer") || continue
+    asked=yes
+    for host in $hosts; do
       is_self "$host" && return 0
     done
-    return 1
   done
-  return 0
+  [ "$asked" = no ]
 }
 
 member_of_topology() {
@@ -306,28 +330,30 @@ member_of_topology() {
 # create the replication server that a seed does not have yet, the loser fails half-way
 # (ManagedObjectAlreadyExistsException, exit 17), and every enable after that exits 5,
 # "already replicated", without ever completing its membership. So an enable holds a lock on
-# the peer it runs through - an entry of the peer's cn=config, which only one add creates.
+# the peer it runs through - an entry of the peer's cn=config, which only one add creates -
+# and one on this server: an enable configures both of its servers, and a server that enables
+# through a peer may at the same time be the peer another server enables through. A server
+# that takes its own replication down holds its own lock for as long.
 # A lock whose holder was killed before it removed it is broken once it is older than an
 # enable may take, by a delete that asserts the value it read: two joins that break it at
-# once cannot remove the lock one of them took right after.
+# once cannot remove the lock one of them took right after. One that holds this server's own
+# name is broken at once: it was left by a join of an earlier start, and a start runs one.
 JOIN_LOCK_DN="cn=Docker Join Lock,cn=config"
-if [ "$REPLICATION_ATTEMPT_TIMEOUT" -gt 0 ] 2>/dev/null; then
-  JOIN_LOCK_TTL=$((REPLICATION_ATTEMPT_TIMEOUT + 60))
-else
-  JOIN_LOCK_TTL=660
-fi
+JOIN_LOCK_TTL=$((REPLICATION_ATTEMPT_TIMEOUT + 60))
 JOIN_LOCK_VALUE=
 
-add_join_lock() { # <peer> <value>
+add_join_lock() { # <host> <value>
   printf 'dn: %s\nobjectClass: top\nobjectClass: ds-cfg-branch\nobjectClass: extensibleObject\ncn: Docker Join Lock\ndescription: %s\n' "$JOIN_LOCK_DN" "$2" \
     | ldapmodify_on "$1" --defaultAdd >/dev/null
 }
 
-# Succeeds when this server may enable through the peer: it took the lock, or the peer could
-# not be asked for one - a peer that does not answer fails the enable anyway, and one that
-# refuses the entry for another reason than holding it must not keep the join out for good
-take_join_lock() { # <peer>
-  local value rc held since age
+# Succeeds when this server may go on: it took the lock and left its value in
+# JOIN_LOCK_VALUE, or the server could not be asked for one - a peer that does not answer
+# fails the enable anyway, and one that refuses the entry for another reason than holding it
+# must not keep the join out for good. A lock taken this way is released with
+# release_join_lock <host> "$JOIN_LOCK_VALUE".
+take_join_lock() { # <host>
+  local value rc held holder since age where
   JOIN_LOCK_VALUE=
   value="$SELF_NAME $(date +%s)"
   add_join_lock "$1" "$value"
@@ -340,10 +366,11 @@ take_join_lock() { # <peer>
   [ "$rc" -eq 68 ] || return 0
   held=$(search "$1" --baseDN "$JOIN_LOCK_DN" --searchScope base "(objectClass=*)" description \
     | awk 'tolower($1) == "description:" { print $2, $3; exit }')
+  holder=${held% *}
   since=${held##* }
   age=$(($(date +%s) - ${since:-0}))
-  if [ -n "$held" ] && [ "$age" -gt "$JOIN_LOCK_TTL" ]; then
-    echo "join: breaking the lock ${held% *} took on $1 $age s ago"
+  if [ -n "$held" ] && { [ "$holder" = "$SELF_NAME" ] || [ "$age" -gt "$JOIN_LOCK_TTL" ]; }; then
+    echo "join: breaking the lock $holder took on $1 $age s ago"
     printf 'dn: %s\nchangetype: delete\n' "$JOIN_LOCK_DN" \
       | ldapmodify_on "$1" --assertionFilter "(description=$held)" >/dev/null
     if add_join_lock "$1" "$value"; then
@@ -351,22 +378,30 @@ take_join_lock() { # <peer>
       return 0
     fi
   fi
-  echo "join: ${held% *} is enabling replication through $1, waiting for it"
+  if [ "$1" = localhost ]; then where="this server"; else where=$1; fi
+  echo "join: $holder is enabling replication through $where, waiting for it"
   return 1
 }
 
-release_join_lock() { # <peer>
-  [ -n "$JOIN_LOCK_VALUE" ] || return 0
+release_join_lock() { # <host> <value>
+  [ -n "$2" ] || return 0
   printf 'dn: %s\nchangetype: delete\n' "$JOIN_LOCK_DN" \
-    | ldapmodify_on "$1" --assertionFilter "(description=$JOIN_LOCK_VALUE)" >/dev/null \
+    | ldapmodify_on "$1" --assertionFilter "(description=$2)" >/dev/null \
     || echo "join: could not remove the lock on $1, it expires in $JOIN_LOCK_TTL s"
-  JOIN_LOCK_VALUE=
 }
 
-# exits 75 without running the enable while another server enables through the peer
+# exits 75 without running the enable while another server enables through the peer or
+# through this one. Neither lock is waited for, so two servers that each hold their own and
+# ask for the other's cannot deadlock; they both give up and try again after pause().
 enable_through() {
-  local rc
-  take_join_lock "$1" || return 75
+  local rc own peer_lock
+  take_join_lock localhost || return 75
+  own=$JOIN_LOCK_VALUE
+  if ! take_join_lock "$1"; then
+    release_join_lock localhost "$own"
+    return 75
+  fi
+  peer_lock=$JOIN_LOCK_VALUE
   bounded "$REPLICATION_ATTEMPT_TIMEOUT" dsreplication enable \
     --host1 "$1" --port1 "$ADMIN_PORT" --bindDN1 "$ROOT_USER_DN" \
     --bindPasswordFile1 "$PASSWORD_FILE" --replicationPort1 "$REPLICATION_PORT" \
@@ -375,8 +410,17 @@ enable_through() {
     --adminUID admin --adminPasswordFile "$PASSWORD_FILE" \
     --baseDN "$BASE_DN" -X -n
   rc=$?
-  release_join_lock "$1"
+  release_join_lock "$1" "$peer_lock"
+  release_join_lock localhost "$own"
   return $rc
+}
+
+# the retry interval and up to as much again, at random: two joins that keep missing each
+# other's lock would otherwise try again in step, round after round
+pause() {
+  local delay=$((REPLICATION_RETRY_INTERVAL + RANDOM % (REPLICATION_RETRY_INTERVAL + 1)))
+  echo "$1, trying again in $delay s"
+  sleep "$delay"
 }
 
 initialize_from() {
@@ -427,17 +471,19 @@ all_others_pending() {
   return 0
 }
 
-# some other peer answers and may hold the data of the topology: it is ready, or it publishes
-# no state and replicates BASE_DN. Unlike an initialize source, the latter counts here even
-# where the peers are explicit - a server of an image before this one, still serving the
-# topology, and seeding next to it would fork it. A server of this image publishes no state
-# only while it bootstraps, and it replicates nothing then, so it does not hold the seed off.
+# some other peer answers and may hold the data of the topology: it is ready, it refuses
+# ROOT_PASSWORD, or it publishes no state and replicates BASE_DN. Unlike an initialize source,
+# the last counts here even where the peers are explicit - a server of an image before this
+# one, still serving the topology, and seeding next to it would fork it. A server of this
+# image publishes no state only while it bootstraps, and it replicates nothing then, so it
+# does not hold the seed off. A refusing peer cannot be asked what it replicates, but only a
+# server past its bootstrap has a root password other than ROOT_PASSWORD.
 any_other_may_hold_data() {
   local peer
   for peer in "${PEERS[@]}"; do
     is_self "$peer" && continue
     case $(peer_state "$peer") in
-      ready) return 0 ;;
+      ready | refused) return 0 ;;
       absent) replicates_base_dn "$peer" && return 0 ;;
     esac
   done
@@ -499,9 +545,24 @@ unregister() { # <dn>
 # anew. A copy of its entry that the delete has not reached yet is dropped as well: the
 # registries would differ, the enable would merge them, and the delete arriving later would
 # take this server out again.
+# From the first change on, writes this server takes get no change number and reach no other
+# server, so it stops reporting itself healthy before anything changes, and $REJOIN_PENDING
+# keeps run.sh from reporting it healthy on a restart until joined() runs. It holds its own
+# join lock meanwhile, so that no server enables through it while its configuration goes.
 reset_replication() {
-  local dn host
+  local dn host i own
   echo "join: the peers no longer register this server, taking its replication configuration down to enable it anew"
+  touch "$REJOIN_PENDING"
+  rm -f "$BOOTSTRAP_COMPLETE"
+  for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
+    take_join_lock localhost && break
+    if [ "$i" -eq "$REPLICATION_RETRY_COUNT" ]; then
+      echo "join: could not take the join lock on this server, its replication configuration stays as it is"
+      return 1
+    fi
+    pause "join: waiting to take the replication configuration of this server down"
+  done
+  own=$JOIN_LOCK_VALUE
   registrations | while IFS=$'\t' read -r dn host; do
     [ -n "$host" ] && is_self "$host" || continue
     echo "join: dropping the stale entry $dn"
@@ -510,6 +571,7 @@ reset_replication() {
   bounded "$REPLICATION_ATTEMPT_TIMEOUT" dsreplication disable --hostname "$MYHOSTNAME" --port "$ADMIN_PORT" \
     --adminUID admin --adminPasswordFile "$PASSWORD_FILE" --disableAll -X -n \
     || echo "join: dsreplication disable exited with $?"
+  release_join_lock localhost "$own"
 }
 
 # Removes every server that is registered in the topology but no longer listed in
@@ -596,6 +658,7 @@ repair_replication_servers() {
 
 joined() {
   cleanup_departed
+  rm -f "$REJOIN_PENDING"
   touch "$BOOTSTRAP_COMPLETE"
   echo "join: this server is a member of the replication topology, the health check may probe it"
   repair_replication_servers
@@ -606,8 +669,20 @@ joined() {
 seed() { # <why>
   echo "join: $1, seeding it with this server's data"
   publish_state ready || return 1
-  rm -f "$INITIALIZE_PENDING"
+  rm -f "$INITIALIZE_PENDING" "$REJOIN_PENDING"
   touch "$BOOTSTRAP_COMPLETE"
+}
+
+# what giving up means depends on whether the container already reports itself healthy: a
+# volume that holds the data of the topology does so from the start, until a reset of its
+# replication took that back
+give_up() {
+  if [ -f "$BOOTSTRAP_COMPLETE" ]; then
+    echo "join: could not join the replication topology after $REPLICATION_RETRY_COUNT attempts, this server keeps serving its data unreplicated until a later start joins it"
+  else
+    echo "join: could not join the replication topology after $REPLICATION_RETRY_COUNT attempts, this container will not report itself healthy"
+  fi
+  exit 1
 }
 
 echo "join: waiting for the server on the administration connector"
@@ -655,8 +730,7 @@ if [ ! -f "$INITIALIZE_PENDING" ]; then
       exit 0
     fi
     if [ "$i" -lt "$REPLICATION_RETRY_COUNT" ]; then
-      echo "join: no peer joined this server yet, trying again in $REPLICATION_RETRY_INTERVAL s ($i of $REPLICATION_RETRY_COUNT)"
-      sleep "$REPLICATION_RETRY_INTERVAL"
+      pause "join: no peer joined this server yet ($i of $REPLICATION_RETRY_COUNT)"
     fi
   done
   # the same rule as at the end of the pending road below
@@ -664,16 +738,25 @@ if [ ! -f "$INITIALIZE_PENDING" ]; then
     seed "no topology found after $REPLICATION_RETRY_COUNT attempts" || exit 1
     exit 0
   fi
-  echo "join: could not join the replication topology after $REPLICATION_RETRY_COUNT attempts, this container will not report itself healthy"
-  exit 1
+  give_up
 fi
 
 # This volume was bootstrapped and never received the data of the topology: it joins and
 # initializes only through a peer that holds that data, and only the first peer may decide
-# that nobody does
+# that nobody does. Its membership is asked of the peers as on the road above: a volume that
+# enabled once but never completed its initialize may have been removed by the survivors
+# while it was away, and its own cn=admin data still registers it until their delete reaches
+# it - after which every enable registers nobody, as reset_replication describes.
 publish_state pending
+member=no
 for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
-  if ! is_member; then
+  member=no
+  if replicates_base_dn localhost && ! registered_with_peers; then
+    reset_replication
+  elif is_member; then
+    member=yes
+  fi
+  if [ "$member" = no ]; then
     for peer in "${PEERS[@]}"; do
       is_self "$peer" && continue
       state=$(peer_state "$peer")
@@ -684,14 +767,15 @@ for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
       echo "join: enabling replication with $peer"
       enable_through "$peer"
       rc=$?
-      if is_member; then
+      if member_of_topology; then
+        member=yes
         echo "join: joined the replication topology through $peer"
         break
       fi
       [ "$rc" -eq 75 ] || echo "join: dsreplication enable with $peer exited with $rc and membership is not there"
     done
   fi
-  if is_member; then
+  if [ "$member" = yes ]; then
     source=$(trusted_source)
     if [ -n "$source" ]; then
       echo "join: initializing from $source"
@@ -719,18 +803,16 @@ for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
     exit 0
   fi
   if [ "$i" -lt "$REPLICATION_RETRY_COUNT" ]; then
-    echo "join: not joined and initialized yet, trying again in $REPLICATION_RETRY_INTERVAL s ($i of $REPLICATION_RETRY_COUNT)"
-    sleep "$REPLICATION_RETRY_INTERVAL"
+    pause "join: not joined and initialized yet ($i of $REPLICATION_RETRY_COUNT)"
   fi
 done
 
 # Only the first peer may decide that there is no topology to join and that its own data
 # seeds one, and only while no peer that could hold the topology's data answers; anyone
 # else staying unhealthy is what surfaces a lost topology instead of forking it
-if [ "$FIRST" = yes ] && ! is_member && ! any_other_may_hold_data; then
+if [ "$FIRST" = yes ] && [ "$member" = no ] && ! any_other_may_hold_data; then
   seed "no topology found after $REPLICATION_RETRY_COUNT attempts" || exit 1
   exit 0
 fi
 
-echo "join: could not join the replication topology after $REPLICATION_RETRY_COUNT attempts, this container will not report itself healthy"
-exit 1
+give_up
