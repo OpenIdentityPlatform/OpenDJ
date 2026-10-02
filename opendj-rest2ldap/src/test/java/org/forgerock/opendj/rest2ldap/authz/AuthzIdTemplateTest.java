@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
@@ -51,6 +52,17 @@ public final class AuthzIdTemplateTest extends ForgeRockTestCase {
                 map("uid", "test.user", "realm", "test+cn=quoting")
             },
             {
+                // A template which is just one placeholder takes the principal as the DN.
+                "dn:{dn}",
+                "uid=test.user,ou=People,dc=example,dc=com",
+                map("dn", "uid=test.user,ou=People,dc=example,dc=com")
+            },
+            {
+                "dn: {dn}",
+                "uid=test.user,ou=People,dc=example,dc=com",
+                map("dn", "uid=test.user,ou=People,dc=example,dc=com")
+            },
+            {
                 "u:{uid}@{realm}.example.com",
                 "test.user@acme.example.com",
                 map("uid", "test.user", "realm", "acme")
@@ -66,6 +78,17 @@ public final class AuthzIdTemplateTest extends ForgeRockTestCase {
                 "u:{uid}.{numericid}.{testboolean}@{realm}.example.com",
                 "test.42.true@test.example.com",
                 map("uid", "test", "numericid", 42, "testboolean", true, "realm", "test")
+            },
+            {
+                // A '%' in the fixed part is not a format specifier.
+                "dn:uid={uid},o=100%,dc=example,dc=com",
+                "uid=test.user,o=100%,dc=example,dc=com",
+                map("uid", "test.user")
+            },
+            {
+                "u:{uid}%{realm}",
+                "test.user%acme",
+                map("uid", "test.user", "realm", "acme")
             }
         };
         // @formatter:on
