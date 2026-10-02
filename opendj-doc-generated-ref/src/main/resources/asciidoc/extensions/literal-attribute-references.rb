@@ -24,10 +24,12 @@
 # A reference is reported when its name is an attribute at that point of the document,
 # an intrinsic one such as {nbsp}, or one that an attribute entry anywhere under the
 # directory named by the literal-attribute-sources attribute sets. The last catches a
-# page that neither defines the attribute nor substitutes it. Braces around any other
-# name are meant literally - {SSHA} password values, {cn} in a MakeLDIF template - and
-# are left alone. Without attribute subs a backslash does not escape the reference, so
-# \{name} is published with its backslash and is reported too.
+# page that neither defines the attribute nor substitutes it, and since the directory
+# holds the page itself, it also counts a name that the page has unset by the time the
+# block stands: such braces are written \{name} in a block with subs="+attributes".
+# Braces around any other name are meant literally - {SSHA} password values, {cn} in a
+# MakeLDIF template - and are left alone. Without attribute subs a backslash does not
+# escape the reference, so \{name} is published with its backslash and is reported too.
 require 'set'
 
 class LiteralAttributeReferences < Asciidoctor::Extensions::TreeProcessor
@@ -49,29 +51,31 @@ class LiteralAttributeReferences < Asciidoctor::Extensions::TreeProcessor
   def process document
     dir = document.attr 'literal-attribute-sources'
     names = dir ? (LiteralAttributeReferences.names_in dir) : Set.new
-    # The parser has already reset the document attributes to the header, so replay the
-    # entries of the body in document order, as the converter does, and reset them again
-    # for the converter afterwards. An AsciiDoc table cell is a document of its own.
-    documents = []
+    # The parser has already reset the document attributes to the header, so the entries
+    # of the body are replayed in document order, as the converter does, on a copy of
+    # them. The document itself is left as the converter expects it: playing the entries
+    # back on it would also carry the compat mode of the last one over to the converter.
+    # An AsciiDoc table cell is a document of its own.
+    attributes_of = Hash.new {|copies, doc| copies[doc] = doc.attributes.dup }
     document.find_by traverse_documents: true do |block|
-      documents << block if block.context == :document
-      block.document.playback_attributes block.attributes
+      attributes = attributes_of[block.document]
+      (block.attributes[:attribute_entries] || []).each do |entry|
+        entry.negate ? (attributes.delete entry.name) : (attributes[entry.name] = entry.value)
+      end
       if Asciidoctor::Table::Cell === block
         # The text of a literal cell only escapes special characters, so its braces stay.
-        check block, block.text, names, 'literal table cell', 'use an a| cell with a listing that has subs="+attributes"' if block.content_model == :verbatim
+        check block, block.text, attributes, names, 'literal table cell', 'use an a| cell with a listing that has subs="+attributes"' if block.content_model == :verbatim
       elsif Asciidoctor::Block === block &&
           (block.content_model == :verbatim || block.content_model == :raw) && !(block.subs.include? :attributes)
         # subs="attributes" would replace the default subs of the block, so the advice adds to them.
-        check block, (block.lines.join Asciidoctor::LF), names, %(#{block.context} block), 'add subs="+attributes"'
+        check block, (block.lines.join Asciidoctor::LF), attributes, names, %(#{block.context} block), 'add subs="+attributes"'
       end
       false
     end
-    documents.each(&:restore_attributes)
     nil
   end
 
-  def check block, text, names, what, advice
-    attributes = block.document.attributes
+  def check block, text, attributes, names, what, advice
     text.scan(ReferenceRx) do |escaped, name|
       key = name.downcase
       next unless (attributes.key? key) || (names.include? key) || (Asciidoctor::INTRINSIC_ATTRIBUTES.key? key)

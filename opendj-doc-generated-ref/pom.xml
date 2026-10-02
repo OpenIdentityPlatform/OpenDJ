@@ -651,9 +651,10 @@
                               Fail the build when a page would publish an attribute reference as literal
                               text, which neither the PDF below nor the Antora site reports. Every .adoc of
                               the pre-processed sources is rendered on its own, the way Antora renders each
-                              chapter as a page, so a page that relies on an attribute another chapter
-                              defines fails here although the PDF book resolves it. attribute-missing=warn
-                              reports a reference to an attribute that is not defined;
+                              chapter as a page (partials aside, see below), so a page that relies on an
+                              attribute another chapter defines fails here although the PDF book resolves
+                              it. attribute-missing=warn reports a reference to an attribute that is not
+                              defined;
                               literal-attribute-references.rb reports one in a verbatim block without
                               subs="+attributes" or in a literal table cell. The HTML output is thrown away.
                               LiteralAttributeReferencesTest renders its pages with the configuration of
@@ -669,6 +670,12 @@
                               Maven project properties are attributes here (product.name is {product-name})
                               but not on the site, so a page that uses one passes this check and still shows
                               the braces there.
+
+                              The partials directory is rendered too, although Antora only includes its files
+                              and never publishes them as pages: the plugin has no exclusion, and a name that
+                              starts with _ would break the includes. So every man page is checked twice, and
+                              a partial that relies on an attribute of the chapter that includes it fails
+                              here although the site resolves it.
                             -->
                             <execution>
                                 <id>check-attribute-references</id>

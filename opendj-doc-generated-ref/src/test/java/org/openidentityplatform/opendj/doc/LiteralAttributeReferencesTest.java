@@ -55,6 +55,8 @@ import org.w3c.dom.NodeList;
 @Test
 public class LiteralAttributeReferencesTest extends ForgeRockTestCase {
     private static final String EXECUTION = "check-attribute-references";
+    /** A page that unsets an attribute and then names it in a listing, kept among the sources. */
+    private static final String UNSET_PAGE = "= Title\n:u: 1\n\n== Section\n:u!:\n\n----\nx-{u}\n----\n";
 
     private final List<LogRecord> records = new ArrayList<>();
     private final Map<String, Object> attributes = new LinkedHashMap<>();
@@ -69,9 +71,12 @@ public class LiteralAttributeReferencesTest extends ForgeRockTestCase {
         final File module = new File(System.getProperty("basedir", "."));
         // The pre-processed sources sit under the build directory. Braces and brackets in its path
         // must not turn it into a glob pattern.
-        final Path buildDirectory = Files.createTempDirectory("attribute-check-{1}[1]-");
+        final Path buildDirectory = Files.createTempDirectory(
+                Files.createDirectories(new File(module, "target").toPath()), "attribute-check-{1}[1]-");
         final Path sources = Files.createDirectories(buildDirectory.resolve("asciidoc/source/other-guide"));
         Files.write(sources.resolve("chap-other.adoc"), ":elsewhere: 1\n".getBytes(StandardCharsets.UTF_8));
+        // The build renders the pages of the directory it collects the entries from, so a page is among them.
+        Files.write(sources.resolve("chap-unset.adoc"), UNSET_PAGE.getBytes(StandardCharsets.UTF_8));
 
         final XPath xpath = XPathFactory.newInstance().newXPath();
         final Element configuration = (Element) xpath.evaluate(
@@ -79,6 +84,10 @@ public class LiteralAttributeReferencesTest extends ForgeRockTestCase {
                 DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File(module, "pom.xml")),
                 XPathConstants.NODE);
         assertThat(configuration).as("configuration of the " + EXECUTION + " execution").isNotNull();
+        // The fixture stands for both directories, which holds only while they are one.
+        assertThat(xpath.evaluate("sourceDirectory", configuration).trim())
+                .as("the check renders the directory whose attribute entries it collects")
+                .isEqualTo(xpath.evaluate("attributes/literal-attribute-sources", configuration).trim());
 
         asciidoctor = Asciidoctor.Factory.create();
         asciidoctor.registerLogHandler(records::add);
@@ -141,7 +150,11 @@ public class LiteralAttributeReferencesTest extends ForgeRockTestCase {
             { "= Title\n\n== Section\n:late: 1\n\n----\nx-{late}\n----\n", "attribute {late} is published as literal text" },
             // A page that neither defines nor substitutes an attribute another page defines.
             { "----\nx-{elsewhere}\n----\n", "attribute {elsewhere} is published as literal text" },
+            // An entry of the page itself counts, even where the page has unset the attribute.
+            { UNSET_PAGE, "attribute {u} is published as literal text" },
             { "tool {undefinedthing}\n", "undefinedthing" },
+            // The converter starts from the compat mode of the header, not from that of the last entry.
+            { "= Title\n\n`{undefinedthing}`\n\n:compat-mode:\n\ny\n", "undefinedthing" },
         };
     }
 
@@ -160,8 +173,11 @@ public class LiteralAttributeReferencesTest extends ForgeRockTestCase {
             // Braces that are no attribute anywhere are meant literally.
             { "----\nuserPassword: {SSHA}abc\ncn: {cn}\n----\n" },
             { "|===\nl|{SSHA}abc\n|===\n" },
-            // An attribute unset in the body is no longer one where the listing stands.
-            { "= Title\n:v: 1\n\n== Section\n:v!:\n\n----\nx-{v}\n----\n" },
+            // A built-in attribute that no entry sets is no longer one where the body has unset it.
+            { "= Title\n\n== Section\n:figure-caption!:\n\n----\nx-{figure-caption}\n----\n" },
+            // The converter starts again from the header: a reference before a body unset still resolves.
+            { "= Title\n:v: 1\n\nx {v}\n\n:v!:\n\ny\n" },
+            { "= Title\n:compat-mode:\n\n`{cn}`\n\n:compat-mode!:\n\ny\n" },
         };
     }
 
