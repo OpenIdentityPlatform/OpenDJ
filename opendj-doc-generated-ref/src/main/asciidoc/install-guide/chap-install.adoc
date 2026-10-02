@@ -383,7 +383,7 @@ If you do not start the server during installation, you can use the `/path/to/op
 . Run the `status` command, described in xref:../reference/admin-tools-ref.adoc#status-1[status(1)] in the __Reference__, to make sure your OpenDJ server is working as expected as shown in the following example:
 +
 
-[source, console, subs="attributes"]
+[source, console, subs="+attributes"]
 ----
 $ /path/to/opendj/bin/status
 
@@ -437,7 +437,7 @@ On Debian and related Linux distributions such as Ubuntu, you can install OpenDJ
 . Install the OpenDJ directory server package. Use `apt-get install ./<file>.deb` (rather than `dpkg -i`) so the required Java runtime dependency (`default-jre-headless`) is resolved and installed automatically:
 +
 
-[source, console, subs="attributes"]
+[source, console, subs="+attributes"]
 ----
 $ sudo apt-get install ./opendj_{opendj-version}-1_all.deb
 ----
@@ -463,7 +463,7 @@ $ sudo systemctl start opendj
 . (Optional)  Check OpenDJ directory server status:
 +
 
-[source, console, subs="attributes"]
+[source, console, subs="+attributes"]
 ----
 $ systemctl is-active opendj
 active
@@ -525,7 +525,7 @@ Password:
 . Install the OpenDJ directory server package. Use `dnf install ./<file>.rpm` (rather than `rpm -i`) so the required Java runtime dependency (`java-headless >= 11`) is resolved and installed automatically:
 +
 
-[source, console, subs="attributes"]
+[source, console, subs="+attributes"]
 ----
 # dnf install ./opendj-{opendj-version}-1.noarch.rpm
 Post Install - initial install
@@ -552,7 +552,7 @@ To see basic server configuration status and configuration you can launch
 . (Optional)  Check OpenDJ directory server status:
 +
 
-[source, console, subs="attributes"]
+[source, console, subs="+attributes"]
 ----
 # systemctl is-active opendj
 active
@@ -623,7 +623,7 @@ The package is not code-signed, so Windows SmartScreen or User Account Control m
 * Silent: run the following command (optionally set the installation directory with the `OPENDJ` property):
 +
 
-[source, console, subs="attributes"]
+[source, console, subs="+attributes"]
 ----
 C:\> msiexec /i opendj-{opendj-version}.msi /quiet OPENDJ="C:\opendj"
 ----
@@ -701,7 +701,7 @@ If you have multiple servers to install, consider scripting creation of the prop
 . Prepare an installation script:
 +
 
-[source, console, subs="attributes"]
+[source, console, subs="+attributes"]
 ----
 $ cat /net/install/dj/1/setup.sh
 #!/bin/sh
@@ -756,7 +756,7 @@ END_OF_COMMAND_INPUT
 . Run your installation script:
 +
 
-[source, console, subs="attributes"]
+[source, console, subs="+attributes"]
 ----
 $ /net/install/dj/1/setup.sh
 Archive:  /net/install/dj/opendj-{opendj-version}.zip

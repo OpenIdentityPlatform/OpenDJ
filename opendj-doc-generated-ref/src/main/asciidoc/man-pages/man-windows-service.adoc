@@ -13,7 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2015-2016 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems LLC.
 
 ////
 
@@ -28,7 +28,7 @@
 windows-service - register OpenDJ as a Windows Service
 
 == Synopsis
-`windows-service` {options}
+`windows-service` \{options}
 
 == Description
 This utility can be used to run OpenDJ directory server as a Windows Service.

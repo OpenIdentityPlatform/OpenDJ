@@ -79,7 +79,7 @@ SNMP is not enabled by default. SNMP-based monitoring depends on OpenDMK, which 
 
 To run the OpenDMK installer, use the self-extracting .jar:
 
-[source, console, subs="attributes"]
+[source, console, subs="+attributes"]
 ----
 $ java -jar ~/Downloads/opendmk-1.0-b02-*.jar
 $ cd ~/Downloads/
@@ -150,7 +150,7 @@ $ dsconfig \
 ----
 Use a command such as `snmpwalk` to check that the SNMP listen port works:
 
-[source, console, subs="attributes"]
+[source, console, subs="+attributes"]
 ----
 $ snmpwalk -v 2c -c OpenDJ@OpenDJ localhost:11161
 SNMPv2-SMI::mib-2.66.1.1.1.1 = STRING: "OpenDJ {opendj-version}..."
@@ -248,7 +248,7 @@ OpenDJ comes with two commands for monitoring server processes and tasks. The `s
 
 The `status` command takes administrative credentials to read the configuration, as does the control panel:
 
-[source, console, subs="attributes"]
+[source, console, subs="+attributes"]
 ----
 $ status --bindDN "cn=Directory Manager" --bindPassword password
 
