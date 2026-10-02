@@ -4112,6 +4112,12 @@ attributeTypes: ( 1.3.6.1.4.1.60142.2.1.1.1
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.60142.2.1.1.2
+  NAME 'ds-cfg-db-txn-retry-time-limit'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -5970,7 +5976,8 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.23
         ds-cfg-db-txn-no-sync $
         ds-cfg-disk-full-threshold $
         ds-cfg-disk-low-threshold $
-        ds-cfg-db-checkpointer-wakeup-interval )
+        ds-cfg-db-checkpointer-wakeup-interval $
+        ds-cfg-db-txn-retry-time-limit )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.24
   NAME 'ds-cfg-backend-index'
