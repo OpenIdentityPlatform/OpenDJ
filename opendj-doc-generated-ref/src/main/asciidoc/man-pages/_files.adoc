@@ -13,7 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2015 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems LLC.
 
 ////
 
@@ -35,3 +35,5 @@ ldapsearch.port=1389
 ----
 
 The location on Windows is `%UserProfile%/.opendj/tools.properties`.
+
+The file is read as UTF-8, or as ISO-8859-1 if it is not valid UTF-8. It uses the Java properties format, where a backslash starts an escape sequence. Double each backslash in a value, for example `bindDN=cn=a\\,b,dc=example,dc=com` for the DN `cn=a\,b,dc=example,dc=com`.

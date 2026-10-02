@@ -1449,46 +1449,56 @@ public final class DSConfig extends ConsoleApplication {
         return allArguments.toArray(new String[length]);
     }
 
+    /**
+     * Splits a batch line into arguments the way a POSIX shell does, without any expansion: a
+     * backslash outside quotes escapes the next char, single quotes keep everything literally, and
+     * inside double quotes a backslash escapes only {@code "}, {@code \}, {@code $} and {@code `}.
+     */
     static Collection<String> toCommandArgs(String command) {
-        Collection<String> commandArgs = new ArrayList<>();
-        StringBuilder builder = new StringBuilder();
-        boolean inQuotes = false;
+        final Collection<String> commandArgs = new ArrayList<>();
+        final StringBuilder builder = new StringBuilder();
+        // A word that holds only quotes is still an (empty) argument.
+        boolean inWord = false;
         for (int i = 0; i < command.length(); i++) {
             final char c = command.charAt(i);
             switch (c) {
+            case ' ':
+            case '\t':
+                if (inWord) {
+                    commandArgs.add(builder.toString());
+                    builder.setLength(0);
+                    inWord = false;
+                }
+                continue;
+            case '\\':
+                // A trailing backslash has nothing to escape and is kept.
+                builder.append(i + 1 < command.length() ? command.charAt(++i) : c);
+                break;
+            case '\'':
+                final int end = command.indexOf('\'', i + 1);
+                final int stop = end < 0 ? command.length() : end;
+                builder.append(command, i + 1, stop);
+                i = stop;
+                break;
+            case '"':
+                for (i++; i < command.length() && command.charAt(i) != '"'; i++) {
+                    if (command.charAt(i) == '\\' && i + 1 < command.length()
+                            && "\"\\$`".indexOf(command.charAt(i + 1)) >= 0) {
+                        i++;
+                    }
+                    builder.append(command.charAt(i));
+                }
+                break;
             default:
                 builder.append(c);
                 break;
-            case '\\':
-                builder.append(command.charAt(++i));
-                break;
-            case '"':
-                if (inQuotes) {
-                    builder = newArgumentString(commandArgs, builder);
-                    inQuotes = false;
-                } else {
-                    inQuotes = true;
-                }
-                break;
-            case ' ':
-                if (inQuotes) {
-                    builder.append(c);
-                } else {
-                    builder = newArgumentString(commandArgs, builder);
-                }
-                break;
             }
+            inWord = true;
         }
-        newArgumentString(commandArgs, builder);
+        if (inWord) {
+            commandArgs.add(builder.toString());
+        }
         return commandArgs;
-    }
-
-    private static StringBuilder newArgumentString(Collection<String> commandArgs, StringBuilder stringBuilder) {
-        if (stringBuilder.length() > 0) {
-            commandArgs.add(stringBuilder.toString());
-            stringBuilder = new StringBuilder();
-        }
-        return stringBuilder;
     }
 
     private List<String> removeBatchArgs(String[] args) {

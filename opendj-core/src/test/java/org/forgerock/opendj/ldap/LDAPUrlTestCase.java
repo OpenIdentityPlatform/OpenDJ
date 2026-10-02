@@ -211,4 +211,54 @@ public class LDAPUrlTestCase extends SdkTestCase {
     public void testTruncatedPercentEncoding(final String url) throws Exception {
         LDAPUrl.valueOf(url);
     }
+
+    /**
+     * Percent-encoded octets are the UTF-8 encoding of the characters (RFC 4516 section 2.1).
+     *
+     * @return The URLs and the DN and filter they hold.
+     */
+    @DataProvider
+    public Object[][] utf8PercentEncodedUrls() {
+        return new Object[][] {
+            { "ldap:///cn=J%C3%B6rg,dc=x", "cn=Jörg,dc=x", "(objectClass=*)" },
+            { "ldap:///cn=J%c3%b6rg%20%D0%96,dc=x", "cn=Jörg Ж,dc=x", "(objectClass=*)" },
+            { "ldap:///cn=%F0%9F%98%80,dc=x", "cn=😀,dc=x", "(objectClass=*)" },
+            { "ldap:///cn=Jörg,dc=x??sub?(cn=J%C3%B6rg)", "cn=Jörg,dc=x", "(cn=Jörg)" },
+            // An octet sequence that is not UTF-8 is read one char per octet, as before.
+            { "ldap:///cn=J%f6rg,dc=x", "cn=Jörg,dc=x", "(objectClass=*)" },
+        };
+    }
+
+    /**
+     * Tests that percent-encoded octets are decoded as UTF-8.
+     *
+     * @param url
+     *            The URL to decode.
+     * @param dn
+     *            The DN the URL holds.
+     * @param filter
+     *            The filter the URL holds.
+     */
+    @Test(dataProvider = "utf8PercentEncodedUrls")
+    public void testPercentDecodingIsUtf8(final String url, final String dn, final String filter) {
+        final LDAPUrl ldapUrl = LDAPUrl.valueOf(url);
+        assertEquals(ldapUrl.getName(), DN.valueOf(dn));
+        assertEquals(ldapUrl.getFilter().toString(), Filter.valueOf(filter).toString());
+    }
+
+    /**
+     * Tests that characters outside the allowed set are encoded as the percent-encoded octets of
+     * their UTF-8 encoding, and that the result decodes to the same URL.
+     */
+    @Test
+    public void testPercentEncodingIsUtf8() {
+        final LDAPUrl url = new LDAPUrl(false, "h", 389, DN.valueOf("cn=Jörg Ж 😀,dc=x"),
+                SearchScope.WHOLE_SUBTREE, Filter.equality("cn", "Jörg"));
+        assertTrue(url.toString().startsWith("ldap://h:389/cn=J%c3%b6rg%20%d0%96%20%f0%9f%98%80,dc=x??sub?"),
+                url.toString());
+        final LDAPUrl decoded = LDAPUrl.valueOf(url.toString());
+        assertEquals(decoded.getName(), url.getName());
+        assertEquals(decoded.getFilter().toString(), url.getFilter().toString());
+        assertEquals(decoded, url);
+    }
 }
