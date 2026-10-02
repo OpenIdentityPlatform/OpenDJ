@@ -18,8 +18,10 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_CONTROL;
 import static com.forgerock.opendj.cli.ArgumentConstants.USE_SYSTEM_STREAM_TOKEN;
 import static com.forgerock.opendj.cli.CliConstants.NO_WRAPPING_BY_DEFAULT;
+import static com.forgerock.opendj.cli.CliMessages.ERR_FILEARG_CANNOT_READ_FILE;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.Utils.readBytesFromFile;
 import static com.forgerock.opendj.cli.Utils.secondsToTimeString;
@@ -313,19 +315,21 @@ final class Utils {
     /**
      * Parse the specified command line argument to create the appropriate
      * LDAPControl. The argument string should be in the format
-     * controloid[:criticality[:value|::b64value|:&lt;fileurl]]
+     * controloid[:criticality[:value|::b64value|:&lt;filePath]]
+     * <p>
+     * Everything after the second colon is the value, so the value, the
+     * base64 string and the file path may all contain colons.
      *
      * @param argString
      *            The argument string containing the encoded control
      *            information.
-     * @return The control decoded from the provided string, or
-     *         <CODE>null</CODE> if an error occurs while parsing the argument
-     *         value.
+     * @return The control decoded from the provided string.
      * @throws org.forgerock.opendj.ldap.DecodeException
-     *             If an error occurs.
+     *             If the criticality is invalid, the base64 value cannot be
+     *             decoded or the file cannot be read.
      */
     private static GenericControl getControl(final String argString) throws DecodeException {
-        final String[] control = argString.split(":");
+        final String[] control = argString.split(":", 3);
         final int nbControlElements = control.length;
 
         final String controlOID = readControlID(control[0]);
@@ -339,14 +343,20 @@ final class Utils {
         }
 
         final ByteString controlValue;
-        if (control[2].isEmpty()) {
-            controlValue = ByteString.valueOfBase64(control[3]);
+        if (control[2].startsWith(":")) {
+            try {
+                controlValue = ByteString.valueOfBase64(control[2].substring(1));
+            } catch (final LocalizedIllegalArgumentException e) {
+                throw DecodeException.error(e.getMessageObject(), e);
+            }
         } else if (control[2].startsWith("<")) {
             // Read data from the file.
+            final String filePath = control[2].substring(1);
             try {
-                controlValue = ByteString.wrap(readBytesFromFile(control[2].substring(1)));
-            } catch (final Exception e) {
-                return null;
+                controlValue = ByteString.wrap(readBytesFromFile(filePath));
+            } catch (final IOException e) {
+                throw DecodeException.error(
+                        ERR_FILEARG_CANNOT_READ_FILE.get(filePath, OPTION_LONG_CONTROL, e.getMessage()), e);
             }
         } else {
             controlValue = ByteString.valueOfUtf8(control[2]);
