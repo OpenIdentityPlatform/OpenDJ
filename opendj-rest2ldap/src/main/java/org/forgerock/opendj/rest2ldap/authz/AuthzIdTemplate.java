@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
@@ -48,6 +49,10 @@ final class AuthzIdTemplate {
         public String formatAsAuthzId(final AuthzIdTemplate t, final Object[] templateVariables) {
             // We're not interested in matching and place-holder attribute types can be tolerated,
             // so we can just use the core schema.
+            // A template which is just one placeholder takes the principal as the DN, rather than as one RDN value.
+            if ("%s".equals(t.formatString)) {
+                return DN.valueOf(String.valueOf(templateVariables[0]), Schema.getCoreSchema()).toString();
+            }
             return DN.format(t.formatString, Schema.getCoreSchema(), templateVariables).toString();
         }
     };
@@ -126,14 +131,17 @@ final class AuthzIdTemplate {
     }
 
     private String formatTemplate(final String template) {
-        // Parse the template keys and replace them with %s for formatting.
+        // Parse the template keys and replace them with %s for formatting. Escape any '%' around them, which
+        // String.format() would read as a format specifier.
         final Matcher matcher = TEMPLATE_KEY_RE.matcher(template);
-        final StringBuffer buffer = new StringBuffer(template.length());
+        final StringBuilder buffer = new StringBuilder(template.length());
+        int fixedPartStart = 0;
         while (matcher.find()) {
-            matcher.appendReplacement(buffer, "%s");
+            buffer.append(template.substring(fixedPartStart, matcher.start()).replace("%", "%%")).append("%s");
             keys.add(matcher.group(1));
+            fixedPartStart = matcher.end();
         }
-        matcher.appendTail(buffer);
+        buffer.append(template.substring(fixedPartStart).replace("%", "%%"));
         return type.removeTemplateKey(buffer.toString());
     }
 

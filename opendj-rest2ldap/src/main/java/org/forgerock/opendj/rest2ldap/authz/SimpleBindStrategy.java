@@ -12,11 +12,13 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
 import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
 import static org.forgerock.opendj.rest2ldap.authz.Utils.close;
+import static org.forgerock.opendj.rest2ldap.authz.Utils.formatBindDn;
 import static org.forgerock.services.context.SecurityContext.AUTHZID_DN;
 import static org.forgerock.services.context.SecurityContext.AUTHZID_ID;
 import static org.forgerock.util.Reject.checkNotNull;
@@ -36,6 +38,7 @@ import org.forgerock.services.context.SecurityContext;
 import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.Promises;
 
 /** Bind using a computed DN from a template and the current request/context. */
 final class SimpleBindStrategy implements AuthenticationStrategy {
@@ -53,7 +56,7 @@ final class SimpleBindStrategy implements AuthenticationStrategy {
      *            Schema used to validate DN
      * @param bindDNTemplate
      *            The template which will be replaced by the authenticating user (i.e:
-     *            uid=%s,ou=People,dc=example,dc=com)
+     *            uid=%s,ou=People,dc=example,dc=com). A template which is just %s takes the user name as the bind DN.
      * @throws NullPointerException
      *             If a parameter is null
      */
@@ -66,11 +69,16 @@ final class SimpleBindStrategy implements AuthenticationStrategy {
     @Override
     public Promise<SecurityContext, LdapException> authenticate(final String username, final String password,
             final Context parentContext) {
+        final DN bindDN;
+        try {
+            bindDN = formatBindDn(bindDNTemplate, schema, username);
+        } catch (final LdapException e) {
+            return Promises.newExceptionPromise(e);
+        }
         final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
         return connectionFactory
                 .getConnectionAsync()
-                .thenAsync(doSimpleBind(connectionHolder, parentContext, username,
-                           DN.format(bindDNTemplate, schema, username), password))
+                .thenAsync(doSimpleBind(connectionHolder, parentContext, username, bindDN, password))
                 .thenFinally(close(connectionHolder));
     }
 

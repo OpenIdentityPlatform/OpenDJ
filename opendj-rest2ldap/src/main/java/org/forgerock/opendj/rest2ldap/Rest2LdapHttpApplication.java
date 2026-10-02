@@ -447,7 +447,7 @@ public class Rest2LdapHttpApplication implements HttpApplication {
         return connectionFactories.get(name);
     }
 
-    private ConditionalFilter buildBasicFilter(final JsonValue config) {
+    ConditionalFilter buildBasicFilter(final JsonValue config) {
         final String bind = config.get("bind").required().asString();
         final BindStrategy strategy = BindStrategy.valueOf(bind.toUpperCase().replace('-', '_'));
         return newBasicAuthenticationFilter(buildBindStrategy(strategy, config.get(bind).required()),
@@ -494,14 +494,14 @@ public class Rest2LdapHttpApplication implements HttpApplication {
     private AuthenticationStrategy buildSimpleBindStrategy(final JsonValue config) {
         return newSimpleBindStrategy(getConnectionFactory(config.get("ldapConnectionFactory")
                                                                 .defaultTo(DEFAULT_BIND_FACTORY).asString()),
-                                     parseUserNameTemplate(config.get("bindDnTemplate").defaultTo("%s")),
+                                     parseUserNameTemplate(config.get("bindDnTemplate").defaultTo("{username}")),
                                      schema);
     }
 
     private AuthenticationStrategy buildSaslBindStrategy(JsonValue config) {
         return newSaslPlainStrategy(
                 getConnectionFactory(config.get("ldapConnectionFactory").defaultTo(DEFAULT_BIND_FACTORY).asString()),
-                schema, parseUserNameTemplate(config.get(AUTHZID_TEMPLATE).defaultTo("u:%s")));
+                schema, parseUserNameTemplate(config.get(AUTHZID_TEMPLATE).defaultTo("u:{username}")));
     }
 
     private AuthenticationStrategy buildSearchThenBindStrategy(JsonValue config) {
@@ -516,6 +516,7 @@ public class Rest2LdapHttpApplication implements HttpApplication {
     }
 
     private String parseUserNameTemplate(final JsonValue template) {
-        return template.asString().replace("{username}", "%s");
+        // The strategies format the template with String.format(): keep any other '%' literal.
+        return template.asString().replace("%", "%%").replace("{username}", "%s");
     }
 }
