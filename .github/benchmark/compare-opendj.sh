@@ -108,13 +108,27 @@ bench_one() {
       -Jjmeter.reportgenerator.sample_filter='^(?!ADMIN_CONNECT).*' \
       -l "$out.jtl" -e -o "$out" > "$out.jmeter.out" 2>&1 || true
     docker logs opendj-bench > "$out.docker.log" 2>&1 || true
-    # surface distinct error messages to the step log (stderr; stdout carries the version)
+    # surface distinct error messages to the step log (stderr; stdout carries the version).
+    # The JTL is CSV and JMeter quotes a message that holds a comma (every DN does), so it is
+    # read with a CSV parser. Digits are replaced before grouping: the messages carry the entry
+    # DN or the elapsed time, and verbatim each failed row would be a kind of its own.
     if [ -f "$out.jtl" ]; then
-      local errs
-      errs="$(awk -F',' 'NR==1{for(i=1;i<=NF;i++)h[$i]=i; next}
-                         tolower($h["success"])=="false"{print $h["label"]" | "$h["responseCode"]" | "$h["responseMessage"]}' \
-              "$out.jtl" 2>/dev/null | sort | uniq -c | sort -rn | head -10)"
-      [ -z "$errs" ] || { echo "[$out] errors (count | op | code | message):" >&2; echo "$errs" >&2; }
+      python3 - "$out.jtl" "$out" >&2 <<'PY' || true
+import collections, csv, re, sys
+kinds = collections.Counter()
+with open(sys.argv[1], newline='') as f:
+    for r in csv.DictReader(f):
+        if r['success'].strip().lower() == 'false':
+            kinds[r['label'], r['responseCode'].strip(),
+                  re.sub(r'\d+', 'N', r['responseMessage'].strip())] += 1
+if kinds:
+    print('[%s] %d failed rows, %d kinds of error (count | op | code | message):'
+          % (sys.argv[2], sum(kinds.values()), len(kinds)))
+    for (label, code, message), n in kinds.most_common(10):
+        print('%7d %s | %s | %s' % (n, label, code, message))
+    if len(kinds) > 10:
+        print('%7s %d more kinds not shown' % ('...', len(kinds) - 10))
+PY
     fi
   else
     echo "ERROR: failed to start image $image" >&2
