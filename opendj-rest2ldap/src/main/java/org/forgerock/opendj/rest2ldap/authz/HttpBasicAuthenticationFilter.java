@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
@@ -63,7 +64,9 @@ final class HttpBasicAuthenticationFilter implements Filter {
     public Promise<Response, NeverThrowsException> filter(final Context context, final Request request,
             final Handler next) {
         final Pair<String, String> credentials = credentialsExtractor.apply(request.getHeaders());
-        if (credentials == null) {
+        // A simple bind with a DN and an empty password is an unauthenticated bind (RFC 4513 section 5.1.2): a server
+        // which accepts it would let the request run as the named user without checking any password.
+        if (credentials == null || credentials.getSecond().isEmpty()) {
             return asErrorResponse(LdapException.newLdapException(ResultCode.INVALID_CREDENTIALS));
         }
         return authenticationStrategy

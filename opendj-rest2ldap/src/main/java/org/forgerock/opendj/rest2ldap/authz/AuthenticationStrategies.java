@@ -38,7 +38,8 @@ public final class AuthenticationStrategies {
      *            {@link ConnectionFactory} to the LDAP server used to perform the bind operation.
      * @param bindDNTemplate
      *            Tempalte of the DN to use for the bind operation. The first %s will be replaced by the provided
-     *            authentication-id (i.e: uid=%s,dc=example,dc=com)
+     *            authentication-id (i.e: uid=%s,dc=example,dc=com). A template which is just %s takes the
+     *            authentication-id as the bind DN.
      * @param schema
      *            {@link Schema} used to validate the DN format.*
      * @return a new simple bind {@link AuthenticationStrategy}
@@ -85,7 +86,8 @@ public final class AuthenticationStrategies {
      *            {@link ConnectionFactory} to the LDAP server to authenticate with.
      * @param authcIdTemplate
      *            Authentication identity template containing a single %s which will be replaced by the authenticating
-     *            user's name. (i.e: (u:%s)
+     *            user's name. (i.e: (u:%s). After a "dn:" prefix the template is a bind DN template: just %s takes the
+     *            user name as the DN, otherwise the user name is escaped as an attribute value.
      * @param schema
      *            Schema used to perform DN validation.
      * @return a new SASL plain bind {@link AuthenticationStrategy}

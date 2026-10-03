@@ -84,10 +84,10 @@ final class DnTemplate {
         if (template.equals("..")) {
             trimmedTemplate = "";
             relativeOffset = 1;
-        } else if (template.endsWith(",..")) {
+        } else if (endsWithParentRdn(template)) {
             relativeOffset = 0;
             for (trimmedTemplate = template;
-                 trimmedTemplate.endsWith(",..");
+                 endsWithParentRdn(trimmedTemplate);
                  trimmedTemplate = trimmedTemplate.substring(0, trimmedTemplate.length() - 3)) {
                 relativeOffset++;
             }
@@ -99,15 +99,31 @@ final class DnTemplate {
             relativeOffset = -1;
         }
 
+        // Replace the variables with %s, and escape any '%' around them, which String.format() would read as a
+        // format specifier.
         final List<String> templateVariables = new ArrayList<>();
         final Matcher matcher = TEMPLATE_VARIABLE_RE.matcher(trimmedTemplate);
-        final StringBuffer buffer = new StringBuffer(trimmedTemplate.length());
+        final StringBuilder buffer = new StringBuilder(trimmedTemplate.length());
+        int fixedPartStart = 0;
         while (matcher.find()) {
-            matcher.appendReplacement(buffer, "%s");
+            buffer.append(trimmedTemplate.substring(fixedPartStart, matcher.start()).replace("%", "%%")).append("%s");
             templateVariables.add(matcher.group(1));
+            fixedPartStart = matcher.end();
         }
-        matcher.appendTail(buffer);
+        buffer.append(trimmedTemplate.substring(fixedPartStart).replace("%", "%%"));
         return new DnTemplate(trimmedTemplate, buffer.toString(), templateVariables, relativeOffset);
+    }
+
+    /** Returns whether the template ends with a ".." RDN, that is ",.." whose comma is not escaped. */
+    private static boolean endsWithParentRdn(final String template) {
+        if (!template.endsWith(",..")) {
+            return false;
+        }
+        int backslashes = 0;
+        for (int i = template.length() - 4; i >= 0 && template.charAt(i) == '\\'; i--) {
+            backslashes++;
+        }
+        return backslashes % 2 == 0;
     }
 
     private DnTemplate(String template, String formatString, List<String> variables, int relativeOffset) {
