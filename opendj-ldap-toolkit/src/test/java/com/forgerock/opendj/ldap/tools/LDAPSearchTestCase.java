@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  *  Copyright 2016 ForgeRock AS.
+ *  Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -142,6 +143,11 @@ public class LDAPSearchTestCase extends LDAPToolsTestCase {
         argLists.add(args("-b", "", "-J", "1.2.3.4:invalidcriticality", "(objectClass=*)"));
         reasonList.add(ERR_TOOL_INVALID_CONTROL_STRING.get("1.2.3.4:invalidcriticality"));
 
+        argLists.add(args("-b", "", "-J", "1.2.3.4:true:<src/test/resources/no-such-control-value.ber",
+                          "(objectClass=*)"));
+        reasonList.add(ERR_TOOL_INVALID_CONTROL_STRING.get(
+                "1.2.3.4:true:<src/test/resources/no-such-control-value.ber"));
+
         argLists.add(args("-b", "", "-s", "invalid", "(objectClass=*)"));
         reasonList.add(ERR_MCARG_VALUE_NOT_ALLOWED.get("searchScope", "invalid"));
 
@@ -233,6 +239,12 @@ public class LDAPSearchTestCase extends LDAPToolsTestCase {
         runToolOnMockedServer("-J", "1.2.3.4.5.6.7.8:false:myvalue",
                               "--subEntries",
                               "-n");
+    }
+
+    @Test
+    public void testLdapSearchWithControlValueHoldingColons() throws Exception {
+        controls.add(ProxiedAuthV2RequestControl.newControl("dn:uid=bjensen,ou=People,dc=example,dc=com"));
+        runToolOnMockedServer("-J", "2.16.840.1.113730.3.4.18:true:dn:uid=bjensen,ou=People,dc=example,dc=com");
     }
 
     @Test
