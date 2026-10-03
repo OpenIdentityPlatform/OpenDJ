@@ -113,9 +113,10 @@ of the topology: every fresh volume holds what
 `ADD_BASE_ENTRY` or `SAMPLE_DATA` imported, which says nothing about which server holds
 the data of the topology. `dsreplication initialize` is a full import of `BASE_DN` and runs
 without a bound unless `REPLICATION_INITIALIZE_TIMEOUT` sets one. Each server publishes to
-its peers whether its volume still waits for that data (`pending`) or holds it (`ready`), in
-the local entry `cn=Docker Join,cn=config`, and a pending server joins and initializes only
-through a ready one. So servers may start together - Compose, or a StatefulSet with
+its peers whether its volume still waits for that data (`pending`) or holds it (`ready`, or
+`rejoining` while its replication is taken down to be enabled anew, see below), in the local
+entry `cn=Docker Join,cn=config`, and a pending server joins and initializes only through a
+ready one. So servers may start together - Compose, or a StatefulSet with
 `podManagementPolicy: Parallel` - without any of them taking the bootstrap data of another
 fresh one for the topology's. Servers whose enables involve the same server take turns: two
 `dsreplication enable` runs through one server at once leave the loser a member only in
@@ -128,7 +129,7 @@ left it. A join that finds a turn taken tries the next peer, and waits a random 
 other's turn do not keep meeting. Only the first entry of `REPLICATION_PEERS` may decide that
 there is no topology yet and seed it with its own data: at once when every other peer
 answers and waits for data as well, or once its retries are exhausted without any peer
-that could hold the data answering - a ready one, a server of an earlier image that
+that could hold the data answering - a ready or rejoining one, a server of an earlier image that
 publishes no state but replicates `BASE_DN`, or one that refuses the bind with
 `ROOT_PASSWORD` (only a server past its bootstrap has another root password). The residual risk of that rule: with every other server
 down *and* the volume of the first peer lost, the first peer seeds an empty topology and the
@@ -151,10 +152,18 @@ A server that was removed this way and is scaled up again on the volume it kept 
 the data and its replication configuration, but no peer registers it any more, and
 `dsreplication enable` would not register it again. Its join takes its replication
 configuration down and enables it anew, and from that moment until the enable has registered
-it again the container does not report itself healthy, across restarts too: writes it took
-meanwhile would replicate nowhere. It does so only when at least one peer that replicates
-`BASE_DN` answered and none of them registers it - a peer that cannot be asked decides
-nothing.
+it again its clients may not write: writes it took meanwhile would replicate nowhere. The
+backend of `BASE_DN` is set to `writability-mode: internal-only` before anything changes -
+writes of clients are refused with `Unwilling to Perform`, replication and `dsreplication`
+still write - and set back to `enabled` once the server rejoined; a backend that was not
+`enabled` before is left as it is. Throughout, the container does not report itself healthy,
+across restarts too, and the server publishes `rejoining`, so no peer joins or initializes
+through it. The health status itself turns `unhealthy` only after the probe's retries (a
+readiness probe after its failure threshold), which is why the writes are refused rather than
+left to the health check. A join that gives up leaves the server unhealthy and read-only
+until a later start rejoins it. It takes the replication down only when at least one peer
+that replicates `BASE_DN` answered and none of them registers it - a peer that cannot be
+asked decides nothing.
 
 The one-shot types `srs`, `sdsr` and `rg` keep their previous behaviour - they run once,
 during the first bootstrap only - and are deprecated in favour of `simple`. Like `simple`,
@@ -246,10 +255,10 @@ with `subPath` when the Secret changes.
 | MASTER_SERVER           | -                               | Replication master server; with `simple` it works as a one-element `REPLICATION_PEERS`                                                                                                                                                                  |
 | REPLICATION_PEERS       | value of MASTER_SERVER          | every server of the replication topology by DNS name, comma separated; the first entry may seed a new topology, and servers no longer listed are removed from it, see [Replication](#replication) |
 | REPLICATION_PORT        | 8989                            | replication port, the same on every server of the topology                                                                                                                                                                                              |
-| REPLICATION_RETRY_COUNT | 30                              | rounds of join attempts through every peer before the join gives up: the first peer of `REPLICATION_PEERS` then seeds the topology, any other server stays `unhealthy`                                                                                  |
-| REPLICATION_RETRY_INTERVAL | 10                           | seconds between rounds of join attempts, plus a random part of as much again                                                                                                                                                                             |
-| REPLICATION_ATTEMPT_TIMEOUT | 120                             | seconds a single `dsreplication enable` may take before it is killed and tried again; it can hang on a peer that stops mid-operation, so a value that is not a positive number falls back to 120 |
-| REPLICATION_INITIALIZE_TIMEOUT | 0                               | seconds a single `dsreplication initialize` - a full import of `BASE_DN` - may take before it is killed and tried again; `0` sets no bound |
+| REPLICATION_RETRY_COUNT | 30                              | rounds of join attempts through every peer before the join gives up: the first peer of `REPLICATION_PEERS` then seeds the topology, any other server stays `unhealthy`; a value that is not a whole number above 0 falls back to 30 |
+| REPLICATION_RETRY_INTERVAL | 10                           | seconds between rounds of join attempts, plus a random part of as much again; a value that is not a whole number falls back to 10 |
+| REPLICATION_ATTEMPT_TIMEOUT | 120                             | seconds a single `dsreplication enable` may take before it is killed and tried again; it can hang on a peer that stops mid-operation, so a value that is not a whole number above 0 falls back to 120 |
+| REPLICATION_INITIALIZE_TIMEOUT | 0                               | seconds a single `dsreplication initialize` - a full import of `BASE_DN` - may take before it is killed and tried again; `0` sets no bound, and so does a value that is not a whole number |
 | VERSION                 | -                               | OpenDJ version                                                                                                                                                                                                                                          |
 | OPENDJ_USER             | opendj                          | user which runs OpenDJ                                                                                                                                                                                                                                  |
 | OPENDJ_REPLICATION_TYPE | -                               | OpenDJ Replication type, valid values are: <ul><li>simple - standard replication, joined in the background on every start, see [Replication](#replication)</li><li>srs - standalone replication servers (one-shot, deprecated)</li><li>sdsr - Standalone Directory Server Replicas (one-shot, deprecated)</li><li>rg - Replication Groups (one-shot, deprecated)</li></ul>Other values will be ignored |

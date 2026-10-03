@@ -58,6 +58,13 @@ logs_count() { # <container> <text>
   docker logs "$1" 2>&1 | grep -cF -- "$2" || true
 }
 
+# the container logged the text after the last line that holds <since> - after a restart,
+# say, which the join of the start before may still have logged into until it was stopped
+logs_have_since() { # <container> <since> <text>
+  docker logs "$1" 2>&1 | awk -v s="$2" 'index($0, s) { buf = ""; next } { buf = buf $0 "\n" } END { printf "%s", buf }' \
+    | grep -F -- "$3" >/dev/null
+}
+
 wait_until() { # <seconds> <what> <command> [<argument>...]
   local deadline=$((SECONDS + $1)) what=$2
   shift 2
@@ -140,6 +147,33 @@ drop_lock() { # <container>
   printf 'dn: cn=Docker Join Lock,cn=config\nchangetype: delete\n' \
     | docker exec -i "$1" /opt/opendj/bin/ldapmodify --noPropertiesFile --hostname localhost --port 4444 \
       --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --useSsl --trustAll >/dev/null
+}
+
+# hands a lock held by hand over to another holder at once, as a join of that server took it now
+relabel_lock() { # <container> <holder>
+  printf 'dn: cn=Docker Join Lock,cn=config\nchangetype: modify\nreplace: description\ndescription: %s %s\n' "$2" "$(date +%s)" \
+    | docker exec -i "$1" /opt/opendj/bin/ldapmodify --noPropertiesFile --hostname localhost --port 4444 \
+      --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --useSsl --trustAll >/dev/null
+}
+
+# the state the join of the container publishes to its peers
+published_state() { # <container>
+  admin_search "$1" "cn=Docker Join,cn=config" base "(objectClass=*)" description \
+    | awk 'tolower($1) == "description:" { print $2 }'
+}
+
+# the container holds the replication domain of dc=example,dc=com
+replicates_example() { # <container>
+  admin_search "$1" "cn=config" sub "(&(objectClass=ds-cfg-replication-domain)(ds-cfg-base-dn=dc=example,dc=com))" 1.1 \
+    | grep "^dn:" >/dev/null
+}
+
+# a client's write to the container is refused with Unwilling to Perform (53), as the backend
+# of a server whose replication is down refuses it
+refuses_writes() { # <container> <ou>
+  local rc=0
+  add_ou "$1" "$2" 2>/dev/null || rc=$?
+  [ "$rc" -eq 53 ]
 }
 
 # the replication server of the container lists every one of the other names
@@ -243,6 +277,14 @@ docker exec dj-solo /opt/opendj/bin/ldappasswordmodify --noPropertiesFile --host
   --authzID "dn:cn=Directory Manager" --currentPassword "$ROOT_PASSWORD" --newPassword "changed $ROOT_PASSWORD" >/dev/null
 docker restart dj-solo >/dev/null
 wait_until 180 "dj-solo is healthy again with its root password changed" is_healthy dj-solo
+# and a peer that refuses the bind with ROOT_PASSWORD is past its bootstrap: it may hold the
+# data of the topology, so a first peer that finds no other one gives up beside it rather
+# than seed a topology of its own
+start_node dj-f dj-f,dj-solo -e REPLICATION_RETRY_COUNT=2 -e REPLICATION_RETRY_INTERVAL=5
+wait_until 600 "dj-f gives up beside a peer that refuses the bind" logs_have dj-f "could not join the replication topology after 2 attempts"
+if logs_have dj-f "seeding it with this server's data"; then fail "dj-f seeded next to a peer past its bootstrap"; fi
+docker rm -f dj-f >/dev/null
+docker volume rm vol-dj-f >/dev/null
 docker rm -f dj-solo >/dev/null
 docker volume rm vol-dj-solo >/dev/null
 
@@ -326,7 +368,8 @@ ldaps_has dj-2 "ou=replicated,dc=example,dc=com" || fail "dj-2 lacks the data of
 # cn=admin data and from every replication server list they hold - that of BASE_DN, and
 # those of cn=schema and cn=admin data that dsreplication enable configures next to it.
 # dsreplication disable cannot, dj-2 being already gone. dj-2 keeps its volume, for the
-# scale-up below
+# scale-up below - and on it, in its cn=config, a join lock held by hand on dj-2 itself
+hold_lock dj-2
 docker rm -f dj-2 >/dev/null
 docker rm -f dj-0 dj-1 >/dev/null
 start_node dj-0 dj-0,dj-1
@@ -348,32 +391,57 @@ wait_has dj-1 "ou=replicated3,dc=example,dc=com"
 # scaled up again on the volume it kept: dj-2 still replicates, but the survivors no longer
 # register it, and an enable between two servers whose cn=admin data is replicated registers
 # nobody - so dj-2 takes its replication configuration down, enables again and registers.
-# The join locks of both survivors are held by hand meanwhile: dj-2 must wait for each of
-# them rather than enable, and with its replication down it must not report itself ready,
-# not even after a restart. Its enables are bounded generously, so that it does not break
-# the held locks as left behind by a killed join
+# The join locks are held by hand meanwhile, and dj-2 must wait for each of them rather than
+# go on: first its own, which it takes before its configuration goes, then those of both
+# survivors, which its enables take. With its replication down it must not report itself
+# ready, publish itself ready to its peers, or take the writes of clients, not even after a
+# restart. Its enables are bounded generously, so that it does not break the held locks as
+# left behind by a killed join - the one on dj-2 is held since the scale-down
 hold_lock dj-0
 hold_lock dj-1
-start_node dj-2 dj-0,dj-1,dj-2 -e REPLICATION_RETRY_COUNT=30 -e REPLICATION_ATTEMPT_TIMEOUT=600
-wait_until 300 "dj-2 takes its replication down" logs_have dj-2 "the peers no longer register this server"
-wait_until 120 "dj-2 waits for dj-0" logs_have dj-2 "dj-held is enabling replication through dj-0, waiting for it"
-wait_until 120 "dj-2 waits for dj-1" logs_have dj-2 "dj-held is enabling replication through dj-1, waiting for it"
-docker exec dj-2 test ! -e /opt/opendj/.bootstrap-complete || fail "dj-2 reports itself ready while its replication is down"
+start_node dj-2 dj-0,dj-1,dj-2 -e REPLICATION_RETRY_COUNT=30 -e REPLICATION_ATTEMPT_TIMEOUT=1800
+wait_until 300 "dj-2 finds that the peers no longer register it" logs_have dj-2 "the peers no longer register this server"
+wait_until 120 "dj-2 waits for its own lock" logs_have dj-2 "dj-held is enabling replication through this server, waiting for it"
+docker exec dj-2 test ! -e /opt/opendj/.bootstrap-complete || fail "dj-2 reports itself ready while it waits to take its replication down"
+[ "$(published_state dj-2)" = rejoining ] || fail "dj-2 does not publish that it is rejoining"
 # two rounds at most: start_node passes REPLICATION_RETRY_INTERVAL=3, and a round waits up to
 # twice as long
 sleep 12
+replicates_example dj-2 || fail "dj-2 took its replication down while its own lock was held"
+drop_lock dj-2
+wait_until 120 "dj-2 waits for dj-0" logs_have dj-2 "dj-held is enabling replication through dj-0, waiting for it"
+wait_until 120 "dj-2 waits for dj-1" logs_have dj-2 "dj-held is enabling replication through dj-1, waiting for it"
+docker exec dj-2 test ! -e /opt/opendj/.bootstrap-complete || fail "dj-2 reports itself ready while its replication is down"
+refuses_writes dj-2 unreplicated || fail "dj-2 takes the writes of clients while its replication is down"
+sleep 12
 admin_data_lacks dj-0 dj-2 || fail "dj-2 enabled while the locks of both peers were held"
-waits_before=$(logs_count dj-2 "dj-held is enabling replication through dj-0, waiting for it")
 docker restart dj-2 >/dev/null
 wait_until 300 "the restarted dj-2 leaves its health to the join" logs_have dj-2 "was taken out of its replication topology"
-waits_again() { [ "$(logs_count dj-2 "dj-held is enabling replication through dj-0, waiting for it")" -gt "$waits_before" ]; }
+waits_again() { logs_have_since dj-2 "was taken out of its replication topology" "dj-held is enabling replication through dj-0, waiting for it"; }
 wait_until 300 "the restarted dj-2 waits for dj-0 again" waits_again
 docker exec dj-2 test ! -e /opt/opendj/.bootstrap-complete || fail "the restarted dj-2 reports itself ready while its replication is down"
+[ "$(published_state dj-2)" = rejoining ] || fail "the restarted dj-2 publishes itself ready while its replication is down"
+refuses_writes dj-2 unreplicated || fail "the restarted dj-2 takes the writes of clients while its replication is down"
+# its own lock once more, now with both survivors free: an enable configures both of its
+# servers, so it waits for this one as well. The lock is taken as soon as no round of dj-2
+# holds it
+wait_until 120 "the lock of dj-2 is held by hand" hold_lock dj-2
+own_waits=$(logs_count dj-2 "dj-held is enabling replication through this server, waiting for it")
 drop_lock dj-0
 drop_lock dj-1
+own_waits_again() { [ "$(logs_count dj-2 "dj-held is enabling replication through this server, waiting for it")" -gt "$own_waits" ]; }
+wait_until 120 "dj-2 waits for its own lock with both survivors free" own_waits_again
+sleep 12
+admin_data_lacks dj-0 dj-2 || fail "dj-2 enabled while its own lock was held"
+# a lock under its own name was left by a join of an earlier start of dj-2, a start running
+# one join: it is broken at once, not once it is older than an enable may take
+self=$(docker exec dj-2 hostname -f | tr '[:upper:]' '[:lower:]')
+relabel_lock dj-2 "$self"
+wait_until 120 "dj-2 breaks the lock left under its own name" logs_have dj-2 "breaking the lock $self took on localhost"
 wait_healthy dj-2
 registered_dj2() { ! admin_data_lacks dj-0 dj-2; }
 wait_until 300 "dj-2 registers in the topology again" registered_dj2
+[ "$(published_state dj-2)" = ready ] || fail "the rejoined dj-2 does not publish itself ready"
 add_ou dj-2 rejoined
 wait_has dj-0 "ou=rejoined,dc=example,dc=com"
 
