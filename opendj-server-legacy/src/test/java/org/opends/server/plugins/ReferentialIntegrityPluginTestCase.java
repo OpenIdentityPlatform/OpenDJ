@@ -508,7 +508,26 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
             "ds-cfg-plugin-type: preOperationModify",
             "ds-cfg-attribute-type: member",
             "ds-cfg-check-references: false",
-            "ds-cfg-check-references-filter-criteria: member:(objectclass=person)"
+            "ds-cfg-check-references-filter-criteria: member:(objectclass=person)",
+            "",
+            // check-references enabled, filters that contain a colon
+            "dn: cn=Referential Integrity,cn=Plugins,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-plugin",
+            "objectClass: ds-cfg-referential-integrity-plugin",
+            "cn: Referential Integrity",
+            "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+            "ds-cfg-enabled: true",
+            "ds-cfg-plugin-type: postOperationDelete",
+            "ds-cfg-plugin-type: postOperationModifyDN",
+            "ds-cfg-plugin-type: subordinateModifyDN",
+            "ds-cfg-plugin-type: preOperationAdd",
+            "ds-cfg-plugin-type: preOperationModify",
+            "ds-cfg-attribute-type: member",
+            "ds-cfg-base-dn: o=test",
+            "ds-cfg-check-references: true",
+            "ds-cfg-check-references-filter-criteria: member:(o=urn:example)",
+            "ds-cfg-check-references-filter-criteria: member:(cn:dn:=x)"
     );
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
@@ -1636,6 +1655,62 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
     AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
+  }
+
+  /**
+   * Filter criteria whose filter contains a colon, or whose attribute is followed by a space. Each filter matches the
+   * manager entry only once its description is {@code urn:example:manager}.
+   */
+  @DataProvider
+  public Object[][] filterCriteriaWithColonInFilter()
+  {
+    return new Object[][] {
+      { "manager:(description=urn:example:manager)" },
+      { "manager:(description:caseExactMatch:=urn:example:manager)" },
+      { "manager :(description=*manager)" },
+    };
+  }
+
+  /**
+   * A check-references-filter-criteria value is split at its first colon, and both of its parts are trimmed: the
+   * filter that follows the attribute can contain colons of its own, and is enforced as written.
+   */
+  @Test(dataProvider = "filterCriteriaWithColonInFilter")
+  public void testEnforceIntegrityWithColonInFilter(String filterCriteria) throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "manager");
+    assertEquals(addAttrEntry(configDN, dsConfigAttrFiltMapping, filterCriteria).getResultCode(), ResultCode.SUCCESS);
+    assertEquals(replaceAttrEntry(configDN, "ds-cfg-enabled", "true").getResultCode(), ResultCode.SUCCESS);
+
+    String manager = "uid=manager,ou=people,ou=dept,dc=example,dc=com";
+    addEntry(manager);
+    Entry employee = TestCaseUtils.makeEntry(
+      "dn: uid=employee,ou=people,ou=dept,dc=example,dc=com",
+      "objectclass: top",
+      "objectclass: person",
+      "objectclass: organizationalperson",
+      "objectclass: inetorgperson",
+      "uid: employee",
+      "cn: employee",
+      "sn: employee",
+      "givenname: employee",
+      "manager: " + manager);
+
+    assertEquals(getRootConnection().processAdd(employee).getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
+
+    assertEquals(addAttrEntry(DN.valueOf(manager), "description", "urn:example:manager").getResultCode(),
+        ResultCode.SUCCESS);
+    assertEquals(getRootConnection().processAdd(employee).getResultCode(), ResultCode.SUCCESS);
   }
 
   /**

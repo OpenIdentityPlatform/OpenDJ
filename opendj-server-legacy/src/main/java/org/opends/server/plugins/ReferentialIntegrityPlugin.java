@@ -221,9 +221,9 @@ public class ReferentialIntegrityPlugin
 
     for (String attrFilt : newConfiguration.getCheckReferencesFilterCriteria())
     {
-      int sepInd = attrFilt.lastIndexOf(":");
-      String attr = attrFilt.substring(0, sepInd);
-      String filtStr = attrFilt.substring(sepInd + 1);
+      String[] attrAndFilter = splitFilterCriteria(attrFilt);
+      String attr = attrAndFilter[0];
+      String filtStr = attrAndFilter[1];
 
       AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attr);
       try
@@ -365,9 +365,9 @@ public class ReferentialIntegrityPlugin
 
     for (String attrFilt : pluginCfg.getCheckReferencesFilterCriteria())
     {
-      int sepInd = attrFilt.lastIndexOf(":");
-      String attr = attrFilt.substring(0, sepInd).trim();
-      String filtStr = attrFilt.substring(sepInd + 1).trim();
+      String[] attrAndFilter = splitFilterCriteria(attrFilt);
+      String attr = attrAndFilter[0];
+      String filtStr = attrAndFilter[1];
 
       /* TODO: strip the ;options part? */
 
@@ -396,6 +396,21 @@ public class ReferentialIntegrityPlugin
     }
 
     return isAcceptable;
+  }
+
+  /**
+   * Splits a check-references-filter-criteria value ({@code attribute:filter}) at its first colon: an attribute
+   * description cannot contain one, but the filter that follows it can, as in {@code (o=urn:example)} or
+   * {@code (cn:dn:=x)}. The property syntax guarantees that the value has a colon after a non-empty attribute.
+   *
+   * @param attrFilt
+   *          The check-references-filter-criteria value.
+   * @return The attribute and the filter, both trimmed.
+   */
+  private static String[] splitFilterCriteria(String attrFilt)
+  {
+    int sepInd = attrFilt.indexOf(':');
+    return new String[] { attrFilt.substring(0, sepInd).trim(), attrFilt.substring(sepInd + 1).trim() };
   }
 
   @Override
