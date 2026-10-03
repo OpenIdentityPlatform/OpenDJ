@@ -130,12 +130,14 @@ public class UserAttr implements KeywordBindRule {
     public static KeywordBindRule decode(String expression,
                                          EnumBindRuleType type)
     throws AciException {
-        String[] vals=expression.split("#");
-        if(vals.length != 2) {
+        // The attribute name cannot contain an octothorpe, but the value after it can.
+        final int sharpPos = expression.indexOf('#');
+        if (sharpPos < 0 || sharpPos == expression.length() - 1) {
             LocalizableMessage message =
                 WARN_ACI_SYNTAX_INVALID_USERATTR_EXPRESSION.get(expression);
             throw new AciException(message);
         }
+        final String[] vals = { expression.substring(0, sharpPos), expression.substring(sharpPos + 1) };
         UserAttrType userAttrType = UserAttrType.getType(vals[1]);
         switch (userAttrType) {
                 case GROUPDN:

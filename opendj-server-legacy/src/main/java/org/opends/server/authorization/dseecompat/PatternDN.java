@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -973,7 +974,13 @@ public class PatternDN
     // Look at the first character.  If it is an octothorpe (#), then
     // that means that the value should be a hex string.
     char c = dnString.charAt(pos++);
-    if (c == '#')
+    if (c == ',' || c == ';' || c == '+')
+    {
+      // The value is empty and followed by the next RDN or AVA, as DN.valueOf() reads it.
+      attributeValues.add(ByteString.empty());
+      return pos - 1;
+    }
+    else if (c == '#')
     {
       // The first two characters must be hex characters.
       StringBuilder hexString = new StringBuilder();
@@ -999,7 +1006,7 @@ public class PatternDN
 
       // The rest of the value must be a multiple of two hex
       // characters.  The end of the value may be designated by the
-      // end of the DN, a comma or semicolon, or a space.
+      // end of the DN, a comma or semicolon, a plus sign, or a space.
       while (pos < length)
       {
         c = dnString.charAt(pos++);
@@ -1026,7 +1033,7 @@ public class PatternDN
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
           }
         }
-        else if (c == ' ' || c == ',' || c == ';')
+        else if (c == ' ' || c == ',' || c == ';' || c == '+')
         {
           // This denotes the end of the value.
           pos--;
@@ -1063,6 +1070,7 @@ public class PatternDN
       // Keep reading until we find an unescaped closing quotation mark.
       boolean escaped = false;
       StringBuilder valueString = new StringBuilder();
+      StringBuilder hexChars = new StringBuilder();
       while (true)
       {
         if (pos >= length)
@@ -1076,9 +1084,18 @@ public class PatternDN
         c = dnString.charAt(pos++);
         if (escaped)
         {
-          // The previous character was an escape, so we'll take this
-          // one no matter what.
-          valueString.append(c);
+          // The previous character was an escape. As in an unquoted value, and as DN.valueOf() reads
+          // a quoted value, an escaped pair of hex digits is one byte of the UTF-8 encoded value.
+          if (isHexDigit(c) && pos < length && isHexDigit(dnString.charAt(pos)))
+          {
+            hexChars.append(c);
+            hexChars.append(dnString.charAt(pos++));
+          }
+          else
+          {
+            appendHexChars(dnString, valueString, hexChars);
+            valueString.append(c);
+          }
           escaped = false;
         }
         else if (c == '\\')
@@ -1090,12 +1107,14 @@ public class PatternDN
         else if (c == '"')
         {
           // This is the end of the value.
+          appendHexChars(dnString, valueString, hexChars);
           break;
         }
         else
         {
           // This is just a regular character that should be in the
           // value.
+          appendHexChars(dnString, valueString, hexChars);
           valueString.append(c);
         }
       }

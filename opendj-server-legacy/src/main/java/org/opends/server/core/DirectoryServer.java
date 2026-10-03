@@ -63,6 +63,7 @@ import javax.management.MBeanServerFactory;
 
 import org.forgerock.http.routing.Router;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.ConfigurationFramework;
@@ -70,6 +71,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.server.AlertHandlerCfg;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
@@ -5117,8 +5119,25 @@ public final class DirectoryServer
    */
   public static DN getMonitorProviderDN(MonitorProvider<?> provider)
   {
-    // Get a complete DN which could be a tree naming schema
-    return DN.valueOf("cn=" + provider.getMonitorInstanceName() + "," + DN_MONITOR_ROOT);
+    final String name = provider.getMonitorInstanceName();
+    final DN monitorRoot = DN.valueOf(DN_MONITOR_ROOT);
+    // The name may be a relative DN that names an entry below cn=monitor, possibly several levels down:
+    // the replication monitors build a tree that way.
+    try
+    {
+      final DN dn = DN.valueOf("cn=" + name + "," + DN_MONITOR_ROOT);
+      if (dn.isInScopeOf(monitorRoot, SearchScope.SUBORDINATES))
+      {
+        return dn;
+      }
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      // Not a relative DN, see below.
+    }
+    // Otherwise the whole name is the value of the RDN of the entry. A name that is not a relative DN, such as
+    // "LDAP, internal 0.0.0.0 port 1389", must not make the whole monitor backend fail.
+    return monitorRoot.child("cn", name);
   }
 
   /**

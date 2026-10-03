@@ -542,7 +542,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     // If it takes time to read the entry, the rdnAttribute might not be initialized yet. Don't try to use it then.
     if (value.length() > 0 && rdnAttribute != null)
     {
-      dn.setText(rdnAttribute + "=" + value + "," + parentDN.getText().trim());
+      dn.setText(getNewEntryDN(rdnAttribute, value, parentDN.getText().trim()));
     }
     else
     {
