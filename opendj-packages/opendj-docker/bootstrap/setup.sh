@@ -84,7 +84,7 @@ BACKEND_DB_DIRECTORY=${BACKEND_DB_DIRECTORY:-db}
 echo "creating backend: $BACKEND_TYPE db-directory: ${BACKEND_DB_DIRECTORY}"
 
 /opt/opendj/bin/dsconfig create-backend -h localhost -p $ADMIN_PORT --bindDN "$ROOT_USER_DN" --bindPasswordFile "$PASSWORD_FILE" \
-  --backend-name=userRoot --type $BACKEND_TYPE --set base-dn:$BASE_DN --set "db-directory:$BACKEND_DB_DIRECTORY" \
+  --backend-name=userRoot --type $BACKEND_TYPE --set "base-dn:$BASE_DN" --set "db-directory:$BACKEND_DB_DIRECTORY" \
   --set enabled:true --no-prompt --trustAll || exit 1
 
 if [ "$ADD_BASE_ENTRY" = "--addBaseEntry"  ]; then
