@@ -17,6 +17,10 @@
  */
 package org.forgerock.opendj.ldap;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -234,32 +238,43 @@ public final class LDAPUrl {
             final StringBuilder decoded) {
         Reject.ifNull(s);
         Reject.ifNull(decoded);
-        decoded.append(s);
 
-        int srcPos = 0, dstPos = 0;
-
-        while (srcPos < decoded.length()) {
-            if (decoded.charAt(srcPos) != '%') {
-                if (srcPos != dstPos) {
-                    decoded.setCharAt(dstPos, decoded.charAt(srcPos));
-                }
+        final ByteArrayOutputStream octets = new ByteArrayOutputStream();
+        int srcPos = 0;
+        while (srcPos < s.length()) {
+            if (s.charAt(srcPos) != '%') {
+                decoded.append(s.charAt(srcPos));
                 srcPos++;
-                dstPos++;
                 continue;
             }
-            if (srcPos + 2 >= decoded.length()) {
-                // A percent sign must be followed by two hexadecimal digits.
-                final LocalizableMessage msg =
-                        ERR_LDAPURL_INVALID_HEX_BYTE.get(urlString, index + srcPos + 1);
-                throw new LocalizedIllegalArgumentException(msg);
+            // Collect a run of percent-encoded octets and decode it as a whole.
+            octets.reset();
+            while (srcPos < s.length() && s.charAt(srcPos) == '%') {
+                if (srcPos + 2 >= s.length()) {
+                    // A percent sign must be followed by two hexadecimal digits.
+                    final LocalizableMessage msg =
+                            ERR_LDAPURL_INVALID_HEX_BYTE.get(urlString, index + srcPos + 1);
+                    throw new LocalizedIllegalArgumentException(msg);
+                }
+                int i = decodeHex(urlString, index + srcPos + 1, s.charAt(srcPos + 1)) << 4;
+                int j = decodeHex(urlString, index + srcPos + 2, s.charAt(srcPos + 2));
+                octets.write(i | j);
+                srcPos += 3;
             }
-            int i = decodeHex(urlString, index + srcPos + 1, decoded.charAt(srcPos + 1)) << 4;
-            int j = decodeHex(urlString, index + srcPos + 2, decoded.charAt(srcPos + 2));
-            decoded.setCharAt(dstPos, (char) (i | j));
-            dstPos++;
-            srcPos += 3;
+            decoded.append(decodeOctets(octets.toByteArray()));
         }
-        decoded.setLength(dstPos);
+    }
+
+    /**
+     * Decodes percent-encoded octets as UTF-8 (RFC 4516 section 2.1). Octets that are not UTF-8
+     * give one char each, as this class decoded them before.
+     */
+    private static String decodeOctets(final byte[] octets) {
+        try {
+            return StandardCharsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(octets)).toString();
+        } catch (final CharacterCodingException e) {
+            return new String(octets, StandardCharsets.ISO_8859_1);
+        }
     }
 
     /**
@@ -273,14 +288,20 @@ public final class LDAPUrl {
      */
     private static void percentEncoder(final String urlElement, final StringBuilder encodedBuffer) {
         Reject.ifNull(urlElement);
-        for (int count = 0; count < urlElement.length(); count++) {
-            final char c = urlElement.charAt(count);
-            if (VALID_CHARS.contains(c)) {
-                encodedBuffer.append(c);
+        for (int count = 0; count < urlElement.length();) {
+            final int c = urlElement.codePointAt(count);
+            final int next = count + Character.charCount(c);
+            if (c < Character.MIN_SUPPLEMENTARY_CODE_POINT && VALID_CHARS.contains((char) c)) {
+                encodedBuffer.append((char) c);
             } else {
-                encodedBuffer.append(PERCENT_ENCODING_CHAR);
-                encodedBuffer.append(Integer.toHexString(c));
+                // Each octet of the UTF-8 encoding, as two hex digits.
+                for (final byte b : urlElement.substring(count, next).getBytes(StandardCharsets.UTF_8)) {
+                    encodedBuffer.append(PERCENT_ENCODING_CHAR);
+                    encodedBuffer.append(Character.forDigit((b >> 4) & 0xF, 16));
+                    encodedBuffer.append(Character.forDigit(b & 0xF, 16));
+                }
             }
+            count = next;
         }
     }
 

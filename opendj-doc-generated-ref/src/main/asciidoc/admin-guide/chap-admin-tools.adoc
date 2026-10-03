@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -222,6 +222,9 @@ You can prepare `dsconfig` batch scripts by running the command with the `--comm
 
 +
 Alternatively, you can read commands from standard input by using the `--batch` option.
+
++
+The `dsconfig` command splits each batch line into arguments as a POSIX shell does, without expanding variables. Outside quotes, a backslash escapes the next character. Single quotes keep everything as typed. Inside double quotes, a backslash escapes only a double quote, a backslash, a dollar sign, or a backquote, and is kept before any other character. For example, `--set base-dn:"cn=a\,b,dc=example,dc=com"` and `--set 'base-dn:cn=a\,b,dc=example,dc=com'` both set the DN `cn=a\,b,dc=example,dc=com`.
 
 +
 For details see xref:../reference/admin-tools-ref.adoc#dsconfig-1[dsconfig(1)] in the __Reference__.

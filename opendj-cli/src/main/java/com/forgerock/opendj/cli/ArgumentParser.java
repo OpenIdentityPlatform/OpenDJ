@@ -23,10 +23,18 @@ import static com.forgerock.opendj.cli.DocGenerationHelper.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
+import static java.nio.charset.StandardCharsets.ISO_8859_1;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.StringReader;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -411,10 +419,7 @@ public class ArgumentParser implements ToolRefDocContainer {
         try {
             final Properties argumentProperties = new Properties();
             final String scriptName = getScriptName();
-            final Properties p = new Properties();
-            try (final FileInputStream fis = new FileInputStream(propertiesFilePath)) {
-                p.load(fis);
-            }
+            final Properties p = loadPropertiesFile(propertiesFilePath);
 
             for (final Enumeration<?> e = p.propertyNames(); e.hasMoreElements();) {
                 final String currentPropertyName = (String) e.nextElement();
@@ -438,6 +443,26 @@ public class ArgumentParser implements ToolRefDocContainer {
                     ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(propertiesFilePath, getExceptionMessage(e));
             throw new ArgumentException(message, e);
         }
+    }
+
+    /**
+     * Reads a properties file as UTF-8, or as ISO-8859-1, which earlier releases used, when it is
+     * not valid UTF-8. A backslash keeps its meaning in the properties format and must be doubled.
+     */
+    private static Properties loadPropertiesFile(final String path) throws IOException {
+        final byte[] content = Files.readAllBytes(Paths.get(path));
+        String text;
+        try {
+            text = UTF_8.newDecoder().decode(ByteBuffer.wrap(content)).toString();
+        } catch (final CharacterCodingException e) {
+            text = new String(content, ISO_8859_1);
+        }
+        if (text.startsWith("\uFEFF")) {
+            text = text.substring(1);
+        }
+        final Properties properties = new Properties();
+        properties.load(new StringReader(text));
+        return properties;
     }
 
     /**
@@ -1268,10 +1293,8 @@ public class ArgumentParser implements ToolRefDocContainer {
             final boolean requirePropertiesFile) throws ArgumentException {
         Properties argumentProperties = null;
 
-        try (final FileInputStream fis = new FileInputStream(propertiesFile)) {
-            final Properties p = new Properties();
-            p.load(fis);
-            argumentProperties = p;
+        try {
+            argumentProperties = loadPropertiesFile(propertiesFile);
         } catch (final Exception e) {
             if (requirePropertiesFile) {
                 final LocalizableMessage message =
