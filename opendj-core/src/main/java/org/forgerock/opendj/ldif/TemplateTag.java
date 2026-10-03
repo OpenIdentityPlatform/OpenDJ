@@ -306,24 +306,26 @@ abstract class TemplateTag {
                 return TagResult.SUCCESS;
             }
 
-            String dnAsString = "";
+            final DN dnToFormat;
             if (numComponents == 0) {
                 // Return the DN of the entry
-                dnAsString = dn.toString();
+                dnToFormat = dn;
             } else if (numComponents > 0) {
                 // Return the first numComponents RDNs of the DN
-                dnAsString = dn.localName(numComponents).toString();
+                dnToFormat = dn.localName(numComponents);
             } else {
                 // numComponents is negative
                 // Return the last numComponents RDNs of the DN
-                dnAsString = dn.parent(dn.size() - Math.abs(numComponents)).toString();
+                dnToFormat = dn.parent(dn.size() - Math.abs(numComponents));
             }
-            // If expected separator is not standard separator
-            // Then substitute expected to standard
-            if (!separator.equals(",")) {
-                dnAsString = dnAsString.replaceAll(",", separator);
+            // Join the RDNs with the expected separator: replacing the commas of the DN string
+            // would also replace the escaped commas inside the attribute values.
+            for (int i = 0; i < dnToFormat.size(); i++) {
+                if (i > 0) {
+                    templateValue.append(separator);
+                }
+                templateValue.append(dnToFormat.parent(i).rdn());
             }
-            templateValue.append(dnAsString);
 
             return TagResult.SUCCESS;
         }

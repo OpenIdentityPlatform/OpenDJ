@@ -13,7 +13,7 @@
  *
  * Portions Copyright 2006-2007-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
- * Portions Copyright 2023-2025 3A Systems LLC.
+ * Portions Copyright 2023-2026 3A Systems LLC.
  */
 package org.opends.server.config;
 
@@ -49,6 +49,7 @@ import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.protocols.internal.Requests.newSearchRequest;
 import static org.opends.server.util.CollectionUtils.newArrayList;
 import static org.opends.server.util.ServerConstants.MBEAN_BASE_DOMAIN;
+import static org.opends.server.util.StaticUtils.byteToHex;
 import static org.opends.server.util.StaticUtils.isAlpha;
 import static org.opends.server.util.StaticUtils.isDigit;
 
@@ -95,46 +96,85 @@ public final class JMXMBean
   {
       try
       {
-          String typeStr = null;
-          String dnString = configEntryDN.toString();
-          if (dnString != null && dnString.length() != 0)
+          StringBuilder buffer = new StringBuilder();
+          // Walk the RDNs from the root, rather than splitting the DN string at every comma.
+          for (int j = configEntryDN.size() - 1; j >= 0; j--)
           {
-              StringBuilder buffer = new StringBuilder(dnString.length());
-              String rdns[] = dnString.replace(',', ';').split(";");
-              for (int j = rdns.length - 1; j >= 0; j--)
-              {
-                  int rdnIndex = rdns.length - j;
-                  buffer.append(",Rdn").append(rdnIndex).append("=") ;
-                  for (int i = 0; i < rdns[j].length(); i++)
-                  {
-                      char c = rdns[j].charAt(i);
-                      if (isAlpha(c) || isDigit(c))
-                      {
-                          buffer.append(c);
-                      } else
-                      {
-                          switch (c)
-                          {
-                              case ' ':
-                                  buffer.append("_");
-                                  break;
-                              case '=':
-                                  buffer.append("-");
-                          }
-                      }
-                  }
-              }
-
-              typeStr = buffer.toString();
+              int rdnIndex = configEntryDN.size() - j;
+              buffer.append(",Rdn").append(rdnIndex).append("=");
+              appendJmxRdn(buffer, configEntryDN.parent(j).rdn());
           }
-
-          return MBEAN_BASE_DOMAIN + ":" + "Name=rootDSE" + typeStr;
+          // The root DN keeps the name it always had, which ends with "null".
+          return MBEAN_BASE_DOMAIN + ":" + "Name=rootDSE" + (buffer.length() != 0 ? buffer : "null");
       } catch (Exception e)
       {
         logger.traceException(e);
         logger.error(ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN, configEntryDN, e);
         return null;
       }
+  }
+
+  /**
+   * Appends the JMX form of an RDN to the provided buffer. The attribute name keeps only its letters and
+   * digits, and is followed by '-' and the value. A value made of letters, digits and spaces is written as it
+   * always was, with '_' for a space. Any other value would lose characters that way, and two DNs would share
+   * a name, so it is percent-encoded instead: its letters and digits are kept and every other character is
+   * written as the '%' encoded bytes of its UTF-8 form. The AVAs of a multi-valued RDN are joined with '+'.
+   */
+  private static void appendJmxRdn(StringBuilder buffer, RDN rdn)
+  {
+    boolean first = true;
+    for (AVA ava : rdn)
+    {
+      if (!first)
+      {
+        buffer.append('+');
+      }
+      first = false;
+      String name = ava.getAttributeName();
+      for (int i = 0; i < name.length(); i++)
+      {
+        char c = name.charAt(i);
+        if (isAlpha(c) || isDigit(c))
+        {
+          buffer.append(c);
+        }
+      }
+      buffer.append('-');
+      String value = ava.getAttributeValue().toString();
+      if (isPlainJmxValue(value))
+      {
+        buffer.append(value.replace(' ', '_'));
+      }
+      else
+      {
+        for (byte b : ava.getAttributeValue().toByteArray())
+        {
+          char c = (char) (b & 0xFF);
+          if (c < 0x80 && (isAlpha(c) || isDigit(c)))
+          {
+            buffer.append(c);
+          }
+          else
+          {
+            buffer.append('%').append(byteToHex(b));
+          }
+        }
+      }
+    }
+  }
+
+  private static boolean isPlainJmxValue(String value)
+  {
+    for (int i = 0; i < value.length(); i++)
+    {
+      char c = value.charAt(i);
+      if (!isAlpha(c) && !isDigit(c) && c != ' ')
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.monitors;
 
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.TreeMap;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.server.config.server.ClientConnectionMonitorProviderCfg;
 import org.opends.server.api.ClientConnection;
@@ -101,7 +103,7 @@ public class ClientConnectionMonitorProvider extends
     {
       // Client connections of a connection handler
       return "Client Connections" + ",cn="
-          + handler.getConnectionHandlerName();
+          + DN.escapeAttributeValue(handler.getConnectionHandlerName());
     }
   }
 

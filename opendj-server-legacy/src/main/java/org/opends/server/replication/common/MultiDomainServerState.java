@@ -13,11 +13,13 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.common;
 
 import static org.opends.messages.ReplicationMessages.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -395,23 +397,18 @@ public class MultiDomainServerState implements Iterable<DN>
       try
       {
         // Split the provided multiDomainServerState into domains
-        String[] domains = multiDomainServerState.split(";");
-        for (String domain : domains)
+        for (String domain : splitDomains(multiDomainServerState))
         {
           // For each domain, split the CSNs by server
           // and build a server state (SHOULD BE OPTIMIZED)
           final ServerState serverStateByDomain = new ServerState();
 
-          final String[] fields = domain.split(":");
-          if (fields.length == 0)
+          // The base DN may contain ':' (o=urn:x), but a CSN never does: the state starts after the last one.
+          final int colonPos = domain.lastIndexOf(':');
+          final String domainBaseDN = colonPos >= 0 ? domain.substring(0, colonPos) : domain;
+          if (colonPos >= 0 && colonPos + 1 < domain.length())
           {
-            throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                ERR_INVALID_COOKIE_SYNTAX.get(multiDomainServerState));
-          }
-          final String domainBaseDN = fields[0];
-          if (fields.length > 1)
-          {
-            final String serverStateStr = fields[1];
+            final String serverStateStr = domain.substring(colonPos + 1);
             for (String csnStr : serverStateStr.split(" "))
             {
               final CSN csn = new CSN(csnStr);
@@ -420,10 +417,6 @@ public class MultiDomainServerState implements Iterable<DN>
           }
           startStates.put(DN.valueOf(domainBaseDN), serverStateByDomain);
         }
-      }
-      catch (DirectoryException de)
-      {
-        throw de;
       }
       catch (Exception e)
       {
@@ -434,5 +427,40 @@ public class MultiDomainServerState implements Iterable<DN>
       }
     }
     return startStates;
+  }
+
+  /**
+   * Splits the provided cookie at each ';' that ends a domain. {@link DN#toString()} escapes a ';' of the base DN
+   * as "\;", so a ';' preceded by an unescaped backslash belongs to the base DN. As {@link String#split(String)}
+   * did, empty trailing domains are dropped.
+   */
+  private static List<String> splitDomains(String multiDomainServerState)
+  {
+    final List<String> domains = new ArrayList<>();
+    int start = 0;
+    boolean escaped = false;
+    for (int i = 0; i < multiDomainServerState.length(); i++)
+    {
+      final char c = multiDomainServerState.charAt(i);
+      if (escaped)
+      {
+        escaped = false;
+      }
+      else if (c == '\\')
+      {
+        escaped = true;
+      }
+      else if (c == ';')
+      {
+        domains.add(multiDomainServerState.substring(start, i));
+        start = i + 1;
+      }
+    }
+    domains.add(multiDomainServerState.substring(start));
+    while (!domains.isEmpty() && domains.get(domains.size() - 1).isEmpty())
+    {
+      domains.remove(domains.size() - 1);
+    }
+    return domains;
   }
 }

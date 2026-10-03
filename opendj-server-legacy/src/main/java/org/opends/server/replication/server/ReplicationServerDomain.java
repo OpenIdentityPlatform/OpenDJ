@@ -2553,9 +2553,25 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   @Override
   public String getMonitorInstanceName()
   {
-    return "Replication server RS(" + localReplicationServer.getServerId()
-        + ") " + localReplicationServer.getServerURL() + ",cn="
-        + baseDN.toString().replace(',', '_').replace('=', '_')
+    return getMonitorInstanceName(localReplicationServer.getServerId(), localReplicationServer.getServerURL(), baseDN);
+  }
+
+  /**
+   * Returns the name of the monitor of a replication server domain: the relative DN of its entry below cn=monitor.
+   *
+   * @param serverId
+   *          the server ID of the replication server
+   * @param serverURL
+   *          the URL of the replication server
+   * @param baseDN
+   *          the base DN of the domain
+   * @return the name of the monitor of the replication server domain
+   */
+  static String getMonitorInstanceName(int serverId, String serverURL, DN baseDN)
+  {
+    // The base DN, with '_' for ',' and '=', is the value of an RDN: escape what is left, such as '+'.
+    return "Replication server RS(" + serverId + ") " + serverURL
+        + ",cn=" + DN.escapeAttributeValue(baseDN.toString().replace(',', '_').replace('=', '_'))
         + ",cn=Replication";
   }
 

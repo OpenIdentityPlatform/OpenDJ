@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -43,6 +44,13 @@ public class UniqueMemberEqualityMatchingRuleTest extends MatchingRuleTest {
               "1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'0101'B", ConditionResult.TRUE },
             { "1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'0101'B",
               "1.3.6.1.4.1.1466.0=#04024869,o=Test,C=GB#'0101'B", ConditionResult.TRUE },
+            // An escaped '#' belongs to the DN: "a#'01'B" is the last value, there is no optional uid
+            { "dc=x,o=a\\#'01'B", "dc=x,o=a\\#'01'B", ConditionResult.TRUE },
+            { "dc=x,o=a\\#'01'B", "dc=x,o=a\\23'01'B", ConditionResult.TRUE },
+            { "dc=x,o=a\\#'01'B", "dc=x,o=a#'01'B", ConditionResult.FALSE },
+            // An escaped backslash does not escape the '#' that follows it
+            { "dc=x,o=a\\\\#'01'B", "dc=x,o=a\\5C#'01'B", ConditionResult.TRUE },
+            { "dc=x,o=a\\\\#'01'B", "dc=x,o=a\\5C\\23'01'B", ConditionResult.FALSE },
         };
     }
 
