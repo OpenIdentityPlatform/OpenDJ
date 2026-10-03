@@ -47,6 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -1003,7 +1004,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     try
     {
       env = new Environment(backendDirectory, envConfig);
-      monitor = new JEMonitor(config.getBackendId() + " JE Database", env);
+      monitor = new JEMonitor(DN.escapeAttributeValue(config.getBackendId()) + " JE Database", env);
       DirectoryServer.registerMonitorProvider(monitor);
     }
     catch (DatabaseException e)

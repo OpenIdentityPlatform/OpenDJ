@@ -1294,6 +1294,14 @@ public class Utilities
       for (int i = 0; i < stringBytes.length; i++)
       {
         if (stringBytes[i] == '\\'
+                && i + 1 < stringBytes.length
+                && stringBytes[i+1] == '\\')
+        {
+          // An escaped backslash: the character after it does not start a hex pair.
+          decodedBytes[pos++] = stringBytes[i++];
+          decodedBytes[pos++] = stringBytes[i];
+        }
+        else if (stringBytes[i] == '\\'
                 && i + 2 < stringBytes.length
                 && StaticUtils.isHexDigit(stringBytes[i+1])
                 && StaticUtils.isHexDigit(stringBytes[i+2]))

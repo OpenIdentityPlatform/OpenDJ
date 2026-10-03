@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.monitors;
 
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.ClientConnection;
@@ -67,7 +69,8 @@ public class ConnectionHandlerMonitor
   @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
   {
-    monitorName = connectionHandler.getConnectionHandlerName();
+    // The name of the connection handler is the value of the RDN of the monitor entry.
+    monitorName = DN.escapeAttributeValue(connectionHandler.getConnectionHandlerName());
   }
 
 

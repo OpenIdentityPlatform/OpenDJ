@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.common;
 
@@ -64,6 +65,37 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
   {
     final MultiDomainServerState state = new MultiDomainServerState(cookie);
     assertEquals(state.toString(), expectedCookie);
+  }
+
+  @DataProvider
+  public Object[][] specialBaseDNs()
+  {
+    return new Object[][] {
+      { "o=urn:x" },
+      { "ou=https://idp.example.com/metadata#v1,dc=x" },
+      // DN.toString() escapes ';' as "\;"
+      { "o=a\\;b" },
+      // An escaped backslash does not escape the ';' that follows it
+      { "o=a\\\\\\;b" },
+      { "o=a\\\\" },
+      { "o=a\\:b" },
+    };
+  }
+
+  /** The cookie written by toString() must decode to the same state whatever the base DN contains. */
+  @Test(dataProvider = "specialBaseDNs")
+  public void decodeCookieWithSpecialBaseDN(String baseDN) throws Exception
+  {
+    final DN dn = DN.valueOf(baseDN);
+    final MultiDomainServerState state = new MultiDomainServerState();
+    state.update(dn, csn1);
+    state.update(dn2, csn2);
+    final String cookie = state.toString();
+
+    final MultiDomainServerState decoded = new MultiDomainServerState(cookie);
+    assertEquals(decoded.getCSN(dn, csn1.getServerId()), csn1);
+    assertEquals(decoded.getCSN(dn2, csn2.getServerId()), csn2);
+    assertEquals(decoded.toString(), cookie);
   }
 
   @DataProvider

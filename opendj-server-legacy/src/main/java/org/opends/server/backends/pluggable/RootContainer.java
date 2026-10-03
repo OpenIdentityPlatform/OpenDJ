@@ -336,7 +336,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   {
     if (monitor == null)
     {
-      monitor = new BackendMonitor(backendId + " Storage", this);
+      monitor = new BackendMonitor(DN.escapeAttributeValue(backendId) + " Storage", this);
     }
     return monitor;
   }
