@@ -16,9 +16,10 @@ docker run -d -p 1389:1389 -p 1636:1636 -p 4444:4444 --name opendj openidentityp
 
 The image reports itself `healthy` once the server answers on `LDAPS_PORT` *and* the whole
 bootstrap has succeeded - the instance, the `userRoot` backend over `BASE_DN`, whatever
-`ADD_BASE_ENTRY` and `SAMPLE_DATA` asked to be imported into it, and the replication asked
-for by `MASTER_SERVER`. Waiting for that status is therefore enough before the first search
-of what the bootstrap was told to create:
+`ADD_BASE_ENTRY` and `SAMPLE_DATA` asked to be imported into it, and, where replication is
+asked for, the join of the replication topology (see [Replication](#replication)). Waiting
+for that status is therefore enough before the first search of what the bootstrap was told
+to create:
 
 ```bash
 docker run -d --name opendj -e ADD_BASE_ENTRY=--addBaseEntry openidentityplatform/opendj
@@ -52,14 +53,7 @@ set them before the upgrade.
 
 The server answering is not enough on a first start: the bootstrap starts the server, and
 once it is done that server is stopped and started again in the foreground, so a client
-that only waits for the port can have its first requests fail in between. A replica set up
-with `MASTER_SERVER` tries a master it cannot connect to again, every 10 s for up to 5
-minutes, so a master that is down when the replica reaches it does not fail its replication
-setup; one that stops while `dsreplication enable` is writing to it still does.
-
-With `OPENDJ_REPLICATION_TYPE=srs`, start the directory server replicas one at a time, each
-once the previous one is healthy: every replica pushes its data to the replicas connected at
-that moment, and one that is restarting at the end of its own first start misses it.
+that only waits for the port can have its first requests fail in between.
 
 A bootstrap that imports `SAMPLE_DATA` can take minutes on a small container, which is what
 the start period allows for. A bootstrap that fails - or an upgrade that fails when starting
@@ -71,6 +65,114 @@ The server runs as PID 1 of the container, and a JVM does not reap the processes
 behind to it - those of a health check that ran past its timeout, say. Run the container
 with `docker run --init` (`init: true` in Compose) to put a PID 1 in front of the server
 that reaps them and passes SIGTERM on to it.
+
+## Replication
+
+With `OPENDJ_REPLICATION_TYPE=simple`, the container joins its replication topology in the
+background, next to the running server, on every start - not as a step of the first
+bootstrap, so a join that could not complete is tried again on the next start, and
+membership that changed while no container ran is repaired. `REPLICATION_PEERS` lists every
+server of the topology by DNS name, comma separated; all of them share `BASE_DN`,
+`ROOT_USER_DN`, `ROOT_PASSWORD`, `ADMIN_PORT` and `REPLICATION_PORT`. A Kubernetes
+StatefulSet derives the list from its ordinals
+(`<sts>-0.<headless svc>,…,<sts>-N-1.<headless svc>`), so it needs no registry; plain
+`docker run` passes the container names, each container started with `--hostname` equal to
+its `--name` (or with `MYHOSTNAME` set to it). `MASTER_SERVER` keeps working as a
+one-element list, and may name the master by an address or an `/etc/hosts` alias as before:
+the master recognises itself by those as well.
+
+A server recognises itself in the list by a name that equals its `hostname -f`, or that is
+its `hostname -f` cut at a dot (or the other way round) - a pod whose FQDN is
+`<sts>-N.<headless svc>.<namespace>.svc.cluster.local` is listed as
+`<sts>-N.<headless svc>` - and by one of its own addresses or a name `/etc/hosts` gives one
+of them (an `--add-host` or a `hostAliases` entry for itself). Names are compared whole:
+`opendj-1` is not `opendj-10`, and `opendj-0.opendj.east` is not `opendj-0.opendj.west`.
+List DNS names rather than addresses in `REPLICATION_PEERS`: the servers register in
+`cn=admin data` by name, and a server listed by address alone would be taken for one that
+left the topology and removed from it (see below). A server registered by an address - a
+master that `MASTER_SERVER=<address>` named, which its replicas registered under that address
+- is never removed that way, as nothing tells it from a listed name: moving such a topology
+to a `REPLICATION_PEERS` of names keeps the master, and once it really is gone, it is
+removed by hand.
+
+The join decides from what is there, not from an exit code: this server is a member once
+its configuration holds the replication domain for `BASE_DN` and it is registered in
+`cn=admin data`. Until then it runs `dsreplication enable` through the listed peers,
+`REPLICATION_RETRY_COUNT` times every `REPLICATION_RETRY_INTERVAL` seconds, each enable
+bounded by `REPLICATION_ATTEMPT_TIMEOUT` seconds, and the container reports itself healthy
+only once the join succeeded and the volume holds the data of the topology - across
+restarts too. A server whose volume holds that data is ready as soon as it serves, without
+waiting for its peers or for its join, so a whole cluster restart does not deadlock under
+`OrderedReady`, and a changed root password does not keep it unready either (the join,
+which binds with `ROOT_PASSWORD`, then only logs that it cannot).
+
+A volume the container bootstraps is marked before the bootstrap starts, and initialized
+from the topology once the join succeeds, whether or not `BASE_DN` already holds entries - so
+a bootstrap that failed or was killed half-way is initialized as well, never taken for data
+of the topology: every fresh volume holds what
+`ADD_BASE_ENTRY` or `SAMPLE_DATA` imported, which says nothing about which server holds
+the data of the topology. `dsreplication initialize` is a full import of `BASE_DN` and runs
+without a bound unless `REPLICATION_INITIALIZE_TIMEOUT` sets one. Each server publishes to
+its peers whether its volume still waits for that data (`pending`) or holds it (`ready`, or
+`rejoining` while its replication is taken down to be enabled anew, see below), in the local
+entry `cn=Docker Join,cn=config`, and a pending server joins and initializes only through a
+ready one. So servers may start together - Compose, or a StatefulSet with
+`podManagementPolicy: Parallel` - without any of them taking the bootstrap data of another
+fresh one for the topology's. Servers whose enables involve the same server take turns: two
+`dsreplication enable` runs through one server at once leave the loser a member only in
+part, for good. The turn is the entry `cn=Docker Join Lock,cn=config`, which a join adds
+before its enable on the peer it enables through and on its own server, and removes after
+it; one left behind by a killed join is taken over once it is older than
+`REPLICATION_ATTEMPT_TIMEOUT` plus a minute, or at once by a later join of the server that
+left it. A join that finds a turn taken tries the next peer, and waits a random part of
+`REPLICATION_RETRY_INTERVAL` on top of it between rounds, so two joins that each hold the
+other's turn do not keep meeting. Only the first entry of `REPLICATION_PEERS` may decide that
+there is no topology yet and seed it with its own data: at once when every other peer
+answers and waits for data as well, or once its retries are exhausted without any peer
+that could hold the data answering - a ready or rejoining one, a server of an earlier image that
+publishes no state but replicates `BASE_DN`, or one that refuses the bind with
+`ROOT_PASSWORD` (only a server past its bootstrap has another root password). The residual risk of that rule: with every other server
+down *and* the volume of the first peer lost, the first peer seeds an empty topology and the
+others initialize from it; keep backups accordingly. A volume that joined but whose
+initialize never completed keeps waiting for a ready peer on every start, so under
+`OrderedReady` a `-0` in that state stays unready until a peer that holds the data is
+started by hand - which is where its data has to come from anyway.
+
+With `REPLICATION_PEERS` set explicitly, a joined server also removes every server that is
+registered in the topology but no longer listed: its entries in `cn=admin data` and its
+values in every local replication server list - those of `BASE_DN`, and of `cn=schema` and
+`cn=admin data`, which `dsreplication enable` replicates next to it. A scale-down therefore
+needs no `preStop` hook - `dsreplication disable` on termination would take the server out
+on every rolling restart, and cannot clean up a server that is already gone. It also adds
+every listed peer registered in the topology to the local lists that lack it, so joins that
+ran at the same time cannot leave two replication servers that know nothing of each other.
+With only `MASTER_SERVER` set nothing is removed or added, so servers joined by hand stay.
+
+A server that was removed this way and is scaled up again on the volume it kept still holds
+the data and its replication configuration, but no peer registers it any more, and
+`dsreplication enable` would not register it again. Its join takes its replication
+configuration down and enables it anew, and from that moment until the enable has registered
+it again its clients may not write: writes it took meanwhile would replicate nowhere. The
+backend of `BASE_DN` is set to `writability-mode: internal-only` before anything changes -
+writes of clients are refused with `Unwilling to Perform`, replication and `dsreplication`
+still write - and set back to `enabled` once the server rejoined; a backend that was not
+`enabled` before is left as it is. Throughout, the container does not report itself healthy,
+across restarts too, and the server publishes `rejoining`, so no peer joins or initializes
+through it. The health status itself turns `unhealthy` only after the probe's retries (a
+readiness probe after its failure threshold), which is why the writes are refused rather than
+left to the health check. A join that gives up leaves the server unhealthy and read-only
+until a later start rejoins it. It takes the replication down only when at least one peer
+that replicates `BASE_DN` answered and none of them registers it - a peer that cannot be
+asked decides nothing.
+
+The one-shot types `srs`, `sdsr` and `rg` keep their previous behaviour - they run once,
+during the first bootstrap only - and are deprecated in favour of `simple`. Like `simple`,
+they need one `ADMIN_PORT` and one `REPLICATION_PORT` on every server: the tools reach the
+master on the ports of the container they run in (images before this one used 4444 and
+8989 on both sides, whatever the container was set up with). With
+`OPENDJ_REPLICATION_TYPE=srs`, start the directory server replicas one at a time, each
+once the previous one is healthy: every replica pushes its data to the replicas connected
+at that moment, and one that is restarting at the end of its own first start misses it.
 
 ## Certificates
 
@@ -150,10 +252,16 @@ with `subPath` when the Secret changes.
 | ROOT_PASSWORD           | password                        | Initial root user password; the bootstrap fails if it contains a line break (CR or LF)                                                                                                                                                                  |
 | SECRET_VOLUME           | /var/secrets/opendj             | Mounted keystore volume, if present its `key*` and `trust*` files are copied into the instance on every start, see [Certificates](#certificates)                                                                                                        |
 | SECRET_VOLUME_REFRESH   | 60                              | While the server runs, `SECRET_VOLUME` is checked again every that many seconds and changed files are copied again; `0` copies them on start only                                                                                                       |
-| MASTER_SERVER           | -                               | Replication master server                                                                                                                                                                                                                               |
+| MASTER_SERVER           | -                               | Replication master server; with `simple` it works as a one-element `REPLICATION_PEERS`                                                                                                                                                                  |
+| REPLICATION_PEERS       | value of MASTER_SERVER          | every server of the replication topology by DNS name, comma separated; the first entry may seed a new topology, and servers no longer listed are removed from it, see [Replication](#replication) |
+| REPLICATION_PORT        | 8989                            | replication port, the same on every server of the topology                                                                                                                                                                                              |
+| REPLICATION_RETRY_COUNT | 30                              | rounds of join attempts through every peer before the join gives up: the first peer of `REPLICATION_PEERS` then seeds the topology, any other server stays `unhealthy`; a value that is not a whole number above 0 falls back to 30 |
+| REPLICATION_RETRY_INTERVAL | 10                           | seconds between rounds of join attempts, plus a random part of as much again; a value that is not a whole number falls back to 10 |
+| REPLICATION_ATTEMPT_TIMEOUT | 120                             | seconds a single `dsreplication enable` may take before it is killed and tried again; it can hang on a peer that stops mid-operation, so a value that is not a whole number above 0 falls back to 120 |
+| REPLICATION_INITIALIZE_TIMEOUT | 0                               | seconds a single `dsreplication initialize` - a full import of `BASE_DN` - may take before it is killed and tried again; `0` sets no bound, and so does a value that is not a whole number |
 | VERSION                 | -                               | OpenDJ version                                                                                                                                                                                                                                          |
 | OPENDJ_USER             | opendj                          | user which runs OpenDJ                                                                                                                                                                                                                                  |
-| OPENDJ_REPLICATION_TYPE | -                               | OpenDJ Replication type, valid values are: <ul><li>simple - standart replication</li><li>srs - standalone replication servers</li><li>sdsr - Standalone Directory Server Replicas</li><li>rg - Replication Groups</li></ul>Other values will be ignored |
+| OPENDJ_REPLICATION_TYPE | -                               | OpenDJ Replication type, valid values are: <ul><li>simple - standard replication, joined in the background on every start, see [Replication](#replication)</li><li>srs - standalone replication servers (one-shot, deprecated)</li><li>sdsr - Standalone Directory Server Replicas (one-shot, deprecated)</li><li>rg - Replication Groups (one-shot, deprecated)</li></ul>Other values will be ignored |
 | OPENDJ_SSL_OPTIONS      | --generateSelfSignedCertificate | you can replace ssl options at here, like : "--usePkcs12keyStore /opt/domain.pfx --keyStorePassword domain"                                                                                                                                             |
 | OPENDJ_JAVA_ARGS        | -server                         | extra instance java args                                                                                                                                                                                                                                |
 | BACKEND_TYPE            | je                              | OpenDJ backend type, see [dsconfig create-backend](https://doc.openidentityplatform.org/opendj/reference/dsconfig-subcommands-ref#dsconfig-create-backend) documentation                                                                                |
