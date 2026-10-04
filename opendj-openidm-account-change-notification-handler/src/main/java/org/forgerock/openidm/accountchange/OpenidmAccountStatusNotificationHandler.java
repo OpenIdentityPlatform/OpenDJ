@@ -337,14 +337,44 @@ public class OpenidmAccountStatusNotificationHandler
             OpenidmAccountStatusNotificationHandlerCfg configuration) throws ConfigException {
 
         X509TrustManager trustMgr = (X509TrustManager) trustMgrs[0];
-        String serverCertSubject = configuration.getCertificateSubjectDN().toString();
-        for (X509Certificate cert : trustMgr.getAcceptedIssuers()) {
-            String subjectX500Principal = cert.getSubjectX500Principal().getName(X500Principal.CANONICAL);
-            if (serverCertSubject.equalsIgnoreCase(subjectX500Principal)) {
+        DN serverCertSubject = configuration.getCertificateSubjectDN();
+        X509Certificate cert = findCertificateBySubject(serverCertSubject, trustMgr.getAcceptedIssuers());
+        if (cert == null) {
+            throw new ConfigException(ERR_OPENIDM_PWSYNC_INVALID_SERVERKEYALIAS.get(serverCertSubject));
+        }
+        return cert;
+    }
+
+    /**
+     * Returns the certificate whose subject is the provided DN.
+     * <p>
+     * Names are compared, not strings: {@code DN.toString()} and the JDK's canonical form serialise the same
+     * name differently (escaped {@code =}, repeated spaces, the order of the AVAs of a multi-valued RDN,
+     * attribute types written as an OID with a BER hex string), and {@link X500Principal#equals(Object)}
+     * compares the canonical forms of both sides.
+     *
+     * @param subjectDN
+     *            The subject DN of the certificate to find.
+     * @param certificates
+     *            The certificates to search.
+     * @return The first certificate whose subject is {@code subjectDN}, or {@code null} if there is none,
+     *         including when the JDK cannot parse {@code subjectDN} as an X.500 name.
+     */
+    static X509Certificate findCertificateBySubject(DN subjectDN, X509Certificate... certificates) {
+        X500Principal subject;
+        try {
+            subject = new X500Principal(subjectDN.toString());
+        } catch (IllegalArgumentException e) {
+            // An attribute type without a keyword known to the JDK, such as "mail": no certificate subject
+            logger.traceException(e);
+            return null;
+        }
+        for (X509Certificate cert : certificates) {
+            if (subject.equals(cert.getSubjectX500Principal())) {
                 return cert;
             }
         }
-        throw new ConfigException(ERR_OPENIDM_PWSYNC_INVALID_SERVERKEYALIAS.get(serverCertSubject));
+        return null;
     }
 
     private TrustManager[] getTrustManagers(OpenidmAccountStatusNotificationHandlerCfg configuration)

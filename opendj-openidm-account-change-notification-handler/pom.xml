@@ -70,6 +70,13 @@
       <groupId>org.openidentityplatform.commons.http-framework</groupId>
       <artifactId>client-apache-async</artifactId>
     </dependency>
+
+    <!-- Test dependencies (TestNG is inherited from the parent, BouncyCastle comes with opendj-server-legacy) -->
+    <dependency>
+      <groupId>org.openidentityplatform.commons</groupId>
+      <artifactId>build-tools</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   
   <build><finalName>${project.groupId}.${project.artifactId}</finalName>
