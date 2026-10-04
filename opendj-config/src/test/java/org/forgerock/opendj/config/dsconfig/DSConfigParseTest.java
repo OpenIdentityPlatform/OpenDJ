@@ -16,11 +16,15 @@
  */
 package org.forgerock.opendj.config.dsconfig;
 
+import com.forgerock.opendj.cli.ArgumentException;
+
 import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.io.BufferedReader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -79,7 +83,62 @@ public class DSConfigParseTest extends ForgeRockTestCase {
         Assert.assertEquals(new ArrayList<>(DSConfig.toCommandArgs(line)), expected);
     }
 
+    /** Batch lines with a quote that is not closed: a POSIX shell rejects them. */
+    @DataProvider
+    public Object[][] unclosedQuotes() {
+        return new Object[][] {
+            // Before single quotes were supported, this line gave three arguments.
+            { "--set description:O'Brien --advanced" },
+            { "--set 'base-dn:o=My Company" },
+            { "--set \"base-dn:o=My Company" },
+            { "--set \"base-dn:o=My Company\\\"" },
+        };
+    }
+
+    @Test(dataProvider = "unclosedQuotes", expectedExceptions = ArgumentException.class)
+    public void testUnclosedQuoteIsRejected(String line) throws Exception {
+        DSConfig.toCommandArgs(line);
+    }
+
+    /** Batch files and the arguments of each command they hold. */
+    @DataProvider
+    public Object[][] batchFiles() {
+        return new Object[][] {
+            { "# comment\n\nset-x --foo bar\nset-y\n", commands(args("set-x", "--foo", "bar"), args("set-y")) },
+            // A line that ends in a backslash continues on the next line.
+            { "set-x \\\n  --foo bar\n", commands(args("set-x", "--foo", "bar")) },
+            { "set-x --foo ab\\\ncd\n", commands(args("set-x", "--foo", "abcd")) },
+            // An escaped backslash at the end of a line does not continue it, as dsconfig
+            // --commandFilePath writes a value that ends in a backslash on UNIX.
+            { "set-x --bindPassword pa\\\\\nset-y --foo bar\n",
+                commands(args("set-x", "--bindPassword", "pa\\"), args("set-y", "--foo", "bar")) },
+            { "set-x --foo a\\\\\\\nb\n", commands(args("set-x", "--foo", "a\\b")) },
+            // An escaped blank at the end of a line is kept.
+            { "set-x --set description:value\\ \n", commands(args("set-x", "--set", "description:value ")) },
+            // A command still runs when its last line continues at the end of the file.
+            { "set-x --foo bar \\", commands(args("set-x", "--foo", "bar")) },
+            { "set-x\n \\\n", commands(args("set-x")) },
+        };
+    }
+
+    @Test(dataProvider = "batchFiles")
+    public void testBatchFileCommands(String batch, List<List<String>> expected) throws Exception {
+        final List<List<String>> actual = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new StringReader(batch))) {
+            String command;
+            while ((command = DSConfig.nextBatchCommand(reader)) != null) {
+                actual.add(new ArrayList<>(DSConfig.toCommandArgs(command)));
+            }
+        }
+        Assert.assertEquals(actual, expected);
+    }
+
     private static List<String> args(String... args) {
         return Arrays.asList(args);
+    }
+
+    @SafeVarargs
+    private static List<List<String>> commands(List<String>... commands) {
+        return Arrays.asList(commands);
     }
 }

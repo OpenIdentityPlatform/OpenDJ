@@ -49,6 +49,17 @@ public final class ArgumentParserPropertiesFileTestCase extends CliTestCase {
         assertThat(baseDN(file, viaArgument)).isEqualTo("dc=example,dc=com");
     }
 
+    /** A file that starts as UTF-8 with a byte order mark but later gets a Latin-1 byte. */
+    @Test(dataProvider = "readers")
+    public void testByteOrderMarkIsSkippedInIso88591Fallback(boolean viaArgument) throws Exception {
+        final byte[] bom = { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
+        final byte[] text = "basedn=dc=example,dc=com\nx=ö\n".getBytes(ISO_8859_1);
+        final byte[] content = new byte[bom.length + text.length];
+        System.arraycopy(bom, 0, content, 0, bom.length);
+        System.arraycopy(text, 0, content, bom.length, text.length);
+        assertThat(baseDN(write(content), viaArgument)).isEqualTo("dc=example,dc=com");
+    }
+
     /** Files written for earlier releases, which read them as ISO-8859-1, keep working. */
     @Test(dataProvider = "readers")
     public void testIso88591FileIsStillAccepted(boolean viaArgument) throws Exception {

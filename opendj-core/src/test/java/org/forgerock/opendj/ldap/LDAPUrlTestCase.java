@@ -18,6 +18,7 @@
 package org.forgerock.opendj.ldap;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertTrue;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -260,5 +261,19 @@ public class LDAPUrlTestCase extends SdkTestCase {
         assertEquals(decoded.getName(), url.getName());
         assertEquals(decoded.getFilter().toString(), url.getFilter().toString());
         assertEquals(decoded, url);
+    }
+
+    /**
+     * An octet below 0x10 is encoded with two hex digits: with one, {@code a%01b} and {@code a%1b}
+     * would both read {@code a%1b}. The filter is percent-encoded for {@code equals()}, and an
+     * attribute description reaches it unchecked.
+     */
+    @Test
+    public void testPercentEncodingPadsOctetsBelow0x10() {
+        final LDAPUrl url1 = new LDAPUrl(false, "h", 389, DN.valueOf("dc=x"),
+                SearchScope.WHOLE_SUBTREE, Filter.equality("a\u0001b", "x"));
+        final LDAPUrl url2 = new LDAPUrl(false, "h", 389, DN.valueOf("dc=x"),
+                SearchScope.WHOLE_SUBTREE, Filter.equality("a\u001b", "x"));
+        assertNotEquals(url1, url2);
     }
 }

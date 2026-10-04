@@ -227,6 +227,12 @@ Alternatively, you can read commands from standard input by using the `--batch` 
 The `dsconfig` command splits each batch line into arguments as a POSIX shell does, without expanding variables. Outside quotes, a backslash escapes the next character. Single quotes keep everything as typed. Inside double quotes, a backslash escapes only a double quote, a backslash, a dollar sign, or a backquote, and is kept before any other character. For example, `--set base-dn:"cn=a\,b,dc=example,dc=com"` and `--set 'base-dn:cn=a\,b,dc=example,dc=com'` both set the DN `cn=a\,b,dc=example,dc=com`.
 
 +
+A single quote is a quote character, as in a shell, and no longer a literal character as in earlier releases: write `+O\'Brien+` or `+"O'Brien"+` for a value that holds one. A line with a quote that is not closed is rejected. A line that ends in a backslash continues on the next line, unless that backslash is itself escaped by another backslash.
+
++
+On Windows, the equivalent non-interactive command that `dsconfig` prints quotes each value by the rules of the C runtime, which splits the command line of the Java program. It does not escape the characters that `cmd.exe` interprets itself, such as `&`, `|`, `<`, and `>`, so when a value holds one of them, such as an ACI with an `&` filter, the command does not run in `cmd.exe` as printed.
+
++
 For details see xref:../reference/admin-tools-ref.adoc#dsconfig-1[dsconfig(1)] in the __Reference__.
 
 `dsjavaproperties`::

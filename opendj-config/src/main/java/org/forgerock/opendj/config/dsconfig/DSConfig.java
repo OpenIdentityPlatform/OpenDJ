@@ -1394,34 +1394,23 @@ public final class DSConfig extends ConsoleApplication {
         try (BufferedReader bReader = batchCommandsReader()) {
             List<String> initialArgs = removeBatchArgs(args);
 
-            // Split the CLI string into arguments array
-            String command = "";
-            String line;
-            while ((line = bReader.readLine()) != null) {
-                if (line.isEmpty() || line.startsWith("#")) {
-                    // Empty line or comment
-                    continue;
-                }
-                // command split in several line support
-                if (line.endsWith("\\")) {
-                    // command is split into several lines
-                    command += line.substring(0, line.length() - 1);
-                    continue;
-                }
+            String command;
+            while ((command = nextBatchCommand(bReader)) != null) {
+                // Only the echo is trimmed: an escaped blank at the end of the command is kept.
+                printlnNoWrap(LocalizableMessage.raw(command.trim()));
 
-                command += line;
-                command = command.trim();
-                printlnNoWrap(LocalizableMessage.raw(command));
-
-                // Append initial arguments to the file line
-                final String[] allArgsArray = buildCommandArgs(initialArgs, command);
-                int exitCode = main(allArgsArray, getOutputStream(), getErrorStream());
+                int exitCode;
+                try {
+                    // Append initial arguments to the file line
+                    exitCode = main(buildCommandArgs(initialArgs, command), getOutputStream(), getErrorStream());
+                } catch (final ArgumentException e) {
+                    errPrintln(e.getMessageObject());
+                    exitCode = ReturnCode.ERROR_USER_DATA.get();
+                }
                 if (exitCode != ReturnCode.SUCCESS.get()) {
                     System.exit(filterExitCode(exitCode));
                 }
                 println();
-                // reset command
-                command = "";
             }
         } catch (IOException ex) {
             errPrintln(ERR_DSCFG_ERROR_READING_BATCH_FILE.get(ex));
@@ -1440,7 +1429,37 @@ public final class DSConfig extends ConsoleApplication {
         }
     }
 
-    private String[] buildCommandArgs(List<String> initialArgs, String batchCommand) {
+    /**
+     * Reads the next command of a batch, or returns {@code null} at its end. Empty lines and
+     * comments are skipped, and a line that ends in an unescaped backslash continues on the next
+     * line. A command whose last line continues still runs at the end of the batch.
+     */
+    static String nextBatchCommand(final BufferedReader reader) throws IOException {
+        final StringBuilder command = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            if (line.isEmpty() || line.startsWith("#")) {
+                // Empty line or comment
+                continue;
+            }
+            if (!continuesOnNextLine(line)) {
+                return command.append(line).toString();
+            }
+            command.append(line, 0, line.length() - 1);
+        }
+        return command.toString().trim().isEmpty() ? null : command.toString();
+    }
+
+    /** Whether a line ends in a backslash that is not itself escaped by a backslash. */
+    private static boolean continuesOnNextLine(final String line) {
+        int backslashes = 0;
+        for (int i = line.length() - 1; i >= 0 && line.charAt(i) == '\\'; i--) {
+            backslashes++;
+        }
+        return backslashes % 2 == 1;
+    }
+
+    private String[] buildCommandArgs(List<String> initialArgs, String batchCommand) throws ArgumentException {
         final Collection<String> commandArgs = toCommandArgs(batchCommand);
         final int length = commandArgs.size() + initialArgs.size();
         final List<String> allArguments = new ArrayList<>(length);
@@ -1453,8 +1472,11 @@ public final class DSConfig extends ConsoleApplication {
      * Splits a batch line into arguments the way a POSIX shell does, without any expansion: a
      * backslash outside quotes escapes the next char, single quotes keep everything literally, and
      * inside double quotes a backslash escapes only {@code "}, {@code \}, {@code $} and {@code `}.
+     *
+     * @throws ArgumentException
+     *             If a quote is not closed.
      */
-    static Collection<String> toCommandArgs(String command) {
+    static Collection<String> toCommandArgs(String command) throws ArgumentException {
         final Collection<String> commandArgs = new ArrayList<>();
         final StringBuilder builder = new StringBuilder();
         // A word that holds only quotes is still an (empty) argument.
@@ -1476,9 +1498,11 @@ public final class DSConfig extends ConsoleApplication {
                 break;
             case '\'':
                 final int end = command.indexOf('\'', i + 1);
-                final int stop = end < 0 ? command.length() : end;
-                builder.append(command, i + 1, stop);
-                i = stop;
+                if (end < 0) {
+                    throw new ArgumentException(ERR_DSCFG_ERROR_BATCH_UNCLOSED_QUOTE.get(command.trim()));
+                }
+                builder.append(command, i + 1, end);
+                i = end;
                 break;
             case '"':
                 for (i++; i < command.length() && command.charAt(i) != '"'; i++) {
@@ -1487,6 +1511,9 @@ public final class DSConfig extends ConsoleApplication {
                         i++;
                     }
                     builder.append(command.charAt(i));
+                }
+                if (i == command.length()) {
+                    throw new ArgumentException(ERR_DSCFG_ERROR_BATCH_UNCLOSED_QUOTE.get(command.trim()));
                 }
                 break;
             default:

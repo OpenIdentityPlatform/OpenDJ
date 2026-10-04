@@ -451,14 +451,14 @@ public class ArgumentParser implements ToolRefDocContainer {
      */
     private static Properties loadPropertiesFile(final String path) throws IOException {
         final byte[] content = Files.readAllBytes(Paths.get(path));
+        // A UTF-8 byte order mark is skipped before decoding, so that the ISO-8859-1 fallback skips it too.
+        final int bom = content.length >= 3 && content[0] == (byte) 0xEF && content[1] == (byte) 0xBB
+                && content[2] == (byte) 0xBF ? 3 : 0;
         String text;
         try {
-            text = UTF_8.newDecoder().decode(ByteBuffer.wrap(content)).toString();
+            text = UTF_8.newDecoder().decode(ByteBuffer.wrap(content, bom, content.length - bom)).toString();
         } catch (final CharacterCodingException e) {
-            text = new String(content, ISO_8859_1);
-        }
-        if (text.startsWith("\uFEFF")) {
-            text = text.substring(1);
+            text = new String(content, bom, content.length - bom, ISO_8859_1);
         }
         final Properties properties = new Properties();
         properties.load(new StringReader(text));
