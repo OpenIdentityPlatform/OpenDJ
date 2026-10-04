@@ -115,8 +115,8 @@ the data of the topology. `dsreplication initialize` is a full import of `BASE_D
 without a bound unless `REPLICATION_INITIALIZE_TIMEOUT` sets one. Each server publishes to
 its peers whether its volume still waits for that data (`pending`) or holds it (`ready`, or
 `rejoining` while its replication is taken down to be enabled anew, see below), in the local
-entry `cn=Docker Join,cn=config`, and a pending server joins and initializes only through a
-ready one. So servers may start together - Compose, or a StatefulSet with
+entry `cn=Docker Join,cn=config`, and a server joins only through a ready one - a pending
+server initializes from it as well. So servers may start together - Compose, or a StatefulSet with
 `podManagementPolicy: Parallel` - without any of them taking the bootstrap data of another
 fresh one for the topology's. Servers whose enables involve the same server take turns: two
 `dsreplication enable` runs through one server at once leave the loser a member only in
@@ -158,10 +158,15 @@ writes of clients are refused with `Unwilling to Perform`, replication and `dsre
 still write - and set back to `enabled` once the server rejoined; a backend that was not
 `enabled` before is left as it is. Throughout, the container does not report itself healthy,
 across restarts too, and the server publishes `rejoining`, so no peer joins or initializes
-through it. The health status itself turns `unhealthy` only after the probe's retries (a
-readiness probe after its failure threshold), which is why the writes are refused rather than
-left to the health check. A join that gives up leaves the server unhealthy and read-only
-until a later start rejoins it. It takes the replication down only when at least one peer
+through it. It enables only through a peer that publishes `ready`, never through another one
+that rejoins or waits for the data: two such servers would register only each other and
+serve a topology of their own beside the survivors. The health status itself turns
+`unhealthy` only after the probe's retries (a readiness probe after its failure threshold),
+which is why the writes are refused rather than left to the health check. A join that gives
+up leaves the server unhealthy and read-only until a later start rejoins it. A container
+started on such a volume without the replication environment runs no join, reports itself
+healthy and logs that the backend may still refuse writes: its `writability-mode` is then
+the operator's to set back to `enabled`. It takes the replication down only when at least one peer
 that replicates `BASE_DN` answered and none of them registers it - a peer that cannot be
 asked decides nothing.
 

@@ -48,17 +48,19 @@
 # in $STATE_DN, a local entry of cn=config: "pending" while the marker is there, "ready" once
 # the volume holds the data of the topology - it was never bootstrapped by run.sh, it was
 # initialized from a ready peer, or it seeded the topology - and "rejoining" while a volume
-# that holds it has its replication taken down to enable it anew. A pending server joins and
-# initializes only through a ready peer, so two fresh servers that start together never take
-# each other's bootstrap data for the topology's; where the list is only MASTER_SERVER, a
-# peer that publishes no state (an image before this one) counts as ready, as the old
-# replicate.sh trusted its master. The seed is only the first entry of REPLICATION_PEERS: at
-# once when every other peer answers and is pending (all of them start from scratch,
-# together or not), or once the retries are exhausted while no other peer answers that may
-# hold the data - a ready one, one of an image before this one that publishes no state but
-# replicates BASE_DN, or one that refuses the bind with ROOT_PASSWORD (only a server past its
-# bootstrap can have another root password). The residual risk is documented in the README:
-# every other server down *and* the first peer's volume lost means the first peer seeds empty.
+# that holds it has its replication taken down to enable it anew. A server joins only through
+# a ready peer, and a pending one initializes only from one, so two fresh servers that start
+# together never take each other's bootstrap data for the topology's, and two servers whose
+# replication is down never form a topology of their own; where the list is only
+# MASTER_SERVER, a peer that publishes no state (an image before this one) counts as ready, as
+# the old replicate.sh trusted its master. The seed is only the first entry of
+# REPLICATION_PEERS: at once when every other peer answers and is pending (all of them start
+# from scratch, together or not), or once the retries are exhausted while no other peer
+# answers that may hold the data - a ready one, one of an image before this one that
+# publishes no state but replicates BASE_DN, or one that refuses the bind with ROOT_PASSWORD
+# (only a server past its bootstrap can have another root password). The residual risk is
+# documented in the README: every other server down *and* the first peer's volume lost means
+# the first peer seeds empty.
 #
 # On a volume that waits for the data of the topology, the health marker is written only
 # once the join succeeded or the seed rule fired, so a container that never joined stays
@@ -723,16 +725,35 @@ repair_replication_servers() {
   done <<<"$lists"
 }
 
+# the backend of BASE_DN refuses the writes of clients because this join stopped them: an
+# operator's read-only backend leaves $REJOIN_PENDING empty, and a hold whose dsconfig failed
+# named the backend without changing its mode
+writes_held() {
+  [ -s "$REJOIN_PENDING" ] && [ "$(data_backend | awk '{ print $2 }')" = internal-only ]
+}
+
 # a server that rejoins keeps $REJOIN_PENDING, and so stays unready on its next start too,
-# until its clients may write again and its peers see it ready
+# until its clients may write again and its peers see it ready. A dsconfig or a publish that
+# fails is tried again here, as long as the retries last: the join that got this far would
+# otherwise end, and only a later start would enable, or initialize, all over again
 leave_rejoin() {
+  local i
   [ -f "$REJOIN_PENDING" ] || return 0
-  if ! release_writes; then
-    echo "join: could not let the writes of clients in again, this container will not report itself healthy until a later start does"
-    return 1
+  for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
+    if release_writes && publish_state ready; then
+      rm -f "$REJOIN_PENDING"
+      return 0
+    fi
+    if [ "$i" -lt "$REPLICATION_RETRY_COUNT" ]; then
+      pause "join: this server is not out of its rejoin yet ($i of $REPLICATION_RETRY_COUNT)"
+    fi
+  done
+  if writes_held; then
+    echo "join: could not let the writes of clients in again after $REPLICATION_RETRY_COUNT attempts, this container will not report itself healthy and serves its data read-only until a later start does"
+  else
+    echo "join: could not publish this server ready after $REPLICATION_RETRY_COUNT attempts, this container will not report itself healthy until a later start does"
   fi
-  publish_state ready || return 1
-  rm -f "$REJOIN_PENDING"
+  return 1
 }
 
 joined() {
@@ -759,7 +780,7 @@ seed() { # <why>
 give_up() {
   if [ -f "$BOOTSTRAP_COMPLETE" ]; then
     echo "join: could not join the replication topology after $REPLICATION_RETRY_COUNT attempts, this server keeps serving its data unreplicated until a later start joins it"
-  elif [ -s "$REJOIN_PENDING" ]; then
+  elif writes_held; then
     echo "join: could not join the replication topology after $REPLICATION_RETRY_COUNT attempts, this container will not report itself healthy and serves its data read-only until a later start joins it"
   else
     echo "join: could not join the replication topology after $REPLICATION_RETRY_COUNT attempts, this container will not report itself healthy"
@@ -790,9 +811,9 @@ reset_if_unregistered() { # <the state to publish meanwhile>
 }
 
 if [ ! -f "$INITIALIZE_PENDING" ]; then
-  # This volume holds the data of the topology, or is the one that seeds it: it may join
-  # through any peer that answers - unless a reset took its replication down and it has not
-  # rejoined yet, also on an earlier start
+  # This volume holds the data of the topology, or is the one that seeds it: it publishes
+  # that - unless a reset took its replication down and it has not rejoined yet, also on an
+  # earlier start
   if [ -f "$REJOIN_PENDING" ]; then
     publish_state rejoining
   else
@@ -806,8 +827,18 @@ if [ ! -f "$INITIALIZE_PENDING" ]; then
       joined
       exit
     else
+      # only through a peer that holds the topology, as on the pending road: a rejoining peer
+      # has no replication of its own, a pending one or one that still bootstraps none yet, and
+      # an enable with any of them registers the two in a registry of their own - which counts
+      # as membership, a peer of the pair lists this server - beside the survivors, whom
+      # nothing ever adds to it
       for peer in "${PEERS[@]}"; do
         is_self "$peer" && continue
+        state=$(peer_state "$peer")
+        if ! trusted "$state"; then
+          echo "join: $peer is $state, not a peer to join through"
+          continue
+        fi
         echo "join: enabling replication with $peer"
         enable_through "$peer"
         rc=$?

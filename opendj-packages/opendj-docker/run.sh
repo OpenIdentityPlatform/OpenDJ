@@ -152,6 +152,10 @@ if [ -d ./data/config ]; then
     # registered it again: the join could bind with ROOT_PASSWORD when it took it down, and
     # the peer it enables through answered then.
     if ! join_requested || { [ ! -f "$INITIALIZE_PENDING" ] && [ ! -f "$REJOIN_PENDING" ]; }; then
+      # the hold on the writes is configuration, and only the join lets them in again
+      if ! join_requested && [ -s "$REJOIN_PENDING" ]; then
+        echo "The backend $(cat "$REJOIN_PENDING") may still refuse the writes of clients from a rejoin that did not complete, and no join runs to let them in again: once its replication is settled, set its writability-mode back to enabled with dsconfig set-backend-prop"
+      fi
       touch "$BOOTSTRAP_COMPLETE"
     elif [ -f "$INITIALIZE_PENDING" ]; then
       echo "This instance never joined its replication topology or never received its data, the join decides whether it is healthy"

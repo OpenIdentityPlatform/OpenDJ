@@ -121,6 +121,20 @@ add_ou() { # <container> <ou>
       --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --useSsl --trustAll --defaultAdd >/dev/null
 }
 
+dsconfig_on() { # <container> <dsconfig argument>...
+  local container=$1
+  shift
+  docker exec "$container" /opt/opendj/bin/dsconfig "$@" --hostname localhost --port 4444 \
+    --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --trustAll --no-prompt >/dev/null
+}
+
+# the writability-mode the backend of dc=example,dc=com is configured with, empty where its
+# entry sets none
+backend_mode() { # <container>
+  admin_search "$1" "ds-cfg-backend-id=userRoot,cn=Backends,cn=config" base "(objectClass=*)" ds-cfg-writability-mode \
+    | awk 'tolower($1) == "ds-cfg-writability-mode:" { print $2 }'
+}
+
 # the replication server lists of a container: the one of its replication server and one per
 # replication domain (BASE_DN, cn=schema, cn=admin data)
 replication_lists() {
@@ -231,6 +245,19 @@ start_node dj-0 dj-0,dj-1 -e SAMPLE_DATA=10
 wait_healthy dj-0
 logs_have dj-0 "seeding it with this server's data" || fail "dj-0 did not seed the topology"
 
+# a seed that follows a reset lets the writes of clients in again, as a rejoin does: dj-0 is
+# left the way a reset cut off after its disable leaves a volume - the backend held,
+# $REJOIN_PENDING naming it, no replication domain - and restarted while no other peer
+# answers, so that it seeds once its retries are exhausted
+dsconfig_on dj-0 set-backend-prop --backend-name userRoot --set writability-mode:internal-only
+docker exec dj-0 sh -c 'echo userRoot >/opt/opendj/data/.replication-rejoin-pending'
+docker restart dj-0 >/dev/null
+wait_until 300 "the restarted dj-0 leaves its health to the join" logs_have dj-0 "was taken out of its replication topology"
+wait_healthy dj-0
+[ "$(logs_count dj-0 "seeding it with this server's data")" -ge 2 ] || fail "dj-0 did not seed again after the reset"
+add_ou dj-0 seeded-after-reset || fail "dj-0 refuses the writes of clients after it seeded"
+[ "$(published_state dj-0)" = ready ] || fail "dj-0 does not publish itself ready after it seeded"
+
 # a joining server tries again while its peer is unreachable
 docker network disconnect $NETWORK dj-0
 start_node dj-1 dj-0,dj-1
@@ -279,10 +306,14 @@ docker restart dj-solo >/dev/null
 wait_until 180 "dj-solo is healthy again with its root password changed" is_healthy dj-solo
 # and a peer that refuses the bind with ROOT_PASSWORD is past its bootstrap: it may hold the
 # data of the topology, so a first peer that finds no other one gives up beside it rather
-# than seed a topology of its own
-start_node dj-f dj-f,dj-solo -e REPLICATION_RETRY_COUNT=2 -e REPLICATION_RETRY_INTERVAL=5
+# than seed a topology of its own. Its retry interval is written with a leading zero, which
+# $(( )) reads as an octal number and rejects for 08: read so, it would abandon the rounds at
+# their first pause and give up all the same, without trying again
+start_node dj-f dj-f,dj-solo -e REPLICATION_RETRY_COUNT=2 -e REPLICATION_RETRY_INTERVAL=08
 wait_until 600 "dj-f gives up beside a peer that refuses the bind" logs_have dj-f "could not join the replication topology after 2 attempts"
 if logs_have dj-f "seeding it with this server's data"; then fail "dj-f seeded next to a peer past its bootstrap"; fi
+logs_have dj-f "(1 of 2), trying again in" || fail "dj-f did not try again with REPLICATION_RETRY_INTERVAL=08"
+if logs_have dj-f "REPLICATION_RETRY_INTERVAL is not a whole number"; then fail "dj-f did not read REPLICATION_RETRY_INTERVAL=08 as 8"; fi
 docker rm -f dj-f >/dev/null
 docker volume rm vol-dj-f >/dev/null
 docker rm -f dj-solo >/dev/null
@@ -444,6 +475,55 @@ wait_until 300 "dj-2 registers in the topology again" registered_dj2
 [ "$(published_state dj-2)" = ready ] || fail "the rejoined dj-2 does not publish itself ready"
 add_ou dj-2 rejoined
 wait_has dj-0 "ou=rejoined,dc=example,dc=com"
+
+# two servers taken out together and scaled up again together on their volumes: both take
+# their replication down, and with it every registration in their cn=admin data. While the
+# lock of the survivor is held, neither may enable through the other - an enable between two
+# servers without replication registers the two of them only, which passes for membership,
+# and they would serve a topology of their own beside dj-0 - so each waits for dj-0 and joins
+# through it. The operator made the backend of dj-2 read-only beforehand: its rejoin refuses
+# the writes of clients as well, and leaves the mode as it found it. dj-0 keeps the shorter
+# list, nothing here starts it again.
+# A server that comes back shows its peers the state it had before it left - it is kept in
+# its cn=config - until its first round finds that the peers no longer register it. So dj-1
+# starts first and is rejoining before dj-2 starts, and dj-2 keeps a lock held by hand on
+# itself from before it left, as in the scale-up above, which no enable through it gets past
+# while it still shows that state
+dsconfig_on dj-2 set-backend-prop --backend-name userRoot --set writability-mode:internal-only
+hold_lock dj-2
+docker rm -f dj-0 dj-1 dj-2 >/dev/null
+start_node dj-0 dj-0
+wait_healthy dj-0
+for n in dj-1 dj-2; do
+  wait_until 180 "$n leaves cn=admin data of dj-0" admin_data_lacks dj-0 $n
+  wait_until 120 "$n leaves the replication server lists of dj-0" lists_lack dj-0 $n
+done
+hold_lock dj-0
+start_node dj-1 dj-0,dj-1,dj-2 -e REPLICATION_RETRY_COUNT=30 -e REPLICATION_ATTEMPT_TIMEOUT=1800
+dj1_rejoining() { [ "$(published_state dj-1)" = rejoining ]; }
+wait_until 300 "dj-1 publishes that it is rejoining" dj1_rejoining
+start_node dj-2 dj-0,dj-1,dj-2 -e REPLICATION_RETRY_COUNT=30 -e REPLICATION_ATTEMPT_TIMEOUT=1800
+wait_until 300 "dj-1 passes over the rejoining dj-2" logs_have dj-1 "dj-2 is rejoining, not a peer to join through"
+drop_lock dj-2
+wait_until 180 "dj-2 passes over the rejoining dj-1" logs_have dj-2 "dj-1 is rejoining, not a peer to join through"
+sleep 12
+for n in dj-1 dj-2; do
+  docker exec $n test ! -e /opt/opendj/.bootstrap-complete || fail "$n reports itself ready while its replication is down"
+done
+admin_data_lacks dj-2 dj-1 || fail "dj-1 and dj-2 registered each other while the lock of dj-0 was held"
+admin_data_lacks dj-1 dj-2 || fail "dj-1 and dj-2 registered each other while the lock of dj-0 was held"
+refuses_writes dj-1 unreplicated || fail "dj-1 takes the writes of clients while its replication is down"
+drop_lock dj-0
+wait_healthy dj-1
+wait_healthy dj-2
+registered_in_dj0() { ! admin_data_lacks dj-0 "$1"; }
+for n in dj-1 dj-2; do
+  wait_until 300 "$n registers with dj-0 again" registered_in_dj0 $n
+done
+[ "$(backend_mode dj-2)" = internal-only ] || fail "the rejoin of dj-2 let the writes of clients in on a backend the operator made read-only"
+add_ou dj-1 rejoined-together
+wait_has dj-0 "ou=rejoined-together,dc=example,dc=com"
+wait_has dj-2 "ou=rejoined-together,dc=example,dc=com"
 
 # the deprecated one-shot sdsr path of replicate.sh still bootstraps a replica. On a first
 # start a server stops the server its bootstrap started and starts it again, and a replica
