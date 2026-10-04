@@ -63,7 +63,8 @@
           org.bouncycastle.native.cpu_variant=java keeps bc-fips from loading its native libraries in the
           test JVMs, so its DRBG is seeded from the JDK instead of the CPU's RDSEED instruction, which
           runs dry on busy CI hosts ("RDSEED persistently failed to produce entropy"), see issue #1161.
-          Keep it in the jdk17.options argLine below as well.
+          Keep it in the jdk17.options argLine below as well; BcFipsNativeLibrariesOffTestCase in
+          opendj-core fails when either argLine loses it.
         -->
         <argLine>-Xmx512m -Dorg.bouncycastle.native.cpu_variant=java</argLine>
         <maven.cargo.containerId>tomcat10x</maven.cargo.containerId>
