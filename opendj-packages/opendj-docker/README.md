@@ -61,6 +61,12 @@ over an instance that is already there - never reports healthy: what failed is i
 logs`, and where the server is up at all the container is left running to be looked at,
 turning `unhealthy` once the start period is over.
 
+Started over an instance of an older version, the container runs `upgrade --no-prompt --force`
+before the server: the upgrade tasks that take long, such as verifying or rebuilding indexes,
+are performed then, since nobody is there to run them afterwards. On a large instance they can
+take longer than the start period, so the container may report `unhealthy` until the upgrade
+is over; `docker logs` shows which task is running.
+
 The server runs as PID 1 of the container, and a JVM does not reap the processes left
 behind to it - those of a health check that ran past its timeout, say. Run the container
 with `docker run --init` (`init: true` in Compose) to put a PID 1 in front of the server

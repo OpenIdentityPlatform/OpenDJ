@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools.upgrade;
 
@@ -24,6 +25,7 @@ import static javax.security.auth.callback.ConfirmationCallback.YES;
 import static javax.security.auth.callback.TextOutputCallback.*;
 import static org.forgerock.util.Utils.joinAsString;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.schema.SchemaConstants.EMR_DN_NAME;
 import static org.opends.server.tools.upgrade.FileManager.copyRecursively;
 import static org.opends.server.tools.upgrade.UpgradeUtils.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -32,9 +34,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -67,6 +71,7 @@ import org.forgerock.opendj.ldif.EntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.tools.RebuildIndex;
+import org.opends.server.tools.VerifyIndex;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.ChangeOperationType;
 import org.opends.server.util.StaticUtils;
@@ -659,6 +664,151 @@ final class UpgradeTasks
         return String.valueOf(summary);
       }
     };
+  }
+
+  /**
+   * Creates a task that verifies, at the end of the upgrade, the equality indexes of the attributes whose values
+   * are compared as DNs, and rebuilds them under each base DN where they do not match the entries. Only an index
+   * that is missing a key needs the rebuild: the verification computes the keys of every entry with the matching
+   * rules of the upgraded server, and finds those that were computed differently, or not at all, by the previous
+   * version. Unlike {@link #rebuildIndexesNamed}, a backend whose indexes match its entries is only read.
+   *
+   * @param summary
+   *          A message describing why the indexes are verified and asking whether to do it at the end of the
+   *          upgrade.
+   * @return The verify and rebuild task.
+   */
+  static UpgradeTask verifyAndRebuildDNEqualityIndexes(final LocalizableMessage summary)
+  {
+    return new AbstractUpgradeTask()
+    {
+      private boolean isATaskToPerform;
+
+      @Override
+      public void prepare(UpgradeContext context) throws ClientException
+      {
+        Upgrade.needToRunPostUpgradePhase();
+        // Requires answer from the user. Verifying only reads, so it is done unless the user declines.
+        isATaskToPerform = context.confirmYN(summary, YES) == YES;
+      }
+
+      @Override
+      public void postUpgrade(final UpgradeContext context) throws ClientException
+      {
+        if (!isATaskToPerform)
+        {
+          postponePostUpgrade(context);
+          return;
+        }
+        if (isRebuildAllIndexesTaskAccepted || indexesToRebuild.contains("." + EMR_DN_NAME))
+        {
+          // These indexes are rebuilt at the end of the upgrade anyway.
+          return;
+        }
+
+        final Map<String, Set<String>> attributesPerBackend;
+        try
+        {
+          attributesPerBackend = getDNEqualityIndexedAttributesPerBackend();
+        }
+        catch (IOException e)
+        {
+          throw new ClientException(ReturnCode.ERROR_UNEXPECTED, ERR_UPGRADE_READING_CONF_FILE.get(e.getMessage()), e);
+        }
+        final Map<String, Set<String>> baseDNsPerBackend = getBaseDNsPerBackendsFromConfig();
+        for (final Map.Entry<String, Set<String>> backend : attributesPerBackend.entrySet())
+        {
+          final Set<String> baseDNs = baseDNsPerBackend.get(backend.getKey());
+          if (baseDNs == null)
+          {
+            continue;
+          }
+          for (final String baseDN : baseDNs)
+          {
+            verifyAndRebuild(context, baseDN, backend.getValue());
+          }
+        }
+      }
+
+      private void verifyAndRebuild(final UpgradeContext context, final String baseDN, final Set<String> attributes)
+          throws ClientException
+      {
+        final String indexes = joinAsString(", ", attributes);
+        final ProgressNotificationCallback pnc = new ProgressNotificationCallback(
+            INFORMATION, INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_STARTS.get(indexes, baseDN), 25);
+        context.notifyProgress(pnc);
+        final boolean rebuilt = verifyAndRebuildIndexes(configFile.getAbsolutePath(), baseDN, attributes, true,
+            UpgradeLog.getPrintStream());
+        context.notifyProgress(pnc.setProgress(100));
+        context.notify(rebuilt ? INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_INCONSISTENT.get(indexes, baseDN)
+                               : INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_CONSISTENT.get(indexes, baseDN));
+      }
+
+      @Override
+      public void postponePostUpgrade(UpgradeContext context) throws ClientException
+      {
+        if (!isRebuildAllIndexesIsPresent)
+        {
+          context.notify(INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_DECLINED.get(), TextOutputCallback.WARNING);
+        }
+      }
+
+      @Override
+      public String toString()
+      {
+        return String.valueOf(summary);
+      }
+    };
+  }
+
+  /**
+   * Verifies the provided indexes under a base DN with the verify-index tool, and rebuilds them with the
+   * rebuild-index tool when it reports any error. A verification that fails is taken as an error, so the indexes
+   * are rebuilt then too. The backend must not be in use by a running server.
+   *
+   * @param configFilePath
+   *          The path of the configuration file.
+   * @param baseDN
+   *          The base DN to verify.
+   * @param attributes
+   *          The attributes whose indexes are verified, and rebuilt if needed.
+   * @param initializeServer
+   *          Whether the tools have to initialize the server components.
+   * @param out
+   *          The stream the tools write to.
+   * @return {@code true} if the indexes were rebuilt, {@code false} if they match the entries.
+   * @throws ClientException
+   *           If the rebuild fails.
+   */
+  static boolean verifyAndRebuildIndexes(final String configFilePath, final String baseDN,
+      final Collection<String> attributes, final boolean initializeServer, final PrintStream out)
+      throws ClientException
+  {
+    final List<String> args = new ArrayList<>();
+    args.add("--configFile");
+    args.add(configFilePath);
+    args.add("--baseDN");
+    args.add(baseDN);
+    for (final String attribute : attributes)
+    {
+      args.add("--index");
+      args.add(attribute);
+    }
+
+    final List<String> verifyArgs = new ArrayList<>(args);
+    verifyArgs.add("--countErrors");
+    logger.debug(INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS, verifyArgs);
+    if (VerifyIndex.mainVerifyIndex(verifyArgs.toArray(new String[0]), initializeServer, out) == 0)
+    {
+      return false;
+    }
+
+    logger.debug(INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS, args);
+    if (new RebuildIndex().rebuildIndexesWithinMultipleBackends(initializeServer, out, args) != 0)
+    {
+      throw new ClientException(ReturnCode.ERROR_UNEXPECTED, ERR_UPGRADE_PERFORMING_POST_TASKS_FAIL.get());
+    }
+    return true;
   }
 
   /**

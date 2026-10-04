@@ -118,8 +118,11 @@ public final class JMXMBean
    * Appends the JMX form of an RDN to the provided buffer. The attribute name keeps only its letters and
    * digits, and is followed by '-' and the value. A value made of letters, digits and spaces is written as it
    * always was, with '_' for a space. Any other value would lose characters that way, and two DNs would share
-   * a name, so it is percent-encoded instead: its letters and digits are kept and every other character is
-   * written as the '%' encoded bytes of its UTF-8 form. The AVAs of a multi-valued RDN are joined with '+'.
+   * a name, so it is percent-encoded instead: its letters and digits are kept, a space is still written as '_',
+   * and every other character, '_' included, is written as the '%' encoded bytes of its UTF-8 form. The SNMP
+   * extension relies on the '_': it finds the connection handlers, whose names hold an IP address, by
+   * "Connection_Handler" and their statistics by "_Statistics". The AVAs of a multi-valued RDN are joined
+   * with '+'.
    */
   private static void appendJmxRdn(StringBuilder buffer, RDN rdn)
   {
@@ -151,7 +154,11 @@ public final class JMXMBean
         for (byte b : ava.getAttributeValue().toByteArray())
         {
           char c = (char) (b & 0xFF);
-          if (c < 0x80 && (isAlpha(c) || isDigit(c)))
+          if (c == ' ')
+          {
+            buffer.append('_');
+          }
+          else if (c < 0x80 && (isAlpha(c) || isDigit(c)))
           {
             buffer.append(c);
           }

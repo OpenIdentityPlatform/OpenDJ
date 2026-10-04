@@ -49,6 +49,28 @@ public class JMXMBeanNameTest extends DirectoryServerTestCase
     assertThat(JMXMBean.getJmxName(DN.valueOf(dn))).isEqualTo(expectedName);
   }
 
+  /**
+   * The SNMP extension finds the connection handlers and their statistics by "Connection_Handler" and
+   * "_Statistics" in these names, so a space stays '_' in a percent-encoded value too.
+   */
+  @DataProvider
+  public Object[][] connectionHandlerNames()
+  {
+    return new Object[][] {
+      { "cn=LDAP Connection Handler 0.0.0.0 port 1389,cn=monitor",
+        "org.opends.server:Name=rootDSE,Rdn1=cn-monitor,Rdn2=cn-LDAP_Connection_Handler_0%2E0%2E0%2E0_port_1389" },
+      { "cn=LDAP Connection Handler 0.0.0.0 port 1389 Statistics,cn=monitor",
+        "org.opends.server:Name=rootDSE,Rdn1=cn-monitor,"
+            + "Rdn2=cn-LDAP_Connection_Handler_0%2E0%2E0%2E0_port_1389_Statistics" },
+    };
+  }
+
+  @Test(dataProvider = "connectionHandlerNames")
+  public void encodedValuesKeepUnderscoreForSpace(String dn, String expectedName) throws Exception
+  {
+    assertThat(JMXMBean.getJmxName(DN.valueOf(dn))).isEqualTo(expectedName);
+  }
+
   /** Each group holds DNs whose values only differ by characters that the old mapping dropped. */
   @DataProvider
   public Object[][] distinctDNs()
@@ -62,6 +84,8 @@ public class JMXMBeanNameTest extends DirectoryServerTestCase
       { new String[] { "cn=a\\,b,cn=monitor", "cn=ab,cn=monitor", "cn=a,cn=b,cn=monitor", "cn=a+sn=b,cn=monitor",
                        "cn=a\\+sn\\=b,cn=monitor", "cn=asn\\=b,cn=monitor" } },
       { new String[] { "cn=J\\C3\\B6rg,cn=monitor", "cn=Jrg,cn=monitor", "cn=J\\C3\\A4rg,cn=monitor" } },
+      { new String[] { "cn=a.b c,cn=monitor", "cn=a.b_c,cn=monitor", "cn=a.b%20c,cn=monitor",
+                       "cn=a.b%5Fc,cn=monitor" } },
     };
   }
 

@@ -17,6 +17,7 @@
  */
 package org.opends.server.authorization.dseecompat;
 
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DN_TRAILING_ESCAPE;
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -1150,6 +1151,12 @@ public class PatternDN
       {
         if (pos >= length)
         {
+          if (escaped)
+          {
+            // A lone backslash at the end, which DN.valueOf() rejects with the same message.
+            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+                ERR_ATTR_SYNTAX_DN_TRAILING_ESCAPE.get(dnString));
+          }
           // This is the end of the DN and therefore the end of the value.
           // If there are any hex characters, then we need to deal with them accordingly.
           appendHexChars(dnString, valueString, hexChars);

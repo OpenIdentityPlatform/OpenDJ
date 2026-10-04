@@ -1280,6 +1280,38 @@ public class Utilities
   }
 
   /**
+   * Returns the DN of the configuration entry of a backend. The backend ID becomes the value of the RDN, so it may
+   * hold any character, a ',' for instance.
+   *
+   * @param backendID
+   *          the ID of the backend
+   * @return the DN of the configuration entry of the backend
+   */
+  public static DN getBackendConfigDN(String backendID)
+  {
+    return DN.valueOf(ConfigConstants.DN_BACKEND_BASE).child(ConfigConstants.ATTR_BACKEND_ID, backendID);
+  }
+
+  /**
+   * Returns the DN of the configuration entry of an index. The backend ID and the index name become the values of
+   * RDNs, so they may hold any character.
+   *
+   * @param backendID
+   *          the ID of the backend of the index
+   * @param indexName
+   *          the name of the index: the attribute of an attribute index, the name of a VLV index
+   * @param isVLVIndex
+   *          whether the index is a VLV index
+   * @return the DN of the configuration entry of the index
+   */
+  public static DN getIndexConfigDN(String backendID, String indexName, boolean isVLVIndex)
+  {
+    final DN backendDN = getBackendConfigDN(backendID);
+    return isVLVIndex ? backendDN.child("cn", "VLV Index").child("ds-cfg-name", indexName)
+                      : backendDN.child("cn", "Index").child("ds-cfg-attribute", indexName);
+  }
+
+  /**
    * Unescapes UTF-8 text and generates a String from it.
    * @param v the string in UTF-8 format.
    * @return the string with unescaped characters.

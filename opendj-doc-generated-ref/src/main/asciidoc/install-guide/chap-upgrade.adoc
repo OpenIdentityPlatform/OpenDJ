@@ -298,6 +298,21 @@ C:\> net start "OpenDJ Server"
 
 ====
 
+[#upgrade-dn-parsing]
+.To Check Stored DNs When Upgrading From a Release Before 5.2.0
+====
+Before 5.2.0, the server read a DN only up to the first `;`, up to the end of a quoted value, or up to a space after a hex string value, and silently dropped the rest. Since 5.2.0, it reads the whole string: `;` separates RDNs as `,` does (RFC 2253), any other content after an RDN is rejected, and an attribute value may be empty, as in `dc=,dc=example,dc=com`. Data written by clients before the upgrade can be affected as follows:
+
+. A value with DN syntax that a client wrote with `;`, such as `member: cn=a;dc=example,dc=com`, was indexed under the key of `cn=a`. It now reads as `cn=a,dc=example,dc=com`, so an indexed equality search for that DN misses the entry until the index is rebuilt. The same holds for a value that was stored while its syntax was not enforced, and that only now parses.
++
+The `upgrade` command therefore offers to verify the equality indexes of the attributes that hold DNs, such as `member`, `uniqueMember`, `owner` or `seeAlso`, in every enabled backend at the end of the upgrade, and rebuilds them under each base DN where they do not match the entries. The verification reads every entry of these backends, so on a large backend it takes a while; the indexes are only rebuilt where it finds a missing key. The default answer is yes, so `upgrade --no-prompt` performs the verification too, as do the Docker image and the native packages, which run `upgrade --no-prompt --force`. If you declined it, run `verify-index` on these indexes with the server stopped, and rebuild them where it reports errors, as described in xref:../admin-guide/chap-indexing.adoc#rebuild-index["Rebuilding Indexes"] in the __Administration Guide__.
++
+A stored DN value with other content after an RDN, such as `cn="a"x,dc=example,dc=com`, no longer parses: replace it with the DN that was meant.
+
+. An ACI whose target, `userdn` or `groupdn` DN uses `;` between RDNs now names the whole DN, not the part before the first `;`. An ACI whose DN has other content after an RDN no longer decodes: the server logs a warning naming the ACI when it loads it, and enters lockdown mode. Correct the ACI, then leave lockdown mode as described in xref:../admin-guide/chap-troubleshooting.adoc#troubleshoot-use-lockdown-mode["Preventing Access While You Fix Issues"] in the __Administration Guide__.
+
+====
+
 [#upgrade-repl]
 .To Upgrade Replicated Servers
 ====
@@ -307,6 +322,11 @@ C:\> net start "OpenDJ Server"
 The OpenDJ directory server upgrade process is designed to support a rolling (sequential) upgrade of replicated servers.
 
 Do not upgrade all replicated servers at once in parallel, as this removes all replication changelog data simultaneously, breaking replication.
+======
+
+[IMPORTANT]
+======
+When the topology still has servers before 5.2.0, do not add or rename entries whose DN holds an empty attribute value, such as `dc=,dc=example,dc=com` or `cn=x+sn=,dc=example,dc=com`, until every server runs 5.2.0 or later. A server before 5.2.0 cannot read the DN of such a change: it closes its replication connection when it receives the change, receives the same change again when it reconnects, and so stops replicating altogether. Such an entry cannot be imported into a server before 5.2.0 either.
 ======
 For each server in the replication topology, follow these steps:
 

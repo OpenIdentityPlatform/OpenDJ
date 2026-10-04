@@ -55,6 +55,9 @@ public class PatternDNTest extends DirectoryServerTestCase
       // A hex pair inside quotes is decoded as it is outside quotes
       { "cn=\"a\\2Cb\",dc=x" },
       { "cn=\"J\\C3\\B6rg\",dc=x" },
+      // Hex pairs that are still pending at the closing quote, or before an escaped character
+      { "cn=\"ab\\2C\",dc=x" },
+      { "cn=\"\\C3\\B6\\,\",dc=x" },
       // An empty value is followed by the next AVA or RDN, it does not swallow it
       { "cn=+sn=x,dc=y" },
       { "cn=x+sn=,dc=y" },
@@ -97,6 +100,24 @@ public class PatternDNTest extends DirectoryServerTestCase
   public void patternDoesNotMatchADifferentDN(String pattern, String otherDN) throws Exception
   {
     assertThat(PatternDN.decode(pattern).matchesDN(DN.valueOf(otherDN))).isFalse();
+  }
+
+  /** Patterns that end in a lone backslash, which DN.valueOf() rejects too. */
+  @DataProvider
+  public Object[][] patternsWithATrailingBackslash()
+  {
+    return new Object[][] {
+      { "cn=a\\" },
+      { "cn=\\" },
+      { "cn=a,dc=x\\" },
+      { "cn=a*\\" },
+    };
+  }
+
+  @Test(dataProvider = "patternsWithATrailingBackslash", expectedExceptions = DirectoryException.class)
+  public void patternWithATrailingBackslashIsRejected(String pattern) throws Exception
+  {
+    PatternDN.decode(pattern);
   }
 
   @DataProvider

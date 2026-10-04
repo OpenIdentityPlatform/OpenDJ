@@ -25,14 +25,18 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Assertion;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
@@ -47,6 +51,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
@@ -65,6 +70,8 @@ import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.schema.SchemaConstants.EMR_DN_OID;
+import static org.opends.server.schema.SchemaConstants.EMR_UNIQUE_MEMBER_OID;
 import static org.opends.server.tools.upgrade.FileManager.*;
 import static org.opends.server.tools.upgrade.Installation.*;
 import static org.opends.server.util.ChangeOperationType.*;
@@ -301,6 +308,126 @@ final class UpgradeUtils
       logger.error(LocalizableMessage.raw(ex.getMessage()));
     }
     return baseDNs;
+  }
+
+  /**
+   * Returns, for each enabled pluggable backend of the server, the attributes with an equality index whose matching
+   * rule compares DNs: "distinguishedNameMatch" (member, owner, seeAlso...) or "uniqueMemberMatch" (uniqueMember).
+   * Backends without such an index are left out.
+   *
+   * @return The names of these attributes, per backend ID.
+   * @throws IOException
+   *           If the configuration or a schema file cannot be read.
+   */
+  static Map<String, Set<String>> getDNEqualityIndexedAttributesPerBackend() throws IOException
+  {
+    return getDNEqualityIndexedAttributesPerBackend(configFile, configSchemaDirectory);
+  }
+
+  /**
+   * Returns, for each enabled pluggable backend in the provided configuration, the attributes with an equality index
+   * whose matching rule compares DNs, as {@link #getDNEqualityIndexedAttributesPerBackend()} does. The matching rule
+   * of an attribute is read from the schema files of the instance, so that an attribute of a custom schema is found
+   * too.
+   *
+   * @param config
+   *          The configuration file.
+   * @param schemaDirectory
+   *          The directory of the schema files.
+   * @return The names of these attributes, per backend ID.
+   * @throws IOException
+   *           If the configuration or a schema file cannot be read.
+   */
+  static Map<String, Set<String>> getDNEqualityIndexedAttributesPerBackend(final File config,
+      final File schemaDirectory) throws IOException
+  {
+    final Schema schema = readSchemaFiles(schemaDirectory);
+    final Set<String> enabledBackends = new HashSet<>();
+    final Map<String, Set<String>> attributes = new TreeMap<>();
+    try (LDIFEntryReader reader = new LDIFEntryReader(new FileInputStream(config)))
+    {
+      while (reader.hasNext())
+      {
+        final Entry entry = reader.readEntry();
+        if (hasObjectClass(entry, "ds-cfg-pluggable-backend")
+            && "true".equalsIgnoreCase(entry.parseAttribute("ds-cfg-enabled").asString()))
+        {
+          enabledBackends.add(entry.parseAttribute("ds-cfg-backend-id").asString());
+        }
+        else if (hasObjectClass(entry, "ds-cfg-backend-index")
+            && hasValueIgnoringCase(entry, "ds-cfg-index-type", "equality"))
+        {
+          final String attribute = entry.parseAttribute("ds-cfg-attribute").asString();
+          final String backendID = getBackendID(entry.getName());
+          if (attribute != null && backendID != null && comparesDNs(schema.getAttributeType(attribute)))
+          {
+            attributes.computeIfAbsent(backendID, id -> new TreeSet<>(String.CASE_INSENSITIVE_ORDER)).add(attribute);
+          }
+        }
+      }
+    }
+    attributes.keySet().retainAll(enabledBackends);
+    return attributes;
+  }
+
+  private static Schema readSchemaFiles(final File schemaDirectory) throws IOException
+  {
+    final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+    final File[] files = schemaDirectory.listFiles((dir, name) -> name.toLowerCase().endsWith(".ldif"));
+    if (files != null)
+    {
+      // The server reads them in this order, so a later file may redefine an attribute of an earlier one
+      Arrays.sort(files);
+      for (final File file : files)
+      {
+        try (LDIFEntryReader reader = new LDIFEntryReader(new FileInputStream(file)))
+        {
+          while (reader.hasNext())
+          {
+            builder.addSchema(reader.readEntry(), true);
+          }
+        }
+      }
+    }
+    return builder.toSchema().asNonStrictSchema();
+  }
+
+  private static boolean comparesDNs(final AttributeType attributeType)
+  {
+    final MatchingRule equality = attributeType.getEqualityMatchingRule();
+    return equality != null
+        && (EMR_DN_OID.equals(equality.getOID()) || EMR_UNIQUE_MEMBER_OID.equals(equality.getOID()));
+  }
+
+  private static boolean hasObjectClass(final Entry entry, final String objectClass)
+  {
+    return hasValueIgnoringCase(entry, "objectClass", objectClass);
+  }
+
+  private static boolean hasValueIgnoringCase(final Entry entry, final String attribute, final String value)
+  {
+    for (final String v : entry.parseAttribute(attribute).asSetOfString())
+    {
+      if (value.equalsIgnoreCase(v))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Returns the ID of the backend whose configuration entry is, or is above, the provided DN. */
+  private static String getBackendID(final DN dn)
+  {
+    for (DN d = dn; d != null && !d.isRootDN(); d = d.parent())
+    {
+      final AVA ava = d.rdn().getFirstAVA();
+      if ("ds-cfg-backend-id".equalsIgnoreCase(ava.getAttributeName()))
+      {
+        return ava.getAttributeValue().toString();
+      }
+    }
+    return null;
   }
 
   static EntryReader searchConfigFile(final SearchRequest searchRequest) throws FileNotFoundException
