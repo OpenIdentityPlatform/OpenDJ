@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -172,7 +173,7 @@ public class ReferentialIntegrityPlugin
   {
     LinkedList<LocalizableMessage> unacceptableReasons = new LinkedList<>();
 
-    if (!isConfigurationAcceptableIgnoringCheckReferencesPluginTypes(pluginCfg, unacceptableReasons))
+    if (!isConfigurationLoadable(pluginCfg, unacceptableReasons))
     {
       throw new ConfigException(unacceptableReasons.getFirst());
     }
@@ -187,6 +188,13 @@ public class ReferentialIntegrityPlugin
     for (PluginCfgDefn.PluginType t : getMissingCheckReferencesPluginTypes(pluginCfg))
     {
       logger.warn(WARN_PLUGIN_REFERENT_CHECK_REFERENCES_WITHOUT_PLUGIN_TYPE.get(pluginCfg.dn(), t, t));
+    }
+    // Likewise for two filter criteria of one attribute type (a configuration stored before issue #1172): the
+    // plugin is loaded, and enforces all of their filters.
+    for (Map.Entry<AttributeType, List<String>> e : getDuplicateFilterCriteria(pluginCfg).entrySet())
+    {
+      logger.warn(WARN_PLUGIN_REFERENT_DUPLICATE_FILTER_CRITERIA.get(
+          pluginCfg.dn(), e.getKey().getNameOrOID(), String.join(", ", e.getValue())));
     }
 
     applyConfigurationChange(pluginCfg);
@@ -216,8 +224,9 @@ public class ReferentialIntegrityPlugin
     LinkedHashSet<AttributeType> newAttributeTypes =
             new LinkedHashSet<>(newConfiguration.getAttributeType());
 
-    // Load the attribute-filter mapping
-    LinkedHashMap<AttributeType, SearchFilter> newAttrFiltMap = new LinkedHashMap<>();
+    // Load the attribute-filter mapping. An attribute type has more than one filter only in a configuration stored
+    // before issue #1172, and a reference held by it then has to match all of them.
+    LinkedHashMap<AttributeType, List<SearchFilter>> newAttrFilters = new LinkedHashMap<>();
 
     for (String attrFilt : newConfiguration.getCheckReferencesFilterCriteria())
     {
@@ -228,13 +237,21 @@ public class ReferentialIntegrityPlugin
       AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attr);
       try
       {
-        newAttrFiltMap.put(attrType, SearchFilter.createFilterFromString(filtStr));
+        SearchFilter filter = SearchFilter.createFilterFromString(filtStr);
+        newAttrFilters.computeIfAbsent(attrType, k -> new ArrayList<>()).add(filter);
       }
       catch (DirectoryException unexpected)
       {
         // This should never happen because the filter has already been verified.
         logger.error(unexpected.getMessageObject());
       }
+    }
+
+    LinkedHashMap<AttributeType, SearchFilter> newAttrFiltMap = new LinkedHashMap<>();
+    for (Map.Entry<AttributeType, List<SearchFilter>> e : newAttrFilters.entrySet())
+    {
+      List<SearchFilter> filters = e.getValue();
+      newAttrFiltMap.put(e.getKey(), filters.size() == 1 ? filters.get(0) : SearchFilter.createANDFilter(filters));
     }
 
     //User is not allowed to change the logfile name, append a message that the
@@ -272,14 +289,42 @@ public class ReferentialIntegrityPlugin
   {
     ReferentialIntegrityPluginCfg pluginCfg =
          (ReferentialIntegrityPluginCfg) configuration;
-    boolean isAcceptable = isConfigurationAcceptableIgnoringCheckReferencesPluginTypes(pluginCfg, unacceptableReasons);
+    boolean isAcceptable = isConfigurationLoadable(pluginCfg, unacceptableReasons);
 
     for (PluginCfgDefn.PluginType t : getMissingCheckReferencesPluginTypes(pluginCfg))
     {
       isAcceptable = false;
       unacceptableReasons.add(ERR_PLUGIN_REFERENT_CHECK_REFERENCES_WITHOUT_PLUGIN_TYPE.get(t, t));
     }
+    for (Map.Entry<AttributeType, List<String>> e : getDuplicateFilterCriteria(pluginCfg).entrySet())
+    {
+      isAcceptable = false;
+      unacceptableReasons.add(ERR_PLUGIN_REFERENT_DUPLICATE_FILTER_CRITERIA.get(
+          e.getKey().getNameOrOID(), String.join(", ", e.getValue())));
+    }
     return isAcceptable;
+  }
+
+  /**
+   * Returns the check-references-filter-criteria values of each attribute type that more than one of them names,
+   * whether with the same spelling, with another name or the OID of the type, or with a space before the colon.
+   * Before issue #1172 only one of them was enforced, the one that sorts last.
+   */
+  private static Map<AttributeType, List<String>> getDuplicateFilterCriteria(ReferentialIntegrityPluginCfg pluginCfg)
+  {
+    Map<AttributeType, List<String>> valuesByType = new LinkedHashMap<>();
+    for (String attrFilt : pluginCfg.getCheckReferencesFilterCriteria())
+    {
+      AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema()
+          .getAttributeType(splitFilterCriteria(attrFilt)[0]);
+      // An attribute missing from the schema is refused as not listed in attribute-type.
+      if (!attrType.isPlaceHolder())
+      {
+        valuesByType.computeIfAbsent(attrType, k -> new ArrayList<>()).add(attrFilt);
+      }
+    }
+    valuesByType.values().removeIf(values -> values.size() < 2);
+    return valuesByType;
   }
 
   /**
@@ -299,7 +344,13 @@ public class ReferentialIntegrityPlugin
     return missing;
   }
 
-  private boolean isConfigurationAcceptableIgnoringCheckReferencesPluginTypes(
+  /**
+   * Checks what a configuration must satisfy for the plugin to load it. Unlike
+   * {@link #isConfigurationAcceptable(PluginCfg, List)}, it lets through a configuration that lacks the plugin types
+   * {@code check-references} needs (issue #1118) or has two filter criteria for one attribute type (issue #1172):
+   * one stored before those checks existed is loaded with a warning instead.
+   */
+  private boolean isConfigurationLoadable(
       ReferentialIntegrityPluginCfg pluginCfg, List<LocalizableMessage> unacceptableReasons)
   {
     boolean isAcceptable = true;

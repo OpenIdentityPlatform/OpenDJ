@@ -54,6 +54,7 @@ import org.opends.server.types.Control;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.operation.PreOperationAddOperation;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -61,6 +62,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
@@ -1070,6 +1073,167 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                                "preoperationadd",
                                "preoperationmodify");
     }
+  }
+
+  /**
+   * Issue #1172: two check-references-filter-criteria values that name the same attribute type, spelled the same,
+   * as its name and its OID, or with a space before the colon. The filters are chosen so that an entry matching only
+   * one of them shows which one is enforced.
+   */
+  @DataProvider
+  public Object[][] duplicateFilterCriteria()
+  {
+    return new Object[][] {
+      { "manager:(employeeType=manager)", "manager:(description=approved)" },
+      { "manager:(employeeType=manager)", "0.9.2342.19200300.100.1.10:(description=approved)" },
+      { "manager:(employeeType=manager)", "manager :(description=approved)" },
+    };
+  }
+
+  /**
+   * Issue #1172: enabling the plugin or changing its configuration is refused when two filter criteria name the same
+   * attribute type, with one reason that names the attribute and both values.
+   */
+  @Test(dataProvider = "duplicateFilterCriteria")
+  public void testDuplicateFilterCriteriaIsNotAcceptable(String first, String second) throws Exception
+  {
+    List<LocalizableMessage> reasons = new ArrayList<>();
+
+    boolean acceptable = new ReferentialIntegrityPlugin().isConfigurationAcceptable(
+        InitializationUtils.getConfiguration(ReferentialIntegrityPluginCfgDefn.getInstance(),
+            duplicateFilterCriteriaEntry(first, second)), reasons);
+
+    assertFalse(acceptable);
+    assertEquals(reasons.size(), 1, reasons.toString());
+    String reason = reasons.get(0).toString();
+    assertTrue(reason.startsWith("The property 'check-references-filter-criteria' has more than one value for "
+        + "attribute 'manager'"), reason);
+    assertTrue(reason.contains(first) && reason.contains(second), reason);
+  }
+
+  /**
+   * Issue #1172: a configuration stored before the check existed is still loaded when the server starts, with a
+   * warning that names the attribute and both values.
+   */
+  @Test(dataProvider = "duplicateFilterCriteria")
+  public void testDuplicateFilterCriteriaIsLoadedWithWarning(String first, String second) throws Exception
+  {
+    Entry e = duplicateFilterCriteriaEntry(first, second);
+    TestCaseUtils.ERROR_TEXT_WRITER.clear();
+
+    ReferentialIntegrityPlugin plugin = initializePlugin(e);
+    plugin.finalizePlugin();
+
+    String msgID = "msgID=" + WARN_PLUGIN_REFERENT_DUPLICATE_FILTER_CRITERIA.ordinal() + " msg=";
+    List<String> logged = TestCaseUtils.ERROR_TEXT_WRITER.getMessages();
+    assertTrue(logged.stream().anyMatch(line -> line.contains(msgID) && line.contains(e.getName().toString())
+        && line.contains("'manager'") && line.contains(first) && line.contains(second)), logged.toString());
+  }
+
+  /**
+   * Issue #1172: a loaded configuration with two filter criteria for one attribute type enforces both of them, not
+   * the one whose value happens to sort last.
+   */
+  @Test(dataProvider = "duplicateFilterCriteria")
+  public void testDuplicateFilterCriteriaAreAllEnforced(String first, String second) throws Exception
+  {
+    String manager = "uid=manager,ou=people,ou=dept,dc=example,dc=com";
+    addEntry(manager);
+    Entry employee = TestCaseUtils.makeEntry(
+      "dn: uid=employee,ou=people,ou=dept,dc=example,dc=com",
+      "objectclass: top",
+      "objectclass: person",
+      "objectclass: organizationalperson",
+      "objectclass: inetorgperson",
+      "uid: employee",
+      "cn: employee",
+      "sn: employee",
+      "givenname: employee",
+      "manager: " + manager);
+    PreOperationAddOperation addEmployee = mock(PreOperationAddOperation.class);
+    when(addEmployee.getEntryToAdd()).thenReturn(employee);
+
+    ReferentialIntegrityPlugin plugin = initializePlugin(duplicateFilterCriteriaEntry(first, second));
+    try
+    {
+      assertEquals(replaceAttrEntry(DN.valueOf(manager), "employeeType", "manager").getResultCode(),
+          ResultCode.SUCCESS);
+      assertEquals(plugin.doPreOperation(addEmployee).getResultCode(), ResultCode.CONSTRAINT_VIOLATION,
+          "The manager matches only " + first);
+
+      assertEquals(replaceAttrEntry(DN.valueOf(manager), "employeeType").getResultCode(), ResultCode.SUCCESS);
+      assertEquals(replaceAttrEntry(DN.valueOf(manager), "description", "approved").getResultCode(),
+          ResultCode.SUCCESS);
+      assertEquals(plugin.doPreOperation(addEmployee).getResultCode(), ResultCode.CONSTRAINT_VIOLATION,
+          "The manager matches only " + second);
+
+      assertEquals(replaceAttrEntry(DN.valueOf(manager), "employeeType", "manager").getResultCode(),
+          ResultCode.SUCCESS);
+      assertTrue(plugin.doPreOperation(addEmployee).continueProcessing(), "The manager matches both filters");
+    }
+    finally
+    {
+      plugin.finalizePlugin();
+    }
+  }
+
+  /**
+   * Issue #1172: adding a second filter criteria value for an attribute type that already has one is refused on a
+   * running plugin, and the first value stays enforced alone.
+   */
+  @Test
+  public void testDuplicateFilterCriteriaIsRejected() throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "manager");
+    assertEquals(addAttrEntry(configDN, dsConfigAttrFiltMapping, "manager:(employeeType=manager)").getResultCode(),
+        ResultCode.SUCCESS);
+    assertEquals(replaceAttrEntry(configDN, "ds-cfg-enabled", "true").getResultCode(), ResultCode.SUCCESS);
+
+    ModifyOperation op = addAttrEntry(configDN, dsConfigAttrFiltMapping, "manager :(description=approved)");
+    assertNotEquals(op.getResultCode(), ResultCode.SUCCESS);
+    String reason = op.getErrorMessage().toString();
+    assertTrue(reason.contains("manager:(employeeType=manager)") && reason.contains("manager :(description=approved)"),
+        reason);
+  }
+
+  /**
+   * An enabled plugin entry that checks the references held by {@code manager} below {@code dc=example,dc=com}, with
+   * the given filter criteria.
+   */
+  private static Entry duplicateFilterCriteriaEntry(String... filterCriteria) throws Exception
+  {
+    List<String> ldif = newArrayList(
+        "dn: cn=Referential Integrity,cn=Plugins,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-plugin",
+        "objectClass: ds-cfg-referential-integrity-plugin",
+        "cn: Referential Integrity",
+        "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+        "ds-cfg-enabled: true",
+        "ds-cfg-plugin-type: postOperationDelete",
+        "ds-cfg-plugin-type: postOperationModifyDN",
+        "ds-cfg-plugin-type: subordinateModifyDN",
+        "ds-cfg-plugin-type: subordinateDelete",
+        "ds-cfg-plugin-type: preOperationAdd",
+        "ds-cfg-plugin-type: preOperationModify",
+        "ds-cfg-attribute-type: manager",
+        "ds-cfg-base-dn: dc=example,dc=com",
+        "ds-cfg-check-references: true");
+    for (String criteria : filterCriteria)
+    {
+      ldif.add("ds-cfg-check-references-filter-criteria: " + criteria);
+    }
+    return TestCaseUtils.makeEntry(ldif.toArray(new String[0]));
   }
 
   /** The lines of the Referential Integrity plugin entry in the fresh-install config.ldif template. */
