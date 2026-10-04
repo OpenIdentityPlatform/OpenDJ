@@ -339,7 +339,8 @@ public class ServerController {
 
       try
       {
-        startServerViaAnotherProcess();
+        // Without suppression the readers have already shown every line to the listeners.
+        startServerViaAnotherProcess(suppressOutput || application == null);
 
         if (verifyCanConnect)
         {
@@ -366,7 +367,8 @@ public class ServerController {
     }
   }
 
-  private void startServerViaAnotherProcess() throws IOException, InterruptedException, ApplicationException
+  private void startServerViaAnotherProcess(boolean reportOutput)
+      throws IOException, InterruptedException, ApplicationException
   {
     logger.info(LocalizableMessage.raw("starting server"));
 
@@ -405,7 +407,9 @@ public class ServerController {
       // The readers may still be draining the lines start-ds printed just before it exited.
       errReader.join(START_OUTPUT_DRAIN_TIMEOUT_MS);
       outputReader.join(START_OUTPUT_DRAIN_TIMEOUT_MS);
-      throw new ApplicationException(ReturnCode.START_ERROR, getStartFailedMessage(returnValue, outputTail), null);
+      throw new ApplicationException(ReturnCode.START_ERROR, reportOutput
+          ? getStartFailedMessage(returnValue, outputTail)
+          : INFO_ERROR_STARTING_SERVER_CODE.get(returnValue), null);
     }
     if (outputReader.isFinished())
     {
@@ -613,14 +617,16 @@ public class ServerController {
 
   private static LocalizableMessage getStartFailedMessage(int returnValue, Deque<String> outputTail)
   {
+    // The header is the message a failed start has always reported, which is translated.
+    LocalizableMessageBuilder mb = new LocalizableMessageBuilder(INFO_ERROR_STARTING_SERVER_CODE.get(returnValue));
     synchronized (outputTail)
     {
-      if (outputTail.isEmpty())
+      if (!outputTail.isEmpty())
       {
-        return INFO_ERROR_STARTING_SERVER_CODE.get(returnValue);
+        mb.append(INFO_ERROR_STARTING_SERVER_OUTPUT.get(String.join(System.lineSeparator(), outputTail)));
       }
-      return INFO_ERROR_STARTING_SERVER_CODE_OUTPUT.get(returnValue, String.join(System.lineSeparator(), outputTail));
     }
+    return mb.toMessage();
   }
 
   /**

@@ -16,6 +16,7 @@
 package org.opends.quicksetup.util;
 
 import static com.forgerock.opendj.util.OperatingSystem.*;
+import static org.opends.messages.QuickSetupMessages.INFO_ERROR_STARTING_SERVER_CODE;
 import static org.testng.Assert.*;
 
 import java.io.File;
@@ -23,17 +24,22 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.opends.quicksetup.Application;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.ReturnCode;
 import org.opends.server.DirectoryServerTestCase;
+import org.testng.SkipException;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
- * A failed start reports what the start command printed (issue #1160). The installation is a
- * bare directory whose start command is a stand-in script that prints and exits with 1.
+ * A failed start reports what the start command printed (issue #1160), unless the listeners of
+ * the application have already shown it. The installation is a bare directory whose start command
+ * is a stand-in script that prints and exits with 1.
  */
 @SuppressWarnings("javadoc")
 @Test(sequential = true)
@@ -56,18 +62,11 @@ public class ServerControllerStartFailureTest extends DirectoryServerTestCase
   @Test
   public void failedStartReportsBothOutputStreams() throws Exception
   {
-    if (isWindows())
-    {
-      writeStartCommand("@echo cause on stdout", "@echo cause on stderr 1>&2", "@exit /b 1");
-    }
-    else
-    {
-      writeStartCommand("#!/bin/sh", "echo 'cause on stdout'", "echo 'cause on stderr' >&2", "exit 1");
-    }
+    writeStartCommandPrintingToBothStreams();
 
-    String message = startAndExpectFailure();
+    String message = startAndExpectFailure(null, false);
 
-    assertTrue(message.contains("Error code: 1."), message);
+    assertTrue(message.startsWith(exitCodeMessage()), message);
     assertTrue(message.contains("cause on stdout"), message);
     assertTrue(message.contains("cause on stderr"), message);
   }
@@ -84,11 +83,26 @@ public class ServerControllerStartFailureTest extends DirectoryServerTestCase
       writeStartCommand("#!/bin/sh", "i=1", "while [ $i -le 150 ]; do echo \"L${i}L\"; i=$((i+1)); done", "exit 1");
     }
 
-    String message = startAndExpectFailure();
+    String message = startAndExpectFailure(null, false);
 
     assertFalse(message.contains("L50L"), message);
     assertTrue(message.contains("L51L"), message);
     assertTrue(message.contains("L150L"), message);
+  }
+
+  @Test
+  public void failedStartReportsWhatIsPrintedAfterTheExit() throws Exception
+  {
+    if (isWindows())
+    {
+      throw new SkipException("needs a child process that outlives the start command");
+    }
+    // The child holds the inherited pipes after sh exits, so its line arrives after waitFor().
+    writeStartCommand("#!/bin/sh", "(sleep 1; echo 'printed after the exit') &", "exit 1");
+
+    String message = startAndExpectFailure(null, false);
+
+    assertTrue(message.contains("printed after the exit"), message);
   }
 
   @Test
@@ -103,7 +117,49 @@ public class ServerControllerStartFailureTest extends DirectoryServerTestCase
       writeStartCommand("#!/bin/sh", "exit 1");
     }
 
-    assertEquals(startAndExpectFailure(), "Error Starting Directory Server. Error code: 1.");
+    assertEquals(startAndExpectFailure(null, false), exitCodeMessage());
+  }
+
+  @Test
+  public void failedStartShownToTheListenersKeepsTheExitCodeMessage() throws Exception
+  {
+    writeStartCommandPrintingToBothStreams();
+    ListeningApplication application = new ListeningApplication();
+
+    assertEquals(startAndExpectFailure(application, false), exitCodeMessage());
+    assertTrue(application.getShown().contains("cause on stdout"), application.getShown());
+    assertTrue(application.getShown().contains("cause on stderr"), application.getShown());
+  }
+
+  @Test
+  public void failedStartHiddenFromTheListenersReportsBothOutputStreams() throws Exception
+  {
+    writeStartCommandPrintingToBothStreams();
+    ListeningApplication application = new ListeningApplication();
+
+    String message = startAndExpectFailure(application, true);
+
+    assertTrue(message.startsWith(exitCodeMessage()), message);
+    assertTrue(message.contains("cause on stdout"), message);
+    assertTrue(message.contains("cause on stderr"), message);
+    assertEquals(application.getShown(), "");
+  }
+
+  private static String exitCodeMessage()
+  {
+    return INFO_ERROR_STARTING_SERVER_CODE.get(1).toString();
+  }
+
+  private void writeStartCommandPrintingToBothStreams() throws IOException
+  {
+    if (isWindows())
+    {
+      writeStartCommand("@echo cause on stdout", "@echo cause on stderr 1>&2", "@exit /b 1");
+    }
+    else
+    {
+      writeStartCommand("#!/bin/sh", "echo 'cause on stdout'", "echo 'cause on stderr' >&2", "exit 1");
+    }
   }
 
   private void writeStartCommand(String... lines) throws IOException
@@ -116,11 +172,11 @@ public class ServerControllerStartFailureTest extends DirectoryServerTestCase
     assertTrue(command.setExecutable(true));
   }
 
-  private String startAndExpectFailure()
+  private String startAndExpectFailure(Application application, boolean suppressOutput)
   {
     try
     {
-      new ServerController(new Installation(root, root)).startServer();
+      new ServerController(application, new Installation(root, root)).startServer(suppressOutput);
       fail("The start command exited with 1, but the start did not fail");
       return null;
     }
@@ -128,6 +184,86 @@ public class ServerControllerStartFailureTest extends DirectoryServerTestCase
     {
       assertEquals(e.getType(), ReturnCode.START_ERROR);
       return e.getMessage();
+    }
+  }
+
+  /** An application whose listener keeps the log details it is shown. */
+  private static final class ListeningApplication extends Application
+  {
+    private final StringBuilder shown = new StringBuilder();
+
+    ListeningApplication()
+    {
+      setProgressMessageFormatter(new PlainTextProgressMessageFormatter());
+      addProgressUpdateListener(ev ->
+      {
+        synchronized (shown)
+        {
+          shown.append(ev.getNewLogs());
+        }
+      });
+    }
+
+    String getShown()
+    {
+      synchronized (shown)
+      {
+        return shown.toString();
+      }
+    }
+
+    @Override
+    public String getInstallationPath()
+    {
+      return null;
+    }
+
+    @Override
+    public String getInstancePath()
+    {
+      return null;
+    }
+
+    @Override
+    public ProgressStep getCurrentProgressStep()
+    {
+      return null;
+    }
+
+    @Override
+    public Integer getRatio(ProgressStep step)
+    {
+      return null;
+    }
+
+    @Override
+    public LocalizableMessage getSummary(ProgressStep step)
+    {
+      return null;
+    }
+
+    @Override
+    public boolean isFinished()
+    {
+      return false;
+    }
+
+    @Override
+    public boolean isCancellable()
+    {
+      return false;
+    }
+
+    @Override
+    public void cancel()
+    {
+      // Nothing to cancel.
+    }
+
+    @Override
+    public void run()
+    {
+      // Never run: the test drives the ServerController directly.
     }
   }
 }
