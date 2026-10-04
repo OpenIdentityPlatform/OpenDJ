@@ -68,6 +68,8 @@ public final class SaslPlainStrategyTest extends ForgeRockTestCase {
         return new Object[][] {
             // The user name is the bind DN.
             { "dn:%s", USER_DN, "dn:" + USER_DN },
+            // Spaces after "dn:" are not part of the template, as for the OAuth2 authzIdTemplate.
+            { "dn: %s", USER_DN, "dn:" + USER_DN },
             { "dn:uid=%s,ou=People,dc=example,dc=com", "bjensen", "dn:" + USER_DN },
             // A user name inside a DN template stays one attribute value.
             { "dn:uid=%s,ou=People,dc=example,dc=com", "a,ou=x", "dn:uid=a\\,ou\\=x,ou=People,dc=example,dc=com" },
@@ -88,7 +90,7 @@ public final class SaslPlainStrategyTest extends ForgeRockTestCase {
         assertThat(context.getAuthenticationId()).isEqualTo(expectedAuthcId);
     }
 
-    /** A user name which is not a DN fails the returned promise and sends no bind request. */
+    /** A user name which is not a DN fails the returned promise and takes no connection. */
     @Test
     public void testUserNameWhichIsNotADnFailsThePromise() throws Exception {
         final Promise<SecurityContext, LdapException> promise =
@@ -100,6 +102,7 @@ public final class SaslPlainStrategyTest extends ForgeRockTestCase {
         } catch (final LdapException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.INVALID_CREDENTIALS);
         }
+        verify(factory, never()).getConnectionAsync();
         verify(connection, never()).bindAsync(any(BindRequest.class));
     }
 }

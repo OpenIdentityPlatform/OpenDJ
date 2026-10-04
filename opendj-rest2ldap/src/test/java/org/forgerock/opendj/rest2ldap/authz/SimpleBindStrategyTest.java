@@ -21,6 +21,9 @@ import static org.forgerock.opendj.ldap.Connections.newInternalConnectionFactory
 import static org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategies.newSimpleBindStrategy;
 import static org.forgerock.services.context.SecurityContext.AUTHZID_DN;
 import static org.forgerock.services.context.SecurityContext.AUTHZID_ID;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
@@ -92,6 +95,15 @@ public final class SimpleBindStrategyTest extends ForgeRockTestCase {
     public void testUserNameWhichIsNotADnFailsThePromise() throws Exception {
         assertFailsWith(newSimpleBindStrategy(factory, "%s", Schema.getDefaultSchema())
                 .authenticate("bjensen", "secret", new RootContext()), ResultCode.INVALID_CREDENTIALS);
+    }
+
+    /** A user name which is not a DN is refused before a connection is taken, so none is left open. */
+    @Test
+    public void testUserNameWhichIsNotADnTakesNoConnection() throws Exception {
+        final ConnectionFactory connections = mock(ConnectionFactory.class);
+        assertFailsWith(newSimpleBindStrategy(connections, "%s", Schema.getDefaultSchema())
+                .authenticate("bjensen", "secret", new RootContext()), ResultCode.INVALID_CREDENTIALS);
+        verify(connections, never()).getConnectionAsync();
     }
 
     @Test

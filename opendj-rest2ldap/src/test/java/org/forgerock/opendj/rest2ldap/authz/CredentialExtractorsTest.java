@@ -67,6 +67,9 @@ public class CredentialExtractorsTest extends ForgeRockTestCase {
             { "*invalid*" },
             { "Basic " + Base64.encode("bjensen".getBytes()) },
             { "Basic !!!" },
+            // Base64 which is not a multiple of 4 characters long does not decode at all.
+            { "Basic abc" },
+            { "Basic " + Base64.encode("foo:bar".getBytes()).replace("=", "") },
             { "Basic" },
         };
         // @formatter:on

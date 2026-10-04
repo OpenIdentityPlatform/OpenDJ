@@ -124,7 +124,12 @@ public final class CredentialExtractors {
                 final String base64UserCredentials = authHeader.substring(BASIC_SCHEME.length());
                 // Example usage of base64:
                 // Base64("Aladdin:open sesame") = "QWxhZGRpbjpvcGVuIHNlc2FtZQ=="
-                final String userCredentials = new String(Base64.decode(base64UserCredentials));
+                final byte[] decoded = Base64.decode(base64UserCredentials);
+                if (decoded == null) {
+                    // Not a multiple of 4 characters long once the characters outside base64 are dropped.
+                    return null;
+                }
+                final String userCredentials = new String(decoded);
                 // RFC 7617 section 2: the user-id cannot contain a colon, the password can.
                 final int colon = userCredentials.indexOf(':');
                 if (colon >= 0) {

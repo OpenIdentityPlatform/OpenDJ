@@ -69,7 +69,8 @@ final class SaslPlainStrategy implements AuthenticationStrategy {
         checkNotNull(schema, "schema cannot be null");
         checkNotNull(authcIdTemplate, "authcIdTemplate cannot be null");
         if (authcIdTemplate.startsWith("dn:")) {
-            final String dnTemplate = authcIdTemplate.substring("dn:".length());
+            // As AuthzIdTemplate does, ignore spaces after the key: "dn: {username}" is "dn:{username}".
+            final String dnTemplate = authcIdTemplate.substring("dn:".length()).trim();
             formatter = new Function<String, String, LdapException>() {
                 @Override
                 public String apply(String value) throws LdapException {
