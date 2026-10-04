@@ -2227,4 +2227,98 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     final ModifyOperation multiModOperation = connection.processModify(modifyRequest);
     assertEquals(multiModOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
   }
+
+  /**
+   * Issue #1173: two managed attributes, the first of which holds a reference to a missing entry, with the other one
+   * holding a valid reference or none. Each attribute takes both places, so that one row puts the missing reference
+   * after the attribute type the plugin checks first, whichever that is.
+   */
+  @DataProvider
+  public Object[][] missingReferenceNextToAnother()
+  {
+    return new Object[][] {
+      { "manager", "seeAlso" },
+      { "seeAlso", "manager" },
+      { "manager", null },
+      { "seeAlso", null },
+    };
+  }
+
+  /**
+   * Issue #1173: an added entry is refused when any managed attribute type holds a reference to a missing entry, not
+   * only when the first one the plugin checks does.
+   */
+  @Test(dataProvider = "missingReferenceNextToAnother")
+  public void testEnforceIntegrityAddChecksEveryAttributeType(String missingRefAttr, String validRefAttr)
+      throws Exception
+  {
+    enableCheckReferences("manager", "seeAlso");
+
+    List<String> ldif = newArrayList(
+        "dn: uid=employee,ou=people,ou=dept,dc=example,dc=com",
+        "objectclass: top",
+        "objectclass: person",
+        "objectclass: organizationalperson",
+        "objectclass: inetorgperson",
+        "uid: employee",
+        "cn: employee",
+        "sn: employee",
+        missingRefAttr + ": uid=bad,ou=people,ou=dept,dc=example,dc=com");
+    if (validRefAttr != null)
+    {
+      ldif.add(validRefAttr + ": " + user1);
+    }
+
+    AddOperation addOperation = getRootConnection().processAdd(TestCaseUtils.makeEntry(ldif.toArray(new String[0])));
+    assertEquals(addOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
+  }
+
+  /**
+   * Issue #1173: a modify request is refused when any of its modifications adds a reference to a missing entry, not
+   * only when its first modification of a managed attribute does.
+   */
+  @Test(dataProvider = "missingReferenceNextToAnother")
+  public void testEnforceIntegrityModifyChecksEveryModification(String missingRefAttr, String validRefAttr)
+      throws Exception
+  {
+    enableCheckReferences("manager", "seeAlso");
+    String employee = "uid=employee,ou=people,ou=dept,dc=example,dc=com";
+    TestCaseUtils.addEntry(
+        "dn: " + employee,
+        "objectclass: top",
+        "objectclass: person",
+        "objectclass: organizationalperson",
+        "objectclass: inetorgperson",
+        "uid: employee",
+        "cn: employee",
+        "sn: employee");
+
+    ModifyRequest modifyRequest = Requests.newModifyRequest(DN.valueOf(employee));
+    // Without a valid managed modification first, a modification of an attribute the plugin does not manage.
+    modifyRequest.addModification(REPLACE, validRefAttr != null ? validRefAttr : "description", user1);
+    modifyRequest.addModification(ADD, missingRefAttr, "uid=bad,ou=people,ou=dept,dc=example,dc=com");
+
+    ModifyOperation modOperation = getRootConnection().processModify(modifyRequest);
+    assertEquals(modOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
+  }
+
+  /**
+   * Enables the plugin with {@code check-references} for the given attribute types below {@code dc=example,dc=com}.
+   */
+  private void enableCheckReferences(String... attributeTypes)
+  {
+    assertEquals(replaceAttrEntry(configDN, "ds-cfg-enabled", "false").getResultCode(), ResultCode.SUCCESS);
+    assertEquals(replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify").getResultCode(), ResultCode.SUCCESS);
+    assertEquals(addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com").getResultCode(), ResultCode.SUCCESS);
+    assertEquals(replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true").getResultCode(), ResultCode.SUCCESS);
+    assertEquals(replaceAttrEntry(configDN, dsConfigAttrType, (Object[]) attributeTypes).getResultCode(),
+        ResultCode.SUCCESS);
+    assertEquals(replaceAttrEntry(configDN, "ds-cfg-enabled", "true").getResultCode(), ResultCode.SUCCESS);
+  }
 }
