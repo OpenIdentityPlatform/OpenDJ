@@ -59,7 +59,14 @@
         <checkstylePluginVersion>2.9.1</checkstylePluginVersion>
         <checkstyleVersion>5.5</checkstyleVersion>
         <ant.contrib.version>1.0b3</ant.contrib.version>
-        <argLine>-Xmx512m</argLine>
+        <!--
+          org.bouncycastle.native.cpu_variant=java keeps bc-fips from loading its native libraries in the
+          test JVMs, so its DRBG is seeded from the JDK instead of the CPU's RDSEED instruction, which
+          runs dry on busy CI hosts ("RDSEED persistently failed to produce entropy"), see issue #1161.
+          Keep it in the jdk17.options argLine below as well; BcFipsNativeLibrariesOffTestCase in
+          opendj-core fails when either argLine loses it.
+        -->
+        <argLine>-Xmx512m -Dorg.bouncycastle.native.cpu_variant=java</argLine>
         <maven.cargo.containerId>tomcat10x</maven.cargo.containerId>
 
         <docHomepageUrl>https://doc.openidentityplatform.org/opendj/</docHomepageUrl>
@@ -735,7 +742,7 @@
 	        <jdk>[17,)</jdk>
 	      </activation>
 	      <properties>
-              <argLine>-Xmx512m --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED  --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util.regex=ALL-UNNAMED --add-opens java.base/java.security=ALL-UNNAMED --add-opens java.naming/javax.naming.spi=ALL-UNNAMED</argLine>
+              <argLine>-Xmx512m -Dorg.bouncycastle.native.cpu_variant=java --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED  --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.util.regex=ALL-UNNAMED --add-opens java.base/java.security=ALL-UNNAMED --add-opens java.naming/javax.naming.spi=ALL-UNNAMED</argLine>
               <maven.cargo.containerId>tomcat11x</maven.cargo.containerId>
 	      </properties>
 	    </profile>

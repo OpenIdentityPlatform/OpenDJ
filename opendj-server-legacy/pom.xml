@@ -1282,6 +1282,15 @@
                     <!-- Matched against the name of the test class, see org.opends.server.TestListener.onStart(). -->
                     <org.opends.test.trace.pattern>(org\.opends\.server\.replication\.service\..*)|(org\.opends\.server\.replication\.GenerationIdTest)|(org\.opends\.server\.types\.HostPortTest)|(org\.openidentityplatform\.opendj\.AliasTestCase)</org.opends.test.trace.pattern>
                   </systemPropertyVariables>
+                  <!--
+                    The argLine flag that keeps bc-fips off RDSEED (issue #1161) does not reach the JVMs
+                    the tests start from the built package: setup, and start-ds through ServerController,
+                    which keeps the environment of this fork and drops only OPENDJ_JAVA_ARGS and CLASSPATH.
+                    Every JVM reads JAVA_TOOL_OPTIONS, so they pick the flag up from here.
+                  -->
+                  <environmentVariables>
+                    <JAVA_TOOL_OPTIONS>-Dorg.bouncycastle.native.cpu_variant=java</JAVA_TOOL_OPTIONS>
+                  </environmentVariables>
                   <argLine>@{argLine}</argLine>
 	          	  <reuseForks>false</reuseForks>
 	          	  <forkCount>1</forkCount>
