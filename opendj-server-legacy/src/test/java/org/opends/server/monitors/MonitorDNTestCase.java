@@ -20,6 +20,11 @@ import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
@@ -28,6 +33,7 @@ import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.http.HTTPConnectionHandler;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.opends.server.types.Entry;
@@ -115,29 +121,35 @@ public class MonitorDNTestCase extends MonitorTestCase
   @DataProvider
   public Object[][] connectionHandlerClasses()
   {
-    return new Object[][] { { LDAPConnectionHandler.class.getName() }, { LDAPConnectionHandler2.class.getName() } };
+    final String[] ldap = { "ds-cfg-allow-ldap-v2: false", "ds-cfg-allow-start-tls: false" };
+    return new Object[][] {
+      { LDAPConnectionHandler.class.getName(), "ds-cfg-ldap-connection-handler", ldap },
+      { LDAPConnectionHandler2.class.getName(), "ds-cfg-ldap-connection-handler", ldap },
+      { HTTPConnectionHandler.class.getName(), "ds-cfg-http-connection-handler", new String[0] },
+    };
   }
 
   /** The connection handler, its client connections and its statistics each get the entry they name. */
   @Test(dataProvider = "connectionHandlerClasses")
-  public void connectionHandlerWithACommaInItsName(String javaClass) throws Exception
+  public void connectionHandlerWithACommaInItsName(String javaClass, String objectClass, String[] attributes)
+      throws Exception
   {
     // Unescaped, "LDAP,ou=internal 127.0.0.1 port N" would be a relative DN two levels down
     final String name = "LDAP,ou=internal";
     final int port = TestCaseUtils.findFreePort();
-    final Entry handlerEntry = TestCaseUtils.makeEntry(
+    final List<String> ldif = new ArrayList<>(Arrays.asList(
         "dn: cn=LDAP\\,ou\\=internal,cn=Connection Handlers,cn=config",
         "objectClass: top",
         "objectClass: ds-cfg-connection-handler",
-        "objectClass: ds-cfg-ldap-connection-handler",
+        "objectClass: " + objectClass,
         "cn: " + name,
         "ds-cfg-java-class: " + javaClass,
         "ds-cfg-enabled: true",
         "ds-cfg-listen-address: 127.0.0.1",
         "ds-cfg-listen-port: " + port,
-        "ds-cfg-allow-ldap-v2: false",
-        "ds-cfg-use-ssl: false",
-        "ds-cfg-allow-start-tls: false");
+        "ds-cfg-use-ssl: false"));
+    Collections.addAll(ldif, attributes);
+    final Entry handlerEntry = TestCaseUtils.makeEntry(ldif.toArray(new String[0]));
     TestCaseUtils.addEntry(handlerEntry);
     try
     {

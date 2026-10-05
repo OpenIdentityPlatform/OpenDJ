@@ -15,9 +15,12 @@
  */
 package org.opends.server.authorization.dseecompat;
 
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DN_TRAILING_ESCAPE;
 import static org.assertj.core.api.Assertions.*;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.DirectoryException;
@@ -114,10 +117,21 @@ public class PatternDNTest extends DirectoryServerTestCase
     };
   }
 
-  @Test(dataProvider = "patternsWithATrailingBackslash", expectedExceptions = DirectoryException.class)
+  /** The pattern is rejected with the result code and the message of DN.valueOf(). */
+  @Test(dataProvider = "patternsWithATrailingBackslash")
   public void patternWithATrailingBackslashIsRejected(String pattern) throws Exception
   {
-    PatternDN.decode(pattern);
+    final Throwable patternError = catchThrowable(() -> PatternDN.decode(pattern));
+    assertThat(patternError).isInstanceOf(DirectoryException.class);
+    assertThat(((DirectoryException) patternError).getResultCode()).isEqualTo(ResultCode.INVALID_DN_SYNTAX);
+    assertThat(((DirectoryException) patternError).getMessageObject().toString())
+        .isEqualTo(ERR_ATTR_SYNTAX_DN_TRAILING_ESCAPE.get(pattern).toString());
+    if (!pattern.contains("*"))
+    {
+      final Throwable dnError = catchThrowable(() -> DN.valueOf(pattern));
+      assertThat(dnError).isInstanceOf(LocalizedIllegalArgumentException.class);
+      assertThat(dnError.getMessage()).isEqualTo(patternError.getMessage());
+    }
   }
 
   @DataProvider

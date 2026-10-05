@@ -715,33 +715,13 @@ final class UpgradeTasks
         {
           throw new ClientException(ReturnCode.ERROR_UNEXPECTED, ERR_UPGRADE_READING_CONF_FILE.get(e.getMessage()), e);
         }
-        final Map<String, Set<String>> baseDNsPerBackend = getBaseDNsPerBackendsFromConfig();
-        for (final Map.Entry<String, Set<String>> backend : attributesPerBackend.entrySet())
+        final Map<String, Set<String>> indexesPerBaseDN =
+            getDNEqualityIndexesToVerify(attributesPerBackend, getBaseDNsPerBackendsFromConfig());
+        for (final Map.Entry<String, Set<String>> baseDN : indexesPerBaseDN.entrySet())
         {
-          final Set<String> baseDNs = baseDNsPerBackend.get(backend.getKey());
-          if (baseDNs == null)
-          {
-            continue;
-          }
-          for (final String baseDN : baseDNs)
-          {
-            verifyAndRebuild(context, baseDN, backend.getValue());
-          }
+          verifyAndRebuildOrWarn(context, configFile.getAbsolutePath(), baseDN.getKey(), baseDN.getValue(), true,
+              UpgradeLog.getPrintStream());
         }
-      }
-
-      private void verifyAndRebuild(final UpgradeContext context, final String baseDN, final Set<String> attributes)
-          throws ClientException
-      {
-        final String indexes = joinAsString(", ", attributes);
-        final ProgressNotificationCallback pnc = new ProgressNotificationCallback(
-            INFORMATION, INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_STARTS.get(indexes, baseDN), 25);
-        context.notifyProgress(pnc);
-        final boolean rebuilt = verifyAndRebuildIndexes(configFile.getAbsolutePath(), baseDN, attributes, true,
-            UpgradeLog.getPrintStream());
-        context.notifyProgress(pnc.setProgress(100));
-        context.notify(rebuilt ? INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_INCONSISTENT.get(indexes, baseDN)
-                               : INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_CONSISTENT.get(indexes, baseDN));
       }
 
       @Override
@@ -759,6 +739,80 @@ final class UpgradeTasks
         return String.valueOf(summary);
       }
     };
+  }
+
+  /**
+   * Returns the base DNs whose DN equality indexes are verified, with the attributes of these indexes: those of the
+   * backend holding each base DN. A backend whose base DNs are unknown is left out.
+   *
+   * @param attributesPerBackend
+   *          The attributes with a DN equality index, per backend ID.
+   * @param baseDNsPerBackend
+   *          The base DNs, per backend ID.
+   * @return The attributes whose indexes are verified, per base DN.
+   */
+  static Map<String, Set<String>> getDNEqualityIndexesToVerify(final Map<String, Set<String>> attributesPerBackend,
+      final Map<String, Set<String>> baseDNsPerBackend)
+  {
+    final Map<String, Set<String>> attributesPerBaseDN = new TreeMap<>();
+    for (final Map.Entry<String, Set<String>> backend : attributesPerBackend.entrySet())
+    {
+      final Set<String> baseDNs = baseDNsPerBackend.get(backend.getKey());
+      if (baseDNs != null)
+      {
+        for (final String baseDN : baseDNs)
+        {
+          attributesPerBaseDN.put(baseDN, backend.getValue());
+        }
+      }
+    }
+    return attributesPerBaseDN;
+  }
+
+  /**
+   * Verifies the provided DN equality indexes under a base DN, and rebuilds them if needed, as
+   * {@link #verifyAndRebuildIndexes} does, then tells the user the outcome. When the indexes can be neither verified
+   * nor rebuilt, the user is warned instead of the upgrade failing: the server works without this task, and a
+   * backend that cannot be read now, such as a JDBC or Cassandra backend whose database is down, is left to the
+   * administrator.
+   *
+   * @param context
+   *          The upgrade context, which is notified of the outcome.
+   * @param configFilePath
+   *          The path of the configuration file.
+   * @param baseDN
+   *          The base DN to verify.
+   * @param attributes
+   *          The attributes whose indexes are verified, and rebuilt if needed.
+   * @param initializeServer
+   *          Whether the tools have to initialize the server components.
+   * @param out
+   *          The stream the tools write to.
+   * @throws ClientException
+   *           If the outcome cannot be reported.
+   */
+  static void verifyAndRebuildOrWarn(final UpgradeContext context, final String configFilePath, final String baseDN,
+      final Set<String> attributes, final boolean initializeServer, final PrintStream out) throws ClientException
+  {
+    final String indexes = joinAsString(", ", attributes);
+    final ProgressNotificationCallback pnc = new ProgressNotificationCallback(
+        INFORMATION, INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_STARTS.get(indexes, baseDN), 25);
+    context.notifyProgress(pnc);
+    final boolean rebuilt;
+    try
+    {
+      rebuilt = verifyAndRebuildIndexes(configFilePath, baseDN, attributes, initializeServer, out);
+    }
+    catch (final ClientException e)
+    {
+      logger.error(e.getMessageObject());
+      context.notifyProgress(pnc.setProgress(100));
+      context.notify(WARN_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_FAILED.get(indexes, baseDN), WARNING);
+      return;
+    }
+    context.notifyProgress(pnc.setProgress(100));
+    context.notify(rebuilt ? INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_INCONSISTENT.get(indexes, baseDN)
+                           : INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_CONSISTENT.get(indexes, baseDN));
   }
 
   /**

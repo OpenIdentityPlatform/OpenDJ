@@ -137,8 +137,8 @@ fi
 if [ -d ./data/config ]; then
   # nothing is bootstrapped here, the instance is already there - but a half-migrated one
   # is not ready to serve either, so the marker follows the upgrade.
-  # --force performs the tasks that -n alone answers with their default, such as rebuilding or verifying
-  # indexes: nobody is there to run them by hand afterwards, as the native packages do too
+  # --force performs the tasks that -n alone answers with their default no, such as rebuilding indexes:
+  # nobody is there to run them by hand afterwards, as the native packages do too
   if sh ./upgrade -n --force; then
     # A server whose volume holds the data of the topology is ready as soon as it serves:
     # gating it on its peers would deadlock a whole-cluster restart under OrderedReady,

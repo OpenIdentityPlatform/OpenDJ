@@ -17,14 +17,27 @@ package org.opends.server.tools.upgrade;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.opends.messages.ToolMessages.INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_CONSISTENT;
+import static org.opends.messages.ToolMessages.WARN_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_FAILED;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.TextOutputCallback;
+
+import com.forgerock.opendj.cli.ClientException;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -39,6 +52,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.types.Entry;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
@@ -53,6 +67,10 @@ public class DNEqualityIndexesUpgradeTestCase extends DirectoryServerTestCase
   private static final String BACKEND_ID = "dnEqualityIndexes";
   private static final String BACKEND_DN = "ds-cfg-backend-id=" + BACKEND_ID + ",cn=Backends,cn=config";
   private static final String BASE_DN = "o=dn equality indexes";
+  private static final String MY_MANAGER_AS_DN =
+      "( 1.3.6.1.4.1.26027.1.999.1153 NAME 'myManager' SUP distinguishedName )";
+  private static final String MY_MANAGER_AS_STRING = "( 1.3.6.1.4.1.26027.1.999.1153 NAME 'myManager' "
+      + "EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )";
 
   @BeforeClass
   public void setUp() throws Exception
@@ -70,18 +88,7 @@ public class DNEqualityIndexesUpgradeTestCase extends DirectoryServerTestCase
     final File directory = Files.createTempDirectory("dn-equality-indexes").toFile();
     try
     {
-      final File config = new File(directory, "config.ldif");
-      Files.write(config.toPath(), String.join("\n",
-          "dn: cn=config",
-          "objectClass: top",
-          "objectClass: ds-cfg-root-config",
-          "cn: config",
-          "",
-          "dn: cn=Backends,cn=config",
-          "objectClass: top",
-          "objectClass: ds-cfg-branch",
-          "cn: Backends",
-          "",
+      final File config = writeConfig(directory,
           backend("userRoot", "userRoot", "true"),
           index("userRoot", "member", "equality"),
           index("userRoot", "uniqueMember", "equality", "presence"),
@@ -96,17 +103,9 @@ public class DNEqualityIndexesUpgradeTestCase extends DirectoryServerTestCase
           backend("disabledRoot", "disabledRoot", "false"),
           index("disabledRoot", "member", "equality"),
           backend("otherRoot", "otherRoot", "true"),
-          index("otherRoot", "cn", "equality")).getBytes(UTF_8));
-
+          index("otherRoot", "cn", "equality"));
       final File schemaDirectory = new File(directory, "schema");
-      schemaDirectory.mkdir();
-      Files.write(new File(schemaDirectory, "99-user.ldif").toPath(), String.join("\n",
-          "dn: cn=schema",
-          "objectClass: top",
-          "objectClass: ldapSubentry",
-          "objectClass: subschema",
-          "attributeTypes: ( 1.3.6.1.4.1.26027.1.999.1153 NAME 'myManager' SUP distinguishedName )",
-          "").getBytes(UTF_8));
+      writeSchema(schemaDirectory, "99-user.ldif", MY_MANAGER_AS_DN);
 
       final Map<String, Set<String>> attributes =
           UpgradeUtils.getDNEqualityIndexedAttributesPerBackend(config, schemaDirectory);
@@ -119,6 +118,101 @@ public class DNEqualityIndexesUpgradeTestCase extends DirectoryServerTestCase
     {
       StaticUtils.recursiveDelete(directory);
     }
+  }
+
+  /**
+   * The schema files are read in the order of their names, as the server reads them, so the definition of an
+   * attribute in a later file replaces the one in an earlier file.
+   */
+  @DataProvider
+  public Object[][] schemaFilesInOrder()
+  {
+    return new Object[][] {
+      { MY_MANAGER_AS_STRING, MY_MANAGER_AS_DN, true },
+      { MY_MANAGER_AS_DN, MY_MANAGER_AS_STRING, false },
+    };
+  }
+
+  @Test(dataProvider = "schemaFilesInOrder")
+  public void aLaterSchemaFileDecidesTheMatchingRule(String first, String last, boolean comparesDNs) throws Exception
+  {
+    final File directory = Files.createTempDirectory("dn-equality-indexes").toFile();
+    try
+    {
+      final File config = writeConfig(directory,
+          backend("userRoot", "userRoot", "true"),
+          index("userRoot", "myManager", "equality"));
+      final File schemaDirectory = new File(directory, "schema");
+      // Written in the reverse order, so that the order of the directory listing does not give the expected one
+      writeSchema(schemaDirectory, "99-user.ldif", last);
+      writeSchema(schemaDirectory, "10-first.ldif", first);
+
+      final Map<String, Set<String>> attributes =
+          UpgradeUtils.getDNEqualityIndexedAttributesPerBackend(config, schemaDirectory);
+
+      if (comparesDNs)
+      {
+        assertThat(attributes).containsOnlyKeys("userRoot");
+        assertThat(attributes.get("userRoot")).containsExactly("myManager");
+      }
+      else
+      {
+        assertThat(attributes).isEmpty();
+      }
+    }
+    finally
+    {
+      StaticUtils.recursiveDelete(directory);
+    }
+  }
+
+  /** Each base DN gets the attributes of its backend; a backend without known base DNs is left out. */
+  @Test
+  public void eachBaseDNGetsTheIndexesOfItsBackend()
+  {
+    final Map<String, Set<String>> attributesPerBackend = new HashMap<>();
+    attributesPerBackend.put("a,b", Collections.singleton("member"));
+    attributesPerBackend.put("c", Collections.singleton("uniqueMember"));
+    final Map<String, Set<String>> baseDNsPerBackend = new HashMap<>();
+    baseDNsPerBackend.put("a,b", new HashSet<>(Arrays.asList("o=a", "o=b")));
+    baseDNsPerBackend.put("d", Collections.singleton("o=d"));
+
+    final Map<String, Set<String>> indexes =
+        UpgradeTasks.getDNEqualityIndexesToVerify(attributesPerBackend, baseDNsPerBackend);
+
+    assertThat(indexes).containsOnlyKeys("o=a", "o=b");
+    assertThat(indexes.get("o=a")).containsExactly("member");
+    assertThat(indexes.get("o=b")).containsExactly("member");
+  }
+
+  private static File writeConfig(File directory, String... entries) throws Exception
+  {
+    final File config = new File(directory, "config.ldif");
+    Files.write(config.toPath(), String.join("\n",
+        "dn: cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-root-config",
+        "cn: config",
+        "",
+        "dn: cn=Backends,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-branch",
+        "cn: Backends",
+        "",
+        String.join("\n", entries)).getBytes(UTF_8));
+    return config;
+  }
+
+  private static void writeSchema(File schemaDirectory, String fileName, String attributeType) throws Exception
+  {
+    schemaDirectory.mkdir();
+    Files.write(new File(schemaDirectory, fileName).toPath(), String.join("\n",
+        "dn: cn=schema",
+        "objectClass: top",
+        "objectClass: ldapSubentry",
+        "objectClass: subschema",
+        "attributeTypes: " + attributeType,
+        "").getBytes(UTF_8));
   }
 
   private static String backend(String rdnValue, String backendID, String enabled)
@@ -220,14 +314,80 @@ public class DNEqualityIndexesUpgradeTestCase extends DirectoryServerTestCase
           .as("rebuilt an index missing keys; output: %s", output).isTrue();
       assertThat(UpgradeTasks.verifyAndRebuildIndexes(configFile, BASE_DN, attributes, false, out))
           .as("rebuilt an index matching its entries; output: %s", output).isFalse();
+
+      final List<TextOutputCallback> notifications = new ArrayList<>();
+      UpgradeTasks.verifyAndRebuildOrWarn(newContext(notifications), configFile, BASE_DN, attributes, false, out);
+      assertThat(messagesOf(notifications))
+          .contains(INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_CONSISTENT.get("member", BASE_DN).toString())
+          .doesNotContain(WARN_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_FAILED.get("member", BASE_DN).toString());
     }
     finally
     {
       setBackendEnabled(false);
-      TestCaseUtils.deleteEntry(memberIndex.getName());
-      TestCaseUtils.deleteEntry(indexBranch.getName());
-      TestCaseUtils.deleteEntry(backend.getName());
+      // A failed setup must not be hidden by the cleanup, nor leave the backend configured for the next tests
+      for (final DN dn : Arrays.asList(memberIndex.getName(), indexBranch.getName(), backend.getName()))
+      {
+        if (DirectoryServer.entryExists(dn))
+        {
+          TestCaseUtils.deleteEntry(dn);
+        }
+      }
     }
+  }
+
+  /**
+   * Indexes that can be neither verified nor rebuilt, as those of a JDBC or Cassandra backend whose database is
+   * down, do not fail the upgrade: the user is warned instead.
+   */
+  @Test
+  public void indexesThatCannotBeVerifiedOnlyWarn() throws Exception
+  {
+    final String baseDN = "o=held by no backend";
+    final Set<String> attributes = Collections.singleton("member");
+    final ByteArrayOutputStream output = new ByteArrayOutputStream();
+    final PrintStream out = new PrintStream(output, true, "UTF-8");
+    final String configFile = DirectoryServer.getConfigFile();
+    final Throwable failure =
+        catchThrowable(() -> UpgradeTasks.verifyAndRebuildIndexes(configFile, baseDN, attributes, false, out));
+    assertThat(failure).as("output: %s", output).isInstanceOf(ClientException.class);
+
+    final List<TextOutputCallback> notifications = new ArrayList<>();
+    UpgradeTasks.verifyAndRebuildOrWarn(newContext(notifications), configFile, baseDN, attributes, false, out);
+
+    final String warning = WARN_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_FAILED.get("member", baseDN).toString();
+    assertThat(messagesOf(notifications)).contains(warning);
+    for (final TextOutputCallback notification : notifications)
+    {
+      if (notification.getMessage().equals(warning))
+      {
+        assertThat(((FormattedNotificationCallback) notification).getMessageSubType())
+            .isEqualTo(TextOutputCallback.WARNING);
+      }
+    }
+  }
+
+  /** Returns an upgrade context that records what it notifies. */
+  private static UpgradeContext newContext(final List<TextOutputCallback> notifications) throws Exception
+  {
+    return new UpgradeContext(callbacks -> {
+      for (final Callback callback : callbacks)
+      {
+        if (callback instanceof TextOutputCallback)
+        {
+          notifications.add((TextOutputCallback) callback);
+        }
+      }
+    });
+  }
+
+  private static List<String> messagesOf(final List<TextOutputCallback> notifications)
+  {
+    final List<String> messages = new ArrayList<>();
+    for (final TextOutputCallback notification : notifications)
+    {
+      messages.add(notification.getMessage());
+    }
+    return messages;
   }
 
   private static void setBackendEnabled(boolean enabled)
