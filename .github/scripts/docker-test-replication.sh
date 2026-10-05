@@ -38,10 +38,25 @@ cleanup() {
   docker volume rm -f $VOLUMES >/dev/null 2>&1 || true
 }
 cleanup
+# the container log says that a dsreplication failed and where its detailed log is; the errors
+# log of the server and those detailed logs say why. Both are in the instance, which the
+# image keeps under /opt/opendj/data, and a stopped container has nothing to exec in
+dump_logs() {
+  local c
+  for c in $NODES; do
+    echo "::group::container logs ($c)"
+    docker logs $c 2>&1 || true
+    echo "::endgroup::"
+    [ "$(docker inspect -f '{{.State.Running}}' $c 2>/dev/null)" = true ] || continue
+    echo "::group::server logs ($c)"
+    docker exec $c sh -c 'tail -n 1000 /opt/opendj/data/logs/errors; for f in /opt/opendj/data/tmp/opendj-replication-*.log; do [ -f "$f" ] && echo "--- $f" && cat "$f"; done' 2>&1 || true
+    echo "::endgroup::"
+  done
+}
 # set -E hands the trap to every $(...) as well, where a failing command would dump the logs
 # into the value being captured and remove the containers under the running test: there the
 # failure only ends the subshell, and the main shell decides
-trap 'code=$?; [ "$BASH_SUBSHELL" -eq 0 ] || exit $code; for c in $NODES; do echo "::group::container logs ($c)"; docker logs $c 2>&1 || true; echo "::endgroup::"; done; cleanup; exit $code' ERR
+trap 'code=$?; [ "$BASH_SUBSHELL" -eq 0 ] || exit $code; dump_logs; cleanup; exit $code' ERR
 
 fail() {
   echo "::error::$1"
@@ -266,14 +281,24 @@ logs_have dj-0 "seeding it with this server's data" || fail "dj-0 did not seed t
 
 # a seed that follows a reset lets the writes of clients in again, as a rejoin does: dj-0 is
 # left the way a reset cut off after its disable leaves a volume - the backend held,
-# $REJOIN_PENDING naming it, no replication domain - and restarted while no other peer
+# $REJOIN_PENDING naming it, no replication domain - and started again while no other peer
 # answers, so that it seeds once its retries are exhausted
 dsconfig_on dj-0 set-backend-prop --backend-name userRoot --set writability-mode:internal-only
 docker exec dj-0 sh -c 'echo userRoot >/opt/opendj/data/.replication-rejoin-pending'
-docker restart dj-0 >/dev/null
+# started once without a join, the volume reports itself healthy - nothing else would ever
+# turn it healthy - and its backend stays held, since only a join lets the writes in again:
+# the server says which backend that is
+docker rm -f dj-0 >/dev/null
+docker run -d --memory="512m" --network $NETWORK --name dj-0 --hostname dj-0 -v vol-dj-0:/opt/opendj/data \
+  -e ROOT_PASSWORD="$ROOT_PASSWORD" "$IMAGE" >/dev/null
+wait_until 300 "dj-0 says that no join lets the writes in" logs_have dj-0 "The backend userRoot may still refuse the writes of clients"
+wait_healthy dj-0
+refuses_writes dj-0 held-without-join || fail "dj-0 takes the writes of clients on a backend a rejoin held, without a join to let them in"
+docker rm -f dj-0 >/dev/null
+start_node dj-0 dj-0,dj-1
 wait_until 300 "the restarted dj-0 leaves its health to the join" logs_have dj-0 "was taken out of its replication topology"
 wait_healthy dj-0
-[ "$(logs_count dj-0 "seeding it with this server's data")" -ge 2 ] || fail "dj-0 did not seed again after the reset"
+logs_have dj-0 "seeding it with this server's data" || fail "dj-0 did not seed again after the reset"
 add_ou dj-0 seeded-after-reset || fail "dj-0 refuses the writes of clients after it seeded"
 [ "$(published_state dj-0)" = ready ] || fail "dj-0 does not publish itself ready after it seeded"
 
