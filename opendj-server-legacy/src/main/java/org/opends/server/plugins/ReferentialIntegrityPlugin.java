@@ -1104,7 +1104,8 @@ public class ReferentialIntegrityPlugin
         }
         PluginResult.PreOperation result =
             isIntegrityMaintained(modifiedAttribute, entryDN, entryBaseDN);
-        if (result.getResultCode() != ResultCode.SUCCESS)
+        // A reference that passes yields continueOperationProcessing(), whose result code is null, not SUCCESS.
+        if (!result.continueProcessing())
         {
           return result;
         }
@@ -1138,7 +1139,7 @@ public class ReferentialIntegrityPlugin
     {
       final List<Attribute> attrs = entry.getAllAttributes(attrType, false);
       PluginResult.PreOperation result = isIntegrityMaintained(attrs, entryDN, entryBaseDN);
-      if (result.getResultCode() != ResultCode.SUCCESS)
+      if (!result.continueProcessing())
       {
         return result;
       }
