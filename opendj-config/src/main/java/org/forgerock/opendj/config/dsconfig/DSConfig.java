@@ -1399,14 +1399,7 @@ public final class DSConfig extends ConsoleApplication {
                 // Only the echo is trimmed: an escaped blank at the end of the command is kept.
                 printlnNoWrap(LocalizableMessage.raw(command.trim()));
 
-                int exitCode;
-                try {
-                    // Append initial arguments to the file line
-                    exitCode = main(buildCommandArgs(initialArgs, command), getOutputStream(), getErrorStream());
-                } catch (final ArgumentException e) {
-                    errPrintln(e.getMessageObject());
-                    exitCode = ReturnCode.ERROR_USER_DATA.get();
-                }
+                final int exitCode = runBatchCommand(initialArgs, command, getOutputStream(), getErrorStream());
                 if (exitCode != ReturnCode.SUCCESS.get()) {
                     System.exit(filterExitCode(exitCode));
                 }
@@ -1414,6 +1407,22 @@ public final class DSConfig extends ConsoleApplication {
             }
         } catch (IOException ex) {
             errPrintln(ERR_DSCFG_ERROR_READING_BATCH_FILE.get(ex));
+        }
+    }
+
+    /**
+     * Runs one command of a batch with the initial arguments appended, and returns its exit code.
+     * A command that cannot be split into arguments is reported on the error stream: a batch
+     * always runs with --no-prompt, so that is where dsconfig writes its errors.
+     */
+    static int runBatchCommand(final List<String> initialArgs, final String command, final PrintStream out,
+            final PrintStream err) {
+        try {
+            // Append initial arguments to the file line
+            return main(buildCommandArgs(initialArgs, command), out, err);
+        } catch (final ArgumentException e) {
+            err.println(wrapText(e.getMessageObject(), MAX_LINE_WIDTH));
+            return ReturnCode.ERROR_USER_DATA.get();
         }
     }
 
@@ -1430,16 +1439,17 @@ public final class DSConfig extends ConsoleApplication {
     }
 
     /**
-     * Reads the next command of a batch, or returns {@code null} at its end. Empty lines and
-     * comments are skipped, and a line that ends in an unescaped backslash continues on the next
-     * line. A command whose last line continues still runs at the end of the batch.
+     * Reads the next command of a batch, or returns {@code null} at its end. Lines that are empty
+     * or hold only blanks, and comments, are skipped, also inside a command that continues over
+     * several lines, and a line that ends in an unescaped backslash continues on the next line. A
+     * command whose last line continues still runs at the end of the batch.
      */
     static String nextBatchCommand(final BufferedReader reader) throws IOException {
         final StringBuilder command = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {
-            if (line.isEmpty() || line.startsWith("#")) {
-                // Empty line or comment
+            if (line.trim().isEmpty() || line.startsWith("#")) {
+                // Empty or blank line, or comment
                 continue;
             }
             if (!continuesOnNextLine(line)) {
@@ -1459,7 +1469,7 @@ public final class DSConfig extends ConsoleApplication {
         return backslashes % 2 == 1;
     }
 
-    private String[] buildCommandArgs(List<String> initialArgs, String batchCommand) throws ArgumentException {
+    private static String[] buildCommandArgs(List<String> initialArgs, String batchCommand) throws ArgumentException {
         final Collection<String> commandArgs = toCommandArgs(batchCommand);
         final int length = commandArgs.size() + initialArgs.size();
         final List<String> allArguments = new ArrayList<>(length);

@@ -51,4 +51,10 @@ public final class CommandBuilderTestCase extends CliTestCase {
     public void testUnixValueIsBackslashEscaped() {
         assertThat(CommandBuilder.escapeValue("cn=a\\,b \"x\"", true)).isEqualTo("cn=a\\\\,b\\ \\\"x\\\"");
     }
+
+    /** A dsconfig batch line takes an unescaped single quote as an opening quote. */
+    @Test
+    public void testUnixApostropheIsEscaped() {
+        assertThat(CommandBuilder.escapeValue("description:O'Brien", true)).isEqualTo("description:O\\'Brien");
+    }
 }

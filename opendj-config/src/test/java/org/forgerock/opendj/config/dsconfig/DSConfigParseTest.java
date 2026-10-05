@@ -17,6 +17,7 @@
 package org.forgerock.opendj.config.dsconfig;
 
 import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ReturnCode;
 
 import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.Assert;
@@ -24,6 +25,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -95,9 +98,41 @@ public class DSConfigParseTest extends ForgeRockTestCase {
         };
     }
 
-    @Test(dataProvider = "unclosedQuotes", expectedExceptions = ArgumentException.class)
+    @Test(dataProvider = "unclosedQuotes", expectedExceptions = ArgumentException.class,
+            expectedExceptionsMessageRegExp = "The following batch command has a quote that is not closed: .*")
     public void testUnclosedQuoteIsRejected(String line) throws Exception {
         DSConfig.toCommandArgs(line);
+    }
+
+    @Test
+    public void testBatchCommandWithUnclosedQuoteFails() {
+        final ByteArrayOutputStream err = new ByteArrayOutputStream();
+
+        final int exitCode = DSConfig.runBatchCommand(args("--noPropertiesFile", "-n"), "set-x --set 'a",
+                new PrintStream(new ByteArrayOutputStream()), new PrintStream(err));
+
+        Assert.assertEquals(exitCode, ReturnCode.ERROR_USER_DATA.get());
+        Assert.assertTrue(text(err).contains("The following batch command has a quote that is not closed: "
+                + "set-x --set 'a"), text(err));
+    }
+
+    @Test
+    public void testBatchCommandKeepsEscapedTrailingBlank() {
+        // dsconfig fails on the first argument, before it reads --no-prompt, so it still writes
+        // the error to the output stream.
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        final PrintStream stream = new PrintStream(output);
+
+        // dsconfig has no such subcommand: the error quotes the argument it was given.
+        final int exitCode = DSConfig.runBatchCommand(args("--noPropertiesFile", "-n"), "set-x\\ ", stream, stream);
+
+        Assert.assertEquals(exitCode, ReturnCode.CONFLICTING_ARGS.get());
+        Assert.assertTrue(text(output).contains("The provided argument \"set-x \" is not recognized"), text(output));
+    }
+
+    /** The output with every run of blanks and line breaks as a single space, as the console wraps lines. */
+    private static String text(ByteArrayOutputStream out) {
+        return new String(out.toByteArray()).replaceAll("\\s+", " ");
     }
 
     /** Batch files and the arguments of each command they hold. */
@@ -105,6 +140,13 @@ public class DSConfigParseTest extends ForgeRockTestCase {
     public Object[][] batchFiles() {
         return new Object[][] {
             { "# comment\n\nset-x --foo bar\nset-y\n", commands(args("set-x", "--foo", "bar"), args("set-y")) },
+            // A line of blanks is skipped as an empty line is.
+            { "set-x\n   \nset-y\n", commands(args("set-x"), args("set-y")) },
+            { "set-x\n \t\n", commands(args("set-x")) },
+            // Empty lines and comments are skipped inside a continued command too, so a line of a
+            // long command can be commented out.
+            { "set-x \\\n#  --foo bar \\\n  --baz qux\n", commands(args("set-x", "--baz", "qux")) },
+            { "set-x \\\n\n  --baz qux\n", commands(args("set-x", "--baz", "qux")) },
             // A line that ends in a backslash continues on the next line.
             { "set-x \\\n  --foo bar\n", commands(args("set-x", "--foo", "bar")) },
             { "set-x --foo ab\\\ncd\n", commands(args("set-x", "--foo", "abcd")) },
