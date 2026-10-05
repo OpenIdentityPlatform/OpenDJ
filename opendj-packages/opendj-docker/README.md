@@ -168,7 +168,10 @@ started on such a volume without the replication environment runs no join, repor
 healthy and logs that the backend may still refuse writes: its `writability-mode` is then
 the operator's to set back to `enabled`. It takes the replication down only when at least one peer
 that replicates `BASE_DN` answered and none of them registers it - a peer that cannot be
-asked decides nothing.
+asked decides nothing - or when the peers register it but its own `cn=admin data` does not.
+An enable that stopped half-way leaves that state behind (its initialize of `cn=admin data`
+failed, say): `BASE_DN` is replicated, and every later enable only reports it as replicated
+already, without registering the server where it is missing.
 
 The one-shot types `srs`, `sdsr` and `rg` keep their previous behaviour - they run once,
 during the first bootstrap only - and are deprecated in favour of `simple`. Like `simple`,

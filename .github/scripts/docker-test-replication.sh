@@ -176,6 +176,25 @@ published_state() { # <container>
     | awk 'tolower($1) == "description:" { print $2 }'
 }
 
+published_ready() { # <container>
+  [ "$(published_state "$1")" = ready ]
+}
+
+registered_in_dj0() { # <name>
+  ! admin_data_lacks dj-0 "$1"
+}
+
+# deletes an entry on the container alone: the replication repair control keeps the delete
+# from reaching any other server, as an initialize that failed half-way leaves the
+# cn=admin data of one server unlike that of the others
+delete_here() { # <container> <DN> [<ldapdelete option>...]
+  local container=$1 dn=$2
+  shift 2
+  docker exec "$container" /opt/opendj/bin/ldapdelete --noPropertiesFile --hostname localhost --port 4444 \
+    --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" \
+    --control 1.3.6.1.4.1.26027.1.5.2:true "$@" "$dn" >/dev/null
+}
+
 # the container holds the replication domain of dc=example,dc=com
 replicates_example() { # <container>
   admin_search "$1" "cn=config" sub "(&(objectClass=ds-cfg-replication-domain)(ds-cfg-base-dn=dc=example,dc=com))" 1.1 \
@@ -287,10 +306,10 @@ wait_healthy dj-1
 add_ou dj-1 replicated2
 wait_has dj-0 "ou=replicated2,dc=example,dc=com"
 # and neither of them took its replication down to enable it anew: only a server that no
-# peer registers any more does that, and a reset followed by a new enable passes every
-# check above
+# peer registers any more does that, or one that its own cn=admin data does not register,
+# and a reset followed by a new enable passes every check above
 for n in dj-0 dj-1; do
-  if logs_have $n "the peers no longer register this server"; then fail "$n reset its replication on a plain restart"; fi
+  if logs_have $n "taking its replication configuration down"; then fail "$n reset its replication on a plain restart"; fi
 done
 
 # a seed that no peer joined holds the data without a replication domain, and its join binds
@@ -514,9 +533,15 @@ admin_data_lacks dj-2 dj-1 || fail "dj-1 and dj-2 registered each other while th
 admin_data_lacks dj-1 dj-2 || fail "dj-1 and dj-2 registered each other while the lock of dj-0 was held"
 refuses_writes dj-1 unreplicated || fail "dj-1 takes the writes of clients while its replication is down"
 drop_lock dj-0
+# the health status says nothing yet: dj-1 and dj-2 started on volumes without a reset
+# pending, so their run.sh reported them ready, a probe may have found them healthy before
+# their joins took the replication down, and the status turns unhealthy only after the
+# probe's retries. Their joins publish them ready once the writes are let in again
+for n in dj-1 dj-2; do
+  wait_until 480 "$n rejoins and publishes itself ready" published_ready $n
+done
 wait_healthy dj-1
 wait_healthy dj-2
-registered_in_dj0() { ! admin_data_lacks dj-0 "$1"; }
 for n in dj-1 dj-2; do
   wait_until 300 "$n registers with dj-0 again" registered_in_dj0 $n
 done
@@ -524,6 +549,37 @@ done
 add_ou dj-1 rejoined-together
 wait_has dj-0 "ou=rejoined-together,dc=example,dc=com"
 wait_has dj-2 "ou=rejoined-together,dc=example,dc=com"
+
+# an enable that stopped half-way - its initialize of cn=admin data failed - leaves BASE_DN
+# replicated and the server registered at its peers, but not in its own cn=admin data, and
+# every enable after that exits 5, "already replicated", without registering it there. So a
+# server in that state takes its replication down and enables anew, as one that no peer
+# registers does. dj-1 lacks its own entry, then dj-2 the whole of cn=Servers, which the
+# failed initialize of the CI run behind this case may have left; neither delete reaches a
+# peer. One at a time: the disable of a reset changes the peers it replicates with as well
+half_enabled_rejoins() { # <container>
+  local n=$1 members
+  admin_data_lacks $n $n || fail "$n is still registered in its own cn=admin data"
+  registered_in_dj0 $n || fail "the delete on $n alone reached dj-0"
+  members=$(logs_count $n "the health check may probe it")
+  docker restart $n >/dev/null
+  wait_until 300 "$n takes its half-enabled replication down" logs_have $n "the peers register this server but its own cn=admin data does not"
+  member_again() { [ "$(logs_count $n "the health check may probe it")" -gt "$members" ]; }
+  wait_until 600 "$n rejoins" member_again
+  published_ready $n || fail "$n does not publish itself ready after it rejoined"
+  ! admin_data_lacks $n $n || fail "$n is not registered in its own cn=admin data after it rejoined"
+  registered_in_dj0 $n || fail "$n is not registered with dj-0 after it rejoined"
+  wait_healthy $n
+}
+own_entry=$(admin_search dj-1 "cn=Servers,cn=admin data" one "(hostname=dj-1)" 1.1 | awk '/^dn: / { print substr($0, 5) }')
+[ -n "$own_entry" ] || fail "dj-1 does not register itself in its cn=admin data"
+delete_here dj-1 "$own_entry" || fail "could not delete $own_entry on dj-1 alone"
+half_enabled_rejoins dj-1
+delete_here dj-2 "cn=Servers,cn=admin data" --deleteSubtree || fail "could not delete cn=Servers on dj-2 alone"
+half_enabled_rejoins dj-2
+add_ou dj-1 rejoined-half-enabled
+wait_has dj-0 "ou=rejoined-half-enabled,dc=example,dc=com"
+wait_has dj-2 "ou=rejoined-half-enabled,dc=example,dc=com"
 
 # the deprecated one-shot sdsr path of replicate.sh still bootstraps a replica. On a first
 # start a server stops the server its bootstrap started and starts it again, and a replica

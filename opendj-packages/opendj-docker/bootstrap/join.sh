@@ -302,8 +302,8 @@ registered_hosts() { # [<host>, localhost by default]
 # a member holds the replication domain for BASE_DN in its configuration and is registered
 # in cn=admin data - under the name the enable that registered it connected with, which for
 # a server that never ran an enable of its own is the name a peer listed it by; both are made
-# by one dsreplication enable, so requiring both keeps a half-done enable in the retry loop
-# instead of declaring it a success
+# by one dsreplication enable, so requiring both keeps a half-done enable from being declared
+# a success, and the next round takes it down (see reset_if_unregistered)
 replicates_base_dn() { # <host>
   search "$1" --baseDN "cn=config" --searchScope sub \
     "(&(objectClass=ds-cfg-replication-domain)(ds-cfg-base-dn=$BASE_DN))" 1.1 | grep -q "^dn:"
@@ -342,6 +342,24 @@ registered_with_peers() {
 
 member_of_topology() {
   is_member && registered_with_peers
+}
+
+# whether the cn=admin data of this server registers it: 0 when it does, 1 when a search
+# answers that it does not - cn=Servers missing altogether included, which an initialize of
+# cn=admin data that failed half-way leaves - and 2 when the search failed otherwise, which
+# decides nothing
+registered_here() {
+  local out host
+  out=$(search localhost --baseDN "cn=Servers,cn=admin data" --searchScope one "(objectClass=*)" hostname)
+  case $? in
+    0) ;;
+    32) return 1 ;;
+    *) return 2 ;;
+  esac
+  for host in $(printf '%s\n' "$out" | awk 'tolower($1) == "hostname:" { print $2 }'); do
+    is_self "$host" && return 0
+  done
+  return 1
 }
 
 # Two dsreplication enable runs through one peer at the same time break each other: both
@@ -577,9 +595,9 @@ unregister() { # <dn>
 # from seeding next to it; one that waits for that data stays pending. It holds its own join
 # lock while its configuration goes, so that no server enables through it then. One attempt:
 # a lock another join holds leaves everything as it was, and the next round tries again.
-reset_replication() { # <rejoining|pending>
+reset_replication() { # <rejoining|pending> <why>
   local dn host own
-  echo "join: the peers no longer register this server, taking its replication configuration down to enable it anew"
+  echo "join: $2, taking its replication configuration down to enable it anew"
   publish_state "$1" || return 1
   touch "$REJOIN_PENDING"
   rm -f "$BOOTSTRAP_COMPLETE"
@@ -802,11 +820,22 @@ FIRST=no
 is_self "${PEERS[0]}" && FIRST=yes
 
 # Every round on both roads starts here: a replication configuration that the peers no longer
-# register is taken down (see reset_replication). Fails when that is due and could not be
-# done in this round, which then enables nothing - an enable registers nobody before it.
+# register is taken down (see reset_replication). So is one that the peers register but the
+# cn=admin data of this server does not: an enable that stopped half-way - its initialize of
+# cn=admin data failed, say - leaves BASE_DN replicated and this server registered at the
+# peer, and every enable after it exits 5, "already replicated", without registering it here.
+# Fails when a reset is due and could not be done in this round, which then enables nothing -
+# an enable registers nobody before it.
 reset_if_unregistered() { # <the state to publish meanwhile>
-  if replicates_base_dn localhost && ! registered_with_peers; then
-    reset_replication "$1"
+  local rc=0
+  replicates_base_dn localhost || return 0
+  if ! registered_with_peers; then
+    reset_replication "$1" "the peers no longer register this server"
+    return
+  fi
+  registered_here || rc=$?
+  if [ "$rc" -eq 1 ]; then
+    reset_replication "$1" "the peers register this server but its own cn=admin data does not"
   fi
 }
 
