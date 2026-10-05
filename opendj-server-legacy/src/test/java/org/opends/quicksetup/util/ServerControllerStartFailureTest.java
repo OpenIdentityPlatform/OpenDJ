@@ -98,10 +98,16 @@ public class ServerControllerStartFailureTest extends DirectoryServerTestCase
       throw new SkipException("needs a child process that outlives the start command");
     }
     // The child holds the inherited pipes after sh exits, so its line arrives after waitFor().
-    writeStartCommand("#!/bin/sh", "(sleep 1; echo 'printed after the exit') &", "exit 1");
+    // When the process exits, the JDK drains what is already in a pipe and closes it, unless a
+    // reader is blocked in read() on that stream, which the drain then waits for. The first
+    // line and the pause before the exit leave the stdout reader blocked there, so that the
+    // line of the child is read rather than cut off by the drain.
+    writeStartCommand("#!/bin/sh", "echo 'printed before the exit'", "sleep 1",
+        "(sleep 1; echo 'printed after the exit') &", "exit 1");
 
     String message = startAndExpectFailure(null, false);
 
+    assertTrue(message.contains("printed before the exit"), message);
     assertTrue(message.contains("printed after the exit"), message);
   }
 
