@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
@@ -21,6 +22,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -76,6 +78,25 @@ public class HttpBasicAuthenticationFilterTest extends ForgeRockTestCase {
                 .filter(mock(Context.class), new Request(), mock(Handler.class)).get();
 
         verifyUnauthorizedOutputMessage(response);
+    }
+
+    /**
+     * An LDAP simple bind with a DN and an empty password is an unauthenticated bind (RFC 4513 section 5.1.2): a
+     * server which accepts it would let the request run as the named user without any password.
+     */
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testRespondUnauthorizedIfPasswordEmpty()
+            throws InterruptedException, ExecutionException, IOException {
+        final Function<Headers, Pair<String, String>, NeverThrowsException> credentials = mock(Function.class);
+        when(credentials.apply(any(Headers.class))).thenReturn(Pair.of("user", ""));
+        final AuthenticationStrategy authStrategy = mock(AuthenticationStrategy.class);
+
+        final Response response = new HttpBasicAuthenticationFilter(authStrategy, credentials)
+                .filter(mock(Context.class), new Request(), mock(Handler.class)).get();
+
+        verifyUnauthorizedOutputMessage(response);
+        verifyZeroInteractions(authStrategy);
     }
 
     @SuppressWarnings("unchecked")

@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -51,6 +52,12 @@ public final class DnTemplateTest extends ForgeRockTestCase {
             { "dc={subdomain}", "dc=www", "dc=www,dc=example,dc=com" },
             { "dc={subdomain},..", "dc=www,dc=com", "dc=www,dc=com" },
             { "dc={subdomain},dc={tenant},..", "dc=www,dc=acme,dc=com", "dc=www,dc=acme,dc=com" },
+            // A '%' in the fixed part is not a format specifier.
+            { "dc={subdomain},o=100%,dc=x", "dc=www,o=100%,dc=x", "dc=www,o=100%,dc=x,dc=example,dc=com" },
+            // An escaped comma does not start a relative "..", an escaped backslash before the comma does not escape it.
+            { "cn=a\\,..", "cn=a\\,..", "cn=a\\,..,dc=example,dc=com" },
+            { "cn=a\\\\,..", "cn=a\\\\,dc=com", "cn=a\\\\,dc=com" },
+            { "cn={subdomain}\\,..", "cn=www\\,..", "cn=www\\,..,dc=example,dc=com" },
         };
         // @formatter:on
     }

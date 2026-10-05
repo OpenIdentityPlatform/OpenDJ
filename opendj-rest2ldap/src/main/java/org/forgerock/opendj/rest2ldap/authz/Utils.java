@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
@@ -25,8 +26,12 @@ import org.forgerock.http.oauth2.AccessTokenException;
 import org.forgerock.http.protocol.Response;
 import org.forgerock.http.protocol.Status;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.json.resource.ResourceException;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
@@ -53,6 +58,31 @@ final class Utils {
 
     static AccessTokenException newAccessTokenException(final LocalizableMessage message, final Exception cause) {
         return new AccessTokenException(message.toString(), cause);
+    }
+
+    /**
+     * Returns the DN which a bind DN template designates for a user name.
+     *
+     * @param dnTemplate
+     *         The template, with {@code %s} in place of the user name. A template which is just {@code %s} takes the
+     *         user name as the DN; otherwise the user name is escaped as an attribute value.
+     * @param schema
+     *         The schema used to parse the DN.
+     * @param username
+     *         The user name.
+     * @return The DN.
+     * @throws LdapException
+     *         With {@link ResultCode#INVALID_CREDENTIALS} if the result is not a valid DN.
+     */
+    static DN formatBindDn(final String dnTemplate, final Schema schema, final String username)
+            throws LdapException {
+        try {
+            return "%s".equals(dnTemplate)
+                    ? DN.valueOf(username, schema)
+                    : DN.format(dnTemplate, schema, username);
+        } catch (final LocalizedIllegalArgumentException e) {
+            throw LdapException.newLdapException(ResultCode.INVALID_CREDENTIALS, e.getMessageObject(), e);
+        }
     }
 
     static Runnable close(final AtomicReference<? extends Closeable> holder) {

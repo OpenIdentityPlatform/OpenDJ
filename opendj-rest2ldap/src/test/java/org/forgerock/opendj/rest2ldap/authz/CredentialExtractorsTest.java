@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
@@ -24,6 +25,7 @@ import org.forgerock.http.protocol.Headers;
 import org.forgerock.testng.ForgeRockTestCase;
 import org.forgerock.util.Pair;
 import org.forgerock.util.encode.Base64;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @Test
@@ -36,11 +38,48 @@ public class CredentialExtractorsTest extends ForgeRockTestCase {
         assertThat(httpBasicExtractor().apply(headers)).isEqualTo(Pair.of("foo", "bar"));
     }
 
-    @Test
-    public void testBasicReturnNullOnInvalidCredentials() {
+    @DataProvider
+    public Object[][] validBasicCredentials() {
+        // @formatter:off
+        return new Object[][] {
+            // RFC 7617 section 2 forbids a colon only in the user-id: the password is everything after the first one.
+            { "bjensen:se:cret", "bjensen", "se:cret" },
+            { "bjensen::", "bjensen", ":" },
+            { "uid=bjensen,ou=People,dc=example,dc=com:secret", "uid=bjensen,ou=People,dc=example,dc=com", "secret" },
+            // An empty password is a well-formed credential; the filter, not the parser, refuses it.
+            { "bjensen:", "bjensen", "" },
+        };
+        // @formatter:on
+    }
+
+    @Test(dataProvider = "validBasicCredentials")
+    public void testBasicSplitsAtTheFirstColon(final String credentials, final String username,
+            final String password) {
         final Headers headers = new Headers();
-        headers.put(HTTP_BASIC_AUTH_HEADER, "*invalid*");
-        assertThat(httpBasicExtractor().apply(new Headers())).isNull();
+        headers.put(HTTP_BASIC_AUTH_HEADER, "Basic " + Base64.encode(credentials.getBytes()));
+        assertThat(httpBasicExtractor().apply(headers)).isEqualTo(Pair.of(username, password));
+    }
+
+    @DataProvider
+    public Object[][] invalidBasicHeaders() {
+        // @formatter:off
+        return new Object[][] {
+            { "*invalid*" },
+            { "Basic " + Base64.encode("bjensen".getBytes()) },
+            { "Basic !!!" },
+            // Base64 which is not a multiple of 4 characters long does not decode at all.
+            { "Basic abc" },
+            { "Basic " + Base64.encode("foo:bar".getBytes()).replace("=", "") },
+            { "Basic" },
+        };
+        // @formatter:on
+    }
+
+    @Test(dataProvider = "invalidBasicHeaders")
+    public void testBasicReturnNullOnInvalidCredentials(final String header) {
+        final Headers headers = new Headers();
+        headers.put(HTTP_BASIC_AUTH_HEADER, header);
+        assertThat(httpBasicExtractor().apply(headers)).isNull();
     }
 
     @Test

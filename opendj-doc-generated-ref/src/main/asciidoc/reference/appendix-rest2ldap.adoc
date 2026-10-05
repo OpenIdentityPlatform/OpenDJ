@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024-2025 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -415,6 +415,10 @@ A single occurrence of the string `\{username\}` is replaced in the template wit
 
 +
 For example, if the user name is also the UID of the LDAP entry, use `uid=\{username\},ou=People,dc=example,dc=com`.
+The user name is then escaped as an attribute value.
+
++
+A template which is just `\{username\}` takes the user name as the bind DN.
 
 +
 Default: `\{username\}`
@@ -445,6 +449,11 @@ If the user name is also the authorization ID, use `u:\{username\}`.
 
 +
 If the user name is the LDAP bind DN, use `dn:\{username\}`.
+After `dn:`, the template is a bind DN template like `bindDnTemplate` of the `simple` bind,
+for example `dn:uid=\{username\},ou=People,dc=example,dc=com`.
+
++
+Default: `u:\{username\}`
 
 ========
 
@@ -579,6 +588,8 @@ A JSON pointer value in braces is replaced in the template with a field value fr
 
 +
 This template must start with `u:` or `dn:`.
+After `dn:`, a field value is escaped as an attribute value, unless the rest of the template is just that one field:
+then the value is taken as the DN.
 
 +
 For example, if token resolution returns a JSON document where the value of the `uid` field is the UID of the user entry in the directory, you might use `u:\{uid\}` or `dn:\{uid\},ou=People,dc=example,dc=com`.
@@ -629,6 +640,8 @@ A JSON pointer value in braces is replaced in the template with a field value fr
 
 +
 This template must start with `u:` or `dn:`.
+After `dn:`, a field value is escaped as an attribute value, unless the rest of the template is just that one field:
+then the value is taken as the DN.
 
 +
 For example, if token resolution returns a JSON document where the value of the `username` field is the UID of the user entry in the directory, you might use `u:\{username\}` or `dn:\{username\},ou=People,dc=example,dc=com`.
@@ -666,6 +679,8 @@ A JSON pointer value in braces is replaced in the template with a field value fr
 
 +
 This template must start with `u:` or `dn:`.
+After `dn:`, a field value is escaped as an attribute value, unless the rest of the template is just that one field:
+then the value is taken as the DN.
 
 +
 In OpenAM CTS, the user name field is an array. For example, if the user name is the UID of the user entry, the use `u:{userName/0}` or `dn:{userName/0},ou=People,dc=example,dc=com`.

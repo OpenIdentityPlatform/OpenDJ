@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
@@ -98,6 +99,9 @@ public final class CredentialExtractors {
         /** Reference to the HttpBasicExtractor Singleton. */
         public static final HttpBasicExtractor INSTANCE = new HttpBasicExtractor();
 
+        /** The authentication scheme and the space which separates it from the credentials. */
+        private static final String BASIC_SCHEME = "basic ";
+
         private HttpBasicExtractor() { }
 
         @Override
@@ -113,17 +117,23 @@ public final class CredentialExtractors {
         }
 
         private Pair<String, String> parseUsernamePassword(String authHeader) {
-            if (authHeader != null && (authHeader.toLowerCase().startsWith("basic"))) {
+            if (authHeader != null && authHeader.regionMatches(true, 0, BASIC_SCHEME, 0, BASIC_SCHEME.length())) {
                 // We received authentication info
                 // Example received header:
                 // "Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="
-                final String base64UserCredentials = authHeader.substring("basic".length() + 1);
+                final String base64UserCredentials = authHeader.substring(BASIC_SCHEME.length());
                 // Example usage of base64:
                 // Base64("Aladdin:open sesame") = "QWxhZGRpbjpvcGVuIHNlc2FtZQ=="
-                final String userCredentials = new String(Base64.decode(base64UserCredentials));
-                String[] split = userCredentials.split(":");
-                if (split.length == 2) {
-                    return Pair.of(split[0], split[1]);
+                final byte[] decoded = Base64.decode(base64UserCredentials);
+                if (decoded == null) {
+                    // Not a multiple of 4 characters long once the characters outside base64 are dropped.
+                    return null;
+                }
+                final String userCredentials = new String(decoded);
+                // RFC 7617 section 2: the user-id cannot contain a colon, the password can.
+                final int colon = userCredentials.indexOf(':');
+                if (colon >= 0) {
+                    return Pair.of(userCredentials.substring(0, colon), userCredentials.substring(colon + 1));
                 }
             }
             return null;

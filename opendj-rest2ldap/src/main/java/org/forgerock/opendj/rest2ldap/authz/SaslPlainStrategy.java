@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
@@ -20,19 +21,17 @@ import static org.forgerock.services.context.SecurityContext.AUTHZID_DN;
 import static org.forgerock.services.context.SecurityContext.AUTHZID_ID;
 import static org.forgerock.util.Reject.checkNotNull;
 import static org.forgerock.opendj.rest2ldap.authz.Utils.close;
+import static org.forgerock.opendj.rest2ldap.authz.Utils.formatBindDn;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
-import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.controls.AuthorizationIdentityRequestControl;
 import org.forgerock.opendj.ldap.controls.AuthorizationIdentityResponseControl;
 import org.forgerock.opendj.ldap.responses.BindResult;
@@ -42,6 +41,7 @@ import org.forgerock.services.context.SecurityContext;
 import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.Promises;
 
 /** Bind using a computed DN from a template and the current request/context. */
 final class SaslPlainStrategy implements AuthenticationStrategy {
@@ -56,7 +56,8 @@ final class SaslPlainStrategy implements AuthenticationStrategy {
      *            Factory used to get {@link Connection} receiving the sasl-bind requests
      * @param authcIdTemplate
      *            Authentication identity template containing a single %s which will be replaced by the authenticating
-     *            user's name. (i.e: (u:%s)
+     *            user's name. (i.e: (u:%s). After a "dn:" prefix the template is a bind DN template: just %s takes the
+     *            user name as the DN, otherwise the user name is escaped as an attribute value.
      * @param schema
      *            Schema used to perform DN validation.
      * @throws NullPointerException
@@ -68,14 +69,12 @@ final class SaslPlainStrategy implements AuthenticationStrategy {
         checkNotNull(schema, "schema cannot be null");
         checkNotNull(authcIdTemplate, "authcIdTemplate cannot be null");
         if (authcIdTemplate.startsWith("dn:")) {
+            // As AuthzIdTemplate does, ignore spaces after the key: "dn: {username}" is "dn:{username}".
+            final String dnTemplate = authcIdTemplate.substring("dn:".length()).trim();
             formatter = new Function<String, String, LdapException>() {
                 @Override
                 public String apply(String value) throws LdapException {
-                    try {
-                        return DN.format(authcIdTemplate, schema, value).toString();
-                    } catch (LocalizedIllegalArgumentException e) {
-                        throw LdapException.newLdapException(ResultCode.INVALID_DN_SYNTAX, e.getMessageObject(), e);
-                    }
+                    return "dn:" + formatBindDn(dnTemplate, schema, value);
                 }
             };
         } else {
@@ -91,6 +90,12 @@ final class SaslPlainStrategy implements AuthenticationStrategy {
     @Override
     public Promise<SecurityContext, LdapException> authenticate(final String username, final String password,
             final Context parentContext) {
+        final String authcId;
+        try {
+            authcId = formatter.apply(username);
+        } catch (final LdapException e) {
+            return Promises.newExceptionPromise(e);
+        }
         final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
         return connectionFactory
                 .getConnectionAsync()
@@ -98,15 +103,14 @@ final class SaslPlainStrategy implements AuthenticationStrategy {
                     @Override
                     public Promise<SecurityContext, LdapException> apply(Connection connection) throws LdapException {
                         connectionHolder.set(connection);
-                        return doSaslPlainBind(connection, parentContext, username, password);
+                        return doSaslPlainBind(connection, parentContext, username, authcId, password);
                     }
                 }).thenFinally(close(connectionHolder));
     }
 
     private Promise<SecurityContext, LdapException> doSaslPlainBind(final Connection connection,
                                                                     final Context parentContext, final String authzId,
-                                                                    final String password) throws LdapException {
-        final String authcId = formatter.apply(authzId);
+                                                                    final String authcId, final String password) {
         return connection
                 .bindAsync(newPlainSASLBindRequest(authcId, password.toCharArray())
                             .addControl(AuthorizationIdentityRequestControl.newControl(true)))
