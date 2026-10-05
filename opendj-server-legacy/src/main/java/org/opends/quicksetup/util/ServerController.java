@@ -21,7 +21,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +59,12 @@ import static org.opends.server.util.CollectionUtils.*;
 public class ServerController {
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /** How many of the last lines printed by the start command a failed start reports. */
+  private static final int MAX_REPORTED_START_LINES = 100;
+
+  /** How long a failed start waits for the readers to drain what the start command printed. */
+  private static final long START_OUTPUT_DRAIN_TIMEOUT_MS = 5000;
 
   private Application application;
 
@@ -331,7 +339,8 @@ public class ServerController {
 
       try
       {
-        startServerViaAnotherProcess();
+        // Without suppression the readers have already shown every line to the listeners.
+        startServerViaAnotherProcess(suppressOutput || application == null);
 
         if (verifyCanConnect)
         {
@@ -358,7 +367,8 @@ public class ServerController {
     }
   }
 
-  private void startServerViaAnotherProcess() throws IOException, InterruptedException, ApplicationException
+  private void startServerViaAnotherProcess(boolean reportOutput)
+      throws IOException, InterruptedException, ApplicationException
   {
     logger.info(LocalizableMessage.raw("starting server"));
 
@@ -381,8 +391,12 @@ public class ServerController {
     String startedId = getStartedId();
     Process process = pb.start();
 
-    StartReader errReader = new StartReader(process.getErrorStream(), startedId, true);
-    StartReader outputReader = new StartReader(process.getInputStream(), startedId, false);
+    // When the start fails, what start-ds printed (the server.out of a server that stopped
+    // during its initialization, or the reason it was not launched) is the only account of
+    // the cause that reaches the caller, so both readers keep its last lines (issue #1160).
+    Deque<String> outputTail = new ArrayDeque<>();
+    StartReader errReader = new StartReader(process.getErrorStream(), startedId, true, outputTail);
+    StartReader outputReader = new StartReader(process.getInputStream(), startedId, false, outputTail);
 
     int returnValue = process.waitFor();
 
@@ -390,7 +404,12 @@ public class ServerController {
 
     if (returnValue != 0)
     {
-      throw new ApplicationException(ReturnCode.START_ERROR, INFO_ERROR_STARTING_SERVER_CODE.get(returnValue), null);
+      // The readers may still be draining the lines start-ds printed just before it exited.
+      errReader.join(START_OUTPUT_DRAIN_TIMEOUT_MS);
+      outputReader.join(START_OUTPUT_DRAIN_TIMEOUT_MS);
+      throw new ApplicationException(ReturnCode.START_ERROR, reportOutput
+          ? getStartFailedMessage(returnValue, outputTail)
+          : INFO_ERROR_STARTING_SERVER_CODE.get(returnValue), null);
     }
     if (outputReader.isFinished())
     {
@@ -596,6 +615,20 @@ public class ServerController {
     return helper.getStartedId();
   }
 
+  private static LocalizableMessage getStartFailedMessage(int returnValue, Deque<String> outputTail)
+  {
+    // The header is the message a failed start has always reported, which is translated.
+    LocalizableMessageBuilder mb = new LocalizableMessageBuilder(INFO_ERROR_STARTING_SERVER_CODE.get(returnValue));
+    synchronized (outputTail)
+    {
+      if (!outputTail.isEmpty())
+      {
+        mb.append(INFO_ERROR_STARTING_SERVER_OUTPUT.get(String.join(System.lineSeparator(), outputTail)));
+      }
+    }
+    return mb.toMessage();
+  }
+
   /**
    * This class is used to read the standard error and standard output of the
    * Start process.
@@ -613,6 +646,8 @@ public class ServerController {
 
     private boolean isFirstLine;
 
+    private final Thread thread;
+
     /**
      * The protected constructor.
      * @param stream the stream of the start process to read.
@@ -620,9 +655,11 @@ public class ServerController {
      * the start is over or not.
      * @param isError a boolean indicating whether the stream
      * corresponds to the standard error or to the standard output.
+     * @param outputTail the last lines read from both streams of the start process,
+     * which this reader appends to; it is guarded by its own monitor.
      */
     public StartReader(final InputStream stream, final String startedId,
-        final boolean isError)
+        final boolean isError, final Deque<String> outputTail)
     {
       final LocalizableMessage errorTag =
               isError ?
@@ -631,7 +668,7 @@ public class ServerController {
 
       isFirstLine = true;
 
-      Thread t = new Thread(new Runnable()
+      thread = new Thread(new Runnable()
       {
         @Override
         public void run()
@@ -662,6 +699,14 @@ public class ServerController {
                 isFirstLine = false;
               }
               logger.info(LocalizableMessage.raw("server: " + line));
+              synchronized (outputTail)
+              {
+                if (outputTail.size() == MAX_REPORTED_START_LINES)
+                {
+                  outputTail.removeFirst();
+                }
+                outputTail.addLast(line);
+              }
               if (line.toLowerCase().contains("=" + startedId))
               {
                 isFinished = true;
@@ -680,7 +725,17 @@ public class ServerController {
           isFinished = true;
         }
       });
-      t.start();
+      thread.start();
+    }
+
+    /**
+     * Waits for this reader to reach the end of its stream.
+     * @param timeoutMillis the longest time to wait, in milliseconds.
+     * @throws InterruptedException if the current thread is interrupted while waiting.
+     */
+    public void join(long timeoutMillis) throws InterruptedException
+    {
+      thread.join(timeoutMillis);
     }
 
     /**
