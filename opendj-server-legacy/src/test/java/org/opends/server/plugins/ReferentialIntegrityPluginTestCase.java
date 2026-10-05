@@ -50,6 +50,7 @@ import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.Control;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -529,8 +530,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
             "ds-cfg-attribute-type: member",
             "ds-cfg-base-dn: o=test",
             "ds-cfg-check-references: true",
-            "ds-cfg-check-references-filter-criteria: member:(o=urn:example)",
-            "ds-cfg-check-references-filter-criteria: member:(cn:dn:=x)"
+            "ds-cfg-check-references-filter-criteria: member:(&(o=urn:example)(cn:dn:=x))"
     );
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
@@ -1101,7 +1101,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
     boolean acceptable = new ReferentialIntegrityPlugin().isConfigurationAcceptable(
         InitializationUtils.getConfiguration(ReferentialIntegrityPluginCfgDefn.getInstance(),
-            duplicateFilterCriteriaEntry(first, second)), reasons);
+            filterCriteriaEntry(first, second)), reasons);
 
     assertFalse(acceptable);
     assertEquals(reasons.size(), 1, reasons.toString());
@@ -1118,7 +1118,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   @Test(dataProvider = "duplicateFilterCriteria")
   public void testDuplicateFilterCriteriaIsLoadedWithWarning(String first, String second) throws Exception
   {
-    Entry e = duplicateFilterCriteriaEntry(first, second);
+    Entry e = filterCriteriaEntry(first, second);
     TestCaseUtils.ERROR_TEXT_WRITER.clear();
 
     ReferentialIntegrityPlugin plugin = initializePlugin(e);
@@ -1139,21 +1139,9 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   {
     String manager = "uid=manager,ou=people,ou=dept,dc=example,dc=com";
     addEntry(manager);
-    Entry employee = TestCaseUtils.makeEntry(
-      "dn: uid=employee,ou=people,ou=dept,dc=example,dc=com",
-      "objectclass: top",
-      "objectclass: person",
-      "objectclass: organizationalperson",
-      "objectclass: inetorgperson",
-      "uid: employee",
-      "cn: employee",
-      "sn: employee",
-      "givenname: employee",
-      "manager: " + manager);
-    PreOperationAddOperation addEmployee = mock(PreOperationAddOperation.class);
-    when(addEmployee.getEntryToAdd()).thenReturn(employee);
+    PreOperationAddOperation addEmployee = addEmployeeOf(manager);
 
-    ReferentialIntegrityPlugin plugin = initializePlugin(duplicateFilterCriteriaEntry(first, second));
+    ReferentialIntegrityPlugin plugin = initializePlugin(filterCriteriaEntry(first, second));
     try
     {
       assertEquals(replaceAttrEntry(DN.valueOf(manager), "employeeType", "manager").getResultCode(),
@@ -1207,10 +1195,98 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   }
 
   /**
+   * Issue #1172: filter criteria for two different attribute types are not duplicates. The configuration is
+   * acceptable, and each filter is enforced only for its own attribute type.
+   */
+  @Test
+  public void testFilterCriteriaForTwoAttributeTypesAreNotDuplicates() throws Exception
+  {
+    Entry e = filterCriteriaEntry("manager:(employeeType=manager)", "member:(description=groupMember)");
+    e.replaceAttribute(Attributes.create(dsConfigAttrType, "manager", "member"));
+    List<LocalizableMessage> reasons = new ArrayList<>();
+
+    boolean acceptable = new ReferentialIntegrityPlugin().isConfigurationAcceptable(
+        InitializationUtils.getConfiguration(ReferentialIntegrityPluginCfgDefn.getInstance(), e), reasons);
+    assertTrue(acceptable, reasons.toString());
+
+    String manager = "uid=manager,ou=people,ou=dept,dc=example,dc=com";
+    addEntry(manager);
+    assertEquals(replaceAttrEntry(DN.valueOf(manager), "employeeType", "manager").getResultCode(),
+        ResultCode.SUCCESS);
+    ReferentialIntegrityPlugin plugin = initializePlugin(e);
+    try
+    {
+      assertTrue(plugin.doPreOperation(addEmployeeOf(manager)).continueProcessing(),
+          "The manager does not have to match the filter of member");
+    }
+    finally
+    {
+      plugin.finalizePlugin();
+    }
+  }
+
+  /**
+   * Issues #1118 and #1172: a plugin loaded with a warning can be disabled, without fixing its configuration first,
+   * but the same configuration is still refused while the plugin stays enabled.
+   */
+  @Test(dataProvider = "duplicateFilterCriteria")
+  public void testDuplicateFilterCriteriaCanBeDisabled(String first, String second) throws Exception
+  {
+    assertOnlyDisablingIsAcceptable(filterCriteriaEntry(first, second));
+  }
+
+  /** Issue #1118: see {@link #testDuplicateFilterCriteriaCanBeDisabled(String, String)}. */
+  @Test(dataProvider = "checkReferencesWithoutPreOperationTypes")
+  public void testCheckReferencesWithoutPreOperationTypesCanBeDisabled(Entry e, PluginType[] missing)
+      throws Exception
+  {
+    assertOnlyDisablingIsAcceptable(e);
+  }
+
+  private void assertOnlyDisablingIsAcceptable(Entry e) throws Exception
+  {
+    Entry disabled = e.duplicate(false);
+    disabled.replaceAttribute(Attributes.create("ds-cfg-enabled", "false"));
+    ReferentialIntegrityPlugin plugin = initializePlugin(e);
+    try
+    {
+      List<LocalizableMessage> reasons = new ArrayList<>();
+      assertTrue(plugin.isConfigurationChangeAcceptable(
+          InitializationUtils.getConfiguration(ReferentialIntegrityPluginCfgDefn.getInstance(), disabled), reasons),
+          reasons.toString());
+      assertFalse(plugin.isConfigurationChangeAcceptable(
+          InitializationUtils.getConfiguration(ReferentialIntegrityPluginCfgDefn.getInstance(), e), reasons));
+    }
+    finally
+    {
+      plugin.finalizePlugin();
+    }
+  }
+
+  /** A pre-operation add of an employee whose manager is the given entry. */
+  private static PreOperationAddOperation addEmployeeOf(String manager) throws Exception
+  {
+    Entry employee = TestCaseUtils.makeEntry(
+      "dn: uid=employee,ou=people,ou=dept,dc=example,dc=com",
+      "objectclass: top",
+      "objectclass: person",
+      "objectclass: organizationalperson",
+      "objectclass: inetorgperson",
+      "uid: employee",
+      "cn: employee",
+      "sn: employee",
+      "givenname: employee",
+      "manager: " + manager);
+    PreOperationAddOperation addEmployee = mock(PreOperationAddOperation.class);
+    when(addEmployee.getEntryToAdd()).thenReturn(employee);
+    return addEmployee;
+  }
+
+  /**
    * An enabled plugin entry that checks the references held by {@code manager} below {@code dc=example,dc=com}, with
    * the given filter criteria.
    */
-  private static Entry duplicateFilterCriteriaEntry(String... filterCriteria) throws Exception
+  private static Entry filterCriteriaEntry(String... filterCriteria) throws Exception
   {
     List<String> ldif = newArrayList(
         "dn: cn=Referential Integrity,cn=Plugins,cn=config",

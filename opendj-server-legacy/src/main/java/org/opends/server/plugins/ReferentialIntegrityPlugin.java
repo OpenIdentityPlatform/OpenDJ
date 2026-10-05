@@ -469,7 +469,11 @@ public class ReferentialIntegrityPlugin
           ReferentialIntegrityPluginCfg configuration,
           List<LocalizableMessage> unacceptableReasons)
   {
-    return isConfigurationAcceptable(configuration, unacceptableReasons);
+    // A disabled plugin checks no references: let a configuration loaded with a warning be disabled, as
+    // PluginConfigManager does, and refuse it again when it is enabled.
+    return configuration.isEnabled()
+        ? isConfigurationAcceptable(configuration, unacceptableReasons)
+        : isConfigurationLoadable(configuration, unacceptableReasons);
   }
 
   @SuppressWarnings("unchecked")
