@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
@@ -240,8 +241,18 @@ public class CommandBuilder {
      * @return The transformed value.
      */
     public static String escapeValue(String value) {
+        return escapeValue(value, OperatingSystem.isUnix());
+    }
+
+    private static void appendBackslashes(final StringBuilder b, final int count) {
+        for (int i = 0; i < count; i++) {
+            b.append('\\');
+        }
+    }
+
+    static String escapeValue(String value, boolean unix) {
         final StringBuilder b = new StringBuilder();
-        if (OperatingSystem.isUnix()) {
+        if (unix) {
             for (int i = 0; i < value.length(); i++) {
                 final char c = value.charAt(i);
                 if (CHARSTOESCAPE.contains(c)) {
@@ -250,7 +261,25 @@ public class CommandBuilder {
                 b.append(c);
             }
         } else {
-            b.append('"').append(value).append('"');
+            // The C runtime takes backslashes literally unless they precede a double quote: there
+            // each pair gives one backslash and an odd one escapes the quote. So the backslashes
+            // before a quote, or before the closing quote, are doubled and the quote is escaped.
+            b.append('"');
+            int backslashes = 0;
+            for (int i = 0; i < value.length(); i++) {
+                final char c = value.charAt(i);
+                if (c == '\\') {
+                    backslashes++;
+                } else {
+                    if (c == '"') {
+                        appendBackslashes(b, backslashes + 1);
+                    }
+                    backslashes = 0;
+                }
+                b.append(c);
+            }
+            appendBackslashes(b, backslashes);
+            b.append('"');
         }
         return b.toString();
     }

@@ -13,7 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2015-2016 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems LLC.
 
 ////
 
@@ -22,6 +22,12 @@ The `dsconfig` command is the primary command-line tool for viewing and editing 
 When you pass connection information, subcommands, and additional options to `dsconfig`, the command runs in script mode and so is not interactive, though it can prompt you to ask whether to apply changes and whether to trust certificates (unless you use the `--no-prompt` and `--trustAll` options, respectively).
 
 You can prepare `dsconfig` batch scripts by running the tool with the `--commandFilePath` option in interactive mode, then reading from the batch file with the `--batchFilePath` option in script mode. Batch files can be useful when you have many `dsconfig` commands to run and want to avoid starting the JVM for each command. Alternatively, you can read commands from standard input by using the `--batch` option.
+
+The `dsconfig` command splits each batch line into arguments as a POSIX shell does, without expanding variables. Outside quotes, a backslash escapes the next character. Single quotes keep everything as typed. Inside double quotes, a backslash escapes only a double quote, a backslash, a dollar sign, or a backquote, and is kept before any other character. For example, `--set base-dn:"cn=a\,b,dc=example,dc=com"` and `--set 'base-dn:cn=a\,b,dc=example,dc=com'` both set the DN `cn=a\,b,dc=example,dc=com`.
+
+A single quote is a quote character, as in a shell, and no longer a literal character as in earlier releases: write `+O\'Brien+` or `+"O'Brien"+` for a value that holds one. A line with a quote that is not closed is rejected. A line that ends in a backslash continues on the next line, unless that backslash is itself escaped by another backslash. Empty lines, lines of blanks, and lines that start with `#` are skipped, also inside a command that continues over several lines, so a line of a long command can be commented out.
+
+On Windows, the equivalent non-interactive command that `dsconfig` prints quotes each value by the rules of the C runtime, which splits the command line of the Java program. It does not escape the characters that `cmd.exe` interprets itself, such as `&`, `|`, `<`, and `>`, so when a value holds one of them, such as an ACI with an `&` filter, the command does not run in `cmd.exe` as printed.
 
 The `dsconfig` command categorizes directory server configuration into __components__, also called __managed objects__. Actual components often inherit from a parent component type. For example, one component is a Connection Handler. An LDAP Connection Handler is a type of Connection Handler. You configure the LDAP Connection Handler component to specify how OpenDJ directory server handles LDAP connections coming from client applications.
 
