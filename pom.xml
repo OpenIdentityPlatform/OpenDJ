@@ -36,7 +36,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <localized.jars.classifier>i18n</localized.jars.classifier>
         <commons.version>3.2.0</commons.version>
-        <freemarker.version>2.3.34</freemarker.version>
+        <freemarker.version>2.3.35</freemarker.version>
         <metrics-core.version>4.2.30</metrics-core.version>
         <bc.fips.version>2.1.3</bc.fips.version>
         <bctls.fips.version>2.1.24</bctls.fips.version>
