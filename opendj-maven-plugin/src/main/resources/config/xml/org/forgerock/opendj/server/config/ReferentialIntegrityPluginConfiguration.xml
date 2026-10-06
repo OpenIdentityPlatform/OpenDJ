@@ -15,6 +15,7 @@
   Copyright 2007-2010 Sun Microsystems, Inc.
   Portions copyright 2011 profiq s.r.o.
   Portions Copyright 2016 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <adm:managed-object name="referential-integrity-plugin"
   plural-name="referential-integrity-plugins"
@@ -195,6 +196,8 @@
       If a reference attribute has filter criteria defined then this plugin
       will ensure that any new references added as part of an add or modify
       operation refer to an existing entry which matches the specified filter.
+      Each attribute can have only one filter: to require several criteria,
+      combine them in a single AND filter.
     </adm:description>
     <adm:default-behavior>
       <adm:undefined />
