@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools;
 
@@ -83,6 +84,36 @@ public class VerifyIndex
   public static int mainVerifyIndex(String[] args, boolean initializeServer,
                                     OutputStream errStream)
   {
+    final long result = verifyIndex(args, initializeServer, errStream, false);
+    return result == VERIFY_FAILED ? 1 : (int) Math.min(result, Integer.MAX_VALUE);
+  }
+
+  /**
+   * Verifies the indexes as {@link #mainVerifyIndex} does with {@code --countErrors}, but tells a verification that
+   * could not be performed apart from one that found errors: the tool exits with 1 in both cases.
+   *
+   * @param  args              The command-line arguments provided to this
+   *                           program.
+   * @param  initializeServer  Indicates whether to initialize the server.
+   * @param  errStream         The output stream to use for standard error, or
+   *                           {@code null} if standard error is not needed.
+   * @return The number of errors found in the indexes, or {@code -1} if they could not be verified.
+   */
+  public static long countIndexErrors(String[] args, boolean initializeServer, OutputStream errStream)
+  {
+    return verifyIndex(args, initializeServer, errStream, true);
+  }
+
+  /** What {@link #verifyIndex} returns when the indexes could not be verified. */
+  private static final long VERIFY_FAILED = -1;
+
+  /**
+   * Returns the number of errors found when {@code --countErrors} is present or {@code countErrorsAlways} is
+   * {@code true}, else 0, or {@link #VERIFY_FAILED} if the indexes could not be verified.
+   */
+  private static long verifyIndex(String[] args, boolean initializeServer, OutputStream errStream,
+      boolean countErrorsAlways)
+  {
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
     JDKLogging.enableConsoleLoggingForOpenDJTool();
 
@@ -145,7 +176,7 @@ public class VerifyIndex
     catch (ArgumentException ae)
     {
       printWrappedText(err, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
-      return 1;
+      return VERIFY_FAILED;
     }
 
 
@@ -157,7 +188,7 @@ public class VerifyIndex
     catch (ArgumentException ae)
     {
       argParser.displayMessageAndUsageReference(err, ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-      return 1;
+      return VERIFY_FAILED;
     }
 
 
@@ -171,7 +202,7 @@ public class VerifyIndex
     if (cleanMode.isPresent() && indexList.getValues().size() != 1)
     {
       argParser.displayMessageAndUsageReference(err, ERR_VERIFYINDEX_VERIFY_CLEAN_REQUIRES_SINGLE_INDEX.get());
-      return 1;
+      return VERIFY_FAILED;
     }
 
     // Checks the version - if upgrade required, the tool is unusable
@@ -182,7 +213,7 @@ public class VerifyIndex
     catch (InitializationException e)
     {
       printWrappedText(err, e.getMessage());
-      return 1;
+      return VERIFY_FAILED;
     }
 
     if (initializeServer)
@@ -196,7 +227,7 @@ public class VerifyIndex
       catch (InitializationException ie)
       {
         printWrappedText(err, ERR_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(ie.getLocalizedMessage()));
-        return 1;
+        return VERIFY_FAILED;
       }
     }
 
@@ -209,7 +240,7 @@ public class VerifyIndex
     catch (Exception e)
     {
       printWrappedText(err, ERR_CANNOT_DECODE_BASE_DN.get(baseDNString.getValue(), getExceptionMessage(e)));
-      return 1;
+      return VERIFY_FAILED;
     }
 
 
@@ -232,7 +263,7 @@ public class VerifyIndex
         if (backend != null)
         {
           printWrappedText(err, ERR_MULTIPLE_BACKENDS_FOR_BASE.get(baseDNString.getValue()));
-          return 1;
+          return VERIFY_FAILED;
         }
         backend = b;
       }
@@ -241,13 +272,13 @@ public class VerifyIndex
     if (backend == null)
     {
       printWrappedText(err, ERR_NO_BACKENDS_FOR_BASE.get(baseDNString.getValue()));
-      return 1;
+      return VERIFY_FAILED;
     }
 
     if (!backend.supports(BackendOperation.INDEXING))
     {
       printWrappedText(err, ERR_BACKEND_NO_INDEXING_SUPPORT.get());
-      return 1;
+      return VERIFY_FAILED;
     }
 
     // Initialize the verify configuration.
@@ -277,13 +308,13 @@ public class VerifyIndex
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
         printWrappedText(err, ERR_VERIFYINDEX_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), failureReason));
-        return 1;
+        return VERIFY_FAILED;
       }
     }
     catch (Exception e)
     {
       printWrappedText(err, ERR_VERIFYINDEX_CANNOT_LOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
-      return 1;
+      return VERIFY_FAILED;
     }
 
 
@@ -291,25 +322,17 @@ public class VerifyIndex
     {
       // Launch the verify process.
       final long errorCount = backend.verifyBackend(verifyConfig);
-      if (countErrors.isPresent())
-      {
-        if (errorCount > Integer.MAX_VALUE)
-        {
-          return Integer.MAX_VALUE;
-        }
-        return (int) errorCount;
-      }
-      return 0;
+      return countErrors.isPresent() || countErrorsAlways ? errorCount : 0;
     }
     catch (InitializationException e)
     {
       printWrappedText(err, ERR_VERIFYINDEX_ERROR_DURING_VERIFY.get(e.getMessage()));
-      return 1;
+      return VERIFY_FAILED;
     }
     catch (Exception e)
     {
       printWrappedText(err, ERR_VERIFYINDEX_ERROR_DURING_VERIFY.get(stackTraceToSingleLineString(e)));
-      return 1;
+      return VERIFY_FAILED;
     }
     finally
     {

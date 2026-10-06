@@ -19,7 +19,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.opends.messages.ToolMessages.INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_CONSISTENT;
+import static org.opends.messages.ToolMessages.INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_INCONSISTENT;
 import static org.opends.messages.ToolMessages.WARN_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_FAILED;
+import static org.opends.server.util.StaticUtils.getFileForPath;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -67,6 +69,7 @@ public class DNEqualityIndexesUpgradeTestCase extends DirectoryServerTestCase
   private static final String BACKEND_ID = "dnEqualityIndexes";
   private static final String BACKEND_DN = "ds-cfg-backend-id=" + BACKEND_ID + ",cn=Backends,cn=config";
   private static final String BASE_DN = "o=dn equality indexes";
+  private static final Set<String> MEMBER = Collections.singleton("member");
   private static final String MY_MANAGER_AS_DN =
       "( 1.3.6.1.4.1.26027.1.999.1153 NAME 'myManager' SUP distinguishedName )";
   private static final String MY_MANAGER_AS_STRING = "( 1.3.6.1.4.1.26027.1.999.1153 NAME 'myManager' "
@@ -143,7 +146,7 @@ public class DNEqualityIndexesUpgradeTestCase extends DirectoryServerTestCase
           backend("userRoot", "userRoot", "true"),
           index("userRoot", "myManager", "equality"));
       final File schemaDirectory = new File(directory, "schema");
-      // Written in the reverse order, so that the order of the directory listing does not give the expected one
+      // The order of the directory listing depends on the file system, see schemaFilesAreReadInNameOrder
       writeSchema(schemaDirectory, "99-user.ldif", last);
       writeSchema(schemaDirectory, "10-first.ldif", first);
 
@@ -159,6 +162,36 @@ public class DNEqualityIndexesUpgradeTestCase extends DirectoryServerTestCase
       {
         assertThat(attributes).isEmpty();
       }
+    }
+    finally
+    {
+      StaticUtils.recursiveDelete(directory);
+    }
+  }
+
+  /**
+   * The schema files are read in the order of their names whatever order the file system lists them in: with 26
+   * files, a directory listing that happens to be sorted is unlikely.
+   */
+  @Test
+  public void schemaFilesAreReadInNameOrder() throws Exception
+  {
+    final File directory = Files.createTempDirectory("dn-equality-indexes").toFile();
+    try
+    {
+      for (char c = 'z'; c >= 'a'; c--)
+      {
+        assertThat(new File(directory, "50-" + c + ".ldif").createNewFile()).isTrue();
+      }
+      assertThat(new File(directory, "50-not-a-schema-file.txt").createNewFile()).isTrue();
+
+      final List<String> names = new ArrayList<>();
+      for (final File file : UpgradeUtils.schemaFilesInReadOrder(directory))
+      {
+        names.add(file.getName());
+      }
+
+      assertThat(names).hasSize(26).isSorted();
     }
     finally
     {
@@ -256,6 +289,108 @@ public class DNEqualityIndexesUpgradeTestCase extends DirectoryServerTestCase
   @Test
   public void rebuildsAnIndexOnlyWhenItMissesKeys() throws Exception
   {
+    withAGroupWhoseMemberIndexMissesItsKeys("db_dn_equality_indexes", (configFile, out, output) -> {
+      final List<TextOutputCallback> rebuildNotifications = new ArrayList<>();
+      UpgradeTasks.verifyAndRebuildOrWarn(newContext(rebuildNotifications), configFile, BASE_DN, MEMBER, false, out);
+      assertThat(messagesOf(rebuildNotifications)).as("output: %s", output)
+          .contains(INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_INCONSISTENT.get("member", BASE_DN).toString());
+      assertThat(UpgradeTasks.verifyAndRebuildIndexes(configFile, BASE_DN, MEMBER, false, out))
+          .as("verification of the rebuilt index; output: %s", output)
+          .isEqualTo(UpgradeTasks.IndexVerification.CONSISTENT);
+
+      final List<TextOutputCallback> notifications = new ArrayList<>();
+      UpgradeTasks.verifyAndRebuildOrWarn(newContext(notifications), configFile, BASE_DN, MEMBER, false, out);
+      assertThat(messagesOf(notifications))
+          .contains(INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_CONSISTENT.get("member", BASE_DN).toString())
+          .doesNotContain(INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_INCONSISTENT.get("member", BASE_DN).toString())
+          .doesNotContain(WARN_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_FAILED.get("member", BASE_DN).toString());
+    });
+  }
+
+  /**
+   * A rebuild that fails, after the verification found missing keys, fails the upgrade: the rebuild may have left
+   * the indexes untrusted, so that searches cannot use them, and a warning would let the upgrade succeed.
+   */
+  @Test
+  public void aRebuildThatFailsFailsTheUpgrade() throws Exception
+  {
+    withAGroupWhoseMemberIndexMissesItsKeys("db_dn_equality_indexes_failed_rebuild", (configFile, out, output) -> {
+      // A file where the rebuild creates its temporary directory makes it fail
+      final File tmpDirectory = getFileForPath("import-tmp");
+      final File setAside = new File(tmpDirectory.getPath() + ".set-aside");
+      final boolean existed = tmpDirectory.exists();
+      if (existed)
+      {
+        assertThat(tmpDirectory.renameTo(setAside)).isTrue();
+      }
+      try
+      {
+        assertThat(tmpDirectory.createNewFile()).isTrue();
+
+        final List<TextOutputCallback> notifications = new ArrayList<>();
+        final Throwable failure = catchThrowable(() -> UpgradeTasks.verifyAndRebuildOrWarn(
+            newContext(notifications), configFile, BASE_DN, MEMBER, false, out));
+
+        assertThat(failure).as("output: %s", output).isInstanceOf(ClientException.class);
+        assertThat(output.toString("UTF-8")).as("the rebuild failed, not the verification")
+            .contains("An error occurs during the rebuild index process in " + BASE_DN);
+        assertThat(messagesOf(notifications))
+            .doesNotContain(WARN_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_FAILED.get("member", BASE_DN).toString());
+      }
+      finally
+      {
+        tmpDirectory.delete();
+        if (existed)
+        {
+          assertThat(setAside.renameTo(tmpDirectory)).isTrue();
+        }
+      }
+    });
+  }
+
+  /**
+   * Indexes that cannot be verified, as those of a JDBC or Cassandra backend whose database is down, are not
+   * rebuilt and do not fail the upgrade: the user is warned instead.
+   */
+  @Test
+  public void indexesThatCannotBeVerifiedOnlyWarn() throws Exception
+  {
+    final String baseDN = "o=held by no backend";
+    final ByteArrayOutputStream output = new ByteArrayOutputStream();
+    final PrintStream out = new PrintStream(output, true, "UTF-8");
+    final String configFile = DirectoryServer.getConfigFile();
+    assertThat(UpgradeTasks.verifyAndRebuildIndexes(configFile, baseDN, MEMBER, false, out))
+        .as("output: %s", output).isEqualTo(UpgradeTasks.IndexVerification.NOT_VERIFIED);
+
+    final List<TextOutputCallback> notifications = new ArrayList<>();
+    UpgradeTasks.verifyAndRebuildOrWarn(newContext(notifications), configFile, baseDN, MEMBER, false, out);
+
+    final String warning = WARN_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_FAILED.get("member", baseDN).toString();
+    assertThat(messagesOf(notifications)).contains(warning);
+    for (final TextOutputCallback notification : notifications)
+    {
+      if (notification.getMessage().equals(warning))
+      {
+        assertThat(((FormattedNotificationCallback) notification).getMessageSubType())
+            .isEqualTo(TextOutputCallback.WARNING);
+      }
+    }
+  }
+
+  /** What a test runs against the backend of {@link #withAGroupWhoseMemberIndexMissesItsKeys}. */
+  private interface IndexAction
+  {
+    void run(String configFile, PrintStream out, ByteArrayOutputStream output) throws Exception;
+  }
+
+  /**
+   * Runs an action against a disabled PDB backend holding a group whose trusted member equality index misses the
+   * keys of its entries, then removes the backend. Each test gives its own database directory, since removing the
+   * backend leaves its database behind.
+   */
+  private static void withAGroupWhoseMemberIndexMissesItsKeys(String dbDirectory, IndexAction action)
+      throws Exception
+  {
     final Entry backend = TestCaseUtils.makeEntry(
         "dn: " + BACKEND_DN,
         "objectClass: top",
@@ -268,7 +403,7 @@ public class DNEqualityIndexesUpgradeTestCase extends DirectoryServerTestCase
         "ds-cfg-backend-id: " + BACKEND_ID,
         "ds-cfg-writability-mode: enabled",
         "ds-cfg-base-dn: " + BASE_DN,
-        "ds-cfg-db-directory: db_dn_equality_indexes",
+        "ds-cfg-db-directory: " + dbDirectory,
         "ds-cfg-db-cache-percent: 2");
     final Entry indexBranch = TestCaseUtils.makeEntry(
         "dn: cn=Index," + BACKEND_DN,
@@ -306,20 +441,7 @@ public class DNEqualityIndexesUpgradeTestCase extends DirectoryServerTestCase
       setBackendEnabled(false);
 
       final ByteArrayOutputStream output = new ByteArrayOutputStream();
-      final PrintStream out = new PrintStream(output, true, "UTF-8");
-      final Set<String> attributes = Collections.singleton("member");
-      final String configFile = DirectoryServer.getConfigFile();
-
-      assertThat(UpgradeTasks.verifyAndRebuildIndexes(configFile, BASE_DN, attributes, false, out))
-          .as("rebuilt an index missing keys; output: %s", output).isTrue();
-      assertThat(UpgradeTasks.verifyAndRebuildIndexes(configFile, BASE_DN, attributes, false, out))
-          .as("rebuilt an index matching its entries; output: %s", output).isFalse();
-
-      final List<TextOutputCallback> notifications = new ArrayList<>();
-      UpgradeTasks.verifyAndRebuildOrWarn(newContext(notifications), configFile, BASE_DN, attributes, false, out);
-      assertThat(messagesOf(notifications))
-          .contains(INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_CONSISTENT.get("member", BASE_DN).toString())
-          .doesNotContain(WARN_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_FAILED.get("member", BASE_DN).toString());
+      action.run(DirectoryServer.getConfigFile(), new PrintStream(output, true, "UTF-8"), output);
     }
     finally
     {
@@ -331,37 +453,6 @@ public class DNEqualityIndexesUpgradeTestCase extends DirectoryServerTestCase
         {
           TestCaseUtils.deleteEntry(dn);
         }
-      }
-    }
-  }
-
-  /**
-   * Indexes that can be neither verified nor rebuilt, as those of a JDBC or Cassandra backend whose database is
-   * down, do not fail the upgrade: the user is warned instead.
-   */
-  @Test
-  public void indexesThatCannotBeVerifiedOnlyWarn() throws Exception
-  {
-    final String baseDN = "o=held by no backend";
-    final Set<String> attributes = Collections.singleton("member");
-    final ByteArrayOutputStream output = new ByteArrayOutputStream();
-    final PrintStream out = new PrintStream(output, true, "UTF-8");
-    final String configFile = DirectoryServer.getConfigFile();
-    final Throwable failure =
-        catchThrowable(() -> UpgradeTasks.verifyAndRebuildIndexes(configFile, baseDN, attributes, false, out));
-    assertThat(failure).as("output: %s", output).isInstanceOf(ClientException.class);
-
-    final List<TextOutputCallback> notifications = new ArrayList<>();
-    UpgradeTasks.verifyAndRebuildOrWarn(newContext(notifications), configFile, baseDN, attributes, false, out);
-
-    final String warning = WARN_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_FAILED.get("member", baseDN).toString();
-    assertThat(messagesOf(notifications)).contains(warning);
-    for (final TextOutputCallback notification : notifications)
-    {
-      if (notification.getMessage().equals(warning))
-      {
-        assertThat(((FormattedNotificationCallback) notification).getMessageSubType())
-            .isEqualTo(TextOutputCallback.WARNING);
       }
     }
   }

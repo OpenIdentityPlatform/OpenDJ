@@ -769,12 +769,23 @@ final class UpgradeTasks
     return attributesPerBaseDN;
   }
 
+  /** What {@link #verifyAndRebuildIndexes} found. */
+  enum IndexVerification
+  {
+    /** The indexes match the entries. */
+    CONSISTENT,
+    /** The indexes did not match the entries, and were rebuilt. */
+    REBUILT,
+    /** The indexes could not be verified, as when their backend cannot be read: they were left as they were. */
+    NOT_VERIFIED
+  }
+
   /**
    * Verifies the provided DN equality indexes under a base DN, and rebuilds them if needed, as
-   * {@link #verifyAndRebuildIndexes} does, then tells the user the outcome. When the indexes can be neither verified
-   * nor rebuilt, the user is warned instead of the upgrade failing: the server works without this task, and a
-   * backend that cannot be read now, such as a JDBC or Cassandra backend whose database is down, is left to the
-   * administrator.
+   * {@link #verifyAndRebuildIndexes} does, then tells the user the outcome. When the indexes cannot be verified, the
+   * user is warned instead of the upgrade failing: they were left as they were, and a backend that cannot be read
+   * now, such as a JDBC or Cassandra backend whose database is down, is left to the administrator. A rebuild that
+   * fails still fails the upgrade, as it may have left the indexes untrusted.
    *
    * @param context
    *          The upgrade context, which is notified of the outcome.
@@ -789,7 +800,7 @@ final class UpgradeTasks
    * @param out
    *          The stream the tools write to.
    * @throws ClientException
-   *           If the outcome cannot be reported.
+   *           If the rebuild fails, or if the outcome cannot be reported.
    */
   static void verifyAndRebuildOrWarn(final UpgradeContext context, final String configFilePath, final String baseDN,
       final Set<String> attributes, final boolean initializeServer, final PrintStream out) throws ClientException
@@ -798,27 +809,36 @@ final class UpgradeTasks
     final ProgressNotificationCallback pnc = new ProgressNotificationCallback(
         INFORMATION, INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_STARTS.get(indexes, baseDN), 25);
     context.notifyProgress(pnc);
-    final boolean rebuilt;
+    final IndexVerification verification;
     try
     {
-      rebuilt = verifyAndRebuildIndexes(configFilePath, baseDN, attributes, initializeServer, out);
+      verification = verifyAndRebuildIndexes(configFilePath, baseDN, attributes, initializeServer, out);
     }
     catch (final ClientException e)
     {
-      logger.error(e.getMessageObject());
-      context.notifyProgress(pnc.setProgress(100));
-      context.notify(WARN_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_FAILED.get(indexes, baseDN), WARNING);
-      return;
+      context.notifyProgress(pnc.setProgress(-100));
+      throw e;
     }
     context.notifyProgress(pnc.setProgress(100));
-    context.notify(rebuilt ? INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_INCONSISTENT.get(indexes, baseDN)
-                           : INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_CONSISTENT.get(indexes, baseDN));
+    switch (verification)
+    {
+    case CONSISTENT:
+      context.notify(INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_CONSISTENT.get(indexes, baseDN));
+      break;
+    case REBUILT:
+      context.notify(INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_INCONSISTENT.get(indexes, baseDN));
+      break;
+    default:
+      context.notify(WARN_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_FAILED.get(indexes, baseDN), WARNING);
+      break;
+    }
   }
 
   /**
    * Verifies the provided indexes under a base DN with the verify-index tool, and rebuilds them with the
-   * rebuild-index tool when it reports any error. A verification that fails is taken as an error, so the indexes
-   * are rebuilt then too. The backend must not be in use by a running server.
+   * rebuild-index tool when it reports any error. Indexes that cannot be verified are not rebuilt: whatever keeps
+   * them from being read would most likely make the rebuild fail too, after it has deleted them. The backend must
+   * not be in use by a running server.
    *
    * @param configFilePath
    *          The path of the configuration file.
@@ -830,11 +850,11 @@ final class UpgradeTasks
    *          Whether the tools have to initialize the server components.
    * @param out
    *          The stream the tools write to.
-   * @return {@code true} if the indexes were rebuilt, {@code false} if they match the entries.
+   * @return What the verification found.
    * @throws ClientException
    *           If the rebuild fails.
    */
-  static boolean verifyAndRebuildIndexes(final String configFilePath, final String baseDN,
+  static IndexVerification verifyAndRebuildIndexes(final String configFilePath, final String baseDN,
       final Collection<String> attributes, final boolean initializeServer, final PrintStream out)
       throws ClientException
   {
@@ -849,20 +869,22 @@ final class UpgradeTasks
       args.add(attribute);
     }
 
-    final List<String> verifyArgs = new ArrayList<>(args);
-    verifyArgs.add("--countErrors");
-    logger.debug(INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS, verifyArgs);
-    if (VerifyIndex.mainVerifyIndex(verifyArgs.toArray(new String[0]), initializeServer, out) == 0)
+    logger.debug(INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS, args);
+    final long errors = VerifyIndex.countIndexErrors(args.toArray(new String[0]), initializeServer, out);
+    if (errors < 0)
     {
-      return false;
+      return IndexVerification.NOT_VERIFIED;
+    }
+    if (errors == 0)
+    {
+      return IndexVerification.CONSISTENT;
     }
 
-    logger.debug(INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS, args);
     if (new RebuildIndex().rebuildIndexesWithinMultipleBackends(initializeServer, out, args) != 0)
     {
       throw new ClientException(ReturnCode.ERROR_UNEXPECTED, ERR_UPGRADE_PERFORMING_POST_TASKS_FAIL.get());
     }
-    return true;
+    return IndexVerification.REBUILT;
   }
 
   /**

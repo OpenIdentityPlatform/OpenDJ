@@ -373,11 +373,9 @@ final class UpgradeUtils
   private static Schema readSchemaFiles(final File schemaDirectory) throws IOException
   {
     final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
-    final File[] files = schemaDirectory.listFiles((dir, name) -> name.toLowerCase().endsWith(".ldif"));
+    final File[] files = schemaFilesInReadOrder(schemaDirectory);
     if (files != null)
     {
-      // The server reads them in this order, so a later file may redefine an attribute of an earlier one
-      Arrays.sort(files);
       for (final File file : files)
       {
         try (LDIFEntryReader reader = new LDIFEntryReader(new FileInputStream(file)))
@@ -390,6 +388,24 @@ final class UpgradeUtils
       }
     }
     return builder.toSchema().asNonStrictSchema();
+  }
+
+  /**
+   * Returns the LDIF files of a schema directory in the order the server reads them, so that a later file may
+   * redefine an attribute of an earlier one.
+   *
+   * @param schemaDirectory
+   *          The schema directory.
+   * @return The LDIF files, or {@code null} if the directory cannot be listed.
+   */
+  static File[] schemaFilesInReadOrder(final File schemaDirectory)
+  {
+    final File[] files = schemaDirectory.listFiles((dir, name) -> name.toLowerCase().endsWith(".ldif"));
+    if (files != null)
+    {
+      Arrays.sort(files);
+    }
+    return files;
   }
 
   private static boolean comparesDNs(final AttributeType attributeType)
