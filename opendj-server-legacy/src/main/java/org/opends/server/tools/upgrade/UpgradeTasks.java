@@ -715,13 +715,9 @@ final class UpgradeTasks
         {
           throw new ClientException(ReturnCode.ERROR_UNEXPECTED, ERR_UPGRADE_READING_CONF_FILE.get(e.getMessage()), e);
         }
-        final Map<String, Set<String>> indexesPerBaseDN =
-            getDNEqualityIndexesToVerify(attributesPerBackend, getBaseDNsPerBackendsFromConfig());
-        for (final Map.Entry<String, Set<String>> baseDN : indexesPerBaseDN.entrySet())
-        {
-          verifyAndRebuildOrWarn(context, configFile.getAbsolutePath(), baseDN.getKey(), baseDN.getValue(), true,
-              UpgradeLog.getPrintStream());
-        }
+        verifyAndRebuildOrWarn(context, configFile.getAbsolutePath(),
+            getDNEqualityIndexesToVerify(attributesPerBackend, getBaseDNsPerBackendsFromConfig()), true,
+            UpgradeLog::getPrintStream);
       }
 
       @Override
@@ -767,6 +763,73 @@ final class UpgradeTasks
       }
     }
     return attributesPerBaseDN;
+  }
+
+  /** Opens the stream the tools write to for a base DN: the rebuild closes it. */
+  interface ToolOutput
+  {
+    /**
+     * Opens the stream.
+     *
+     * @return The stream the tools write to.
+     * @throws ClientException
+     *           If the stream cannot be opened.
+     */
+    PrintStream open() throws ClientException;
+  }
+
+  /**
+   * Verifies the DN equality indexes under each base DN, and rebuilds them if needed, as
+   * {@link #verifyAndRebuildOrWarn(UpgradeContext, String, String, Set, boolean, PrintStream)} does for one base DN.
+   * Once a rebuild has failed, the indexes of the next base DNs are neither verified nor rebuilt, and the user is
+   * told which ones were left: the cause of the failure, such as a full temporary directory, would most likely make
+   * their rebuild fail too, after it had deleted them.
+   *
+   * @param context
+   *          The upgrade context, which is notified of the outcome.
+   * @param configFilePath
+   *          The path of the configuration file.
+   * @param indexesPerBaseDN
+   *          The attributes whose indexes are verified, and rebuilt if needed, per base DN.
+   * @param initializeServer
+   *          Whether the tools have to initialize the server components.
+   * @param output
+   *          Opens the stream the tools write to, once per base DN.
+   * @throws ClientException
+   *           If a rebuild fails, or if the outcome cannot be reported.
+   */
+  static void verifyAndRebuildOrWarn(final UpgradeContext context, final String configFilePath,
+      final Map<String, Set<String>> indexesPerBaseDN, final boolean initializeServer, final ToolOutput output)
+      throws ClientException
+  {
+    ClientException failedRebuild = null;
+    for (final Map.Entry<String, Set<String>> baseDN : indexesPerBaseDN.entrySet())
+    {
+      if (failedRebuild != null)
+      {
+        context.notify(WARN_UPGRADE_VERIFY_DN_EQUALITY_INDEXES_SKIPPED.get(
+            joinAsString(", ", baseDN.getValue()), baseDN.getKey()), WARNING);
+        continue;
+      }
+      final PrintStream out = output.open();
+      try
+      {
+        verifyAndRebuildOrWarn(context, configFilePath, baseDN.getKey(), baseDN.getValue(), initializeServer, out);
+      }
+      catch (final ClientException e)
+      {
+        failedRebuild = e;
+      }
+      finally
+      {
+        // A rebuild closes it too: closing it again does nothing
+        close(out);
+      }
+    }
+    if (failedRebuild != null)
+    {
+      throw failedRebuild;
+    }
   }
 
   /** What {@link #verifyAndRebuildIndexes} found. */
