@@ -272,10 +272,20 @@ public class DNTestCase extends SdkTestCase {
             { "cn=a\\b" },
             { "cn=a\\bg" },
             { "cn=\"hello" },
-            { "cn=+mail=,dc=example,dc=com" },
-            { "cn=xyz+sn=,dc=example,dc=com" },
-            { "cn=,dc=example,dc=com" },
-            { "cn=a+cn=b,dc=example,dc=com" }
+            { "cn=a+cn=b,dc=example,dc=com" },
+            // Content after an RDN that is neither a separator nor the end of the DN
+            { "cn=\"a\"b,dc=c" },
+            { "cn=\"a\" b" },
+            { "dc=c,cn=\"a\"b" },
+            { "cn=#0402 junk,dc=c" },
+            { "cn=#0402 junk" },
+            { "cn=Jim;" },
+            { "cn=Jim; " },
+            { "cn=Jim;dc=c;" },
+            // A trailing escape character that escapes nothing
+            { "cn=a\\" },
+            { "cn=a\\\\\\" },
+            { "cn=a\\,dc=b\\" },
         };
         // @formatter:on
     }
@@ -954,6 +964,67 @@ public class DNTestCase extends SdkTestCase {
         final DN raw = DN.valueOf(rawDN);
         final DN string = DN.valueOf(stringDN);
         assertEquals(raw, string);
+    }
+
+    @DataProvider
+    public Object[][] rfc4514DNs() {
+        // @formatter:off
+        return new Object[][] {
+            // The RFC 2253 RDN separator ';' separates RDNs, it does not end the DN
+            { "cn=a;dc=b", "cn=a,dc=b", 2 },
+            { "uid=a,ou=People;dc=example,dc=com", "uid=a,ou=People,dc=example,dc=com", 4 },
+            { "cn=a ; dc=b", "cn=a,dc=b", 2 },
+            { "cn=\"a\";dc=b", "cn=a,dc=b", 2 },
+            { "cn=#0402 ;dc=b", "cn=\\04\\02,dc=b", 2 },
+            // A hex string may be followed directly by '+'
+            { "cn=#04024869+sn=x", "cn=\\04\\02Hi+sn=x", 1 },
+            { "cn=#04024869+sn=x,dc=y", "cn=\\04\\02Hi+sn=x,dc=y", 2 },
+            { "sn=x+cn=#04024869,dc=y", "sn=x+cn=\\04\\02Hi,dc=y", 2 },
+            // An empty value is accepted wherever it appears
+            { "cn=,dc=x", "cn=,dc=x", 2 },
+            { "cn=\"\",dc=x", "cn=,dc=x", 2 },
+            { "cn= ,dc=x", "cn=,dc=x", 2 },
+            { "cn=x+sn=,dc=y", "cn=x+sn=,dc=y", 2 },
+            { "sn=+cn=x,dc=y", "sn=+cn=x,dc=y", 2 },
+            { "cn=+mail=,dc=example,dc=com", "cn=+mail=,dc=example,dc=com", 3 },
+            { "dc=x,cn=", "dc=x,cn=", 2 },
+            // Unescaped '=' and a non-leading '#' are legal in a value
+            { "cn=a=b", "cn=a\\=b", 1 },
+            { "cn==", "cn=\\=", 1 },
+            { "cn=a#b", "cn=a#b", 1 },
+            { "cn=a#", "cn=a#", 1 },
+            { "ou=https://idp.example.com/metadata#v1,dc=x", "ou=https://idp.example.com/metadata#v1,dc=x", 2 },
+        };
+        // @formatter:on
+    }
+
+    @Test(dataProvider = "rfc4514DNs")
+    public void valueOfShouldParseTheWholeString(final String dn, final String expectedString, final int size) {
+        final DN parsed = DN.valueOf(dn);
+        assertThat(parsed.toString()).isEqualTo(expectedString);
+        assertThat(parsed.size()).isEqualTo(size);
+        assertEquals(DN.valueOf(parsed.toString()), parsed);
+        assertEquals(DN.valueOf(ByteString.valueOfUtf8(dn)), parsed);
+    }
+
+    @Test
+    public void toStringOfChildWithEmptyValueShouldBeParseable() {
+        final DN child = DN.valueOf("dc=x").child("cn", "");
+        assertThat(child.toString()).isEqualTo("cn=,dc=x");
+        assertEquals(DN.valueOf(child.toString()), child);
+    }
+
+    @Test
+    public void valueOfShouldNotTruncateWhenParentIsCached() {
+        // The parent cache is keyed by the string after the separator: a cached parent must not hide garbage.
+        DN.valueOf("cn=a,dc=example,dc=com");
+        assertEquals(DN.valueOf("cn=b;dc=example,dc=com"), DN.valueOf("cn=b,dc=example,dc=com"));
+        try {
+            DN.valueOf("cn=\"b\"x,dc=example,dc=com");
+            fail("Expected LocalizedIllegalArgumentException");
+        } catch (LocalizedIllegalArgumentException expected) {
+            // Expected.
+        }
     }
 
     /**

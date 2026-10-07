@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools.tasks;
 
@@ -32,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -123,12 +125,13 @@ public class TaskClient {
     RawAttribute recurringIDAttr = getAttribute(ATTR_RECURRING_TASK_ID,
         taskAttributes);
 
+    // The task ID may be typed by the user (--recurringTask uses the --backupID): escape it.
     if (recurringIDAttr != null) {
-      entryDN = ATTR_RECURRING_TASK_ID + "=" +
-      taskID + "," + RECURRING_TASK_BASE_RDN + "," + DN_TASK_ROOT;
+      entryDN = DN.valueOf(RECURRING_TASK_BASE_RDN + "," + DN_TASK_ROOT)
+          .child(ATTR_RECURRING_TASK_ID, taskID).toString();
     } else {
-      entryDN = ATTR_TASK_ID + "=" + taskID + "," +
-      SCHEDULED_TASK_BASE_RDN + "," + DN_TASK_ROOT;
+      entryDN = DN.valueOf(SCHEDULED_TASK_BASE_RDN + "," + DN_TASK_ROOT)
+          .child(ATTR_TASK_ID, taskID).toString();
     }
     return entryDN;
   }

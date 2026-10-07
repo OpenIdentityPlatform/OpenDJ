@@ -123,6 +123,28 @@ public class TemplateTagTestCase extends SdkTestCase {
     }
 
     @Test
+    public void testUnderscoreDNTagKeepsEscapedCommas() throws Exception {
+        TemplateTag tag = new TemplateTag.UnderscoreDNTag();
+        tagWithArguments(tag);
+
+        TemplateValue value = new TemplateValue(NULL_LINE);
+        tag.generateValue(templateEntry(DN.valueOf("cn=Smith\\, John,dc=example,dc=com")), value);
+
+        assertThat(value.getValueAsString()).isEqualTo("cn=Smith\\, John_dc=example_dc=com");
+    }
+
+    @Test
+    public void testUnderscoreDNTagTwoComponentsKeepsEscapedCommas() throws Exception {
+        TemplateTag tag = new TemplateTag.UnderscoreDNTag();
+        tagWithArguments(tag, "2");
+
+        TemplateValue value = new TemplateValue(NULL_LINE);
+        tag.generateValue(templateEntry(DN.valueOf("cn=Smith\\, John,ou=a\\,b,dc=com")), value);
+
+        assertThat(value.getValueAsString()).isEqualTo("cn=Smith\\, John_ou=a\\,b");
+    }
+
+    @Test
     public void testDNTagOneComponent() throws Exception {
         TemplateTag tag = new TemplateTag.DNTag();
         tagWithArguments(tag, "1");

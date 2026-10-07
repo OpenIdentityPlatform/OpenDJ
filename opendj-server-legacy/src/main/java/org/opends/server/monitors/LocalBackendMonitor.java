@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.monitors;
 
@@ -61,7 +62,7 @@ public class LocalBackendMonitor
   @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
   {
-    monitorName = backend.getBackendID() + " Backend";
+    monitorName = DN.escapeAttributeValue(backend.getBackendID()) + " Backend";
   }
 
   @Override

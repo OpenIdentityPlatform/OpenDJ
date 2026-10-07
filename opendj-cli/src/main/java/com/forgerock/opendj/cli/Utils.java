@@ -49,7 +49,6 @@ import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.RDN;
 
 /** This class provides utility functions for all the client side tools. */
 public final class Utils {
@@ -541,7 +540,7 @@ public final class Utils {
      * @return The DN of the administrator for the given UID.
      */
     public static DN getAdministratorDN(String uid) {
-        return DN.valueOf(RDN.valueOf("cn=" + uid) + ",cn=Administrators, cn=admin data");
+        return DN.valueOf("cn=Administrators,cn=admin data").child("cn", uid);
     }
 
     /**

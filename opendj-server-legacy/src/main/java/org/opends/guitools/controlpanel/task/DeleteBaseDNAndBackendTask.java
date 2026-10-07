@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -418,8 +419,7 @@ public class DeleteBaseDNAndBackendTask extends Task
     }
     newBaseDNs.removeAll(dnsToRemove);
 
-    String backendName = backend.getBackendID();
-    DN dn = DN.valueOf("ds-cfg-backend-id=" + backendName + ",cn=Backends,cn=config");
+    DN dn = Utilities.getBackendConfigDN(backend.getBackendID());
     updateConfigEntryWithAttribute(dn, ATTR_BACKEND_BASE_DN, newBaseDNs);
   }
 
@@ -470,7 +470,7 @@ public class DeleteBaseDNAndBackendTask extends Task
    */
   private void deleteBackend(BackendDescriptor backend) throws OpenDsException, ConfigException
   {
-    DN dn = DN.valueOf("ds-cfg-backend-id" + "=" + backend.getBackendID() + ",cn=Backends,cn=config");
+    DN dn = Utilities.getBackendConfigDN(backend.getBackendID());
     Utilities.deleteConfigSubtree(getServerContext().getConfigurationHandler(), dn);
   }
 

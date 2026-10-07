@@ -12,12 +12,17 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package com.forgerock.opendj.cli;
 
 import java.io.File;
 import java.io.IOException;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -86,6 +91,22 @@ public class UtilsTestCase extends CliTestCase {
         assertTrue(Utils.isDN("cn=John Doe,dc=example,dc=org"));
         assertFalse(Utils.isDN(null));
         assertFalse(Utils.isDN("babs@example.com"));
+    }
+
+    @DataProvider
+    public Object[][] administratorUIDs() {
+        return new Object[][] { { "admin" }, { "a,b" }, { "a+b" }, { "#1" }, { " lead" }, { "a\\b" }, { "a;b" },
+            { "a=b" }, { "J\u00f6rg" } };
+    }
+
+    @Test(dataProvider = "administratorUIDs")
+    public void getAdministratorDNKeepsTheWholeUID(final String uid) {
+        final DN adminDN = Utils.getAdministratorDN(uid);
+        assertEquals(adminDN.parent(), DN.valueOf("cn=Administrators,cn=admin data"));
+        final RDN rdn = adminDN.rdn();
+        assertEquals(rdn.size(), 1);
+        assertEquals(rdn.getFirstAVA().getAttributeType().getNameOrOID(), "cn");
+        assertEquals(rdn.getFirstAVA().getAttributeValue(), ByteString.valueOfUtf8(uid));
     }
 
 

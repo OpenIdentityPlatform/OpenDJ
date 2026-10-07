@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -34,6 +35,31 @@ import org.forgerock.opendj.ldap.DN;
  * string value.
  */
 final class NameAndOptionalUIDSyntaxImpl extends AbstractSyntaxImpl {
+
+    /**
+     * Returns the position of the octothorpe (#) that starts the "optional uid" of the provided value, or -1 if the
+     * value has no "optional uid". The DN may contain an escaped octothorpe, and such an octothorpe does not start
+     * the "optional uid".
+     *
+     * @param value
+     *            The trimmed string representation of a name and optional UID value.
+     * @return The position of the octothorpe that starts the "optional uid", or -1 if there is none.
+     */
+    static int optionalUidPosition(final String value) {
+        if (!value.endsWith("'B") && !value.endsWith("'b")) {
+            return -1;
+        }
+        // The bit string cannot contain an octothorpe, so only the last one can start the "optional uid".
+        final int sharpPos = value.lastIndexOf("#'");
+        if (sharpPos <= 0) {
+            return -1;
+        }
+        int backslashes = 0;
+        for (int i = sharpPos - 1; i >= 0 && value.charAt(i) == '\\'; i--) {
+            backslashes++;
+        }
+        return backslashes % 2 == 0 ? sharpPos : -1;
+    }
 
     @Override
     public String getEqualityMatchingRule() {
@@ -63,14 +89,8 @@ final class NameAndOptionalUIDSyntaxImpl extends AbstractSyntaxImpl {
 
         // See if the value contains the "optional uid" portion. If we think
         // it does, then mark its location.
-        int dnEndPos = valueLength;
-        int sharpPos = -1;
-        if (valueString.endsWith("'B") || valueString.endsWith("'b")) {
-            sharpPos = valueString.lastIndexOf("#'");
-            if (sharpPos > 0) {
-                dnEndPos = sharpPos;
-            }
-        }
+        final int sharpPos = optionalUidPosition(valueString);
+        final int dnEndPos = sharpPos > 0 ? sharpPos : valueLength;
 
         // Take the DN portion of the string and try to normalize it.
         try {

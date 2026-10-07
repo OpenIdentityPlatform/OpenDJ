@@ -13,11 +13,13 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.monitors;
 
 import static org.opends.messages.ConfigMessages.*;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -72,7 +74,7 @@ public class EntryCacheMonitorProvider
     String entryCacheName,
     EntryCache<? extends EntryCacheCfg> entryCache)
   {
-    this.entryCacheName = entryCacheName + " Entry Cache";
+    this.entryCacheName = DN.escapeAttributeValue(entryCacheName) + " Entry Cache";
     this.entryCache = entryCache;
   }
 

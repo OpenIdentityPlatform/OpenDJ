@@ -474,7 +474,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     }
 
     // Create and register monitors.
-    statTracker = new HTTPStatistics(handlerName + " Statistics");
+    statTracker = new HTTPStatistics(DN.escapeAttributeValue(handlerName) + " Statistics");
     DirectoryServer.registerMonitorProvider(statTracker);
 
     connMonitor = new ClientConnectionMonitorProvider(this);
