@@ -316,7 +316,15 @@ $ docker inspect -f '{{range .Mounts}}{{.Name}} {{.Destination}}{{println}}{{end
 opendj-data /opt/opendj/data
 ----
 +
-If it is not, stop the container and copy its instance to a new volume, here `opendj-data`, which the following steps then use:
+The following steps use the volume `opendj-data`: use the name that the command printed instead. An empty name is a bind mount of a host directory, which the following command shows; back up that directory instead of running the commands of the next step, and mount it again in step 3:
++
+
+[source, console]
+----
+$ docker inspect -f '{{range .Mounts}}{{.Source}} {{.Destination}}{{println}}{{end}}' opendj
+----
++
+If nothing is mounted at `/opt/opendj/data`, stop the container and copy its instance to a new volume, here `opendj-data`, which the following steps then use:
 +
 
 [source, console]
@@ -328,7 +336,7 @@ $ docker cp opendj:/opt/opendj/data/. - | \
 
 . Stop the container, and back up its volume.
 +
-As described in xref:#before-you-upgrade["Before You Upgrade"], back up the files of the stopped instance rather than creating a backup archive with the `backup` command. `docker stop` gives the server 10 seconds to shut down before it kills it, so give a server with much data more time. The following example writes the volume `opendj-data` to an archive in the current directory. The archive holds the private keys of the server and the password hashes of its users, so only the administrators of the server may be able to read it:
+As described in xref:#before-you-upgrade["Before You Upgrade"], back up the files of the stopped instance rather than creating a backup archive with the `backup` command. `docker stop` gives the server 10 seconds to shut down before it kills it, so give a server with much data more time. The following example writes the volume `opendj-data` to an archive in the current directory. The archive holds the private keys of the server and the password hashes of its users, so make sure that only the administrators of the server can read it:
 +
 
 [source, console]
