@@ -209,16 +209,16 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
      * then to the online server.
      */
     private static void failOverToOnlineServer(final InetSocketAddress onlineAddress) throws LdapException {
-        // The numeric host avoids a reverse lookup of the loopback address.
+        // The numeric host avoids a forward lookup of "localhost".
         final InetSocketAddress offlineAddress = findFreeSocketAddress();
         final LDAPConnectionFactory offlineFactory =
-                new LDAPConnectionFactory(offlineAddress.getHostString(), offlineAddress.getPort());
+                new LDAPConnectionFactory(offlineAddress.getAddress().getHostAddress(), offlineAddress.getPort());
         try {
             offlineFactory.getConnection().close();
         } catch (final ConnectionException expected) {
             // This is expected - so go to online server.
             final LDAPConnectionFactory onlineFactory =
-                    new LDAPConnectionFactory(onlineAddress.getHostName(), onlineAddress.getPort());
+                    new LDAPConnectionFactory(onlineAddress.getHostString(), onlineAddress.getPort());
             try {
                 onlineFactory.getConnection().close();
                 return;
@@ -593,6 +593,10 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                                 // instead of leaving that wait to time out without a cause.
                                 proxyServerConnection.context.handleException(e);
                                 throw e;
+                            } catch (final RuntimeException e) {
+                                proxyServerConnection.context.handleException(
+                                        newLdapException(ResultCode.OTHER, e));
+                                throw e;
                             }
                             return super.handleAccept(clientContext);
                         }
@@ -607,7 +611,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
             // and close.
             final InetSocketAddress proxyAddr = proxyListener.firstSocketAddress();
             final LDAPConnectionFactory proxyClientFactory =
-                    new LDAPConnectionFactory(proxyAddr.getHostName(), proxyAddr.getPort());
+                    new LDAPConnectionFactory(proxyAddr.getHostString(), proxyAddr.getPort());
             try {
                 final Connection connection = proxyClientFactory.getConnection();
                 try {
@@ -662,9 +666,17 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                         resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
                     } catch (final LdapException e) {
                         // A bind must fail with a bind result: the listener cannot encode any other
-                        // result as a bind response, and would then never answer the bind.
+                        // result as a bind response, and would then never answer the bind. Only the
+                        // diagnostic message reaches the client, so it carries the nested cause.
+                        final Throwable cause = e.getCause();
+                        final String message = cause != null
+                                ? e.getResult().getDiagnosticMessage() + ": " + cause
+                                : e.getResult().getDiagnosticMessage();
                         resultHandler.handleException(newLdapException(Responses.newBindResult(ResultCode.OTHER)
-                                .setDiagnosticMessage(e.getResult().getDiagnosticMessage()).setCause(e)));
+                                .setDiagnosticMessage(message).setCause(e)));
+                    } catch (final RuntimeException e) {
+                        resultHandler.handleException(newLdapException(Responses.newBindResult(ResultCode.OTHER)
+                                .setDiagnosticMessage(e.toString()).setCause(e)));
                     }
                 }
 
@@ -676,7 +688,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                             proxyServerConnectionFactory));
             final InetSocketAddress proxyAddr = proxyListener.firstSocketAddress();
             final LDAPConnectionFactory proxyClientFactory =
-                    new LDAPConnectionFactory(proxyAddr.getHostName(), proxyAddr.getPort());
+                    new LDAPConnectionFactory(proxyAddr.getHostString(), proxyAddr.getPort());
             try {
                 // Connect, bind, and close.
                 final Connection connection = proxyClientFactory.getConnection();
