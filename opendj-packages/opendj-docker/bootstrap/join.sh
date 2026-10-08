@@ -70,6 +70,21 @@
 # run.sh) - unless the join takes its replication down to enable it anew: from then until the
 # enable registered it again it is not, across restarts too ($REJOIN_PENDING), and the
 # backend of BASE_DN refuses the writes of clients, which no longer replicate meanwhile.
+#
+# REPLICATION_ROLE (#1178) is the part this server takes: combined, a directory server with a
+# replication server of its own (the default); directory, one that connects to the
+# replication servers of other peers; replication, a replication server that holds no data.
+# The role of each side of an enable is passed to dsreplication: unless it is told otherwise,
+# the tool gives both servers a replication server and a domain for BASE_DN, so an enable
+# through a directory server would hand it a replication server. A peer's role is read from
+# the peer - what its configuration holds, or else what it publishes next to its state. A
+# replication server goes the way of a volume that waits for the data of the topology,
+# publishing itself pending until it is a member, but nothing initializes it; it never seeds,
+# and one listed first is passed over. A directory server joins only a topology that has a
+# replication server: dsreplication enable refuses one without, before it changes anything.
+# The role is set when setup.sh sets the volume up - a replication server gets no backend for
+# BASE_DN - and recorded on it: a later start in another role only says so, and the join goes
+# on in the role the server has (ROLE below).
 
 cd /opt/opendj || exit 1
 export PATH=/opt/opendj/bin:$PATH
@@ -83,9 +98,15 @@ MYHOSTNAME=${MYHOSTNAME:-$(hostname -f)}
 BOOTSTRAP_COMPLETE=${BOOTSTRAP_COMPLETE:-/opt/opendj/.bootstrap-complete}
 INITIALIZE_PENDING=${INITIALIZE_PENDING:-/opt/opendj/data/.replication-initialize-pending}
 REJOIN_PENDING=${REJOIN_PENDING:-/opt/opendj/data/.replication-rejoin-pending}
+# the role the volume was set up with (setup.sh), or the one a first start of this image read
+# from a volume set up before roles
+REPLICATION_ROLE_FILE=${REPLICATION_ROLE_FILE:-/opt/opendj/data/.replication-role}
 # not replicated: cn=config is this server's alone, and it lives on the volume next to the
 # marker, so the two cannot tell different stories
 STATE_DN="cn=Docker Join,cn=config"
+# BASE_DN as a value in a search filter (RFC 4515): a parenthesis, an asterisk or a backslash
+# in it would break the filter, or make it match more than BASE_DN
+BASE_DN_VALUE=$(printf '%s' "$BASE_DN" | sed -e 's/\\/\\5c/g' -e 's/\*/\\2a/g' -e 's/(/\\28/g' -e 's/)/\\29/g')
 
 # Sets the variable to its value read as a decimal whole number, or to the default when it
 # is not one or is below the least value. $(( )) reads a leading zero as octal and fails on
@@ -117,6 +138,22 @@ whole_number REPLICATION_ATTEMPT_TIMEOUT 120 1
 # for another full import, so by default it runs without a bound
 REPLICATION_INITIALIZE_TIMEOUT=${REPLICATION_INITIALIZE_TIMEOUT:-0}
 whole_number REPLICATION_INITIALIZE_TIMEOUT 0 0
+
+# a role it does not know is not taken for the default: a server started as a replication
+# server by a misspelt value would otherwise join holding data. A volume that records its
+# role (see ROLE below) joins in that role whatever the value, as it does with another role
+REPLICATION_ROLE=${REPLICATION_ROLE:-combined}
+case $REPLICATION_ROLE in
+  combined | directory | replication) ;;
+  *)
+    if [ -s "$REPLICATION_ROLE_FILE" ]; then
+      echo "join: REPLICATION_ROLE=$REPLICATION_ROLE is not one of combined, directory or replication, the role recorded on the volume stands"
+    else
+      echo "join: REPLICATION_ROLE=$REPLICATION_ROLE is not one of combined, directory or replication, this server does not join"
+      exit 1
+    fi
+    ;;
+esac
 
 # Removing servers that left the topology needs the operator's word on who belongs to it:
 # with only MASTER_SERVER set, a third server joined by hand would be "not in the list" and
@@ -252,10 +289,12 @@ server_up() {
   search localhost --baseDN "" --searchScope base "(objectClass=*)" 1.1 >/dev/null
 }
 
+# the state goes with the role of this server, after it: a peer reads the first word as the
+# state, which a join of an image before roles reads alone
 publish_state() {
-  printf 'dn: %s\nchangetype: modify\nreplace: description\ndescription: %s\n' "$STATE_DN" "$1" \
+  printf 'dn: %s\nchangetype: modify\nreplace: description\ndescription: %s %s\n' "$STATE_DN" "$1" "$ROLE" \
     | ldapmodify_local >/dev/null && return 0
-  printf 'dn: %s\nobjectClass: top\nobjectClass: ds-cfg-branch\nobjectClass: extensibleObject\ncn: Docker Join\ndescription: %s\n' "$STATE_DN" "$1" \
+  printf 'dn: %s\nobjectClass: top\nobjectClass: ds-cfg-branch\nobjectClass: extensibleObject\ncn: Docker Join\ndescription: %s %s\n' "$STATE_DN" "$1" "$ROLE" \
     | ldapmodify_local --defaultAdd >/dev/null && return 0
   echo "join: could not publish the state $1 of this server to its peers"
   return 1
@@ -299,19 +338,98 @@ registered_hosts() { # [<host>, localhost by default]
   printf '%s\n' "$out" | awk 'tolower($1) == "hostname:" { print $2 }'
 }
 
-# a member holds the replication domain for BASE_DN in its configuration and is registered
+# a member holds the replication domain for BASE_DN in its configuration - a replication
+# server its replication server instead (see holds_own_part) - and is registered
 # in cn=admin data - under the name the enable that registered it connected with, which for
 # a server that never ran an enable of its own is the name a peer listed it by; both are made
 # by one dsreplication enable, so requiring both keeps a half-done enable from being declared
 # a success, and the next round takes it down (see reset_if_unregistered)
 replicates_base_dn() { # <host>
-  search "$1" --baseDN "cn=config" --searchScope sub \
-    "(&(objectClass=ds-cfg-replication-domain)(ds-cfg-base-dn=$BASE_DN))" 1.1 | grep -q "^dn:"
+  grep -qx domain <<<"$(replication_config "$1")"
+}
+
+# What of the replication the server holds, one line each: "server" for a replication server,
+# "domain" for the replication domain of BASE_DN, "backend" for a backend of BASE_DN, and
+# "published <role>" for the state it publishes - the role is left out where the state comes
+# without one, from an image before roles - all from one search, as every ldapsearch starts a
+# JVM. Nothing for a server that has none of
+# them, and a failure when it cannot be asked.
+replication_config() { # <host>
+  local out
+  out=$(search "$1" --baseDN "cn=config" --searchScope sub \
+    "(|(objectClass=ds-cfg-replication-server)(&(objectClass=ds-cfg-replication-domain)(ds-cfg-base-dn=$BASE_DN_VALUE))(&(objectClass=ds-cfg-backend)(ds-cfg-base-dn=$BASE_DN_VALUE))(cn=Docker Join))" \
+    objectClass description) \
+    || return 1
+  printf '%s\n' "$out" | awk -v state="$(lower "$STATE_DN")" '
+    /^dn: / { is_state = (tolower(substr($0, 5)) == state) }
+    tolower($0) == "objectclass: ds-cfg-replication-server" { print "server" }
+    tolower($0) == "objectclass: ds-cfg-replication-domain" { print "domain" }
+    tolower($0) == "objectclass: ds-cfg-backend" { print "backend" }
+    is_state && tolower($1) == "description:" { print "published", $3 }'
+}
+
+# What a replication configuration holds: "combined" for a replication server and the domain
+# of BASE_DN, "directory" for the domain alone, "server" for a replication server alone,
+# nothing for neither. Only the first two tell a role by themselves.
+config_shape() { # <replication_config output>
+  local server=no domain=no
+  grep -qx server <<<"$1" && server=yes
+  grep -qx domain <<<"$1" && domain=yes
+  case $server$domain in
+    yesyes) echo combined ;;
+    noyes) echo directory ;;
+    yesno) echo server ;;
+  esac
+}
+
+# The role of a peer: the one its configuration tells, or else the one it publishes next to
+# its state, which tells a replication server from a combined server whose enable stopped
+# half-way, before it configured the domain - and combined for a peer that publishes none, an
+# image before roles or a master that runs no join, as every server was before roles.
+peer_role() { # <replication_config output>
+  case $(config_shape "$1") in
+    combined) echo combined ;;
+    directory) echo directory ;;
+    *) published_role "$1" ;;
+  esac
+}
+
+# the role a server publishes next to its state; combined for one that publishes none, as a
+# server of an image before roles is one - or a server that runs no join, whose state entry a
+# search does not find
+published_role() { # <replication_config output>
+  local role
+  role=$(awk '$1 == "published" { print $2; exit }' <<<"$1")
+  case $role in
+    directory | replication) echo "$role" ;;
+    *) echo combined ;;
+  esac
+}
+
+# this server holds what its role gives it: the replication domain of BASE_DN for a combined
+# or a directory server, a replication server for a replication server
+holds_own_part() {
+  local config
+  config=$(replication_config localhost) || return 1
+  if [ "$ROLE" = replication ]; then
+    grep -qx server <<<"$config"
+  else
+    grep -qx domain <<<"$config"
+  fi
+}
+
+# the dsreplication enable arguments that give the server of that side its role, one a line
+role_arguments() { # <1|2> <role>
+  case $2 in
+    directory) printf '%s\n' "--noReplicationServer$1" ;;
+    replication) printf '%s\n' "--onlyReplicationServer$1" "--replicationPort$1" "$REPLICATION_PORT" ;;
+    *) printf '%s\n' "--replicationPort$1" "$REPLICATION_PORT" ;;
+  esac
 }
 
 is_member() {
   local host
-  replicates_base_dn localhost || return 1
+  holds_own_part || return 1
   for host in $(registered_hosts); do
     is_self "$host" && return 0
   done
@@ -321,16 +439,25 @@ is_member() {
 # cn=admin data is replicated, but a server that was away while the survivors removed it
 # from the topology still holds its own entry until that delete reaches it, and it may not
 # have yet when the join looks: the other peers that answer and replicate BASE_DN have the
-# say. Being unregistered takes this server's replication down (reset_replication), so it is
+# say - a replication server as well, which replicates cn=admin data without BASE_DN. Being
+# unregistered takes this server's replication down (reset_replication), so it is
 # concluded only when at least one of them listed its registrations and none of them lists
 # this server: a search that failed, or a peer whose copy of cn=admin data still lags behind
 # the others, decides nothing while another peer lists it. With no such peer the local view
 # stands - nothing else can be asked.
 registered_with_peers() {
-  local peer host hosts asked=no
+  local peer host hosts config asked=no
   for peer in "${PEERS[@]}"; do
     is_self "$peer" && continue
-    replicates_base_dn "$peer" || continue
+    # a replication server alone is a member only as a replication server; on a combined
+    # server it is an enable that stopped before the domain and the initialize of cn=admin
+    # data, whose registrations are its own
+    config=$(replication_config "$peer") || continue
+    case $(config_shape "$config") in
+      combined | directory) ;;
+      server) [ "$(peer_role "$config")" = replication ] || continue ;;
+      *) continue ;;
+    esac
     hosts=$(registered_hosts "$peer") || continue
     asked=yes
     for host in $hosts; do
@@ -430,8 +557,13 @@ release_join_lock() { # <host> <value>
 # exits 75 without running the enable while another server enables through the peer or
 # through this one. Neither lock is waited for, so two servers that each hold their own and
 # ask for the other's cannot deadlock; they both give up and try again after pause().
+# It exits 75 as well when the peer's role cannot be read - guessed wrong, the enable would
+# give a directory server a replication server - and when a directory server would enable
+# with a directory server that no replication server joined yet: that topology has none, and
+# dsreplication enable refuses it. The peer is read under its lock, which an enable through
+# it by another server holds while it changes what the peer runs.
 enable_through() {
-  local rc own peer_lock
+  local rc own peer_lock config role peer_args own_args
   take_join_lock localhost || return 75
   own=$JOIN_LOCK_VALUE
   if ! take_join_lock "$1"; then
@@ -439,14 +571,25 @@ enable_through() {
     return 75
   fi
   peer_lock=$JOIN_LOCK_VALUE
-  bounded "$REPLICATION_ATTEMPT_TIMEOUT" dsreplication enable \
-    --host1 "$1" --port1 "$ADMIN_PORT" --bindDN1 "$ROOT_USER_DN" \
-    --bindPasswordFile1 "$PASSWORD_FILE" --replicationPort1 "$REPLICATION_PORT" \
-    --host2 "$MYHOSTNAME" --port2 "$ADMIN_PORT" --bindDN2 "$ROOT_USER_DN" \
-    --bindPasswordFile2 "$PASSWORD_FILE" --replicationPort2 "$REPLICATION_PORT" \
-    --adminUID admin --adminPasswordFile "$PASSWORD_FILE" \
-    --baseDN "$BASE_DN" -X -n
-  rc=$?
+  if ! config=$(replication_config "$1"); then
+    echo "join: could not read how $1 replicates"
+    rc=75
+  elif role=$(peer_role "$config") && [ "$ROLE" = directory ] && [ "$role" = directory ] \
+    && [ -z "$(config_shape "$config")" ]; then
+    echo "join: $1 is a directory server that no replication server joined yet, and a directory server joins only through a topology that has one"
+    rc=75
+  else
+    mapfile -t peer_args < <(role_arguments 1 "$role")
+    mapfile -t own_args < <(role_arguments 2 "$ROLE")
+    bounded "$REPLICATION_ATTEMPT_TIMEOUT" dsreplication enable \
+      --host1 "$1" --port1 "$ADMIN_PORT" --bindDN1 "$ROOT_USER_DN" \
+      --bindPasswordFile1 "$PASSWORD_FILE" "${peer_args[@]}" \
+      --host2 "$MYHOSTNAME" --port2 "$ADMIN_PORT" --bindDN2 "$ROOT_USER_DN" \
+      --bindPasswordFile2 "$PASSWORD_FILE" "${own_args[@]}" \
+      --adminUID admin --adminPasswordFile "$PASSWORD_FILE" \
+      --baseDN "$BASE_DN" -X -n
+    rc=$?
+  fi
   release_join_lock "$1" "$peer_lock"
   release_join_lock localhost "$own"
   return $rc
@@ -472,7 +615,7 @@ initialize_from() {
 # every directory server connected to it, but only the domain publishes replayed-updates
 generation_id() {
   search "$1" --baseDN "cn=monitor" --searchScope sub \
-    "(&(domain-name=$BASE_DN)(replayed-updates=*))" generation-id \
+    "(&(domain-name=$BASE_DN_VALUE)(replayed-updates=*))" generation-id \
     | awk 'tolower($1) == "generation-id:" { print $2; exit }'
 }
 
@@ -606,7 +749,8 @@ reset_replication() { # <rejoining|pending> <why>
     return 1
   fi
   own=$JOIN_LOCK_VALUE
-  if ! hold_writes; then
+  # a replication server has no backend of BASE_DN, and no client writes to hold
+  if [ "$ROLE" != replication ] && ! hold_writes; then
     echo "join: could not stop the writes of clients, its replication configuration stays as it is"
     release_join_lock localhost "$own"
     return 1
@@ -623,11 +767,14 @@ reset_replication() { # <rejoining|pending> <why>
 }
 
 # "<backend-id> <writability-mode>" of the backend that holds BASE_DN; the mode is left out
-# where the entry does not set one, which means enabled
+# where the entry does not set one, which means enabled. Nothing where no backend holds it,
+# and a failure when the search failed
 data_backend() {
-  search localhost --baseDN "cn=Backends,cn=config" --searchScope one \
-    "(&(objectClass=ds-cfg-backend)(ds-cfg-base-dn=$BASE_DN))" ds-cfg-backend-id ds-cfg-writability-mode \
-    | awk 'tolower($1) == "ds-cfg-backend-id:" { id = $2 } tolower($1) == "ds-cfg-writability-mode:" { mode = $2 }
+  local out
+  out=$(search localhost --baseDN "cn=Backends,cn=config" --searchScope one \
+    "(&(objectClass=ds-cfg-backend)(ds-cfg-base-dn=$BASE_DN_VALUE))" ds-cfg-backend-id ds-cfg-writability-mode) \
+    || return 1
+  printf '%s\n' "$out" | awk 'tolower($1) == "ds-cfg-backend-id:" { id = $2 } tolower($1) == "ds-cfg-writability-mode:" { mode = $2 }
            END { if (id != "") print id, mode }'
 }
 
@@ -700,9 +847,12 @@ cleanup_departed() {
 # servers that know nothing of each other, cutting the updates of one off from the other; a
 # replication server connects to a server added to its list at once. A peer that is not
 # registered yet is waited for, as long as the retries last, after this server already
-# reports itself healthy.
+# reports itself healthy. Only a peer that runs a replication server goes into a list - a
+# directory server has none to connect to - and cn=admin data does not say which do, so a
+# peer that a list lacks is asked; one that does not answer is left for the repair of a later
+# start.
 repair_replication_servers() {
-  local i peer waiting hosts host lists kind cn value found
+  local i peer waiting hosts host lists kind cn value found config servers= unknown= mixed=no
   [ "$PEERS_ARE_EXPLICIT" = yes ] || return 0
   for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
     waiting=
@@ -725,22 +875,61 @@ repair_replication_servers() {
   lists=$(replication_server_lists)
   # a here-string of nothing still reads as one empty line
   [ -n "$lists" ] || return 0
+  # every ldapsearch starts a JVM: a peer that every list holds already is not asked
+  [ "$ROLE" = combined ] || mixed=yes
+  for host in $hosts; do
+    is_self "$host" && continue
+    in_peers "$host" || continue
+    lacked_by_a_list "$host" "$lists" || continue
+    if ! config=$(replication_config "$host"); then
+      unknown="$unknown $host"
+    elif grep -qx server <<<"$config"; then
+      servers="$servers $host"
+    else
+      mixed=yes
+    fi
+  done
+  # A peer that does not answer goes in as every peer did before roles while nothing says
+  # that the topology has other roles: this server is combined, and so is every peer that
+  # answered. Otherwise it waits for the repair of a later start - a replication server
+  # left out of a list is added then, while a directory server put into one would stay there
+  # for good, a replication server that nothing listens on, which cleanup_departed keeps as
+  # long as the host is listed.
+  if [ "$mixed" = no ]; then
+    servers="$servers$unknown"
+  else
+    for host in $unknown; do
+      echo "join: could not ask $host whether it runs a replication server, its place in the replication server lists is checked on a later start"
+    done
+  fi
   while IFS=$'\t' read -r kind cn value; do
     [ -n "$value" ] && continue
-    for host in $hosts; do
-      is_self "$host" && continue
-      in_peers "$host" || continue
-      found=no
-      while IFS=$'\t' read -r k c v; do
-        [ "$k" = "$kind" ] && [ "$c" = "$cn" ] && [ -n "$v" ] || continue
-        names_match "$(lower "${v%:*}")" "$(lower "$host")" && { found=yes; break; }
-      done <<<"$lists"
-      if [ "$found" = no ]; then
+    for host in $servers; do
+      if ! list_holds "$host" "$kind" "$cn" "$lists"; then
         echo "join: adding replication server $host:$REPLICATION_PORT to the $kind list of $cn"
         change_replication_servers "$kind" "$cn" --add "$host:$REPLICATION_PORT" || true
       fi
     done
   done <<<"$lists"
+}
+
+# whether the list of that kind and cn holds the host, in replication_server_lists output
+list_holds() { # <host> <kind> <cn> <lists>
+  local k c v
+  while IFS=$'\t' read -r k c v; do
+    [ "$k" = "$2" ] && [ "$c" = "$3" ] && [ -n "$v" ] || continue
+    names_match "$(lower "${v%:*}")" "$(lower "$1")" && return 0
+  done <<<"$4"
+  return 1
+}
+
+lacked_by_a_list() { # <host> <lists>
+  local kind cn value
+  while IFS=$'\t' read -r kind cn value; do
+    [ -n "$value" ] && continue
+    list_holds "$1" "$kind" "$cn" "$2" || return 0
+  done <<<"$2"
+  return 1
 }
 
 # the backend of BASE_DN refuses the writes of clients because this join stopped them: an
@@ -796,7 +985,9 @@ seed() { # <why>
 # volume that holds the data of the topology does so from the start, until a reset of its
 # replication took that back - and the writes of its clients, where the reset stopped them
 give_up() {
-  if [ -f "$BOOTSTRAP_COMPLETE" ]; then
+  if [ -f "$BOOTSTRAP_COMPLETE" ] && [ "$ROLE" = replication ]; then
+    echo "join: could not join the replication topology after $REPLICATION_RETRY_COUNT attempts, this replication server stays apart from it until a later start joins it"
+  elif [ -f "$BOOTSTRAP_COMPLETE" ]; then
     echo "join: could not join the replication topology after $REPLICATION_RETRY_COUNT attempts, this server keeps serving its data unreplicated until a later start joins it"
   elif writes_held; then
     echo "join: could not join the replication topology after $REPLICATION_RETRY_COUNT attempts, this container will not report itself healthy and serves its data read-only until a later start joins it"
@@ -808,7 +999,7 @@ give_up() {
 
 echo "join: waiting for the server on the administration connector"
 for i in $(seq 1 150); do
-  server_up && break
+  server_up && own_config=$(replication_config localhost) && break
   if [ "$i" -eq 150 ]; then
     echo "join: the server did not come up, or does not take ROOT_PASSWORD any more, giving up"
     exit 1
@@ -816,8 +1007,79 @@ for i in $(seq 1 150); do
   sleep 2
 done
 
-FIRST=no
-is_self "${PEERS[0]}" && FIRST=yes
+# The role this server has, which every step below goes by: the one setup.sh set the volume
+# up with, whatever REPLICATION_ROLE says now - a replication server has no backend for
+# BASE_DN, a server with one holds data, and a later start in another role is told rather than
+# left to believe it took effect. A volume set up by an image before roles has no role
+# recorded: its replication configuration tells it, and REPLICATION_ROLE where that does not -
+# a replication server without a domain is the replication server of the one-shot srs, when
+# REPLICATION_ROLE says so, and a combined server whose enable stopped half-way otherwise. The
+# role found is recorded, so that it stays what it is from then on.
+legacy_role() { # <replication_config output>
+  case $(config_shape "$1") in
+    combined) echo combined ;;
+    directory) echo directory ;;
+    server) if [ "$REPLICATION_ROLE" = replication ]; then echo replication; else echo combined; fi ;;
+    *)
+      if [ -f "$REJOIN_PENDING" ]; then
+        # only the join of an image before roles took a volume down, and it ran combined
+        # servers only
+        echo combined
+      elif grep -qx backend <<<"$1" && [ "$REPLICATION_ROLE" = replication ]; then
+        echo "join: this server holds a backend for $BASE_DN, which a replication server does not, and joins as a combined server; a replication server starts from an empty volume" >&2
+        echo combined
+      else
+        echo "$REPLICATION_ROLE"
+      fi
+      ;;
+  esac
+}
+if [ -s "$REPLICATION_ROLE_FILE" ]; then
+  ROLE=$(cat "$REPLICATION_ROLE_FILE")
+  case $ROLE in
+    combined | directory | replication) ;;
+    *)
+      echo "join: $REPLICATION_ROLE_FILE holds $ROLE, which is not one of combined, directory or replication, this server does not join"
+      exit 1 ;;
+  esac
+else
+  ROLE=$(legacy_role "$own_config")
+  printf '%s\n' "$ROLE" >"$REPLICATION_ROLE_FILE" \
+    || echo "join: could not record the role $ROLE in $REPLICATION_ROLE_FILE, the next start reads it again"
+fi
+if [ "$ROLE" != "$REPLICATION_ROLE" ]; then
+  echo "join: this server is a $ROLE server and keeps that role, REPLICATION_ROLE=$REPLICATION_ROLE does not change it"
+fi
+if [ "$ROLE" != replication ] && ! grep -qx backend <<<"$own_config"; then
+  echo "join: this server holds no backend for $BASE_DN, which a $ROLE server needs: its bootstrap did not create one"
+fi
+
+# Only the first peer of REPLICATION_PEERS that holds data may seed a topology: a replication
+# server has none to seed it with, and one listed ahead of the others is passed over. Asked
+# only where a seed is weighed, and only of the peers listed ahead of this one, each by the
+# role it publishes; one that does not answer, or does not publish one yet, counts as holding
+# data, so that two servers never both take themselves for the first. A role stays with its
+# volume, so each answer is kept: a peer ahead that publishes another role holds data for
+# good, and one that publishes replication is not asked again.
+AHEAD_HOLDS_DATA=no
+AHEAD_REPLICATION=
+may_seed() {
+  local peer config
+  [ "$ROLE" = replication ] && return 1
+  [ "$AHEAD_HOLDS_DATA" = yes ] && return 1
+  for peer in "${PEERS[@]}"; do
+    is_self "$peer" && return 0
+    [[ " $AHEAD_REPLICATION " == *" $peer "* ]] && continue
+    config=$(replication_config "$peer") || return 1
+    grep -q '^published' <<<"$config" || return 1
+    if [ "$(peer_role "$config")" != replication ]; then
+      AHEAD_HOLDS_DATA=yes
+      return 1
+    fi
+    AHEAD_REPLICATION="$AHEAD_REPLICATION $peer"
+  done
+  return 1
+}
 
 # Every round on both roads starts here: a replication configuration that the peers no longer
 # register is taken down (see reset_replication). So is one that the peers register but the
@@ -828,7 +1090,7 @@ is_self "${PEERS[0]}" && FIRST=yes
 # an enable registers nobody before it.
 reset_if_unregistered() { # <the state to publish meanwhile>
   local rc=0
-  replicates_base_dn localhost || return 0
+  holds_own_part || return 0
   if ! registered_with_peers; then
     reset_replication "$1" "the peers no longer register this server"
     return
@@ -873,7 +1135,12 @@ if [ ! -f "$INITIALIZE_PENDING" ]; then
         rc=$?
         if member_of_topology; then
           echo "join: joined the replication topology through $peer"
-          cross_check "$peer" "; replication will not flow until this server or that one is initialized by hand"
+          # a replication server holds no generation ID of BASE_DN to compare with, neither
+          # this one nor the peer joined through
+          if [ "$ROLE" != replication ]; then
+            replicates_base_dn "$peer" || peer=$(trusted_source) || peer=
+            [ -z "$peer" ] || cross_check "$peer" "; replication will not flow until this server or that one is initialized by hand"
+          fi
           joined
           exit
         fi
@@ -882,7 +1149,7 @@ if [ ! -f "$INITIALIZE_PENDING" ]; then
     fi
     # a list without a single other server leaves nothing to retry against, and peers that
     # all wait for data join through this one rather than the other way round
-    if [ "$FIRST" = yes ] && all_others_pending; then
+    if may_seed && all_others_pending; then
       seed "no other peer holds the data of the topology" || exit 1
       exit 0
     fi
@@ -891,7 +1158,7 @@ if [ ! -f "$INITIALIZE_PENDING" ]; then
     fi
   done
   # the same rule as at the end of the pending road below
-  if [ "$FIRST" = yes ] && ! any_other_may_hold_data; then
+  if may_seed && ! any_other_may_hold_data; then
     seed "no topology found after $REPLICATION_RETRY_COUNT attempts" || exit 1
     exit 0
   fi
@@ -899,11 +1166,12 @@ if [ ! -f "$INITIALIZE_PENDING" ]; then
 fi
 
 # This volume was bootstrapped and never received the data of the topology: it joins and
-# initializes only through a peer that holds that data, and only the first peer may decide
-# that nobody does. Its membership is asked of the peers as on the road above: a volume that
-# enabled once but never completed its initialize may have been removed by the survivors
-# while it was away, and its own cn=admin data still registers it until their delete reaches
-# it - after which every enable registers nobody, as reset_replication describes.
+# initializes only through a peer that holds that data, and only the first peer that holds
+# data (see may_seed) may decide that nobody does. Its membership is asked of the peers as on
+# the road above: a volume that enabled once but never completed its initialize may have been
+# removed by the survivors while it was away, and its own cn=admin data still registers it
+# until their delete reaches it - after which every enable registers nobody, as
+# reset_replication describes.
 publish_state pending
 member=no
 for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
@@ -933,7 +1201,14 @@ for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
       [ "$rc" -eq 75 ] || echo "join: dsreplication enable with $peer exited with $rc and membership is not there"
     done
   fi
-  if [ "$member" = yes ]; then
+  if [ "$member" = yes ] && [ "$ROLE" = replication ]; then
+    # a replication server holds no data that an initialize would bring: membership is all
+    # it waits for. Published before the marker goes, as after an initialize
+    publish_state ready || exit 1
+    rm -f "$INITIALIZE_PENDING"
+    joined
+    exit
+  elif [ "$member" = yes ]; then
     source=$(trusted_source)
     if [ -n "$source" ]; then
       echo "join: initializing from $source"
@@ -949,14 +1224,14 @@ for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
         exit
       fi
       echo "join: initialize from $source exited with $rc"
-    elif [ "$FIRST" = yes ] && all_others_pending; then
+    elif may_seed && all_others_pending; then
       seed "every other peer waits for the data of the topology as well" || exit 1
       joined
       exit 0
     else
       echo "join: no peer holds the data of the topology yet"
     fi
-  elif [ "$FIRST" = yes ] && all_others_pending; then
+  elif may_seed && all_others_pending; then
     seed "every other peer waits for the data of the topology as well" || exit 1
     exit 0
   fi
@@ -965,10 +1240,10 @@ for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
   fi
 done
 
-# Only the first peer may decide that there is no topology to join and that its own data
-# seeds one, and only while no peer that could hold the topology's data answers; anyone
-# else staying unhealthy is what surfaces a lost topology instead of forking it
-if [ "$FIRST" = yes ] && [ "$member" = no ] && ! any_other_may_hold_data; then
+# Only the first peer that holds data may decide that there is no topology to join and that
+# its own data seeds one, and only while no peer that could hold the topology's data answers;
+# anyone else staying unhealthy is what surfaces a lost topology instead of forking it
+if [ "$member" = no ] && may_seed && ! any_other_may_hold_data; then
   seed "no topology found after $REPLICATION_RETRY_COUNT attempts" || exit 1
   exit 0
 fi

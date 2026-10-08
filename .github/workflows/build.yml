@@ -793,6 +793,57 @@ jobs:
           # the password never shows on a command line: sample every process's for two probe intervals
           docker exec test_health_bind sh -c 'end=$(($(date +%s) + 12)); while [ "$(date +%s)" -lt "$end" ]; do for f in /proc/[0-9]*/cmdline; do tr "\0" " " < "$f" 2>/dev/null; echo; done | grep -q "[h]c_secret_1092" && exit 1; sleep 0.2; done; exit 0'
           docker rm -f test_health_bind
+      - name: Docker test failed bootstrap
+        # a start over a volume whose bootstrap failed once setup had written its
+        # configuration must not report healthy either (#1182)
+        shell: bash
+        run: |
+          IMAGE=localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
+          MEMORY=512m
+          trap 'code=$?; echo "::group::container logs (test_failed)"; docker logs test_failed 2>&1 || true; docker inspect --format="{{json .State.Health}}" test_failed 2>&1 || true; echo "::endgroup::"; docker rm -f test_failed >/dev/null 2>&1 || true; docker volume rm test_failed_data >/dev/null 2>&1 || true; exit $code' ERR
+          # an unknown backend type fails create-backend once setup has written data/config
+          docker run -d --memory="$MEMORY" --health-interval=5s -e ADD_BASE_ENTRY="--addBaseEntry" -e BACKEND_TYPE=bogus -v test_failed_data:/opt/opendj/data --name=test_failed "$IMAGE"
+          timeout 3m bash -c 'until docker logs test_failed 2>&1 | grep -qF "failed, this container will not report itself healthy"; do sleep 2; done'
+          docker restart -t 60 test_failed
+          timeout 3m bash -c 'until docker logs test_failed 2>&1 | grep -qF "The bootstrap of this volume did not complete"; do sleep 2; done'
+          # the server is up to be looked at, and no probe passes over 45 s of probes every 5 s
+          timeout 3m bash -c 'until docker exec test_failed /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword password --baseDN "" --searchScope base "(objectClass=*)" 1.1 >/dev/null 2>&1; do sleep 5; done'
+          end=$((SECONDS + 45))
+          while [ $SECONDS -lt $end ]; do
+            test "$(docker inspect --format='{{.State.Health.Status}}' test_failed)" != healthy
+            sleep 2
+          done
+          # the setup finished by hand and the mark removed, the next start reports healthy
+          docker exec test_failed /opt/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=userRoot --type je --set=base-dn:dc=example,dc=com --set=enabled:true --no-prompt --trustAll
+          docker exec test_failed rm /opt/opendj/data/.bootstrap-pending
+          docker restart -t 60 test_failed
+          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_failed | grep -q \"healthy\"; do sleep 5; done'
+          docker rm -f test_failed
+          docker volume rm test_failed_data
+      - name: Docker test upgrade from a released image
+        # the build image started over a volume that the latest release bootstrapped
+        # upgrades it on start, the road the Installation Guide documents (#1183)
+        shell: bash
+        run: |
+          IMAGE=localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
+          RELEASED=openidentityplatform/opendj:${{ env.release_version }}
+          MEMORY=512m
+          trap 'code=$?; echo "::group::container logs (test_upgrade)"; docker logs test_upgrade 2>&1 || true; docker inspect --format="{{json .State.Health}}" test_upgrade 2>&1 || true; echo "::endgroup::"; docker rm -f test_upgrade >/dev/null 2>&1 || true; docker volume rm test_upgrade_data >/dev/null 2>&1 || true; exit $code' ERR
+          search() { docker exec test_upgrade /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword password "$@"; }
+          docker run -d --memory="$MEMORY" -e ADD_BASE_ENTRY="--addBaseEntry" -e SAMPLE_DATA=10 -v test_upgrade_data:/opt/opendj/data --name=test_upgrade "$RELEASED"
+          # the entries, not the health status: the health check of 5.1.2 turned healthy before
+          # import-ldif had finished
+          export -f search
+          timeout 5m bash -c 'until search --baseDN "ou=People,dc=example,dc=com" --searchScope one "(uid=user.9)" 1.1 2>/dev/null | grep -q "^dn:"; do sleep 5; done'
+          docker stop -t 60 test_upgrade
+          docker rm test_upgrade
+          docker run -d --memory="$MEMORY" -v test_upgrade_data:/opt/opendj/data --name=test_upgrade "$IMAGE"
+          timeout 10m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_upgrade | grep -q \"healthy\"; do sleep 5; done'
+          # the upgrade ran its tasks: on equal versions it would be a no-op
+          if docker logs test_upgrade 2>&1 | grep -F "has already been upgraded"; then echo "::error::The build image found nothing to upgrade on the volume of $RELEASED"; false; fi
+          test "$(search --baseDN "ou=People,dc=example,dc=com" --searchScope one "(uid=user.*)" 1.1 | grep -c "^dn:")" = 10
+          docker rm -f test_upgrade
+          docker volume rm test_upgrade_data
       - name: Scan image for vulnerabilities (Trivy)
         # trivy resolves the image from the local Docker daemon, so only the runner's
         # linux/amd64 manifest is scanned; cache: false keeps the ~1GB trivy DBs from
@@ -1187,6 +1238,57 @@ jobs:
           # the password never shows on a command line: sample every process's for two probe intervals
           docker exec test_health_bind sh -c 'end=$(($(date +%s) + 12)); while [ "$(date +%s)" -lt "$end" ]; do for f in /proc/[0-9]*/cmdline; do tr "\0" " " < "$f" 2>/dev/null; echo; done | grep -q "[h]c_secret_1092" && exit 1; sleep 0.2; done; exit 0'
           docker rm -f test_health_bind
+      - name: Docker test failed bootstrap
+        # a start over a volume whose bootstrap failed once setup had written its
+        # configuration must not report healthy either (#1182)
+        shell: bash
+        run: |
+          IMAGE=localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
+          MEMORY=1g
+          trap 'code=$?; echo "::group::container logs (test_failed)"; docker logs test_failed 2>&1 || true; docker inspect --format="{{json .State.Health}}" test_failed 2>&1 || true; echo "::endgroup::"; docker rm -f test_failed >/dev/null 2>&1 || true; docker volume rm test_failed_data >/dev/null 2>&1 || true; exit $code' ERR
+          # an unknown backend type fails create-backend once setup has written data/config
+          docker run -d --memory="$MEMORY" --health-interval=5s -e ADD_BASE_ENTRY="--addBaseEntry" -e BACKEND_TYPE=bogus -v test_failed_data:/opt/opendj/data --name=test_failed "$IMAGE"
+          timeout 3m bash -c 'until docker logs test_failed 2>&1 | grep -qF "failed, this container will not report itself healthy"; do sleep 2; done'
+          docker restart -t 60 test_failed
+          timeout 3m bash -c 'until docker logs test_failed 2>&1 | grep -qF "The bootstrap of this volume did not complete"; do sleep 2; done'
+          # the server is up to be looked at, and no probe passes over 45 s of probes every 5 s
+          timeout 3m bash -c 'until docker exec test_failed /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword password --baseDN "" --searchScope base "(objectClass=*)" 1.1 >/dev/null 2>&1; do sleep 5; done'
+          end=$((SECONDS + 45))
+          while [ $SECONDS -lt $end ]; do
+            test "$(docker inspect --format='{{.State.Health.Status}}' test_failed)" != healthy
+            sleep 2
+          done
+          # the setup finished by hand and the mark removed, the next start reports healthy
+          docker exec test_failed /opt/opendj/bin/dsconfig create-backend --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=userRoot --type je --set=base-dn:dc=example,dc=com --set=enabled:true --no-prompt --trustAll
+          docker exec test_failed rm /opt/opendj/data/.bootstrap-pending
+          docker restart -t 60 test_failed
+          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_failed | grep -q \"healthy\"; do sleep 5; done'
+          docker rm -f test_failed
+          docker volume rm test_failed_data
+      - name: Docker test upgrade from a released image
+        # the build image started over a volume that the latest release bootstrapped
+        # upgrades it on start, the road the Installation Guide documents (#1183)
+        shell: bash
+        run: |
+          IMAGE=localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
+          RELEASED=openidentityplatform/opendj:${{ env.release_version }}-alpine
+          MEMORY=1g
+          trap 'code=$?; echo "::group::container logs (test_upgrade)"; docker logs test_upgrade 2>&1 || true; docker inspect --format="{{json .State.Health}}" test_upgrade 2>&1 || true; echo "::endgroup::"; docker rm -f test_upgrade >/dev/null 2>&1 || true; docker volume rm test_upgrade_data >/dev/null 2>&1 || true; exit $code' ERR
+          search() { docker exec test_upgrade /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword password "$@"; }
+          docker run -d --memory="$MEMORY" -e ADD_BASE_ENTRY="--addBaseEntry" -e SAMPLE_DATA=10 -v test_upgrade_data:/opt/opendj/data --name=test_upgrade "$RELEASED"
+          # the entries, not the health status: the health check of 5.1.2 turned healthy before
+          # import-ldif had finished
+          export -f search
+          timeout 5m bash -c 'until search --baseDN "ou=People,dc=example,dc=com" --searchScope one "(uid=user.9)" 1.1 2>/dev/null | grep -q "^dn:"; do sleep 5; done'
+          docker stop -t 60 test_upgrade
+          docker rm test_upgrade
+          docker run -d --memory="$MEMORY" -v test_upgrade_data:/opt/opendj/data --name=test_upgrade "$IMAGE"
+          timeout 10m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_upgrade | grep -q \"healthy\"; do sleep 5; done'
+          # the upgrade ran its tasks: on equal versions it would be a no-op
+          if docker logs test_upgrade 2>&1 | grep -F "has already been upgraded"; then echo "::error::The build image found nothing to upgrade on the volume of $RELEASED"; false; fi
+          test "$(search --baseDN "ou=People,dc=example,dc=com" --searchScope one "(uid=user.*)" 1.1 | grep -c "^dn:")" = 10
+          docker rm -f test_upgrade
+          docker volume rm test_upgrade_data
       - name: Scan image for vulnerabilities (Trivy)
         # trivy resolves the image from the local Docker daemon, so only the runner's
         # linux/amd64 manifest is scanned; cache: false keeps the ~1GB trivy DBs from

@@ -54,6 +54,13 @@ export INITIALIZE_PENDING=${INITIALIZE_PENDING:-/opt/opendj/data/.replication-in
 # the enable registered it again: it holds the data of the topology, but takes writes that
 # replicate nowhere meanwhile
 export REJOIN_PENDING=${REJOIN_PENDING:-/opt/opendj/data/.replication-rejoin-pending}
+# A volume this script bootstraps carries this one from before its bootstrap until the whole
+# of it - the bootstrap script, and the replicate.sh of a one-shot replication type - has
+# succeeded (#1182). A bootstrap that failed or was killed after setup wrote ./data/config
+# leaves the volume looking installed, and the next start would otherwise report a server
+# healthy that has no backend or no base entry. Volumes bootstrapped by images before this one
+# carry no mark, and start as they did.
+export BOOTSTRAP_PENDING=${BOOTSTRAP_PENDING:-/opt/opendj/data/.bootstrap-pending}
 
 # The background join (bootstrap/join.sh) serves OPENDJ_REPLICATION_TYPE=simple on every
 # start; srs, sdsr and rg keep the one-shot replicate.sh of the first bootstrap
@@ -139,7 +146,11 @@ if [ -d ./data/config ]; then
   # is not ready to serve either, so the marker follows the upgrade.
   # --force performs the tasks that -n alone answers with their default no, such as rebuilding indexes:
   # nobody is there to run them by hand afterwards, as the native packages do too
-  if sh ./upgrade -n --force; then
+  if [ -f "$BOOTSTRAP_PENDING" ]; then
+    # neither the marker nor the join: the join would enable a volume that lacks what the
+    # bootstrap was to set up, and the server is only there to be looked at
+    echo "The bootstrap of this volume did not complete, this container will not report itself healthy: remove the volume and start over, or finish the setup by hand and remove $BOOTSTRAP_PENDING"
+  elif sh ./upgrade -n --force; then
     # A server whose volume holds the data of the topology is ready as soon as it serves:
     # gating it on its peers would deadlock a whole-cluster restart under OrderedReady,
     # where -0 would wait for peers the StatefulSet starts only once -0 is ready - and so
@@ -189,6 +200,7 @@ BOOTSTRAPPED=true
 # volume that counts as holding the data of the topology; a bootstrapped volume has entries
 # whether or not it was asked for any, so it is initialized from the topology (see
 # bootstrap/join.sh)
+touch "$BOOTSTRAP_PENDING"
 if join_requested; then
   touch "$INITIALIZE_PENDING"
 fi
@@ -226,6 +238,10 @@ fi
 # replication - is in place from here on, so the health check may start probing the server.
 # With the background join, replication is the one thing still outstanding: the join writes
 # the health marker once this server is a member of its topology, and not before.
+if [ "$BOOTSTRAPPED" = true ] && ! rm -f "$BOOTSTRAP_PENDING"; then
+  BOOTSTRAPPED=false
+  echo "Could not remove $BOOTSTRAP_PENDING, this container will not report itself healthy"
+fi
 if [ "$BOOTSTRAPPED" = true ]; then
   if join_requested; then
     /opt/opendj/bootstrap/join.sh &
