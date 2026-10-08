@@ -42,6 +42,8 @@ This chapter covers installation of OpenDJ server software and includes the foll
 
 * xref:#install-msi["To Install With the Windows Installer (MSI)"]
 
+* xref:#install-docker["To Run OpenDJ in Docker"]
+
 * xref:#install-properties-file["To Install OpenDJ Directory Server With a Properties File"]
 
 * xref:#pdb-to-je["To Move Data from a PDB Backend to a JE Backend"]
@@ -86,6 +88,8 @@ org.openidentityplatform.opendj.opendj-rest2ldap-servlet.war::
 Cross-platform OpenDJ REST to LDAP gateway web archive
 
 --
++
+OpenDJ directory server is also published as a Docker image, which brings its own Java environment. See xref:#install-docker["To Run OpenDJ in Docker"].
 +
 
 . If you plan to install OpenDJ DSML gateway or OpenDJ REST to LDAP gateway, make sure you have an appropriate application server installed.
@@ -650,6 +654,52 @@ C:\> net start "OpenDJ Server"
 ----
 +
 The service takes the display name `OpenDJ Server`; when a host already runs another registered instance, the next one gets a key name such as `OpenDJ Server-2`. Remember to disable the service with `windows-service.bat --disableService` before you uninstall the package, or the registration is left pointing at removed files.
+
+====
+
+[#install-docker]
+.To Run OpenDJ in Docker
+====
+OpenDJ directory server is published as the Docker image `openidentityplatform/opendj` on Docker Hub, and as `ghcr.io/openidentityplatform/opendj/opendj`. The image brings its own Java environment. On the first start of a container, the image runs `setup` with settings taken from environment variables; later starts use the instance that is already there.
+
+The tags `latest` and `{opendj-version}` are built from `Dockerfile`, on Eclipse Temurin; the tags `alpine` and `{opendj-version}-alpine` from `Dockerfile-alpine`. This procedure covers the first start only. The environment variables of the image, its health check, replication and certificates are described in the link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/opendj-packages/opendj-docker/README.md[README of the image, window=\_blank].
+
+. Start a container, with a volume for the instance:
++
+
+[source, console]
+----
+$ docker run -d --name opendj --init \
+  -p 127.0.0.1:1389:1389 -p 127.0.0.1:1636:1636 -p 127.0.0.1:4444:4444 \
+  -e ROOT_PASSWORD=password -e ADD_BASE_ENTRY=--addBaseEntry \
+  -v opendj-data:/opt/opendj/data \
+  openidentityplatform/opendj
+----
++
+The instance lives under `/opt/opendj/data`. The image declares no volume of its own, so mount one there: a container started without it keeps its instance in the container itself, and removing the container deletes the instance, while a container started again over the same volume serves the same data. The server runs as a non-root user and listens on ports above 1024: LDAP on 1389, LDAPS on 1636, and the administration connector on 4444. The example publishes these ports on the loopback interface of the host only; before you publish them on other interfaces, set a `ROOT_PASSWORD` of your own. The root user is `cn=Directory Manager`, with the password `ROOT_PASSWORD`, and the base DN is `dc=example,dc=com`; without `ADD_BASE_ENTRY` that suffix is created empty. The `--init` option puts a process in front of the server that reaps the processes left behind to it and passes `SIGTERM` on to it.
+
+. Wait until the container reports itself healthy; `docker inspect` reports `starting` until then:
++
+
+[source, console]
+----
+$ timeout 5m bash -c 'until [ "$(docker inspect -f "{{.State.Health.Status}}" opendj)" = healthy ]; do sleep 5; done'
+----
++
+On its first start the container starts the server, creates the backend, imports the data that `ADD_BASE_ENTRY` asked for, then stops the server and starts it again, so a client that only waits for the port may see its first requests fail. The container reports itself healthy once all of this has succeeded. A first start that fails never reports healthy: what failed is in `docker logs opendj`.
+
+. (Optional) Check that the server serves the base entry:
++
+
+[source, console]
+----
+$ docker exec opendj /opt/opendj/bin/ldapsearch --port 1389 \
+ --bindDN "cn=Directory Manager" --bindPassword password \
+ --baseDN dc=example,dc=com --searchScope base "(objectClass=*)" dn
+dn: dc=example,dc=com
+----
+
+To stop the server, stop the container with `docker stop opendj`; `docker start opendj` starts it again. `docker stop` gives the server 10 seconds to shut down before it kills it: give a server with much data more time, for example with `docker stop -t 60 opendj`.
 
 ====
 

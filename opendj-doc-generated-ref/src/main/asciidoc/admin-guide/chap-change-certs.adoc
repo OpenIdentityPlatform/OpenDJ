@@ -33,6 +33,11 @@ This chapter covers how to replace OpenDJ key pairs and public key certificates.
 
 * Use a CA-signed certificate for replication
 
+[NOTE]
+======
+When a volume is mounted at `SECRET_VOLUME` (`/var/secrets/opendj` by default), a container started from the Docker image copies the `key*` and `trust*` files of that volume, such as `keystore`, `keystore.pin`, `truststore` and `truststore.pin`, into its instance on every start, and by default also while the server runs, when they change. Replace the key pair that secures connections with client applications on that volume rather than in the instance, where the next copy would overwrite it. Only these files are copied: the `admin-keystore`, `admin-truststore` and `ads-truststore` of the administration connector and of replication stay in the instance, and are replaced there as described in this chapter. A renewed keystore is served without a restart only if it holds the key under an alias that the previous one used as well. See the link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/opendj-packages/opendj-docker/README.md#certificates[Certificates section of the README of the image, window=\_blank].
+======
+
 OpenDJ uses keystores (for private keys) and truststores (for public, signed certificates). Up to three sets of keystores are used, as shown in the following illustration.
 
 [#figure-keystores]
