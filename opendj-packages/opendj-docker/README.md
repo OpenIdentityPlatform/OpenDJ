@@ -59,7 +59,16 @@ A bootstrap that imports `SAMPLE_DATA` can take minutes on a small container, wh
 the start period allows for. A bootstrap that fails - or an upgrade that fails when starting
 over an instance that is already there - never reports healthy: what failed is in `docker
 logs`, and where the server is up at all the container is left running to be looked at,
-turning `unhealthy` once the start period is over.
+turning `unhealthy` once the start period is over. Nor does any later start over the same
+volume: a volume carries `.bootstrap-pending` in its data directory from before its bootstrap
+until the bootstrap succeeded, and a container started over a volume that still carries it
+starts the server, logs that the bootstrap did not complete, and stays `unhealthy`. Remove the
+volume and start over, or finish the setup by hand and remove the file:
+
+```bash
+docker exec opendj rm /opt/opendj/data/.bootstrap-pending
+docker restart opendj
+```
 
 Started over an instance of an older version, the container runs `upgrade --no-prompt --force`
 before the server: the upgrade tasks that take long, such as verifying or rebuilding indexes,
@@ -102,7 +111,8 @@ to a `REPLICATION_PEERS` of names keeps the master, and once it really is gone, 
 removed by hand.
 
 The join decides from what is there, not from an exit code: this server is a member once
-its configuration holds the replication domain for `BASE_DN` and it is registered in
+its configuration holds the replication domain for `BASE_DN` (a `replication` server: its
+replication server, see [Server roles](#server-roles)) and it is registered in
 `cn=admin data`. Until then it runs `dsreplication enable` through the listed peers,
 `REPLICATION_RETRY_COUNT` times every `REPLICATION_RETRY_INTERVAL` seconds, each enable
 bounded by `REPLICATION_ATTEMPT_TIMEOUT` seconds, and the container reports itself healthy
@@ -150,8 +160,12 @@ values in every local replication server list - those of `BASE_DN`, and of `cn=s
 `cn=admin data`, which `dsreplication enable` replicates next to it. A scale-down therefore
 needs no `preStop` hook - `dsreplication disable` on termination would take the server out
 on every rolling restart, and cannot clean up a server that is already gone. It also adds
-every listed peer registered in the topology to the local lists that lack it, so joins that
-ran at the same time cannot leave two replication servers that know nothing of each other.
+every listed peer registered in the topology that runs a replication server to the local
+lists that lack it, so joins that ran at the same time cannot leave two replication servers
+that know nothing of each other. A peer that does not answer whether it runs one is added as
+well while nothing shows that the topology has other roles - this server is `combined`, and
+every peer that answered runs a replication server; otherwise it is left for a later start,
+as a `directory` server put into a list would stay there for good.
 With only `MASTER_SERVER` set nothing is removed or added, so servers joined by hand stay.
 
 A server that was removed this way and is scaled up again on the volume it kept still holds
@@ -179,8 +193,62 @@ An enable that stopped half-way leaves that state behind (its initialize of `cn=
 failed, say): `BASE_DN` is replicated, and every later enable only reports it as replicated
 already, without registering the server where it is missing.
 
+### Server roles
+
+`REPLICATION_ROLE` sets the part a server of `simple` takes in its topology:
+
+| Value | Server |
+|---|---|
+| `combined` (default) | a directory server with a replication server of its own |
+| `directory` | a directory server without a replication server, which connects to those of its peers |
+| `replication` | a replication server only: it holds no data, and its bootstrap creates no backend for `BASE_DN` and loads no entries |
+
+Every role is listed in the same `REPLICATION_PEERS`, so that each server can reach every
+other one. Only the first entry that holds data - `combined` or `directory` - may seed the
+topology: `replication` servers listed ahead of it are passed over, by the role they
+publish, and until each of them has published one the server after them does not seed. A
+`replication` server publishes `pending` until it is a member, then `ready`; it is never
+initialized and never seeds. Joining through another `replication` server, it needs a server
+that holds the data to be up as well: `dsreplication` finds `BASE_DN` on the servers of the
+topology it reaches, and until one answers the join tries again. A `directory` server joins
+only a topology that has a replication server: it does not enable with a `directory` peer
+that no replication server joined yet, logs that, and tries the next peer or the next round.
+Each side of an enable is given its own role, the peer's read from the peer, so a server
+that joins through a `directory` server never hands it a replication server - unless that
+server runs an image from before roles, whose join gives every peer one: move every server
+to an image with roles before any of them takes another role than `combined`. Roles may be
+mixed - `combined` servers with additional `directory` ones, say. Separate replication
+servers on Kubernetes take two StatefulSets, one per role, with one `REPLICATION_PEERS` that
+lists the pods of both, the directory servers first:
+
+```
+REPLICATION_PEERS=ds-0.ds,ds-1.ds,ds-2.ds,ds-3.ds,rs-0.rs,rs-1.rs
+```
+
+The role is set when the volume is set up, and recorded on it (`.replication-role` in the
+data directory); a `replication` server is set up without a backend for `BASE_DN`. A later
+start with another `REPLICATION_ROLE` keeps the role the volume has and logs that it does: a
+`replication` server takes an empty volume. A volume set up by an image before roles is read
+on its first start under this one - a replication server without a domain is the replication
+server of `srs` when `REPLICATION_ROLE=replication` says so - and its role recorded then.
+Without `REPLICATION_PEERS` (or `MASTER_SERVER`) there is no join, and `REPLICATION_ROLE` is
+ignored; a value that is not one of the three fails the bootstrap of a new volume, and ends
+the join of a volume set up by an image before roles; on a volume that records its role it
+is logged, and the role stands. The replication servers keep the changes of the topology,
+not its data: should every server that holds data lose its volume, replace the volumes of
+the replication servers as well, as the first peer that holds data seeds a new topology only
+once no other peer is ready.
+
 The one-shot types `srs`, `sdsr` and `rg` keep their previous behaviour - they run once,
-during the first bootstrap only - and are deprecated in favour of `simple`. Like `simple`,
+during the first bootstrap only - and are deprecated in favour of `simple`: what `srs` builds
+is `simple` with `REPLICATION_ROLE=replication` for the replication server and `directory` for
+the others, and `sdsr` is `directory` servers next to `combined` ones. Their `MASTER_SERVER`
+does not carry over as it is: under `simple` it becomes the only peer, and the replication
+server of `srs` holds no data to seed the topology with - list every server in
+`REPLICATION_PEERS` instead. The replication server of `srs` keeps
+its role under `simple` when it is started with `REPLICATION_ROLE=replication`, together with
+the backend that the bootstrap of an image before this one created on every server: it holds
+what that bootstrap loaded, and is not replicated. Like `simple`,
 they need one `ADMIN_PORT` and one `REPLICATION_PORT` on every server: the tools reach the
 master on the ports of the container they run in (images before this one used 4444 and
 8989 on both sides, whatever the container was set up with). With
@@ -268,6 +336,7 @@ with `subPath` when the Secret changes.
 | SECRET_VOLUME_REFRESH   | 60                              | While the server runs, `SECRET_VOLUME` is checked again every that many seconds and changed files are copied again; `0` copies them on start only                                                                                                       |
 | MASTER_SERVER           | -                               | Replication master server; with `simple` it works as a one-element `REPLICATION_PEERS`                                                                                                                                                                  |
 | REPLICATION_PEERS       | value of MASTER_SERVER          | every server of the replication topology by DNS name, comma separated; the first entry may seed a new topology, and servers no longer listed are removed from it, see [Replication](#replication) |
+| REPLICATION_ROLE        | combined                        | with `OPENDJ_REPLICATION_TYPE=simple`, the part this server takes: `combined`, `directory` (no replication server of its own) or `replication` (a replication server without data), see [Server roles](#server-roles) |
 | REPLICATION_PORT        | 8989                            | replication port, the same on every server of the topology                                                                                                                                                                                              |
 | REPLICATION_RETRY_COUNT | 30                              | rounds of join attempts through every peer before the join gives up: the first peer of `REPLICATION_PEERS` then seeds the topology, any other server stays `unhealthy`; a value that is not a whole number above 0 falls back to 30 |
 | REPLICATION_RETRY_INTERVAL | 10                           | seconds between rounds of join attempts, plus a random part of as much again; a value that is not a whole number falls back to 10 |

@@ -32,6 +32,8 @@ ENV OPENDJ_SSL_OPTIONS="--generateSelfSignedCertificate"
 # every server of the replication topology, comma separated; the first entry may seed a new
 # topology. MASTER_SERVER keeps working as a one-element list. See bootstrap/join.sh
 #ENV REPLICATION_PEERS
+# the part this server takes in the topology: combined, directory or replication (#1178)
+#ENV REPLICATION_ROLE=combined
 #ENV REPLICATION_PORT=8989
 #ENV REPLICATION_RETRY_COUNT=30
 #ENV REPLICATION_RETRY_INTERVAL=10
