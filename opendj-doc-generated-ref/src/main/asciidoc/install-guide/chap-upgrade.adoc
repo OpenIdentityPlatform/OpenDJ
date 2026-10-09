@@ -47,6 +47,8 @@ This chapter includes the following procedures and examples:
 
 * xref:#upgrade-msi["To Upgrade the Windows MSI Installation"]
 
+* xref:#upgrade-docker["To Upgrade a Docker Container"]
+
 * xref:#upgrade-repl["To Upgrade Replicated Servers"]
 
 * xref:#new-repl-mixed-topology["To Add a New Replica to an Existing Topology"]
@@ -298,6 +300,92 @@ C:\> net start "OpenDJ Server"
 
 ====
 
+[#upgrade-docker]
+.To Upgrade a Docker Container
+====
+A container started from a newer image over a volume that holds an instance of an older version upgrades that instance itself: before it starts the server, it runs `upgrade --no-prompt --force` on the volume. Upgrading the container therefore comes down to replacing it with one started from the newer image over the same volume.
+
+. Make sure the instance of the container is on a volume.
++
+The image declares no volume of its own: a container started without a volume mounted at `/opt/opendj/data` keeps its instance in the container itself, and removing the container deletes the instance. The following command lists the volumes of the container; the instance is on a volume if one of them is mounted at `/opt/opendj/data`:
++
+
+[source, console]
+----
+$ docker inspect -f '{{range .Mounts}}{{.Name}} {{.Destination}}{{println}}{{end}}' opendj
+opendj-data /opt/opendj/data
+----
++
+The following steps use the volume `opendj-data`: use the name that the command printed instead. An empty name is a bind mount of a host directory, which the following command shows. In the next step, stop the container with its first command, then back up that directory instead of running the second one, and mount the directory again in step 3:
++
+
+[source, console]
+----
+$ docker inspect -f '{{range .Mounts}}{{.Source}} {{.Destination}}{{println}}{{end}}' opendj
+----
++
+If nothing is mounted at `/opt/opendj/data`, stop the container and copy its instance to a new volume, here `opendj-data`, which the following steps then use:
++
+
+[source, console]
+----
+$ docker stop -t 60 opendj
+$ docker cp opendj:/opt/opendj/data/. - | \
+ docker run --rm -i -v opendj-data:/data alpine tar -x -C /data
+----
+
+. Stop the container, and back up its volume.
++
+As described in xref:#before-you-upgrade["Before You Upgrade"], back up the files of the stopped instance rather than creating a backup archive with the `backup` command. `docker stop` gives the server 10 seconds to shut down before it kills it, so give a server with much data more time. The following example writes the volume `opendj-data` to an archive in the current directory. The archive holds the private keys of the server and the password hashes of its users, so make sure that only the administrators of the server can read it:
++
+
+[source, console]
+----
+$ docker stop -t 60 opendj
+$ docker run --rm -v opendj-data:/data -v "$PWD":/backup alpine \
+ sh -c 'umask 077 && tar -czf /backup/opendj-data.tar.gz -C /data .'
+----
+
+. Remove the container, and start a new one from the newer image over the same volume, with every other option of the old container: its environment variables, and for a replicated container its `--hostname` and replication variables as well. In the following example, the old container was started as in xref:chap-install.adoc#install-docker["To Run OpenDJ in Docker"]:
++
+
+[source, console, subs="+attributes"]
+----
+$ docker rm opendj
+$ docker run -d --name opendj --init \
+  -p 127.0.0.1:1389:1389 -p 127.0.0.1:1636:1636 -p 127.0.0.1:4444:4444 \
+  -e ROOT_PASSWORD=password -e ADD_BASE_ENTRY=--addBaseEntry \
+  -v opendj-data:/opt/opendj/data \
+  openidentityplatform/opendj:{opendj-version}
+----
++
+Images before 5.2.0 ran their health check bound as the root user, while the current image searches the root DSE anonymously. An instance that rejects unauthenticated requests (`reject-unauthenticated-requests:true`) answers that search with an error, and its container never reports healthy although the server serves. For such an instance, also mount a file holding the password of an account the health check may bind as, and set `HEALTHCHECK_BIND_DN` and `HEALTHCHECK_BIND_PASSWORD_FILE` on the new container, as described in the link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/opendj-packages/opendj-docker/README.md#health-check[Health check section of the README of the image, window=\_blank].
+
+. Wait until the container reports itself healthy:
++
+
+[source, console]
+----
+$ timeout 5m bash -c 'until [ "$(docker inspect -f "{{.State.Health.Status}}" opendj)" = healthy ]; do sleep 5; done'
+----
++
+The upgrade tasks that take long, such as verifying or rebuilding indexes, are performed before the server starts, since nobody is there to run them afterwards. On a large instance they can take longer than the start period of the health check, so the container may report `unhealthy` until the upgrade is over, and the command above may give up before: `docker logs opendj` shows which task is running, and the command can be run again. A container whose upgrade fails does not report itself healthy: `docker logs opendj` shows why, and the upgrade log `/opt/opendj/data/logs/upgrade.log` has the details. Do not start it again to get past the failure: when a task that runs after the upgrade fails, such as an index rebuild, the new version is already recorded, so the next start skips the upgrade and reports healthy with the indexes as the failed rebuild left them, and without the tasks that were to follow it. Revert as follows, or rebuild the indexes that `docker logs opendj` names before you rely on the container.
+
+To revert, remove the new container, replace the volume with one restored from the backup, and start a container from the older image over it, with the options of the old container. Restore into an empty volume: files that the upgrade added would be left behind in a volume that the archive is extracted over.
+
+[source, console]
+----
+$ docker stop -t 60 opendj
+$ docker rm opendj
+$ docker volume rm opendj-data
+$ docker run --rm -v opendj-data:/data -v "$PWD":/backup alpine \
+ tar -xzf /backup/opendj-data.tar.gz -C /data
+----
+
+To upgrade replicated containers, upgrade one container at a time, and wait until it reports itself healthy before you go on to the next one, as described in xref:#upgrade-repl["To Upgrade Replicated Servers"].
+
+====
+
 [#upgrade-dn-parsing]
 .To Check Stored DNs When Upgrading From a Release Before 5.2.0
 ====
@@ -305,7 +393,7 @@ Before 5.2.0, the server read a DN only up to the first `;`, up to the end of a 
 
 . A value with DN syntax that a client wrote with `;`, such as `member: cn=a;dc=example,dc=com`, was indexed under the key of `cn=a`. It now reads as `cn=a,dc=example,dc=com`, so an indexed equality search for that DN misses the entry until the index is rebuilt. The same holds for a value that was stored while its syntax was not enforced, and that only now parses.
 +
-The `upgrade` command therefore offers to verify the equality indexes of the attributes that hold DNs, such as `member`, `uniqueMember`, `owner` or `seeAlso`, in every enabled backend at the end of the upgrade, and rebuilds them under each base DN where they do not match the entries. The verification reads every entry of these backends, so on a large backend it takes a while; the indexes are only rebuilt where it finds a missing key. The default answer is yes, so `upgrade --no-prompt` performs the verification too, as do the Docker image and the native packages, which run `upgrade --no-prompt --force`. If you declined it, run `verify-index` on these indexes with the server stopped, and rebuild them where it reports errors, as described in xref:../admin-guide/chap-indexing.adoc#rebuild-index["Rebuilding Indexes"] in the __Administration Guide__. Do the same for a backend that the upgrade could not read, such as a JDBC or Cassandra backend whose database was unreachable: the upgrade then warns, names the indexes and the base DN, and goes on, leaving these indexes as they were. A rebuild that the upgrade started and that fails, for instance because the temporary directory is full, fails the upgrade, as the index rebuilds of other upgrade tasks do: such indexes may be left untrusted, so that searches cannot use them, until they are rebuilt. The upgrade then neither verifies nor rebuilds the indexes of the base DNs that come after, as the same cause would most likely make their rebuild fail too: it names them, and you verify them and rebuild them where needed once the cause is fixed.
+The `upgrade` command therefore offers to verify the equality indexes of the attributes that hold DNs, such as `member`, `uniqueMember`, `owner` or `seeAlso`, in every enabled backend at the end of the upgrade, and rebuilds them under each base DN where they do not match the entries. The verification reads every entry of these backends, so on a large backend it takes a while; the indexes are only rebuilt where it finds a missing key. The default answer is yes, so `upgrade --no-prompt` performs the verification too, as do the Docker image (see xref:#upgrade-docker["To Upgrade a Docker Container"]) and the native packages, which run `upgrade --no-prompt --force`. If you declined it, run `verify-index` on these indexes with the server stopped, and rebuild them where it reports errors, as described in xref:../admin-guide/chap-indexing.adoc#rebuild-index["Rebuilding Indexes"] in the __Administration Guide__. Do the same for a backend that the upgrade could not read, such as a JDBC or Cassandra backend whose database was unreachable: the upgrade then warns, names the indexes and the base DN, and goes on, leaving these indexes as they were. A rebuild that the upgrade started and that fails, for instance because the temporary directory is full, fails the upgrade, as the index rebuilds of other upgrade tasks do: such indexes may be left untrusted, so that searches cannot use them, until they are rebuilt. The upgrade then neither verifies nor rebuilds the indexes of the base DNs that come after, as the same cause would most likely make their rebuild fail too: it names them, and you verify them and rebuild them where needed once the cause is fixed.
 +
 A stored DN value with other content after an RDN, such as `cn="a"x,dc=example,dc=com`, no longer parses: replace it with the DN that was meant.
 

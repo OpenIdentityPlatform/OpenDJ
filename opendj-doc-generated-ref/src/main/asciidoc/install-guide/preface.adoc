@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -26,7 +26,7 @@
 
 This guide shows you how to install, upgrade, and remove OpenDJ software.
 
-If you only want to try OpenDJ server software, and you do not plan to store any real or important data that you want to keep, then you need not read this entire guide. Instead read xref:chap-install.adoc#before-you-install["To Prepare For Installation"] and xref:chap-install.adoc#gui-install["To Install OpenDJ Directory Server With the GUI"].
+If you only want to try OpenDJ server software, and you do not plan to store any real or important data that you want to keep, then you need not read this entire guide. Instead read xref:chap-install.adoc#before-you-install["To Prepare For Installation"] and xref:chap-install.adoc#gui-install["To Install OpenDJ Directory Server With the GUI"]. Where Docker is available, xref:chap-install.adoc#install-docker["To Run OpenDJ in Docker"] starts a server with a single command.
 
 [#d67379e160]
 === Who Should Read this Guide
