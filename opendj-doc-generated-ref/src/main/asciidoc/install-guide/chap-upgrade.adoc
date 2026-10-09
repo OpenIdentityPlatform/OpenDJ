@@ -316,7 +316,7 @@ $ docker inspect -f '{{range .Mounts}}{{.Name}} {{.Destination}}{{println}}{{end
 opendj-data /opt/opendj/data
 ----
 +
-The following steps use the volume `opendj-data`: use the name that the command printed instead. An empty name is a bind mount of a host directory, which the following command shows; back up that directory instead of running the commands of the next step, and mount it again in step 3:
+The following steps use the volume `opendj-data`: use the name that the command printed instead. An empty name is a bind mount of a host directory, which the following command shows. In the next step, stop the container with its first command, then back up that directory instead of running the second one, and mount the directory again in step 3:
 +
 
 [source, console]
@@ -369,7 +369,7 @@ Images before 5.2.0 ran their health check bound as the root user, while the cur
 $ timeout 5m bash -c 'until [ "$(docker inspect -f "{{.State.Health.Status}}" opendj)" = healthy ]; do sleep 5; done'
 ----
 +
-The upgrade tasks that take long, such as verifying or rebuilding indexes, are performed before the server starts, since nobody is there to run them afterwards. On a large instance they can take longer than the start period of the health check, so the container may report `unhealthy` until the upgrade is over, and the command above may give up before: `docker logs opendj` shows which task is running, and the command can be run again. A container whose upgrade fails never reports healthy, and `docker logs opendj` shows why.
+The upgrade tasks that take long, such as verifying or rebuilding indexes, are performed before the server starts, since nobody is there to run them afterwards. On a large instance they can take longer than the start period of the health check, so the container may report `unhealthy` until the upgrade is over, and the command above may give up before: `docker logs opendj` shows which task is running, and the command can be run again. A container whose upgrade fails does not report itself healthy: `docker logs opendj` shows why, and the upgrade log `/opt/opendj/data/logs/upgrade.log` has the details. Do not start it again to get past the failure: when a task that runs after the upgrade fails, such as an index rebuild, the new version is already recorded, so the next start skips the upgrade and reports healthy with the indexes as the failed rebuild left them, and without the tasks that were to follow it. Revert as follows, or rebuild the indexes that `docker logs opendj` names before you rely on the container.
 
 To revert, remove the new container, replace the volume with one restored from the backup, and start a container from the older image over it, with the options of the old container. Restore into an empty volume: files that the upgrade added would be left behind in a volume that the archive is extracted over.
 
