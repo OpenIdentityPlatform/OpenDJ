@@ -55,15 +55,19 @@ The server answering is not enough on a first start: the bootstrap starts the se
 once it is done that server is stopped and started again in the foreground, so a client
 that only waits for the port can have its first requests fail in between.
 
-A bootstrap that imports `SAMPLE_DATA` can take minutes on a small container, which is what
-the start period allows for. A bootstrap that fails - or an upgrade that fails when starting
-over an instance that is already there - never reports healthy: what failed is in `docker
-logs`, and where the server is up at all the container is left running to be looked at,
-turning `unhealthy` once the start period is over. Nor does any later start over the same
-volume: a volume carries `.bootstrap-pending` in its data directory from before its bootstrap
-until the bootstrap succeeded, and a container started over a volume that still carries it
-starts the server, logs that the bootstrap did not complete, and stays `unhealthy`. Remove the
-volume and start over, or finish the setup by hand and remove the file:
+A bootstrap that imports `SAMPLE_DATA` can take minutes on a small container, which is what the
+start period allows for. A bootstrap that fails - or an upgrade that fails when starting over
+an instance that is already there - never reports healthy: what failed is in `docker logs`, and
+where the server is up at all the container is left running to be looked at, turning
+`unhealthy` once the start period is over. Nor does any later start over the same volume: a
+volume carries `.bootstrap-pending` in its data directory from before its bootstrap until the
+bootstrap succeeded, and a container started over a volume that still carries it upgrades the
+instance when it is of another version, starts the server, logs that the bootstrap did not
+complete, and stays `unhealthy`. This holds for a volume of the background join as well: it
+runs no join, since an initialize from the topology would bring the data of the topology but
+nothing else the bootstrap was to configure. Remove the volume and start over, or finish the
+setup by hand and remove the file; a volume of the background join then joins on the restart
+and takes the data of the topology, as on its first start:
 
 ```bash
 docker exec opendj rm /opt/opendj/data/.bootstrap-pending
@@ -75,6 +79,24 @@ before the server: the upgrade tasks that take long, such as verifying or rebuil
 are performed then, since nobody is there to run them afterwards. On a large instance they can
 take longer than the start period, so the container may report `unhealthy` until the upgrade
 is over; `docker logs` shows which task is running.
+
+An upgrade that fails never reports healthy, and neither does any later start over the same
+volume, even though the upgrade records the new version before its post-upgrade tasks - the
+index rebuilds and verifications - and a second run would find nothing left to do: the volume
+carries `.upgrade-pending` in its data directory from before the upgrade until the upgrade,
+post-upgrade tasks included, succeeded. An upgrade that failed before it recorded the new
+version is run again on the next start. Once it has recorded it, a container started over the
+marked volume starts the server, logs that the upgrade did not complete, and stays `unhealthy`:
+`/opt/opendj/data/logs/upgrade.log` names the task that failed. Rebuild the indexes it names
+and remove the file, or restore the backup taken before the upgrade:
+
+```bash
+docker exec opendj /opt/opendj/bin/rebuild-index --hostname localhost --port 4444 \
+  --bindDN "cn=Directory Manager" --bindPassword password --trustAll \
+  --baseDN dc=example,dc=com --index <index>
+docker exec opendj rm /opt/opendj/data/.upgrade-pending
+docker restart opendj
+```
 
 The server runs as PID 1 of the container, and a JVM does not reap the processes left
 behind to it - those of a health check that ran past its timeout, say. Run the container
@@ -155,18 +177,17 @@ initialize never completed keeps waiting for a ready peer on every start, so und
 started by hand - which is where its data has to come from anyway.
 
 With `REPLICATION_PEERS` set explicitly, a joined server also removes every server that is
-registered in the topology but no longer listed: its entries in `cn=admin data` and its
-values in every local replication server list - those of `BASE_DN`, and of `cn=schema` and
-`cn=admin data`, which `dsreplication enable` replicates next to it. A scale-down therefore
-needs no `preStop` hook - `dsreplication disable` on termination would take the server out
-on every rolling restart, and cannot clean up a server that is already gone. It also adds
-every listed peer registered in the topology that runs a replication server to the local
-lists that lack it, so joins that ran at the same time cannot leave two replication servers
-that know nothing of each other. A peer that does not answer whether it runs one is added as
-well while nothing shows that the topology has other roles - this server is `combined`, and
-every peer that answered runs a replication server; otherwise it is left for a later start,
-as a `directory` server put into a list would stay there for good.
-With only `MASTER_SERVER` set nothing is removed or added, so servers joined by hand stay.
+registered in the topology but no longer listed: its entries in `cn=admin data` and its values
+in every local replication server list - those of `BASE_DN`, and of `cn=schema` and `cn=admin
+data`, which `dsreplication enable` replicates next to it. A scale-down therefore needs no
+`preStop` hook - `dsreplication disable` on termination would take the server out on every
+rolling restart, and cannot clean up a server that is already gone. It also adds every listed
+peer registered in the topology that runs a replication server to the local lists that lack it,
+so joins that ran at the same time cannot leave two replication servers that know nothing of
+each other. A peer that does not answer whether it runs one is left for a later start, as a
+`directory` server put into a list would stay there for good; a replication server left out
+adds this server to its own lists when it starts. With only `MASTER_SERVER` set nothing is
+removed or added, so servers joined by hand stay.
 
 A server that was removed this way and is scaled up again on the volume it kept still holds
 the data and its replication configuration, but no peer registers it any more, and
@@ -203,23 +224,23 @@ already, without registering the server where it is missing.
 | `directory` | a directory server without a replication server, which connects to those of its peers |
 | `replication` | a replication server only: it holds no data, and its bootstrap creates no backend for `BASE_DN` and loads no entries |
 
-Every role is listed in the same `REPLICATION_PEERS`, so that each server can reach every
-other one. Only the first entry that holds data - `combined` or `directory` - may seed the
-topology: `replication` servers listed ahead of it are passed over, by the role they
-publish, and until each of them has published one the server after them does not seed. A
-`replication` server publishes `pending` until it is a member, then `ready`; it is never
-initialized and never seeds. Joining through another `replication` server, it needs a server
-that holds the data to be up as well: `dsreplication` finds `BASE_DN` on the servers of the
-topology it reaches, and until one answers the join tries again. A `directory` server joins
-only a topology that has a replication server: it does not enable with a `directory` peer
-that no replication server joined yet, logs that, and tries the next peer or the next round.
-Each side of an enable is given its own role, the peer's read from the peer, so a server
-that joins through a `directory` server never hands it a replication server - unless that
-server runs an image from before roles, whose join gives every peer one: move every server
-to an image with roles before any of them takes another role than `combined`. Roles may be
-mixed - `combined` servers with additional `directory` ones, say. Separate replication
-servers on Kubernetes take two StatefulSets, one per role, with one `REPLICATION_PEERS` that
-lists the pods of both, the directory servers first:
+Every role is listed in the same `REPLICATION_PEERS`, so that each server can reach every other
+one. Only the first entry that holds data - `combined` or `directory` - may seed the topology:
+`replication` servers listed ahead of it are passed over, by the role they publish, and until
+each of them has published one the server after them does not seed. A `replication` server
+publishes `pending` until it is a member, then `ready`, and on later starts `rejoining` until
+it is found a member again; it is never initialized and never seeds. Joining through another
+`replication` server, it needs a server that holds the data to be up as well: `dsreplication`
+finds `BASE_DN` on the servers of the topology it reaches, and until one answers the join tries
+again. A `directory` server joins only a topology that has a replication server: it does not
+enable with a `directory` peer that no replication server joined yet, logs that, and tries the
+next peer or the next round. Each side of an enable is given its own role, the peer's read from
+the peer, so a server that joins through a `directory` server never hands it a replication
+server - unless that server runs an image from before roles, whose join gives every peer one:
+move every server to an image with roles before any of them takes another role than `combined`.
+Roles may be mixed - `combined` servers with additional `directory` ones, say. Separate
+replication servers on Kubernetes take two StatefulSets, one per role, with one
+`REPLICATION_PEERS` that lists the pods of both, the directory servers first:
 
 ```
 REPLICATION_PEERS=ds-0.ds,ds-1.ds,ds-2.ds,ds-3.ds,rs-0.rs,rs-1.rs

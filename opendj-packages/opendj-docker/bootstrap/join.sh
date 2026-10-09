@@ -48,8 +48,9 @@
 # in $STATE_DN, a local entry of cn=config: "pending" while the marker is there, "ready" once
 # the volume holds the data of the topology - it was never bootstrapped by run.sh, it was
 # initialized from a ready peer, or it seeded the topology - and "rejoining" while a volume
-# that holds it has its replication taken down to enable it anew. A server joins only through
-# a ready peer, and a pending one initializes only from one, so two fresh servers that start
+# that holds it has its replication taken down to enable it anew, or while a replication
+# server is not found a member yet on this start. A server joins only through a ready peer,
+# and a pending one initializes only from one, so two fresh servers that start
 # together never take each other's bootstrap data for the topology's, and two servers whose
 # replication is down never form a topology of their own; where the list is only
 # MASTER_SERVER, a peer that publishes no state (an image before this one) counts as ready, as
@@ -852,7 +853,7 @@ cleanup_departed() {
 # peer that a list lacks is asked; one that does not answer is left for the repair of a later
 # start.
 repair_replication_servers() {
-  local i peer waiting hosts host lists kind cn value found config servers= unknown= mixed=no
+  local i peer waiting hosts host lists kind cn value found config servers=
   [ "$PEERS_ARE_EXPLICIT" = yes ] || return 0
   for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
     waiting=
@@ -875,33 +876,23 @@ repair_replication_servers() {
   lists=$(replication_server_lists)
   # a here-string of nothing still reads as one empty line
   [ -n "$lists" ] || return 0
-  # every ldapsearch starts a JVM: a peer that every list holds already is not asked
-  [ "$ROLE" = combined ] || mixed=yes
+  # every ldapsearch starts a JVM: a peer that every list holds already is not asked. One that
+  # does not answer waits for the repair of a later start, whatever the roles around it: a
+  # replication server left out of a list is added then - and its own repair adds this server
+  # to its lists when it starts, which connects the two already - while a directory server put
+  # into one would stay there for good, a replication server that nothing listens on, which
+  # cleanup_departed keeps as long as the host is listed; and a peer that every list holds
+  # is never asked again, so nothing would take it out.
   for host in $hosts; do
     is_self "$host" && continue
     in_peers "$host" || continue
     lacked_by_a_list "$host" "$lists" || continue
     if ! config=$(replication_config "$host"); then
-      unknown="$unknown $host"
+      echo "join: could not ask $host whether it runs a replication server, its place in the replication server lists is checked on a later start"
     elif grep -qx server <<<"$config"; then
       servers="$servers $host"
-    else
-      mixed=yes
     fi
   done
-  # A peer that does not answer goes in as every peer did before roles while nothing says
-  # that the topology has other roles: this server is combined, and so is every peer that
-  # answered. Otherwise it waits for the repair of a later start - a replication server
-  # left out of a list is added then, while a directory server put into one would stay there
-  # for good, a replication server that nothing listens on, which cleanup_departed keeps as
-  # long as the host is listed.
-  if [ "$mixed" = no ]; then
-    servers="$servers$unknown"
-  else
-    for host in $unknown; do
-      echo "join: could not ask $host whether it runs a replication server, its place in the replication server lists is checked on a later start"
-    done
-  fi
   while IFS=$'\t' read -r kind cn value; do
     [ -n "$value" ] && continue
     for host in $servers; do
@@ -966,6 +957,11 @@ leave_rejoin() {
 joined() {
   cleanup_departed
   leave_rejoin || exit 1
+  # a replication server published itself rejoining until now, on the ready road too
+  if [ "$ROLE" = replication ] && ! publish_state ready; then
+    echo "join: could not publish this server ready, this container will not report itself healthy until a later start does"
+    exit 1
+  fi
   touch "$BOOTSTRAP_COMPLETE"
   echo "join: this server is a member of the replication topology, the health check may probe it"
   repair_replication_servers
@@ -1104,8 +1100,12 @@ reset_if_unregistered() { # <the state to publish meanwhile>
 if [ ! -f "$INITIALIZE_PENDING" ]; then
   # This volume holds the data of the topology, or is the one that seeds it: it publishes
   # that - unless a reset took its replication down and it has not rejoined yet, also on an
-  # earlier start
-  if [ -f "$REJOIN_PENDING" ]; then
+  # earlier start. A replication server holds no data: what a peer may join through is its
+  # membership, and a peer that enabled through it before a reset took it out would be
+  # registered in a registry of the two of them. So it publishes itself rejoining until a
+  # round below finds it a member - not pending, which would count it among the peers that
+  # wait for data and let a fresh seed go ahead next to the topology it serves
+  if [ -f "$REJOIN_PENDING" ] || [ "$ROLE" = replication ]; then
     publish_state rejoining
   else
     publish_state ready
