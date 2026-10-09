@@ -23,8 +23,8 @@
 set -eE -o pipefail
 
 IMAGE=${1:?usage: $0 <image>}
-NODES="dj-0 dj-1 dj-2 dj-x dj-solo dj-bf dj-fi dj-f dj-p0 dj-p1 dj-p2 dj-ipm dj-ipr dj-sdsr dj-shm-probe dj-shm"
-VOLUMES="vol-dj-0 vol-dj-1 vol-dj-2 vol-dj-x vol-dj-solo vol-dj-bf vol-dj-fi vol-dj-f vol-dj-ipr vol-dj-p0 vol-dj-p1 vol-dj-p2"
+NODES="dj-0 dj-1 dj-2 dj-x dj-solo dj-bf dj-fi dj-f dj-p0 dj-p1 dj-p2 dj-ipm dj-ipr dj-sdsr dj-shm-probe dj-shm dj-d0 dj-d1 dj-r0 dj-r1 dj-dn0 dj-dn1 dj-rf dj-rfd dj-nm dj-nmr"
+VOLUMES="vol-dj-0 vol-dj-1 vol-dj-2 vol-dj-x vol-dj-solo vol-dj-bf vol-dj-fi vol-dj-f vol-dj-ipr vol-dj-p0 vol-dj-p1 vol-dj-p2 vol-dj-d0 vol-dj-d1 vol-dj-r0 vol-dj-r1 vol-dj-dn0 vol-dj-dn1 vol-dj-rf vol-dj-rfd vol-dj-nm vol-dj-nmr"
 # a bootstrap that imports the base entry and then fails, mounted into dj-bf
 FAILING_BOOTSTRAP=$(mktemp)
 NETWORK=test_replication
@@ -141,6 +141,16 @@ dsconfig_on() { # <container> <dsconfig argument>...
   shift
   docker exec "$container" /opt/opendj/bin/dsconfig "$@" --hostname localhost --port 4444 \
     --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --trustAll --no-prompt >/dev/null
+}
+
+runs_replication_server() { # <container>
+  admin_search "$1" "cn=config" sub "(objectClass=ds-cfg-replication-server)" 1.1 | grep "^dn:" >/dev/null
+}
+
+# the role setup.sh recorded on the volume of the container, or the join of a volume set up
+# before roles
+recorded_role_of() { # <container>
+  docker exec "$1" cat /opt/opendj/data/.replication-role 2>/dev/null
 }
 
 # the writability-mode the backend of dc=example,dc=com is configured with, empty where its
@@ -322,12 +332,17 @@ wait_has dj-1 "ou=replicated,dc=example,dc=com"
 
 # a member is ready again right after a restart, without waiting for its peers - gating it
 # on them would deadlock a whole-cluster restart under OrderedReady - and replication still
-# flows
+# flows. dj-1 comes back the way a volume set up before roles does, without the role setup.sh
+# records: its join tells the role from its replication configuration, and records it
+docker exec dj-1 rm /opt/opendj/data/.replication-role
 docker stop dj-1 >/dev/null
 docker restart dj-0 >/dev/null
 wait_until 120 "dj-0 is healthy while dj-1 is down" is_healthy dj-0
 docker start dj-1 >/dev/null
 wait_healthy dj-1
+# a member is healthy before its join runs: the role is recorded once the join found it a member
+wait_until 300 "the restarted dj-1 is a member again" logs_have_since dj-1 "Starting OpenDJ" "already a member of the replication topology"
+[ "$(recorded_role_of dj-1)" = combined ] || fail "dj-1 was recorded $(recorded_role_of dj-1) from its combined replication configuration"
 add_ou dj-1 replicated2
 wait_has dj-0 "ou=replicated2,dc=example,dc=com"
 # and neither of them took its replication down to enable it anew: only a server that no
@@ -404,13 +419,20 @@ ldaps_has dj-0 "ou=replicated,dc=example,dc=com" || fail "the reborn dj-0 lacks 
 ldaps_has dj-0 "uid=user.0,ou=People,dc=example,dc=com" || fail "the reborn dj-0 lacks the entries of the seed"
 
 # a bootstrap that failed after it imported the base entry leaves a volume that never counts
-# as holding the data of the topology: once restarted, dj-bf initializes from dj-0 rather
-# than joining with what its bootstrap left
+# as holding the data of the topology. A restart does not join it either: the initialize
+# would bring the data of the topology, but nothing else the bootstrap was to configure
+# (#1182). Once the setup is finished by hand and the mark removed, dj-bf initializes from
+# dj-0 rather than joining with what its bootstrap left
 printf 'sh /opt/opendj/bootstrap/setup.sh\nexit 1\n' >"$FAILING_BOOTSTRAP"
 chmod 644 "$FAILING_BOOTSTRAP"
 start_node dj-bf dj-0,dj-1,dj-bf -v "$FAILING_BOOTSTRAP:/opt/opendj/failing-bootstrap.sh:ro" \
   -e BOOTSTRAP=/opt/opendj/failing-bootstrap.sh
 wait_until 300 "the bootstrap of dj-bf fails" logs_have dj-bf "failing-bootstrap.sh failed"
+docker restart dj-bf >/dev/null
+wait_until 300 "the restarted dj-bf reports its pending bootstrap" logs_have_since dj-bf "failing-bootstrap.sh failed" "The bootstrap of this volume did not complete"
+stays_unhealthy dj-bf "its bootstrap did not complete"
+if logs_have dj-bf "join: enabling replication"; then fail "dj-bf joined over a volume whose bootstrap did not complete"; fi
+docker exec dj-bf rm /opt/opendj/data/.bootstrap-pending
 docker restart dj-bf >/dev/null
 wait_healthy dj-bf
 logs_have dj-bf "initializing from dj-0" || fail "dj-bf joined with the data of its failed bootstrap"
@@ -713,6 +735,198 @@ fi
 for c in dj-p0 dj-p1 dj-p2; do
   if docker logs $c 2>&1 | grep -F -- "$ROOT_PASSWORD"; then fail "the root password is in the log of $c"; fi
 done
+docker rm -f dj-p0 dj-p1 dj-p2 >/dev/null
+docker volume rm vol-dj-p0 vol-dj-p1 vol-dj-p2 >/dev/null
+
+# REPLICATION_ROLE (#1178). A role the join does not know ends the join before it waits for
+# the server
+rc=0
+out=$(docker run --rm --hostname dj-bogus --entrypoint /opt/opendj/bootstrap/join.sh \
+  -e REPLICATION_PEERS=dj-0,dj-bogus -e REPLICATION_ROLE=bogus "$IMAGE" 2>&1) || rc=$?
+[ "$rc" -eq 1 ] && grep -F "REPLICATION_ROLE=bogus is not one of combined, directory or replication" <<<"$out" >/dev/null \
+  || { echo "$out"; fail "the join went on with an unknown REPLICATION_ROLE (exit $rc)"; }
+# and so does setup.sh, before it sets anything up: the volume records no role
+start_node dj-bogus dj-0,dj-bogus -e REPLICATION_ROLE=bogus
+wait_until 120 "setup.sh refuses the role" logs_have dj-bogus "REPLICATION_ROLE=bogus is not one of combined, directory or replication"
+if docker run --rm --entrypoint test -v vol-dj-bogus:/opt/opendj/data "$IMAGE" -e /opt/opendj/data/.replication-role; then
+  fail "setup.sh recorded an unknown role"
+fi
+docker rm -f dj-bogus >/dev/null
+docker volume rm vol-dj-bogus >/dev/null
+# A replication server listed first is passed over: the first peer that holds data seeds
+# the topology, here a directory server, and the replication server joins through it
+start_node dj-rf dj-rf,dj-rfd -e REPLICATION_ROLE=replication -e REPLICATION_RETRY_COUNT=30
+start_node dj-rfd dj-rf,dj-rfd -e REPLICATION_ROLE=directory -e SAMPLE_DATA=10 -e REPLICATION_RETRY_COUNT=30
+wait_healthy dj-rfd
+wait_healthy dj-rf
+logs_have dj-rfd "seeding it with this server's data" || fail "dj-rfd, the first peer that holds data, did not seed"
+if logs_have dj-rf "seeding it with this server's data"; then fail "dj-rf seeded the topology as a replication server"; fi
+logs_have dj-rf "joined the replication topology through dj-rfd" || fail "dj-rf did not join through dj-rfd"
+admin_search dj-rfd "cn=config" sub "(&(objectClass=ds-cfg-replication-domain)(ds-cfg-base-dn=dc=example,dc=com))" ds-cfg-replication-server   | grep -F "ds-cfg-replication-server: dj-rf:" >/dev/null || fail "the domain of dj-rfd does not connect to dj-rf"
+docker rm -f dj-rf dj-rfd >/dev/null
+docker volume rm vol-dj-rf vol-dj-rfd >/dev/null
+
+# A master without MASTER_SERVER runs no join, and publishes neither a state nor a role: a
+# replica that names it in MASTER_SERVER takes it for a combined server, as before roles, and
+# joins and initializes through it
+start_node dj-nm "" -e SAMPLE_DATA=10
+wait_healthy dj-nm
+start_node dj-nmr "" -e MASTER_SERVER=dj-nm
+wait_healthy dj-nmr
+logs_have dj-nmr "initializing from dj-nm" || fail "dj-nmr did not initialize from dj-nm"
+ldaps_has dj-nmr "uid=user.0,ou=People,dc=example,dc=com" || fail "dj-nmr lacks the entries of dj-nm"
+runs_replication_server dj-nm || fail "dj-nm, which publishes no role, was not given a replication server"
+docker rm -f dj-nm dj-nmr >/dev/null
+docker volume rm vol-dj-nm vol-dj-nmr >/dev/null
+
+# The topology of #534: directory servers without a replication server, and replication
+# servers without data. The first directory server seeds, the replication servers join
+# through it, and the second directory server joins through whichever peer runs a
+# replication server and initializes from the seed
+ROLE_PEERS=dj-d0,dj-r0,dj-r1,dj-d1
+start_node dj-d0 $ROLE_PEERS -e REPLICATION_ROLE=directory -e SAMPLE_DATA=10 -e REPLICATION_RETRY_COUNT=30
+for n in dj-r0 dj-r1; do
+  start_node $n $ROLE_PEERS -e REPLICATION_ROLE=replication -e REPLICATION_RETRY_COUNT=30
+done
+start_node dj-d1 $ROLE_PEERS -e REPLICATION_ROLE=directory -e REPLICATION_RETRY_COUNT=30
+for n in dj-d0 dj-r0 dj-r1 dj-d1; do
+  wait_healthy $n
+done
+logs_have dj-d0 "seeding it with this server's data" || fail "dj-d0 did not seed the topology"
+logs_have dj-d1 "initializing from dj-d0" || fail "dj-d1 did not initialize from dj-d0"
+ldaps_has dj-d1 "uid=user.0,ou=People,dc=example,dc=com" || fail "dj-d1 lacks the entries of the seed"
+
+holds_example_backend() { # <container>
+  admin_search "$1" "cn=Backends,cn=config" one "(ds-cfg-base-dn=dc=example,dc=com)" 1.1 | grep "^dn:" >/dev/null
+}
+# the replication servers the domain of dc=example,dc=com of the container connects to
+example_domain_lists() { # <container>
+  admin_search "$1" "cn=config" sub "(&(objectClass=ds-cfg-replication-domain)(ds-cfg-base-dn=dc=example,dc=com))" ds-cfg-replication-server \
+    | awk 'tolower($1) == "ds-cfg-replication-server:" { print $2 }'
+}
+# the role the container publishes next to its state, which its peers read while it holds no
+# replication configuration, and itself after a reset
+published_role_of() { # <container>
+  admin_search "$1" "cn=Docker Join,cn=config" base "(objectClass=*)" description \
+    | awk 'tolower($1) == "description:" { print $3 }'
+}
+roles_hold() {
+  local n
+  # dj-r0 joined through dj-d0: an enable that took dj-d0 for a combined server would have
+  # given it a replication server
+  for n in dj-d0 dj-d1; do
+    runs_replication_server $n && fail "the directory server $n runs a replication server"
+    replicates_example $n || fail "the directory server $n does not replicate dc=example,dc=com"
+    [ "$(published_role_of $n)" = directory ] || fail "the directory server $n publishes the role $(published_role_of $n)"
+    [ "$(recorded_role_of $n)" = directory ] || fail "the volume of the directory server $n records the role $(recorded_role_of $n)"
+  done
+  for n in dj-r0 dj-r1; do
+    runs_replication_server $n || fail "the replication server $n runs none"
+    replicates_example $n && fail "the replication server $n replicates dc=example,dc=com"
+    holds_example_backend $n && fail "the replication server $n holds a backend for dc=example,dc=com"
+    [ "$(published_role_of $n)" = replication ] || fail "the replication server $n publishes the role $(published_role_of $n)"
+    [ "$(recorded_role_of $n)" = replication ] || fail "the volume of the replication server $n records the role $(recorded_role_of $n)"
+  done
+  return 0
+}
+roles_hold
+lists_rs_only() { # <container>
+  local lists
+  lists=$(example_domain_lists "$1")
+  grep -x "dj-r0:8989" <<<"$lists" >/dev/null && grep -x "dj-r1:8989" <<<"$lists" >/dev/null \
+    && ! grep -E "^dj-d[01]:" <<<"$lists" >/dev/null
+}
+for n in dj-d0 dj-d1; do
+  wait_until 120 "the domain of $n lists dj-r0 and dj-r1 and no directory server" lists_rs_only $n
+done
+wait_until 120 "the replication server of dj-r0 knows dj-r1" server_lists dj-r0 dj-r1
+wait_until 120 "the replication server of dj-r1 knows dj-r0" server_lists dj-r1 dj-r0
+add_ou dj-d0 roles-from-d0
+wait_has dj-d1 "ou=roles-from-d0,dc=example,dc=com"
+add_ou dj-d1 roles-from-d1
+wait_has dj-d0 "ou=roles-from-d1,dc=example,dc=com"
+
+# a restart keeps each server in its role, without taking its replication down
+for n in dj-r0 dj-d1; do
+  docker restart $n >/dev/null
+  wait_until 300 "the restarted $n is a member again" logs_have_since $n "Starting OpenDJ" "already a member of the replication topology"
+  wait_healthy $n
+  if logs_have $n "taking its replication configuration down"; then fail "$n reset its replication on a plain restart"; fi
+done
+roles_hold
+# a volume set up before roles records no role: its join tells it from the replication
+# configuration - a replication server without a domain, under REPLICATION_ROLE=replication,
+# is the replication server of the one-shot srs - and records it, which roles_hold reads
+for n in dj-r0 dj-d1; do
+  docker exec $n rm /opt/opendj/data/.replication-role
+  docker restart $n >/dev/null
+  wait_until 300 "the restarted $n is a member again" logs_have_since $n "Starting OpenDJ" "already a member of the replication topology"
+  wait_healthy $n
+done
+roles_hold
+# and so does a new container on the volume with another REPLICATION_ROLE, which is logged
+docker rm -f dj-r0 dj-d1 >/dev/null
+start_node dj-r0 $ROLE_PEERS -e REPLICATION_ROLE=directory -e REPLICATION_RETRY_COUNT=30
+start_node dj-d1 $ROLE_PEERS -e REPLICATION_ROLE=replication -e REPLICATION_RETRY_COUNT=30
+for n in dj-r0 dj-d1; do
+  wait_until 300 "$n is a member again in its former role" logs_have $n "already a member of the replication topology"
+  wait_healthy $n
+  if logs_have $n "taking its replication configuration down"; then fail "$n reset its replication when started in another role"; fi
+done
+logs_have dj-r0 "keeps that role, REPLICATION_ROLE=directory does not change it" || fail "dj-r0 did not say that it keeps its role"
+logs_have dj-d1 "keeps that role, REPLICATION_ROLE=replication does not change it" || fail "dj-d1 did not say that it keeps its role"
+roles_hold
+
+# A joiner goes through a replication server while the directory server ahead of it in
+# REPLICATION_PEERS is down: dj-r1 and then dj-d1 come back on empty volumes with dj-d0
+# stopped. dj-r1 enables with dj-r0, both sides replication servers only - dsreplication
+# finds BASE_DN through the topology then, on a directory server it reaches, so dj-d1 is
+# still up; dj-d1 enables through a replication server and initializes from dj-d0 once that
+# is back
+docker stop dj-d0 >/dev/null
+docker rm -f dj-r1 >/dev/null
+docker volume rm vol-dj-r1 >/dev/null
+start_node dj-r1 $ROLE_PEERS -e REPLICATION_ROLE=replication -e REPLICATION_RETRY_COUNT=30
+wait_healthy dj-r1
+logs_have dj-r1 "joined the replication topology through dj-r0" || fail "dj-r1 did not join through dj-r0"
+docker rm -f dj-d1 >/dev/null
+docker volume rm vol-dj-d1 >/dev/null
+start_node dj-d1 $ROLE_PEERS -e REPLICATION_ROLE=directory -e REPLICATION_RETRY_COUNT=30
+wait_until 300 "dj-d1 joined through a replication server" logs_have dj-d1 "joined the replication topology through dj-r"
+docker start dj-d0 >/dev/null
+wait_healthy dj-d0
+wait_healthy dj-d1
+logs_have dj-d1 "initializing from dj-d0" || fail "dj-d1 did not initialize from dj-d0"
+ldaps_has dj-d1 "ou=roles-from-d1,dc=example,dc=com" || fail "dj-d1 lacks the entries of the topology"
+roles_hold
+# one replication server is enough for the directory servers to go on replicating, either
+# one: which of them a directory server connects to is the broker's choice
+docker stop dj-r1 >/dev/null
+add_ou dj-d1 roles-one-rs
+wait_has dj-d0 "ou=roles-one-rs,dc=example,dc=com"
+docker start dj-r1 >/dev/null
+wait_healthy dj-r1
+docker stop dj-r0 >/dev/null
+add_ou dj-d0 roles-other-rs
+wait_has dj-d1 "ou=roles-other-rs,dc=example,dc=com"
+docker start dj-r0 >/dev/null
+wait_healthy dj-r0
+docker rm -f dj-d0 dj-d1 dj-r0 dj-r1 >/dev/null
+docker volume rm vol-dj-d0 vol-dj-d1 vol-dj-r0 vol-dj-r1 >/dev/null
+
+# directory servers with no replication server among their peers: the first seeds, the other
+# cannot join anything - dsreplication enable refuses a topology without a replication
+# server - says why, and does not turn healthy. dj-dn0 seeds once its retries find nobody,
+# so that the few rounds of dj-dn1 all run against a seed
+start_node dj-dn0 dj-dn0,dj-dn1 -e REPLICATION_ROLE=directory
+wait_healthy dj-dn0
+start_node dj-dn1 dj-dn0,dj-dn1 -e REPLICATION_ROLE=directory -e REPLICATION_RETRY_COUNT=4
+wait_until 300 "dj-dn1 says that dj-dn0 has no replication server" logs_have dj-dn1 "dj-dn0 is a directory server that no replication server joined yet"
+wait_until 300 "dj-dn1 gives up" logs_have dj-dn1 "could not join the replication topology after 4 attempts"
+stays_unhealthy dj-dn1 "dj-dn0 has no replication server"
+runs_replication_server dj-dn0 && fail "dj-dn0 was given a replication server by the join of dj-dn1"
+docker rm -f dj-dn0 dj-dn1 >/dev/null
+docker volume rm vol-dj-dn0 vol-dj-dn1 >/dev/null
 
 cleanup
 echo "Docker replication test passed"
