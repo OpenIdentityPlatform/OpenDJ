@@ -38,12 +38,12 @@ jobs:
       # minimum supported (11) and the latest (26) Java.
       matrix:
         os: [ 'ubuntu-latest' ]
-        java: [ '11','17','21','25','26']
+        java: [ '11','17','21','25','27']
         include:
           - { os: 'macos-latest',   java: '11' }
-          - { os: 'macos-latest',   java: '26' }
+          - { os: 'macos-latest',   java: '27' }
           - { os: 'windows-latest', java: '11' }
-          - { os: 'windows-latest', java: '26' }
+          - { os: 'windows-latest', java: '27' }
       fail-fast: false
     steps:
     - name:  Install rpm for distribution
