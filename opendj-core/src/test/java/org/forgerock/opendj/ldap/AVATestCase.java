@@ -12,11 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Portions copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
 import static org.assertj.core.api.Assertions.*;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.testng.annotations.DataProvider;
@@ -79,5 +81,40 @@ public class AVATestCase extends SdkTestCase {
     @Test
     public void valueOfDecodesTrailingEscapedChars() {
         assertThat(AVA.valueOf("dc=\\41\\42\\43").toString()).isEqualTo("dc=ABC");
+    }
+
+    @DataProvider
+    public Object[][] illegalAVAs() {
+        // @formatter:off
+        return new Object[][] {
+            { "cn=a,dc=b" },
+            { "cn=a;dc=b" },
+            { "cn=a+sn=b" },
+            { "cn=\"a\"b" },
+            { "cn=#0402 junk" },
+            { "cn=#0402+sn=b" },
+            { "cn=a\\" },
+        };
+        // @formatter:on
+    }
+
+    @Test(dataProvider = "illegalAVAs", expectedExceptions = LocalizedIllegalArgumentException.class)
+    public void valueOfShouldRejectTrailingContent(final String ava) {
+        AVA.valueOf(ava);
+    }
+
+    @DataProvider
+    public Object[][] emptyValueAVAs() {
+        return new Object[][] { { "cn=" }, { "cn= " }, { "cn=\"\"" }, { "cn=\"\" " } };
+    }
+
+    @Test(dataProvider = "emptyValueAVAs")
+    public void valueOfShouldAcceptAnEmptyValue(final String ava) {
+        assertThat(AVA.valueOf(ava).getAttributeValue()).isEqualTo(ByteString.empty());
+    }
+
+    @Test
+    public void valueOfShouldAcceptTrailingSpacesAfterAHexString() {
+        assertThat(AVA.valueOf("2.5.4.3=#76616C7565 ").getAttributeValue()).isEqualTo(ByteString.valueOfUtf8("value"));
     }
 }

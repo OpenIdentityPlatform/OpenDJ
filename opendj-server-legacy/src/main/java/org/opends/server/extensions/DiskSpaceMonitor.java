@@ -83,7 +83,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
 
     @Override
     public String getMonitorInstanceName() {
-      return instanceName + "," + "cn=" + baseName;
+      return DN.escapeAttributeValue(instanceName) + "," + "cn=" + baseName;
     }
 
     @Override

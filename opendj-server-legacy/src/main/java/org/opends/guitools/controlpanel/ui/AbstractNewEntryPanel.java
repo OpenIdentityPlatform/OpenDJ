@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -25,7 +26,9 @@ import java.util.ArrayList;
 import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.NewEntryTask;
@@ -48,6 +51,47 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
 
   /** The parent node that was selected when the user clicked on the new entry action. */
   protected BasicNode parentNode;
+
+  /**
+   * Returns the DN of a new entry, with the naming value escaped: a value that contains ',', '+' or ';',
+   * or starts with '#', is part of the RDN, not a DN separator.
+   *
+   * @param rdnAttribute
+   *          the naming attribute.
+   * @param rdnValue
+   *          the naming value typed by the user.
+   * @param parentDN
+   *          the DN of the parent entry.
+   * @return the string representation of the DN of the new entry.
+   */
+  static String getNewEntryDN(String rdnAttribute, String rdnValue, DN parentDN)
+  {
+    return parentDN.child(rdnAttribute, rdnValue).toString();
+  }
+
+  /**
+   * Returns the DN of a new entry, with the naming value escaped, under a parent DN typed by the user.
+   *
+   * @param rdnAttribute
+   *          the naming attribute.
+   * @param rdnValue
+   *          the naming value typed by the user.
+   * @param parentDN
+   *          the DN of the parent entry, as typed by the user.
+   * @return the string representation of the DN of the new entry. If the parent DN is not a valid DN yet,
+   *         the escaped RDN followed by the parent DN as typed.
+   */
+  static String getNewEntryDN(String rdnAttribute, String rdnValue, String parentDN)
+  {
+    try
+    {
+      return getNewEntryDN(rdnAttribute, rdnValue, DN.valueOf(parentDN));
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      return new RDN(rdnAttribute, rdnValue) + "," + parentDN;
+    }
+  }
   /** The browser controller. */
   protected BrowserController controller;
 

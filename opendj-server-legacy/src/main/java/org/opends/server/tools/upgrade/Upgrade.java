@@ -654,6 +654,13 @@ public final class Upgrade
             REFERENTIAL_INTEGRITY_PLUGIN_FILTER,
             ADD_REFERENTIAL_INTEGRITY_PRE_OPERATION_PLUGIN_TYPES));
 
+    /* See issue #1153: a DN is now read up to its end, ';' separating RDNs as ',' does, so a DN value that a client
+     * wrote with ';' gets another equality key than the one a previous version indexed. The value is found by
+     * reading the entries only, so the equality indexes of the attributes holding DNs are verified, and rebuilt
+     * where they miss a key, rather than rebuilt on every server. */
+    register("5.2.0",
+        verifyAndRebuildDNEqualityIndexes(INFO_UPGRADE_VERIFY_DN_EQUALITY_INDEXES.get()));
+
     /*
      * See issue #746. Builds before #661 (fixed in 5.1.2) shipped a duplicate
      * org.openidentityplatform.opendj.opendj-server-legacy.jar alongside opendj.jar in lib/.

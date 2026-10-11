@@ -240,17 +240,8 @@ public class DeleteIndexTask extends Task
    */
   private void deleteIndex(AbstractIndexDescriptor index) throws OpenDsException
   {
-    final String backendId = "ds-cfg-backend-id" + "=" + index.getBackend().getBackendID();
-    String dn;
-    if (isVLVIndex(index))
-    {
-      dn = "ds-cfg-name" + "=" + index.getName() + ",cn=VLV Index," + backendId + ",cn=Backends,cn=config";
-    }
-    else
-    {
-      dn = "ds-cfg-attribute" + "=" + index.getName() + ",cn=Index," + backendId + ",cn=Backends,cn=config";
-    }
-    DirectoryServer.getInstance().getServerContext().getConfigurationHandler().deleteEntry(DN.valueOf(dn));
+    DN dn = getIndexConfigDN(index.getBackend().getBackendID(), index.getName(), isVLVIndex(index));
+    DirectoryServer.getInstance().getServerContext().getConfigurationHandler().deleteEntry(dn);
   }
 
   /**

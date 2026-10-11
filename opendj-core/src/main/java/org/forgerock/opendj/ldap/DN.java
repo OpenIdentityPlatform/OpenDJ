@@ -278,7 +278,14 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
 
         LinkedList<Pair<Integer, RDN>> parentRDNs = null;
         DN parent = null;
-        while (reader.remaining() > 0 && reader.read() == ',') {
+        while (reader.remaining() > 0) {
+            // Only a separator may follow an RDN. RFC 2253 also allowed ';', so accept it as ',' rather than
+            // stopping there and silently returning the DN parsed so far.
+            final char c = reader.read();
+            if (c != RDN_CHAR_SEPARATOR && c != ';') {
+                throw new LocalizedIllegalArgumentException(
+                        ERR_DN_TRAILING_GARBAGE.get(reader.getString(), reader.getString().substring(reader.pos() - 1)));
+            }
             reader.skipWhitespaces();
             if (reader.remaining() == 0) {
                 throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_DN_ATTR_NO_NAME.get(reader.getString()));

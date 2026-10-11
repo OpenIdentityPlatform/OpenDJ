@@ -21,7 +21,6 @@ import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -178,7 +177,7 @@ public class PatternRDN
       return false;
     }
 
-    // Sort the attribute-value pairs by attribute type.
+    // Index the value patterns by attribute type.
     TreeMap<String, List<ByteString>> patternMap = new TreeMap<>();
     for (int i = 0; i < typePatterns.length; i++)
     {
@@ -189,13 +188,16 @@ public class PatternRDN
       }
       patternMap.put(type.getNameOrOID(), valuePatterns.get(i));
     }
+    if (patternMap.size() != rdn.size())
+    {
+      return false;
+    }
 
-    Iterator<String> patternKeyIter = patternMap.keySet().iterator();
+    // An RDN keeps its AVAs in the order of the DN string, so look each one up by its type.
     for (AVA ava : rdn)
     {
-      String rdnKey = ava.getAttributeType().getNameOrOID();
-      if (!rdnKey.equals(patternKeyIter.next())
-          || !matchValuePattern(patternMap.get(rdnKey), ava))
+      List<ByteString> valuePattern = patternMap.get(ava.getAttributeType().getNameOrOID());
+      if (valuePattern == null || !matchValuePattern(valuePattern, ava))
       {
         return false;
       }

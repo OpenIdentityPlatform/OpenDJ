@@ -36,6 +36,8 @@ This chapter includes the following procedures:
 
 * xref:#uninstall-msi["To Uninstall the Windows MSI Package"]
 
+* xref:#uninstall-docker["To Remove a Docker Container"]
+
 
 [#uninstall-gui]
 .To Remove OpenDJ With the GUI Uninstaller
@@ -182,6 +184,34 @@ C:\> msiexec /x opendj-{opendj-version}.msi /quiet
 ----
 +
 Uninstalling removes the files installed by the package. Your configured instance data under the installation directory (for example `config`, `db`, and `logs`) is not removed; delete the installation directory manually, or run `uninstall.bat` before removing the package, to remove all files. Running `uninstall.bat` also disables the Windows service if one is registered, which covers the first step above.
+
+====
+
+[#uninstall-docker]
+.To Remove a Docker Container
+====
+A container started from the Docker image with a volume mounted at `/opt/opendj/data`, as in xref:chap-install.adoc#install-docker["To Run OpenDJ in Docker"] in the __Installation Guide__, keeps its instance on that volume, which outlives the container. A container started without one keeps its instance in the container itself, and removing the container deletes it.
+
+. If the server replicates, stop replication on the server with `dsreplication disable` first, unless the containers of the topology run with `OPENDJ_REPLICATION_TYPE=simple` and `REPLICATION_PEERS`, and the server is registered in the topology by its name rather than by an address, as described in xref:../admin-guide/chap-replication.adoc#stop-repl-permanent["To Stop Replication Permanently For a Replica"] in the __Administration Guide__.
+
+. Stop and remove the container. This stops the server, but keeps its volume, if it has one:
++
+
+[source, console]
+----
+$ docker stop -t 60 opendj
+$ docker rm opendj
+----
+
+. If the containers of the topology run with `OPENDJ_REPLICATION_TYPE=simple` and `REPLICATION_PEERS`, replace each remaining container with one started over the same volume with the same options, but with the removed server left out of `REPLICATION_PEERS`. The environment of a container cannot be changed, so restarting the container is not enough. On its start, each new container removes from the topology the servers registered by name that are not listed, and drops them from its own replication server lists, which are configuration of that server alone: replace every remaining container, or the ones you leave keep trying to reach the removed server. See the link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/opendj-packages/opendj-docker/README.md#replication[Replication section of the README of the image, window=\_blank].
+
+. To delete the data and the configuration of the server, remove its volume as well:
++
+
+[source, console]
+----
+$ docker volume rm opendj-data
+----
 
 ====
 

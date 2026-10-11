@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -312,7 +313,7 @@ public class NewUserPanel extends AbstractNewEntryPanel
       if (attr.equalsIgnoreCase(NAMING_ATTRIBUTES[i]))
       {
         String value = NAMING_ATTRIBUTE_TEXTFIELDS[i].getText().trim();
-        dn.setText(attr + "=" + value + "," + parentNode.getDN());
+        dn.setText(getNewEntryDN(attr, value, parentNode.getDN()));
         break;
       }
     }

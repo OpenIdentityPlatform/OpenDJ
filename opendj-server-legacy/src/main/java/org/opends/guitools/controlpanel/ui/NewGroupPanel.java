@@ -589,7 +589,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     String value = name.getText().trim();
     if (value.length() > 0)
     {
-      dn.setText("cn" + "=" + value + "," + parentNode.getDN());
+      dn.setText(getNewEntryDN("cn", value, parentNode.getDN()));
     }
     else
     {

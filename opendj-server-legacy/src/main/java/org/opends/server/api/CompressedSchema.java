@@ -949,11 +949,8 @@ public class CompressedSchema
    * @param objectClassNames
    *          The user provided set of object class names.
    * @param mappings
-   *          .ocEncodeMap maps id to entry
-   * @param mappings
-   *          .ocDecodeMap maps entry to id
-   * @param sync
-   *          indicates if update of maps should be synchronized
+   *          the mappings to load into: {@code ocEncodeMap} maps the object class set to the id,
+   *          {@code ocDecodeMap} maps the id to the object class set.
    * @return The object class set.
    */
   private Map<ObjectClass, String> loadObjectClassesToMaps(int id, final Collection<String> objectClassNames,

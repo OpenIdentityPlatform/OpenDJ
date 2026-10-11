@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -68,7 +69,7 @@ public class NewDomainPanel extends NewOrganizationPanel
     String value = name.getText().trim();
     if (value.length() > 0)
     {
-      dn.setText("dc" + "=" + value + "," + parentNode.getDN());
+      dn.setText(getNewEntryDN("dc", value, parentNode.getDN()));
     }
     else
     {

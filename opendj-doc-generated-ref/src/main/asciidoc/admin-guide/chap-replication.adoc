@@ -39,6 +39,11 @@ OpenDJ uses advanced data replication with automated conflict resolution to help
 
 * Recover from situations where a user error has been applied to all replicas
 
+[NOTE]
+======
+The Docker image can join its replication topology itself, on every start of a container, when it is started with `OPENDJ_REPLICATION_TYPE=simple` and the servers of the topology listed in `REPLICATION_PEERS`. With `REPLICATION_PEERS` set, a container also removes from the topology the servers that are registered in it by name but not listed. To add a server to such a topology, first replace every container with one that lists the new server in its `REPLICATION_PEERS`, and only then start the new server: a container that still runs with the old list removes the new server from the topology when it starts again. To remove a server, remove its container first, then replace every other container with one that leaves it out of the list. The environment of a container cannot be changed, so restarting a container does not change its list; a server registered by an address, such as a master that `MASTER_SERVER` named by its address, is never removed this way. See the link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/opendj-packages/opendj-docker/README.md#replication[Replication section of the README of the image, window=\_blank].
+======
+
 
 [#repl-quick-setup]
 === Replication Quick Setup

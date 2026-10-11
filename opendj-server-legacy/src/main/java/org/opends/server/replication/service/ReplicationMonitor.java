@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.service;
 
@@ -22,8 +23,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.opends.server.api.MonitorData;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
+import org.opends.server.types.HostPort;
 import org.opends.server.replication.service.ReplicationDomain.ImportExportContext;
 
 /**
@@ -58,9 +61,25 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
   @Override
   public String getMonitorInstanceName()
   {
-    return "Directory server DS(" + domain.getServerId() + ") "
-        + domain.getLocalUrl()
-        + ",cn=" + domain.getBaseDN().toString().replace(',', '_').replace('=', '_')
+    return getMonitorInstanceName(domain.getServerId(), domain.getLocalUrl(), domain.getBaseDN());
+  }
+
+  /**
+   * Returns the name of the monitor of a replication domain: the relative DN of its entry below cn=monitor.
+   *
+   * @param serverId
+   *          the server ID of the replication domain
+   * @param localUrl
+   *          the URL of the replication domain
+   * @param baseDN
+   *          the base DN of the replication domain
+   * @return the name of the monitor of the replication domain
+   */
+  static String getMonitorInstanceName(int serverId, HostPort localUrl, DN baseDN)
+  {
+    // The base DN, with '_' for ',' and '=', is the value of an RDN: escape what is left, such as '+'.
+    return "Directory server DS(" + serverId + ") " + localUrl
+        + ",cn=" + DN.escapeAttributeValue(baseDN.toString().replace(',', '_').replace('=', '_'))
         + ",cn=Replication";
   }
 

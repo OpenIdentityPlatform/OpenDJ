@@ -680,7 +680,7 @@ public final class LDAPConnectionHandler extends
     }
 
     // Create and register monitors.
-    statTracker = new LDAPStatistics(handlerName + " Statistics");
+    statTracker = new LDAPStatistics(DN.escapeAttributeValue(handlerName) + " Statistics");
     DirectoryServer.registerMonitorProvider(statTracker);
 
     connMonitor = new ClientConnectionMonitorProvider(this);

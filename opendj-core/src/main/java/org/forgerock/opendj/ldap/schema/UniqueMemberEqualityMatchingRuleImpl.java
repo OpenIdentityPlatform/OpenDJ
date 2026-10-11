@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -41,16 +42,9 @@ final class UniqueMemberEqualityMatchingRuleImpl extends AbstractEqualityMatchin
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) throws DecodeException {
         // Separate value into normalized DN and "optional uid" portion.
         final String stringValue = value.toString().trim();
-        int dnEndPosition = stringValue.length();
-        String optionalUid = "";
-        int sharpPosition = -1;
-        if (stringValue.endsWith("'B") || stringValue.endsWith("'b")) {
-            sharpPosition = stringValue.lastIndexOf("#'");
-            if (sharpPosition > 0) {
-                dnEndPosition = sharpPosition;
-                optionalUid = stringValue.substring(sharpPosition);
-            }
-        }
+        final int sharpPosition = NameAndOptionalUIDSyntaxImpl.optionalUidPosition(stringValue);
+        final int dnEndPosition = sharpPosition > 0 ? sharpPosition : stringValue.length();
+        final String optionalUid = sharpPosition > 0 ? stringValue.substring(sharpPosition) : "";
         try {
             DN dn = DN.valueOf(stringValue.substring(0, dnEndPosition), schema.asNonStrictSchema());
             return new ByteStringBuilder()

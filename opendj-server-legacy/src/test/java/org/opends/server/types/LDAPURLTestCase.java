@@ -17,7 +17,9 @@
 package org.opends.server.types;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -131,6 +133,46 @@ public class LDAPURLTestCase extends TypesTestCase
   public void testTruncatedPercentEncoding(String urlString) throws Exception
   {
     LDAPURL.decode(urlString, true);
+  }
+
+
+
+  /**
+   * Test data for testNonAsciiBaseDNIsPercentEncodedAsUTF8.
+   *
+   * @return DNs with non-ASCII characters and their percent-encoded UTF-8 form.
+   */
+  @DataProvider
+  public Object[][] nonAsciiBaseDNData()
+  {
+    return new Object[][] {
+        { "cn=J\u00f6rg \u0416,ou=Remote,dc=example,dc=com",
+            "cn=J%C3%B6rg%20%D0%96,ou=Remote,dc=example,dc=com" },
+        // A character outside the BMP is one code point made of two Java chars
+        { "cn=\uD83D\uDE00,dc=x", "cn=%F0%9F%98%80,dc=x" },
+    };
+  }
+
+
+
+  /**
+   * A referral URL percent-encodes the UTF-8 octets of the DN (RFC 4516 section 2.1), so that
+   * {@link LDAPURL#decode(String, boolean)} gives back the same DN - see issue #1153.
+   *
+   * @param dn
+   *          The base DN.
+   * @param encodedDN
+   *          The expected percent-encoded base DN.
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(dataProvider = "nonAsciiBaseDNData")
+  public void testNonAsciiBaseDNIsPercentEncodedAsUTF8(String dn, String encodedDN) throws Exception
+  {
+    LDAPURL url = new LDAPURL("ldap", "other.example.com", 389, dn, null, SearchScope.BASE_OBJECT, null, null);
+    String urlString = url.toString();
+    assertTrue(urlString.startsWith("ldap://other.example.com:389/" + encodedDN + "?"), urlString);
+    assertEquals(LDAPURL.decode(urlString, true).getRawBaseDN(), dn);
   }
 
 }

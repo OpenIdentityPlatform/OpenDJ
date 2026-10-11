@@ -17,6 +17,7 @@
  */
 package org.opends.server.types;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -807,11 +808,19 @@ public final class LDAPURL
         continue;
       }
 
+      if (Character.isHighSurrogate(c) && i + 1 < length && Character.isLowSurrogate(s.charAt(i + 1)))
+      {
+        // A character outside the BMP: encode both chars of the surrogate pair as one code point.
+        hexEncode(s.substring(i, i + 2), buffer);
+        i++;
+        continue;
+      }
+
       if (c == ',')
       {
         if (isExtension)
         {
-          hexEncode(c, buffer);
+          hexEncode(String.valueOf(c), buffer);
         }
         else
         {
@@ -846,7 +855,7 @@ public final class LDAPURL
           buffer.append(c);
           break;
         default:
-          hexEncode(c, buffer);
+          hexEncode(String.valueOf(c), buffer);
           break;
       }
     }
@@ -855,32 +864,19 @@ public final class LDAPURL
 
 
   /**
-   * Appends a percent-encoded representation of the provided
-   * character to the given buffer.
+   * Appends the percent-encoded UTF-8 octets of the provided
+   * characters to the given buffer, as RFC 4516 section 2.1 requires.
    *
-   * @param  c       The character to add to the buffer.
+   * @param  chars   The characters to add to the buffer.
    * @param  buffer  The buffer to which the percent-encoded
    *                 representation should be written.
    */
-  private static void hexEncode(char c, StringBuilder buffer)
+  private static void hexEncode(String chars, StringBuilder buffer)
   {
-    if ((c & (byte) 0xFF) == c)
+    for (byte b : chars.getBytes(StandardCharsets.UTF_8))
     {
-      // It's a single byte.
       buffer.append('%');
-      buffer.append(byteToHex((byte) c));
-    }
-    else
-    {
-      // It requires two bytes, and each should be prefixed by a
-      // percent sign.
-      buffer.append('%');
-      byte b1 = (byte) ((c >>> 8) & 0xFF);
-      buffer.append(byteToHex(b1));
-
-      buffer.append('%');
-      byte b2 = (byte) (c & 0xFF);
-      buffer.append(byteToHex(b2));
+      buffer.append(byteToHex(b));
     }
   }
 

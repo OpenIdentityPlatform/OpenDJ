@@ -204,6 +204,39 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         return socket;
     }
 
+    /**
+     * Fails over the way a proxy does: connects to a free port, which must refuse the connection,
+     * then to the online server.
+     */
+    private static void failOverToOnlineServer(final InetSocketAddress onlineAddress) throws LdapException {
+        // The numeric host avoids a forward lookup of "localhost".
+        final InetSocketAddress offlineAddress = findFreeSocketAddress();
+        final LDAPConnectionFactory offlineFactory =
+                new LDAPConnectionFactory(offlineAddress.getAddress().getHostAddress(), offlineAddress.getPort());
+        try {
+            offlineFactory.getConnection().close();
+        } catch (final ConnectionException expected) {
+            // This is expected - so go to online server.
+            final LDAPConnectionFactory onlineFactory =
+                    new LDAPConnectionFactory(onlineAddress.getHostString(), onlineAddress.getPort());
+            try {
+                onlineFactory.getConnection().close();
+                return;
+            } catch (final Exception e) {
+                throw newLdapException(ResultCode.OTHER,
+                        "Unexpected exception when connecting to online server", e);
+            } finally {
+                onlineFactory.close();
+            }
+        } catch (final Exception e) {
+            throw newLdapException(ResultCode.OTHER,
+                    "Unexpected exception when connecting to offline server", e);
+        } finally {
+            offlineFactory.close();
+        }
+        throw newLdapException(ResultCode.OTHER, "Connection to offline server succeeded unexpectedly");
+    }
+
     /** Disables logging before the tests. */
     @BeforeClass
     public void disableLogging() {
@@ -534,7 +567,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected exception occurred.
      */
-    @Test
+    @Test(timeOut = 60000)
     public void testLDAPListenerProxyDuringHandleAccept() throws Exception {
         final MockServerConnection onlineServerConnection = new MockServerConnection();
         final MockServerConnectionFactory onlineServerConnectionFactory =
@@ -552,39 +585,19 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                         @Override
                         public ServerConnection<Integer> handleAccept(
                                 final LDAPClientContext clientContext) throws LdapException {
-                            // First attempt offline server.
-                            InetSocketAddress offlineAddress = findFreeSocketAddress();
-                            LDAPConnectionFactory lcf =
-                                    new LDAPConnectionFactory(offlineAddress.getHostName(),
-                                            offlineAddress.getPort());
                             try {
-                                // This is expected to fail.
-                                lcf.getConnection().close();
-                                throw newLdapException(ResultCode.OTHER,
-                                        "Connection to offline server succeeded unexpectedly");
-                            } catch (final ConnectionException ce) {
-                                // This is expected - so go to online server.
-                                try {
-                                    lcf =
-                                            new LDAPConnectionFactory(
-                                                        onlineServerAddr.getHostName(),
-                                                        onlineServerAddr.getPort());
-                                    lcf.getConnection().close();
-                                } catch (final Exception e) {
-                                    // Unexpected.
-                                    throw newLdapException(
-                                                    ResultCode.OTHER,
-                                                    "Unexpected exception when connecting to online server",
-                                                    e);
-                                }
-                            } catch (final Exception e) {
-                                // Unexpected.
-                                throw newLdapException(
-                                                ResultCode.OTHER,
-                                                "Unexpected exception when connecting to offline server",
-                                                e);
+                                failOverToOnlineServer(onlineServerAddr);
+                            } catch (final LdapException e) {
+                                // The listener only closes the client connection when handleAccept
+                                // fails: report the failure through the context the test waits for,
+                                // instead of leaving that wait to time out without a cause.
+                                proxyServerConnection.context.handleException(e);
+                                throw e;
+                            } catch (final RuntimeException e) {
+                                proxyServerConnection.context.handleException(
+                                        newLdapException(ResultCode.OTHER, e));
+                                throw e;
                             }
-
                             return super.handleAccept(clientContext);
                         }
 
@@ -593,23 +606,28 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
             final LDAPListener proxyListener = new LDAPListener(Collections.singleton(loopbackWithDynamicPort()),
                     new ServerConnectionFactoryAdapter(Options.defaultOptions().get(LDAP_DECODE_OPTIONS),
                             proxyServerConnectionFactory));
+            // Connect to the proxy listener (not to the online server
+            // directly, otherwise the proxy handleAccept is never invoked)
+            // and close.
+            final InetSocketAddress proxyAddr = proxyListener.firstSocketAddress();
+            final LDAPConnectionFactory proxyClientFactory =
+                    new LDAPConnectionFactory(proxyAddr.getHostString(), proxyAddr.getPort());
             try {
-                // Connect to the proxy listener (not to the online server
-                // directly, otherwise the proxy handleAccept is never invoked)
-                // and close.
-                final InetSocketAddress proxyAddr = proxyListener.firstSocketAddress();
-                final Connection connection =
-                        new LDAPConnectionFactory(proxyAddr.getHostName(),
-                            proxyAddr.getPort()).getConnection();
-
-                assertThat(proxyServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
-                assertThat(onlineServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
-
-                connection.close();
+                final Connection connection = proxyClientFactory.getConnection();
+                try {
+                    // handleAccept makes both fail-over connections before it resolves the context,
+                    // and each of them may take up to the default connect timeout (10 seconds):
+                    // wait longer than that, so that a failed attempt reports its own cause.
+                    assertThat(proxyServerConnection.context.get(30, TimeUnit.SECONDS)).isNotNull();
+                    assertThat(onlineServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
+                } finally {
+                    connection.close();
+                }
 
                 // Wait for connect/close to complete.
-                proxyServerConnection.isClosed.await();
+                assertThat(proxyServerConnection.isClosed.await(10, TimeUnit.SECONDS)).isTrue();
             } finally {
+                proxyClientFactory.close();
                 proxyListener.close();
             }
         } finally {
@@ -624,7 +642,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected exception occurred.
      */
-    @Test(timeOut = 10000)
+    @Test(timeOut = 60000)
     public void testLDAPListenerProxyDuringHandleBind() throws Exception {
         final MockServerConnection onlineServerConnection = new MockServerConnection();
         final MockServerConnectionFactory onlineServerConnectionFactory =
@@ -643,34 +661,22 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                         final IntermediateResponseHandler intermediateResponseHandler,
                         final LdapResultHandler<BindResult> resultHandler)
                         throws UnsupportedOperationException {
-                    // First attempt offline server.
-                    InetSocketAddress offlineAddress = findFreeSocketAddress();
-                    LDAPConnectionFactory lcf = new LDAPConnectionFactory(offlineAddress.getHostName(),
-                            offlineAddress.getPort());
                     try {
-                        // This is expected to fail.
-                        lcf.getConnection().close();
-                        resultHandler.handleException(newLdapException(
-                                ResultCode.OTHER,
-                                "Connection to offline server succeeded unexpectedly"));
-                    } catch (final ConnectionException ce) {
-                        // This is expected - so go to online server.
-                        try {
-                            lcf = new LDAPConnectionFactory(onlineServerAddr.getHostName(),
-                                onlineServerAddr.getPort());
-                            lcf.getConnection().close();
-                            resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
-                        } catch (final Exception e) {
-                            // Unexpected.
-                            resultHandler.handleException(newLdapException(
-                                    ResultCode.OTHER,
-                                    "Unexpected exception when connecting to online server", e));
-                        }
-                    } catch (final Exception e) {
-                        // Unexpected.
-                        resultHandler.handleException(newLdapException(
-                                ResultCode.OTHER,
-                                "Unexpected exception when connecting to offline server", e));
+                        failOverToOnlineServer(onlineServerAddr);
+                        resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
+                    } catch (final LdapException e) {
+                        // A bind must fail with a bind result: the listener cannot encode any other
+                        // result as a bind response, and would then never answer the bind. Only the
+                        // diagnostic message reaches the client, so it carries the nested cause.
+                        final Throwable cause = e.getCause();
+                        final String message = cause != null
+                                ? e.getResult().getDiagnosticMessage() + ": " + cause
+                                : e.getResult().getDiagnosticMessage();
+                        resultHandler.handleException(newLdapException(Responses.newBindResult(ResultCode.OTHER)
+                                .setDiagnosticMessage(message).setCause(e)));
+                    } catch (final RuntimeException e) {
+                        resultHandler.handleException(newLdapException(Responses.newBindResult(ResultCode.OTHER)
+                                .setDiagnosticMessage(e.toString()).setCause(e)));
                     }
                 }
 
@@ -681,11 +687,11 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                     new ServerConnectionFactoryAdapter(Options.defaultOptions().get(LDAP_DECODE_OPTIONS),
                             proxyServerConnectionFactory));
             final InetSocketAddress proxyAddr = proxyListener.firstSocketAddress();
+            final LDAPConnectionFactory proxyClientFactory =
+                    new LDAPConnectionFactory(proxyAddr.getHostString(), proxyAddr.getPort());
             try {
                 // Connect, bind, and close.
-                final Connection connection =
-                        new LDAPConnectionFactory(proxyAddr.getHostName(),
-                            proxyAddr.getPort()).getConnection();
+                final Connection connection = proxyClientFactory.getConnection();
                 try {
                     connection.bind("cn=test", "password".toCharArray());
 
@@ -699,6 +705,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                 // Wait for connect/close to complete.
                 proxyServerConnection.isClosed.await();
             } finally {
+                proxyClientFactory.close();
                 proxyListener.close();
             }
         } finally {

@@ -55,8 +55,8 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest 
             { "oid.1." }, { "1.3.6.1.4.1.1466..0=#04024869" }, { "cn=#a" }, { "cn=#ag" },
             { "cn=#ga" }, { "cn=#abcdefgh" },
             { "cn=a\\b" }, // { "cn=a\\bg" }, { "cn=\"hello" },
-            { "cn=+mail=,dc=example,dc=com" }, { "cn=xyz+sn=,dc=example,dc=com" },
-            { "cn=,dc=example,dc=com" } };
+            // Content after an RDN must not be dropped silently
+            { "cn=\"a\"b,dc=c" }, { "cn=#0402 junk,dc=c" }, { "cn=a\\" } };
     }
 
     @Override
@@ -114,7 +114,16 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest 
                 "cn=j. smith+ou=sales,dc=example,dc=net", ConditionResult.TRUE },
             { "cn=John+a=Doe", "a=Doe+cn=john", ConditionResult.TRUE },
             { "O=\"Sue, Grabbit and Runn\",C=US", "o=sue\\, grabbit and runn,c=us",
-                ConditionResult.TRUE }, };
+                ConditionResult.TRUE },
+            // An empty value is accepted wherever it appears
+            { "cn=+mail=,dc=example,dc=com", "mail=+cn=,dc=example,dc=com", ConditionResult.TRUE },
+            { "cn=xyz+sn=,dc=example,dc=com", "sn=+cn=xyz,dc=example,dc=com", ConditionResult.TRUE },
+            { "cn=,dc=example,dc=com", "cn=\"\",dc=example,dc=com", ConditionResult.TRUE },
+            // ';' separates RDNs: the DN after it is neither dropped nor ignored by the match
+            { "uid=bob,ou=People;dc=example,dc=com", "uid=bob,ou=People,dc=example,dc=com", ConditionResult.TRUE },
+            { "uid=bob,ou=People,dc=example,dc=com;uid=alice,ou=People,dc=example,dc=com",
+                "uid=bob,ou=People,dc=example,dc=com", ConditionResult.FALSE },
+            { "cn=#04024869+sn=x,dc=y", "sn=x+cn=hi,dc=y", ConditionResult.TRUE }, };
     }
 
     /**

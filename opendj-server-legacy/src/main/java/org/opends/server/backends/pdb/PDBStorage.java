@@ -44,6 +44,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -1212,7 +1213,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
       db.initialize();
       volume = db.loadVolume(VOLUME_NAME);
-      monitor = new PDBMonitor(config.getBackendId() + " PDB Database", db);
+      monitor = new PDBMonitor(DN.escapeAttributeValue(config.getBackendId()) + " PDB Database", db);
       DirectoryServer.registerMonitorProvider(monitor);
     }
     catch(final InUseException e) {

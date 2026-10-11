@@ -96,13 +96,20 @@ public final class AVA implements Comparable<AVA> {
      */
     public static AVA valueOf(final String ava, final Schema schema) {
         final SubstringReader reader = new SubstringReader(ava);
+        final AVA parsedAva;
         try {
-            return decode(reader, schema);
+            parsedAva = decode(reader, schema);
         } catch (final UnknownSchemaElementException e) {
             final LocalizableMessage message =
                     ERR_RDN_TYPE_NOT_FOUND.get(ava, e.getMessageObject());
             throw new LocalizedIllegalArgumentException(message);
         }
+        reader.skipWhitespaces();
+        if (reader.remaining() > 0) {
+            throw new LocalizedIllegalArgumentException(
+                    ERR_AVA_TRAILING_GARBAGE.get(ava, reader.read(reader.remaining())));
+        }
+        return parsedAva;
     }
 
     static AVA decode(final SubstringReader reader, final Schema schema) {
@@ -285,7 +292,7 @@ public final class AVA implements Comparable<AVA> {
 
         // The rest of the value must be a multiple of two hex
         // characters. The end of the value may be designated by the
-        // end of the DN, a comma or semicolon, or a space.
+        // end of the DN, a comma or semicolon, a plus sign, or a space.
         while (reader.remaining() > 0) {
             char c = reader.read();
             if (isHexDigit(c)) {
@@ -303,7 +310,7 @@ public final class AVA implements Comparable<AVA> {
                     throw new LocalizedIllegalArgumentException(
                             ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(reader.getString()));
                 }
-            } else if (c == ' ' || c == ',' || c == ';') {
+            } else if (c == ' ' || c == ',' || c == ';' || c == '+') {
                 // This denotes the end of the value.
                 break;
             } else {
@@ -326,14 +333,8 @@ public final class AVA implements Comparable<AVA> {
 
     private static ByteString readAttributeValue(final SubstringReader reader, final boolean isQuoted) {
         reader.reset();
-        final ByteString bytes = delimitAndEvaluateEscape(reader, isQuoted);
-        if (bytes.length() == 0) {
-            // We don't allow an empty attribute value.
-            final LocalizableMessage message =
-                    ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(reader.getString(), reader.pos());
-            throw new LocalizedIllegalArgumentException(message);
-        }
-        return bytes;
+        // RFC 4514 allows an empty value wherever it appears: whether the attribute allows it is a schema check.
+        return delimitAndEvaluateEscape(reader, isQuoted);
     }
 
     private static ByteString delimitAndEvaluateEscape(final SubstringReader reader, final boolean isQuoted) {
@@ -396,6 +397,10 @@ public final class AVA implements Comparable<AVA> {
         if (isQuoted) {
             // We hit the end of the AVA before the closing quote. That's an error.
             throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE.get(reader.getString()));
+        }
+        if (escaped) {
+            // A trailing escape character escapes nothing.
+            throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_DN_TRAILING_ESCAPE.get(reader.getString()));
         }
         reader.reset();
         valueBuffer.setLength(valueBuffer.length() - trailingSpaces);
