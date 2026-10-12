@@ -28,6 +28,7 @@ import static org.opends.server.crypto.CryptoManagerImpl.CERT_NICKNAME_CHECK_INT
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.types.Attributes.*;
+import static org.opends.server.util.CollectionUtils.newArrayList;
 import static org.testng.Assert.*;
 
 import java.io.File;
@@ -45,20 +46,32 @@ import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.security.spec.AlgorithmParameterSpec;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.crypto.CipherSpi;
 import javax.crypto.KeyGeneratorSpi;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
@@ -72,8 +85,10 @@ import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.controls.RelaxRulesControl;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.server.config.server.CryptoManagerCfg;
 import org.forgerock.util.Options;
 import org.opends.admin.ads.ADSContext;
@@ -81,14 +96,22 @@ import org.opends.admin.ads.util.BlindTrustManager;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.TrustStoreBackend;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
+import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Control;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.types.CryptoManagerException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
+import org.opends.server.types.OperationType;
+import org.opends.server.types.operation.PreOperationDeleteOperation;
+import org.opends.server.util.CertificateManager;
+import org.opends.server.util.Platform.KeyType;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.AfterClass;
@@ -312,6 +335,306 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     assertThat(ccr.getMessages().get(1).toString())
         .as("with the trust store which could not be read")
         .contains(trustStore.getTrustStoreFile());
+  }
+
+  /**
+   Replication replays the instance keys which reach cn=admin data together on parallel threads,
+   and the trust store file is rewritten for each of them: none of the certificates may be lost,
+   and the SSL contexts, which are built from that file, must never find it half written. A
+   directory server which loses the certificate of a replication server that way fails every
+   handshake with it (#1188).
+   */
+  @Test
+  public void testInstanceKeysAddedTogetherAllReachTheTrustStore() throws Exception
+  {
+    final int keys = 16;
+    final TrustStoreBackend trustStore = (TrustStoreBackend) getServerContext()
+        .getBackendConfigManager().getLocalBackendById(ID_ADS_TRUST_STORE_BACKEND);
+    final Map<DN, ByteString> certificates = generateInstanceKeyCertificates(keys);
+    final ExecutorService executor = Executors.newFixedThreadPool(keys + 1);
+    final CyclicBarrier start = new CyclicBarrier(keys + 1);
+    final AtomicBoolean adding = new AtomicBoolean(true);
+    try
+    {
+      final List<Future<ResultCode>> adds = new ArrayList<>();
+      for (Map.Entry<DN, ByteString> certificate : certificates.entrySet())
+      {
+        final Entry instanceKey = instanceKeyEntry(certificate.getKey(), certificate.getValue());
+        adds.add(executor.submit(() -> {
+          start.await();
+          return getRootConnection().processAdd(instanceKey).getResultCode();
+        }));
+      }
+      final Future<String> reads = executor.submit(() -> {
+        start.await();
+        do
+        {
+          try
+          {
+            trustStore.getTrustManagers();
+          }
+          catch (DirectoryException e)
+          {
+            return e.getMessage();
+          }
+        }
+        while (adding.get());
+        return null;
+      });
+
+      for (Future<ResultCode> add : adds)
+      {
+        assertThat(add.get(60, TimeUnit.SECONDS)).isEqualTo(ResultCode.SUCCESS);
+      }
+      adding.set(false);
+      assertThat(reads.get(60, TimeUnit.SECONDS)).as("a trust store read while the keys were added").isNull();
+
+      final Set<String> trusted = new HashSet<>();
+      for (TrustManager trustManager : trustStore.getTrustManagers())
+      {
+        for (X509Certificate issuer : ((X509TrustManager) trustManager).getAcceptedIssuers())
+        {
+          trusted.add(CryptoManagerImpl.getInstanceKeyID(issuer.getEncoded()));
+        }
+      }
+      final List<String> added = new ArrayList<>();
+      for (ByteString certificate : certificates.values())
+      {
+        added.add(CryptoManagerImpl.getInstanceKeyID(certificate.toByteArray()));
+      }
+      assertThat(trusted).as("the instance keys the trust store holds").containsAll(added);
+    }
+    finally
+    {
+      adding.set(false);
+      executor.shutdownNow();
+      // an add which outlived its wait above would put its entries back after the deletes
+      executor.awaitTermination(60, TimeUnit.SECONDS);
+      for (DN instanceKey : certificates.keySet())
+      {
+        getRootConnection().processDelete(instanceKey);
+      }
+    }
+  }
+
+  /**
+   An instance key the trust store cannot take, such as one which reached cn=admin data without
+   its certificate, leaves this server without trust in the server it belongs to, so every
+   replication connection to that server fails its handshake: the refusal must be in the error
+   log, which is where the administrator of such a server looks (#1188).
+   */
+  @Test
+  public void testInstanceKeyTheTrustStoreRefusesIsReported() throws Exception
+  {
+    final DN instanceKey = generateInstanceKeyCertificates(1).keySet().iterator().next();
+    final Entry withoutCertificate = new Entry(instanceKey, null, null, null);
+    withoutCertificate.addObjectClass(CoreSchema.getTopObjectClass());
+    withoutCertificate.addObjectClass(getServerContext().getSchema().getObjectClass(OC_CRYPTO_INSTANCE_KEY));
+    withoutCertificate.addAttribute(
+        create(ATTR_CRYPTO_KEY_ID, instanceKey.rdn().getFirstAVA().getAttributeValue().toString()));
+    final DN trustStoreEntry = DN.valueOf(DN_TRUST_STORE_ROOT).child(instanceKey.rdn());
+
+    TestCaseUtils.ERROR_TEXT_WRITER.clear();
+    try
+    {
+      // Relaxed, as only a replayed add can store an instance key without its certificate.
+      assertThat(getRootConnection().processAdd(withoutCertificate,
+              newArrayList((Control) new LDAPControl(RelaxRulesControl.OID, false))).getResultCode())
+          .isEqualTo(ResultCode.SUCCESS);
+
+      assertThat(DirectoryServer.getEntry(trustStoreEntry)).as("the instance key in the trust store").isNull();
+      assertThat(TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+          .as("the error log")
+          .anyMatch(record -> record.contains("severity=ERROR") && record.contains(trustStoreEntry.toString()));
+    }
+    finally
+    {
+      getRootConnection().processDelete(instanceKey);
+    }
+  }
+
+  /**
+   dsreplication seeds the trust store of a server it enables with the instance keys of the
+   topology, so the add of an instance key may find its certificate there already: that is no
+   failure, and the error log must stay quiet about it.
+   */
+  @Test
+  public void testInstanceKeyTheTrustStoreHoldsAlreadyIsNotReported() throws Exception
+  {
+    final Map.Entry<DN, ByteString> certificate =
+        generateInstanceKeyCertificates(1).entrySet().iterator().next();
+    final DN instanceKey = certificate.getKey();
+    final DN trustStoreEntry = DN.valueOf(DN_TRUST_STORE_ROOT).child(instanceKey.rdn());
+    try
+    {
+      assertThat(getRootConnection().processAdd(instanceKeyEntry(trustStoreEntry, certificate.getValue()))
+          .getResultCode()).as("the seeding of the trust store").isEqualTo(ResultCode.SUCCESS);
+
+      TestCaseUtils.ERROR_TEXT_WRITER.clear();
+      assertThat(getRootConnection().processAdd(instanceKeyEntry(instanceKey, certificate.getValue()))
+          .getResultCode()).isEqualTo(ResultCode.SUCCESS);
+
+      assertThat(DirectoryServer.getEntry(trustStoreEntry)).as("the instance key in the trust store").isNotNull();
+      assertThat(TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+          .as("the error log")
+          .noneMatch(record -> record.contains("severity=ERROR") && record.contains(trustStoreEntry.toString()));
+    }
+    finally
+    {
+      getRootConnection().processDelete(instanceKey);
+      getRootConnection().processDelete(trustStoreEntry);
+    }
+  }
+
+  /**
+   An instance key marked compromised has to leave the trust store: while its certificate is
+   there, this server goes on trusting whoever holds the key. A trust store which cannot drop it
+   must say so in the error log, as it does for a certificate it cannot take.
+   */
+  @Test
+  public void testCompromisedInstanceKeyTheTrustStoreCannotDropIsReported() throws Exception
+  {
+    final Map.Entry<DN, ByteString> certificate =
+        generateInstanceKeyCertificates(1).entrySet().iterator().next();
+    final DN instanceKey = certificate.getKey();
+    final DN trustStoreEntry = DN.valueOf(DN_TRUST_STORE_ROOT).child(instanceKey.rdn());
+    try
+    {
+      assertThat(getRootConnection().processAdd(instanceKeyEntry(instanceKey, certificate.getValue()))
+          .getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(DirectoryServer.getEntry(trustStoreEntry)).as("the instance key in the trust store").isNotNull();
+
+      ShortCircuitPlugin.registerShortCircuit(OperationType.DELETE, "PreOperation",
+          ResultCode.UNWILLING_TO_PERFORM.intValue(), 0, 1,
+          op -> trustStoreEntry.equals(((PreOperationDeleteOperation) op).getEntryDN()));
+      TestCaseUtils.ERROR_TEXT_WRITER.clear();
+      assertThat(getRootConnection().processModify(instanceKey, newArrayList(new Modification(
+              ADD, create(ATTR_CRYPTO_KEY_COMPROMISED_TIME, TimeThread.getGeneralizedTime()))))
+          .getResultCode()).isEqualTo(ResultCode.SUCCESS);
+
+      assertThat(DirectoryServer.getEntry(trustStoreEntry)).as("the compromised key in the trust store").isNotNull();
+      assertThat(TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+          .as("the error log")
+          .anyMatch(record -> record.contains("severity=ERROR") && record.contains(trustStoreEntry.toString()));
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.DELETE, "PreOperation");
+      getRootConnection().processDelete(instanceKey);
+      getRootConnection().processDelete(trustStoreEntry);
+    }
+  }
+
+  /**
+   The delete of an instance key whose certificate has left the trust store already - when the
+   key was marked compromised, say - finds nothing to drop there: that is no failure, and the
+   error log must stay quiet about it.
+   */
+  @Test
+  public void testInstanceKeyTheTrustStoreLacksAlreadyIsNotReported() throws Exception
+  {
+    final Map.Entry<DN, ByteString> certificate =
+        generateInstanceKeyCertificates(1).entrySet().iterator().next();
+    final DN instanceKey = certificate.getKey();
+    final DN trustStoreEntry = DN.valueOf(DN_TRUST_STORE_ROOT).child(instanceKey.rdn());
+    try
+    {
+      assertThat(getRootConnection().processAdd(instanceKeyEntry(instanceKey, certificate.getValue()))
+          .getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThat(getRootConnection().processDelete(trustStoreEntry).getResultCode())
+          .as("the certificate leaving the trust store first").isEqualTo(ResultCode.SUCCESS);
+
+      TestCaseUtils.ERROR_TEXT_WRITER.clear();
+      assertThat(getRootConnection().processDelete(instanceKey).getResultCode()).isEqualTo(ResultCode.SUCCESS);
+
+      assertThat(TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+          .as("the error log")
+          .noneMatch(record -> record.contains("severity=ERROR") && record.contains(trustStoreEntry.toString()));
+    }
+    finally
+    {
+      getRootConnection().processDelete(instanceKey);
+      getRootConnection().processDelete(trustStoreEntry);
+    }
+  }
+
+  /**
+   The trust store refuses an alias it holds already as an entry which exists, and the delete of
+   one it does not hold as an entry which does not, whichever check catches it: the sync of the
+   instance keys tells those apart from a failure by their result codes, and reports a failure in
+   the error log. Here the backend is called directly, past the existence check of the core, as an
+   add which lost the race for its alias to another one would reach it.
+   */
+  @Test
+  public void testTrustStoreRefusesAnAliasByWhatIsWrongWithIt() throws Exception
+  {
+    final TrustStoreBackend trustStore = (TrustStoreBackend) getServerContext()
+        .getBackendConfigManager().getLocalBackendById(ID_ADS_TRUST_STORE_BACKEND);
+    final Map.Entry<DN, ByteString> certificate =
+        generateInstanceKeyCertificates(1).entrySet().iterator().next();
+    final DN trustStoreEntry = DN.valueOf(DN_TRUST_STORE_ROOT).child(certificate.getKey().rdn());
+    try
+    {
+      assertThat(getRootConnection().processAdd(instanceKeyEntry(trustStoreEntry, certificate.getValue()))
+          .getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThatThrownBy(() -> trustStore.addEntry(instanceKeyEntry(trustStoreEntry, certificate.getValue()), null))
+          .as("an alias in use")
+          .isInstanceOfSatisfying(DirectoryException.class,
+              e -> assertThat(e.getResultCode()).isEqualTo(ResultCode.ENTRY_ALREADY_EXISTS));
+
+      assertThat(getRootConnection().processDelete(trustStoreEntry).getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      assertThatThrownBy(() -> trustStore.deleteEntry(trustStoreEntry, null))
+          .as("an alias not in use")
+          .isInstanceOfSatisfying(DirectoryException.class,
+              e -> assertThat(e.getResultCode()).isEqualTo(ResultCode.NO_SUCH_OBJECT));
+    }
+    finally
+    {
+      getRootConnection().processDelete(trustStoreEntry);
+    }
+  }
+
+  /** Generates self-signed certificates, by the DN of the instance key entry each would have. */
+  private static Map<DN, ByteString> generateInstanceKeyCertificates(int count) throws Exception
+  {
+    final Path keyStore = Files.createTempFile("instance-keys", ".jks");
+    Files.delete(keyStore);
+    try
+    {
+      final CertificateManager certificateManager =
+          new CertificateManager(keyStore.toString(), CertificateManager.KEY_STORE_TYPE_JKS, "password");
+      final Map<DN, ByteString> certificates = new LinkedHashMap<>();
+      for (int i = 0; i < count; i++)
+      {
+        final String alias = "instance-key-" + i;
+        certificateManager.generateSelfSignedCertificate(KeyType.EC, alias, "CN=" + alias, 1);
+        final byte[] certificate = certificateManager.getCertificate(alias).getEncoded();
+        certificates.put(
+            DN.valueOf(ATTR_CRYPTO_KEY_ID + "=" + CryptoManagerImpl.getInstanceKeyID(certificate)
+                + ",cn=instance keys,cn=admin data"),
+            ByteString.wrap(certificate));
+      }
+      return certificates;
+    }
+    finally
+    {
+      Files.deleteIfExists(keyStore);
+    }
+  }
+
+  /** Builds an instance key entry the way the crypto manager publishes its own in cn=admin data. */
+  private static Entry instanceKeyEntry(DN dn, ByteString certificate) throws DirectoryException
+  {
+    final Entry entry = new Entry(dn, null, null, null);
+    entry.addObjectClass(CoreSchema.getTopObjectClass());
+    entry.addObjectClass(getServerContext().getSchema().getObjectClass(OC_CRYPTO_INSTANCE_KEY));
+    entry.addAttribute(create(ATTR_CRYPTO_KEY_ID, dn.rdn().getFirstAVA().getAttributeValue().toString()));
+    final AttributeBuilder builder =
+        new AttributeBuilder(getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE));
+    builder.setOption("binary");
+    builder.add(certificate);
+    entry.addAttribute(builder.toAttribute());
+    return entry;
   }
 
   /**

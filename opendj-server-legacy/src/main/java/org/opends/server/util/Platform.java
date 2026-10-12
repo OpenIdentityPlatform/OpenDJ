@@ -21,8 +21,15 @@ package org.opends.server.util;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFileAttributeView;
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -131,6 +138,67 @@ public final class Platform
     {
     }
 
+    /**
+     * Writes the key store over its file. It is written to a file of its own next to it first,
+     * which then takes the place of the old one at once: a reader of the key store, which the
+     * server reads from its file for each SSL context, never finds it half written, and a process
+     * stopped part way through leaves the old file whole (#1188). A new key store, and one which
+     * cannot be replaced that way - in a directory this process cannot write to, or mounted on
+     * its own into a container - is written in place.
+     */
+    private static void store(KeyStore ks, String ksPath, char[] pwd) throws Exception
+    {
+      Path target = Paths.get(ksPath);
+      if (!Files.exists(target))
+      {
+        storeInPlace(ks, target, pwd);
+        return;
+      }
+      // A link goes on pointing where it did: the file it points to is the one replaced.
+      target = target.toRealPath();
+      final Path temp;
+      try
+      {
+        temp = Files.createTempFile(target.getParent(), "." + target.getFileName() + ".", ".tmp");
+      }
+      catch (IOException e)
+      {
+        storeInPlace(ks, target, pwd);
+        return;
+      }
+      try
+      {
+        try (OutputStream out = Files.newOutputStream(temp))
+        {
+          ks.store(out, pwd);
+        }
+        if (Files.getFileStore(target).supportsFileAttributeView(PosixFileAttributeView.class))
+        {
+          Files.setPosixFilePermissions(temp, Files.getPosixFilePermissions(target));
+        }
+        try
+        {
+          Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        }
+        catch (IOException e)
+        {
+          storeInPlace(ks, target, pwd);
+        }
+      }
+      finally
+      {
+        Files.deleteIfExists(temp);
+      }
+    }
+
+    private static void storeInPlace(KeyStore ks, Path target, char[] pwd) throws Exception
+    {
+      try (OutputStream out = new FileOutputStream(target.toFile()))
+      {
+        ks.store(out, pwd);
+      }
+    }
+
     private final void deleteAlias(KeyStore ks, String ksPath, String alias,
                                    char[] pwd) throws KeyStoreException
     {
@@ -142,10 +210,7 @@ public final class Platform
           throw new KeyStoreException(msg.toString());
         }
         ks.deleteEntry(alias);
-        try (final FileOutputStream fs = new FileOutputStream(ksPath))
-        {
-          ks.store(fs, pwd);
-        }
+        store(ks, ksPath, pwd);
       }
       catch (Exception e)
       {
@@ -182,9 +247,7 @@ public final class Platform
           LocalizableMessage msg = ERR_CERTMGR_ALIAS_INVALID.get(alias);
           throw new KeyStoreException(msg.toString());
         }
-        try (FileOutputStream fileOutStream = new FileOutputStream(ksPath)) {
-          ks.store(fileOutStream, pwd);
-        }
+        store(ks, ksPath, pwd);
       }
       catch (Exception e)
       {
@@ -212,9 +275,7 @@ public final class Platform
         // the server are initialised with the store password only, so a key which kept the
         // password of the key store it comes from could not be read back.
         ks.setKeyEntry(alias, privateKey, pwd, chain);
-        try (FileOutputStream fileOutStream = new FileOutputStream(ksPath)) {
-          ks.store(fileOutStream, pwd);
-        }
+        store(ks, ksPath, pwd);
       }
       catch (Exception e)
       {
@@ -238,9 +299,7 @@ public final class Platform
           throw new KeyStoreException(msg.toString());
         }
         ks.setCertificateEntry(alias, certificate);
-        try (FileOutputStream fileOutStream = new FileOutputStream(ksPath)) {
-          ks.store(fileOutStream, pwd);
-        }
+        store(ks, ksPath, pwd);
       }
       catch (Exception e)
       {
@@ -277,9 +336,7 @@ public final class Platform
                 generateSelfCertificate(keyPair, keyType, subject, validity)
         };
         ks.setKeyEntry(alias, privateKey, pwd, certificateChain);
-        try (FileOutputStream fileOutStream = new FileOutputStream(ksPath)) {
-          ks.store(fileOutStream, pwd);
-        }
+        store(ks, ksPath, pwd);
         return ks;
       }
       catch (Exception e)

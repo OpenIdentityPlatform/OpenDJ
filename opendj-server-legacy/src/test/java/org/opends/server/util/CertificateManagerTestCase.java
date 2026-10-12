@@ -22,11 +22,21 @@ package org.opends.server.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -1411,6 +1421,159 @@ public class CertificateManagerTestCase
     {
       TestCaseUtils.deleteDirectory(tmpDir);
     }
+  }
+
+
+
+  /**
+   * Tests that a reader of a key store file never finds it half written while it is rewritten:
+   * the trust store of the server is read from its file for each SSL context, and at the next
+   * start, by readers which do not share any lock with the writer, and a server stopped part way
+   * through a write must not be left with a truncated file it cannot start with (#1188).
+   *
+   * @throws  Exception  If a problem occurs.
+   */
+  @Test
+  public void testKeyStoreFileIsNeverSeenHalfWritten()
+         throws Exception
+  {
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("halfWritten");
+    final ExecutorService executor = Executors.newSingleThreadExecutor();
+    final AtomicBoolean writing = new AtomicBoolean(true);
+    try
+    {
+      final Certificate certificate = new CertificateFixture("CN=Example CA,O=Example").getCaCertificate();
+      final File destination = new File(tmpDir, "ads-truststore");
+      final CertificateManager manager =
+           new CertificateManager(destination.getAbsolutePath(), "JKS", "password");
+      manager.addTrustedCertificate("cert-0", certificate);
+
+      final Future<String> reads = executor.submit(() -> {
+        final KeyStore keyStore = KeyStore.getInstance("JKS");
+        while (writing.get())
+        {
+          try (FileInputStream in = new FileInputStream(destination))
+          {
+            keyStore.load(in, "password".toCharArray());
+          }
+          catch (Exception e)
+          {
+            return e.toString();
+          }
+        }
+        return null;
+      });
+      for (int i = 1; i <= 200; i++)
+      {
+        manager.addTrustedCertificate("cert-" + i, certificate);
+      }
+      writing.set(false);
+      assertNull(reads.get(60, TimeUnit.SECONDS), "a read of the key store while it was rewritten");
+    }
+    finally
+    {
+      writing.set(false);
+      executor.shutdownNow();
+      executor.awaitTermination(60, TimeUnit.SECONDS);
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+
+
+  /**
+   * Tests that the rewrite of a key store keeps the file it replaces as it was: its permissions,
+   * which the file it is written to first does not have, and the link the key store path may be,
+   * which must go on pointing where the administrator put the key store.
+   *
+   * @throws  Exception  If a problem occurs.
+   */
+  @Test
+  public void testKeyStoreRewriteKeepsPermissionsAndLink()
+         throws Exception
+  {
+    skipUnlessPosix();
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("rewriteKeeps");
+    try
+    {
+      final Certificate certificate = new CertificateFixture("CN=Example CA,O=Example").getCaCertificate();
+      final Path store = Files.createDirectory(tmpDir.toPath().resolve("store"));
+      final Path target = store.resolve("ads-truststore");
+      new CertificateManager(target.toString(), "JKS", "password").addTrustedCertificate("cert-0", certificate);
+      Files.setPosixFilePermissions(target, PosixFilePermissions.fromString("rw-r-----"));
+      final Path link = Files.createSymbolicLink(tmpDir.toPath().resolve("ads-truststore"), target);
+
+      new CertificateManager(link.toString(), "JKS", "password").addTrustedCertificate("cert-1", certificate);
+
+      assertTrue(Files.isSymbolicLink(link), "the key store path is a link still");
+      assertEquals(PosixFilePermissions.toString(Files.getPosixFilePermissions(target)), "rw-r-----");
+      assertTrue(loadJks(target.toFile(), "password").containsAlias("cert-1"), "the key store the link points to");
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+
+
+  /**
+   * Tests that a key store in a directory this process cannot write to, as one mounted on its own
+   * into a container, is still rewritten: in place, there being nowhere else to write it.
+   *
+   * @throws  Exception  If a problem occurs.
+   */
+  @Test
+  public void testKeyStoreInADirectoryNotWritableIsRewrittenInPlace()
+         throws Exception
+  {
+    skipUnlessPosix();
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("rewriteInPlace");
+    final Path store = tmpDir.toPath().resolve("store");
+    try
+    {
+      final Certificate certificate = new CertificateFixture("CN=Example CA,O=Example").getCaCertificate();
+      Files.createDirectory(store);
+      final Path target = store.resolve("ads-truststore");
+      final CertificateManager manager = new CertificateManager(target.toString(), "JKS", "password");
+      manager.addTrustedCertificate("cert-0", certificate);
+      Files.setPosixFilePermissions(store, PosixFilePermissions.fromString("r-xr-xr-x"));
+      if (Files.isWritable(store))
+      {
+        throw new SkipException("this process writes to a directory whatever its permissions");
+      }
+
+      manager.addTrustedCertificate("cert-1", certificate);
+
+      assertTrue(loadJks(target.toFile(), "password").containsAlias("cert-1"), "the key store");
+    }
+    finally
+    {
+      Files.setPosixFilePermissions(store, PosixFilePermissions.fromString("rwxr-xr-x"));
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+
+
+  private static void skipUnlessPosix()
+  {
+    if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix"))
+    {
+      throw new SkipException("POSIX file permissions and links are not available here");
+    }
+  }
+
+
+
+  private static KeyStore loadJks(File file, String password) throws Exception
+  {
+    final KeyStore keyStore = KeyStore.getInstance("JKS");
+    try (FileInputStream in = new FileInputStream(file))
+    {
+      keyStore.load(in, password.toCharArray());
+    }
+    return keyStore;
   }
 
 

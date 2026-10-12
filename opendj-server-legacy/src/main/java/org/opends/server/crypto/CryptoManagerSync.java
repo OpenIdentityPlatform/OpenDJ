@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.crypto;
 
@@ -359,9 +360,15 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
   private static void deleteEntry(DN dstDN)
   {
     DeleteOperation delOperation = getRootConnection().processDelete(dstDN);
-    if (delOperation.getResultCode() != ResultCode.SUCCESS)
+    if (delOperation.getResultCode() == ResultCode.NO_SUCH_OBJECT)
     {
-      logger.debug(INFO_TRUSTSTORESYNC_DELETE_FAILED, dstDN, delOperation.getErrorMessage());
+      // The certificate has left the trust store already, as it does when its key is marked compromised.
+      logger.debug(ERR_TRUSTSTORESYNC_DELETE_FAILED, dstDN, delOperation.getErrorMessage());
+    }
+    else if (delOperation.getResultCode() != ResultCode.SUCCESS)
+    {
+      // While the certificate is there, this server goes on trusting whoever holds the key.
+      logger.error(ERR_TRUSTSTORESYNC_DELETE_FAILED, dstDN, delOperation.getErrorMessage());
     }
   }
 
@@ -383,9 +390,16 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
 
     Entry addEntry = new Entry(dstDN, ocMap, userAttrs, null);
     AddOperation addOperation = getRootConnection().processAdd(addEntry);
-    if (addOperation.getResultCode() != ResultCode.SUCCESS)
+    if (addOperation.getResultCode() == ResultCode.ENTRY_ALREADY_EXISTS)
     {
-      logger.debug(INFO_TRUSTSTORESYNC_ADD_FAILED, dstDN, addOperation.getErrorMessage());
+      // dsreplication seeds the trust store of the servers it enables: the certificate is there already.
+      logger.debug(ERR_TRUSTSTORESYNC_ADD_FAILED, dstDN, addOperation.getErrorMessage());
+    }
+    else if (addOperation.getResultCode() != ResultCode.SUCCESS)
+    {
+      // Without the certificate this server does not trust the server the key belongs to, and
+      // every replication connection between the two fails its handshake (#1188).
+      logger.error(ERR_TRUSTSTORESYNC_ADD_FAILED, dstDN, addOperation.getErrorMessage());
     }
   }
 
