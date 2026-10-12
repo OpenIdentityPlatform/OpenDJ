@@ -832,8 +832,16 @@ jobs:
           trap 'code=$?; echo "::group::container logs (test_upgrade)"; docker logs test_upgrade 2>&1 || true; docker inspect --format="{{json .State.Health}}" test_upgrade 2>&1 || true; echo "::endgroup::"; docker rm -f test_upgrade >/dev/null 2>&1 || true; docker volume rm test_upgrade_data >/dev/null 2>&1 || true; exit $code' ERR
           search() { docker exec test_upgrade /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword password "$@"; }
           # release.yml publishes the GitHub release before it pushes the images of it: in between,
-          # and while a failed push stays unfixed, the latest release has no image to start from
-          docker pull "$RELEASED" || { echo "::warning::$RELEASED is not on Docker Hub yet, the upgrade test is skipped"; exit 0; }
+          # and while a failed push stays unfixed, the latest release has no image to start from.
+          # Only that skips the test; a pull that failed otherwise - a rate limit, the registry or
+          # the network down - fails it rather than passing it untested
+          if ! out=$(docker pull "$RELEASED" 2>&1); then
+            echo "$out"
+            case $out in
+              *"manifest unknown"*) echo "::warning::$RELEASED is not on Docker Hub yet, the upgrade test is skipped"; exit 0 ;;
+              *) exit 1 ;;
+            esac
+          fi
           docker run -d --memory="$MEMORY" -e ADD_BASE_ENTRY="--addBaseEntry" -e SAMPLE_DATA=10 -v test_upgrade_data:/opt/opendj/data --name=test_upgrade "$RELEASED"
           # the entries, not the health status: the health check of 5.1.2 turned healthy before
           # import-ldif had finished
@@ -1313,8 +1321,16 @@ jobs:
           trap 'code=$?; echo "::group::container logs (test_upgrade)"; docker logs test_upgrade 2>&1 || true; docker inspect --format="{{json .State.Health}}" test_upgrade 2>&1 || true; echo "::endgroup::"; docker rm -f test_upgrade >/dev/null 2>&1 || true; docker volume rm test_upgrade_data >/dev/null 2>&1 || true; exit $code' ERR
           search() { docker exec test_upgrade /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword password "$@"; }
           # release.yml publishes the GitHub release before it pushes the images of it: in between,
-          # and while a failed push stays unfixed, the latest release has no image to start from
-          docker pull "$RELEASED" || { echo "::warning::$RELEASED is not on Docker Hub yet, the upgrade test is skipped"; exit 0; }
+          # and while a failed push stays unfixed, the latest release has no image to start from.
+          # Only that skips the test; a pull that failed otherwise - a rate limit, the registry or
+          # the network down - fails it rather than passing it untested
+          if ! out=$(docker pull "$RELEASED" 2>&1); then
+            echo "$out"
+            case $out in
+              *"manifest unknown"*) echo "::warning::$RELEASED is not on Docker Hub yet, the upgrade test is skipped"; exit 0 ;;
+              *) exit 1 ;;
+            esac
+          fi
           docker run -d --memory="$MEMORY" -e ADD_BASE_ENTRY="--addBaseEntry" -e SAMPLE_DATA=10 -v test_upgrade_data:/opt/opendj/data --name=test_upgrade "$RELEASED"
           # the entries, not the health status: the health check of 5.1.2 turned healthy before
           # import-ldif had finished

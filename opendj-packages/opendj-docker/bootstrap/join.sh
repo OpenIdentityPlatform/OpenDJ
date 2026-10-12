@@ -1009,13 +1009,21 @@ done
 # left to believe it took effect. A volume set up by an image before roles has no role
 # recorded: its replication configuration tells it, and REPLICATION_ROLE where that does not -
 # a replication server without a domain is the replication server of the one-shot srs, when
-# REPLICATION_ROLE says so, and a combined server whose enable stopped half-way otherwise. The
-# role found is recorded, so that it stays what it is from then on.
+# REPLICATION_ROLE says so, and a combined server whose enable stopped half-way otherwise. One
+# without a backend for BASE_DN as well holds no data whatever REPLICATION_ROLE says: only
+# this image sets a volume up so, for a replication server. The role found is recorded, so
+# that it stays what it is from then on.
 legacy_role() { # <replication_config output>
   case $(config_shape "$1") in
     combined) echo combined ;;
     directory) echo directory ;;
-    server) if [ "$REPLICATION_ROLE" = replication ]; then echo replication; else echo combined; fi ;;
+    server)
+      if [ "$REPLICATION_ROLE" = replication ] || ! grep -qx backend <<<"$1"; then
+        echo replication
+      else
+        echo combined
+      fi
+      ;;
     *)
       if [ -f "$REJOIN_PENDING" ]; then
         # only the join of an image before roles took a volume down, and it ran combined
