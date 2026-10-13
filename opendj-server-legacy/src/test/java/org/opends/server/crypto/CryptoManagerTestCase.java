@@ -111,6 +111,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
 import org.opends.server.util.CertificateManager;
+import org.opends.server.util.KeyStoreReplaceFailure;
 import org.opends.server.util.Platform.KeyType;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
@@ -347,6 +348,26 @@ public class CryptoManagerTestCase extends CryptoTestCase {
   @Test
   public void testInstanceKeysAddedTogetherAllReachTheTrustStore() throws Exception
   {
+    addInstanceKeysTogetherWhileReadingTheTrustStore();
+  }
+
+  /**
+   The same, with a trust store file which cannot be replaced at once and is written in place -
+   one mounted on its own into a container, in a directory this process cannot write to, or held
+   open by a reader on Windows: there only the lock of the trust store keeps the SSL contexts
+   from finding it half written.
+   */
+  @Test
+  public void testInstanceKeysAddedTogetherInPlaceAllReachTheTrustStore() throws Exception
+  {
+    try (AutoCloseable inPlace = KeyStoreReplaceFailure.failKeyStoreReplace())
+    {
+      addInstanceKeysTogetherWhileReadingTheTrustStore();
+    }
+  }
+
+  private void addInstanceKeysTogetherWhileReadingTheTrustStore() throws Exception
+  {
     final int keys = 16;
     final TrustStoreBackend trustStore = (TrustStoreBackend) getServerContext()
         .getBackendConfigManager().getLocalBackendById(ID_ADS_TRUST_STORE_BACKEND);
@@ -389,20 +410,8 @@ public class CryptoManagerTestCase extends CryptoTestCase {
       adding.set(false);
       assertThat(reads.get(60, TimeUnit.SECONDS)).as("a trust store read while the keys were added").isNull();
 
-      final Set<String> trusted = new HashSet<>();
-      for (TrustManager trustManager : trustStore.getTrustManagers())
-      {
-        for (X509Certificate issuer : ((X509TrustManager) trustManager).getAcceptedIssuers())
-        {
-          trusted.add(CryptoManagerImpl.getInstanceKeyID(issuer.getEncoded()));
-        }
-      }
-      final List<String> added = new ArrayList<>();
-      for (ByteString certificate : certificates.values())
-      {
-        added.add(CryptoManagerImpl.getInstanceKeyID(certificate.toByteArray()));
-      }
-      assertThat(trusted).as("the instance keys the trust store holds").containsAll(added);
+      assertThat(trustedInstanceKeys(trustStore)).as("the instance keys the trust store holds")
+          .containsAll(instanceKeyIDs(certificates));
     }
     finally
     {
@@ -418,10 +427,104 @@ public class CryptoManagerTestCase extends CryptoTestCase {
   }
 
   /**
+   Replication replays the deletes of instance keys together with the adds of others: a delete
+   lost to an add would leave a compromised key trusted, an add lost to a delete would leave a
+   server untrusted (#1188).
+   */
+  @Test
+  public void testInstanceKeysAddedAndDeletedTogetherAllReachTheTrustStore() throws Exception
+  {
+    final int keys = 16;
+    final TrustStoreBackend trustStore = (TrustStoreBackend) getServerContext()
+        .getBackendConfigManager().getLocalBackendById(ID_ADS_TRUST_STORE_BACKEND);
+    final Map<DN, ByteString> deleted = generateInstanceKeyCertificates(keys);
+    final Map<DN, ByteString> added = generateInstanceKeyCertificates(keys);
+    final ExecutorService executor = Executors.newFixedThreadPool(2 * keys);
+    final CyclicBarrier start = new CyclicBarrier(2 * keys);
+    try
+    {
+      for (Map.Entry<DN, ByteString> certificate : deleted.entrySet())
+      {
+        assertThat(getRootConnection().processAdd(instanceKeyEntry(certificate.getKey(), certificate.getValue()))
+            .getResultCode()).isEqualTo(ResultCode.SUCCESS);
+      }
+      assertThat(trustedInstanceKeys(trustStore)).as("the instance keys the trust store holds before")
+          .containsAll(instanceKeyIDs(deleted));
+
+      final List<Future<ResultCode>> changes = new ArrayList<>();
+      for (Map.Entry<DN, ByteString> certificate : added.entrySet())
+      {
+        final Entry instanceKey = instanceKeyEntry(certificate.getKey(), certificate.getValue());
+        changes.add(executor.submit(() -> {
+          start.await();
+          return getRootConnection().processAdd(instanceKey).getResultCode();
+        }));
+      }
+      for (DN instanceKey : deleted.keySet())
+      {
+        changes.add(executor.submit(() -> {
+          start.await();
+          return getRootConnection().processDelete(instanceKey).getResultCode();
+        }));
+      }
+      for (Future<ResultCode> change : changes)
+      {
+        assertThat(change.get(60, TimeUnit.SECONDS)).isEqualTo(ResultCode.SUCCESS);
+      }
+
+      final Set<String> trusted = trustedInstanceKeys(trustStore);
+      assertThat(trusted).as("the instance keys the trust store holds").containsAll(instanceKeyIDs(added));
+      assertThat(trusted).as("the instance keys the trust store holds")
+          .doesNotContainAnyElementsOf(instanceKeyIDs(deleted));
+    }
+    finally
+    {
+      executor.shutdownNow();
+      // a change which outlived its wait above would put its entries back after the deletes
+      executor.awaitTermination(60, TimeUnit.SECONDS);
+      for (DN instanceKey : added.keySet())
+      {
+        getRootConnection().processDelete(instanceKey);
+      }
+      for (DN instanceKey : deleted.keySet())
+      {
+        getRootConnection().processDelete(instanceKey);
+      }
+    }
+  }
+
+  /** The IDs of the instance keys whose certificates the trust store holds. */
+  private static Set<String> trustedInstanceKeys(TrustStoreBackend trustStore) throws Exception
+  {
+    final Set<String> trusted = new HashSet<>();
+    for (TrustManager trustManager : trustStore.getTrustManagers())
+    {
+      for (X509Certificate issuer : ((X509TrustManager) trustManager).getAcceptedIssuers())
+      {
+        trusted.add(CryptoManagerImpl.getInstanceKeyID(issuer.getEncoded()));
+      }
+    }
+    return trusted;
+  }
+
+  private static List<String> instanceKeyIDs(Map<DN, ByteString> certificates) throws Exception
+  {
+    final List<String> ids = new ArrayList<>();
+    for (ByteString certificate : certificates.values())
+    {
+      ids.add(CryptoManagerImpl.getInstanceKeyID(certificate.toByteArray()));
+    }
+    return ids;
+  }
+
+  /**
    An instance key the trust store cannot take, such as one which reached cn=admin data without
    its certificate, leaves this server without trust in the server it belongs to, so every
    replication connection to that server fails its handshake: the refusal must be in the error
-   log, which is where the administrator of such a server looks (#1188).
+   log, which is where the administrator of such a server looks (#1188). A key without its
+   certificate is refused by the schema check of its copy, before the trust store backend sees
+   it; a refusal of the backend itself takes the same branch of CryptoManagerSync, and keeps its
+   result code (testTrustStoreRefusesAnAliasByWhatIsWrongWithIt).
    */
   @Test
   public void testInstanceKeyTheTrustStoreRefusesIsReported() throws Exception

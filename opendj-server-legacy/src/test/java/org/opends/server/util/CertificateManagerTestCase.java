@@ -25,16 +25,21 @@ import java.io.FileOutputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import com.sun.security.auth.module.UnixSystem;
 
 import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
@@ -1429,7 +1434,9 @@ public class CertificateManagerTestCase
    * Tests that a reader of a key store file never finds it half written while it is rewritten:
    * the trust store of the server is read from its file for each SSL context, and at the next
    * start, by readers which do not share any lock with the writer, and a server stopped part way
-   * through a write must not be left with a truncated file it cannot start with (#1188).
+   * through a write must not be left with a truncated file it cannot start with (#1188). On a
+   * POSIX file system only: Windows does not replace a file a reader holds open, and the key
+   * store is then written in place.
    *
    * @throws  Exception  If a problem occurs.
    */
@@ -1437,6 +1444,7 @@ public class CertificateManagerTestCase
   public void testKeyStoreFileIsNeverSeenHalfWritten()
          throws Exception
   {
+    skipUnlessPosix();
     final File tmpDir = TestCaseUtils.createTemporaryDirectory("halfWritten");
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     final AtomicBoolean writing = new AtomicBoolean(true);
@@ -1448,13 +1456,17 @@ public class CertificateManagerTestCase
            new CertificateManager(destination.getAbsolutePath(), "JKS", "password");
       manager.addTrustedCertificate("cert-0", certificate);
 
+      final CountDownLatch started = new CountDownLatch(1);
+      final AtomicInteger loads = new AtomicInteger();
       final Future<String> reads = executor.submit(() -> {
         final KeyStore keyStore = KeyStore.getInstance("JKS");
+        started.countDown();
         while (writing.get())
         {
           try (FileInputStream in = new FileInputStream(destination))
           {
             keyStore.load(in, "password".toCharArray());
+            loads.incrementAndGet();
           }
           catch (Exception e)
           {
@@ -1463,12 +1475,14 @@ public class CertificateManagerTestCase
         }
         return null;
       });
+      assertTrue(started.await(60, TimeUnit.SECONDS), "the reader started");
       for (int i = 1; i <= 200; i++)
       {
         manager.addTrustedCertificate("cert-" + i, certificate);
       }
       writing.set(false);
       assertNull(reads.get(60, TimeUnit.SECONDS), "a read of the key store while it was rewritten");
+      assertTrue(loads.get() > 0, "the reader loaded the key store while it was rewritten");
     }
     finally
     {
@@ -1549,7 +1563,162 @@ public class CertificateManagerTestCase
     }
     finally
     {
-      Files.setPosixFilePermissions(store, PosixFilePermissions.fromString("rwxr-xr-x"));
+      if (Files.exists(store))
+      {
+        Files.setPosixFilePermissions(store, PosixFilePermissions.fromString("rwxr-xr-x"));
+      }
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+
+
+  /**
+   * Tests that the rewrite of a key store keeps its group, a group of this process other than the
+   * one a new file gets, and still replaces the file at once rather than writing it in place.
+   *
+   * @throws  Exception  If a problem occurs.
+   */
+  @Test
+  public void testKeyStoreRewriteKeepsTheGroup()
+         throws Exception
+  {
+    skipUnlessPosix();
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("rewriteKeepsGroup");
+    try
+    {
+      final Certificate certificate = new CertificateFixture("CN=Example CA,O=Example").getCaCertificate();
+      final Path target = tmpDir.toPath().resolve("ads-truststore");
+      new CertificateManager(target.toString(), "JKS", "password").addTrustedCertificate("cert-0", certificate);
+      final long newFileGroup = ((Integer) Files.getAttribute(target, "unix:gid")).longValue();
+      final UnixSystem process = new UnixSystem();
+      long group = process.getGid();
+      for (long g : process.getGroups())
+      {
+        if (group == newFileGroup)
+        {
+          group = g;
+        }
+      }
+      if (group == newFileGroup)
+      {
+        throw new SkipException("this process is a member of no group but the one a new file gets");
+      }
+      Files.getFileAttributeView(target, PosixFileAttributeView.class).setGroup(FileSystems.getDefault()
+          .getUserPrincipalLookupService().lookupPrincipalByGroupName(String.valueOf(group)));
+      final Object file = Files.getAttribute(target, "unix:ino");
+
+      new CertificateManager(target.toString(), "JKS", "password").addTrustedCertificate("cert-1", certificate);
+
+      assertEquals(((Integer) Files.getAttribute(target, "unix:gid")).longValue(), group,
+          "the group of the key store");
+      assertNotEquals(Files.getAttribute(target, "unix:ino"), file, "the key store replaced, not written in place");
+      assertTrue(loadJks(target.toFile(), "password").containsAlias("cert-1"), "the key store");
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+
+
+  /**
+   * Tests that a key store file with another hard link is rewritten in place: a new file in its
+   * place would leave the other name with the old key store.
+   *
+   * @throws  Exception  If a problem occurs.
+   */
+  @Test
+  public void testKeyStoreWithAnotherHardLinkIsRewrittenInPlace()
+         throws Exception
+  {
+    skipUnlessPosix();
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("rewriteHardLink");
+    try
+    {
+      final Certificate certificate = new CertificateFixture("CN=Example CA,O=Example").getCaCertificate();
+      final Path target = tmpDir.toPath().resolve("ads-truststore");
+      new CertificateManager(target.toString(), "JKS", "password").addTrustedCertificate("cert-0", certificate);
+      final Path other = Files.createLink(tmpDir.toPath().resolve("ads-truststore.link"), target);
+
+      new CertificateManager(target.toString(), "JKS", "password").addTrustedCertificate("cert-1", certificate);
+
+      assertTrue(loadJks(other.toFile(), "password").containsAlias("cert-1"), "the key store by its other name");
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+
+
+  /**
+   * Tests that a key store file this process may not write to is not rewritten, even in a
+   * directory it may write to, where the file could be replaced.
+   *
+   * @throws  Exception  If a problem occurs.
+   */
+  @Test
+  public void testKeyStoreNotWritableIsRefused()
+         throws Exception
+  {
+    skipUnlessPosix();
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("rewriteRefused");
+    try
+    {
+      final Certificate certificate = new CertificateFixture("CN=Example CA,O=Example").getCaCertificate();
+      final Path target = tmpDir.toPath().resolve("ads-truststore");
+      final CertificateManager manager = new CertificateManager(target.toString(), "JKS", "password");
+      manager.addTrustedCertificate("cert-0", certificate);
+      Files.setPosixFilePermissions(target, PosixFilePermissions.fromString("r--r--r--"));
+      if (Files.isWritable(target))
+      {
+        throw new SkipException("this process writes to a file whatever its permissions");
+      }
+
+      assertThrows(KeyStoreException.class, () -> manager.addTrustedCertificate("cert-1", certificate));
+
+      assertFalse(loadJks(target.toFile(), "password").containsAlias("cert-1"), "the key store");
+      assertEquals(PosixFilePermissions.toString(Files.getPosixFilePermissions(target)), "r--r--r--");
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+
+
+  /**
+   * Tests that a key store which cannot be replaced at once, as a file mounted on its own into a
+   * container (EBUSY, EXDEV) or one a reader holds open on Windows, is still rewritten: in place.
+   *
+   * @throws  Exception  If a problem occurs.
+   */
+  @Test
+  public void testKeyStoreWhichCannotBeReplacedIsRewrittenInPlace()
+         throws Exception
+  {
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("rewriteNotReplaced");
+    try
+    {
+      final Certificate certificate = new CertificateFixture("CN=Example CA,O=Example").getCaCertificate();
+      final File target = new File(tmpDir, "ads-truststore");
+      final CertificateManager manager = new CertificateManager(target.getAbsolutePath(), "JKS", "password");
+      manager.addTrustedCertificate("cert-0", certificate);
+
+      try (AutoCloseable inPlace = KeyStoreReplaceFailure.failKeyStoreReplace())
+      {
+        manager.addTrustedCertificate("cert-1", certificate);
+      }
+
+      assertTrue(loadJks(target, "password").containsAlias("cert-1"), "the key store");
+      assertEquals(tmpDir.list(), new String[] { "ads-truststore" }, "the files next to the key store");
+    }
+    finally
+    {
       TestCaseUtils.deleteDirectory(tmpDir);
     }
   }

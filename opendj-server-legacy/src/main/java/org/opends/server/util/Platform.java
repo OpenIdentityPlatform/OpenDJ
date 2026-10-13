@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributes;
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -76,6 +77,26 @@ public final class Platform
 {
 
   private static final PlatformIMPL IMPL;
+
+  /** Puts a key store written next to its file in the place of that file. */
+  interface KeyStoreReplacer
+  {
+    /**
+     * Puts the new file in the place of the old one at once.
+     *
+     * @param temp
+     *          the new file, next to the old one
+     * @param target
+     *          the old file
+     * @throws IOException
+     *           if the old file cannot be replaced that way
+     */
+    void replace(Path temp, Path target) throws IOException;
+  }
+
+  /** Replaces a key store file; a test makes it fail to reach the write in place. */
+  static volatile KeyStoreReplacer keyStoreReplacer = (temp, target) ->
+      Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
 
   /** The minimum java supported version. */
   public static final String JAVA_MINIMUM_VERSION_NUMBER = "11";
@@ -140,11 +161,17 @@ public final class Platform
 
     /**
      * Writes the key store over its file. It is written to a file of its own next to it first,
-     * which then takes the place of the old one at once: a reader of the key store, which the
-     * server reads from its file for each SSL context, never finds it half written, and a process
-     * stopped part way through leaves the old file whole (#1188). A new key store, and one which
-     * cannot be replaced that way - in a directory this process cannot write to, or mounted on
-     * its own into a container - is written in place.
+     * which then takes the place of the old one at once: on a POSIX file system a reader of the
+     * key store, which the server reads from its file for each SSL context, never finds it half
+     * written, and a process stopped part way through leaves the old file whole (#1188). The new
+     * file keeps the mode, the owner and the group of the old one; it does not keep its ACLs.
+     * <p>
+     * The key store is written in place, as it was before, where it cannot be replaced that way
+     * without changing what the file is: a new key store, one this process may not write to
+     * (refused, as before), one with other hard links, one whose owner or group the new file
+     * cannot take, one in a directory this process cannot write to, and one which cannot be
+     * replaced - mounted on its own into a container, or held open by a reader on Windows, which
+     * may then find it half written.
      */
     private static void store(KeyStore ks, String ksPath, char[] pwd) throws Exception
     {
@@ -156,6 +183,11 @@ public final class Platform
       }
       // A link goes on pointing where it did: the file it points to is the one replaced.
       target = target.toRealPath();
+      if (!Files.isWritable(target) || hasOtherLinks(target))
+      {
+        storeInPlace(ks, target, pwd);
+        return;
+      }
       final Path temp;
       try
       {
@@ -172,13 +204,14 @@ public final class Platform
         {
           ks.store(out, pwd);
         }
-        if (Files.getFileStore(target).supportsFileAttributeView(PosixFileAttributeView.class))
+        if (!takeOwnerAndMode(temp, target))
         {
-          Files.setPosixFilePermissions(temp, Files.getPosixFilePermissions(target));
+          storeInPlace(ks, target, pwd);
+          return;
         }
         try
         {
-          Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+          keyStoreReplacer.replace(temp, target);
         }
         catch (IOException e)
         {
@@ -189,6 +222,39 @@ public final class Platform
       {
         Files.deleteIfExists(temp);
       }
+    }
+
+    /** Whether the file has other names, which a new file in its place would not have. */
+    private static boolean hasOtherLinks(Path target) throws IOException
+    {
+      return Files.getFileStore(target).supportsFileAttributeView("unix")
+          && ((Number) Files.getAttribute(target, "unix:nlink")).intValue() > 1;
+    }
+
+    /**
+     * Gives the new file the mode, the owner and the group of the old one, and tells whether it
+     * has them: a process may give a file only the groups it is a member of, and only its own
+     * user as owner.
+     */
+    private static boolean takeOwnerAndMode(Path temp, Path target) throws IOException
+    {
+      if (!Files.getFileStore(target).supportsFileAttributeView(PosixFileAttributeView.class))
+      {
+        return true;
+      }
+      final PosixFileAttributes old = Files.readAttributes(target, PosixFileAttributes.class);
+      final PosixFileAttributeView view = Files.getFileAttributeView(temp, PosixFileAttributeView.class);
+      view.setPermissions(old.permissions());
+      try
+      {
+        view.setGroup(old.group());
+      }
+      catch (IOException e)
+      {
+        // not a member of that group: told by the check below
+      }
+      final PosixFileAttributes now = view.readAttributes();
+      return now.owner().equals(old.owner()) && now.group().equals(old.group());
     }
 
     private static void storeInPlace(KeyStore ks, Path target, char[] pwd) throws Exception
