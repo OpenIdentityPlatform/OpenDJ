@@ -22,6 +22,30 @@
 
 echo "Setting up default OpenDJ instance"
 
+# A replication server of the background join holds no data (#1178): it gets no backend for
+# BASE_DN, and none of the entries below - entries there would replicate nowhere, and be
+# served to any client that reaches it. run.sh marks a volume $INITIALIZE_PENDING before its
+# bootstrap exactly when the background join runs; without the join the server holds its data
+# as any other - one with neither would be healthy and serve nothing - and REPLICATION_ROLE
+# is not read. The role is checked here as join.sh checks it, before anything is set up: a
+# value the join refuses would otherwise leave a volume set up for another role than the one
+# asked for. It is recorded on the volume, where join.sh reads it on every start: the volume
+# is what makes the role, whatever REPLICATION_ROLE says later.
+HOLDS_DATA=true
+if [ -n "$INITIALIZE_PENDING" ] && [ -f "$INITIALIZE_PENDING" ]; then
+  role=${REPLICATION_ROLE:-combined}
+  case $role in
+    combined | directory) ;;
+    replication)
+      HOLDS_DATA=false
+      echo "REPLICATION_ROLE=replication: no backend is created for $BASE_DN, and no entries are loaded" ;;
+    *)
+      echo "REPLICATION_ROLE=$REPLICATION_ROLE is not one of combined, directory or replication" >&2
+      exit 1 ;;
+  esac
+  printf '%s\n' "$role" >"${REPLICATION_ROLE_FILE:-/opt/opendj/data/.replication-role}" || exit 1
+fi
+
 # The tools read only the first line of a password file, and a CR ends it as an LF does, so a
 # password with a line break would be cut there - silently, as the root password set up would
 # not be the one the container was given
@@ -81,13 +105,15 @@ fi
 
 BACKEND_TYPE=${BACKEND_TYPE:-je}
 BACKEND_DB_DIRECTORY=${BACKEND_DB_DIRECTORY:-db}
-echo "creating backend: $BACKEND_TYPE db-directory: ${BACKEND_DB_DIRECTORY}"
+if [ "$HOLDS_DATA" = true ]; then
+  echo "creating backend: $BACKEND_TYPE db-directory: ${BACKEND_DB_DIRECTORY}"
 
-/opt/opendj/bin/dsconfig create-backend -h localhost -p $ADMIN_PORT --bindDN "$ROOT_USER_DN" --bindPasswordFile "$PASSWORD_FILE" \
-  --backend-name=userRoot --type $BACKEND_TYPE --set "base-dn:$BASE_DN" --set "db-directory:$BACKEND_DB_DIRECTORY" \
-  --set enabled:true --no-prompt --trustAll || exit 1
+  /opt/opendj/bin/dsconfig create-backend -h localhost -p $ADMIN_PORT --bindDN "$ROOT_USER_DN" --bindPasswordFile "$PASSWORD_FILE" \
+    --backend-name=userRoot --type $BACKEND_TYPE --set "base-dn:$BASE_DN" --set "db-directory:$BACKEND_DB_DIRECTORY" \
+    --set enabled:true --no-prompt --trustAll || exit 1
+fi
 
-if [ "$ADD_BASE_ENTRY" = "--addBaseEntry"  ]; then
+if [ "$HOLDS_DATA" = true ] && [ "$ADD_BASE_ENTRY" = "--addBaseEntry"  ]; then
   BASE_TEMPLATE=$(mktemp)
   if [ ! -z ${SAMPLE_DATA} ]; then
     echo "generating sample data..."
@@ -116,7 +142,7 @@ if [ -d /opt/opendj/bootstrap/schema/ ]; then
   done
 fi
 
-if [ -d /opt/opendj/bootstrap/data/ ]; then
+if [ "$HOLDS_DATA" = true ] && [ -d /opt/opendj/bootstrap/data/ ]; then
   # allow pre encoded passwords; the port is named, as the tool would otherwise go to 4444
   # whatever ADMIN_PORT the server listens on, and the entries carrying them would be refused
   /opt/opendj/bin/dsconfig \

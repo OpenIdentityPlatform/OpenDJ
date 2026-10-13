@@ -54,6 +54,47 @@ export INITIALIZE_PENDING=${INITIALIZE_PENDING:-/opt/opendj/data/.replication-in
 # the enable registered it again: it holds the data of the topology, but takes writes that
 # replicate nowhere meanwhile
 export REJOIN_PENDING=${REJOIN_PENDING:-/opt/opendj/data/.replication-rejoin-pending}
+# A volume this script bootstraps carries this one from before its bootstrap until the whole
+# of it - the bootstrap script, and the replicate.sh of a one-shot replication type - has
+# succeeded (#1182). A bootstrap that failed or was killed after setup wrote ./data/config
+# leaves the volume looking installed, and the next start would otherwise report a server
+# healthy that has no backend or no base entry. Volumes bootstrapped by images before this one
+# carry no mark, and start as they did.
+export BOOTSTRAP_PENDING=${BOOTSTRAP_PENDING:-/opt/opendj/data/.bootstrap-pending}
+# And a volume this script upgrades to another version carries this one from before the
+# upgrade until the upgrade succeeded, post-upgrade tasks included (#1185). The upgrade records
+# the new version in config/buildinfo before it runs those tasks - the index rebuilds, and the
+# verification of the DN equality indexes - so after one of them failed, or the container was
+# stopped in the middle of them, the next run of upgrade finds nothing to do and succeeds.
+UPGRADE_PENDING=${UPGRADE_PENDING:-/opt/opendj/data/.upgrade-pending}
+
+# major.minor.point of a buildinfo file: the part of the version the upgrade compares
+build_version() { # <buildinfo>
+  head -n 1 "$1" 2>/dev/null | cut -d. -f1-3
+}
+
+# Upgrades the instance to the version of this image, and fails where the upgrade fails or
+# where an earlier start left it incomplete: the mark of a volume whose version is already
+# the one of this image can only come from an upgrade that recorded it and did not complete.
+# One that did not get that far is run again, as before. An instance without a version to read
+# is not marked: the upgrade refuses it, and setup never got far enough to call it installed.
+# --force performs the tasks that -n alone answers with their default no, such as rebuilding
+# indexes: nobody is there to run them by hand afterwards, as the native packages do too
+upgrade_instance() {
+  local from to
+  from=$(build_version ./data/config/buildinfo)
+  to=$(build_version ./template/config/buildinfo)
+  if [ -n "$from" ] && [ "$from" != "$to" ] && ! printf '%s\n' "$from to $to" >"$UPGRADE_PENDING"; then
+    echo "Could not write $UPGRADE_PENDING, the upgrade is not started"
+    return 1
+  fi
+  sh ./upgrade -n --force || return 1
+  if [ "$from" = "$to" ] && [ -f "$UPGRADE_PENDING" ]; then
+    echo "The upgrade of this volume from $(cat "$UPGRADE_PENDING") did not complete on an earlier start: its post-upgrade tasks failed or were cut off, which /opt/opendj/data/logs/upgrade.log tells. Rebuild the indexes it names with rebuild-index and remove $UPGRADE_PENDING, or restore the backup taken before the upgrade"
+    return 1
+  fi
+  rm -f "$UPGRADE_PENDING"
+}
 
 # The background join (bootstrap/join.sh) serves OPENDJ_REPLICATION_TYPE=simple on every
 # start; srs, sdsr and rg keep the one-shot replicate.sh of the first bootstrap
@@ -136,10 +177,17 @@ fi
 # Instance dir does exist? We start opendj without detach
 if [ -d ./data/config ]; then
   # nothing is bootstrapped here, the instance is already there - but a half-migrated one
-  # is not ready to serve either, so the marker follows the upgrade.
-  # --force performs the tasks that -n alone answers with their default no, such as rebuilding indexes:
-  # nobody is there to run them by hand afterwards, as the native packages do too
-  if sh ./upgrade -n --force; then
+  # is not ready to serve either, so the marker follows the upgrade
+  if [ -f "$BOOTSTRAP_PENDING" ]; then
+    # neither the marker nor the join: the join would enable a volume that lacks what the
+    # bootstrap was to set up - a volume of the background join too, whose initialize would
+    # bring the data of the topology but nothing else the bootstrap was to configure - and
+    # the server is only there to be looked at. The upgrade still runs, whatever it says:
+    # start-ds refuses an instance of another version, and the setup could then not be
+    # finished by hand under this image
+    upgrade_instance || echo "The upgrade did not complete"
+    echo "The bootstrap of this volume did not complete, this container will not report itself healthy: remove the volume and start over, or finish the setup by hand and remove $BOOTSTRAP_PENDING"
+  elif upgrade_instance; then
     # A server whose volume holds the data of the topology is ready as soon as it serves:
     # gating it on its peers would deadlock a whole-cluster restart under OrderedReady,
     # where -0 would wait for peers the StatefulSet starts only once -0 is ready - and so
@@ -169,7 +217,7 @@ if [ -d ./data/config ]; then
       /opt/opendj/bootstrap/join.sh &
     fi
   else
-    echo "Upgrade failed, this container will not report itself healthy"
+    echo "The upgrade did not complete, this container will not report itself healthy"
   fi
   start_server
 fi
@@ -189,6 +237,7 @@ BOOTSTRAPPED=true
 # volume that counts as holding the data of the topology; a bootstrapped volume has entries
 # whether or not it was asked for any, so it is initialized from the topology (see
 # bootstrap/join.sh)
+touch "$BOOTSTRAP_PENDING"
 if join_requested; then
   touch "$INITIALIZE_PENDING"
 fi
@@ -226,6 +275,10 @@ fi
 # replication - is in place from here on, so the health check may start probing the server.
 # With the background join, replication is the one thing still outstanding: the join writes
 # the health marker once this server is a member of its topology, and not before.
+if [ "$BOOTSTRAPPED" = true ] && ! rm -f "$BOOTSTRAP_PENDING"; then
+  BOOTSTRAPPED=false
+  echo "Could not remove $BOOTSTRAP_PENDING, this container will not report itself healthy"
+fi
 if [ "$BOOTSTRAPPED" = true ]; then
   if join_requested; then
     /opt/opendj/bootstrap/join.sh &
