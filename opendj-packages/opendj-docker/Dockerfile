@@ -57,6 +57,7 @@ WORKDIR /opt
 
 RUN  printf 'Acquire::ForceIPv4 "true";\nAcquire::Retries "5";\n' > /etc/apt/apt.conf.d/99-ci-network \
  && apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
  && apt-get install -y --no-install-recommends curl unzip \
  && if [ -z "$VERSION" ] ; then VERSION="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)"; fi \
  && if [ ! -f "$OPENDJ_DIST_FILENAME" ]; then echo file exists && curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output $OPENDJ_DIST_FILENAME; fi \
