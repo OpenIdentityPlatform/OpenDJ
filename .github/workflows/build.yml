@@ -833,12 +833,14 @@ jobs:
           search() { docker exec test_upgrade /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword password "$@"; }
           # release.yml publishes the GitHub release before it pushes the images of it: in between,
           # and while a failed push stays unfixed, the latest release has no image to start from.
-          # Only that skips the test; a pull that failed otherwise - a rate limit, the registry or
-          # the network down - fails it rather than passing it untested
+          # Only that skips the test - a tag the registry does not have, which the classic image
+          # store reports as "manifest unknown" and the containerd one as a reference it could not
+          # resolve, "not found"; a pull that failed otherwise - a rate limit, the registry or the
+          # network down - fails it rather than passing it untested
           if ! out=$(docker pull "$RELEASED" 2>&1); then
             echo "$out"
             case $out in
-              *"manifest unknown"*) echo "::warning::$RELEASED is not on Docker Hub yet, the upgrade test is skipped"; exit 0 ;;
+              *"manifest unknown"*|*"failed to resolve reference"*": not found"*) echo "::warning::$RELEASED is not on Docker Hub yet, the upgrade test is skipped"; exit 0 ;;
               *) exit 1 ;;
             esac
           fi
@@ -1322,12 +1324,14 @@ jobs:
           search() { docker exec test_upgrade /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword password "$@"; }
           # release.yml publishes the GitHub release before it pushes the images of it: in between,
           # and while a failed push stays unfixed, the latest release has no image to start from.
-          # Only that skips the test; a pull that failed otherwise - a rate limit, the registry or
-          # the network down - fails it rather than passing it untested
+          # Only that skips the test - a tag the registry does not have, which the classic image
+          # store reports as "manifest unknown" and the containerd one as a reference it could not
+          # resolve, "not found"; a pull that failed otherwise - a rate limit, the registry or the
+          # network down - fails it rather than passing it untested
           if ! out=$(docker pull "$RELEASED" 2>&1); then
             echo "$out"
             case $out in
-              *"manifest unknown"*) echo "::warning::$RELEASED is not on Docker Hub yet, the upgrade test is skipped"; exit 0 ;;
+              *"manifest unknown"*|*"failed to resolve reference"*": not found"*) echo "::warning::$RELEASED is not on Docker Hub yet, the upgrade test is skipped"; exit 0 ;;
               *) exit 1 ;;
             esac
           fi

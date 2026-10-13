@@ -692,8 +692,11 @@ phase "repair defers an unanswering peer"
 # dj-2 leaves the list of the replication server of dj-1 and goes down while dj-1 restarts
 dsconfig_on dj-1 set-replication-server-prop --provider-name "Multimaster Synchronization" --remove replication-server:dj-2:8989
 docker stop dj-2 >/dev/null
-# counted, as above: the repair of an earlier start may have logged either line already
+# counted, as above: the repair of an earlier start may have logged either line already -
+# an add of dj-2 to a domain list as well, so the adds back below are counted against the
+# server list lines alone
 adds=$(logs_count dj-1 "adding replication server dj-2:")
+server_adds=$(logs_count dj-1 "adding replication server dj-2:8989 to the server list")
 deferrals=$(logs_count dj-1 "could not ask dj-2 whether it runs a replication server")
 docker restart dj-1 >/dev/null
 deferred() { [ "$(logs_count dj-1 "could not ask dj-2 whether it runs a replication server")" -gt "$deferrals" ]; }
@@ -703,7 +706,7 @@ if server_lists dj-1 dj-2; then fail "dj-1 added dj-2, which did not answer, to 
 docker start dj-2 >/dev/null
 wait_healthy dj-2
 docker restart dj-1 >/dev/null
-added_back() { [ "$(logs_count dj-1 "adding replication server dj-2:8989 to the server list")" -gt "$adds" ]; }
+added_back() { [ "$(logs_count dj-1 "adding replication server dj-2:8989 to the server list")" -gt "$server_adds" ]; }
 wait_until 300 "the restarted dj-1 adds dj-2 back" added_back
 wait_until 120 "the replication server of dj-1 lists dj-2 again" server_lists dj-1 dj-2
 wait_healthy dj-1
@@ -746,6 +749,24 @@ if [ "$rc" -ne 5 ] || grep -E "trying again|initializing replication" <<<"$out" 
   echo "$out"
   fail "replicate.sh for a base DN nobody holds exited with $rc, not with the 5 of its dsreplication enable, or went on after it"
 fi
+
+phase "pre-roles srs volume"
+# the volume the replication server of the one-shot srs has from an image before roles: a
+# replication server and a backend - setup.sh created one for every server then - but no
+# domain and no role recorded. A combined server whose enable stopped half-way has the same,
+# as dj-1 above, and only REPLICATION_ROLE=replication tells the two apart: its join records
+# a replication server here. Last for dj-1, whose volume stays one from then on
+dsconfig_on dj-1 delete-replication-domain --provider-name "Multimaster Synchronization" --domain-name "dc=example,dc=com"
+replicates_example dj-1 && fail "dj-1 still replicates dc=example,dc=com"
+docker exec dj-1 rm /opt/opendj/data/.replication-role
+docker rm -f dj-1 >/dev/null
+start_node dj-1 dj-0,dj-1,dj-2 -e REPLICATION_ROLE=replication -e REPLICATION_RETRY_COUNT=30
+role_recorded() { [ -n "$(recorded_role_of dj-1)" ]; }
+wait_until 300 "the pre-roles srs dj-1 records a role" role_recorded
+[ "$(recorded_role_of dj-1)" = replication ] || fail "dj-1 was recorded $(recorded_role_of dj-1) from a replication server and a backend under REPLICATION_ROLE=replication"
+srs_member() { logs_have dj-1 "already a member of the replication topology" || logs_have dj-1 "joined the replication topology through"; }
+wait_until 300 "the pre-roles srs dj-1 is a member again" srs_member
+wait_healthy dj-1
 
 # the root password shows in no container log, and the files the tools read it from are gone
 for c in dj-0 dj-1 dj-2 dj-sdsr; do
