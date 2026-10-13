@@ -1435,8 +1435,7 @@ public class CertificateManagerTestCase
    * the trust store of the server is read from its file for each SSL context, and at the next
    * start, by readers which do not share any lock with the writer, and a server stopped part way
    * through a write must not be left with a truncated file it cannot start with (#1188). On a
-   * POSIX file system only: Windows does not replace a file a reader holds open, and the key
-   * store is then written in place.
+   * POSIX file system only: elsewhere (Windows) the key store is written in place.
    *
    * @throws  Exception  If a problem occurs.
    */
@@ -1525,6 +1524,8 @@ public class CertificateManagerTestCase
     }
     finally
     {
+      // The link first: once the file it points to is gone, it no longer exists for deleteDirectory.
+      Files.deleteIfExists(tmpDir.toPath().resolve("ads-truststore"));
       TestCaseUtils.deleteDirectory(tmpDir);
     }
   }
@@ -1590,22 +1591,7 @@ public class CertificateManagerTestCase
       final Certificate certificate = new CertificateFixture("CN=Example CA,O=Example").getCaCertificate();
       final Path target = tmpDir.toPath().resolve("ads-truststore");
       new CertificateManager(target.toString(), "JKS", "password").addTrustedCertificate("cert-0", certificate);
-      final long newFileGroup = ((Integer) Files.getAttribute(target, "unix:gid")).longValue();
-      final UnixSystem process = new UnixSystem();
-      long group = process.getGid();
-      for (long g : process.getGroups())
-      {
-        if (group == newFileGroup)
-        {
-          group = g;
-        }
-      }
-      if (group == newFileGroup)
-      {
-        throw new SkipException("this process is a member of no group but the one a new file gets");
-      }
-      Files.getFileAttributeView(target, PosixFileAttributeView.class).setGroup(FileSystems.getDefault()
-          .getUserPrincipalLookupService().lookupPrincipalByGroupName(String.valueOf(group)));
+      final long group = moveToAnotherGroup(target);
       final Object file = Files.getAttribute(target, "unix:ino");
 
       new CertificateManager(target.toString(), "JKS", "password").addTrustedCertificate("cert-1", certificate);
@@ -1619,6 +1605,86 @@ public class CertificateManagerTestCase
     {
       TestCaseUtils.deleteDirectory(tmpDir);
     }
+  }
+
+
+
+  @DataProvider
+  public Object[][] groupNotTaken()
+  {
+    return new Object[][] { { "ignored" }, { "refused" } };
+  }
+
+  /**
+   * Tests that a key store whose group the new file cannot take - on a file system which ignores
+   * a change of group, or for a group this process is not a member of - is rewritten in place,
+   * where it keeps its group, rather than replaced by a file of another group.
+   *
+   * @param  how  How the group is not taken.
+   *
+   * @throws  Exception  If a problem occurs.
+   */
+  @Test(dataProvider = "groupNotTaken")
+  public void testKeyStoreWhoseGroupCannotBeTakenIsRewrittenInPlace(String how)
+         throws Exception
+  {
+    skipUnlessPosix();
+    final File tmpDir = TestCaseUtils.createTemporaryDirectory("rewriteGroupNotTaken");
+    try
+    {
+      final Certificate certificate = new CertificateFixture("CN=Example CA,O=Example").getCaCertificate();
+      final Path target = tmpDir.toPath().resolve("ads-truststore");
+      new CertificateManager(target.toString(), "JKS", "password").addTrustedCertificate("cert-0", certificate);
+      final long group = moveToAnotherGroup(target);
+      final Object file = Files.getAttribute(target, "unix:ino");
+
+      try (AutoCloseable notTaken = "refused".equals(how)
+          ? KeyStoreReplaceFailure.refuseKeyStoreGroup()
+          : KeyStoreReplaceFailure.ignoreKeyStoreGroup())
+      {
+        new CertificateManager(target.toString(), "JKS", "password").addTrustedCertificate("cert-1", certificate);
+      }
+
+      assertEquals(((Integer) Files.getAttribute(target, "unix:gid")).longValue(), group,
+          "the group of the key store");
+      assertEquals(Files.getAttribute(target, "unix:ino"), file, "the key store written in place, not replaced");
+      assertTrue(loadJks(target.toFile(), "password").containsAlias("cert-1"), "the key store");
+      assertEquals(tmpDir.list(), new String[] { "ads-truststore" }, "the files next to the key store");
+    }
+    finally
+    {
+      TestCaseUtils.deleteDirectory(tmpDir);
+    }
+  }
+
+
+
+  /**
+   * Gives a file a group of this process other than the one a new file gets.
+   *
+   * @param  target  The file.
+   *
+   * @return  the group given
+   */
+  private static long moveToAnotherGroup(Path target) throws Exception
+  {
+    final long newFileGroup = ((Integer) Files.getAttribute(target, "unix:gid")).longValue();
+    final UnixSystem process = new UnixSystem();
+    long group = process.getGid();
+    for (long g : process.getGroups())
+    {
+      if (group == newFileGroup)
+      {
+        group = g;
+      }
+    }
+    if (group == newFileGroup)
+    {
+      throw new SkipException("this process is a member of no group but the one a new file gets");
+    }
+    Files.getFileAttributeView(target, PosixFileAttributeView.class).setGroup(FileSystems.getDefault()
+        .getUserPrincipalLookupService().lookupPrincipalByGroupName(String.valueOf(group)));
+    return group;
   }
 
 
@@ -1693,7 +1759,7 @@ public class CertificateManagerTestCase
 
   /**
    * Tests that a key store which cannot be replaced at once, as a file mounted on its own into a
-   * container (EBUSY, EXDEV) or one a reader holds open on Windows, is still rewritten: in place.
+   * container (EBUSY, EXDEV), is still rewritten: in place.
    *
    * @throws  Exception  If a problem occurs.
    */

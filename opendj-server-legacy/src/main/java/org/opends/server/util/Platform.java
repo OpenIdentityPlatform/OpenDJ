@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.security.Key;
@@ -98,6 +99,25 @@ public final class Platform
   static volatile KeyStoreReplacer keyStoreReplacer = (temp, target) ->
       Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
 
+  /** Gives a key store file written next to the old one the group of that one. */
+  interface KeyStoreGroupSetter
+  {
+    /**
+     * Gives the new file the group of the old one.
+     *
+     * @param view
+     *          the attributes of the new file
+     * @param group
+     *          the group of the old file
+     * @throws IOException
+     *           if the new file cannot be given that group
+     */
+    void setGroup(PosixFileAttributeView view, GroupPrincipal group) throws IOException;
+  }
+
+  /** Gives the new key store file its group; a test makes it fail to reach the write in place. */
+  static volatile KeyStoreGroupSetter keyStoreGroupSetter = PosixFileAttributeView::setGroup;
+
   /** The minimum java supported version. */
   public static final String JAVA_MINIMUM_VERSION_NUMBER = "11";
 
@@ -160,8 +180,8 @@ public final class Platform
     }
 
     /**
-     * Writes the key store over its file. It is written to a file of its own next to it first,
-     * which then takes the place of the old one at once: on a POSIX file system a reader of the
+     * Writes the key store over its file. On a POSIX file system it is written to a file of its
+     * own next to it first, which then takes the place of the old one at once: a reader of the
      * key store, which the server reads from its file for each SSL context, never finds it half
      * written, and a process stopped part way through leaves the old file whole (#1188). The new
      * file keeps the mode, the owner and the group of the old one; it does not keep its ACLs.
@@ -169,14 +189,16 @@ public final class Platform
      * The key store is written in place, as it was before, where it cannot be replaced that way
      * without changing what the file is: a new key store, one this process may not write to
      * (refused, as before), one with other hard links, one whose owner or group the new file
-     * cannot take, one in a directory this process cannot write to, and one which cannot be
-     * replaced - mounted on its own into a container, or held open by a reader on Windows, which
-     * may then find it half written.
+     * cannot take, one whose links, owner or group cannot be told, one in a directory this
+     * process cannot write to, and one which cannot be replaced, such as a file mounted on its own
+     * into a container. On a file system without POSIX attributes (Windows), where neither the
+     * owner, the ACLs nor the hard links of the old file would reach a new one, it is always
+     * written in place.
      */
     private static void store(KeyStore ks, String ksPath, char[] pwd) throws Exception
     {
       Path target = Paths.get(ksPath);
-      if (!Files.exists(target))
+      if (!Files.exists(target) || !target.getFileSystem().supportedFileAttributeViews().contains("posix"))
       {
         storeInPlace(ks, target, pwd);
         return;
@@ -224,37 +246,48 @@ public final class Platform
       }
     }
 
-    /** Whether the file has other names, which a new file in its place would not have. */
-    private static boolean hasOtherLinks(Path target) throws IOException
-    {
-      return Files.getFileStore(target).supportsFileAttributeView("unix")
-          && ((Number) Files.getAttribute(target, "unix:nlink")).intValue() > 1;
-    }
-
     /**
-     * Gives the new file the mode, the owner and the group of the old one, and tells whether it
-     * has them: a process may give a file only the groups it is a member of, and only its own
-     * user as owner.
+     * Whether the file has other names, which a new file in its place would not have; a file
+     * whose links cannot be told is taken to have some.
      */
-    private static boolean takeOwnerAndMode(Path temp, Path target) throws IOException
+    private static boolean hasOtherLinks(Path target)
     {
-      if (!Files.getFileStore(target).supportsFileAttributeView(PosixFileAttributeView.class))
+      try
+      {
+        return ((Number) Files.getAttribute(target, "unix:nlink")).intValue() > 1;
+      }
+      catch (IOException | UnsupportedOperationException e)
       {
         return true;
       }
-      final PosixFileAttributes old = Files.readAttributes(target, PosixFileAttributes.class);
-      final PosixFileAttributeView view = Files.getFileAttributeView(temp, PosixFileAttributeView.class);
-      view.setPermissions(old.permissions());
+    }
+
+    /**
+     * Gives the new file the group and the mode of the old one, and tells whether it has its
+     * owner and its group: a process may give a file only the groups it is a member of, and only
+     * its own user as owner. The mode comes last, so that the new file is never open to a group
+     * the old one was not, and only when the file can take the place of the old one; a file whose
+     * attributes cannot be read or set cannot.
+     */
+    private static boolean takeOwnerAndMode(Path temp, Path target)
+    {
       try
       {
-        view.setGroup(old.group());
+        final PosixFileAttributes old = Files.readAttributes(target, PosixFileAttributes.class);
+        final PosixFileAttributeView view = Files.getFileAttributeView(temp, PosixFileAttributeView.class);
+        keyStoreGroupSetter.setGroup(view, old.group());
+        final PosixFileAttributes now = view.readAttributes();
+        if (!now.owner().equals(old.owner()) || !now.group().equals(old.group()))
+        {
+          return false;
+        }
+        view.setPermissions(old.permissions());
+        return true;
       }
-      catch (IOException e)
+      catch (IOException | UnsupportedOperationException e)
       {
-        // not a member of that group: told by the check below
+        return false;
       }
-      final PosixFileAttributes now = view.readAttributes();
-      return now.owner().equals(old.owner()) && now.group().equals(old.group());
     }
 
     private static void storeInPlace(KeyStore ks, Path target, char[] pwd) throws Exception

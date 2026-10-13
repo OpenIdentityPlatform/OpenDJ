@@ -353,8 +353,8 @@ public class CryptoManagerTestCase extends CryptoTestCase {
 
   /**
    The same, with a trust store file which cannot be replaced at once and is written in place -
-   one mounted on its own into a container, in a directory this process cannot write to, or held
-   open by a reader on Windows: there only the lock of the trust store keeps the SSL contexts
+   one mounted on its own into a container, in a directory this process cannot write to, or one
+   on Windows: there only the lock of the trust store keeps the SSL contexts
    from finding it half written.
    */
   @Test

@@ -15,11 +15,13 @@
  */
 package org.opends.server.util;
 
+import java.io.IOException;
 import java.nio.file.AtomicMoveNotSupportedException;
 
 /**
  * Makes every key store written by {@link Platform} fail to replace its file at once, as a file
- * mounted on its own into a container does, so that it is written in place.
+ * mounted on its own into a container does, or fail to give the new file the group of the old
+ * one, so that it is written in place.
  */
 public final class KeyStoreReplaceFailure
 {
@@ -39,5 +41,38 @@ public final class KeyStoreReplaceFailure
       throw new AtomicMoveNotSupportedException(temp.toString(), target.toString(), "a test");
     };
     return () -> Platform.keyStoreReplacer = replacer;
+  }
+
+  /**
+   * Makes the new file of every key store written keep the group it is made with, as on a file
+   * system which ignores a change of group, until the result is closed.
+   *
+   * @return what puts the group back
+   */
+  public static AutoCloseable ignoreKeyStoreGroup()
+  {
+    return setKeyStoreGroup((view, group) -> {
+      // the group of the new file stays as it is
+    });
+  }
+
+  /**
+   * Makes the new file of every key store written refuse the group of the old one, as for a
+   * group this process is not a member of, until the result is closed.
+   *
+   * @return what puts the group back
+   */
+  public static AutoCloseable refuseKeyStoreGroup()
+  {
+    return setKeyStoreGroup((view, group) -> {
+      throw new IOException("a test: not a member of " + group.getName());
+    });
+  }
+
+  private static AutoCloseable setKeyStoreGroup(Platform.KeyStoreGroupSetter setter)
+  {
+    final Platform.KeyStoreGroupSetter old = Platform.keyStoreGroupSetter;
+    Platform.keyStoreGroupSetter = setter;
+    return () -> Platform.keyStoreGroupSetter = old;
   }
 }
