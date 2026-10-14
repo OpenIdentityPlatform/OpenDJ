@@ -21,6 +21,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -117,12 +118,7 @@ final class RsaSveKeyTransport
   static byte[] wrap(final PublicKey publicKey, final SecretKey secretKey, final String wrappingKeyID,
       final SecureRandom random) throws GeneralSecurityException
   {
-    if (!(publicKey instanceof RSAPublicKey))
-    {
-      throw new InvalidKeyException(
-          NAME + " needs an RSA public key, not " + (publicKey != null ? publicKey.getAlgorithm() : null));
-    }
-    final BigInteger modulus = ((RSAPublicKey) publicKey).getModulus();
+    final BigInteger modulus = getModulus(publicKey);
     final int length = (modulus.bitLength() + 7) / 8;
     final byte[] secretValue = generateSecretValue(modulus, length, random);
     try
@@ -149,9 +145,14 @@ final class RsaSveKeyTransport
 
   /**
    * Unwraps a secret key which {@link #wrap} wrapped with the public key of this instance.
+   * <p>
+   * The encapsulated value is checked against the modulus before the private key decrypts it, and
+   * every failure from the decryption on is reported with one and the same message, the cause
+   * aside: what the private key recovers from a value does not show in how the value is refused.
    *
-   * @param privateKey
-   *          The RSA private key of this instance.
+   * @param instanceKeyPair
+   *          The RSA key pair of this instance. The modulus is taken from its public key, since a
+   *          private key held by a token does not always expose it.
    * @param wrappedKey
    *          The wrapped key.
    * @param keyAlgorithm
@@ -160,16 +161,18 @@ final class RsaSveKeyTransport
    *          The identifier of the instance key, as stored next to the wrapped key.
    * @return The secret key.
    * @throws GeneralSecurityException
-   *           If the wrapped key is malformed, if it was not wrapped for this private key with
-   *           these fields, or if the runtime cannot unwrap it.
+   *           If the wrapped key is malformed, if it was not wrapped for this key pair with these
+   *           fields, or if the runtime cannot unwrap it.
    */
-  static SecretKey unwrap(final PrivateKey privateKey, final byte[] wrappedKey, final String keyAlgorithm,
+  static SecretKey unwrap(final KeyPair instanceKeyPair, final byte[] wrappedKey, final String keyAlgorithm,
       final String wrappingKeyID) throws GeneralSecurityException
   {
+    final PrivateKey privateKey = instanceKeyPair.getPrivate();
     if (privateKey == null)
     {
       throw new InvalidKeyException(NAME + " needs the private key of this instance");
     }
+    final BigInteger modulus = getModulus(instanceKeyPair.getPublic());
     if (wrappedKey.length < 2)
     {
       throw new InvalidKeyException(NAME + " wrapped key is truncated");
@@ -180,27 +183,61 @@ final class RsaSveKeyTransport
     {
       throw new InvalidKeyException(NAME + " wrapped key is truncated");
     }
+    // RSASVE.RECOVER takes a value on as many bytes as the modulus, and RSADP an integer c with
+    // 1 < c < n - 1: a value which is neither does not reach the private key.
+    if (length != (modulus.bitLength() + 7) / 8)
+    {
+      throw new InvalidKeyException(NAME + " encapsulated value is not as long as the RSA modulus");
+    }
     final byte[] encapsulated = new byte[length];
     buffer.get(encapsulated);
+    final BigInteger c = new BigInteger(1, encapsulated);
+    if (c.compareTo(BigInteger.ONE) <= 0 || c.compareTo(modulus.subtract(BigInteger.ONE)) >= 0)
+    {
+      throw new InvalidKeyException(NAME + " encapsulated value is out of range");
+    }
     final byte[] wrapped = new byte[buffer.remaining()];
     buffer.get(wrapped);
 
-    final Cipher rsa = Cipher.getInstance(RSA_TRANSFORMATION);
-    rsa.init(Cipher.DECRYPT_MODE, privateKey);
-    final byte[] decrypted = rsa.doFinal(encapsulated);
-    // Bouncy Castle FIPS drops the leading zero bytes of the secret value.
-    final byte[] secretValue = toLength(decrypted, length);
+    byte[] decrypted = null;
+    byte[] secretValue = null;
     try
     {
+      final Cipher rsa = Cipher.getInstance(RSA_TRANSFORMATION);
+      rsa.init(Cipher.DECRYPT_MODE, privateKey);
+      decrypted = rsa.doFinal(encapsulated);
+      // Bouncy Castle FIPS drops the leading zero bytes of the secret value.
+      secretValue = toLength(decrypted, length);
       final Cipher keyWrap = getKeyWrapCipher();
       keyWrap.init(Cipher.UNWRAP_MODE, deriveKeyWrappingKey(secretValue, wrappingKeyID, keyAlgorithm));
       return (SecretKey) keyWrap.unwrap(wrapped, keyAlgorithm, Cipher.SECRET_KEY);
     }
+    catch (GeneralSecurityException | RuntimeException e)
+    {
+      throw new InvalidKeyException(NAME + " cannot unwrap the key", e);
+    }
     finally
     {
-      Arrays.fill(decrypted, (byte) 0);
-      Arrays.fill(secretValue, (byte) 0);
+      if (decrypted != null)
+      {
+        Arrays.fill(decrypted, (byte) 0);
+      }
+      if (secretValue != null)
+      {
+        Arrays.fill(secretValue, (byte) 0);
+      }
     }
+  }
+
+  /** Returns the modulus of an RSA public key, refusing any other key. */
+  private static BigInteger getModulus(final PublicKey publicKey) throws InvalidKeyException
+  {
+    if (!(publicKey instanceof RSAPublicKey))
+    {
+      throw new InvalidKeyException(
+          NAME + " needs an RSA public key, not " + (publicKey != null ? publicKey.getAlgorithm() : null));
+    }
+    return ((RSAPublicKey) publicKey).getModulus();
   }
 
   /**

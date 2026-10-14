@@ -24,7 +24,6 @@ import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.PublicKey;
 import java.security.SecureRandom;
@@ -89,7 +88,7 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
     inProviders(providers, () ->
     {
       final byte[] wrapped = RsaSveKeyTransport.wrap(keyPair.getPublic(), key, KEY_ID, random);
-      final SecretKey unwrapped = RsaSveKeyTransport.unwrap(keyPair.getPrivate(), wrapped, algorithm, KEY_ID);
+      final SecretKey unwrapped = RsaSveKeyTransport.unwrap(keyPair, wrapped, algorithm, KEY_ID);
       assertThat(unwrapped.getAlgorithm()).isEqualTo(algorithm);
       assertThat(unwrapped.getEncoded()).isEqualTo(key.getEncoded());
       return null;
@@ -98,8 +97,8 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
 
   /**
    * The key wrapping key is derived from the encapsulated secret value: another private key
-   * recovers another value and cannot unwrap. The other modulus is the larger one, so that its
-   * private key decrypts the encapsulated value instead of refusing it as too large.
+   * recovers another value and cannot unwrap. The other modulus is the larger one, so that the
+   * encapsulated value is in its range and its private key decrypts it instead of refusing it.
    */
   @Test
   public void testAnotherPrivateKeyCannotUnwrap() throws Exception
@@ -110,12 +109,12 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
       other = rsaKeyPair(2048);
     }
     while (modulus(other).compareTo(modulus(keyPair)) <= 0);
-    final PrivateKey otherPrivateKey = other.getPrivate();
+    final KeyPair otherKeyPair = other;
     final SecretKey key = new SecretKeySpec(bytes(16, 0x3C), "AES");
     inProviders(BC_FIPS, () ->
     {
       final byte[] wrapped = RsaSveKeyTransport.wrap(keyPair.getPublic(), key, KEY_ID, random);
-      assertThatThrownBy(() -> RsaSveKeyTransport.unwrap(otherPrivateKey, wrapped, "AES", KEY_ID))
+      assertThatThrownBy(() -> RsaSveKeyTransport.unwrap(otherKeyPair, wrapped, "AES", KEY_ID))
           .isInstanceOf(GeneralSecurityException.class);
       return null;
     });
@@ -129,9 +128,9 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
     inProviders(BC_FIPS, () ->
     {
       final byte[] wrapped = RsaSveKeyTransport.wrap(keyPair.getPublic(), key, KEY_ID, random);
-      assertThatThrownBy(() -> RsaSveKeyTransport.unwrap(keyPair.getPrivate(), wrapped, "AES", KEY_ID.toLowerCase()))
+      assertThatThrownBy(() -> RsaSveKeyTransport.unwrap(keyPair, wrapped, "AES", KEY_ID.toLowerCase()))
           .as("another instance key identifier").isInstanceOf(GeneralSecurityException.class);
-      assertThatThrownBy(() -> RsaSveKeyTransport.unwrap(keyPair.getPrivate(), wrapped, "HmacSHA256", KEY_ID))
+      assertThatThrownBy(() -> RsaSveKeyTransport.unwrap(keyPair, wrapped, "HmacSHA256", KEY_ID))
           .as("another key algorithm").isInstanceOf(GeneralSecurityException.class);
       return null;
     });
@@ -186,7 +185,7 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
     {
       final byte[] wrapped = RsaSveKeyTransport.wrap(keyPair.getPublic(), key, KEY_ID, draws);
       assertThat(draws.count()).as(value).isEqualTo(2);
-      assertThat(RsaSveKeyTransport.unwrap(keyPair.getPrivate(), wrapped, "AES", KEY_ID).getEncoded())
+      assertThat(RsaSveKeyTransport.unwrap(keyPair, wrapped, "AES", KEY_ID).getEncoded())
           .isEqualTo(key.getEncoded());
       return null;
     });
@@ -203,7 +202,7 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
     inProviders(BC_FIPS, () ->
     {
       final byte[] wrapped = RsaSveKeyTransport.wrap(keyPair.getPublic(), key, KEY_ID, draws);
-      assertThat(RsaSveKeyTransport.unwrap(keyPair.getPrivate(), wrapped, "AES", KEY_ID).getEncoded())
+      assertThat(RsaSveKeyTransport.unwrap(keyPair, wrapped, "AES", KEY_ID).getEncoded())
           .isEqualTo(key.getEncoded());
       return null;
     });
@@ -219,7 +218,7 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
     {
       final byte[] wrapped = RsaSveKeyTransport.wrap(small.getPublic(), key, KEY_ID, random);
       assertThat(ByteBuffer.wrap(wrapped).getShort()).isEqualTo((short) 128);
-      assertThat(RsaSveKeyTransport.unwrap(small.getPrivate(), wrapped, "AES", KEY_ID).getEncoded())
+      assertThat(RsaSveKeyTransport.unwrap(small, wrapped, "AES", KEY_ID).getEncoded())
           .isEqualTo(key.getEncoded());
       return null;
     });
@@ -252,8 +251,73 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
   @Test(dataProvider = "malformedWrappedKeys")
   public void testMalformedWrappedKeyIsRefusedWithASecurityException(final String what, final byte[] wrapped)
   {
-    assertThatThrownBy(() -> RsaSveKeyTransport.unwrap(keyPair.getPrivate(), wrapped, "AES", KEY_ID))
+    assertThatThrownBy(() -> RsaSveKeyTransport.unwrap(keyPair, wrapped, "AES", KEY_ID))
         .as(what).isInstanceOf(InvalidKeyException.class).hasMessageContaining("truncated");
+  }
+
+  @DataProvider
+  public Object[][] encapsulatedValuesRefusedBeforeDecrypting()
+  {
+    final BigInteger n = modulus(keyPair);
+    return new Object[][] {
+      { "one byte shorter than the modulus", bytes(255, 0x5A), "not as long as the RSA modulus" },
+      { "longer than the modulus", bytes(300, 0x5A), "not as long as the RSA modulus" },
+      { "0", new byte[256], "out of range" },
+      { "1", toBytes(BigInteger.ONE), "out of range" },
+      { "n - 1", toBytes(n.subtract(BigInteger.ONE)), "out of range" },
+      { "n", toBytes(n), "out of range" },
+      { "2^2048 - 1", bytes(256, 0xFF), "out of range" } };
+  }
+
+  /**
+   * An encapsulated value which is not on as many bytes as the modulus, or not an integer c with
+   * 1 < c < n - 1, is refused before the private key decrypts it, whatever the providers: Bouncy
+   * Castle FIPS throws an ArrayIndexOutOfBoundsException for a value longer than the modulus.
+   */
+  @Test(dataProvider = "encapsulatedValuesRefusedBeforeDecrypting")
+  public void testEncapsulatedValueIsCheckedBeforeDecrypting(final String what, final byte[] encapsulated,
+      final String message) throws Exception
+  {
+    final byte[] wrapped = wrappedKey(encapsulated, bytes(24, 0x3C));
+    final Callable<Void> unwrap = () ->
+    {
+      assertThatThrownBy(() -> RsaSveKeyTransport.unwrap(keyPair, wrapped, "AES", KEY_ID))
+          .as(what).isInstanceOf(InvalidKeyException.class).hasMessageContaining(message);
+      return null;
+    };
+    unwrap.call();
+    inProviders(BC_FIPS, unwrap);
+  }
+
+  @DataProvider
+  public Object[][] encapsulatedValuesInRange()
+  {
+    final BigInteger n = modulus(keyPair);
+    return new Object[][] {
+      { "2", toBytes(BigInteger.valueOf(2)) },
+      { "n - 2", toBytes(n.subtract(BigInteger.valueOf(2))) },
+      { "0x5A on every byte", bytes(256, 0x5A) } };
+  }
+
+  /**
+   * Whatever secret value the private key recovers from an encapsulated value in range, a wrapped
+   * key which does not unwrap is refused with one and the same message.
+   */
+  @Test(dataProvider = "encapsulatedValuesInRange")
+  public void testUnwrapFailureHasOneMessage(final String what, final byte[] encapsulated) throws Exception
+  {
+    final SecretKey key = new SecretKeySpec(bytes(16, 0x3C), "AES");
+    final Callable<Void> unwrap = () ->
+    {
+      final byte[] genuine = RsaSveKeyTransport.wrap(keyPair.getPublic(), key, KEY_ID, random);
+      final byte[] wrapped = wrappedKey(encapsulated, Arrays.copyOfRange(genuine, 2 + 256, genuine.length));
+      assertThatThrownBy(() -> RsaSveKeyTransport.unwrap(keyPair, wrapped, "AES", KEY_ID))
+          .as(what).isInstanceOf(InvalidKeyException.class)
+          .hasMessage(RsaSveKeyTransport.NAME + " cannot unwrap the key");
+      return null;
+    };
+    inProviders(BC_FIPS, unwrap);
+    inProviders(JDK, unwrap);
   }
 
   /**
@@ -322,6 +386,16 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
     final byte[] bytes = new byte[length];
     Arrays.fill(bytes, (byte) value);
     return bytes;
+  }
+
+  /** Returns a wrapped key: the length of the encapsulated value on two bytes, that value, then the KWP-wrapped key. */
+  private static byte[] wrappedKey(final byte[] encapsulated, final byte[] wrapped)
+  {
+    return ByteBuffer.allocate(2 + encapsulated.length + wrapped.length)
+        .putShort((short) encapsulated.length)
+        .put(encapsulated)
+        .put(wrapped)
+        .array();
   }
 
   /** Returns the value on 256 bytes, big-endian, without the sign byte BigInteger may add. */

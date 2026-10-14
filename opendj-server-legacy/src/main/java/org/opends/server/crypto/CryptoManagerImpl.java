@@ -26,6 +26,7 @@ import java.io.PrintStream;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -1029,7 +1030,13 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
     SecretKey secretKey;
     try {
       if (RsaSveKeyTransport.isScheme(wrappingTransformationElement)) {
-        secretKey = RsaSveKeyTransport.unwrap(privateKey,
+        // The public key comes from the instance key certificate: a
+        // private key held by a token does not always expose its modulus.
+        final Certificate certificate = CertificateFactory.getInstance("X.509")
+                .generateCertificate(new ByteArrayInputStream(
+                        getInstanceKeyCertificateFromLocalTruststore()));
+        secretKey = RsaSveKeyTransport.unwrap(
+                new KeyPair(certificate.getPublicKey(), privateKey),
                 wrappedKeyCipherTextElement, wrappedKeyAlgorithmElement,
                 wrappingKeyIDElement);
       }
