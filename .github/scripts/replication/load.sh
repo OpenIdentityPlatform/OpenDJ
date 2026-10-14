@@ -31,7 +31,7 @@ CLIENTS=
 # --connectTimeout: twelve clients start at once next to the servers, and a runner that is
 # short of CPU for a while accepts their connections late
 run_load() {
-  local n c
+  local n c failed
   mkdir -p "$OUT/load"
   for n in $DS_NODES; do
     # entries of its own on each server, so that the adds and deletes of two servers never meet
@@ -77,23 +77,29 @@ TEMPLATE
   for c in $CLIENTS; do
     docker wait $c >/dev/null
   done
+  # every client's output first, so that one which failed does not hide how the others did
   for c in $CLIENTS; do
-    check_client $c
+    docker logs $c >"$OUT/load/$c.csv" 2>&1
+    docker inspect -f '{{.State.ExitCode}} {{.State.OOMKilled}}' $c >"$OUT/load/$c.exit"
+    docker rm $c >/dev/null
   done
+  failed=
+  for c in $CLIENTS; do
+    check_client $c || failed=1
+  done
+  [ -z "$failed" ] || fail "the load did not run as it should, see load/"
 }
 
 # A rate tool exits with 0 whatever its requests got back, and one that could not reach its
 # server at all exits at once: the client has to have done work, and every interval of its CSV
 # output has to report no errors (the "Errors/second" column)
 check_client() { # <client>
-  docker logs $1 >"$OUT/load/$1.csv" 2>&1
-  docker rm $1 >/dev/null
-  awk -F, -v c=$1 '
+  awk -F, -v c=$1 -v exit_state="$(cat "$OUT/load/$1.exit")" '
     /^Time \(seconds\)/ { for (i = 1; i <= NF; i++) { if ($i == "Recent throughput (ops/second)") t = i; if ($i == "Errors/second") e = i }; next }
     t && $1 ~ /^[0-9.]+$/ { rows++; ops += $t; errors += $e; last = $0 }
     END {
-      if (!rows || ops == 0) { printf "::error::%s did no work\n", c; exit 1 }
+      if (!rows || ops == 0) { printf "::error::%s did no work (exit code and OOM kill: %s)\n", c, exit_state; exit 1 }
       if (errors > 0) { printf "::error::%s got errors back\n", c; exit 1 }
       printf "%s: %d intervals, last: %s\n", c, rows, last
-    }' "$OUT/load/$1.csv" || fail "the load did not run as it should, see load/$1.csv"
+    }' "$OUT/load/$1.csv"
 }
