@@ -18,21 +18,31 @@ package org.opends.server.crypto;
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.security.AlgorithmParameters;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.security.interfaces.RSAKey;
+import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.AlgorithmParameterSpec;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.crypto.Cipher;
+import javax.crypto.CipherSpi;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -204,6 +214,47 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
       final byte[] wrapped = RsaSveKeyTransport.wrap(keyPair.getPublic(), key, KEY_ID, draws);
       assertThat(RsaSveKeyTransport.unwrap(keyPair, wrapped, "AES", KEY_ID).getEncoded())
           .isEqualTo(key.getEncoded());
+      return null;
+    });
+  }
+
+  /**
+   * A provider may drop the leading zero bytes of the encapsulated value as well, which the
+   * wrapping puts back: the value is stored on as many bytes as the modulus, the only length the
+   * unwrapping accepts.
+   */
+  @Test
+  public void testEncapsulatedValueWithALeadingZeroByteKeepsTheModulusLength() throws Exception
+  {
+    final BigInteger n = modulus(keyPair);
+    final BigInteger e = ((RSAPublicKey) keyPair.getPublic()).getPublicExponent();
+    final BigInteger upperBound = n.subtract(BigInteger.ONE);
+    // About one secret value in 256 has an encapsulated value z^e mod n below 2^2040.
+    BigInteger z;
+    do
+    {
+      z = new BigInteger(n.bitLength(), random);
+    }
+    while (z.compareTo(BigInteger.ONE) <= 0 || z.compareTo(upperBound) >= 0 || z.modPow(e, n).bitLength() > 2040);
+    final Draws draws = new Draws(toBytes(z));
+    final SecretKey key = new SecretKeySpec(bytes(16, 0x3C), "AES");
+    inProviders(BC_FIPS, () ->
+    {
+      final Provider droppingRsa = new Provider("LeadingZeroDroppingRsa", "1.0", "Raw RSA without leading zeros") {};
+      droppingRsa.put("Cipher.RSA", LeadingZeroDroppingRawRsa.class.getName());
+      Security.insertProviderAt(droppingRsa, 1);
+      try
+      {
+        final byte[] wrapped = RsaSveKeyTransport.wrap(keyPair.getPublic(), key, KEY_ID, draws);
+        assertThat(ByteBuffer.wrap(wrapped).getShort()).isEqualTo((short) 256);
+        assertThat(wrapped[2]).isEqualTo((byte) 0);
+        assertThat(RsaSveKeyTransport.unwrap(keyPair, wrapped, "AES", KEY_ID).getEncoded())
+            .isEqualTo(key.getEncoded());
+      }
+      finally
+      {
+        Security.removeProvider(droppingRsa.getName());
+      }
       return null;
     });
   }
@@ -435,6 +486,130 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
     int count()
     {
       return draws.get();
+    }
+  }
+
+  /**
+   * A raw RSA cipher which returns what it encrypts or decrypts on as few bytes as the value needs,
+   * without its leading zero bytes.
+   */
+  public static final class LeadingZeroDroppingRawRsa extends CipherSpi
+  {
+    private final ByteArrayOutputStream input = new ByteArrayOutputStream();
+    private RSAKey key;
+    private BigInteger exponent;
+
+    @Override
+    protected void engineSetMode(final String mode) throws NoSuchAlgorithmException
+    {
+      if (!"ECB".equalsIgnoreCase(mode))
+      {
+        throw new NoSuchAlgorithmException(mode);
+      }
+    }
+
+    @Override
+    protected void engineSetPadding(final String padding) throws NoSuchPaddingException
+    {
+      if (!"NoPadding".equalsIgnoreCase(padding))
+      {
+        throw new NoSuchPaddingException(padding);
+      }
+    }
+
+    @Override
+    protected int engineGetBlockSize()
+    {
+      return 0;
+    }
+
+    @Override
+    protected int engineGetOutputSize(final int inputLength)
+    {
+      return (key.getModulus().bitLength() + 7) / 8;
+    }
+
+    @Override
+    protected byte[] engineGetIV()
+    {
+      return null;
+    }
+
+    @Override
+    protected AlgorithmParameters engineGetParameters()
+    {
+      return null;
+    }
+
+    @Override
+    protected void engineInit(final int mode, final Key key, final SecureRandom random) throws InvalidKeyException
+    {
+      if (mode == Cipher.ENCRYPT_MODE && key instanceof RSAPublicKey)
+      {
+        exponent = ((RSAPublicKey) key).getPublicExponent();
+      }
+      else if (mode == Cipher.DECRYPT_MODE && key instanceof RSAPrivateKey)
+      {
+        exponent = ((RSAPrivateKey) key).getPrivateExponent();
+      }
+      else
+      {
+        throw new InvalidKeyException("Mode " + mode + " with " + key.getClass().getName());
+      }
+      this.key = (RSAKey) key;
+      input.reset();
+    }
+
+    @Override
+    protected void engineInit(final int mode, final Key key, final AlgorithmParameterSpec params,
+        final SecureRandom random) throws InvalidKeyException
+    {
+      engineInit(mode, key, random);
+    }
+
+    @Override
+    protected void engineInit(final int mode, final Key key, final AlgorithmParameters params,
+        final SecureRandom random) throws InvalidKeyException
+    {
+      engineInit(mode, key, random);
+    }
+
+    @Override
+    protected byte[] engineUpdate(final byte[] in, final int offset, final int length)
+    {
+      input.write(in, offset, length);
+      return new byte[0];
+    }
+
+    @Override
+    protected int engineUpdate(final byte[] in, final int offset, final int length, final byte[] out,
+        final int outOffset)
+    {
+      input.write(in, offset, length);
+      return 0;
+    }
+
+    @Override
+    protected byte[] engineDoFinal(final byte[] in, final int offset, final int length)
+    {
+      input.write(in, offset, length);
+      final byte[] result = new BigInteger(1, input.toByteArray()).modPow(exponent, key.getModulus()).toByteArray();
+      input.reset();
+      int start = 0;
+      while (start < result.length - 1 && result[start] == 0)
+      {
+        start++;
+      }
+      return Arrays.copyOfRange(result, start, result.length);
+    }
+
+    @Override
+    protected int engineDoFinal(final byte[] in, final int offset, final int length, final byte[] out,
+        final int outOffset)
+    {
+      final byte[] result = engineDoFinal(in, offset, length);
+      System.arraycopy(result, 0, out, outOffset, result.length);
+      return result.length;
     }
   }
 }
