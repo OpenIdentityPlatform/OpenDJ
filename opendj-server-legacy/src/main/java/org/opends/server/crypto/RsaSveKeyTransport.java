@@ -37,12 +37,13 @@ import javax.crypto.spec.SecretKeySpec;
 
 /**
  * The key wrapping scheme for a Java runtime which offers no RSA-OAEP, such as one whose only
- * provider is SunPKCS11: the hybrid key transport of NIST SP 800-56B Rev. 2, section 9.3. The RSA
- * secret value encapsulation (RSASVE, section 7.2.1) establishes a secret value with the public
- * key of the receiving instance, the one-step key derivation of NIST SP 800-56C Rev. 2 over
- * SHA-256 turns it into a key wrapping key, and the AES key wrap with padding of NIST SP 800-38F
- * (KWP) wraps the secret key with that key. The runtime has to offer a raw RSA cipher, a SHA-256
- * digest and AES-KWP, nothing more.
+ * provider is SunPKCS11: a scheme of OpenDJ's own, built on the hybrid key transport of NIST
+ * SP 800-56B Rev. 2, section 9.3, but not the KAS1-basic scheme to the letter, since no nonce of
+ * the receiving instance enters the derivation. The RSA secret value encapsulation (RSASVE,
+ * section 7.2.1) establishes a secret value with the public key of the receiving instance, the
+ * one-step key derivation of NIST SP 800-56C Rev. 2 over SHA-256 turns it into a key wrapping key,
+ * and the AES key wrap with padding of NIST SP 800-38F (KWP) wraps the secret key with that key.
+ * The runtime has to offer a raw RSA cipher, a SHA-256 digest and AES-KWP, nothing more.
  * <p>
  * A wrapped key is the encapsulated secret value, on as many bytes as the RSA modulus and preceded
  * by that length on two bytes, followed by the KWP-wrapped secret key. The derivation binds the
