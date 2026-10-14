@@ -16,7 +16,8 @@
 
 # The load of the replication convergence run (#1090), sourced by run.sh: every directory
 # server is written to at once, for DURATION seconds, by rate tools that run in containers of
-# the same image on the network of the topology.
+# the same image on the network of the topology. Only writes: a read sends nothing to the
+# replication servers.
 
 # <client> <tool> <argument>... : a container that runs one tool of the image against one server
 start_client() {
@@ -28,8 +29,12 @@ start_client() {
 
 CLIENTS=
 
-# --connectTimeout: twelve clients start at once next to the servers, and a runner that is
-# short of CPU for a while accepts their connections late
+# Plain LDAP: the run is after the changes the replication carries, and TLS between a client
+# and its server only takes CPU from them. --noRebind: every client keeps its connections open
+# and binds once, as an application does, rather than connecting and binding for every
+# operation, which would cost more than the operation itself. --connectTimeout: the clients
+# start at once next to the servers, and a runner that is short of CPU for a while accepts
+# their connections late
 run_load() {
   local n c failed
   mkdir -p "$OUT/load"
@@ -56,23 +61,17 @@ TEMPLATE
     chmod 644 "$OUT/load/addrate-$n.template"
     # the same entries from every server at once: concurrent modifications of one attribute of
     # one entry, applied in the order of their change numbers on every replica (#139)
-    start_client load-mod-$n modrate --hostname $n --port 1636 --useSsl --trustAll --connectTimeout 120000 \
+    start_client load-mod-$n modrate --hostname $n --port 1389 --connectTimeout 120000 --noRebind \
       --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --maxDuration "$DURATION" \
-      --statInterval 10 --numConnections 2 --numThreads 1 --scriptFriendly --targetThroughput 100 \
+      --statInterval 10 --numConnections 8 --numThreads 1 --scriptFriendly --targetThroughput "$LOAD_MOD_RATE" \
       --targetDN "uid=user.%d,ou=People,$BASE_DN" --argument "rand(0,$((SAMPLE_DATA - 1)))" \
       --argument "randstr(16)" 'description:%2$s'
     # adds, and deletes of the oldest once 100 of them are there: a slow runner gets to the deletes as well
-    start_client load-add-$n addrate --hostname $n --port 1636 --useSsl --trustAll --connectTimeout 120000 \
+    start_client load-add-$n addrate --hostname $n --port 1389 --connectTimeout 120000 --noRebind \
       --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --maxDuration "$DURATION" \
-      --statInterval 10 --numConnections 2 --numThreads 1 --scriptFriendly --targetThroughput 20 \
+      --statInterval 10 --numConnections 8 --numThreads 1 --scriptFriendly --targetThroughput "$LOAD_ADD_RATE" \
       --deleteMode fifo --deleteSizeThreshold 100 "/load/addrate-$n.template"
-    # reads, which keep the work queues of the server busy alongside the writes
-    start_client load-search-$n searchrate --hostname $n --port 1636 --useSsl --trustAll --connectTimeout 120000 \
-      --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --maxDuration "$DURATION" \
-      --statInterval 10 --numConnections 2 --numThreads 1 --scriptFriendly --targetThroughput 100 \
-      --baseDN "ou=People,$BASE_DN" --searchScope sub --argument "rand(0,$((SAMPLE_DATA - 1)))" \
-      "(uid=user.%d)" 1.1
-    CLIENTS="$CLIENTS load-mod-$n load-add-$n load-search-$n"
+    CLIENTS="$CLIENTS load-mod-$n load-add-$n"
   done
   for c in $CLIENTS; do
     docker wait $c >/dev/null

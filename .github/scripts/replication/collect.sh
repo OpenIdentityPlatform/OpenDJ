@@ -51,14 +51,14 @@ summarize() { # <result>
     echo "| | |"
     echo "|---|---|"
     echo "| servers | $ALL_NODES |"
-    echo "| load | $DURATION s on each directory server |"
+    echo "| load | $DURATION s on each directory server, at most $LOAD_MOD_RATE modifications and $LOAD_ADD_RATE adds a second |"
     echo "| seeded users | $SAMPLE_DATA |"
     echo "| converged | ${CONVERGED_IN:--} s after the load |"
     if [ -s "$OUT/samples.txt" ] && [ -s "$OUT/server-ids.txt" ]; then
       echo
       echo "Peaks during the load, over every replication server (a restart resets the counters, so these are maxima of the samples, not sums):"
       echo
-      echo "| directory server | peak missing-changes | peak approximate-delay (ms) |"
+      echo "| directory server | peak missing-changes | peak approximate-delay (s) |"
       echo "|---|---|---|"
       awk 'NR == FNR { name[$1] = $2; next }
            ($3 in name) { if ($4 > m[$3]) m[$3] = $4; if ($5 > d[$3]) d[$3] = $5; seen[$3] = 1 }
