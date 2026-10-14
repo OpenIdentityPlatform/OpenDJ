@@ -908,6 +908,45 @@ public class CryptoManagerTestCase extends CryptoTestCase {
   }
 
   /**
+   The RSASVE scheme is refused where the runtime lacks one of its algorithms, here AES-KWP as on
+   Java 11 without Bouncy Castle FIPS, and the refusal names the property to set and the missing
+   algorithm: the trial wrap which follows the support check would refuse it too, but without
+   naming the property.
+   */
+  @Test
+  public void testRsaSveKeyWrappingWithoutAesKwpIsRefusedNamingTheProperty() throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+    final List<LocalizableMessage> why = new ArrayList<>();
+
+    final Callable<Void> check = () ->
+    {
+      // SunJCE offers AES-KWP under that name too, and goes with AES/KWP/NoPadding.
+      assertThat(Security.getProviders("Cipher.AESWrapPad")).as("providers offering AESWrapPad").isNull();
+      assertThat(cm.isConfigurationChangeAcceptable(
+          withProperty(cfg, "getKeyWrappingTransformation", RsaSveKeyTransport.NAME), why)).isFalse();
+      return null;
+    };
+    if (Security.getProviders("Cipher.AES/KWP/NoPadding") == null)
+    {
+      check.call();
+    }
+    else
+    {
+      // SunJCE offers AES/KWP/NoPadding and is withdrawn with it: the stand-in gives back its raw RSA.
+      final Provider rawRsa = new Provider("RawRsaOfSunJce", "1.0", "RSA cipher of SunJCE") {};
+      rawRsa.put("Cipher.RSA", "com.sun.crypto.provider.RSACipher");
+      withoutJceService("Cipher", "AES/KWP/NoPadding", check, rawRsa);
+    }
+
+    assertThat(why).hasSize(1);
+    assertThat(why.get(0).ordinal()).isEqualTo(ERR_CRYPTOMGR_KEY_WRAPPING_TRANSFORMATION_UNSUPPORTED.ordinal());
+    assertThat(why.get(0).toString())
+        .contains(RsaSveKeyTransport.NAME).contains("key-wrapping-transformation").contains("AES/KWP/NoPadding");
+  }
+
+  /**
    A key generated while the RSASVE scheme is configured is published wrapped with it, under its
    name, and unwraps to the key the data was encrypted with.
    */
