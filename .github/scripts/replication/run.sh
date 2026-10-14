@@ -28,6 +28,7 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 . "$HERE/lib.sh"
 . "$HERE/topology-up.sh"
 . "$HERE/monitor.sh"
+. "$HERE/load.sh"
 . "$HERE/assert-converged.sh"
 
 mkdir -p "$OUT"
@@ -53,6 +54,11 @@ for n in $DS_NODES; do
 done
 
 mark_logs
+
+phase "load ($DURATION s)"
+sampler_start
+run_load
+sampler_stop
 
 phase "converge"
 wait_converged

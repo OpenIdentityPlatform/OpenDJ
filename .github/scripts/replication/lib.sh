@@ -67,6 +67,8 @@ PEERS=$(echo $ALL_NODES | tr ' ' ',')
 
 cleanup() {
   local n
+  # the load clients of a run that failed before it removed them (load.sh)
+  docker rm -f $(docker ps -aq --filter "name=^load-") >/dev/null 2>&1 || true
   docker rm -f $ALL_NODES >/dev/null 2>&1 || true
   docker network rm $NETWORK >/dev/null 2>&1 || true
   for n in $ALL_NODES; do
