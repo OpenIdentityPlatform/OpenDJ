@@ -37,6 +37,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Proxy;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.AlgorithmParameters;
@@ -66,10 +67,12 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.crypto.Cipher;
 import javax.crypto.CipherSpi;
 import javax.crypto.KeyGeneratorSpi;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
@@ -877,6 +880,81 @@ public class CryptoManagerTestCase extends CryptoTestCase {
           .as("%s", why).isTrue();
       return null;
     }, sunWithoutMd5);
+  }
+
+  @DataProvider
+  public Object[][] rsaSveSpellings()
+  {
+    return new Object[][] { { RsaSveKeyTransport.NAME }, { RsaSveKeyTransport.NAME.toLowerCase() } };
+  }
+
+  /**
+   The RSASVE scheme is accepted where the runtime offers its algorithms, whatever the case of its
+   name, as a Java transformation would be: neither the support check nor the trial wrap of the
+   check asks the runtime for a cipher of that name, which no provider offers.
+   */
+  @Test(dataProvider = "rsaSveSpellings")
+  public void testRsaSveKeyWrappingIsAccepted(final String spelling) throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+    final List<LocalizableMessage> why = new ArrayList<>();
+
+    final boolean acceptable = withBcFipsFirst(() -> cm.isConfigurationChangeAcceptable(
+        withProperty(cfg, "getKeyWrappingTransformation", spelling), why));
+
+    assertThat(why).isEmpty();
+    assertThat(acceptable).isTrue();
+  }
+
+  /**
+   A key generated while the RSASVE scheme is configured is published wrapped with it, under its
+   name, and unwraps to the key the data was encrypted with.
+   */
+  @Test
+  public void testRsaSveWrappedKeyIsPublishedAndUnwraps() throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+    final CryptoManagerCfg rsaSve = withProperty(cfg, "getKeyWrappingTransformation", RsaSveKeyTransport.NAME);
+    // No other test generates a key for this cipher and key length: the key is generated here.
+    final String transformation = "AES/CBC/PKCS5Padding";
+    final int keyLengthBits = 192;
+    final byte[] data = "RSASVE key transport".getBytes(StandardCharsets.UTF_8);
+    final String instanceKeyID = cm.getInstanceKeyID();
+
+    withBcFipsFirst(() ->
+    {
+      final List<LocalizableMessage> why = new ArrayList<>();
+      assertThat(cm.isConfigurationChangeAcceptable(rsaSve, why)).as("%s", why).isTrue();
+      cm.applyConfigurationChange(rsaSve);
+      try
+      {
+        final byte[] cipherText = cm.encrypt(transformation, keyLengthBits, data);
+
+        final Set<String> values = getKeyForCipher(transformation, keyLengthBits)
+            .parseAttribute(ATTR_CRYPTO_SYMMETRIC_KEY).asSetOfString();
+        final String value = values.stream()
+            .filter(v -> v.startsWith(instanceKeyID + ":"))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("no value wrapped for this instance in " + values));
+        assertThat(value.split(":")[1]).isEqualTo(RsaSveKeyTransport.NAME);
+
+        final SecretKey key = cm.decodeSymmetricKeyAttribute(value);
+        // The cipher text is the prologue version, the 16-byte key identifier, the IV, then the data.
+        final int ivOffset = 1 + 16;
+        final int ivLength = 16;
+        final Cipher cipher = Cipher.getInstance(transformation);
+        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(cipherText, ivOffset, ivLength));
+        assertThat(cipher.doFinal(cipherText, ivOffset + ivLength, cipherText.length - ivOffset - ivLength))
+            .isEqualTo(data);
+      }
+      finally
+      {
+        cm.applyConfigurationChange(cfg);
+      }
+      return null;
+    });
   }
 
   /** The error the probe provider fails with, set by the case using it. */
