@@ -185,6 +185,16 @@
       The preferred key wrapping transformation for the directory server. This value must
       be the same for all server instances in a replication topology.
     </adm:synopsis>
+    <adm:description>
+      Besides the transformations of the Java runtime, the value
+      RSASVE/KDF-SHA256/AESKWP selects the hybrid key transport of NIST
+      SP 800-56B Rev. 2, section 9.3, for a Java runtime which offers no
+      RSA-OAEP: it needs only RSA/ECB/NoPadding, SHA-256 and the AES key
+      wrap with padding (AES/KWP/NoPadding) from the runtime. A server
+      which does not support this value cannot unwrap the keys wrapped
+      with it, so every server of the replication topology must run a
+      version which supports it before any server uses it.
+    </adm:description>
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
