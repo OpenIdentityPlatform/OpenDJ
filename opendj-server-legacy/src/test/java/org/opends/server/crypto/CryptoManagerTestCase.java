@@ -961,25 +961,28 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     final int keyLengthBits = 192;
     final byte[] data = "RSASVE key transport".getBytes(StandardCharsets.UTF_8);
     final String instanceKeyID = cm.getInstanceKeyID();
+    // A key of the default cipher, wrapped with the default transformation, RSA-OAEP.
+    cm.encrypt(data);
+    final String oaepValue =
+        getValueWrappedFor(instanceKeyID, cfg.getCipherTransformation(), cfg.getCipherKeyLength());
+    assertThat(oaepValue.split(":")[1]).isEqualTo(cfg.getKeyWrappingTransformation());
+    final byte[] oaepKey = cm.decodeSymmetricKeyAttribute(oaepValue).getEncoded();
 
     withBcFipsFirst(() ->
     {
       final List<LocalizableMessage> why = new ArrayList<>();
       assertThat(cm.isConfigurationChangeAcceptable(rsaSve, why)).as("%s", why).isTrue();
       cm.applyConfigurationChange(rsaSve);
+      final String value;
+      final SecretKey key;
       try
       {
         final byte[] cipherText = cm.encrypt(transformation, keyLengthBits, data);
 
-        final Set<String> values = getKeyForCipher(transformation, keyLengthBits)
-            .parseAttribute(ATTR_CRYPTO_SYMMETRIC_KEY).asSetOfString();
-        final String value = values.stream()
-            .filter(v -> v.startsWith(instanceKeyID + ":"))
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("no value wrapped for this instance in " + values));
+        value = getValueWrappedFor(instanceKeyID, transformation, keyLengthBits);
         assertThat(value.split(":")[1]).isEqualTo(RsaSveKeyTransport.NAME);
 
-        final SecretKey key = cm.decodeSymmetricKeyAttribute(value);
+        key = cm.decodeSymmetricKeyAttribute(value);
         // The cipher text is the prologue version, the 16-byte key identifier, the IV, then the data.
         final int ivOffset = 1 + 16;
         final int ivLength = 16;
@@ -987,13 +990,37 @@ public class CryptoManagerTestCase extends CryptoTestCase {
         cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(cipherText, ivOffset, ivLength));
         assertThat(cipher.doFinal(cipherText, ivOffset + ivLength, cipherText.length - ivOffset - ivLength))
             .isEqualTo(data);
+
+        assertThat(cm.decodeSymmetricKeyAttribute(oaepValue).getEncoded())
+            .as("RSA-OAEP value while the RSASVE scheme is configured").isEqualTo(oaepKey);
       }
       finally
       {
         cm.applyConfigurationChange(cfg);
       }
+
+      // A value is unwrapped by the transformation it records, whatever the configured one, and
+      // the scheme name is not case sensitive there either.
+      assertThat(cm.decodeSymmetricKeyAttribute(value).getEncoded())
+          .as("RSASVE value while RSA-OAEP is configured").isEqualTo(key.getEncoded());
+      final String lowerCaseValue =
+          value.replace(":" + RsaSveKeyTransport.NAME + ":", ":" + RsaSveKeyTransport.NAME.toLowerCase() + ":");
+      assertThat(cm.decodeSymmetricKeyAttribute(lowerCaseValue).getEncoded())
+          .as("RSASVE value recording the scheme name in lower case").isEqualTo(key.getEncoded());
       return null;
     });
+  }
+
+  /** Returns the ds-cfg-symmetric-key value of the key of a cipher which is wrapped for an instance. */
+  private String getValueWrappedFor(final String instanceKeyID, final String transformation,
+      final int keyLengthBits) throws DirectoryException
+  {
+    final Set<String> values = getKeyForCipher(transformation, keyLengthBits)
+        .parseAttribute(ATTR_CRYPTO_SYMMETRIC_KEY).asSetOfString();
+    return values.stream()
+        .filter(v -> v.startsWith(instanceKeyID + ":"))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("no value wrapped for this instance in " + values));
   }
 
   /** The error the probe provider fails with, set by the case using it. */
