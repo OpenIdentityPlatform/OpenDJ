@@ -344,10 +344,17 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
   public Object[][] encapsulatedValuesInRange()
   {
     final BigInteger n = modulus(keyPair);
-    return new Object[][] {
+    final Object[][] values = {
       { "2", toBytes(BigInteger.valueOf(2)) },
       { "n - 2", toBytes(n.subtract(BigInteger.valueOf(2))) },
       { "0x5A on every byte", bytes(256, 0x5A) } };
+    final Object[][] rows = new Object[values.length * 2][];
+    for (int i = 0; i < values.length; i++)
+    {
+      rows[2 * i] = new Object[] { JDK, values[i][0], values[i][1] };
+      rows[2 * i + 1] = new Object[] { BC_FIPS, values[i][0], values[i][1] };
+    }
+    return rows;
   }
 
   /**
@@ -355,7 +362,8 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
    * key which does not unwrap is refused with one and the same message.
    */
   @Test(dataProvider = "encapsulatedValuesInRange")
-  public void testUnwrapFailureHasOneMessage(final String what, final byte[] encapsulated) throws Exception
+  public void testUnwrapFailureHasOneMessage(final String providers, final String what, final byte[] encapsulated)
+      throws Exception
   {
     final SecretKey key = new SecretKeySpec(bytes(16, 0x3C), "AES");
     final Callable<Void> unwrap = () ->
@@ -367,8 +375,7 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
           .hasMessage(RsaSveKeyTransport.NAME + " cannot unwrap the key");
       return null;
     };
-    inProviders(BC_FIPS, unwrap);
-    inProviders(JDK, unwrap);
+    inProviders(providers, unwrap);
   }
 
   /**
