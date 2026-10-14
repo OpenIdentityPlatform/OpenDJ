@@ -27,6 +27,7 @@ IMAGE=${1:?usage: $0 <image>}
 HERE=$(cd "$(dirname "$0")" && pwd)
 . "$HERE/lib.sh"
 . "$HERE/topology-up.sh"
+. "$HERE/assert-converged.sh"
 
 mkdir -p "$OUT"
 # set -E hands the trap to every $(...) as well: there a failure only ends the subshell, and
@@ -49,6 +50,15 @@ for n in $DS_NODES; do
   users=$(ldaps_search "$n" "ou=People,$BASE_DN" one "(objectClass=inetOrgPerson)" 1.1 | grep -c '^dn:' || true)
   [ "$users" -eq "$SAMPLE_DATA" ] || fail "$n holds $users of the $SAMPLE_DATA seeded users"
 done
+
+if [ "$INJECT_DIVERGENCE" = 1 ]; then
+  phase "inject a divergence"
+  inject_divergence
+fi
+
+phase "offline checks"
+stop_all
+assert_offline
 
 timings
 cleanup
