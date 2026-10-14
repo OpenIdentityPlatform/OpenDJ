@@ -633,6 +633,7 @@ jobs:
 
   docker-test:
     # the tests of both images, each on the linux/amd64 image its build job saved
+    name: docker-test (${{ matrix.flavor }})
     needs: [build-docker, build-docker-alpine]
     runs-on: 'ubuntu-latest'
     permissions:
@@ -644,20 +645,16 @@ jobs:
         include:
           - flavor: default
             suffix: ""
-            memory: 512m
             trivy_category: trivy-build-default
             build_label: Build
             release_label: Release
             release_image: openidentityplatform/opendj:latest
-            benchmark_retention: 3
           - flavor: alpine
             suffix: "-alpine"
-            memory: 1g
             trivy_category: trivy-build-alpine
             build_label: Build-alpine
             release_label: Release-alpine
             release_image: openidentityplatform/opendj:alpine
-            benchmark_retention: 90
     env:
       release_version: ${{ matrix.flavor == 'alpine' && needs.build-docker-alpine.outputs.release_version || needs.build-docker.outputs.release_version }}
     steps:
@@ -682,7 +679,7 @@ jobs:
         shell: bash
         run: |
           trap 'code=$?; echo "::group::container logs (test)"; docker logs test 2>&1 || true; echo "::endgroup::"; exit $code' ERR
-          docker run -it -d --memory="${{ matrix.memory }}" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
+          docker run -it -d --memory="512m" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
           # the bootstrap's server is down before the marker the health check waits for is
           # written: the stop has logged its record by the time the marker is there
           timeout 3m bash -c 'until docker exec test sh -c "test -f \"\$BOOTSTRAP_COMPLETE\"" 2>/dev/null; do sleep 0.2; done'
@@ -712,7 +709,7 @@ jobs:
         shell: bash
         run: |
           trap 'code=$?; echo "::group::container logs (test_custom)"; docker logs test_custom 2>&1 || true; echo "::endgroup::"; exit $code' ERR
-          docker run --rm -it -d --memory="${{ matrix.memory }}" -e ADD_BASE_ENTRY="--addBaseEntry" -e ROOT_PASSWORD=custom_password --name=test_custom localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
+          docker run --rm -it -d --memory="512m" -e ADD_BASE_ENTRY="--addBaseEntry" -e ROOT_PASSWORD=custom_password --name=test_custom localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_custom | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_custom 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword custom_password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1'
           docker kill test_custom
@@ -722,7 +719,7 @@ jobs:
         shell: bash
         run: |
           trap 'code=$?; echo "::group::container logs (test_base_dn)"; docker logs test_base_dn 2>&1 || true; echo "::endgroup::"; exit $code' ERR
-          docker run --rm -it -d --memory="${{ matrix.memory }}" -e ADD_BASE_ENTRY="--addBaseEntry" -e BASE_DN="o=My Company,c=US" --name=test_base_dn localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
+          docker run --rm -it -d --memory="512m" -e ADD_BASE_ENTRY="--addBaseEntry" -e BASE_DN="o=My Company,c=US" --name=test_base_dn localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_base_dn | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_base_dn 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "o=My Company,c=US" --searchScope base "(objectClass=*)" 1.1 | grep -qx "dn: o=My Company,c=US"'
           docker kill test_base_dn
@@ -732,7 +729,7 @@ jobs:
         run: |
           trap 'code=$?; echo "::group::container logs (test_uid)"; docker logs test_uid 2>&1 || true; echo "::endgroup::"; exit $code' ERR
           uid=$((1000000000 + RANDOM))
-          docker run --rm -it -d --memory="${{ matrix.memory }}" --user $uid:0 -e ADD_BASE_ENTRY="--addBaseEntry" --name=test_uid localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
+          docker run --rm -it -d --memory="512m" --user $uid:0 -e ADD_BASE_ENTRY="--addBaseEntry" --name=test_uid localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_uid | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_uid 'sh' '-c' "test \"\$(stat -c %u /opt/opendj/instance.loc)\" = $uid"
           docker exec test_uid 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1'
@@ -783,7 +780,7 @@ jobs:
           healthy() { timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_secret | grep -q \"healthy\"; do sleep 10; done'; }
           copies() { docker logs test_secret 2>&1 | grep -c "^Copied $1 from the secret volume$" || true; }
           keystore secret-v1
-          docker run -d --memory="${{ matrix.memory }}" -e SECRET_VOLUME_REFRESH=5 -p 127.0.0.1:1637:1636 --name=test_secret \
+          docker run -d --memory="512m" -e SECRET_VOLUME_REFRESH=5 -p 127.0.0.1:1637:1636 --name=test_secret \
             -v "$SECRETS":/var/secrets/opendj:ro -v test_secret_data:/opt/opendj/data "$IMAGE"
           healthy
           grep -q "CN=secret-v1" <<< "$(served)"
@@ -818,7 +815,7 @@ jobs:
           # renewed while no container runs, the keystore, its new password and its new alias
           # are copied by the start, over the instance already there
           keystore secret-v4 changeit3
-          docker run -d --memory="${{ matrix.memory }}" -e SECRET_VOLUME_REFRESH=0 -p 127.0.0.1:1637:1636 --name=test_secret \
+          docker run -d --memory="512m" -e SECRET_VOLUME_REFRESH=0 -p 127.0.0.1:1637:1636 --name=test_secret \
             -v "$SECRETS":/var/secrets/opendj:ro -v test_secret_data:/opt/opendj/data "$IMAGE"
           healthy
           grep -q "CN=secret-v4" <<< "$(served)"
@@ -835,8 +832,8 @@ jobs:
           IMAGE=localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
           trap 'code=$?; for c in test_bootstrap_lf test_bootstrap_cr test_bootstrap; do echo "::group::container logs ($c)"; docker logs $c 2>&1 || true; echo "::endgroup::"; done; exit $code' ERR
           # a root password with a line break is refused: the tools read only the first line of the password file
-          docker run -d --memory="${{ matrix.memory }}" -e ROOT_PASSWORD=$'ab\ncd' --name=test_bootstrap_lf "$IMAGE"
-          docker run -d --memory="${{ matrix.memory }}" -e ROOT_PASSWORD=$'ab\rcd' --name=test_bootstrap_cr "$IMAGE"
+          docker run -d --memory="512m" -e ROOT_PASSWORD=$'ab\ncd' --name=test_bootstrap_lf "$IMAGE"
+          docker run -d --memory="512m" -e ROOT_PASSWORD=$'ab\rcd' --name=test_bootstrap_cr "$IMAGE"
           for c in test_bootstrap_lf test_bootstrap_cr; do
             timeout 2m bash -c 'until docker logs $0 2>&1 | grep -qF "ROOT_PASSWORD must not contain a line break"; do sleep 2; done' $c
           done
@@ -856,7 +853,7 @@ jobs:
           chmod -R a+rX "$BOOTSTRAP_DIR"
           # the containers of a Kubernetes pod share its /dev/shm, which outlives a restart of one of them: the holder stands in for the pod
           docker run -d --no-healthcheck --ipc=shareable --entrypoint sleep --name=test_bootstrap_shm "$IMAGE" 3600
-          docker run -it -d --memory="${{ matrix.memory }}" --ipc=container:test_bootstrap_shm -e ADD_BASE_ENTRY="--addBaseEntry" -e ROOT_PASSWORD="$ROOT_PASSWORD" -e ADMIN_PORT=5444 -v "$BOOTSTRAP_DIR/schema:/opt/opendj/bootstrap/schema:ro" -v "$BOOTSTRAP_DIR/data:/opt/opendj/bootstrap/data:ro" -v "$BOOTSTRAP_DIR/config/schema:/opt/opendj/bootstrap/config/schema:ro" --name=test_bootstrap "$IMAGE"
+          docker run -it -d --memory="512m" --ipc=container:test_bootstrap_shm -e ADD_BASE_ENTRY="--addBaseEntry" -e ROOT_PASSWORD="$ROOT_PASSWORD" -e ADMIN_PORT=5444 -v "$BOOTSTRAP_DIR/schema:/opt/opendj/bootstrap/schema:ro" -v "$BOOTSTRAP_DIR/data:/opt/opendj/bootstrap/data:ro" -v "$BOOTSTRAP_DIR/config/schema:/opt/opendj/bootstrap/config/schema:ro" --name=test_bootstrap "$IMAGE"
           # while the bootstrap runs, the password file is on the tmpfs of /dev/shm rather than in the writable
           # layer, and its name carries the admin port of the container
           timeout 2m bash -c 'until docker exec test_bootstrap sh -c "ls /dev/shm/opendj-setup-password.5444.*" >/dev/null 2>&1; do sleep 1; done'
@@ -905,7 +902,7 @@ jobs:
             done
           }
           # ROOT_PASSWORD is only the initial root password: changing it must not turn the container unhealthy
-          docker run -it -d --memory="${{ matrix.memory }}" --health-interval=5s -e ROOT_PASSWORD=initial_password --name=test_health $IMAGE
+          docker run -it -d --memory="512m" --health-interval=5s -e ROOT_PASSWORD=initial_password --name=test_health $IMAGE
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_health | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_health /opt/opendj/bin/ldappasswordmodify --hostname localhost --port 1636 --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword initial_password --currentPassword initial_password --newPassword rotated_password
           # bind settings kept for the CLI in the home of the image user must not reach the probe
@@ -916,7 +913,7 @@ jobs:
           # a password of its own, so the command lines below can be searched for it
           printf hc_secret_1092 > "$RUNNER_TEMP/healthcheck_password"
           chmod 644 "$RUNNER_TEMP/healthcheck_password"
-          docker run -it -d --memory="${{ matrix.memory }}" --health-interval=5s -v "$RUNNER_TEMP/healthcheck_password:/tmp/healthcheck_password:ro" -e ROOT_PASSWORD=hc_secret_1092 -e HEALTHCHECK_BIND_DN="cn=Directory Manager" -e HEALTHCHECK_BIND_PASSWORD_FILE=/tmp/healthcheck_password --name=test_health_bind $IMAGE
+          docker run -it -d --memory="512m" --health-interval=5s -v "$RUNNER_TEMP/healthcheck_password:/tmp/healthcheck_password:ro" -e ROOT_PASSWORD=hc_secret_1092 -e HEALTHCHECK_BIND_DN="cn=Directory Manager" -e HEALTHCHECK_BIND_PASSWORD_FILE=/tmp/healthcheck_password --name=test_health_bind $IMAGE
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_health_bind | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_health_bind /opt/opendj/bin/dsconfig set-global-configuration-prop --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPasswordFile /tmp/healthcheck_password --set reject-unauthenticated-requests:true --no-prompt --trustAll
           # the setting has taken: the anonymous probe would now be refused
@@ -946,7 +943,7 @@ jobs:
         shell: bash
         run: |
           IMAGE=localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
-          MEMORY=${{ matrix.memory }}
+          MEMORY=512m
           trap 'code=$?; echo "::group::container logs (test_failed)"; docker logs test_failed 2>&1 || true; docker inspect --format="{{json .State.Health}}" test_failed 2>&1 || true; echo "::endgroup::"; docker rm -f test_failed >/dev/null 2>&1 || true; docker volume rm test_failed_data >/dev/null 2>&1 || true; exit $code' ERR
           # an unknown backend type fails create-backend once setup has written data/config
           docker run -d --memory="$MEMORY" --health-interval=5s -e ADD_BASE_ENTRY="--addBaseEntry" -e BACKEND_TYPE=bogus -v test_failed_data:/opt/opendj/data --name=test_failed "$IMAGE"
@@ -975,7 +972,7 @@ jobs:
         run: |
           IMAGE=localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
           RELEASED=openidentityplatform/opendj:${{ env.release_version }}${{ matrix.suffix }}
-          MEMORY=${{ matrix.memory }}
+          MEMORY=512m
           trap 'code=$?; echo "::group::container logs (test_upgrade)"; docker logs test_upgrade 2>&1 || true; docker inspect --format="{{json .State.Health}}" test_upgrade 2>&1 || true; echo "::endgroup::"; docker rm -f test_upgrade >/dev/null 2>&1 || true; docker volume rm test_upgrade_data >/dev/null 2>&1 || true; exit $code' ERR
           search() { docker exec test_upgrade /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword password "$@"; }
           # release.yml publishes the GitHub release before it pushes the images of it: in between,
@@ -1084,7 +1081,7 @@ jobs:
             *.docker.log
             *.jmeter.out
           if-no-files-found: warn
-          retention-days: 3
+          retention-days: 5
       - name: Benchmark ${{ matrix.build_label }} vs ${{ matrix.release_label }}
         shell: bash
         run: |
@@ -1103,7 +1100,7 @@ jobs:
             *.docker.log
             *.jmeter.out
           if-no-files-found: warn
-          retention-days: ${{ matrix.benchmark_retention }}
+          retention-days: 5
 
   docker-convergence:
     # #1090: writes to every directory server of a replication topology at once, then checks

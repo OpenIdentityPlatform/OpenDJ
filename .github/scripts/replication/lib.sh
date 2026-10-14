@@ -20,6 +20,10 @@
 TOPOLOGY=${TOPOLOGY:-rs534}
 # seconds of load
 DURATION=${DURATION:-120}
+# the most modifications and adds per second the load sends to each directory server; a runner
+# that cannot keep up sends fewer, which the summary shows
+LOAD_MOD_RATE=${LOAD_MOD_RATE:-250}
+LOAD_ADD_RATE=${LOAD_ADD_RATE:-50}
 # users the first directory server imports; the others get them from its initialize
 SAMPLE_DATA=${SAMPLE_DATA:-2000}
 SERVER_MEMORY=${SERVER_MEMORY:-512m}
@@ -34,6 +38,10 @@ INJECT_DIVERGENCE=${INJECT_DIVERGENCE:-0}
 OUT=${OUT:-$PWD/replication-out}
 # 1: leave the servers of a failed run up, to look at them; the next run removes them
 KEEP=${KEEP:-0}
+
+# awk reads 0.5 as 0 where the locale's decimal separator is a comma, and the checks sum the
+# rates the load tools print with a dot
+export LC_ALL=C
 
 NETWORK=convergence
 ROOT_PASSWORD=password
