@@ -27,6 +27,7 @@ IMAGE=${1:?usage: $0 <image>}
 HERE=$(cd "$(dirname "$0")" && pwd)
 . "$HERE/lib.sh"
 . "$HERE/topology-up.sh"
+. "$HERE/monitor.sh"
 . "$HERE/assert-converged.sh"
 
 mkdir -p "$OUT"
@@ -52,6 +53,10 @@ for n in $DS_NODES; do
 done
 
 mark_logs
+
+phase "converge"
+wait_converged
+echo "converged in $CONVERGED_IN s"
 
 if [ "$INJECT_DIVERGENCE" = 1 ]; then
   phase "inject a divergence"
