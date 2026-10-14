@@ -175,6 +175,14 @@ recorded_role_of() { # <container>
   docker exec "$1" cat /opt/opendj/data/.replication-role 2>/dev/null
 }
 
+# no join.sh or replicate.sh runs in the container any more. A volume that holds the data
+# reports itself healthy from the start while its join still runs, and the join keeps its
+# password file until it ends. The bracket keeps the pattern from matching the command line
+# of the sh that greps for it
+bootstrap_ended() { # <container>
+  ! docker exec "$1" sh -c "grep -qs -e 'bootstrap/[j]oin\.sh' -e 'bootstrap/[r]eplicate\.sh' /proc/[0-9]*/cmdline"
+}
+
 # the writability-mode the backend of dc=example,dc=com is configured with, empty where its
 # entry sets none
 backend_mode() { # <container>
@@ -770,6 +778,7 @@ wait_healthy dj-1
 
 # the root password shows in no container log, and the files the tools read it from are gone
 for c in dj-0 dj-1 dj-2 dj-sdsr; do
+  wait_until 300 "the bootstrap scripts of $c end" bootstrap_ended $c
   if docker logs $c 2>&1 | grep -F -- "$ROOT_PASSWORD"; then fail "the root password is in the log of $c"; fi
   left=$(docker exec $c grep -rlsF -- "$ROOT_PASSWORD" /tmp /dev/shm || true)
   [ -z "$left" ] || fail "the root password is left in $left of $c"
