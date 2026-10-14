@@ -83,6 +83,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import com.forgerock.opendj.ldap.tools.LDAPSearch;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.dsconfig.DSConfig;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -382,6 +383,38 @@ public final class TestCaseUtils {
         {
           Security.insertProviderAt(provider, installed.indexOf(provider) + 1);
         }
+      }
+    }
+  }
+
+  /**
+   * Runs {@code action} with the Bouncy Castle FIPS provider installed first, in its default mode,
+   * and puts the providers back as they were afterwards.
+   *
+   * @param <T>
+   *          The type of what the action returns.
+   * @param action
+   *          What to run.
+   * @return What the action returns.
+   * @throws Exception
+   *           If the action fails.
+   */
+  public static <T> T withBcFipsFirst(final Callable<T> action) throws Exception
+  {
+    final List<Provider> installed = Arrays.asList(Security.getProviders());
+    final Provider previous = Security.getProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
+    Security.removeProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
+    Security.insertProviderAt(previous != null ? previous : new BouncyCastleFipsProvider(), 1);
+    try
+    {
+      return action.call();
+    }
+    finally
+    {
+      Security.removeProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
+      if (previous != null)
+      {
+        Security.insertProviderAt(previous, installed.indexOf(previous) + 1);
       }
     }
   }
