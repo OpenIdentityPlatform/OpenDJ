@@ -32,7 +32,7 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 mkdir -p "$OUT"
 # set -E hands the trap to every $(...) as well: there a failure only ends the subshell, and
 # the main shell decides
-trap 'code=$?; [ "$BASH_SUBSHELL" -eq 0 ] || exit $code; timings; cleanup; exit $code' ERR
+trap 'code=$?; [ "$BASH_SUBSHELL" -eq 0 ] || exit $code; timings; [ "$KEEP" = 1 ] || cleanup; exit $code' ERR
 cleanup
 
 phase "topology up ($TOPOLOGY)"
@@ -51,10 +51,15 @@ for n in $DS_NODES; do
   [ "$users" -eq "$SAMPLE_DATA" ] || fail "$n holds $users of the $SAMPLE_DATA seeded users"
 done
 
+mark_logs
+
 if [ "$INJECT_DIVERGENCE" = 1 ]; then
   phase "inject a divergence"
   inject_divergence
 fi
+
+phase "online checks"
+assert_online
 
 phase "offline checks"
 stop_all

@@ -32,10 +32,16 @@ QUIESCE_TIMEOUT=${QUIESCE_TIMEOUT:-900}
 INJECT_DIVERGENCE=${INJECT_DIVERGENCE:-0}
 # where the summary, the samples, the exports, the differences and a failed run's state go
 OUT=${OUT:-$PWD/replication-out}
+# 1: leave the servers of a failed run up, to look at them; the next run removes them
+KEEP=${KEEP:-0}
 
 NETWORK=convergence
 ROOT_PASSWORD=password
 BASE_DN="dc=example,dc=com"
+# the monitor of the replication domain of BASE_DN: cn=Replication,cn=monitor holds one per
+# replicated suffix (cn=admin data and cn=schema as well), and a server has another server id
+# in each of them
+MONITOR_DOMAIN="cn=$(echo "$BASE_DN" | tr '=,' '__'),cn=Replication,cn=monitor"
 
 case $TOPOLOGY in
   # #534: directory servers without a replication server and replication servers without data.
