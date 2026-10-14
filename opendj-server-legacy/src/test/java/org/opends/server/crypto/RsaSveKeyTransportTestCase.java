@@ -253,7 +253,7 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
   public void testMalformedWrappedKeyIsRefusedWithASecurityException(final String what, final byte[] wrapped)
   {
     assertThatThrownBy(() -> RsaSveKeyTransport.unwrap(keyPair.getPrivate(), wrapped, "AES", KEY_ID))
-        .as(what).isInstanceOf(InvalidKeyException.class);
+        .as(what).isInstanceOf(InvalidKeyException.class).hasMessageContaining("truncated");
   }
 
   /**
