@@ -30,11 +30,12 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 . "$HERE/monitor.sh"
 . "$HERE/load.sh"
 . "$HERE/assert-converged.sh"
+. "$HERE/collect.sh"
 
 mkdir -p "$OUT"
 # set -E hands the trap to every $(...) as well: there a failure only ends the subshell, and
 # the main shell decides
-trap 'code=$?; [ "$BASH_SUBSHELL" -eq 0 ] || exit $code; timings; [ "$KEEP" = 1 ] || cleanup; exit $code' ERR
+trap 'code=$?; [ "$BASH_SUBSHELL" -eq 0 ] || exit $code; sampler_stop; timings; collect; summarize failed; [ "$KEEP" = 1 ] || cleanup; exit $code' ERR
 cleanup
 
 phase "topology up ($TOPOLOGY)"
@@ -54,6 +55,7 @@ for n in $DS_NODES; do
 done
 
 mark_logs
+record_server_ids
 
 phase "load ($DURATION s)"
 sampler_start
@@ -77,4 +79,5 @@ stop_all
 assert_offline
 
 timings
+summarize passed
 cleanup
