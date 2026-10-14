@@ -118,6 +118,15 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
 
   /** The certificate manager for the trust store. */
   private CertificateManager certificateManager;
+  /**
+   * Held over every access to the trust store file and to the certificate manager. A change
+   * reads the file, changes that copy and writes the whole file back over the old one, and the
+   * certificate manager keeps the copy it read last. Replication replays the instance keys of
+   * cn=admin data on parallel threads, each of which changes the file here, and an SSL context
+   * is built from the file for every replication connection: unserialized, one of two changes
+   * is lost, and a reader finds the file half written (#1188).
+   */
+  private final Object trustStoreLock = new Object();
   /** The server context. */
   private ServerContext serverContext;
 
@@ -183,10 +192,13 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
 
     trustStorePIN = getTrustStorePIN(configuration, true);
     final String keyStorePath = getFileForPath(trustStoreFile).getPath();
-    certificateManager = new CertificateManager(keyStorePath, trustStoreType, trustStorePIN);
+    synchronized (trustStoreLock)
+    {
+      certificateManager = new CertificateManager(keyStorePath, trustStoreType, trustStorePIN);
 
-    // Generate a self-signed certificate, if there is none.
-    generateInstanceCertificateIfAbsent();
+      // Generate a self-signed certificate, if there is none.
+      generateInstanceCertificateIfAbsent();
+    }
 
     // Construct the trust store base entry.
     LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>(2);
@@ -327,7 +339,11 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
 
     try
     {
-      String[] aliases = certificateManager.getCertificateAliases();
+      String[] aliases;
+      synchronized (trustStoreLock)
+      {
+        aliases = certificateManager.getCertificateAliases();
+      }
       if (aliases != null)
       {
         numEntries += aliases.length;
@@ -409,7 +425,11 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
     ByteString certValue;
     try
     {
-      Certificate cert = certificateManager.getCertificate(certAlias);
+      Certificate cert;
+      synchronized (trustStoreLock)
+      {
+        cert = certificateManager.getCertificate(certAlias);
+      }
       if (cert == null)
       {
         LocalizableMessage message = ERR_TRUSTSTORE_CERTIFICATE_NOT_FOUND.get(entryDN, certAlias);
@@ -468,7 +488,10 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
 
     if (parentDN.equals(getBaseDN()))
     {
-      addCertificate(entry);
+      synchronized (trustStoreLock)
+      {
+        addCertificate(entry);
+      }
     }
     else
     {
@@ -494,7 +517,10 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
 
-    deleteCertificate(entryDN);
+    synchronized (trustStoreLock)
+    {
+      deleteCertificate(entryDN);
+    }
   }
 
   @Override
@@ -538,7 +564,10 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
       String[] aliases = null;
       try
       {
-        aliases = certificateManager.getCertificateAliases();
+        synchronized (trustStoreLock)
+        {
+          aliases = certificateManager.getCertificateAliases();
+        }
       }
       catch (KeyStoreException e)
       {
@@ -772,12 +801,15 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
-      trustStoreFile = newTrustStoreFile;
-      trustStoreType = newTrustStoreType;
-      trustStorePIN  = newPIN;
-      configuration  = cfg;
-      final String keyStorePath = getFileForPath(trustStoreFile).getPath();
-      certificateManager = new CertificateManager(keyStorePath, trustStoreType, trustStorePIN);
+      synchronized (trustStoreLock)
+      {
+        trustStoreFile = newTrustStoreFile;
+        trustStoreType = newTrustStoreType;
+        trustStorePIN  = newPIN;
+        configuration  = cfg;
+        final String keyStorePath = getFileForPath(trustStoreFile).getPath();
+        certificateManager = new CertificateManager(keyStorePath, trustStoreType, trustStorePIN);
+      }
     }
 
     return ccr;
@@ -802,24 +834,28 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
   public KeyManager[] getKeyManagers()
          throws DirectoryException
   {
-    final KeyStore keyStore = loadKeyStore();
-
-    try
+    // the keys are opened with the PIN of the file they were read from, not that of a new one
+    synchronized (trustStoreLock)
     {
-      String keyManagerAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
-      KeyManagerFactory keyManagerFactory =
-           KeyManagerFactory.getInstance(keyManagerAlgorithm);
-      keyManagerFactory.init(keyStore, trustStorePIN);
-      return keyManagerFactory.getKeyManagers();
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
+      final KeyStore keyStore = loadKeyStore();
 
-      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_CREATE_FACTORY.get(
-          trustStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
-                                   message, e);
+      try
+      {
+        String keyManagerAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
+        KeyManagerFactory keyManagerFactory =
+             KeyManagerFactory.getInstance(keyManagerAlgorithm);
+        keyManagerFactory.init(keyStore, trustStorePIN);
+        return keyManagerFactory.getKeyManagers();
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+
+        LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_CREATE_FACTORY.get(
+            trustStoreFile, getExceptionMessage(e));
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+                                     message, e);
+      }
     }
   }
 
@@ -864,16 +900,19 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
 
   private KeyStore loadKeyStore() throws DirectoryException
   {
-    try (FileInputStream inputStream = new FileInputStream(getFileForPath(trustStoreFile)))
+    synchronized (trustStoreLock)
     {
-      final KeyStore keyStore = KeyStore.getInstance(trustStoreType);
-      keyStore.load(inputStream, trustStorePIN);
-      return keyStore;
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_LOAD.get(trustStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
+      try (FileInputStream inputStream = new FileInputStream(getFileForPath(trustStoreFile)))
+      {
+        final KeyStore keyStore = KeyStore.getInstance(trustStoreType);
+        keyStore.load(inputStream, trustStorePIN);
+        return keyStore;
+      }
+      catch (Exception e)
+      {
+        LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_LOAD.get(trustStoreFile, getExceptionMessage(e));
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
+      }
     }
   }
 
@@ -925,20 +964,24 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
   public Key getKey(String alias)
          throws DirectoryException
   {
-    KeyStore trustStore = loadKeyStore();
-
-    try
+    // the key is opened with the PIN of the file it was read from, not that of a new one
+    synchronized (trustStoreLock)
     {
-      return trustStore.getKey(alias, trustStorePIN);
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
+      KeyStore trustStore = loadKeyStore();
 
-      LocalizableMessage message = ERR_TRUSTSTORE_ERROR_READING_KEY.get(
-           alias, trustStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
-                                   message, e);
+      try
+      {
+        return trustStore.getKey(alias, trustStorePIN);
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+
+        LocalizableMessage message = ERR_TRUSTSTORE_ERROR_READING_KEY.get(
+             alias, trustStoreFile, getExceptionMessage(e));
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+                                     message, e);
+      }
     }
   }
 
@@ -1047,6 +1090,12 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
         }
       }
     }
+    catch (DirectoryException e)
+    {
+      // a refusal made above keeps its result code: an alias in use is an entry which exists,
+      // not a failure of the server
+      throw e;
+    }
     catch (Exception e)
     {
       LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_ADD_CERT.get(
@@ -1078,6 +1127,11 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
       }
 
       certificateManager.removeCertificate(certAlias);
+    }
+    catch (DirectoryException e)
+    {
+      // an alias not in use is an entry which does not exist, not a failure of the server
+      throw e;
     }
     catch (Exception e)
     {
