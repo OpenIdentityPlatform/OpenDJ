@@ -187,8 +187,9 @@
     </adm:synopsis>
     <adm:description>
       Besides the transformations of the Java runtime, the value
-      RSASVE/KDF-SHA256/AESKWP selects the hybrid key transport of NIST
-      SP 800-56B Rev. 2, section 9.3, for a Java runtime which offers no
+      RSASVE/KDF-SHA256/AESKWP selects a scheme built on the hybrid key
+      transport of NIST SP 800-56B Rev. 2, section 9.3, without a nonce
+      of the receiving server, for a Java runtime which offers no
       RSA-OAEP: it needs only RSA/ECB/NoPadding, SHA-256 and the AES key
       wrap with padding (AES/KWP/NoPadding) from the runtime. A server
       which does not support this value cannot unwrap the keys wrapped
