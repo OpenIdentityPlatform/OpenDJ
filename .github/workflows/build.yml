@@ -1105,6 +1105,49 @@ jobs:
           if-no-files-found: warn
           retention-days: ${{ matrix.benchmark_retention }}
 
+  docker-convergence:
+    # #1090: writes to every directory server of a replication topology at once, then checks
+    # that the replicas hold the same data; next to docker-test, on the image of build-docker
+    needs: build-docker
+    runs-on: 'ubuntu-latest'
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        topology: [rs534, combined]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: |
+            .github/scripts/replication
+      - name: Download the image
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: docker-image-default
+          path: ${{ runner.temp }}/image
+      - name: Load the image
+        shell: bash
+        run: docker load -i "$RUNNER_TEMP/image/image.tar"
+      - name: Convergence run (${{ matrix.topology }})
+        shell: bash
+        env:
+          TOPOLOGY: ${{ matrix.topology }}
+          DURATION: "300"
+          SAMPLE_DATA: "10000"
+          SERVER_MEMORY: 1g
+          SERVER_JAVA_ARGS: -server -Xmx512m
+          OUT: ${{ runner.temp }}/replication-out
+        run: .github/scripts/replication/run.sh "localhost:5000/${GITHUB_REPOSITORY,,}:${{ needs.build-docker.outputs.release_version }}"
+      - name: Upload the convergence run
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: convergence-${{ matrix.topology }}
+          path: ${{ runner.temp }}/replication-out
+          if-no-files-found: warn
+          retention-days: 14
+
   test-deb:
     needs: build-maven
     runs-on: 'ubuntu-latest'
