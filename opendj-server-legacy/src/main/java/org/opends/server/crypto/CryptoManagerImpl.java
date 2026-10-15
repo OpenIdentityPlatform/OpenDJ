@@ -929,7 +929,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
               new ByteArrayInputStream(wrappingKeyCertificateData));
       final byte[] wrappedKey;
       if (RsaSveKeyTransport.isScheme(wrappingTransformationName)) {
-        wrappedKey = RsaSveKeyTransport.wrap(certificate.getPublicKey(),
+        wrappedKey = RsaSveKeyTransport.wrap(certificate,
                 secretKey, wrappingKeyID, secureRandom);
       }
       else {

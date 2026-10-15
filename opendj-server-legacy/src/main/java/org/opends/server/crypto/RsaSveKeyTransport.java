@@ -27,8 +27,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Arrays;
+import java.util.Set;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
@@ -69,6 +72,10 @@ final class RsaSveKeyTransport
   private static final int KEY_WRAPPING_KEY_LENGTH_BITS = 256;
   /** The counter of the only hash the key derivation computes. */
   private static final byte[] KDF_COUNTER = { 0, 0, 0, 1 };
+  /** The object identifier of the key usage extension of an X.509 certificate. */
+  private static final String KEY_USAGE_OID = "2.5.29.15";
+  /** The position of keyEncipherment in the key usage of an X.509 certificate. */
+  private static final int KEY_ENCIPHERMENT = 2;
 
   private RsaSveKeyTransport()
   {
@@ -99,6 +106,41 @@ final class RsaSveKeyTransport
     Cipher.getInstance(RSA_TRANSFORMATION);
     MessageDigest.getInstance(DIGEST_ALGORITHM);
     getKeyWrapCipher();
+  }
+
+  /**
+   * Wraps a secret key for the instance which holds the private key of a certificate. Like
+   * {@code Cipher.init(Cipher.WRAP_MODE, certificate)}, it refuses an X.509 certificate whose key
+   * usage extension is critical and does not allow keyEncipherment.
+   *
+   * @param certificate
+   *          The certificate of the instance, with its RSA public key.
+   * @param secretKey
+   *          The secret key to wrap.
+   * @param wrappingKeyID
+   *          The identifier of the instance key, as stored next to the wrapped key.
+   * @param random
+   *          The random generator of the secret value.
+   * @return The wrapped key.
+   * @throws GeneralSecurityException
+   *           If the key usage of the certificate does not allow wrapping keys, if its public key
+   *           is not an RSA key, or if the runtime cannot wrap the key.
+   */
+  static byte[] wrap(final Certificate certificate, final SecretKey secretKey, final String wrappingKeyID,
+      final SecureRandom random) throws GeneralSecurityException
+  {
+    if (certificate instanceof X509Certificate)
+    {
+      final X509Certificate x509Certificate = (X509Certificate) certificate;
+      final Set<String> criticalExtensions = x509Certificate.getCriticalExtensionOIDs();
+      final boolean[] keyUsage = x509Certificate.getKeyUsage();
+      if (criticalExtensions != null && criticalExtensions.contains(KEY_USAGE_OID)
+          && keyUsage != null && keyUsage.length > KEY_ENCIPHERMENT && !keyUsage[KEY_ENCIPHERMENT])
+      {
+        throw new InvalidKeyException(NAME + " needs a certificate whose key usage allows keyEncipherment");
+      }
+    }
+    return wrap(certificate.getPublicKey(), secretKey, wrappingKeyID, random);
   }
 
   /**
