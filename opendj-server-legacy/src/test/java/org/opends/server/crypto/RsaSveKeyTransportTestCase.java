@@ -287,6 +287,26 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
         .isInstanceOf(InvalidKeyException.class);
   }
 
+  /**
+   * The unwrapping refuses an instance key pair without its private key, as a trust store entry
+   * holding only a certificate gives, or whose public key is not an RSA key, with an exception the
+   * crypto manager reports and before any cipher.
+   */
+  @Test
+  public void testUnusableInstanceKeyPairIsRefusedWithASecurityException() throws Exception
+  {
+    final byte[] wrapped = { 0, 3, 1, 2, 3, 4 };
+    assertThatThrownBy(() -> RsaSveKeyTransport.unwrap(new KeyPair(keyPair.getPublic(), null), wrapped, "AES", KEY_ID))
+        .isInstanceOf(InvalidKeyException.class)
+        .hasMessageContaining("needs the private key");
+    final KeyPairGenerator generator = KeyPairGenerator.getInstance("EC");
+    generator.initialize(256);
+    final KeyPair ecKeyPair = new KeyPair(generator.generateKeyPair().getPublic(), keyPair.getPrivate());
+    assertThatThrownBy(() -> RsaSveKeyTransport.unwrap(ecKeyPair, wrapped, "AES", KEY_ID))
+        .isInstanceOf(InvalidKeyException.class)
+        .hasMessageContaining("needs an RSA public key");
+  }
+
   @DataProvider
   public Object[][] malformedWrappedKeys()
   {
