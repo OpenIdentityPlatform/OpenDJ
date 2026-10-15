@@ -193,8 +193,12 @@
       RSA-OAEP: it needs only RSA/ECB/NoPadding, SHA-256 and the AES key
       wrap with padding (AES/KWP/NoPadding) from the runtime. A server
       which does not support this value cannot unwrap the keys wrapped
-      with it, so every server of the replication topology must run a
-      version which supports it before any server uses it.
+      with it, and neither can a server whose Java runtime lacks one of
+      these algorithms, such as Java 11 without Bouncy Castle FIPS: it
+      only logs an error for each key it cannot unwrap. So every server
+      of the replication topology must run a version which supports this
+      value, on a Java runtime which offers these algorithms, before any
+      server uses it.
     </adm:description>
     <adm:requires-admin-action>
       <adm:none>
