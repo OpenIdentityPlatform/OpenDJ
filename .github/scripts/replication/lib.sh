@@ -26,6 +26,12 @@ LOAD_MOD_RATE=${LOAD_MOD_RATE:-325}
 LOAD_ADD_RATE=${LOAD_ADD_RATE:-65}
 # users the first directory server imports; the others get them from its initialize
 SAMPLE_DATA=${SAMPLE_DATA:-2000}
+# the heap of every server and every load client. Without a bound each JVM may take a quarter
+# of the memory of the host, fourteen of them on a runner of 16 GB, and the one run without it
+# lost both its runners (run 38694855431). No container memory limit: one would kill a server
+# in the middle of the run where the heap bound only slows it down
+SERVER_JAVA_ARGS=${SERVER_JAVA_ARGS:--server -Xmx1g}
+CLIENT_JAVA_ARGS=${CLIENT_JAVA_ARGS:--Xmx256m}
 # seconds the whole topology is given to come up: the joins take their turns one at a time
 UP_TIMEOUT=${UP_TIMEOUT:-3600}
 # seconds the topology is given to converge once the load stops
