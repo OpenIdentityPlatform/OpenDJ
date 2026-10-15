@@ -23,7 +23,7 @@
 start_client() {
   local name=$1 tool=$2
   shift 2
-  docker run -d --name "$name" --network $NETWORK \
+  docker run -d --name "$name" --network $NETWORK -e OPENDJ_JAVA_ARGS="$CLIENT_JAVA_ARGS" \
     -v "$OUT/load:/load:ro" --entrypoint /opt/opendj/bin/$tool "$IMAGE" "$@" >/dev/null
 }
 

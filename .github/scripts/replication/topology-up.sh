@@ -25,6 +25,7 @@ start_server() { # <name> <role> [<docker run option>...]
   docker run -d --network $NETWORK --name "$name" --hostname "$name" \
     -v "vol-$name:/opt/opendj/data" \
     -e ROOT_PASSWORD="$ROOT_PASSWORD" -e ADD_BASE_ENTRY="--addBaseEntry" \
+    -e OPENDJ_JAVA_ARGS="$SERVER_JAVA_ARGS" \
     -e OPENDJ_REPLICATION_TYPE=simple -e REPLICATION_ROLE="$role" -e REPLICATION_PEERS="$PEERS" \
     -e REPLICATION_RETRY_INTERVAL=3 \
     "$@" "$IMAGE" >/dev/null
