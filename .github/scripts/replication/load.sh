@@ -23,7 +23,7 @@
 start_client() {
   local name=$1 tool=$2
   shift 2
-  docker run -d --name "$name" --network $NETWORK --memory=256m -e OPENDJ_JAVA_ARGS="-Xmx128m" \
+  docker run -d --name "$name" --network $NETWORK \
     -v "$OUT/load:/load:ro" --entrypoint /opt/opendj/bin/$tool "$IMAGE" "$@" >/dev/null
 }
 
