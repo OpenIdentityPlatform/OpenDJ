@@ -20,14 +20,12 @@
 TOPOLOGY=${TOPOLOGY:-rs534}
 # seconds of load
 DURATION=${DURATION:-120}
-# the most modifications and adds per second the load sends to each directory server; a runner
-# that cannot keep up sends fewer, which the summary shows
-LOAD_MOD_RATE=${LOAD_MOD_RATE:-250}
-LOAD_ADD_RATE=${LOAD_ADD_RATE:-50}
+# the most modifications, and adds or deletes, per second the load sends to each directory
+# server; a runner that cannot keep up sends fewer, which the summary shows
+LOAD_MOD_RATE=${LOAD_MOD_RATE:-325}
+LOAD_ADD_RATE=${LOAD_ADD_RATE:-65}
 # users the first directory server imports; the others get them from its initialize
 SAMPLE_DATA=${SAMPLE_DATA:-2000}
-SERVER_MEMORY=${SERVER_MEMORY:-512m}
-SERVER_JAVA_ARGS=${SERVER_JAVA_ARGS:--server -Xmx256m}
 # seconds the whole topology is given to come up: the joins take their turns one at a time
 UP_TIMEOUT=${UP_TIMEOUT:-3600}
 # seconds the topology is given to converge once the load stops

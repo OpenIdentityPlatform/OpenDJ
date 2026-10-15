@@ -51,7 +51,7 @@ summarize() { # <result>
     echo "| | |"
     echo "|---|---|"
     echo "| servers | $ALL_NODES |"
-    echo "| load | $DURATION s on each directory server, at most $LOAD_MOD_RATE modifications and $LOAD_ADD_RATE adds a second |"
+    echo "| load | $DURATION s on each directory server, at most $LOAD_MOD_RATE modifications and $LOAD_ADD_RATE adds or deletes a second |"
     echo "| seeded users | $SAMPLE_DATA |"
     echo "| converged | ${CONVERGED_IN:--} s after the load |"
     if [ -s "$OUT/samples.txt" ] && [ -s "$OUT/server-ids.txt" ]; then

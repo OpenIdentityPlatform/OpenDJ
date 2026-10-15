@@ -1130,10 +1130,8 @@ jobs:
         shell: bash
         env:
           TOPOLOGY: ${{ matrix.topology }}
-          DURATION: "300"
+          DURATION: "900"
           SAMPLE_DATA: "10000"
-          SERVER_MEMORY: 1g
-          SERVER_JAVA_ARGS: -server -Xmx512m
           OUT: ${{ runner.temp }}/replication-out
         run: .github/scripts/replication/run.sh "localhost:5000/${GITHUB_REPOSITORY,,}:${{ needs.build-docker.outputs.release_version }}"
       - name: Upload the convergence run
