@@ -2276,10 +2276,13 @@ public class ReplicationBroker
   /**
    * Publish a recovery message to the other servers.
    * @param msg the message to publish
+   * @return {@code true} if the message was written to the session of the
+   *         Replication Service, {@code false} if the broker could not write
+   *         it: it has no usable session, or it was stopped in between.
    */
-  public void publishRecovery(ReplicationMsg msg)
+  public boolean publishRecovery(ReplicationMsg msg)
   {
-    publish(msg, true, true);
+    return publish(msg, true, true);
   }
 
   /**
