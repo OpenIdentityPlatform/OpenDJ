@@ -196,6 +196,7 @@ final class RsaSveKeyTransport
    * The encapsulated value is checked against the modulus before the private key decrypts it, and
    * every failure from the decryption on is reported with one and the same message, the cause
    * aside: what the private key recovers from a value does not show in how the value is refused.
+   * A runtime which lacks one of the ciphers is reported before that, naming the cipher.
    *
    * @param instanceKeyPair
    *          The RSA key pair of this instance. The modulus is taken from its public key, since a
@@ -246,16 +247,18 @@ final class RsaSveKeyTransport
     final byte[] wrapped = new byte[buffer.remaining()];
     buffer.get(wrapped);
 
+    // Neither cipher depends on the value: a runtime which lacks one is told apart from a value
+    // which cannot be unwrapped.
+    final Cipher rsa = Cipher.getInstance(RSA_TRANSFORMATION);
+    final Cipher keyWrap = getKeyWrapCipher();
     byte[] decrypted = null;
     byte[] secretValue = null;
     try
     {
-      final Cipher rsa = Cipher.getInstance(RSA_TRANSFORMATION);
       rsa.init(Cipher.DECRYPT_MODE, privateKey);
       decrypted = rsa.doFinal(encapsulated);
       // Bouncy Castle FIPS drops the leading zero bytes of the secret value.
       secretValue = toLength(decrypted, length);
-      final Cipher keyWrap = getKeyWrapCipher();
       keyWrap.init(Cipher.UNWRAP_MODE, deriveKeyWrappingKey(secretValue, wrappingKeyID, keyAlgorithm));
       return (SecretKey) keyWrap.unwrap(wrapped, keyAlgorithm, Cipher.SECRET_KEY);
     }

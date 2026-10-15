@@ -385,23 +385,46 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
   @Test
   public void testCheckSupportedNamesTheMissingKeyWrap() throws Exception
   {
-    final Callable<Void> check = () ->
+    withoutKeyWrap(() ->
     {
       assertThatThrownBy(RsaSveKeyTransport::checkSupported)
           .isInstanceOf(GeneralSecurityException.class)
           .hasMessageContaining("AES/KWP/NoPadding");
       return null;
-    };
+    });
+  }
+
+  /**
+   * The unwrapping names AES/KWP/NoPadding on a runtime which lacks it, as a server which does not
+   * use the scheme but receives keys wrapped with it does: no cipher depends on the value, so such a
+   * runtime is not reported as a value which cannot be unwrapped.
+   */
+  @Test
+  public void testUnwrapNamesTheMissingKeyWrap() throws Exception
+  {
+    final byte[] wrapped = wrappedKey(toBytes(BigInteger.valueOf(2)), bytes(24, 0x3C));
+    withoutKeyWrap(() ->
+    {
+      assertThatThrownBy(() -> RsaSveKeyTransport.unwrap(keyPair, wrapped, "AES", KEY_ID))
+          .isInstanceOf(GeneralSecurityException.class)
+          .hasMessageContaining("AES/KWP/NoPadding");
+      return null;
+    });
+  }
+
+  /** Runs the action on a runtime which offers raw RSA and SHA-256 but no AES-KWP, as Java 11 does. */
+  private static void withoutKeyWrap(final Callable<Void> action) throws Exception
+  {
     if (Security.getProviders("Cipher.AES/KWP/NoPadding") == null)
     {
-      check.call();
+      action.call();
     }
     else
     {
       // SunJCE offers AES/KWP/NoPadding and is withdrawn with it: the stand-in gives back its raw RSA.
       final Provider rawRsa = new Provider("RawRsaOfSunJce", "1.0", "RSA cipher of SunJCE") {};
       rawRsa.put("Cipher.RSA", "com.sun.crypto.provider.RSACipher");
-      withoutJceService("Cipher", "AES/KWP/NoPadding", check, rawRsa);
+      withoutJceService("Cipher", "AES/KWP/NoPadding", action, rawRsa);
     }
   }
 
