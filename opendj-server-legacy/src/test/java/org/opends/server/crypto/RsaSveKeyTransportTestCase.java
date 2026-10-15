@@ -405,6 +405,17 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
     }
   }
 
+  /**
+   * With Bouncy Castle FIPS installed first, as in the FIPS mode of OpenDJ, Bouncy Castle FIPS does
+   * the key wrap even where the Java runtime offers AES/KWP/NoPadding too, a name it does not know.
+   */
+  @Test
+  public void testKeyWrapComesFromBcFipsWhenItIsFirst() throws Exception
+  {
+    assertThat(withBcFipsFirst(() -> RsaSveKeyTransport.getKeyWrapCipher().getProvider().getName()))
+        .isEqualTo(BouncyCastleFipsProvider.PROVIDER_NAME);
+  }
+
   /** Runs the action with the providers of the Java runtime, or with AES-KWP from Bouncy Castle FIPS only. */
   private static void inProviders(final String providers, final Callable<Void> action) throws Exception
   {

@@ -66,8 +66,12 @@ final class RsaSveKeyTransport
 
   private static final String RSA_TRANSFORMATION = "RSA/ECB/NoPadding";
   private static final String DIGEST_ALGORITHM = "SHA-256";
-  /** The names of AES-KWP: the standard one, then the only one Bouncy Castle FIPS knows. */
-  private static final String[] KEY_WRAP_TRANSFORMATIONS = { "AES/KWP/NoPadding", "AESWrapPad" };
+  /**
+   * The names of AES-KWP: first the only one Bouncy Castle FIPS knows, so that it does the key wrap
+   * when it is installed first, as in the FIPS mode of OpenDJ, even where the Java runtime offers
+   * AES-KWP too; then the standard one.
+   */
+  private static final String[] KEY_WRAP_TRANSFORMATIONS = { "AESWrapPad", "AES/KWP/NoPadding" };
   /** The length in bits of the key wrapping key: one SHA-256 hash. */
   private static final int KEY_WRAPPING_KEY_LENGTH_BITS = 256;
   /** The counter of the only hash the key derivation computes. */
@@ -370,10 +374,13 @@ final class RsaSveKeyTransport
         .array();
   }
 
-  /** Returns an AES-KWP cipher under the first of its names the runtime knows. */
-  private static Cipher getKeyWrapCipher() throws GeneralSecurityException
+  /**
+   * Returns an AES-KWP cipher under the first of its names the runtime knows. When it knows none,
+   * the failure names the standard one.
+   */
+  static Cipher getKeyWrapCipher() throws GeneralSecurityException
   {
-    GeneralSecurityException firstFailure = null;
+    GeneralSecurityException lastFailure = null;
     for (final String transformation : KEY_WRAP_TRANSFORMATIONS)
     {
       try
@@ -382,12 +389,9 @@ final class RsaSveKeyTransport
       }
       catch (NoSuchAlgorithmException | NoSuchPaddingException e)
       {
-        if (firstFailure == null)
-        {
-          firstFailure = e;
-        }
+        lastFailure = e;
       }
     }
-    throw firstFailure;
+    throw lastFailure;
   }
 }
