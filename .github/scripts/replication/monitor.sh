@@ -64,12 +64,18 @@ converged_once() {
   echo "$s" | awk '$4 != 0 { behind = 1 } END { exit behind }'
 }
 
-# Three converged samples in a row: the monitor of a replication server is refreshed now and
-# then, not on every change. Sets CONVERGED_IN to the seconds it took
+# A replication server computes missing-changes once a monitoring-period (MonitoringPublisher),
+# which this run leaves at its default, and a directory server its last computation does not
+# know reads as 0: samples that do not span a period may all read one computation, made while
+# changes were on their way
+MONITORING_PERIOD=60
+
+# Three converged samples in a row, the last one a monitoring period after the first. Sets
+# CONVERGED_IN to the seconds until the first of them
 wait_converged() {
-  local start=$SECONDS hits=0
-  until [ $hits -ge 3 ]; do
-    if converged_once; then hits=$((hits + 1)); else hits=0; fi
+  local start=$SECONDS hits=0 first=
+  until [ $hits -ge 3 ] && [ $((SECONDS - first)) -ge $MONITORING_PERIOD ]; do
+    if converged_once; then hits=$((hits + 1)); first=${first:-$SECONDS}; else hits=0; first=; fi
     if [ $((SECONDS - start)) -ge "$QUIESCE_TIMEOUT" ]; then
       echo "::group::the monitor when the wait timed out (epoch, replication server, server id, missing changes, delay)"
       sample || true
@@ -78,7 +84,7 @@ wait_converged() {
     fi
     sleep 5
   done
-  CONVERGED_IN=$((SECONDS - start))
+  CONVERGED_IN=$((first - start))
 }
 
 # Samples every 5 s in the background into $OUT/samples.txt, for the peaks of the run; a
@@ -94,8 +100,10 @@ sampler_stop() {
     kill $SAMPLER 2>/dev/null || true
     wait $SAMPLER 2>/dev/null || true
     # a sample takes tens of seconds under the load, so the kill nearly always cuts one short
-    # before it removes its directory, which would then be uploaded with the run
-    rm -rf "$OUT"/sample.*
+    # before it removes its directory, which would then be uploaded with the run. The kill
+    # reaches the sampler only, not the searches it started: one that opens its file in the
+    # directory after rm read it makes rm fail, which must not fail the run
+    rm -rf "$OUT"/sample.* || true
   fi
   SAMPLER=
 }

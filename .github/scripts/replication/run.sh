@@ -34,10 +34,18 @@ command -v python3 >/dev/null || { echo "run.sh needs python3" >&2; exit 2; }
 . "$HERE/assert-converged.sh"
 . "$HERE/collect.sh"
 
+# the files of an earlier run would mix into this one's: the samples are appended to, and the
+# summary of a run that failed early would show what a run that got further left
+if [ -n "$(ls -A "$OUT" 2>/dev/null)" ]; then
+  echo "$OUT holds the files of an earlier run: remove it, or set OUT to another directory" >&2
+  exit 2
+fi
 mkdir -p "$OUT"
 # set -E hands the trap to every $(...) as well: there a failure only ends the subshell, and
-# the main shell decides
-trap 'code=$?; [ "$BASH_SUBSHELL" -eq 0 ] || exit $code; sampler_stop; timings; collect; summarize failed; [ "$KEEP" = 1 ] || cleanup; exit $code' ERR
+# the main shell decides. A run that fails before the online checks - a load check, a wait
+# that timed out, which a reconnection under load would explain - counts the reconnections
+# while the servers are still up
+trap 'code=$?; [ "$BASH_SUBSHELL" -eq 0 ] || exit $code; sampler_stop; [ -f "$OUT/reconnections.txt" ] || [ ! -f "$OUT/logs/${DS_NODES%% *}.mark" ] || record_reconnections || true; timings; collect; summarize failed; [ "$KEEP" = 1 ] || cleanup; exit $code' ERR
 cleanup
 
 phase "topology up ($TOPOLOGY)"
