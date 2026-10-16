@@ -88,7 +88,6 @@ import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -1300,11 +1299,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
    */
   private static <T> T inApprovedOnlyBcFipsThread(final Callable<T> action) throws Exception
   {
-    final List<Provider> installed = Arrays.asList(Security.getProviders());
-    final Provider previous = Security.getProvider("BCFIPS");
-    Security.removeProvider("BCFIPS");
-    Security.insertProviderAt(previous != null ? previous : new BouncyCastleFipsProvider(), 1);
-    try
+    return withBcFipsFirst(() ->
     {
       final FutureTask<T> task = new FutureTask<>(() ->
       {
@@ -1320,15 +1315,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
       {
         throw new AssertionError("the action failed in approved-only mode", e.getCause());
       }
-    }
-    finally
-    {
-      Security.removeProvider("BCFIPS");
-      if (previous != null)
-      {
-        Security.insertProviderAt(previous, installed.indexOf(previous) + 1);
-      }
-    }
+    });
   }
 
   /**
