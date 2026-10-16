@@ -168,6 +168,33 @@ public class ReplicationBroker
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private volatile boolean shutdown;
+  /**
+   * Set by {@link #stop()} before anything else it does, and cleared by {@link #start()}: once it
+   * is set, a publish which finds no window credit by {@link #stopCreditDeadline} gives its message
+   * up instead of waiting on.
+   * <p>
+   * stop() publishes the replica offline message before it sets {@link #shutdown}, the flag which
+   * ends the wait for credit, and that message needs credit too, and the lock of the pending
+   * changes a local change waits for credit under. Credit comes only as the replication server
+   * takes the updates of the session, while its heartbeats keep the session up: without a bound a
+   * replication server which takes no update holds the stop - and the disable, the restart or the
+   * shutdown of the domain behind it - for as long as it does.
+   */
+  private volatile boolean stopping;
+  /**
+   * The {@link System#nanoTime()} until which a publish waits for credit once {@link #stopping} is
+   * set. The replication server gets as long to give the credit as it gets to accept a connection:
+   * one which is only slow takes the changes and the replica offline message as before, and only
+   * one which takes nothing for that long costs them.
+   */
+  private volatile long stopCreditDeadline;
+  /**
+   * Set when a publish gave its message up because of the stop, and cleared by {@link #start()}:
+   * from then on the broker writes nothing. A message written after one given up would reach the
+   * replication server ahead of an older one - the replica offline message, which carries the
+   * newest CSN of the replica, would tell it that nothing older is to come.
+   */
+  private volatile boolean gaveUpForTheStop;
   private final Object startStopLock = new Object();
   private volatile ReplicationDomainCfg config;
   /** String reported under CSN=monitor when there is no connected RS. */
@@ -287,6 +314,8 @@ public class ReplicationBroker
         return;
       }
       shutdown = false;
+      stopping = false;
+      gaveUpForTheStop = false;
       this.rcvWindow = getMaxRcvWindow();
       connectAsDataServer();
     }
@@ -2294,7 +2323,7 @@ public class ReplicationBroker
   {
     boolean done = false;
 
-    while (!done && !shutdown)
+    while (!done && !shutdown && !gaveUpForTheStop)
     {
       if (connectionError)
       {
@@ -2378,6 +2407,19 @@ public class ReplicationBroker
             }
           }
         }
+        else if (stopping && System.nanoTime() - stopCreditDeadline >= 0)
+        {
+          /*
+           * Only credit ends this wait on a session the replication server keeps up, and stop()
+           * sets the flag of this loop only after the replica offline message, which may need the
+           * lock this publish holds. What is given up here is a change which the next session
+           * republishes - from the historical information of its entry, or a delete from the
+           * operations this domain keeps in memory, which a restart of the server loses - or the
+           * replica offline message, which is then reported as not sent.
+           */
+          gaveUpForTheStop = true;
+          return false;
+        }
         if (!credit && currentWindowSemaphore.availablePermits() == 0)
         {
           synchronized (connectPhaseLock)
@@ -2437,9 +2479,9 @@ public class ReplicationBroker
       }
     }
     /*
-     * The loop also ends when the broker is stopped, and then nothing was written to any
-     * session: a caller told the message was published would report as sent a message which
-     * never reached the wire.
+     * The loop also ends when the broker is stopped, or gave a message up for the stop, and then
+     * nothing was written to any session: a caller told the message was published would report as
+     * sent a message which never reached the wire.
      */
     return done;
   }
@@ -2729,17 +2771,26 @@ public class ReplicationBroker
       if (shutdown) {
         return;
       }
+      stopCreditDeadline = System.nanoTime()
+          + TimeUnit.MILLISECONDS.toNanos(MultimasterReplication.getConnectionTimeoutMS());
+      stopping = true;
     }
 
-    domain.publishReplicaOfflineMsg();
-
-    synchronized (startStopLock)
+    try
     {
-      shutdown = true;
-      setConnectedRS(ConnectedRS.stopped());
-      stopRSHeartBeatMonitoring();
-      stopChangeTimeHeartBeatPublishing();
-      deregisterReplicationMonitor();
+      domain.publishReplicaOfflineMsg();
+    }
+    finally
+    {
+      // A broker left running as a stopping one would give up every publish which waits for credit.
+      synchronized (startStopLock)
+      {
+        shutdown = true;
+        setConnectedRS(ConnectedRS.stopped());
+        stopRSHeartBeatMonitoring();
+        stopChangeTimeHeartBeatPublishing();
+        deregisterReplicationMonitor();
+      }
     }
   }
 
