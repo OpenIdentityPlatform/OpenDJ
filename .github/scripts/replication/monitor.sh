@@ -93,6 +93,9 @@ sampler_stop() {
     # waited for, so that the shell does not report the job it killed
     kill $SAMPLER 2>/dev/null || true
     wait $SAMPLER 2>/dev/null || true
+    # a sample takes tens of seconds under the load, so the kill nearly always cuts one short
+    # before it removes its directory, which would then be uploaded with the run
+    rm -rf "$OUT"/sample.*
   fi
   SAMPLER=
 }
