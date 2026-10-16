@@ -28,6 +28,7 @@ import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.PublicKey;
 import java.security.SecureRandom;
@@ -430,6 +431,26 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
           .hasMessageContaining("AES/KWP/NoPadding");
       return null;
     });
+  }
+
+  /**
+   * The unwrapping reports why the RSA cipher refuses the private key, as a provider which cannot
+   * use the key of the trust store does: the private key does not depend on the value either, so
+   * such a runtime is not reported as a value which cannot be unwrapped.
+   */
+  @Test
+  public void testUnwrapReportsWhyTheRsaCipherRefusesThePrivateKey() throws Exception
+  {
+    final KeyPairGenerator generator = KeyPairGenerator.getInstance("EC");
+    generator.initialize(256);
+    final PrivateKey ecKey = generator.generateKeyPair().getPrivate();
+    final Throwable refusal =
+        catchThrowable(() -> Cipher.getInstance("RSA/ECB/NoPadding").init(Cipher.DECRYPT_MODE, ecKey));
+    assertThat(refusal).isInstanceOf(InvalidKeyException.class);
+    final byte[] wrapped = wrappedKey(toBytes(BigInteger.valueOf(2)), bytes(24, 0x3C));
+    assertThatThrownBy(() -> RsaSveKeyTransport.unwrap(new KeyPair(keyPair.getPublic(), ecKey), wrapped, "AES", KEY_ID))
+        .isInstanceOf(InvalidKeyException.class)
+        .hasMessage(refusal.getMessage());
   }
 
   /** Runs the action on a runtime which offers raw RSA and SHA-256 but no AES-KWP, as Java 11 does. */
