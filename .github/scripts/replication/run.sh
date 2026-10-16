@@ -25,6 +25,8 @@ set -eE -o pipefail
 
 IMAGE=${1:?usage: $0 <image>}
 HERE=$(cd "$(dirname "$0")" && pwd)
+# changelog-gaps.py reads the changelogs of the replication servers
+command -v python3 >/dev/null || { echo "run.sh needs python3" >&2; exit 2; }
 . "$HERE/lib.sh"
 . "$HERE/topology-up.sh"
 . "$HERE/monitor.sh"
@@ -58,6 +60,8 @@ mark_logs
 record_server_ids
 
 phase "load ($DURATION s)"
+# the changes of the load: assert_changelogs looks for gaps among the changes made in between
+LOAD_START_MS=$(($(date +%s) * 1000))
 sampler_start
 run_load
 sampler_stop
@@ -65,18 +69,23 @@ sampler_stop
 phase "converge"
 wait_converged
 echo "converged in $CONVERGED_IN s"
+LOAD_END_MS=$(($(date +%s) * 1000))
 
 if [ "$INJECT_DIVERGENCE" = 1 ]; then
   phase "inject a divergence"
   inject_divergence
 fi
 
+# the offline checks run after online checks that failed as well: they tell which changes are
+# missing where
 phase "online checks"
-assert_online
+checks=
+assert_online || checks="the online checks"
 
 phase "offline checks"
 stop_all
-assert_offline
+assert_offline || checks="${checks:+$checks and }the offline checks"
+[ -z "$checks" ] || fail "$checks failed"
 
 timings
 summarize passed

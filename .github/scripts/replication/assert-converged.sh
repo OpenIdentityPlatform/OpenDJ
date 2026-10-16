@@ -59,12 +59,18 @@ assert_offline() {
     # of each replica: both are its own
     # --offline: a tools.properties with connection settings would turn the export into a task
     # of a server that is not running
-    offline $n export-ldif --offline --noPropertiesFile --backendID userRoot --ldifFile /out/export/$n.ldif \
-      --excludeAttribute ds-sync-hist --excludeAttribute ds-sync-state >"$OUT/export/$n.out" 2>&1 \
-      || fail "export-ldif failed on $n, see export/$n.out"
+    if ! offline $n export-ldif --offline --noPropertiesFile --backendID userRoot --ldifFile /out/export/$n.ldif \
+        --excludeAttribute ds-sync-hist --excludeAttribute ds-sync-state >"$OUT/export/$n.out" 2>&1; then
+      echo "::error::export-ldif failed on $n, see export/$n.out"
+      failed=1
+      continue
+    fi
     # two exports that failed alike, or exported another backend, are as identical as two good ones
     entries=$(grep -c '^dn: ' "$OUT/export/$n.ldif" || true)
-    [ "${entries:-0}" -gt "$SAMPLE_DATA" ] || fail "the export of $n holds $entries entries, not more than the $SAMPLE_DATA seeded users"
+    if [ "${entries:-0}" -le "$SAMPLE_DATA" ]; then
+      echo "::error::the export of $n holds $entries entries, not more than the $SAMPLE_DATA seeded users"
+      failed=1
+    fi
     offline $n verify-index --baseDN "$BASE_DN" --countErrors >"$OUT/diff/$n.verify-index.txt" 2>&1 \
       || { echo "::error::verify-index found errors on $n, see diff/$n.verify-index.txt"; failed=1; }
   done
@@ -74,7 +80,32 @@ assert_offline() {
     offline $n ldifdiff --outputLDIF /out/diff/$n.ldif /out/export/$first.ldif /out/export/$n.ldif >/dev/null \
       || { echo "::error::$n holds other data than $first, see diff/$n.ldif"; failed=1; }
   done
+  assert_changelogs || failed=1
   [ -z "$failed" ] || fail "the replicas do not hold the same data"
+}
+
+# The changes of every replica in the changelog of every replication server, one after the
+# other: a gap in the sequence numbers of a replica's changes during the load is a change that
+# reached no replication server. The data shows it only while no later change of the same
+# attribute overwrites it, and missing-changes never (#1195). docker cp streams the changelog
+# out of the stopped container; changelog-gaps.py reads it
+assert_changelogs() {
+  local n code failed=
+  mkdir -p "$OUT/changelog"
+  for n in $RS_NODES; do
+    code=0
+    docker cp "$n:/opt/opendj/data/changelogDb" - \
+      | python3 -I "$HERE/changelog-gaps.py" "$BASE_DN" "$LOAD_START_MS" "$LOAD_END_MS" \
+      | awk 'FILENAME == ARGV[1] { name[$1] = $2; next }
+             $1 == "replica" { id = $2; sub(/:$/, "", id); if (id in name) $2 = id " (" name[id] "):" }
+             { print }' "$OUT/server-ids.txt" - >"$OUT/changelog/$n.txt" || code=$?
+    case $code in
+      0) ;;
+      1) echo "::error::changes of the load are missing from the changelog of $n, see changelog/$n.txt"; failed=1 ;;
+      *) echo "::error::the changelog of $n could not be read, see changelog/$n.txt"; failed=1 ;;
+    esac
+  done
+  [ -z "$failed" ]
 }
 
 # Equality filters on attributes the default setup indexes (objectClass, sn): the search goes
@@ -93,9 +124,22 @@ mark_logs() {
   done
 }
 
+since_mark() { # <node>
+  docker exec $1 tail -n +$(($(cat "$OUT/logs/$1.mark") + 1)) /opt/opendj/data/logs/errors
+}
+
+# How often each directory server switched replication servers after the topology came up:
+# the broker logs msgID 188 for a switch it decides on. Changes made during a switch under load
+# were lost in #1195, so the summary shows how many switches a run went through
+record_switches() {
+  local n
+  for n in $DS_NODES; do
+    echo "$n $(since_mark $n | grep -F "msgID=188 " | grep -cF "for domain \"$BASE_DN\"" || true)"
+  done >"$OUT/switches.txt"
+}
+
 errors_since_mark() { # <node>
-  docker exec $1 tail -n +$(($(cat "$OUT/logs/$1.mark") + 1)) /opt/opendj/data/logs/errors \
-    | grep -E "category=SYNC severity=ERROR|SSLHandshakeException|bad_certificate" || true
+  since_mark $1 | grep -E "category=SYNC severity=ERROR|SSLHandshakeException|bad_certificate" || true
 }
 
 # A directory server is connected to one replication server at a time, so the replication
@@ -115,6 +159,7 @@ assert_online() {
   local f i=0 n first lines failed=
   first=${DS_NODES%% *}
   mkdir -p "$OUT/dns"
+  record_switches
   for f in $INDEXED_FILTERS; do
     i=$((i + 1))
     for n in $DS_NODES; do

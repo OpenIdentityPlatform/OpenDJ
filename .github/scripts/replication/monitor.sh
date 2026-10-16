@@ -22,9 +22,13 @@
 # peer of it - in the replication domain of BASE_DN: <epoch> <replication server> <server id>
 # <missing-changes> <approximate-delay>. Both kinds of entries are named "Connected directory
 # server DS(<id>) ..." (DataServerHandler, LightweightServerHandler)
+# The replication servers are asked at once: an ldapsearch starts a JVM, which takes tens of
+# seconds on a runner the load keeps busy, and asked one after the other they took a sample
+# every minute or so instead of every five seconds
 sample() {
-  local rs now
+  local rs now dir pid pids=
   now=$(date +%s)
+  dir=$(mktemp -d "$OUT/sample.XXXXXX")
   for rs in $RS_NODES; do
     admin_search $rs "$MONITOR_DOMAIN" sub "(cn=Connected directory server*)" \
         server-id missing-changes approximate-delay \
@@ -33,8 +37,18 @@ sample() {
           tolower($1) == "missing-changes:" { m = $2 }
           tolower($1) == "approximate-delay:" { d = $2 }
           /^$/ && id != "" { print t, rs, id, m, d; id = "" }
-          END { if (id != "") print t, rs, id, m, d }'
+          END { if (id != "") print t, rs, id, m, d }' >"$dir/$rs" &
+    pids="$pids $!"
   done
+  # a replication server that does not answer only leaves its lines out, which
+  # converged_once does not take for a zero
+  for pid in $pids; do
+    wait $pid || true
+  done
+  for rs in $RS_NODES; do
+    cat "$dir/$rs"
+  done
+  rm -rf "$dir"
 }
 
 # Converged once every replication server knows every directory server and none of them misses
