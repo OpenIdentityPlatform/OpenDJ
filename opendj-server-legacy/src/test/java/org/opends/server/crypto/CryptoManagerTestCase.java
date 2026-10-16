@@ -1009,6 +1009,12 @@ public class CryptoManagerTestCase extends CryptoTestCase {
       finally
       {
         cm.applyConfigurationChange(cfg);
+        // The admin data backend keeps the key across restarts, where a runtime without AES-KWP,
+        // such as Java 11 without Bouncy Castle FIPS, cannot unwrap it and logs an error for it.
+        for (final Entry entry : getKeysForCipher(transformation, keyLengthBits))
+        {
+          deleteEntry(entry);
+        }
       }
 
       // A value is unwrapped by the transformation it records, whatever the configured one, and
@@ -1365,11 +1371,16 @@ public class CryptoManagerTestCase extends CryptoTestCase {
 
   private Entry getKeyForCipher(String cipher, int keyLength) throws DirectoryException
   {
+    return getKeysForCipher(cipher, keyLength).get(0);
+  }
+
+  private List<? extends Entry> getKeysForCipher(String cipher, int keyLength) throws DirectoryException
+  {
     SearchRequest request = newSearchRequest("cn=secret keys, cn=admin data", SearchScope.WHOLE_SUBTREE,
         "&(ds-cfg-cipher-transformation-name=" + cipher + ")(ds-cfg-key-length-bits=" + keyLength + ")");
     InternalClientConnection conn = getRootConnection();
     InternalSearchOperation search = conn.processSearch(request);
-    return search.getSearchEntries().get(0);
+    return search.getSearchEntries();
   }
 
   @Test
