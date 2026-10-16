@@ -19,6 +19,7 @@ package org.opends.server.replication.plugin;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
@@ -30,6 +31,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
@@ -40,12 +42,14 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
@@ -58,8 +62,10 @@ import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TestTimer;
 import org.opends.server.util.TimeThread;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import static java.util.concurrent.TimeUnit.*;
@@ -123,6 +129,16 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       return writes;
     }
 
+  }
+
+  /**
+   * Forgets the replication server of the test: the next one, and the domains of the next tests,
+   * would be configured with its port, which nothing listens on anymore.
+   */
+  @AfterMethod
+  public void forgetReplicationServers()
+  {
+    replServers.clear();
   }
 
   private MatchingRule getRule()
@@ -596,7 +612,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       final List<CSN> done = new CopyOnWriteArrayList<>();
       final List<Future<?>> changes = new CopyOnWriteArrayList<>();
       final AtomicInteger rounds = new AtomicInteger();
-      rd1.setMissingChangesSearchHook(() ->
+      rd1.setMissingChangesSearchHook(search ->
       {
         final int round = rounds.incrementAndGet();
         if (round > MAX_ROUNDS_UNDER_LOAD)
@@ -697,7 +713,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       final List<CSN> done = new CopyOnWriteArrayList<>();
       final List<Future<?>> changes = new CopyOnWriteArrayList<>();
       final AtomicInteger rounds = new AtomicInteger();
-      rd1.setMissingChangesSearchHook(() ->
+      rd1.setMissingChangesSearchHook(search ->
       {
         final int round = rounds.incrementAndGet();
         if (round > MAX_ROUNDS_UNDER_LOAD)
@@ -735,7 +751,8 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
    * A round counts as published only what the broker did not refuse. A round which counted the
    * changes refused by a broker which reached no replication server could end the recovery without
    * them, and the deletes kept aside for the recovery were dropped as it ended: the next recovery
-   * has to find all of them still.
+   * has to find all of them still. The first change refused is a delete, which only the list it is
+   * kept aside in can publish again: a modify, the search of the next recovery finds again.
    */
   @Test
   public void changesTheBrokerRefusedAreLeftToTheNextRecovery() throws Exception
@@ -752,9 +769,9 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
       startRecovery(rd1);
       final List<CSN> done = new ArrayList<>();
-      replace(dnA, "description", "while no session takes it");
-      done.add(rd1.getLastLocalChange());
       TestCaseUtils.deleteEntry(dnB);
+      done.add(rd1.getLastLocalChange());
+      replace(dnA, "description", "while no session takes it");
       done.add(rd1.getLastLocalChange());
 
       assertFalse(rd1.buildAndPublishMissingChanges(rsMaxCSN, new TestBroker(new ArrayList<ReplicationMsg>(), false)),
@@ -836,6 +853,339 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   }
 
   /**
+   * A round whose search did not go through publishes nothing. What the search found may be some
+   * of the changes only: a replication server which took them would take none of the ones it
+   * missed, which are older, and no later recovery could publish those. The next recovery publishes
+   * them all, in order, and the delete kept aside with them.
+   */
+  @Test
+  public void aRoundWhoseSearchFailedPublishesNothing() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      final DN dnA = addPerson("a");
+      final DN dnB = addPerson("b");
+      final DN dnC = addPerson("c");
+      final CSN rsMaxCSN = rd1.getLastLocalChange();
+
+      startRecovery(rd1);
+      final List<CSN> done = new ArrayList<>();
+      replace(dnA, "description", "before the search fails");
+      done.add(rd1.getLastLocalChange());
+      TestCaseUtils.deleteEntry(dnB);
+      done.add(rd1.getLastLocalChange());
+      replace(dnC, "description", "before the search fails");
+      done.add(rd1.getLastLocalChange());
+
+      rd1.setMissingChangesSearchHook(onTheFirstSearch(search -> search.setResultCode(ResultCode.UNAVAILABLE)));
+      final List<ReplicationMsg> published = new ArrayList<>();
+      Assertions.assertThatThrownBy(() -> rd1.buildAndPublishMissingChanges(rsMaxCSN, new TestBroker(published)))
+          .as("a recovery whose search failed")
+          .hasMessageContaining(ResultCode.UNAVAILABLE.getName().toString());
+      assertThat(published).as("what a round whose search failed published").isEmpty();
+
+      assertTrue(rd1.buildAndPublishMissingChanges(rsMaxCSN, new TestBroker(published)));
+      assertThat(csns(published)).containsExactlyElementsOf(done);
+    }
+    finally
+    {
+      rd1.setMissingChangesSearchHook(null);
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  /**
+   * The deletes a round took to publish and did not, as it threw on the way, are put back: they
+   * have nothing else to be published from, and the recovery of the session started again
+   * publishes them.
+   */
+  @Test
+  public void theDeletesARoundThrewBeforePublishingAreLeftToTheNextRecovery() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      final DN dnA = addPerson("a");
+      final DN dnB = addPerson("b");
+      final CSN rsMaxCSN = rd1.getLastLocalChange();
+
+      startRecovery(rd1);
+      TestCaseUtils.deleteEntry(dnA);
+      final CSN first = rd1.getLastLocalChange();
+      TestCaseUtils.deleteEntry(dnB);
+      final CSN second = rd1.getLastLocalChange();
+
+      final List<ReplicationMsg> published = new ArrayList<>();
+      final ReplicationBroker throwingOnTheSecond = new TestBroker(published)
+      {
+        @Override
+        public boolean publishRecovery(ReplicationMsg msg)
+        {
+          if (!published.isEmpty())
+          {
+            throw new IllegalStateException("the publish threw, as a test asked");
+          }
+          return super.publishRecovery(msg);
+        }
+      };
+      Assertions.assertThatThrownBy(() -> rd1.buildAndPublishMissingChanges(rsMaxCSN, throwingOnTheSecond))
+          .isInstanceOf(IllegalStateException.class);
+      assertThat(csns(published)).containsExactly(first);
+
+      // The replication server of the session started again holds the delete which was published.
+      final List<ReplicationMsg> republished = new ArrayList<>();
+      assertTrue(rd1.buildAndPublishMissingChanges(first, new TestBroker(republished)));
+      assertThat(csns(republished)).containsExactly(second);
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  /**
+   * A recovery whose search fails on a session which stays up has the session started again, and
+   * the recovery of the next session publishes the changes, in order. No next session came: the
+   * local changes were left to a recovery nobody ran - recorded in the domain state and published by
+   * nobody - until the session went down for some other reason.
+   */
+  @Test
+  public void aRecoveryWhoseSearchFailedHasTheSessionStartedAgain() throws Exception
+  {
+    assertARecoveryWhichFailedHasTheSessionStartedAgain(search -> search.setResultCode(ResultCode.UNAVAILABLE));
+  }
+
+  /** A recovery which threw on a session which stays up has the session started again as well. */
+  @Test
+  public void aRecoveryWhichThrewHasTheSessionStartedAgain() throws Exception
+  {
+    assertARecoveryWhichFailedHasTheSessionStartedAgain(search ->
+    {
+      throw new IllegalStateException("the round threw, as a test asked");
+    });
+  }
+
+  private void assertARecoveryWhichFailedHasTheSessionStartedAgain(Consumer<InternalSearchOperation> failure)
+      throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      final DN dnA = addPerson("a");
+      final DN dnB = addPerson("b");
+      final CSN rsMaxCSN = rd1.getLastLocalChange();
+      assertInTheChangelog(rs, baseDN, rsMaxCSN);
+
+      // The replication server misses the changes done from here on.
+      startRecovery(rd1);
+      final List<CSN> done = new ArrayList<>();
+      replace(dnA, "description", "missed by the replication server");
+      done.add(rd1.getLastLocalChange());
+      TestCaseUtils.deleteEntry(dnB);
+      done.add(rd1.getLastLocalChange());
+
+      // The session started again recovers them, and the first round of its recovery fails.
+      rd1.setMissingChangesSearchHook(onTheFirstSearch(failure));
+      rd1.disable();
+      rd1.enable();
+
+      new TestTimer.Builder()
+          .maxSleep(30, SECONDS)
+          .sleepTimes(100, MILLISECONDS)
+          .toTimer()
+          .repeatUntilSuccess(() -> assertThat(changelogAfter(rs, baseDN, rsMaxCSN))
+              .as("the changes the replication server holds after the ones it had")
+              .isEqualTo(done));
+      waitUntilTheRecoveryIsOver(rd1);
+      replace(dnA, "description", "once the recovery is over");
+      assertInTheChangelog(rs, baseDN, rd1.getLastLocalChange());
+    }
+    finally
+    {
+      rd1.setMissingChangesSearchHook(null);
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  /**
+   * The search of a round which finds no base entry went through: the suffix is gone, and no entry
+   * is left below it to hold a change. The deletes which removed it go out, the recovery ends, and
+   * the base entry added back is published as any other change. A recovery which took that search
+   * for a failed one would wait for the suffix to come back.
+   */
+  @Test
+  public void theDeletesOfASuffixRemovedDuringARecoveryArePublished() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      final DN dnA = addPerson("a");
+      final CSN rsMaxCSN = rd1.getLastLocalChange();
+
+      startRecovery(rd1);
+      final List<CSN> done = new ArrayList<>();
+      TestCaseUtils.deleteEntry(dnA);
+      done.add(rd1.getLastLocalChange());
+      TestCaseUtils.deleteEntry(baseDN);
+      done.add(rd1.getLastLocalChange());
+
+      final List<ReplicationMsg> published = new ArrayList<>();
+      assertTrue(rd1.buildAndPublishMissingChanges(rsMaxCSN, new TestBroker(published)),
+          "a recovery whose search found no base entry is over");
+      assertThat(csns(published)).containsExactlyElementsOf(done);
+
+      TestCaseUtils.addEntry(StaticUtils.createEntry(baseDN));
+      assertInTheChangelog(rs, baseDN, rd1.getLastLocalChange());
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  /**
+   * The deletes kept aside outlive a session whose replication server holds no change of this
+   * replica. Its missing change publisher starts from the newest change of this replica and has
+   * nothing older to publish to it, but a later session may reach a replication server which misses
+   * some of those deletes, and they have nothing else to be published from. They were dropped -
+   * trimmed as not newer than where that publisher started, and cleared as its recovery ended - and
+   * the replication server of the later session never had the delete.
+   */
+  @Test
+  public void theDeletesKeptAsideOutliveASessionToAReplicationServerWithNoChangeOfThisReplica()
+      throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    final SortedSet<String> towardsRs = new TreeSet<>(replServers);
+    ReplicationServer empty = null;
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      addPerson("a");
+      final DN dnB = addPerson("b");
+      assertInTheChangelog(rs, baseDN, rd1.getLastLocalChange());
+
+      // As a publisher whose broker refused a change leaves it.
+      startRecovery(rd1);
+      brokerOf(rd1).setRecoveryRequired(false);
+      TestCaseUtils.deleteEntry(dnB);
+      final CSN delete = rd1.getLastLocalChange();
+
+      // A session to a replication server which holds no change of this replica, and knows of no
+      // other replication server: the publisher of the session ends the recovery.
+      final int emptyPort = TestCaseUtils.findFreePort();
+      final SortedSet<String> towardsEmpty = new TreeSet<>(Collections.singleton("localhost:" + emptyPort));
+      empty = new ReplicationServer(new ReplServerFakeConfiguration(
+          emptyPort, "HistoricalCsnOrderingEmpty", 0, 2, 0, 100, towardsEmpty, 1, 1000, 5000));
+      clearChangelogDB(empty);
+      assertEquals(rd1.applyConfigurationChange(domainConfiguration(serverId, towardsEmpty)).getResultCode(),
+          ResultCode.SUCCESS);
+      waitUntilTheRecoveryIsOver(rd1);
+      assertNull(empty.getReplicationServerDomain(baseDN, true).getLatestServerState().getCSN(serverId),
+          "the replication server holding no change of this replica was sent none");
+
+      // A session to the replication server which misses the delete.
+      assertEquals(rd1.applyConfigurationChange(domainConfiguration(serverId, towardsRs)).getResultCode(),
+          ResultCode.SUCCESS);
+      assertInTheChangelog(rs, baseDN, delete);
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs, empty);
+    }
+  }
+
+  /**
+   * A session whose replication server holds no change of this replica ends the recovery a failed
+   * publisher left, on a replica whose own domain state holds none of its changes either: its
+   * publisher starts from the current time.
+   */
+  @Test
+  public void aRecoveryLeftOnAReplicaWithNoChangeOfItsOwnEnds() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      assertNull(rd1.getServerState().getCSN(serverId), "the domain state holds no change of this replica");
+      // As a publisher whose broker refused a change leaves it.
+      startRecovery(rd1);
+      brokerOf(rd1).setRecoveryRequired(false);
+
+      rd1.disable();
+      rd1.enable();
+      waitUntilTheRecoveryIsOver(rd1);
+
+      addPerson("a");
+      assertInTheChangelog(rs, baseDN, rd1.getLastLocalChange());
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  /**
+   * A change numbered exactly the end of a search window is published. The search finds it - its
+   * filter takes the end - but a round which took only the changes older than the end left it out,
+   * and the next window starts after it.
+   */
+  @Test
+  public void aChangeNumberedTheEndOfASearchWindowIsPublished() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      final DN dnA = addPerson("a");
+      final CSN rsMaxCSN = rd1.getLastLocalChange();
+      final CSN endOfFirstWindow =
+          new CSN(rsMaxCSN.getTime() + SEARCH_WINDOW_MS, Integer.MAX_VALUE, serverId);
+
+      startRecovery(rd1);
+      // The next change is numbered right after this one, in the same millisecond: the clock has not
+      // reached it yet, the change being done less than a window after the one before.
+      rd1.getGenerator().adjust(new CSN(endOfFirstWindow.getTime() - 1, Integer.MAX_VALUE - 1, serverId));
+      replace(dnA, "description", "numbered the end of the window");
+      assertEquals(rd1.getLastLocalChange(), endOfFirstWindow, "the change is numbered the end of the window");
+
+      final List<ReplicationMsg> published = new ArrayList<>();
+      assertTrue(rd1.buildAndPublishMissingChanges(rsMaxCSN, new TestBroker(published)));
+      assertThat(csns(published)).containsExactly(endOfFirstWindow);
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  /**
    * Does a local change on the writer, and waits for it for a while: a change the last round holds
    * back is done once the recovery is over.
    */
@@ -892,7 +1242,11 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
             .isEqualTo(afterTheRecovery));
   }
 
-  /** Returns the changes of the replica of the provided CSN which the replication server holds after it. */
+  /**
+   * Returns the changes of the replica of the provided CSN which the replication server holds after
+   * it. The announcements that the replica went offline, which each stop of its broker publishes,
+   * are no changes, and are left out.
+   */
   private static List<CSN> changelogAfter(ReplicationServer rs, DN baseDN, CSN csn) throws Exception
   {
     final List<CSN> csns = new ArrayList<>();
@@ -901,7 +1255,10 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     {
       while (cursor.next())
       {
-        csns.add(cursor.getRecord().getCSN());
+        if (!(cursor.getRecord() instanceof ReplicaOfflineMsg))
+        {
+          csns.add(cursor.getRecord().getCSN());
+        }
       }
     }
     return csns;
@@ -1041,15 +1398,21 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   }
 
   /** Runs the step the first time only: the rounds after the first are left alone. */
-  private static Runnable once(final Step step)
+  private static Consumer<InternalSearchOperation> once(final Step step)
+  {
+    final Runnable run = unchecked(step);
+    return onTheFirstSearch(search -> run.run());
+  }
+
+  /** Runs the step on the search of the first round only: the rounds after it are left alone. */
+  private static Consumer<InternalSearchOperation> onTheFirstSearch(final Consumer<InternalSearchOperation> step)
   {
     final AtomicBoolean ran = new AtomicBoolean();
-    final Runnable run = unchecked(step);
-    return () ->
+    return search ->
     {
       if (ran.compareAndSet(false, true))
       {
-        run.run();
+        step.accept(search);
       }
     };
   }
@@ -1068,11 +1431,27 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   private LDAPReplicationDomain createReplicationDomain(int dsId)
           throws DirectoryException, ConfigException
   {
-    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
-    final DomainFakeCfg domainConf = new DomainFakeCfg(
-        baseDN, dsId, replServers, AssuredType.NOT_ASSURED, 2, 1, 0, null);
-    LDAPReplicationDomain replicationDomain = MultimasterReplication.createNewDomain(domainConf);
+    LDAPReplicationDomain replicationDomain =
+        MultimasterReplication.createNewDomain(domainConfiguration(dsId, replServers));
     replicationDomain.start();
     return replicationDomain;
+  }
+
+  /** Returns the configuration of the domain of the tests, connected to the provided replication servers. */
+  private static DomainFakeCfg domainConfiguration(int dsId, SortedSet<String> servers)
+  {
+    return new DomainFakeCfg(
+        DN.valueOf(TEST_ROOT_DN_STRING), dsId, servers, AssuredType.NOT_ASSURED, 2, 1, 0, null);
+  }
+
+  /** Waits for a missing change publisher of the domain to end the recovery. */
+  private static void waitUntilTheRecoveryIsOver(final LDAPReplicationDomain domain) throws Exception
+  {
+    final PendingChanges pendingChanges = pendingChangesOf(domain);
+    new TestTimer.Builder()
+        .maxSleep(30, SECONDS)
+        .sleepTimes(100, MILLISECONDS)
+        .toTimer()
+        .repeatUntilSuccess(() -> assertFalse(pendingChanges.isRecovering(), "the recovery is over"));
   }
 }
