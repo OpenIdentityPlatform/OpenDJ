@@ -28,6 +28,8 @@ start_client() {
 }
 
 CLIENTS=
+# seconds between two lines of the output of a rate tool
+STAT_INTERVAL=10
 
 # Plain LDAP: the run is after the changes the replication carries, and TLS between a client
 # and its server only takes CPU from them. --noRebind: every client keeps its connections open
@@ -67,13 +69,13 @@ TEMPLATE
     # server a value in a diff or a changelog comes from (#1206)
     start_client load-mod-$n modrate --hostname $n --port 1389 --connectTimeout 120000 --noRebind \
       --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --maxDuration "$DURATION" \
-      --statInterval 10 --numConnections 8 --numThreads 1 --scriptFriendly --targetThroughput "$LOAD_MOD_RATE" \
+      --statInterval $STAT_INTERVAL --numConnections 8 --numThreads 1 --scriptFriendly --targetThroughput "$LOAD_MOD_RATE" \
       --targetDN "uid=user.%d,ou=People,$BASE_DN" --argument "rand(0,$((SAMPLE_DATA - 1)))" \
       --argument "randstr(16)" "description:$n-%2\$s"
     # adds, and deletes of the oldest once 100 of them are there: a slow runner gets to the deletes as well
     start_client load-add-$n addrate --hostname $n --port 1389 --connectTimeout 120000 --noRebind \
       --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --maxDuration "$DURATION" \
-      --statInterval 10 --numConnections 8 --numThreads 1 --scriptFriendly --targetThroughput "$LOAD_ADD_RATE" \
+      --statInterval $STAT_INTERVAL --numConnections 8 --numThreads 1 --scriptFriendly --targetThroughput "$LOAD_ADD_RATE" \
       --deleteMode fifo --deleteSizeThreshold 100 "/load/addrate-$n.template"
     CLIENTS="$CLIENTS load-mod-$n load-add-$n"
   done
@@ -94,15 +96,23 @@ TEMPLATE
 }
 
 # A rate tool exits with 0 whatever its requests got back, and one that could not reach its
-# server at all exits at once: the client has to have done work, and every interval of its CSV
-# output has to report no errors (the "Errors/second" column)
+# server at all exits at once. One whose connection breaks stops at once as well, exits with 0
+# too, leaves out the line of its last interval - the one that would count the error - and
+# prints the error to its error output, which goes to the same file. So the client has to have
+# done work, every interval of its CSV output has to report no errors (the "Errors/second"
+# column), the output has to cover the load - a line every STAT_INTERVAL seconds, of which the
+# last may be missing - and hold nothing but the CSV
 check_client() { # <client>
-  awk -F, -v c=$1 -v exit_state="$(cat "$OUT/load/$1.exit")" '
+  awk -F, -v c=$1 -v exit_state="$(cat "$OUT/load/$1.exit")" -v want=$((DURATION / STAT_INTERVAL - 1)) '
     /^Time \(seconds\)/ { for (i = 1; i <= NF; i++) { if ($i == "Recent throughput (ops/second)") t = i; if ($i == "Errors/second") e = i }; next }
-    t && $1 ~ /^[0-9.]+$/ { rows++; ops += $t; errors += $e; last = $0 }
+    t && $1 ~ /^[0-9.]+$/ { rows++; ops += $t; errors += $e; last = $0; next }
+    NF { other++ }
     END {
       if (!rows || ops == 0) { printf "::error::%s did no work (exit code and OOM kill: %s)\n", c, exit_state; exit 1 }
       if (errors > 0) { printf "::error::%s got errors back\n", c; exit 1 }
+      if (exit_state != "0 false") { printf "::error::%s ended with exit code and OOM kill %s\n", c, exit_state; exit 1 }
+      if (other) { printf "::error::%s printed %d lines besides its CSV output, see load/%s.csv\n", c, other, c; exit 1 }
+      if (rows < want) { printf "::error::%s stopped after %d of %d intervals\n", c, rows, want; exit 1 }
       printf "%s: %d intervals, last: %s\n", c, rows, last
     }' "$OUT/load/$1.csv"
 }

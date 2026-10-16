@@ -546,7 +546,9 @@ jobs:
         with:
           name: docker-image-default
           path: ${{ runner.temp }}/image.tar
-          retention-days: 1
+          # about 250 MB. "Re-run failed jobs" does not run this job again and downloads the
+          # image it uploaded: within 3 days of the run; later only "Re-run all jobs" works
+          retention-days: 3
 
   build-docker-alpine:
     needs: build-maven
@@ -629,12 +631,17 @@ jobs:
         with:
           name: docker-image-alpine
           path: ${{ runner.temp }}/image.tar
-          retention-days: 1
+          # see the image of build-docker: a re-run of the failed jobs within 3 days
+          retention-days: 3
 
   docker-test:
     # the tests of both images, each on the linux/amd64 image its build job saved
     name: docker-test (${{ matrix.flavor }})
     needs: [build-docker, build-docker-alpine]
+    # a matrix row cannot need its own build job only, and a job-level if cannot read the
+    # matrix: the tests of one image run when the build of the other failed, and the row of
+    # the image that was not built fails at its download
+    if: ${{ !cancelled() && (needs.build-docker.result == 'success' || needs.build-docker-alpine.result == 'success') }}
     runs-on: 'ubuntu-latest'
     permissions:
       contents: read
@@ -1106,6 +1113,9 @@ jobs:
     # #1090: writes to every directory server of a replication topology at once, then checks
     # that the replicas hold the same data; next to docker-test, on the image of build-docker
     needs: build-docker
+    # a red row turns the Build run red, and deploy.yml then skips the snapshot deploy and the
+    # publishing of the docs of a push to master: rs534 fails until #1206 is fixed, combined
+    # until #1195 is
     runs-on: 'ubuntu-latest'
     permissions:
       contents: read

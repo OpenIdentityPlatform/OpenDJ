@@ -38,7 +38,8 @@ UP_TIMEOUT=${UP_TIMEOUT:-3600}
 QUIESCE_TIMEOUT=${QUIESCE_TIMEOUT:-900}
 # 1: write to one replica only, which the run must report (a self-test of its checks)
 INJECT_DIVERGENCE=${INJECT_DIVERGENCE:-0}
-# where the summary, the samples, the exports, the differences and a failed run's state go
+# where the summary, the samples, the exports, the differences and a failed run's state go: a
+# directory that is new or empty
 OUT=${OUT:-$PWD/replication-out}
 # 1: leave the servers of a failed run up, to look at them; the next run removes them
 KEEP=${KEEP:-0}
@@ -125,6 +126,14 @@ wait_until() { # <seconds> <what> <command> [<argument>...]
 
 is_healthy() { # <container>
   [ "$(docker inspect --format='{{.State.Health.Status}}' "$1")" = healthy ]
+}
+
+# The background join of the image goes on once the container reports itself healthy: it adds
+# replication servers to the replication server lists while its peers register
+# (repair_replication_servers in join.sh). Ended once no bootstrap script runs any more, as
+# docker-test-replication.sh waits for it
+bootstrap_ended() { # <container>
+  ! docker exec "$1" sh -c "grep -qs -e 'bootstrap/[j]oin\.sh' -e 'bootstrap/[r]eplicate\.sh' /proc/[0-9]*/cmdline"
 }
 
 ldaps_search() { # <container> <base DN> <scope> <filter> [<attribute>...]

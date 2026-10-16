@@ -26,6 +26,9 @@ record_server_ids() {
     admin_search $n "$MONITOR_DOMAIN" one "(objectClass=*)" 1.1 \
       | sed -n 's/^dn: cn=Directory server DS(\([0-9]*\)).*/\1/p' | sed "s/\$/ $n/"
   done >"$OUT/server-ids.txt"
+  # the changelog check looks for the changes of each of them
+  [ "$(wc -l <"$OUT/server-ids.txt")" -eq "$(echo $DS_NODES | wc -w)" ] \
+    || fail "the server id of a directory server is missing, see server-ids.txt"
 }
 
 # Every server's container log, logs/, config/ and changelogDb, packed into state.tgz; docker cp
@@ -60,16 +63,16 @@ summarize() { # <result>
     fi
     if [ -s "$OUT/samples.txt" ] && [ -s "$OUT/server-ids.txt" ]; then
       echo
-      echo "Peaks during the load, over every replication server (a restart resets the counters, so these are maxima of the samples, not sums), and the switches of replication server after the topology came up:"
+      echo "Peaks during the load, over every replication server (a restart resets the counters, so these are maxima of the samples, not sums), and the connections to a replication server again after the topology came up, whatever made them:"
       echo
-      echo "| directory server | peak missing-changes | peak approximate-delay (s) | switches |"
+      echo "| directory server | peak missing-changes | peak approximate-delay (s) | reconnections |"
       echo "|---|---|---|---|"
-      awk 'FILENAME == ARGV[1] { switches[$1] = $2; next }
+      awk 'FILENAME == ARGV[1] { reconnections[$1] = $2; next }
            FILENAME == ARGV[2] { name[$1] = $2; next }
            ($3 in name) { if ($4 > m[$3]) m[$3] = $4; if ($5 > d[$3]) d[$3] = $5; seen[$3] = 1 }
            END { for (id in seen) printf "| %s | %d | %d | %s |\n", name[id], m[id], d[id], \
-                   (name[id] in switches) ? switches[name[id]] : "-" }' \
-        "$([ -f "$OUT/switches.txt" ] && echo "$OUT/switches.txt" || echo /dev/null)" \
+                   (name[id] in reconnections) ? reconnections[name[id]] : "-" }' \
+        "$([ -f "$OUT/reconnections.txt" ] && echo "$OUT/reconnections.txt" || echo /dev/null)" \
         "$OUT/server-ids.txt" "$OUT/samples.txt" | sort
     fi
     if ls "$OUT"/changelog/*.txt >/dev/null 2>&1; then

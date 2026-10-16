@@ -32,6 +32,16 @@ replica of the domain of <base DN>, the changes whose CSN time is between <from 
 <to ms>, and the sequence numbers missing between them. Exit code 1: a change is missing;
 2: the changelog cannot be read (no such domain, or it is encrypted).
 
+What it cannot tell. A change lost at either end of a replica's changes in the window - its
+last ones, or its first ones when no earlier change of the replica is in the changelog - leaves
+no gap between two changes that are there; the data of the other replicas shows such a change
+unless a later change of another server overwrites it. And not every sequence number that no
+record holds is a lost change: a directory server that goes offline (a restart, its domain
+disabled) numbers its ReplicaOfflineMsg like a change, and the changelog keeps only the newest
+of them, in the offline.state of the replica, not in a log file. The convergence run restarts
+no server after the topology is up; a run that did would read each restart in the window as a
+lost change.
+
 The file format is the one of FileReplicaDB: every log file is cut into blocks of 256 bytes,
 and every block after the first starts with a 4-byte offset (BlockLogWriter); in between, a
 record is its length in 4 bytes and the bytes of its UpdateMsg, whose header is the message

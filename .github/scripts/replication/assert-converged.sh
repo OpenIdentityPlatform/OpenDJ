@@ -90,7 +90,7 @@ assert_offline() {
 # attribute overwrites it, and missing-changes never (#1195). docker cp streams the changelog
 # out of the stopped container; changelog-gaps.py reads it
 assert_changelogs() {
-  local n code failed=
+  local n id code failed=
   mkdir -p "$OUT/changelog"
   for n in $RS_NODES; do
     code=0
@@ -102,8 +102,14 @@ assert_changelogs() {
     case $code in
       0) ;;
       1) echo "::error::changes of the load are missing from the changelog of $n, see changelog/$n.txt"; failed=1 ;;
-      *) echo "::error::the changelog of $n could not be read, see changelog/$n.txt"; failed=1 ;;
+      *) echo "::error::the changelog of $n could not be read, see changelog/$n.txt"; failed=1; continue ;;
     esac
+    # every directory server made changes in the load: a changelog whose records the script
+    # no longer reads - another layout, another message type - would otherwise show no gap
+    for id in $(awk '{ print $1 }' "$OUT/server-ids.txt"); do
+      grep -q "^replica $id (" "$OUT/changelog/$n.txt" \
+        || { echo "::error::the changelog of $n holds no change of the load by $(awk -v id=$id '$1 == id { print $2 }' "$OUT/server-ids.txt")"; failed=1; }
+    done
   done
   [ -z "$failed" ]
 }
@@ -128,18 +134,17 @@ since_mark() { # <node>
   docker exec $1 tail -n +$(($(cat "$OUT/logs/$1.mark") + 1)) /opt/opendj/data/logs/errors
 }
 
-# How often each directory server switched replication servers after the topology came up:
-# the broker logs msgID 188 for a switch it decides on. Changes made during a switch under load
-# were lost in #1195, so the summary shows how many switches a run went through
-record_switches() {
+# How often each directory server connected to a replication server again after the topology
+# came up, whatever made it: a switch the broker decided on (msgID 188, or 213 to spread the
+# load), a replication server that closed the connection (63), a connection that broke. Each
+# connection ends in msgID 62 (96 where the generation IDs differ), so a switch that went back
+# to the same replication server (#1198) counts as well. Changes made around a reconnection
+# under load were lost in #1195, so the summary shows how many a run went through
+record_reconnections() {
   local n
   for n in $DS_NODES; do
-    echo "$n $(since_mark $n | grep -F "msgID=188 " | grep -cF "for domain \"$BASE_DN\"" || true)"
-  done >"$OUT/switches.txt"
-}
-
-errors_since_mark() { # <node>
-  since_mark $1 | grep -E "category=SYNC severity=ERROR|SSLHandshakeException|bad_certificate" || true
+    echo "$n $(since_mark $n | grep -E "msgID=(62|96) " | grep -cF "for domain \"$BASE_DN\"" || true)"
+  done >"$OUT/reconnections.txt"
 }
 
 # A directory server is connected to one replication server at a time, so the replication
@@ -155,15 +160,20 @@ assert_rs_mesh() {
   [ -z "$failed" ]
 }
 
+# run.sh calls this in a condition, where neither errexit nor the ERR trap stops a command
+# that fails: every search and every read of a log checks its own status, since a search that
+# failed alike on every replica gives the same empty answer everywhere
 assert_online() {
-  local f i=0 n first lines failed=
+  local f i=0 n first out lines failed=
   first=${DS_NODES%% *}
   mkdir -p "$OUT/dns"
-  record_switches
+  record_reconnections
   for f in $INDEXED_FILTERS; do
     i=$((i + 1))
     for n in $DS_NODES; do
-      ldaps_search $n "$BASE_DN" sub "$f" 1.1 | awk '/^dn: /{ print tolower($0) }' | sort >"$OUT/dns/$i.$n.txt"
+      ldaps_search $n "$BASE_DN" sub "$f" 1.1 >"$OUT/dns/$i.$n.ldif" 2>&1 \
+        || { echo "::error::$f failed on $n, see dns/$i.$n.ldif"; failed=1; }
+      awk '/^dn: /{ print tolower($0) }' "$OUT/dns/$i.$n.ldif" | sort >"$OUT/dns/$i.$n.txt"
     done
     for n in ${DS_NODES#* }; do
       cmp -s "$OUT/dns/$i.$first.txt" "$OUT/dns/$i.$n.txt" \
@@ -172,11 +182,17 @@ assert_online() {
   done
   for n in $DS_NODES; do
     # the load makes no naming conflicts: each server adds under a uid prefix of its own
-    [ -z "$(ldaps_search $n "$BASE_DN" sub "(ds-sync-conflict=*)" 1.1 | grep '^dn:')" ] \
-      || { echo "::error::$n holds ds-sync-conflict entries"; failed=1; }
+    if ! out=$(ldaps_search $n "$BASE_DN" sub "(ds-sync-conflict=*)" 1.1); then
+      echo "::error::the ds-sync-conflict search failed on $n"; failed=1
+    elif grep -q '^dn:' <<<"$out"; then
+      echo "::error::$n holds ds-sync-conflict entries"; failed=1
+    fi
   done
   for n in $ALL_NODES; do
-    lines=$(errors_since_mark $n)
+    if ! lines=$(since_mark $n); then
+      echo "::error::the errors log of $n could not be read"; failed=1; continue
+    fi
+    lines=$(grep -E "category=SYNC severity=ERROR|SSLHandshakeException|bad_certificate" <<<"$lines" || true)
     [ -z "$lines" ] || { printf '%s\n' "$lines" >"$OUT/logs/$n.errors"; echo "::error::$n logged replication errors, see logs/$n.errors"; failed=1; }
   done
   assert_rs_mesh || failed=1

@@ -49,4 +49,8 @@ topology_up() {
   for n in $ALL_NODES; do
     wait_until $((deadline > SECONDS ? deadline - SECONDS : 1)) "$n is healthy" is_healthy "$n"
   done
+  # what a join still changes would otherwise fall into the errors and reconnections of the run
+  for n in $ALL_NODES; do
+    wait_until $((deadline > SECONDS ? deadline - SECONDS : 1)) "the join of $n ends" bootstrap_ended "$n"
+  done
 }
