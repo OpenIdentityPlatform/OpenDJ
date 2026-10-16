@@ -460,22 +460,6 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
         .hasMessage(refusal.getMessage());
   }
 
-  /** Runs the action on a runtime which offers raw RSA and SHA-256 but no AES-KWP, as Java 11 does. */
-  private static void withoutKeyWrap(final Callable<Void> action) throws Exception
-  {
-    if (Security.getProviders("Cipher.AES/KWP/NoPadding") == null)
-    {
-      action.call();
-    }
-    else
-    {
-      // SunJCE offers AES/KWP/NoPadding and is withdrawn with it: the stand-in gives back its raw RSA.
-      final Provider rawRsa = new Provider("RawRsaOfSunJce", "1.0", "RSA cipher of SunJCE") {};
-      rawRsa.put("Cipher.RSA", "com.sun.crypto.provider.RSACipher");
-      withoutJceService("Cipher", "AES/KWP/NoPadding", action, rawRsa);
-    }
-  }
-
   /**
    * With Bouncy Castle FIPS installed first, as in the FIPS mode of OpenDJ, Bouncy Castle FIPS does
    * the key wrap even where the Java runtime offers AES/KWP/NoPadding too, a name it does not know.

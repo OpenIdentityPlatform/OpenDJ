@@ -931,25 +931,14 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
     final List<LocalizableMessage> why = new ArrayList<>();
 
-    final Callable<Void> check = () ->
+    withoutKeyWrap(() ->
     {
       // SunJCE offers AES-KWP under that name too, and goes with AES/KWP/NoPadding.
       assertThat(Security.getProviders("Cipher.AESWrapPad")).as("providers offering AESWrapPad").isNull();
       assertThat(cm.isConfigurationChangeAcceptable(
           withProperty(cfg, "getKeyWrappingTransformation", RsaSveKeyTransport.NAME), why)).isFalse();
       return null;
-    };
-    if (Security.getProviders("Cipher.AES/KWP/NoPadding") == null)
-    {
-      check.call();
-    }
-    else
-    {
-      // SunJCE offers AES/KWP/NoPadding and is withdrawn with it: the stand-in gives back its raw RSA.
-      final Provider rawRsa = new Provider("RawRsaOfSunJce", "1.0", "RSA cipher of SunJCE") {};
-      rawRsa.put("Cipher.RSA", "com.sun.crypto.provider.RSACipher");
-      withoutJceService("Cipher", "AES/KWP/NoPadding", check, rawRsa);
-    }
+    });
 
     assertThat(why).hasSize(1);
     assertThat(why.get(0).ordinal()).isEqualTo(ERR_CRYPTOMGR_KEY_WRAPPING_TRANSFORMATION_UNSUPPORTED.ordinal());
