@@ -78,6 +78,12 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
   }
 
   @DataProvider
+  public Object[][] providers()
+  {
+    return new Object[][] { { JDK }, { BC_FIPS } };
+  }
+
+  @DataProvider
   public Object[][] keys()
   {
     final Object[][] keys = { { "DES", 8 }, { "AES", 16 }, { "HmacSHA1", 20 }, { "DESede", 24 }, { "AES", 32 } };
@@ -151,10 +157,11 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
    * The wrapped key of a known secret value. What this version stores in cn=secret keys is what
    * every later version has to unwrap, so the derivation and the key wrap are pinned to a value
    * computed independently of this implementation: SHA-256 of the counter 1, the secret value and
-   * the fixed information, then AES-KWP of the key with it.
+   * the fixed information, then AES-KWP of the key with it. The key wrap of both the Java runtime and
+   * Bouncy Castle FIPS has to give it.
    */
-  @Test
-  public void testKnownAnswer() throws Exception
+  @Test(dataProvider = "providers")
+  public void testKnownAnswer(final String providers) throws Exception
   {
     final byte[] secretValue = new byte[256];
     for (int i = 0; i < secretValue.length; i++)
@@ -164,7 +171,7 @@ public class RsaSveKeyTransportTestCase extends CryptoTestCase
     final Draws draws = new Draws(secretValue);
     final SecretKey key =
         new SecretKeySpec(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, "AES");
-    inProviders(BC_FIPS, () ->
+    inProviders(providers, () ->
     {
       final byte[] wrapped = RsaSveKeyTransport.wrap(keyPair.getPublic(), key, KEY_ID, draws);
       assertThat(ByteBuffer.wrap(wrapped).getShort()).isEqualTo((short) 256);
