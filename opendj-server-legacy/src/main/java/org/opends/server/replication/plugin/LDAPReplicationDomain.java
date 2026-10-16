@@ -6781,6 +6781,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
        * changes.
        */
       CSN replServerMaxCSN = rsState.getCSN(getServerId());
+      final CSN ourMaxCSN = state.getMaxCSN(getServerId());
 
       // we don't want to update from here (a DS) an empty RS because
       // normally the RS should have been updated by other RSes except for
@@ -6788,24 +6789,48 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       // ... hence the RS we are connected to should not be empty
       // ... or if it is empty, it is due to a voluntary reset
       // and we don't want to update it with our changes that could be huge.
-      if (replServerMaxCSN != null && replServerMaxCSN.getSeqnum() != 0)
+      final boolean replServerHoldsChanges = replServerMaxCSN != null && replServerMaxCSN.getSeqnum() != 0;
+      if (replServerHoldsChanges
+          && ourMaxCSN != null
+          && !ourMaxCSN.isOlderThanOrEqualTo(replServerMaxCSN))
       {
-        CSN ourMaxCSN = state.getMaxCSN(getServerId());
-        if (ourMaxCSN != null
-            && !ourMaxCSN.isOlderThanOrEqualTo(replServerMaxCSN))
-        {
-          pendingChanges.setRecovering(true);
-          broker.setRecoveryRequired(true);
-          final RSUpdater rsUpdater = new RSUpdater(replServerMaxCSN);
-          if (this.rsUpdater.compareAndSet(null, rsUpdater))
-          {
-            rsUpdater.start();
-          }
-        }
+        pendingChanges.setRecovering(true);
+        broker.setRecoveryRequired(true);
+        startMissingChangesPublisher(replServerMaxCSN);
+      }
+      else if (pendingChanges.isRecovering())
+      {
+        /*
+         * A missing change publisher which failed - its broker reached no replication server, or
+         * was stopped - left the pending changes in recovery, and no recovery of this session
+         * would end it, as this replication server misses no change of this replica: the local
+         * changes would be recorded in the state and published by nobody. A publisher is started
+         * all the same, from what the replication server holds: it finds nothing to publish, or
+         * the changes done since this check, and ends the recovery under the lock the local
+         * changes are pushed under. The recovery is not ended here, as this runs under the lock
+         * of the connect phase of the broker, which a change being pushed waits for holding the
+         * lock of the pending changes. A publisher of the previous session which still runs is
+         * the one which ends it.
+         */
+        startMissingChangesPublisher(replServerHoldsChanges ? replServerMaxCSN
+            : ourMaxCSN != null ? ourMaxCSN : new CSN(TimeThread.getTime(), 0, getServerId()));
       }
     } catch (Exception e)
     {
       logger.error(ERR_PUBLISHING_FAKE_OPS, getBaseDN(), stackTraceToSingleLineString(e));
+    }
+  }
+
+  /**
+   * Starts the thread which publishes the changes of this replica which come after the provided
+   * CSN, unless the one of an earlier session still runs.
+   */
+  private void startMissingChangesPublisher(CSN startCSN)
+  {
+    final RSUpdater rsUpdater = new RSUpdater(startCSN);
+    if (this.rsUpdater.compareAndSet(null, rsUpdater))
+    {
+      rsUpdater.start();
     }
   }
 
@@ -6825,8 +6850,10 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * while it ran, the rounds after it hold them back, up to the last local change, so that the
    * recovery ends with them.
    * <p>
-   * A round counts as published only what the broker wrote to a session: when it refuses a change,
-   * the recovery fails, and the changes are left to the recovery of the next session.
+   * A round counts as published only what the broker did not refuse: when it refuses a change - it
+   * reaches no replication server, or it was stopped - the recovery fails, and the changes are left
+   * to the next session, which starts a publisher whether its replication server misses changes of
+   * this replica or not, so that the recovery ends.
    *
    * @param startCSN
    *          The CSN where we need to start the search
@@ -6914,7 +6941,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     private final CSN publishedUpTo;
     /** Whether the round went as far as the last local change: its search window did not end before. */
     private final boolean caughtUp;
-    /** Whether the search went through, and the broker wrote every change the round published. */
+    /** Whether the search went through, and the broker refused none of the changes the round published. */
     private final boolean succeeded;
     /** Whether the round ended the recovery: it caught up, and no change was done while it ran. */
     private final boolean endedRecovery;
@@ -6993,9 +7020,9 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       if (!session.publishRecovery(opToSend.generateMessage()))
       {
         /*
-         * The broker has no session to write to: the changes it did not take are put back for the
-         * recovery of the next session - a delete kept aside here has nothing else to be
-         * published from.
+         * The broker reaches no replication server, or it was stopped: the changes it did not take
+         * are put back for the recovery of the next session - a delete kept aside here has nothing
+         * else to be published from.
          */
         synchronized (replayOperations)
         {

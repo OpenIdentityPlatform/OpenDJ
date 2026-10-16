@@ -57,7 +57,8 @@ class PendingChanges
   /** Told that the replica of this domain announces itself offline, or takes that back. */
   private final ReplicaOfflineAnnouncer replicaOfflineAnnouncer;
 
-  private boolean recoveringOldChanges;
+  /** Changed under the lock of this list, except to start a recovery; read without it by {@link #isRecovering()}. */
+  private volatile boolean recoveringOldChanges;
 
   /**
    * Creates a new PendingChanges using the provided CSNGenerator.
@@ -263,6 +264,20 @@ class PendingChanges
   public void setRecovering(boolean recovering)
   {
     recoveringOldChanges = recovering;
+  }
+
+  /**
+   * Tells whether the local changes are left to a recovery, which publishes them.
+   * <p>
+   * It is read without the lock of this list, which the start of a session must not take: the
+   * session only learns from it that it needs a missing change publisher to end the recovery,
+   * and that one ends it under the lock.
+   *
+   * @return {@code true} if the local changes are left to a recovery
+   */
+  boolean isRecovering()
+  {
+    return recoveringOldChanges;
   }
 
   /**
