@@ -1004,7 +1004,9 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
     }
 
     // Confirm key can be unwrapped at this instance.
-    final String instanceKeyID = getInstanceKeyID();
+    final byte[] instanceKeyCertificate =
+            getInstanceKeyCertificateFromLocalTruststore();
+    final String instanceKeyID = getInstanceKeyID(instanceKeyCertificate);
     if (! wrappingKeyIDElement.equals(instanceKeyID)) {
       return null;
     }
@@ -1030,11 +1032,12 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
     SecretKey secretKey;
     try {
       if (RsaSveKeyTransport.isScheme(wrappingTransformationElement)) {
-        // The public key comes from the instance key certificate: a
-        // private key held by a token does not always expose its modulus.
+        // The public key comes from the instance key certificate whose
+        // identifier was just matched: a private key held by a token does
+        // not always expose its modulus.
         final Certificate certificate = CertificateFactory.getInstance("X.509")
-                .generateCertificate(new ByteArrayInputStream(
-                        getInstanceKeyCertificateFromLocalTruststore()));
+                .generateCertificate(
+                        new ByteArrayInputStream(instanceKeyCertificate));
         secretKey = RsaSveKeyTransport.unwrap(
                 new KeyPair(certificate.getPublicKey(), privateKey),
                 wrappedKeyCipherTextElement, wrappedKeyAlgorithmElement,
