@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -201,6 +202,8 @@ class ReplicationDomainMonitor
             pendingMonitorData.completeComputing();
             monitorData = pendingMonitorData;
             monitorDataLastBuildDate = TimeThread.getTime();
+            // A late answer must not go into the published data: it would come after our own state.
+            pendingMonitorData = null;
           }
         }
         finally
@@ -219,7 +222,17 @@ class ReplicationDomainMonitor
     return monitorData;
   }
 
-  /** Start collecting global monitoring information for the replication domain. */
+  /**
+   * Takes the states of this RS and of its directly connected DSs into the pending monitor data:
+   * once when the computing starts, and again after each answer of another RS is stored.
+   * <p>
+   * The changes of our directly connected DSs reach the other RSs through us only, so a state of
+   * ours taken before theirs would show us behind them on those changes, and a DS reading that in
+   * the monitoring message would leave us for an RS which only has its changes from us (issue
+   * #1198). Taken again at each answer rather than once the wait for the answers is over, our
+   * state is no later than the last answer either: an RS which does not answer would otherwise put
+   * the whole wait between our state and the answers of the others, and they would look behind.
+   */
   private void initializePendingMonitorData()
   {
     // Let's process our directly connected DS
@@ -318,6 +331,9 @@ class ReplicationDomainMonitor
             }
           }
         }
+
+        // Our own state must not be older than the one this RS just answered with (issue #1198)
+        initializePendingMonitorData();
       }
       catch (RuntimeException e)
       {
