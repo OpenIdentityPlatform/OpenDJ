@@ -479,6 +479,56 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   }
 
   /**
+   * The broker takes the local changes again under the lock they are pushed under, as the recovery
+   * ends. Taken after it, a change pushed in between - which the pending changes publish again -
+   * is refused, while the domain state records it as done and no recovery is left to publish it.
+   */
+  @Test
+  public void theBrokerTakesChangesAgainUnderTheLockTheyArePushedUnder() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      addPerson("a");
+      final CSN rsMaxCSN = rd1.getLastLocalChange();
+      startRecovery(rd1);
+
+      final PendingChanges pendingChanges = pendingChangesOf(rd1);
+      final ReplicationBroker realBroker = brokerOf(rd1);
+      final AtomicBoolean clearedUnderTheLock = new AtomicBoolean();
+      setBroker(rd1, new TestBroker(new ArrayList<ReplicationMsg>())
+      {
+        @Override
+        public void setRecoveryRequired(boolean required)
+        {
+          if (!required)
+          {
+            clearedUnderTheLock.set(Thread.holdsLock(pendingChanges));
+          }
+        }
+      });
+      try
+      {
+        assertTrue(rd1.buildAndPublishMissingChanges(rsMaxCSN, new TestBroker(new ArrayList<ReplicationMsg>())));
+      }
+      finally
+      {
+        setBroker(rd1, realBroker);
+        realBroker.setRecoveryRequired(false);
+      }
+      assertTrue(clearedUnderTheLock.get(), "the broker takes the changes again under the lock they are pushed under");
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  /**
    * The missing change publisher publishes the changes of its own replica only. A change of
    * another replica, which this one replayed, is in the historical information of an entry the
    * search finds all the same; the replication servers have it from that replica, and one they had
@@ -559,7 +609,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       final List<ReplicationMsg> published = new ArrayList<>();
       assertTrue(rd1.buildAndPublishMissingChanges(rsMaxCSN, new TestBroker(published)));
       rd1.setMissingChangesSearchHook(null);
-      assertEachChangePublishedOnce(rs, baseDN, published, changes, done);
+      assertEachChangePublishedOnce(rs, baseDN, rsMaxCSN, published, changes, done);
     }
     finally
     {
@@ -586,6 +636,8 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     ReplicationBroker other = null;
     try
     {
+      // Opened first: the change below has to be done less than a window after the ones before.
+      other = openReplicationSession(baseDN, OTHER_SERVER_ID, 100, rsPort, 1000);
       final DN dnA = addPerson("a");
       final DN dnB = addPerson("b");
       final CSN rsMaxCSN = rd1.getLastLocalChange();
@@ -593,7 +645,6 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
       // A replica numbers its changes after the newest one it replayed: a change done right after
       // one of the other replica from the millisecond before falls in the last one of the window.
-      other = openReplicationSession(baseDN, OTHER_SERVER_ID, 100, rsPort, 1000);
       final CSN otherCSN = new CSN(endOfFirstWindow - 1, 1, OTHER_SERVER_ID);
       publishOtherReplicaChange(other, otherCSN, dnB, "a millisecond before the end of the window");
       waitUntilReplayed(rd1, otherCSN);
@@ -668,7 +719,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       final List<ReplicationMsg> published = new ArrayList<>();
       assertTrue(rd1.buildAndPublishMissingChanges(rsMaxCSN, new TestBroker(published)));
       rd1.setMissingChangesSearchHook(null);
-      assertEachChangePublishedOnce(rs, baseDN, published, changes, done);
+      assertEachChangePublishedOnce(rs, baseDN, rsMaxCSN, published, changes, done);
     }
     finally
     {
@@ -681,10 +732,10 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   }
 
   /**
-   * A round counts as published only what the broker wrote to a session. A round which counted
-   * the changes refused by a broker without a session could end the recovery without them, and
-   * the deletes kept aside for the recovery were dropped as it ended: the next recovery has to
-   * find all of them still.
+   * A round counts as published only what the broker did not refuse. A round which counted the
+   * changes refused by a broker which reached no replication server could end the recovery without
+   * them, and the deletes kept aside for the recovery were dropped as it ended: the next recovery
+   * has to find all of them still.
    */
   @Test
   public void changesTheBrokerRefusedAreLeftToTheNextRecovery() throws Exception
@@ -721,6 +772,70 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   }
 
   /**
+   * A session whose replication server misses no change of this replica ends all the same the
+   * recovery a refused publisher left. Here the replication server had the change the broker
+   * refused already - back on the one which had everything, for one - and no recovery of the
+   * session ended the one left: every local change was recorded in the domain state, and
+   * published by nobody.
+   */
+  @Test
+  public void aSessionWhichNeedsNoRecoveryEndsTheOneARefusedPublisherLeft() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      final DN dnA = addPerson("a");
+      final CSN beforeB = rd1.getLastLocalChange();
+      addPerson("b");
+      assertInTheChangelog(rs, baseDN, rd1.getLastLocalChange());
+
+      startRecovery(rd1);
+      assertFalse(rd1.buildAndPublishMissingChanges(beforeB, new TestBroker(new ArrayList<ReplicationMsg>(), false)),
+          "a recovery whose change the broker refused has failed");
+      // as the missing change publisher does once it failed
+      brokerOf(rd1).setRecoveryRequired(false);
+
+      rd1.disable();
+      rd1.enable();
+      // The broker starts its session before enable() returns: a change done before would have
+      // been ahead of the replication server, and the session would have recovered it.
+      assertTrue(rd1.isConnected(), "the session is up");
+
+      replace(dnA, "description", "in a session which needs no recovery");
+      assertInTheChangelog(rs, baseDN, rd1.getLastLocalChange());
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  /** A stopped broker refuses a recovery message: the recovery has to learn it wrote nothing. */
+  @Test
+  public void aStoppedBrokerRefusesARecoveryMessage() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    ReplicationBroker broker = null;
+    try
+    {
+      broker = openReplicationSession(baseDN, OTHER_SERVER_ID, 100, rsPort, 1000);
+      broker.stop();
+      assertFalse(broker.publishRecovery(new WindowProbeMsg()), "a stopped broker writes nothing");
+    }
+    finally
+    {
+      stop(broker);
+      remove(rs);
+    }
+  }
+
+  /**
    * Does a local change on the writer, and waits for it for a while: a change the last round holds
    * back is done once the recovery is over.
    */
@@ -749,9 +864,15 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
   /**
    * Asserts that each local change was published once: the first ones by the recovery, in order,
-   * and the others by the broker once the recovery was over.
+   * and the others by the broker once the recovery was over - and none of the first ones by the
+   * broker as well.
+   * <p>
+   * The changelog of the replication server holds the changes the broker published, the recovery
+   * publishing to a broker of the test: after the last change it had, it has to hold the others,
+   * and nothing else. One session delivers in order, so a change of the recovery the broker
+   * published as well reaches it before the others and keeps the two from ever matching.
    */
-  private static void assertEachChangePublishedOnce(ReplicationServer rs, DN baseDN,
+  private static void assertEachChangePublishedOnce(ReplicationServer rs, DN baseDN, CSN rsMaxCSN,
       List<ReplicationMsg> published, List<Future<?>> changes, List<CSN> done) throws Exception
   {
     for (Future<?> change : changes)
@@ -761,10 +882,29 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     final List<CSN> recovered = csns(published);
     assertThat(recovered.size()).isLessThanOrEqualTo(done.size());
     assertThat(done.subList(0, recovered.size())).isEqualTo(recovered);
-    for (CSN afterTheRecovery : done.subList(recovered.size(), done.size()))
+    final List<CSN> afterTheRecovery = done.subList(recovered.size(), done.size());
+    new TestTimer.Builder()
+        .maxSleep(10, SECONDS)
+        .sleepTimes(100, MILLISECONDS)
+        .toTimer()
+        .repeatUntilSuccess(() -> assertThat(changelogAfter(rs, baseDN, rsMaxCSN))
+            .as("the changes the broker published after the recovery")
+            .isEqualTo(afterTheRecovery));
+  }
+
+  /** Returns the changes of the replica of the provided CSN which the replication server holds after it. */
+  private static List<CSN> changelogAfter(ReplicationServer rs, DN baseDN, CSN csn) throws Exception
+  {
+    final List<CSN> csns = new ArrayList<>();
+    try (DBCursor<UpdateMsg> cursor = rs.getChangelogDB().getReplicationDomainDB().getCursorFrom(
+        baseDN, csn.getServerId(), csn, new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY)))
     {
-      assertInTheChangelog(rs, baseDN, afterTheRecovery);
+      while (cursor.next())
+      {
+        csns.add(cursor.getRecord().getCSN());
+      }
     }
+    return csns;
   }
 
   private static DN addPerson(String cn) throws Exception
@@ -809,12 +949,32 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
    */
   private static void startRecovery(LDAPReplicationDomain domain) throws Exception
   {
+    pendingChangesOf(domain).setRecovering(true);
+    brokerOf(domain).setRecoveryRequired(true);
+  }
+
+  private static PendingChanges pendingChangesOf(LDAPReplicationDomain domain) throws Exception
+  {
     final Field pendingChanges = LDAPReplicationDomain.class.getDeclaredField("pendingChanges");
     pendingChanges.setAccessible(true);
-    ((PendingChanges) pendingChanges.get(domain)).setRecovering(true);
+    return (PendingChanges) pendingChanges.get(domain);
+  }
+
+  private static ReplicationBroker brokerOf(ReplicationDomain domain) throws Exception
+  {
+    return (ReplicationBroker) brokerField().get(domain);
+  }
+
+  private static void setBroker(ReplicationDomain domain, ReplicationBroker broker) throws Exception
+  {
+    brokerField().set(domain, broker);
+  }
+
+  private static Field brokerField() throws Exception
+  {
     final Field broker = ReplicationDomain.class.getDeclaredField("broker");
     broker.setAccessible(true);
-    ((ReplicationBroker) broker.get(domain)).setRecoveryRequired(true);
+    return broker;
   }
 
   private static List<CSN> csns(List<ReplicationMsg> msgs)
