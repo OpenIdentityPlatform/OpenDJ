@@ -60,12 +60,16 @@ userPassword: password
 TEMPLATE
     chmod 644 "$OUT/load/addrate-$n.template"
     # the same entries from every server at once: concurrent modifications of one attribute of
-    # one entry, applied in the order of their change numbers on every replica (#139)
+    # one entry, applied in the order of their change numbers on every replica (#139). The value
+    # starts with the name of the server: rand and randstr are seeded alike in every client, so
+    # all of them write the same values in the same order, and a change lost on its way would
+    # hide behind the same value written later by another server; the name also tells which
+    # server a value in a diff or a changelog comes from (#1206)
     start_client load-mod-$n modrate --hostname $n --port 1389 --connectTimeout 120000 --noRebind \
       --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --maxDuration "$DURATION" \
       --statInterval 10 --numConnections 8 --numThreads 1 --scriptFriendly --targetThroughput "$LOAD_MOD_RATE" \
       --targetDN "uid=user.%d,ou=People,$BASE_DN" --argument "rand(0,$((SAMPLE_DATA - 1)))" \
-      --argument "randstr(16)" 'description:%2$s'
+      --argument "randstr(16)" "description:$n-%2\$s"
     # adds, and deletes of the oldest once 100 of them are there: a slow runner gets to the deletes as well
     start_client load-add-$n addrate --hostname $n --port 1389 --connectTimeout 120000 --noRebind \
       --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --maxDuration "$DURATION" \
