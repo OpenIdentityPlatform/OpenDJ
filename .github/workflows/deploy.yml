@@ -89,7 +89,7 @@ jobs:
       # this cannot loop; a PAT would break that.
       - name: Download the launchers built by the triggering Build run
         continue-on-error: true
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: windows-exe-11
           run-id: ${{ github.event.workflow_run.id }}
@@ -227,22 +227,22 @@ jobs:
         continue-on-error: true
         run: mvn javadoc:aggregate
       - name: Upload artifacts OpenDJ Server
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
          name: OpenDJ Server
          path: opendj-server-legacy/target/package/*.zip
       - name: Upload artifacts OpenDJ SDK Toolkit
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
          name: OpenDJ SDK Toolkit
          path: opendj-ldap-toolkit/target/*.zip
       - name: Upload artifacts OpenDJ Debian Package
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
          name: OpenDJ Debian Package
          path: opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb
       - name: Upload artifacts OpenDJ RPM Package
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
          name: OpenDJ RPM Package
          path: opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm
@@ -250,7 +250,7 @@ jobs:
       # Build run (windows-latest-11 artifact) instead of rebuilding it here.
       - name: Download Windows build artifact (contains the MSI)
         continue-on-error: true
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: windows-latest-11
           run-id: ${{ github.event.workflow_run.id }}
@@ -258,7 +258,7 @@ jobs:
           path: windows-build
       - name: Upload artifacts OpenDJ MSI Package
         continue-on-error: true
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
          name: OpenDJ MSI Package
          path: windows-build/opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
@@ -266,27 +266,27 @@ jobs:
          # continue-on-error) instead of warning and publishing nothing.
          if-no-files-found: error
       - name: Upload artifacts OpenDJ Docker Packages
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
          name: OpenDJ Docker Packages
          path: opendj-packages/opendj-docker/target/Dockerfile.zip
       - name: Upload artifacts OpenDJ Openshift template
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
          name: OpenDJ Openshift template
          path: opendj-packages/opendj-openshift-template/*.yaml
       - name: Upload artifacts OpenDJ Doc Generated Reference
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
          name: OpenDJ Doc Generated References
          path: opendj-doc-generated-ref/target/*.zip
       - name: Upload artifacts OpenDJ DSML Gateway
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
          name: OpenDJ DSML Gateway
          path: opendj-dsml-servlet/target/*.war
       - name: Upload artifacts OpenDJ Commons REST LDAP Gateway
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
          name: OpenDJ Commons REST LDAP Gateway
          path: opendj-rest2ldap-servlet/target/*.war
