@@ -25,6 +25,7 @@ import net.jcip.annotations.ThreadSafe;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 
 /**
@@ -175,6 +176,33 @@ public class MsgQueue
     synchronized (lock)
     {
       return map.containsKey(msg.getCSN());
+    }
+  }
+
+  /**
+   * Returns whether the given state covers every UpdateMsg of this queue which comes before the
+   * given one and carries the CSN of a change: a replica offline message, for one, does not, and
+   * no state ever covers its CSN.
+   *
+   * @param msg
+   *          the UpdateMsg the ones to check come before
+   * @param state
+   *          the state which must cover them
+   * @return {@code true} if the given state covers every change of this queue before the given
+   *         UpdateMsg
+   */
+  public boolean isCoveredBefore(UpdateMsg msg, ServerState state)
+  {
+    synchronized (lock)
+    {
+      for (UpdateMsg before : map.headMap(msg.getCSN()).values())
+      {
+        if (before.contributesToDomainState() && !state.cover(before.getCSN()))
+        {
+          return false;
+        }
+      }
+      return true;
     }
   }
 
