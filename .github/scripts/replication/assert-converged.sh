@@ -114,10 +114,30 @@ assert_changelogs() {
   [ -z "$failed" ]
 }
 
-# Equality filters on attributes the default setup indexes (objectClass, sn): the search goes
-# through the index even for the Directory Manager, so an entry missing from the index of one
-# replica (#1021) is missing from its answer, which an export of the entries does not show
-INDEXED_FILTERS="(objectClass=inetOrgPerson) (sn=AddRate) (sn=Diverged)"
+# Equality filters on an attribute the default setup indexes (sn), each matching fewer entries
+# than the index entry limit (4000 by default): the search goes through the index even for the
+# Directory Manager, so an entry missing from the index of one replica (#1021) is missing from
+# its answer, which an export of the entries does not show. A key that holds more entries than
+# the limit is not indexed, and the search then matches every entry by its filter -
+# (objectClass=inetOrgPerson) over the seeded users did - so unindexed_searches checks that
+# each search went through the index
+INDEXED_FILTERS="(sn=AddRate) (sn=Diverged)"
+
+# The searches of INDEXED_FILTERS a directory server ran without an index, or that its access
+# log does not hold, as errors. Every access log file is read: the load rotates them
+unindexed_searches() { # <node>
+  docker exec $1 sh -c 'grep -h " SEARCH " /opt/opendj/data/logs/access*; [ $? -le 1 ]' \
+    | awk -v node=$1 -v base="$BASE_DN" -v filters="$INDEXED_FILTERS" '
+      BEGIN { n = split(filters, f, " ") }
+      $3 == "SEARCH" && $4 == "REQ" && index($0, " base=\"" base "\" scope=sub ") {
+        for (i = 1; i <= n; i++) if (index($0, " filter=\"" f[i] "\" ")) req[$5 " " $6] = f[i]
+      }
+      $3 == "SEARCH" && $4 == "RES" && / unindexed( |$)/ { unindexed[$5 " " $6] = 1 }
+      END {
+        for (k in req) { seen[req[k]] = 1; if (k in unindexed) printf "::error::%s ran %s without an index\n", node, req[k] }
+        for (i = 1; i <= n; i++) if (!(f[i] in seen)) printf "::error::the access log of %s holds no search of %s\n", node, f[i]
+      }'
+}
 
 # The number of lines each server's errors log held once the topology was up: the joins log
 # replication errors of their own while the servers come up one after the other, and only what
@@ -138,12 +158,14 @@ since_mark() { # <node>
 # came up, whatever made it: a switch the broker decided on (msgID 188, or 213 to spread the
 # load), a replication server that closed the connection (63), a connection that broke. Each
 # connection ends in msgID 62 (96 where the generation IDs differ), so a switch that went back
-# to the same replication server (#1198) counts as well. Changes made around a reconnection
+# to the same replication server (#1215) counts as well. Changes made around a reconnection
 # under load were lost in #1195, so the summary shows how many a run went through
 record_reconnections() {
-  local n
+  local n lines
   for n in $DS_NODES; do
-    echo "$n $(since_mark $n | grep -E "msgID=(62|96) " | grep -cF "for domain \"$BASE_DN\"" || true)"
+    # a log that cannot be read leaves the node out, which the summary shows as -
+    lines=$(since_mark $n) || continue
+    echo "$n $(echo "$lines" | grep -E "msgID=(62|96) " | grep -cF "for domain \"$BASE_DN\"" || true)"
   done >"$OUT/reconnections.txt"
 }
 
@@ -179,6 +201,13 @@ assert_online() {
       cmp -s "$OUT/dns/$i.$first.txt" "$OUT/dns/$i.$n.txt" \
         || { echo "::error::$f returns other entries on $n than on $first, see dns/$i.*"; failed=1; }
     done
+  done
+  for n in $DS_NODES; do
+    if ! out=$(unindexed_searches $n); then
+      echo "::error::the access log of $n could not be read"; failed=1
+    elif [ -n "$out" ]; then
+      echo "$out"; failed=1
+    fi
   done
   for n in $DS_NODES; do
     # the load makes no naming conflicts: each server adds under a uid prefix of its own
