@@ -32,8 +32,10 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -204,37 +206,56 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         return socket;
     }
 
+    /** How many free ports {@link #connectToOfflineServer()} tries before it gives up. */
+    private static final int OFFLINE_CONNECT_ATTEMPTS = 3;
+
     /**
      * Fails over the way a proxy does: connects to a free port, which must refuse the connection,
      * then to the online server.
      */
     private static void failOverToOnlineServer(final InetSocketAddress onlineAddress) throws LdapException {
-        // The numeric host avoids a forward lookup of "localhost".
-        final InetSocketAddress offlineAddress = findFreeSocketAddress();
-        final LDAPConnectionFactory offlineFactory =
-                new LDAPConnectionFactory(offlineAddress.getAddress().getHostAddress(), offlineAddress.getPort());
+        connectToOfflineServer();
+        final LDAPConnectionFactory onlineFactory =
+                new LDAPConnectionFactory(onlineAddress.getHostString(), onlineAddress.getPort());
         try {
-            offlineFactory.getConnection().close();
-        } catch (final ConnectionException expected) {
-            // This is expected - so go to online server.
-            final LDAPConnectionFactory onlineFactory =
-                    new LDAPConnectionFactory(onlineAddress.getHostString(), onlineAddress.getPort());
+            onlineFactory.getConnection().close();
+        } catch (final Exception e) {
+            throw newLdapException(ResultCode.OTHER,
+                    "Unexpected exception when connecting to online server", e);
+        } finally {
+            onlineFactory.close();
+        }
+    }
+
+    /**
+     * Connects to a free port, which must refuse the connection.
+     * <p>
+     * A free port can still accept it: when the client socket gets that same port as its own
+     * ephemeral port, it connects to itself (TCP simultaneous open). Linux and Windows allow such
+     * a connection, macOS fails it. The connection is then closed and another free port is tried,
+     * a bounded number of times.
+     */
+    private static void connectToOfflineServer() throws LdapException {
+        final List<Integer> acceptingPorts = new ArrayList<>();
+        do {
+            // The numeric host avoids a forward lookup of "localhost".
+            final InetSocketAddress offlineAddress = findFreeSocketAddress();
+            final LDAPConnectionFactory offlineFactory =
+                    new LDAPConnectionFactory(offlineAddress.getAddress().getHostAddress(), offlineAddress.getPort());
             try {
-                onlineFactory.getConnection().close();
+                offlineFactory.getConnection().close();
+                acceptingPorts.add(offlineAddress.getPort());
+            } catch (final ConnectionException expected) {
                 return;
             } catch (final Exception e) {
                 throw newLdapException(ResultCode.OTHER,
-                        "Unexpected exception when connecting to online server", e);
+                        "Unexpected exception when connecting to offline server", e);
             } finally {
-                onlineFactory.close();
+                offlineFactory.close();
             }
-        } catch (final Exception e) {
-            throw newLdapException(ResultCode.OTHER,
-                    "Unexpected exception when connecting to offline server", e);
-        } finally {
-            offlineFactory.close();
-        }
-        throw newLdapException(ResultCode.OTHER, "Connection to offline server succeeded unexpectedly");
+        } while (acceptingPorts.size() < OFFLINE_CONNECT_ATTEMPTS);
+        throw newLdapException(ResultCode.OTHER,
+                "Connection to offline server succeeded unexpectedly on ports " + acceptingPorts);
     }
 
     /** Disables logging before the tests. */
