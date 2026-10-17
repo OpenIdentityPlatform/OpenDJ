@@ -22,8 +22,8 @@ TOPOLOGY=${TOPOLOGY:-rs534}
 DURATION=${DURATION:-120}
 # the most modifications, and adds or deletes, per second the load sends to each directory
 # server; a runner that cannot keep up sends fewer, which the summary shows
-LOAD_MOD_RATE=${LOAD_MOD_RATE:-325}
-LOAD_ADD_RATE=${LOAD_ADD_RATE:-65}
+LOAD_MOD_RATE=${LOAD_MOD_RATE:-423}
+LOAD_ADD_RATE=${LOAD_ADD_RATE:-85}
 # users the first directory server imports; the others get them from its initialize
 SAMPLE_DATA=${SAMPLE_DATA:-2000}
 # the heap of every server and every load client. Without a bound each JVM may take a quarter
