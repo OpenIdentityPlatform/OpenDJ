@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.service;
 
@@ -253,5 +254,107 @@ public class ReplicationBrokerTest extends DirectoryServerTestCase
         assertContainsRSWithDSs(topo.rsInfos, ANOTHER_RS);
     assertThat(currentRS.isLocallyConfigured()).isTrue();
     assertThat(anotherRS.isLocallyConfigured()).isFalse();
+  }
+
+  /**
+   * A topology names a replication server before the configuration of the domain lists it: the next
+   * topology, built once the configuration lists it, must stamp it as locally configured.
+   */
+  @Test(dataProvider = "topologyCtorProvider")
+  @SuppressWarnings("unchecked")
+  public void topologyShouldStampRSAddedToTheConfigurationAfterThePreviousTopology(TopologyCtorToUse toUse)
+  {
+    final RSInfo announcedRS = new RSInfo(ANOTHER_RS_ID, "127.0.0.1:1389", 0, (byte) 0, 0);
+    final Topology before = newTopology(TopologyCtorToUse.BUILD_WITH_TOPOLOGY_MSG,
+        newMap(OTHER_DS), newArrayList(CURRENT_RS.toRSInfo(), announcedRS),
+        CURRENT_DS.getDsId(), CURRENT_RS.getServerId(), newHashSet(CURRENT_RS.getServerURL()), EMPTY_MAP);
+    assertThat(find(before.rsInfos, announcedRS).isLocallyConfigured()).isFalse();
+
+    final RSInfo configuredRS = new RSInfo(ANOTHER_RS_ID, "localhost:1389", 0, (byte) 0, 0);
+    final Topology after = newTopology(toUse,
+        newMap(OTHER_DS), newArrayList(CURRENT_RS.toRSInfo(), configuredRS),
+        CURRENT_DS.getDsId(), CURRENT_RS.getServerId(),
+        newHashSet(CURRENT_RS.getServerURL(), "localhost:1389"), before.rsInfos);
+    assertInvariants(after);
+    final ReplicationServerInfo anotherRS = find(after.rsInfos, configuredRS);
+    assertThat(anotherRS.isLocallyConfigured()).isTrue();
+    assertThat(anotherRS.getServerURL()).isEqualTo("localhost:1389");
+    assertThat(find(after.rsInfos, CURRENT_RS.toRSInfo()).isLocallyConfigured()).isTrue();
+  }
+
+  /**
+   * A configured replication server announces in the topology messages a URL other than the
+   * configured one (a port mapped by NAT or by Docker), and the broker hears of it first that way.
+   * Once a phase-one handshake has reached it at the configured URL, it is locally configured, and
+   * stays so when the next topology message names it with the announced URL again.
+   */
+  @Test
+  @SuppressWarnings("unchecked")
+  public void topologyShouldStampRSReachedAtAConfiguredURLItDoesNotAnnounce()
+  {
+    final Set<String> configured = newHashSet(CURRENT_RS.getServerURL(), "localhost:28989");
+    final RSInfo announcedRS = new RSInfo(ANOTHER_RS_ID, "localhost:8989", 0, (byte) 0, 0);
+    final Topology heard = newTopology(TopologyCtorToUse.BUILD_WITH_TOPOLOGY_MSG,
+        newMap(OTHER_DS), newArrayList(CURRENT_RS.toRSInfo(), announcedRS),
+        CURRENT_DS.getDsId(), CURRENT_RS.getServerId(), configured, EMPTY_MAP);
+    assertThat(find(heard.rsInfos, announcedRS).isLocallyConfigured()).isFalse();
+
+    final RSInfo reachedRS = new RSInfo(ANOTHER_RS_ID, "localhost:28989", 0, (byte) 0, 0);
+    final Topology connected = newTopology(TopologyCtorToUse.BUILD_WITH_DS_RS_LISTS,
+        newMap(OTHER_DS), newArrayList(CURRENT_RS.toRSInfo(), reachedRS),
+        CURRENT_DS.getDsId(), ANOTHER_RS_ID, configured, heard.rsInfos);
+    ReplicationServerInfo anotherRS = find(connected.rsInfos, reachedRS);
+    assertThat(anotherRS.isLocallyConfigured()).isTrue();
+    assertThat(anotherRS.getServerURL()).isEqualTo("localhost:28989");
+
+    final Topology next = newTopology(TopologyCtorToUse.BUILD_WITH_TOPOLOGY_MSG,
+        newMap(OTHER_DS), newArrayList(CURRENT_RS.toRSInfo(), announcedRS),
+        CURRENT_DS.getDsId(), ANOTHER_RS_ID, configured, connected.rsInfos);
+    anotherRS = find(next.rsInfos, announcedRS);
+    assertThat(anotherRS.isLocallyConfigured()).isTrue();
+    assertThat(anotherRS.getServerURL()).isEqualTo("localhost:28989");
+  }
+
+  /**
+   * A replication server the previous topology stamped as locally configured stays so as long as the
+   * configuration lists it, even when its host name cannot be resolved at that moment: losing the flag
+   * would make the broker leave the server it is connected to.
+   */
+  @Test(dataProvider = "topologyCtorProvider")
+  @SuppressWarnings("unchecked")
+  public void topologyShouldKeepStampedAConfiguredRSWithoutResolvingItsHost(TopologyCtorToUse toUse)
+  {
+    final String unresolvableURL = "rs.invalid:1389";
+    final RSInfo connectedRS = new RSInfo(ANOTHER_RS_ID, unresolvableURL, 0, (byte) 0, 0);
+    final Map<Integer, ReplicationServerInfo> previousRSs =
+        newMap(new ReplicationServerInfo(connectedRS, newHashSet(CURRENT_DS.getDsId())));
+
+    final Topology topo = newTopology(toUse,
+        newMap(OTHER_DS), newArrayList(connectedRS),
+        CURRENT_DS.getDsId(), ANOTHER_RS_ID, newHashSet(unresolvableURL), previousRSs);
+    assertInvariants(topo);
+    assertThat(find(topo.rsInfos, connectedRS).isLocallyConfigured()).isTrue();
+  }
+
+  /**
+   * A replication server is removed from the configuration of the domain: the next topology must no
+   * longer stamp it as locally configured.
+   */
+  @Test(dataProvider = "topologyCtorProvider")
+  @SuppressWarnings("unchecked")
+  public void topologyShouldNotStampRSRemovedFromTheConfigurationAfterThePreviousTopology(TopologyCtorToUse toUse)
+  {
+    final RSInfo announcedRS = new RSInfo(ANOTHER_RS_ID, "localhost:1389", 0, (byte) 0, 0);
+    final Topology before = newTopology(TopologyCtorToUse.BUILD_WITH_TOPOLOGY_MSG,
+        newMap(OTHER_DS), newArrayList(CURRENT_RS.toRSInfo(), announcedRS),
+        CURRENT_DS.getDsId(), CURRENT_RS.getServerId(),
+        newHashSet(CURRENT_RS.getServerURL(), "localhost:1389"), EMPTY_MAP);
+    assertThat(find(before.rsInfos, announcedRS).isLocallyConfigured()).isTrue();
+
+    final Topology after = newTopology(toUse,
+        newMap(OTHER_DS), newArrayList(CURRENT_RS.toRSInfo(), announcedRS),
+        CURRENT_DS.getDsId(), CURRENT_RS.getServerId(), newHashSet(CURRENT_RS.getServerURL()), before.rsInfos);
+    assertInvariants(after);
+    assertThat(find(after.rsInfos, announcedRS).isLocallyConfigured()).isFalse();
   }
 }
