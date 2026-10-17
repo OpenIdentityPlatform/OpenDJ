@@ -59,6 +59,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 
 import net.jcip.annotations.GuardedBy;
 
@@ -234,14 +235,20 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         throws DirectoryException
     {
       // Build the list of Operations that happened on this entry after startCSN
-      // and before endCSN and add them to the replayOperations list
+      // and up to endCSN and add them to the replayOperations list.
+      // CSNs are ordered by time first, so the changes of the other replicas which this one
+      // replayed fall in the range as well: they are left out, it is not for this replica to
+      // publish them.
+      // The end is part of the range, as it is of the search: the next range starts after it, so
+      // a change numbered exactly the end would be in neither.
       Iterable<FakeOperation> updates =
         EntryHistorical.generateFakeOperations(searchEntry);
 
       for (FakeOperation op : updates)
       {
         CSN csn = op.getCSN();
-        if (csn.isNewerThan(startCSN) && csn.isOlderThan(endCSN))
+        if (csn.getServerId() == getServerId()
+            && csn.isNewerThan(startCSN) && !csn.isNewerThan(endCSN))
         {
           synchronized (replayOperations)
           {
@@ -565,6 +572,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private final PendingChanges pendingChanges;
   private final AtomicReference<RSUpdater> rsUpdater = new AtomicReference<>(null);
+  /**
+   * How many missing change publishers in a row failed - their search did not go through, or they
+   * threw - since a recovery last ended: the wait before the session restart each of them asks for
+   * is computed from it. It is a count of its own rather than the one of the session restarts a
+   * failed replay asks for, which a change replayed resets: the replication of the other replicas
+   * into this one goes on while a recovery keeps failing.
+   */
+  private final AtomicInteger consecutiveRecoveryFailures = new AtomicInteger();
 
   /**
    * It contain the updates that were done on other servers, transmitted by the
@@ -604,6 +619,15 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * at session establishment time.
    */
   private final SortedMap<CSN, FakeOperation> replayOperations = new TreeMap<>();
+
+  /**
+   * Run by {@link #buildAndPublishMissingChanges(CSN, ReplicationBroker)} after the search of
+   * each of its rounds, before it chooses what the round publishes. Only there for the tests,
+   * which do local changes there - a change done while a round searches is one the search may or
+   * may not have seen, and nothing else puts a change in that gap on cue - or fail the search,
+   * which a local backend which works does not do on cue either.
+   */
+  private volatile Consumer<InternalSearchOperation> missingChangesSearchHook;
 
   /** Published by a configuration change, read by the changelog threads without a lock. */
   private volatile ExternalChangelogDomain eclDomain;
@@ -815,38 +839,49 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        * Get all the changes that have not been seen by this
        * replication server and publish them.
        */
+      boolean startTheSessionAgain = false;
       try
       {
+        /*
+         * The deletes kept aside are not dropped once the recovery is over: a later session may
+         * reach a replication server which misses some of them, and they have nothing else to be
+         * published from.
+         */
         if (buildAndPublishMissingChanges(startCSN, broker))
         {
           logger.trace(DEBUG_CHANGES_SENT);
-          synchronized(replayOperations)
-          {
-            replayOperations.clear();
-          }
+          consecutiveRecoveryFailures.set(0);
         }
-        else
-        {
-          /*
-           * An error happened trying to search for the updates
-           * This server will start accepting again new updates but
-           * some inconsistencies will stay between servers.
-           * Log an error for the repair tool
-           * that will need to re-synchronize the servers.
-           */
-          logger.error(ERR_CANNOT_RECOVER_CHANGES, getBaseDN());
-        }
+        // Otherwise the broker refused a change - it reaches no replication server, or it was
+        // stopped - and the recovery of the session it opens next publishes it, or this domain is
+        // going away.
       }
       catch (Exception e)
       {
         /*
-         * An error happened trying to search for the updates
-         * This server will start accepting again new updates but
-         * some inconsistencies will stay between servers.
-         * Log an error for the repair tool
-         * that will need to re-synchronize the servers.
+         * The search of a round did not go through, or the round threw. Nothing it did not publish
+         * is lost - a round whose search failed publishes nothing, and one which threw put back
+         * the deletes it had not published - and the recovery is not over: the local changes are
+         * still left to it. No recovery of this session would publish them, as a session which
+         * stays up starts no other, so the session is started again, and the recovery of the next
+         * one publishes them. A domain which is going away needs none, and one which is disabled
+         * starts a session of its own when it is enabled back.
+         *
+         * The backend is left some time to recover first, with the session up meanwhile, so that
+         * the replication of the other replicas into this one goes on: the restart is asked for
+         * once the wait is over, and not with the backoff of the restart a failed replay asks for,
+         * which stops the session before it waits. This publisher waits registered, so that a
+         * session which comes meanwhile starts no publisher the restart would cut.
          */
-        logger.error(ERR_CANNOT_RECOVER_CHANGES, getBaseDN());
+        if (!shutdown.get() && !disabled)
+        {
+          final int failures = consecutiveRecoveryFailures.incrementAndGet();
+          logger.error(ERR_MISSING_CHANGES_NOT_PUBLISHED, getBaseDN(),
+              e instanceof MissingChangesSearchFailedException ? e.getMessage() : stackTraceToSingleLineString(e),
+              sessionRestartBackoffInMs(failures));
+          waitBeforeSessionRestart(failures, sessionRestartBackoffWakes());
+          startTheSessionAgain = true;
+        }
       }
       finally
       {
@@ -854,6 +889,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         // RSUpdater thread has finished its work, let's remove it from memory
         // so another RSUpdater thread can be started if needed.
         rsUpdater.compareAndSet(this, null);
+        if (startTheSessionAgain && !shutdown.get() && !disabled)
+        {
+          /*
+           * Asked for once this publisher is gone, so that the session the restart brings up starts
+           * a publisher of its own. The state checkpointer runs it within a second, or once a total
+           * update is over. The domain is checked again, as it may have been disabled or shut down
+           * during the wait.
+           */
+          sessionRestarts.request(SessionRestart.NOW);
+        }
       }
     }
   }
@@ -4472,16 +4517,15 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private void waitBeforeSessionRestart(int restarts, long wakes)
   {
-    final long until = monotonicNowInMs()
-        + Math.min(REPLAY_RETRY_DELAY_IN_MS * restarts, MAX_REPLAY_RETRY_DELAY_IN_MS);
+    final long until = monotonicNowInMs() + sessionRestartBackoffInMs(restarts);
     try
     {
       /*
        * Waited on a monitor rather than slept through, so that a domain which is going
        * away or is being disabled is not waited out: the thread which holds this wait is
        * a replay thread the shutdown of the pool joins, or the state checkpointer the
-       * shutdown of the domain waits for. The session it would start back is one the
-       * domain is stopping anyway.
+       * shutdown of the domain waits for - or a missing change publisher whose recovery
+       * failed. The session it would start back is one the domain is stopping anyway.
        *
        * The wake is counted rather than only checked for by its flag: a domain which was
        * disabled and enabled back has its flag cleared again, and a wait which read the
@@ -4507,6 +4551,18 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        */
       Thread.currentThread().interrupt();
     }
+  }
+
+  /**
+   * Returns how long the session is left before it is started again, after the provided number
+   * of restarts in a row.
+   *
+   * @param restarts how many times in a row the session was restarted already
+   * @return the wait, in milliseconds
+   */
+  private static long sessionRestartBackoffInMs(int restarts)
+  {
+    return Math.min(REPLAY_RETRY_DELAY_IN_MS * restarts, MAX_REPLAY_RETRY_DELAY_IN_MS);
   }
 
   /**
@@ -6769,6 +6825,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
        * changes.
        */
       CSN replServerMaxCSN = rsState.getCSN(getServerId());
+      final CSN ourMaxCSN = state.getMaxCSN(getServerId());
 
       // we don't want to update from here (a DS) an empty RS because
       // normally the RS should have been updated by other RSes except for
@@ -6776,20 +6833,36 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       // ... hence the RS we are connected to should not be empty
       // ... or if it is empty, it is due to a voluntary reset
       // and we don't want to update it with our changes that could be huge.
-      if (replServerMaxCSN != null && replServerMaxCSN.getSeqnum() != 0)
+      final boolean replServerHoldsChanges = replServerMaxCSN != null && replServerMaxCSN.getSeqnum() != 0;
+      if (replServerHoldsChanges
+          && ourMaxCSN != null
+          && !ourMaxCSN.isOlderThanOrEqualTo(replServerMaxCSN))
       {
-        CSN ourMaxCSN = state.getMaxCSN(getServerId());
-        if (ourMaxCSN != null
-            && !ourMaxCSN.isOlderThanOrEqualTo(replServerMaxCSN))
-        {
-          pendingChanges.setRecovering(true);
-          broker.setRecoveryRequired(true);
-          final RSUpdater rsUpdater = new RSUpdater(replServerMaxCSN);
-          if (this.rsUpdater.compareAndSet(null, rsUpdater))
-          {
-            rsUpdater.start();
-          }
-        }
+        pendingChanges.setRecovering(true);
+        broker.setRecoveryRequired(true);
+        startMissingChangesPublisher(replServerMaxCSN);
+      }
+      else if (pendingChanges.isRecovering())
+      {
+        /*
+         * A missing change publisher which failed - its broker reached no replication server, or
+         * was stopped, or its search failed and it had the session started again - left the
+         * pending changes in recovery, and no recovery of this session would end it, as this
+         * replication server misses no change of this replica: the local changes would be
+         * recorded in the state and published by nobody. A publisher is started all the same,
+         * from what the replication server holds: it finds nothing to publish, or the changes
+         * done since this check, and ends the recovery under the lock the local changes are
+         * pushed under. The recovery is not ended here, as this runs under the lock of the
+         * connect phase of the broker, which a change being pushed waits for holding the lock of
+         * the pending changes.
+         *
+         * A publisher of the previous session which still runs keeps the recovery: it ends it,
+         * or has the session started again if its search fails. One on its way out once its
+         * broker refused a change may not have let go of it yet, though: this start is then
+         * lost, and the recovery waits for the session after this one (issue #1199).
+         */
+        startMissingChangesPublisher(replServerHoldsChanges ? replServerMaxCSN
+            : ourMaxCSN != null ? ourMaxCSN : new CSN(TimeThread.getTime(), 0, getServerId()));
       }
     } catch (Exception e)
     {
@@ -6798,133 +6871,300 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   }
 
   /**
+   * Starts the thread which publishes the changes of this replica which come after the provided
+   * CSN, unless the one of an earlier session still runs.
+   */
+  private void startMissingChangesPublisher(CSN startCSN)
+  {
+    final RSUpdater rsUpdater = new RSUpdater(startCSN);
+    if (this.rsUpdater.compareAndSet(null, rsUpdater))
+    {
+      rsUpdater.start();
+    }
+  }
+
+  /**
    * Build the list of changes that have been processed by this server after the
    * CSN given as a parameter and publish them using the given session.
+   * <p>
+   * The changes are published in rounds, each one from where the round before it stopped. A
+   * round publishes the changes done when it begins: their entries are written by then, so its
+   * search finds each of them, or a later change of the same values, which supersedes it. A change
+   * done while a round runs is left to the round after it. The search may have missed it, and
+   * publishing a later change in its place would have the next round search past it - while a
+   * replication server takes no change older than the newest one it holds of this replica.
+   * <p>
+   * The recovery ends with the round which publishes up to the last local change, no change having
+   * been done meanwhile. Once a round has caught up with the local changes and some were done
+   * while it ran, the rounds after it hold them back, up to the last local change, so that the
+   * recovery ends with them.
+   * <p>
+   * A round counts as published only what the broker did not refuse: when it refuses a change - it
+   * reaches no replication server, or it was stopped - the recovery fails, and the changes are left
+   * to the next session, which starts a publisher whether its replication server misses changes of
+   * this replica or not, so that the recovery ends.
+   * <p>
+   * A round whose search does not go through publishes nothing, and the recovery fails with it: what
+   * the search found may be some of the changes only, and a replication server which took them would
+   * take none of the ones it missed, which are older. The caller has the session started again, for
+   * the recovery of the next one to publish them.
+   * <p>
+   * The deletes kept aside which come at or before {@code startCSN} are left where they are: the
+   * replication server of this session has them, but the one of a later session may not.
    *
    * @param startCSN
    *          The CSN where we need to start the search
    * @param session
    *          The session to use to publish the changes
-   * @return A boolean indicating he success of the operation.
+   * @return {@code true} once the recovery is over, {@code false} if the broker refused a change or
+   *         the domain was shut down
    * @throws Exception
-   *           if an Exception happens during the search.
+   *           if the search of a round did not go through, or a round threw: the changes the round
+   *           did not publish are left to the next recovery
    */
   boolean buildAndPublishMissingChanges(CSN startCSN, ReplicationBroker session)
       throws Exception
   {
-    // Trim the changes in replayOperations that are older than the startCSN.
-    synchronized (replayOperations)
-    {
-      Iterator<CSN> it = replayOperations.keySet().iterator();
-      while (it.hasNext())
-      {
-        if (shutdown.get())
-        {
-          return false;
-        }
-        if (it.next().isNewerThan(startCSN))
-        {
-          break;
-        }
-        it.remove();
-      }
-    }
-
-    CSN lastRetrievedChange;
-    InternalSearchOperation op;
     CSN currentStartCSN = startCSN;
-    do
+    boolean holdBackLocalChanges = false;
+    while (true)
     {
       if (shutdown.get())
       {
         return false;
       }
-
-      lastRetrievedChange = null;
-      // We can't do the search in one go because we need to store the results
-      // so that we are sure we send the operations in order and because the
-      // list might be large.
-      // So we search by interval of 10 seconds and store the results in the
-      // replayOperations list so that they are sorted before sending them.
-      long missingChangesDelta = currentStartCSN.getTime() + 10000;
-      CSN endCSN = new CSN(missingChangesDelta, 0xffffffff, getServerId());
-
-      ScanSearchListener listener =
-        new ScanSearchListener(currentStartCSN, endCSN);
-      op = searchForChangedEntries(getBaseDN(), currentStartCSN, endCSN,
-              listener);
-
-      // Publish and remove all the changes from the replayOperations list
-      // that are older than the endCSN.
-      final List<FakeOperation> opsToSend = new LinkedList<>();
-      synchronized (replayOperations)
+      final CSN fromCSN = currentStartCSN;
+      final MissingChangesRound round = holdBackLocalChanges
+          ? pendingChanges.holdBackLocalChangesWhile(() -> publishMissingChangesUntilCaughtUp(fromCSN, session))
+          : publishMissingChanges(fromCSN, session);
+      if (round == null || !round.succeeded)
       {
-        Iterator<FakeOperation> itOp = replayOperations.values().iterator();
-        while (itOp.hasNext())
-        {
-          if (shutdown.get())
-          {
-            return false;
-          }
-          FakeOperation fakeOp = itOp.next();
-          if (fakeOp.getCSN().isNewerThan(endCSN) // sanity check
-              || !state.cover(fakeOp.getCSN())
-              // do not look for replay operations in the future
-              || currentStartCSN.isNewerThan(now()))
-          {
-            break;
-          }
+        return false;
+      }
+      if (round.endedRecovery)
+      {
+        return true;
+      }
+      holdBackLocalChanges = round.caughtUp;
+      currentStartCSN = round.publishedUpTo;
+    }
+  }
 
-          lastRetrievedChange = fakeOp.getCSN();
+  /**
+   * Runs the rounds of a recovery which holds the local changes back, up to the last local change.
+   * <p>
+   * The changes done while the round before ran may go further than one search window: a round
+   * which stopped at the end of its window and let the local changes go again would leave the next
+   * one as far behind. Nothing is done while these rounds run, so the last of them ends the
+   * recovery.
+   *
+   * @return the last round, or {@code null} if the domain was shut down meanwhile
+   */
+  private MissingChangesRound publishMissingChangesUntilCaughtUp(CSN fromCSN, ReplicationBroker session)
+      throws Exception
+  {
+    MissingChangesRound round = publishMissingChanges(fromCSN, session);
+    while (round != null && round.succeeded && !round.caughtUp)
+    {
+      if (shutdown.get())
+      {
+        return null;
+      }
+      round = publishMissingChanges(round.publishedUpTo, session);
+    }
+    return round;
+  }
+
+  /** What one round of {@link LDAPReplicationDomain#buildAndPublishMissingChanges(CSN, ReplicationBroker)} did. */
+  private static final class MissingChangesRound
+  {
+    /** Every change of this replica up to this CSN is published, or has nothing left to publish it from. */
+    private final CSN publishedUpTo;
+    /** Whether the round went as far as the last local change: its search window did not end before. */
+    private final boolean caughtUp;
+    /** Whether the broker refused none of the changes the round published: a failed search throws. */
+    private final boolean succeeded;
+    /** Whether the round ended the recovery: it caught up, and no change was done while it ran. */
+    private final boolean endedRecovery;
+
+    private MissingChangesRound(CSN publishedUpTo, boolean caughtUp, boolean succeeded,
+        boolean endedRecovery)
+    {
+      this.publishedUpTo = publishedUpTo;
+      this.caughtUp = caughtUp;
+      this.succeeded = succeeded;
+      this.endedRecovery = endedRecovery;
+    }
+  }
+
+  /**
+   * Runs one round of {@link #buildAndPublishMissingChanges(CSN, ReplicationBroker)}: publishes the
+   * changes of this replica which come after {@code fromCSN}, up to the last change done when the
+   * round begins - or up to the end of its search window, if that comes first - and ends the
+   * recovery if no change was done since.
+   *
+   * @return the round, or {@code null} if the domain was shut down meanwhile
+   * @throws MissingChangesSearchFailedException
+   *           if the search did not go through: the round published nothing
+   */
+  private MissingChangesRound publishMissingChanges(CSN fromCSN, ReplicationBroker session)
+      throws Exception
+  {
+    // Read before the search: every change up to it has its entry written, so the search sees it.
+    final CSN lastLocalChange = getLastLocalChange();
+    // We can't do the search in one go because we need to store the results
+    // so that we are sure we send the operations in order and because the
+    // list might be large.
+    // So we search by interval of 10 seconds and store the results in the
+    // replayOperations list so that they are sorted before sending them.
+    // The greatest sequence number reads as the greatest both as a CSN and as the text the index
+    // of the historical information compares, where 0xffffffff would read as -1 and as the
+    // greatest: the changes of the last millisecond fell then out of this window and of the next.
+    final CSN endCSN = new CSN(fromCSN.getTime() + 10000, Integer.MAX_VALUE, getServerId());
+    final boolean caughtUp = lastLocalChange == null || !lastLocalChange.isNewerThan(endCSN);
+    final CSN bound = !caughtUp ? endCSN : lastLocalChange != null ? lastLocalChange : fromCSN;
+
+    final InternalSearchOperation op =
+        searchForChangedEntries(getBaseDN(), fromCSN, endCSN, new ScanSearchListener(fromCSN, endCSN));
+    final Consumer<InternalSearchOperation> searchHook = missingChangesSearchHook;
+    if (searchHook != null)
+    {
+      searchHook.accept(op);
+    }
+    /*
+     * A search which did not go through may have found some of the changes only, and a replication
+     * server which took them would take none of the ones it missed, which are older: the round
+     * publishes nothing, and takes nothing out of the replayOperations list. A search which found no
+     * base entry went through: the base entry of the domain is gone, and no entry is left below it
+     * to hold a change, so the deletes kept aside are all there is - and they go out as in any other
+     * round, or the deletes which removed the suffix would wait for it to come back.
+     */
+    if (!op.getResultCode().equals(ResultCode.SUCCESS) && !op.getResultCode().equals(ResultCode.NO_SUCH_OBJECT))
+    {
+      throw new MissingChangesSearchFailedException(fromCSN, op);
+    }
+
+    /*
+     * Publish and remove the changes of the replayOperations list which come after fromCSN, up to
+     * the bound. The ones at or before fromCSN are left there: the replication server of this
+     * session has them, but the one of a later session may not, and a delete kept aside has nothing
+     * else to be published from.
+     */
+    final List<FakeOperation> opsToSend = new ArrayList<>();
+    synchronized (replayOperations)
+    {
+      final Iterator<FakeOperation> itOp = replayOperations.tailMap(fromCSN).values().iterator();
+      while (itOp.hasNext())
+      {
+        if (shutdown.get())
+        {
+          return null;
+        }
+        final FakeOperation fakeOp = itOp.next();
+        if (fakeOp.getCSN().isNewerThan(bound))
+        {
+          break;
+        }
+        if (fakeOp.getCSN().isNewerThan(fromCSN))
+        {
           opsToSend.add(fakeOp);
           itOp.remove();
         }
       }
+    }
 
+    int published = 0;
+    try
+    {
       for (FakeOperation opToSend : opsToSend)
       {
         if (shutdown.get())
         {
-          return false;
+          return null;
         }
-        session.publishRecovery(opToSend.generateMessage());
-      }
-
-      if (lastRetrievedChange != null)
-      {
-        if (logger.isDebugEnabled())
+        if (!session.publishRecovery(opToSend.generateMessage()))
         {
-          logger.debug(LocalizableMessage.raw("publish loop"
-                  + " >=" + currentStartCSN + " <=" + endCSN
-                  + " nentries=" + op.getEntriesSent()
-                  + " result=" + op.getResultCode()
-                  + " lastRetrievedChange=" + lastRetrievedChange));
+          /*
+           * The broker reaches no replication server, or it was stopped: the changes it did not take
+           * are put back for the recovery of the next session - a delete kept aside here has nothing
+           * else to be published from.
+           */
+          putBackUnpublished(opsToSend.subList(published, opsToSend.size()));
+          if (logger.isDebugEnabled())
+          {
+            logger.debug(LocalizableMessage.raw("publish loop refused " + opToSend.getCSN()
+                + ": the changes from it are left to the recovery of the next session"));
+          }
+          return new MissingChangesRound(fromCSN, false, false, false);
         }
-        currentStartCSN = lastRetrievedChange;
+        published++;
       }
-      else
-      {
-        if (logger.isDebugEnabled())
-        {
-          logger.debug(LocalizableMessage.raw("publish loop"
-                  + " >=" + currentStartCSN + " <=" + endCSN
-                  + " nentries=" + op.getEntriesSent()
-                  + " result=" + op.getResultCode()
-                  + " no changes"));
-        }
-        currentStartCSN = endCSN;
-      }
-    } while (pendingChanges.recoveryUntil(currentStartCSN)
-          && op.getResultCode().equals(ResultCode.SUCCESS));
+    }
+    catch (RuntimeException e)
+    {
+      // Put back as for a refusal: the caller has the session started again, and the recovery of
+      // the next one publishes them.
+      putBackUnpublished(opsToSend.subList(published, opsToSend.size()));
+      throw e;
+    }
 
-    return op.getResultCode().equals(ResultCode.SUCCESS);
+    final CSN publishedUpTo = bound.isNewerThan(fromCSN) ? bound : fromCSN;
+    if (logger.isDebugEnabled())
+    {
+      logger.debug(LocalizableMessage.raw("publish loop"
+              + " >=" + fromCSN + " <=" + endCSN
+              + " nentries=" + op.getEntriesSent()
+              + " result=" + op.getResultCode()
+              + " published=" + opsToSend.size()
+              + " upTo=" + publishedUpTo));
+    }
+    final boolean endedRecovery = caughtUp
+        && !pendingChanges.recoveryUntil(publishedUpTo, () -> broker.setRecoveryRequired(false));
+    return new MissingChangesRound(publishedUpTo, caughtUp, true, endedRecovery);
   }
 
-  private static CSN now()
+  /** Puts back in {@link #replayOperations} the changes a round took out of it and did not publish. */
+  private void putBackUnpublished(List<FakeOperation> unpublished)
   {
-    // ensure now() will always come last with isNewerThan() test,
-    // even though the timestamp, or the timestamp and seqnum would be the same
-    return new CSN(TimeThread.getTime(), Integer.MAX_VALUE, Integer.MAX_VALUE);
+    synchronized (replayOperations)
+    {
+      for (FakeOperation op : unpublished)
+      {
+        replayOperations.put(op.getCSN(), op);
+      }
+    }
+  }
+
+  /**
+   * Thrown by a round of {@link LDAPReplicationDomain#buildAndPublishMissingChanges(CSN, ReplicationBroker)}
+   * whose search did not go through.
+   */
+  private static final class MissingChangesSearchFailedException extends Exception
+  {
+    private static final long serialVersionUID = 1L;
+
+    private MissingChangesSearchFailedException(CSN fromCSN, InternalSearchOperation search)
+    {
+      super("the search of the changes after " + fromCSN + " ended with "
+          + search.getResultCode().getName() + " " + search.getErrorMessage());
+    }
+  }
+
+  /**
+   * Sets what {@link #buildAndPublishMissingChanges(CSN, ReplicationBroker)} runs after the search
+   * of each of its rounds, before it chooses what the round publishes.
+   * <p>
+   * Only there for the tests which do local changes in that gap - the changes a round may publish
+   * are bounded by what was done when its search began, and a change done in between is the one
+   * a bound taken any later lets through without the search having found it - or which fail the
+   * search, by setting its result code or by throwing.
+   *
+   * @param hook what to run there, handed the search of the round, or {@code null} to run nothing
+   */
+  @VisibleForTesting
+  void setMissingChangesSearchHook(Consumer<InternalSearchOperation> hook)
+  {
+    missingChangesSearchHook = hook;
   }
 
   /**

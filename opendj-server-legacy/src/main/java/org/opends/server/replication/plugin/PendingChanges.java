@@ -20,6 +20,7 @@ package org.opends.server.replication.plugin;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
+import java.util.concurrent.Callable;
 
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
@@ -56,7 +57,8 @@ class PendingChanges
   /** Told that the replica of this domain announces itself offline, or takes that back. */
   private final ReplicaOfflineAnnouncer replicaOfflineAnnouncer;
 
-  private boolean recoveringOldChanges;
+  /** Changed under the lock of this list, except to start a recovery; read without it by {@link #isRecovering()}. */
+  private volatile boolean recoveringOldChanges;
 
   /**
    * Creates a new PendingChanges using the provided CSNGenerator.
@@ -265,27 +267,75 @@ class PendingChanges
   }
 
   /**
+   * Tells whether the local changes are left to a recovery, which publishes them.
+   * <p>
+   * It is read without the lock of this list, which the start of a session must not take: the
+   * session only learns from it that it needs a missing change publisher to end the recovery,
+   * and that one ends it under the lock.
+   *
+   * @return {@code true} if the local changes are left to a recovery
+   */
+  boolean isRecovering()
+  {
+    return recoveringOldChanges;
+  }
+
+  /**
    * Allows to update the recovery situation by comparing the CSN of the last
    * change that was sent to the ReplicationServer with the CSN of the last
    * operation that was taken out of the PendingChanges list. If the two match
    * then the recovery is completed and normal procedure can restart. Otherwise
    * the RSUpdater thread must continue to look for older changes and no changes
    * can be committed from the pendingChanges list.
+   * <p>
+   * The recovery ends at once for every change pushed after it: a change which comes here once
+   * this list publishes again must find the broker taking it as well, or it is refused, while
+   * the domain state records it as done and no recovery is left to publish it.
+   * {@code onRecovered} is therefore run here, under the lock {@link #pushCommittedChanges()}
+   * takes, before any change can be pushed.
    *
    * @param recovered
    *          The CSN of the last change that was published to the
    *          ReplicationServer.
+   * @param onRecovered
+   *          Run when this call ends the recovery, before any change is pushed after it: it
+   *          lets the broker take the changes again.
    * @return A boolean indicating if the recovery is completed (false) or must
    *         continue (true).
    */
-  synchronized boolean recoveryUntil(CSN recovered)
+  synchronized boolean recoveryUntil(CSN recovered, Runnable onRecovered)
   {
     final CSN lastLocalChange = domain.getLastLocalChange();
-    if (recovered != null && recovered.isNewerThanOrEqualTo(lastLocalChange))
+    if (recoveringOldChanges && recovered != null && recovered.isNewerThanOrEqualTo(lastLocalChange))
     {
       recoveringOldChanges = false;
+      onRecovered.run();
     }
     return recoveringOldChanges;
+  }
+
+  /**
+   * Runs the provided rounds of a recovery while no local change can be numbered or pushed.
+   * <p>
+   * A round publishes the changes done when it began, and a change done while it runs is left
+   * to a round after it, so a recovery could chase the local changes for as long as they go on.
+   * The rounds run here are the last ones: what they publish is all there is, and nothing can be
+   * pushed between their end and the end of the recovery they decide. The local operations wait
+   * for them - for their CSN and for their push - for as long as publishing the changes done while
+   * the round before ran takes, where a publish in normal operation holds the same lock for one
+   * change.
+   *
+   * @param <T>
+   *          what the rounds return
+   * @param round
+   *          the rounds of the recovery
+   * @return what the round returned
+   * @throws Exception
+   *           if the round failed
+   */
+  synchronized <T> T holdBackLocalChangesWhile(Callable<T> round) throws Exception
+  {
+    return round.call();
   }
 
   /**
