@@ -1140,7 +1140,11 @@ jobs:
         shell: bash
         env:
           TOPOLOGY: ${{ matrix.topology }}
-          DURATION: "900"
+          DURATION: "1800"
+          # the replicas fall behind during the load and catch up after it: 900 s at 325 and 65
+          # a second converged in 396 s (run 38944365728), and twice as long at 30% more is
+          # expected to need about 1000 s
+          QUIESCE_TIMEOUT: "2700"
           SAMPLE_DATA: "10000"
           OUT: ${{ runner.temp }}/replication-out
         run: .github/scripts/replication/run.sh "localhost:5000/${GITHUB_REPOSITORY,,}:${{ needs.build-docker.outputs.release_version }}"
@@ -1151,7 +1155,7 @@ jobs:
           name: convergence-${{ matrix.topology }}
           path: ${{ runner.temp }}/replication-out
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: 5
 
   test-deb:
     needs: build-maven
