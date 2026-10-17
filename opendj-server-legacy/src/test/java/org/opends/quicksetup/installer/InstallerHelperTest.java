@@ -20,11 +20,17 @@ import static org.opends.messages.ReplicationMessages.ERR_NO_REACHABLE_PEER_IN_T
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
+import org.opends.admin.ads.ADSContext;
+import org.opends.admin.ads.ReplicaDescriptor;
+import org.opends.admin.ads.ServerDescriptor;
 import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.Test;
 
@@ -178,5 +184,69 @@ public class InstallerHelperTest extends DirectoryServerTestCase
 
     assertThat(InstallerHelper.getTaskLogMessages(taskEntry)).isEmpty();
     assertThat(InstallerHelper.getRelevantLogMessage(InstallerHelper.getTaskLogMessages(taskEntry))).isNull();
+  }
+
+  /**
+   * The server ids in use are the ones of the replication servers and of the replication domains of
+   * every base DN, in one set: a new replication server and a new replication domain both take their
+   * id outside of it. A replication server takes the total update messages sent to its own id as
+   * messages for itself, so a domain must not get the id of a replication server, nor a replication
+   * server the id of a domain (issue #1207).
+   */
+  @Test
+  public void usedServerIdsAreTheIdsOfTheReplicationServersAndOfTheDomainsOfEveryBaseDN()
+  {
+    final ServerDescriptor combined = server(4242, replica(1), replica(2), notReplicatedReplica());
+    final ServerDescriptor directoryOnly = server(null, replica(3));
+    final ServerDescriptor replicationOnly = server(4243);
+
+    assertThat(InstallerHelper.getUsedServerIds(Arrays.asList(combined, directoryOnly, replicationOnly)))
+        .containsOnly(4242, 4243, 1, 2, 3);
+  }
+
+  /**
+   * A new id is taken outside of the used ids and added to them: the replication server and the
+   * domains that setup or enable create next cannot take it (issue #1207). Only 4242 is free.
+   */
+  @Test
+  public void newReplicationIdIsTakenOutsideOfTheUsedIdsAndAddedToThem()
+  {
+    final Set<Integer> usedIds = new HashSet<>();
+    for (int id = 1; id < Short.MAX_VALUE; id++)
+    {
+      if (id != 4242)
+      {
+        usedIds.add(id);
+      }
+    }
+
+    assertThat(InstallerHelper.addNewReplicationId(usedIds)).isEqualTo(4242);
+    assertThat(usedIds).contains(4242).hasSize(Short.MAX_VALUE - 1);
+  }
+
+  private static ServerDescriptor server(Integer replicationServerId, ReplicaDescriptor... replicas)
+  {
+    final ServerDescriptor server =
+        ServerDescriptor.createStandalone(new HashMap<ADSContext.ServerProperty, Object>());
+    if (replicationServerId != null)
+    {
+      server.getServerProperties().put(ServerDescriptor.ServerProperty.IS_REPLICATION_SERVER, Boolean.TRUE);
+      server.getServerProperties().put(ServerDescriptor.ServerProperty.REPLICATION_SERVER_ID, replicationServerId);
+    }
+    server.setReplicas(new HashSet<>(Arrays.asList(replicas)));
+    return server;
+  }
+
+  private static ReplicaDescriptor replica(int serverId)
+  {
+    final ReplicaDescriptor replica = new ReplicaDescriptor();
+    replica.setServerId(serverId);
+    return replica;
+  }
+
+  /** A suffix of the server which is not replicated: its replica has no server id. */
+  private static ReplicaDescriptor notReplicatedReplica()
+  {
+    return new ReplicaDescriptor();
   }
 }
