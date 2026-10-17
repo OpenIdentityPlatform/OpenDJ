@@ -3993,8 +3993,9 @@ public abstract class ReplicationDomain
    *         it: it has no usable session, the changes which come before this
    *         one still have to be republished, or it was stopped in between -
    *         or is being stopped, and the window of its session gave it no
-   *         credit for this message, or for one before it, in the time the
-   *         stop gives the replication server.
+   *         credit for this message, or for one before it, or the replication
+   *         server did not read what was written to it, in the time the stop
+   *         gives the replication server.
    */
   public boolean publish(UpdateMsg msg)
   {
