@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.grizzly;
@@ -403,6 +404,10 @@ final class LDAPClientFilter extends LDAPBaseFilter {
             return;
         }
         final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(connection);
+        if (ldapConnection == null) {
+            // Not registered yet: nothing to close.
+            return;
+        }
 
         Result errorResult;
         if (error instanceof EOFException) {
@@ -446,6 +451,10 @@ final class LDAPClientFilter extends LDAPBaseFilter {
 
     private final void handleReadException(FilterChainContext ctx, IOException e) {
         final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(ctx.getConnection());
+        if (ldapConnection == null) {
+            // Already removed by handleClose: nothing to close, the caller passes the error on to Grizzly.
+            return;
+        }
         final Result errorResult =
                 Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR).setCause(e)
                         .setDiagnosticMessage(e.getMessage());
