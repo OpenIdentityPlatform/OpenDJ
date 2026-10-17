@@ -639,8 +639,8 @@ jobs:
     name: docker-test (${{ matrix.flavor }})
     needs: [build-docker, build-docker-alpine]
     # a matrix row cannot need its own build job only, and a job-level if cannot read the
-    # matrix: the tests of one image run when the build of the other failed, and the row of
-    # the image that was not built fails at its download
+    # matrix: the tests of one image run when the build of the other failed, the row of the
+    # image that was not built fails at its download, and re-running that build re-runs both rows
     if: ${{ !cancelled() && (needs.build-docker.result == 'success' || needs.build-docker-alpine.result == 'success') }}
     runs-on: 'ubuntu-latest'
     permissions:
@@ -1115,7 +1115,7 @@ jobs:
     needs: build-docker
     # a red row turns the Build run red, and deploy.yml then skips the snapshot deploy and the
     # publishing of the docs of a push to master: rs534 fails until #1206 is fixed, combined
-    # until #1195 is
+    # can fail until #1195 is
     runs-on: 'ubuntu-latest'
     permissions:
       contents: read
@@ -1142,8 +1142,9 @@ jobs:
           TOPOLOGY: ${{ matrix.topology }}
           DURATION: "1800"
           # the replicas fall behind during the load and catch up after it: 900 s at 325 and 65
-          # a second converged in 396 s (run 38944365728), and twice as long at 30% more is
-          # expected to need about 1000 s
+          # a second converged in 396 s (run 38944365728); the backlog grows with the load above
+          # the replay capacity (run 38865878001), so twice as long at 30% more is expected to
+          # need 1000 to 1500 s
           QUIESCE_TIMEOUT: "2700"
           SAMPLE_DATA: "10000"
           OUT: ${{ runner.temp }}/replication-out

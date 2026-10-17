@@ -70,11 +70,13 @@ converged_once() {
 # changes were on their way
 MONITORING_PERIOD=60
 
-# Three converged samples in a row, the last one a monitoring period after the first. Sets
-# CONVERGED_IN to the seconds until the first of them
+# Three converged samples in a row, the last one started more than a monitoring period (and
+# the publisher's 5 s latch) after the first ended. Sets CONVERGED_IN to the seconds until the
+# first of them
 wait_converged() {
-  local start=$SECONDS hits=0 first=
-  until [ $hits -ge 3 ] && [ $((SECONDS - first)) -ge $MONITORING_PERIOD ]; do
+  local start=$SECONDS hits=0 first= last=
+  until [ $hits -ge 3 ] && [ $((last - first)) -gt $((MONITORING_PERIOD + 5)) ]; do
+    last=$SECONDS
     if converged_once; then hits=$((hits + 1)); first=${first:-$SECONDS}; else hits=0; first=; fi
     if [ $((SECONDS - start)) -ge "$QUIESCE_TIMEOUT" ]; then
       echo "::group::the monitor when the wait timed out (epoch, replication server, server id, missing changes, delay)"
