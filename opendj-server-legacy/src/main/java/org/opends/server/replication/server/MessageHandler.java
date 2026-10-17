@@ -13,7 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2026 3A Systems, LLC
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -81,6 +81,17 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   /** Specifies whether the consumer is following the producer (is not late). */
   private boolean following;
   /**
+   * For each replica, the newest of its changes the queue may lack: the changes the domain held
+   * when it handed the queue its first change - the domain hands it every change it receives once
+   * the handler is registered, and the ones before never reached it - and the changes the queue
+   * dropped when it was full. The consumer must have those the changelog still holds before it is
+   * served from the queue again, see {@link #consumerHasWhatTheQueueLacks()}. Guarded by
+   * {@link #msgQueue}.
+   */
+  private final ServerState queueLacksUpTo = new ServerState();
+  /** Whether the queue has been handed a change yet. Guarded by {@link #msgQueue}. */
+  private boolean queueHandedAChange;
+  /**
    * The state of the domain at the previous wait of {@link #getNextMessage()} on an empty queue,
    * or {@code null} when the queue was not empty then. A change it holds has had a whole wait to
    * reach the queue, see {@link #stopFollowingWhenChangesAreMissing()}. Guarded by
@@ -146,15 +157,47 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
         msgQueue.notifyAll();
       }
 
+      if (!queueHandedAChange)
+      {
+        // the changes the domain held before this one never reached the queue. The domain writes
+        // a change to the changelog before it hands it over, so this one is counted as well
+        queueHandedAChange = true;
+        queueLacksUpTo.update(replicationServerDomain.getLatestServerState());
+      }
       msgQueue.add(update);
 
       // TODO : size should be configurable and larger than max-receive-queue-size
       while (isMsgQueueAboveThreshold())
       {
         following = false;
-        msgQueue.removeFirst();
+        queueLacksUpTo.update(msgQueue.removeFirst().getCSN());
       }
     }
+  }
+
+  /**
+   * Whether the consumer has every change the queue may lack which the changelog still holds - see
+   * {@link #queueLacksUpTo}. A change the changelog no longer holds, such as one of a changelog
+   * cleared for a new generation id, cannot be read from it either: it does not keep this handler
+   * from its queue.
+   * <p>
+   * Must be called while holding the {@link #msgQueue} monitor.
+   *
+   * @return {@code true} when the queue lacks nothing the consumer may still be sent
+   */
+  private boolean consumerHasWhatTheQueueLacks()
+  {
+    final ServerState inTheChangelog = replicationServerDomain.getLatestServerState();
+    for (CSN lacked : queueLacksUpTo)
+    {
+      final CSN newest = inTheChangelog.getCSN(lacked.getServerId());
+      final CSN sent = serverState.getCSN(lacked.getServerId());
+      if (!serverState.cover(lacked) && newest != null && (sent == null || newest.isNewerThan(sent)))
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
   private boolean isMsgQueueAboveThreshold()
@@ -339,8 +382,10 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
             synchronized (msgQueue)
             {
               // Ensure we are below threshold so this server will follow the
-              // msgQueue without fearing the msgQueue gets trimmed
-              if (isMsgQueueBelowThreshold())
+              // msgQueue without fearing the msgQueue gets trimmed.
+              // The changelog was read without the lock: a change written since may have been
+              // dropped from the queue already
+              if (isMsgQueueBelowThreshold() && consumerHasWhatTheQueueLacks())
               {
                 following = true;
               }
@@ -350,8 +395,17 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
           {
             /*
              * if the first change in the lateQueue is also on the regular queue,
+             * and the regular queue holds every other change the consumer lacks,
              * we can resume the processing from the regular queue
              * -> set following to true and empty the lateQueue.
+             * The regular queue is ordered by CSN, so holding the first change of the lateQueue does
+             * not mean holding the changes after it: a change which reaches the queue late with an
+             * older CSN - relayed by another replication server, or published again by a recovery -
+             * goes in front of the changes of another replica which the queue dropped before it came,
+             * or never had as they reached the domain before this handler did. Nor does it mean that
+             * the changes before it are ones the consumer has: one such late change may have reached
+             * the queue since the changelog was read. Served from the queue then, the consumer would
+             * not be sent those changes, and its state would move past them for good - see #1206.
              */
             UpdateMsg msg = lateQueue.first();
             synchronized (msgQueue)
@@ -365,7 +419,9 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
                }
               }
 
-              if (msgQueue.contains(msg))
+              if (msgQueue.contains(msg)
+                  && consumerHasWhatTheQueueLacks()
+                  && msgQueue.isCoveredBefore(msg, serverState))
               {
                 /* we finally catch up with the regular queue */
                 following = true;
