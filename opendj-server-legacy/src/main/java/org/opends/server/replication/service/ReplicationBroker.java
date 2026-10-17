@@ -166,12 +166,55 @@ public class ReplicationBroker
     }
   }
 
+  /**
+   * A stop of the broker, from the moment {@link #stop()} begins until {@link #start()} clears it.
+   * <p>
+   * What a publish gives up for the stop is marked on the stop, and not on the broker: a publish
+   * which found the stop past its deadline may mark it only after start() cleared it, and then the
+   * mark lands on a stop which is over, rather than on the broker started again.
+   */
+  private static final class StopInProgress
+  {
+    /**
+     * The {@link System#nanoTime()} until which a publish waits for credit. The replication server
+     * gets as long to give the credit as it gets to accept a connection: one which is only slow
+     * takes the changes and the replica offline message as before, and only one which takes
+     * nothing for that long costs them.
+     */
+    private final long creditDeadline;
+    /**
+     * Whether the stop has a deadline: a connection timeout of 0 lets a connection wait for as
+     * long as it takes, and the stop as well, as it did before it had any deadline.
+     */
+    private final boolean bounded;
+    /**
+     * Set when a publish gave its message up because of this stop: from then on publish() writes
+     * nothing, until start() clears the stop. The change time heartbeats and the window and status
+     * messages written straight to the session are not held back. A message published after one
+     * given up would reach the replication server ahead of an older one - the replica offline
+     * message, which carries the newest CSN of the replica, would tell it that nothing older is to
+     * come.
+     */
+    private volatile boolean gaveUp;
+
+    private StopInProgress(long connectionTimeoutMS)
+    {
+      this.creditDeadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(connectionTimeoutMS);
+      this.bounded = connectionTimeoutMS > 0;
+    }
+
+    private boolean isPastTheCreditDeadline()
+    {
+      return bounded && System.nanoTime() - creditDeadline >= 0;
+    }
+  }
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private volatile boolean shutdown;
   /**
-   * Set by {@link #stop()} before anything else it does, and cleared by {@link #start()}: once it
-   * is set, a publish which finds no window credit by {@link #stopCreditDeadline} gives its message
-   * up instead of waiting on.
+   * The stop in progress: set by {@link #stop()} before anything else it does, and cleared to
+   * {@code null} by {@link #start()}. While it is set, a publish which finds no window credit by
+   * its deadline gives its message up instead of waiting on.
    * <p>
    * stop() publishes the replica offline message before it sets {@link #shutdown}, the flag which
    * ends the wait for credit, and that message needs credit too, and the lock of the pending
@@ -180,21 +223,7 @@ public class ReplicationBroker
    * replication server which takes no update holds the stop - and the disable, the restart or the
    * shutdown of the domain behind it - for as long as it does.
    */
-  private volatile boolean stopping;
-  /**
-   * The {@link System#nanoTime()} until which a publish waits for credit once {@link #stopping} is
-   * set. The replication server gets as long to give the credit as it gets to accept a connection:
-   * one which is only slow takes the changes and the replica offline message as before, and only
-   * one which takes nothing for that long costs them.
-   */
-  private volatile long stopCreditDeadline;
-  /**
-   * Set when a publish gave its message up because of the stop, and cleared by {@link #start()}:
-   * from then on the broker writes nothing. A message written after one given up would reach the
-   * replication server ahead of an older one - the replica offline message, which carries the
-   * newest CSN of the replica, would tell it that nothing older is to come.
-   */
-  private volatile boolean gaveUpForTheStop;
+  private volatile StopInProgress stopping;
   private final Object startStopLock = new Object();
   private volatile ReplicationDomainCfg config;
   /** String reported under CSN=monitor when there is no connected RS. */
@@ -314,8 +343,7 @@ public class ReplicationBroker
         return;
       }
       shutdown = false;
-      stopping = false;
-      gaveUpForTheStop = false;
+      stopping = null;
       this.rcvWindow = getMaxRcvWindow();
       connectAsDataServer();
     }
@@ -2323,7 +2351,7 @@ public class ReplicationBroker
   {
     boolean done = false;
 
-    while (!done && !shutdown && !gaveUpForTheStop)
+    while (!done && !shutdown && !gaveUpForTheStop())
     {
       if (connectionError)
       {
@@ -2389,6 +2417,7 @@ public class ReplicationBroker
           credit = true;
         }
 
+        final StopInProgress stop = stopping;
         if (credit)
         {
           synchronized (connectPhaseLock)
@@ -2407,17 +2436,18 @@ public class ReplicationBroker
             }
           }
         }
-        else if (stopping && System.nanoTime() - stopCreditDeadline >= 0)
+        else if (stop != null && stop.isPastTheCreditDeadline())
         {
           /*
            * Only credit ends this wait on a session the replication server keeps up, and stop()
            * sets the flag of this loop only after the replica offline message, which may need the
            * lock this publish holds. What is given up here is a change which the next session
-           * republishes - from the historical information of its entry, or a delete from the
-           * operations this domain keeps in memory, which a restart of the server loses - or the
-           * replica offline message, which is then reported as not sent.
+           * republishes - from the historical information of its entry, or a local delete from the
+           * operations this domain keeps in memory, which a restart of the server loses, while a
+           * delete the recovery publishes has left them already and is lost - or the replica
+           * offline message, which is then reported as not sent.
            */
-          gaveUpForTheStop = true;
+          stop.gaveUp = true;
           return false;
         }
         if (!credit && currentWindowSemaphore.availablePermits() == 0)
@@ -2484,6 +2514,13 @@ public class ReplicationBroker
      * sent a message which never reached the wire.
      */
     return done;
+  }
+
+  /** Tells whether a publish gave its message up for the stop in progress, if there is one. */
+  private boolean gaveUpForTheStop()
+  {
+    final StopInProgress stop = stopping;
+    return stop != null && stop.gaveUp;
   }
 
   /**
@@ -2771,9 +2808,7 @@ public class ReplicationBroker
       if (shutdown) {
         return;
       }
-      stopCreditDeadline = System.nanoTime()
-          + TimeUnit.MILLISECONDS.toNanos(MultimasterReplication.getConnectionTimeoutMS());
-      stopping = true;
+      stopping = new StopInProgress(MultimasterReplication.getConnectionTimeoutMS());
     }
 
     try
