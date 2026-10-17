@@ -83,6 +83,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import com.forgerock.opendj.ldap.tools.LDAPSearch;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.dsconfig.DSConfig;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -382,6 +383,63 @@ public final class TestCaseUtils {
         {
           Security.insertProviderAt(provider, installed.indexOf(provider) + 1);
         }
+      }
+    }
+  }
+
+  /**
+   * Runs {@code action} on a runtime which offers raw RSA and SHA-256 but no AES-KWP, as Java 11
+   * does without Bouncy Castle FIPS. Where a provider offers {@code AES/KWP/NoPadding}, it is
+   * withdrawn with {@link #withoutJceService}, and its {@code AESWrapPad} alias with it; since that
+   * provider is SunJCE, a stand-in gives back the raw RSA cipher of SunJCE for the duration.
+   *
+   * @param action
+   *          What to run without AES-KWP.
+   * @throws Exception
+   *           If the action fails.
+   */
+  public static void withoutKeyWrap(final Callable<Void> action) throws Exception
+  {
+    if (Security.getProviders("Cipher.AES/KWP/NoPadding") == null)
+    {
+      action.call();
+    }
+    else
+    {
+      final Provider rawRsa = new Provider("RawRsaOfSunJce", "1.0", "RSA cipher of SunJCE") {};
+      rawRsa.put("Cipher.RSA", "com.sun.crypto.provider.RSACipher");
+      withoutJceService("Cipher", "AES/KWP/NoPadding", action, rawRsa);
+    }
+  }
+
+  /**
+   * Runs {@code action} with the Bouncy Castle FIPS provider installed first, in its default mode,
+   * and puts the providers back as they were afterwards.
+   *
+   * @param <T>
+   *          The type of what the action returns.
+   * @param action
+   *          What to run.
+   * @return What the action returns.
+   * @throws Exception
+   *           If the action fails.
+   */
+  public static <T> T withBcFipsFirst(final Callable<T> action) throws Exception
+  {
+    final List<Provider> installed = Arrays.asList(Security.getProviders());
+    final Provider previous = Security.getProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
+    Security.removeProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
+    Security.insertProviderAt(previous != null ? previous : new BouncyCastleFipsProvider(), 1);
+    try
+    {
+      return action.call();
+    }
+    finally
+    {
+      Security.removeProvider(BouncyCastleFipsProvider.PROVIDER_NAME);
+      if (previous != null)
+      {
+        Security.insertProviderAt(previous, installed.indexOf(previous) + 1);
       }
     }
   }

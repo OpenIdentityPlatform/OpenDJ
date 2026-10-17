@@ -37,18 +37,26 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Proxy;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.AlgorithmParameters;
+import java.security.InvalidKeyException;
 import java.security.Key;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -66,15 +74,21 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.crypto.Cipher;
 import javax.crypto.CipherSpi;
 import javax.crypto.KeyGeneratorSpi;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldap.Attribute;
@@ -879,6 +893,223 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     }, sunWithoutMd5);
   }
 
+  @DataProvider
+  public Object[][] rsaSveSpellings()
+  {
+    return new Object[][] { { RsaSveKeyTransport.NAME }, { RsaSveKeyTransport.NAME.toLowerCase() } };
+  }
+
+  /**
+   The RSASVE scheme is accepted where the runtime offers its algorithms, whatever the case of its
+   name, as a Java transformation would be: neither the support check nor the trial wrap of the
+   check asks the runtime for a cipher of that name, which no provider offers.
+   */
+  @Test(dataProvider = "rsaSveSpellings")
+  public void testRsaSveKeyWrappingIsAccepted(final String spelling) throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+    final List<LocalizableMessage> why = new ArrayList<>();
+
+    final boolean acceptable = withBcFipsFirst(() -> cm.isConfigurationChangeAcceptable(
+        withProperty(cfg, "getKeyWrappingTransformation", spelling), why));
+
+    assertThat(why).isEmpty();
+    assertThat(acceptable).isTrue();
+  }
+
+  /**
+   The RSASVE scheme is refused where the runtime lacks one of its algorithms, here AES-KWP as on
+   Java 11 without Bouncy Castle FIPS, and the refusal names the property to set and the missing
+   algorithm: the trial wrap which follows the support check would refuse it too, but without
+   naming the property.
+   */
+  @Test
+  public void testRsaSveKeyWrappingWithoutAesKwpIsRefusedNamingTheProperty() throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+    final List<LocalizableMessage> why = new ArrayList<>();
+
+    withoutKeyWrap(() ->
+    {
+      // SunJCE offers AES-KWP under that name too, and goes with AES/KWP/NoPadding.
+      assertThat(Security.getProviders("Cipher.AESWrapPad")).as("providers offering AESWrapPad").isNull();
+      assertThat(cm.isConfigurationChangeAcceptable(
+          withProperty(cfg, "getKeyWrappingTransformation", RsaSveKeyTransport.NAME), why)).isFalse();
+      return null;
+    });
+
+    assertThat(why).hasSize(1);
+    assertThat(why.get(0).ordinal()).isEqualTo(ERR_CRYPTOMGR_KEY_WRAPPING_TRANSFORMATION_UNSUPPORTED.ordinal());
+    assertThat(why.get(0).toString())
+        .contains(RsaSveKeyTransport.NAME).contains("key-wrapping-transformation").contains("AES/KWP/NoPadding");
+  }
+
+  /**
+   A key generated while the RSASVE scheme is configured is published wrapped with it, under its
+   name, and unwraps to the key the data was encrypted with.
+   */
+  @Test
+  public void testRsaSveWrappedKeyIsPublishedAndUnwraps() throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+    final CryptoManagerCfg rsaSve = withProperty(cfg, "getKeyWrappingTransformation", RsaSveKeyTransport.NAME);
+    // No other test generates a key for this cipher and key length: the key is generated here.
+    final String transformation = "AES/CBC/PKCS5Padding";
+    final int keyLengthBits = 192;
+    final byte[] data = "RSASVE key transport".getBytes(StandardCharsets.UTF_8);
+    final String instanceKeyID = cm.getInstanceKeyID();
+    // A key of the default cipher, wrapped with the default transformation, RSA-OAEP.
+    cm.encrypt(data);
+    final String oaepValue =
+        getValueWrappedFor(instanceKeyID, cfg.getCipherTransformation(), cfg.getCipherKeyLength());
+    assertThat(oaepValue.split(":")[1]).isEqualTo(cfg.getKeyWrappingTransformation());
+    final byte[] oaepKey = cm.decodeSymmetricKeyAttribute(oaepValue).getEncoded();
+
+    withBcFipsFirst(() ->
+    {
+      final List<LocalizableMessage> why = new ArrayList<>();
+      assertThat(cm.isConfigurationChangeAcceptable(rsaSve, why)).as("%s", why).isTrue();
+      cm.applyConfigurationChange(rsaSve);
+      final String value;
+      final SecretKey key;
+      try
+      {
+        final byte[] cipherText = cm.encrypt(transformation, keyLengthBits, data);
+
+        value = getValueWrappedFor(instanceKeyID, transformation, keyLengthBits);
+        assertThat(value.split(":")[1]).isEqualTo(RsaSveKeyTransport.NAME);
+
+        key = cm.decodeSymmetricKeyAttribute(value);
+        // The cipher text is the prologue version, the 16-byte key identifier, the IV, then the data.
+        final int ivOffset = 1 + 16;
+        final int ivLength = 16;
+        final Cipher cipher = Cipher.getInstance(transformation);
+        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(cipherText, ivOffset, ivLength));
+        assertThat(cipher.doFinal(cipherText, ivOffset + ivLength, cipherText.length - ivOffset - ivLength))
+            .isEqualTo(data);
+
+        assertThat(cm.decodeSymmetricKeyAttribute(oaepValue).getEncoded())
+            .as("RSA-OAEP value while the RSASVE scheme is configured").isEqualTo(oaepKey);
+      }
+      finally
+      {
+        cm.applyConfigurationChange(cfg);
+        // The admin data backend keeps the key across restarts, where a runtime without AES-KWP,
+        // such as Java 11 without Bouncy Castle FIPS, cannot unwrap it and logs an error for it.
+        for (final Entry entry : getKeysForCipher(transformation, keyLengthBits))
+        {
+          deleteEntry(entry);
+        }
+      }
+
+      // A value is unwrapped by the transformation it records, whatever the configured one, and
+      // the scheme name is not case sensitive there either.
+      assertThat(cm.decodeSymmetricKeyAttribute(value).getEncoded())
+          .as("RSASVE value while RSA-OAEP is configured").isEqualTo(key.getEncoded());
+      final String lowerCaseValue =
+          value.replace(":" + RsaSveKeyTransport.NAME + ":", ":" + RsaSveKeyTransport.NAME.toLowerCase() + ":");
+      assertThat(cm.decodeSymmetricKeyAttribute(lowerCaseValue).getEncoded())
+          .as("RSASVE value recording the scheme name in lower case").isEqualTo(key.getEncoded());
+      return null;
+    });
+  }
+
+  @DataProvider
+  public Object[][] keyUsages()
+  {
+    final String oaep = "RSA/ECB/OAEPWITHSHA-1ANDMGF1PADDING";
+    final int signing = KeyUsage.digitalSignature;
+    final int wrapping = KeyUsage.digitalSignature | KeyUsage.keyEncipherment;
+    // Transformation, key usage, whether it is critical, whether a key is wrapped.
+    return new Object[][] {
+      { oaep, signing, true, false },
+      { RsaSveKeyTransport.NAME, signing, true, false },
+      { RsaSveKeyTransport.NAME, wrapping, true, true },
+      { RsaSveKeyTransport.NAME, signing, false, true },
+    };
+  }
+
+  /**
+   No secret key is wrapped for an instance whose certificate has a critical key usage without
+   keyEncipherment, whatever the transformation: Cipher.init refuses such a certificate for
+   RSA-OAEP, and the RSASVE scheme, which takes the public key alone, checks the key usage the same
+   way. A key usage which is not critical restricts nothing.
+   */
+  @Test(dataProvider = "keyUsages")
+  public void testSecretKeyIsWrappedOnlyWhereTheKeyUsageAllowsIt(final String transformation, final int keyUsage,
+      final boolean critical, final boolean wrapped) throws Exception
+  {
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerCfg cfg = getServerContext().getRootConfig().getCryptoManager();
+    final CryptoManagerCfg withTransformation = withProperty(cfg, "getKeyWrappingTransformation", transformation);
+    cm.encrypt("key usage".getBytes(StandardCharsets.UTF_8));
+    final String value =
+        getValueWrappedFor(cm.getInstanceKeyID(), cfg.getCipherTransformation(), cfg.getCipherKeyLength());
+    final byte[] certificate = rsaCertificate(keyUsage, critical);
+    final String keyID = CryptoManagerImpl.getInstanceKeyID(certificate);
+    final DN instanceKey = DN.valueOf(ATTR_CRYPTO_KEY_ID + "=" + keyID + ",cn=instance keys,cn=admin data");
+    final DN trustStoreEntry = DN.valueOf(DN_TRUST_STORE_ROOT).child(instanceKey.rdn());
+
+    withBcFipsFirst(() ->
+    {
+      final List<LocalizableMessage> why = new ArrayList<>();
+      assertThat(cm.isConfigurationChangeAcceptable(withTransformation, why)).as("%s", why).isTrue();
+      cm.applyConfigurationChange(withTransformation);
+      try
+      {
+        assertThat(getRootConnection().processAdd(instanceKeyEntry(instanceKey, ByteString.wrap(certificate)))
+            .getResultCode()).isEqualTo(ResultCode.SUCCESS);
+        if (wrapped)
+        {
+          assertThat(cm.reencodeSymmetricKeyAttribute(value, keyID)).startsWith(keyID + ":" + transformation + ":");
+        }
+        else
+        {
+          assertThatThrownBy(() -> cm.reencodeSymmetricKeyAttribute(value, keyID))
+              .isInstanceOf(CryptoManagerException.class)
+              .cause().isInstanceOf(InvalidKeyException.class).hasMessageContaining("key usage");
+        }
+      }
+      finally
+      {
+        cm.applyConfigurationChange(cfg);
+        getRootConnection().processDelete(instanceKey);
+        getRootConnection().processDelete(trustStoreEntry);
+      }
+      return null;
+    });
+  }
+
+  /** Returns a self-signed RSA certificate, DER encoded, with the given key usage. */
+  private static byte[] rsaCertificate(final int keyUsage, final boolean critical) throws Exception
+  {
+    final KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA", "SunRsaSign");
+    generator.initialize(2048);
+    final KeyPair keyPair = generator.generateKeyPair();
+    final Instant now = Instant.now();
+    final X500Name subject = new X500Name("CN=key usage " + keyUsage);
+    final JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(subject,
+        BigInteger.valueOf(now.toEpochMilli()), Date.from(now.minus(1, ChronoUnit.DAYS)),
+        Date.from(now.plus(1, ChronoUnit.DAYS)), subject, keyPair.getPublic());
+    builder.addExtension(Extension.keyUsage, critical, new KeyUsage(keyUsage));
+    return builder.build(new JcaContentSignerBuilder("SHA256withRSA").build(keyPair.getPrivate())).getEncoded();
+  }
+
+  /** Returns the ds-cfg-symmetric-key value of the key of a cipher which is wrapped for an instance. */
+  private String getValueWrappedFor(final String instanceKeyID, final String transformation,
+      final int keyLengthBits) throws DirectoryException
+  {
+    final Set<String> values = getKeyForCipher(transformation, keyLengthBits)
+        .parseAttribute(ATTR_CRYPTO_SYMMETRIC_KEY).asSetOfString();
+    return values.stream()
+        .filter(v -> v.startsWith(instanceKeyID + ":"))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("no value wrapped for this instance in " + values));
+  }
+
   /** The error the probe provider fails with, set by the case using it. */
   private static volatile Error probeError;
 
@@ -1057,11 +1288,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
    */
   private static <T> T inApprovedOnlyBcFipsThread(final Callable<T> action) throws Exception
   {
-    final List<Provider> installed = Arrays.asList(Security.getProviders());
-    final Provider previous = Security.getProvider("BCFIPS");
-    Security.removeProvider("BCFIPS");
-    Security.insertProviderAt(previous != null ? previous : new BouncyCastleFipsProvider(), 1);
-    try
+    return withBcFipsFirst(() ->
     {
       final FutureTask<T> task = new FutureTask<>(() ->
       {
@@ -1077,15 +1304,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
       {
         throw new AssertionError("the action failed in approved-only mode", e.getCause());
       }
-    }
-    finally
-    {
-      Security.removeProvider("BCFIPS");
-      if (previous != null)
-      {
-        Security.insertProviderAt(previous, installed.indexOf(previous) + 1);
-      }
-    }
+    });
   }
 
   /**
@@ -1128,11 +1347,16 @@ public class CryptoManagerTestCase extends CryptoTestCase {
 
   private Entry getKeyForCipher(String cipher, int keyLength) throws DirectoryException
   {
+    return getKeysForCipher(cipher, keyLength).get(0);
+  }
+
+  private List<? extends Entry> getKeysForCipher(String cipher, int keyLength) throws DirectoryException
+  {
     SearchRequest request = newSearchRequest("cn=secret keys, cn=admin data", SearchScope.WHOLE_SUBTREE,
         "&(ds-cfg-cipher-transformation-name=" + cipher + ")(ds-cfg-key-length-bits=" + keyLength + ")");
     InternalClientConnection conn = getRootConnection();
     InternalSearchOperation search = conn.processSearch(request);
-    return search.getSearchEntries().get(0);
+    return search.getSearchEntries();
   }
 
   @Test
