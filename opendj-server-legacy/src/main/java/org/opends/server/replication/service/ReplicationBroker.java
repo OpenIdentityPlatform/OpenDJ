@@ -3126,6 +3126,8 @@ public class ReplicationBroker
         {
           // Update the existing info for the replication server
           rsInfo.update(newRSInfo, connectedDSs);
+          updateLocallyConfiguredFlag(rsInfo, newRSInfo.getServerUrl(),
+              configuredReplicationServerUrls);
         }
       }
 
@@ -3195,6 +3197,51 @@ public class ReplicationBroker
         }
       }
       rsInfo.setLocallyConfigured(false);
+    }
+
+    /**
+     * Sets the locally configured flag for a ReplicationServerInfo object the
+     * previous topology already had: the configured replication servers may
+     * have changed since its flag was set.
+     * <p>
+     * The server is locally configured when the URL it is known with, or the
+     * one it now comes with, is a configured one. This needs no host name
+     * resolution, unlike setLocallyConfiguredFlag(): a server found
+     * locally configured is known with the configured URL, and a phase-one
+     * handshake names a server with the configured URL it reached it at. So a
+     * resolution failing for a moment cannot take the flag from the server the
+     * broker is connected to.
+     *
+     * @param rsInfo
+     *          the Replication server to check and update
+     * @param newServerUrl
+     *          the URL the server comes with in the new topology
+     * @param configuredReplicationServerUrls
+     *          the configured replication server URLs
+     */
+    private void updateLocallyConfiguredFlag(ReplicationServerInfo rsInfo,
+        String newServerUrl, Set<String> configuredReplicationServerUrls)
+    {
+      if (isConfigured(rsInfo.getServerURL(), configuredReplicationServerUrls))
+      {
+        rsInfo.setLocallyConfigured(true);
+      }
+      else if (isConfigured(newServerUrl, configuredReplicationServerUrls))
+      {
+        rsInfo.setLocallyConfigured(true);
+        rsInfo.setServerURL(newServerUrl);
+      }
+      else
+      {
+        rsInfo.setLocallyConfigured(false);
+      }
+    }
+
+    private boolean isConfigured(String rsUrl,
+        Set<String> configuredReplicationServerUrls)
+    {
+      // A server with no URL (protocol version < 4) cannot be connected to
+      return rsUrl != null && configuredReplicationServerUrls.contains(rsUrl);
     }
 
     @Override
