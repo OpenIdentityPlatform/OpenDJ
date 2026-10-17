@@ -16,8 +16,10 @@
 package org.opends.server.replication.protocol;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -26,6 +28,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
@@ -136,6 +139,111 @@ public class SessionTest extends ReplicationTestCase
           .isZero();
       assertThat(pair.peer.receive()).isInstanceOf(HeartbeatMsg.class);
     }
+  }
+
+  /**
+   * A session with no thread writes on the publishing thread, as the session of a directory server
+   * does: a peer which reads nothing holds that write, and with it a close of the session, which
+   * waits for the lock of the writes. An abort ends both, and writes nothing more: the peer finds
+   * the message cut short and then the end of the stream, with no StopMsg.
+   */
+  @Test(timeOut = 60_000)
+  public void anAbortEndsAWriteThePeerDoesNotReadAndACloseWhichWaitsForIt() throws Exception
+  {
+    try (SessionPair pair = connectSessionPair())
+    {
+      final AtomicReference<Throwable> endOfTheWrite = new AtomicReference<>();
+      final Thread writer = start("writer", () -> {
+        try
+        {
+          pair.publisher.publish(newBlockingMsg());
+        }
+        catch (Throwable e)
+        {
+          endOfTheWrite.set(e);
+        }
+      });
+      pair.awaitBytesReachedThePeer();
+      final Thread closer = start("closer", pair.publisher::close);
+      awaitWaitingIn(closer, "close");
+
+      final Thread aborter = start("aborter",
+          () -> pair.publisher.abort(new IOException("the test gives the session up")));
+      aborter.join(SOCKET_TIMEOUT_MS);
+      writer.join(SOCKET_TIMEOUT_MS);
+      closer.join(SOCKET_TIMEOUT_MS);
+      assertThat(aborter.isAlive()).as("the abort waits for the write").isFalse();
+      assertThat(writer.isAlive()).as("the write still blocks after the abort").isFalse();
+      assertThat(endOfTheWrite.get()).as("how the write ended").isInstanceOf(IOException.class);
+      assertThat(closer.isAlive()).as("the close still waits for the write after the abort").isFalse();
+      assertThatThrownBy(pair.peer::receive)
+          .as("the peer read a message after the one the abort cut short")
+          .isInstanceOf(IOException.class);
+    }
+  }
+
+  /**
+   * The thread of a session can be the one held in a write, and any close joins that thread first:
+   * the abort ends the write before it joins it.
+   */
+  @Test(timeOut = 60_000)
+  public void anAbortEndsAWriteOfTheThreadOfTheSession() throws Exception
+  {
+    try (SessionPair pair = connectSessionPair())
+    {
+      pair.publisher.start();
+      pair.publisher.waitForStartup();
+      pair.publisher.publish(newBlockingMsg());
+      pair.awaitBytesReachedThePeer();
+
+      final Thread aborter = start("aborter",
+          () -> pair.publisher.abort(new IOException("the test gives the session up")));
+      aborter.join(SOCKET_TIMEOUT_MS);
+      assertThat(aborter.isAlive()).as("the abort waits for the thread of the session, held in its write")
+          .isFalse();
+      assertThat(pair.publisher.isAlive()).as("the thread of the session outlived the abort").isFalse();
+      assertThatThrownBy(pair.peer::receive)
+          .as("the peer read a message after the one the abort cut short")
+          .isInstanceOf(IOException.class);
+    }
+  }
+
+  private static Thread start(final String name, final Runnable runnable)
+  {
+    final Thread thread = new Thread(runnable, SessionTest.class.getSimpleName() + " " + name);
+    thread.setDaemon(true);
+    thread.start();
+    return thread;
+  }
+
+  /** Waits for the thread to wait, for a lock or for a time, inside the method of a session. */
+  private static void awaitWaitingIn(final Thread thread, final String method) throws Exception
+  {
+    final long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(SOCKET_TIMEOUT_MS);
+    while (!waitsIn(thread, method))
+    {
+      assertThat(System.nanoTime() < deadline)
+          .as(thread.getName() + " does not wait in Session." + method + "()")
+          .isTrue();
+      Thread.sleep(10);
+    }
+  }
+
+  private static boolean waitsIn(final Thread thread, final String method)
+  {
+    final Thread.State state = thread.getState();
+    if (state != Thread.State.WAITING && state != Thread.State.TIMED_WAITING)
+    {
+      return false;
+    }
+    for (final StackTraceElement frame : thread.getStackTrace())
+    {
+      if (frame.getClassName().equals(Session.class.getName()) && frame.getMethodName().equals(method))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static EntryMsg newBlockingMsg()
