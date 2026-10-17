@@ -13,6 +13,7 @@
  *
  * Copyright 2007-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.admin.ads;
 
@@ -33,7 +34,7 @@ public class ReplicaDescriptor
   private int nbEntries = -1;
   private ServerDescriptor server;
   private final Set<HostPort> replicationServers = new HashSet<>();
-  /** @see InstallerHelper#getReplicationId(Set) */
+  /** @see InstallerHelper#addNewReplicationId(Set) */
   private int serverId = -1;
   private int missingChanges = -1;
   private long ageOfOldestMissingChange = -1;

@@ -479,8 +479,7 @@ public class InstallerHelper {
         {
           secureReplicationEnabled = false;
         }
-        int id = getReplicationId(usedServerIds);
-        usedServerIds.add(id);
+        int id = addNewReplicationId(usedServerIds);
         replicationServer = sync.createReplicationServer(
             ReplicationServerCfgDefn.getInstance(),
             new ArrayList<PropertyException>());
@@ -543,8 +542,7 @@ public class InstallerHelper {
         }
         if (domain == null)
         {
-          int replicaServerId = getReplicationId(usedServerIds);
-          usedServerIds.add(replicaServerId);
+          int replicaServerId = addNewReplicationId(usedServerIds);
           domainName = getDomainName(domainNames, dn);
           domain = sync.createReplicationDomain(
               ReplicationDomainCfgDefn.getInstance(), domainName,
@@ -816,11 +814,12 @@ public class InstallerHelper {
   }
 
   /**
-   * Returns the ID to be used for a new replication server or domain.
-   * @param usedIds the list of already used ids.
+   * Returns the ID to be used for a new replication server or domain, and adds it to the used ids,
+   * so that the next new replication server or domain takes another one (issue #1207).
+   * @param usedIds the already used ids. The new ID is taken outside of them and added to them.
    * @return the ID to be used for a new replication server or domain.
    */
-  public static int getReplicationId(Set<Integer> usedIds)
+  public static int addNewReplicationId(Set<Integer> usedIds)
   {
     Random r = new Random();
     int id = 0;
@@ -828,6 +827,7 @@ public class InstallerHelper {
     {
       id = r.nextInt(MAX_ID_VALUE);
     }
+    usedIds.add(id);
     return id;
   }
 

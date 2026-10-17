@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LinkedAttribute;
@@ -201,6 +202,26 @@ public class InstallerHelperTest extends DirectoryServerTestCase
 
     assertThat(InstallerHelper.getUsedServerIds(Arrays.asList(combined, directoryOnly, replicationOnly)))
         .containsOnly(4242, 4243, 1, 2, 3);
+  }
+
+  /**
+   * A new id is taken outside of the used ids and added to them: the replication server and the
+   * domains that setup or enable create next cannot take it (issue #1207). Only 4242 is free.
+   */
+  @Test
+  public void newReplicationIdIsTakenOutsideOfTheUsedIdsAndAddedToThem()
+  {
+    final Set<Integer> usedIds = new HashSet<>();
+    for (int id = 1; id < Short.MAX_VALUE; id++)
+    {
+      if (id != 4242)
+      {
+        usedIds.add(id);
+      }
+    }
+
+    assertThat(InstallerHelper.addNewReplicationId(usedIds)).isEqualTo(4242);
+    assertThat(usedIds).contains(4242).hasSize(Short.MAX_VALUE - 1);
   }
 
   private static ServerDescriptor server(Integer replicationServerId, ReplicaDescriptor... replicas)

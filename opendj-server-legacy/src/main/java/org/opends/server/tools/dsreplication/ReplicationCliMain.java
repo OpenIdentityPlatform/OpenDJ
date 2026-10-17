@@ -5004,7 +5004,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * Returns the server ids that the replication servers and the replication domains of the two
    * servers and of their topologies use, in one set (issue #1207).
    */
-  private static Set<Integer> getUsedServerIds(TopologyCache cache1, TopologyCache cache2,
+  static Set<Integer> getUsedServerIds(TopologyCache cache1, TopologyCache cache2,
       ServerDescriptor... servers)
   {
     List<ServerDescriptor> all = new ArrayList<>(Arrays.asList(servers));
@@ -6200,8 +6200,7 @@ public class ReplicationCliMain extends ConsoleApplication
         crypto.setSSLEncryption(useSecureReplication);
         crypto.commit();
       }
-      int id = InstallerHelper.getReplicationId(usedServerIds);
-      usedServerIds.add(id);
+      int id = InstallerHelper.addNewReplicationId(usedServerIds);
       rsCfgClient = sync.createReplicationServer(
           ReplicationServerCfgDefn.getInstance(),
           new ArrayList<PropertyException>());
@@ -6324,8 +6323,7 @@ public class ReplicationCliMain extends ConsoleApplication
     boolean mustCommit = false;
     if (domain == null)
     {
-      int replicaServerId = InstallerHelper.getReplicationId(usedServerIds);
-      usedServerIds.add(replicaServerId);
+      int replicaServerId = InstallerHelper.addNewReplicationId(usedServerIds);
       String domainName = InstallerHelper.getDomainName(domainNames, baseDN);
       domain = sync.createReplicationDomain(
           ReplicationDomainCfgDefn.getInstance(), domainName,
