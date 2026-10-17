@@ -146,8 +146,10 @@ public class DSRSShutdownSync
    * period; the peers it is queued for, if they are recorded in that window, are lost too, with
    * the opposite effect - the first forward ends its wait, as for a message no peer was recorded
    * for. That window is the one publish the broker refuses: at once on a connection error or a
-   * pending recovery, the broker's retry loop up to the reconnect when it has no session. The
-   * wait it can cost is bounded by a grace period which is already running.
+   * pending recovery, the broker's retry loop up to the reconnect when it has no session, and the
+   * wait of a stopping broker for window credit, or for its replication server to read, up to the
+   * deadline of the stop. The wait it can cost is bounded by a grace period which is already
+   * running.
    *
    * @param baseDN
    *          the domain for which the message was announced

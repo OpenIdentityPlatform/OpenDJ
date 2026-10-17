@@ -51,6 +51,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
 import org.forgerock.util.Utils;
+import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.DSInfo;
@@ -166,8 +167,91 @@ public class ReplicationBroker
     }
   }
 
+  /**
+   * A stop of the broker, from the moment {@link #stop()} begins until {@link #start()} clears it.
+   * <p>
+   * What a publish gives up for the stop is marked on the stop, and not on the broker: a publish
+   * which found the stop past its deadline may mark it only after start() cleared it, and then the
+   * mark lands on a stop which is over, rather than on the broker started again.
+   */
+  private static final class StopInProgress
+  {
+    /**
+     * The {@link System#nanoTime()} until which a publish waits for credit. The replication server
+     * gets as long to give the credit as it gets to accept a connection: one which is only slow
+     * takes the changes and the replica offline message as before, and only one which takes
+     * nothing for that long costs them.
+     */
+    private final long creditDeadline;
+    /**
+     * The {@link System#nanoTime()} past which a stop still held is ended by the close of the
+     * session - see {@link ReplicationBroker#endWhatStillHoldsTheStop(StopInProgress)}. It comes as
+     * long after {@link #creditDeadline} as that comes after the start of the stop: a replication
+     * server which reads slowly gets as long to read what was written as it got to give credit.
+     */
+    private final long writeDeadline;
+    /**
+     * Whether the stop has a deadline: a connection timeout of 0 lets a connection wait for as
+     * long as it takes, and the stop as well, as it did before it had any deadline.
+     */
+    private final boolean bounded;
+    /**
+     * Set when a publish gave its message up because of this stop, or when the stop closed its
+     * session: from then on publish() writes nothing, and the broker opens no session again, until
+     * start() clears the stop. The change time heartbeats and the window and status messages
+     * written straight to the session are not held back. A message published after one given up
+     * would reach the replication server ahead of an older one - the replica offline message,
+     * which carries the newest CSN of the replica, would tell it that nothing older is to come.
+     */
+    private volatile boolean gaveUp;
+    /**
+     * Set once stop() is over, by {@link #end()}. Guarded by this object, which the stop holds
+     * while it closes the session, so that the close never comes after the end of the stop.
+     */
+    private boolean ended;
+    /** The connection timeout the deadlines were set from, in milliseconds. */
+    private final long connectionTimeoutMS;
+
+    private StopInProgress(long connectionTimeoutMS)
+    {
+      final long timeout = TimeUnit.MILLISECONDS.toNanos(connectionTimeoutMS);
+      this.creditDeadline = System.nanoTime() + timeout;
+      this.writeDeadline = creditDeadline + timeout;
+      this.bounded = connectionTimeoutMS > 0;
+      this.connectionTimeoutMS = connectionTimeoutMS;
+    }
+
+    private boolean isPastTheCreditDeadline()
+    {
+      return bounded && System.nanoTime() - creditDeadline >= 0;
+    }
+
+    /** Ends the stop, once a close of its session in progress is done; none comes after it. */
+    private synchronized void end()
+    {
+      ended = true;
+      notifyAll();
+    }
+  }
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private volatile boolean shutdown;
+  /**
+   * The stop in progress: set by {@link #stop()} before anything else it does, and cleared to
+   * {@code null} by {@link #start()}. While it is set, a publish which finds no window credit by
+   * its deadline gives its message up instead of waiting on.
+   * <p>
+   * stop() publishes the replica offline message before it sets {@link #shutdown}, the flag which
+   * ends the wait for credit, and that message needs credit too, and the lock of the pending
+   * changes a local change waits for credit under. Credit comes only as the replication server
+   * takes the updates of the session, while its heartbeats keep the session up: without a bound a
+   * replication server which takes no update holds the stop - and the disable, the restart or the
+   * shutdown of the domain behind it - for as long as it does. A replication server which reads
+   * nothing holds it as well, through a write which blocks in the socket once its buffers are full,
+   * with the locks the write is made under: that one only the close of the socket ends, and the
+   * stop closes the session past a second deadline.
+   */
+  private volatile StopInProgress stopping;
   private final Object startStopLock = new Object();
   private volatile ReplicationDomainCfg config;
   /** String reported under CSN=monitor when there is no connected RS. */
@@ -287,6 +371,7 @@ public class ReplicationBroker
         return;
       }
       shutdown = false;
+      stopping = null;
       this.rcvWindow = getMaxRcvWindow();
       connectAsDataServer();
     }
@@ -2220,15 +2305,26 @@ public class ReplicationBroker
           break;
         }
 
-        try
+        /*
+         * Once the stop gave a message up, nothing more is published, and a session opened while the
+         * stop runs would carry only its change time heartbeats - which tell the replication server
+         * that nothing older is to come from this replica, while it still has the changes given up -
+         * and hold the stop for as long as the connection takes: the stop waits for this lock. The
+         * loop waits for the end of the stop instead - the listener gets here when the stop closes
+         * the session it reads.
+         */
+        if (!gaveUpForTheStop())
         {
-          connectAsDataServer();
-          rs = connectedRS.get();
-        }
-        catch (Exception e)
-        {
-          logger.error(NOTE_EXCEPTION_RESTARTING_SESSION,
-              getBaseDN(), e.getLocalizedMessage() + " " + stackTraceToSingleLineString(e));
+          try
+          {
+            connectAsDataServer();
+            rs = connectedRS.get();
+          }
+          catch (Exception e)
+          {
+            logger.error(NOTE_EXCEPTION_RESTARTING_SESSION,
+                getBaseDN(), e.getLocalizedMessage() + " " + stackTraceToSingleLineString(e));
+          }
         }
 
         if (rs.isConnected() || !infiniteTry)
@@ -2294,7 +2390,7 @@ public class ReplicationBroker
   {
     boolean done = false;
 
-    while (!done && !shutdown)
+    while (!done && !shutdown && !gaveUpForTheStop())
     {
       if (connectionError)
       {
@@ -2360,6 +2456,7 @@ public class ReplicationBroker
           credit = true;
         }
 
+        final StopInProgress stop = stopping;
         if (credit)
         {
           synchronized (connectPhaseLock)
@@ -2377,6 +2474,25 @@ public class ReplicationBroker
               done = true;
             }
           }
+        }
+        else if (stop != null && stop.isPastTheCreditDeadline())
+        {
+          if (stop != stopping)
+          {
+            // start() ran since the read: the loop head decides, as before a stop had a deadline.
+            continue;
+          }
+          /*
+           * Only credit ends this wait on a session the replication server keeps up, and stop()
+           * sets the flag of this loop only after the replica offline message, which may need the
+           * lock this publish holds. What is given up here is a change which the next session
+           * republishes - from the historical information of its entry, or a local delete from the
+           * operations this domain keeps in memory, which a restart of the server loses, while a
+           * delete the recovery publishes has left them already and is lost - or the replica
+           * offline message, which is then reported as not sent.
+           */
+          stop.gaveUp = true;
+          return false;
         }
         if (!credit && currentWindowSemaphore.availablePermits() == 0)
         {
@@ -2409,7 +2525,8 @@ public class ReplicationBroker
         }
 
         // The receive threads should handle reconnection or
-        // mark this broker in error. Just retry.
+        // mark this broker in error. Just retry - unless the stop closed the session to end this
+        // write: it marked the give-up first, and the loop ends on it.
         synchronized (connectPhaseLock)
         {
           try
@@ -2437,11 +2554,18 @@ public class ReplicationBroker
       }
     }
     /*
-     * The loop also ends when the broker is stopped, and then nothing was written to any
-     * session: a caller told the message was published would report as sent a message which
-     * never reached the wire.
+     * The loop also ends when the broker is stopped, or gave a message up for the stop, and then
+     * nothing was written to any session: a caller told the message was published would report as
+     * sent a message which never reached the wire.
      */
     return done;
+  }
+
+  /** Tells whether a publish gave its message up for the stop in progress, if there is one. */
+  private boolean gaveUpForTheStop()
+  {
+    final StopInProgress stop = stopping;
+    return stop != null && stop.gaveUp;
   }
 
   /**
@@ -2639,7 +2763,12 @@ public class ReplicationBroker
 
         if (!shutdown)
         {
-          if (rs.session == null || !rs.session.closeInitiated())
+          /*
+           * A session the stop gave up on fails this read as soon as its sockets are closed, which
+           * comes before the close is marked begun: the stop marked its give-up before it, and has
+           * said why.
+           */
+          if ((rs.session == null || !rs.session.closeInitiated()) && !gaveUpForTheStop())
           {
             // We did not initiate the close on our side, log an error message.
             logger.error(WARN_REPLICATION_SERVER_BADLY_DISCONNECTED,
@@ -2725,21 +2854,108 @@ public class ReplicationBroker
     {
       debugInfo("is stopping and will close the connection to RS(" + getRsServerId() + ")");
     }
+    final StopInProgress stop;
+    final boolean newStop;
     synchronized (startStopLock) {
       if (shutdown) {
         return;
       }
+      // A stop which overlaps one in progress keeps its deadlines and what it gave up.
+      newStop = stopping == null;
+      if (newStop)
+      {
+        stopping = new StopInProgress(MultimasterReplication.getConnectionTimeoutMS());
+      }
+      stop = stopping;
+    }
+    if (newStop && stop.bounded)
+    {
+      new DirectoryThread(() -> endWhatStillHoldsTheStop(stop),
+          "Replica DS(" + getServerId() + ") watchdog of the stop for domain \"" + getBaseDN() + "\"")
+          .start();
     }
 
-    domain.publishReplicaOfflineMsg();
-
-    synchronized (startStopLock)
+    try
     {
-      shutdown = true;
-      setConnectedRS(ConnectedRS.stopped());
-      stopRSHeartBeatMonitoring();
-      stopChangeTimeHeartBeatPublishing();
-      deregisterReplicationMonitor();
+      domain.publishReplicaOfflineMsg();
+    }
+    finally
+    {
+      // A broker left running as a stopping one would give up every publish which waits for credit.
+      synchronized (startStopLock)
+      {
+        try
+        {
+          shutdown = true;
+          setConnectedRS(ConnectedRS.stopped());
+          stopRSHeartBeatMonitoring();
+          stopChangeTimeHeartBeatPublishing();
+          deregisterReplicationMonitor();
+        }
+        finally
+        {
+          // Under the lock, so that no start() opens a session which this stop could still close.
+          stop.end();
+        }
+      }
+    }
+  }
+
+  /**
+   * Waits for the stop provided to end, and closes the session if the stop is still held once it is
+   * past its {@link StopInProgress#writeDeadline}.
+   * <p>
+   * A publish which waits for credit gives up by itself once the stop is past its credit deadline,
+   * and the stop then ends the session in order. What holds the stop long after that is a write the
+   * replication server does not read - of a change which got its credit, of a window probe, of the
+   * StopMsg which ends the session - or a lock which such a write holds: the lock of the pending
+   * changes, which the replica offline message needs, the lock of the connection phase, or the lock
+   * of the writes of the session, which a close of a session with no error takes. A socket write
+   * has no timeout, and returns only once the peer reads or the socket is closed: the session is
+   * closed here as a failed one, without that lock - see {@link Session#abort(IOException)}. The
+   * give-up is marked first, so that a publish whose write then fails returns rather than retries,
+   * and no session is opened again for the stop.
+   * <p>
+   * The close is made under the monitor of the stop, which {@link StopInProgress#end()} takes, and
+   * stop() ends before start() can run again: the session closed here is never one of a broker
+   * started again.
+   */
+  private void endWhatStillHoldsTheStop(final StopInProgress stop)
+  {
+    synchronized (stop)
+    {
+      long left;
+      while (!stop.ended && (left = stop.writeDeadline - System.nanoTime()) > 0)
+      {
+        try
+        {
+          TimeUnit.NANOSECONDS.timedWait(stop, left);
+        }
+        catch (InterruptedException e)
+        {
+          // Only a shutdown of the server interrupts this thread: the stop is left to itself.
+          Thread.currentThread().interrupt();
+          return;
+        }
+      }
+      if (stop.ended)
+      {
+        return;
+      }
+
+      stop.gaveUp = true;
+      final ConnectedRS rs = connectedRS.get();
+      if (rs.session != null)
+      {
+        logger.warn(LocalizableMessage.raw("The stop of the replication domain %s of directory "
+            + "server %d still waits for its replication server RS(%d) at %s after %d ms, twice "
+            + "the connection timeout: its session is closed as a failed one, and nothing more is "
+            + "written to it",
+            getBaseDN(), getServerId(), rs.getServerId(), rs.replicationServer,
+            2 * stop.connectionTimeoutMS));
+        rs.session.abort(new IOException("The stop of the domain gave the replication server "
+            + 2 * stop.connectionTimeoutMS + " ms to take what was written to the session"));
+      }
     }
   }
 

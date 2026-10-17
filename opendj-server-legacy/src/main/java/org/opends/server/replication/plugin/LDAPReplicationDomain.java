@@ -2370,8 +2370,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        */
       logger.trace("Replica " + getServerId() + " of domain baseDN=" + getBaseDN()
           + " could not announce itself offline: the message was not published - a change which"
-          + " is still in flight holds it back, or the broker had no session to write it to,"
-          + " and " + pendingChanges.size() + " change(s) are pending");
+          + " is still in flight holds it back, the broker had no session to write it to, or it"
+          + " got no window credit for it, or for a change before it, or the replication server"
+          + " did not read what was written to it, in the time the stop gives the replication server"
+          + " - and " + pendingChanges.size() + " change(s) are pending");
     }
   }
 

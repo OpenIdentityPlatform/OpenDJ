@@ -319,6 +319,29 @@ public final class Session extends DirectoryThread implements Closeable
     StaticUtils.close(plainSocket, secureSocket);
   }
 
+  /**
+   * Closes this session at once, as a session which failed with the error provided: nothing more
+   * is written to it - neither what its publisher thread left queued nor the StopMsg - and a write
+   * blocked in its socket, because the peer reads nothing, fails rather than holds the close.
+   * <p>
+   * {@link #close()} of a session with no error takes {@code publishLock} before it closes the
+   * sockets, and a write blocked in the socket holds that lock for as long as the peer does not
+   * read, which TCP does not bound; and any close first joins the publisher thread, which may be
+   * the writer. So the error is recorded first, and the sockets are closed before the close runs:
+   * that ends the write, whichever thread makes it, and releases a close which had begun before,
+   * with no error, and waits for the lock - the call here then returns at once. The close itself
+   * takes the branch of a session which failed, and writes nothing.
+   *
+   * @param cause
+   *          why the session is given up, which it then reports as its error
+   */
+  public void abort(final IOException cause)
+  {
+    setSessionError(cause);
+    StaticUtils.close(plainSocket, secureSocket);
+    close();
+  }
+
 
 
   /**

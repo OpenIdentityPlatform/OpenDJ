@@ -14,6 +14,7 @@
 
   Copyright 2007-2008 Sun Microsystems, Inc.
   Portions Copyright 2011-2015 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <adm:managed-object name="replication-synchronization-provider"
   plural-name="replication-synchronization-providers"
@@ -97,8 +98,22 @@
   <adm:property name="connection-timeout" advanced="true">
     <adm:synopsis>
       Specifies the timeout used when connecting to peers and when performing
-      SSL negotiation.
+      SSL negotiation, and how long a stopping replication domain waits for
+      window credit before it gives up the changes it still has to send.
     </adm:synopsis>
+    <adm:description>
+      A replication domain is stopped when it is disabled, when the server
+      shuts down, and before an import, a restore or a restart of its session.
+      A stopping domain gives its replication server this long to give the
+      window credit for the changes it still has to send, and for the message
+      which announces it offline: raising the value lengthens a stop against a
+      replication server which gives no credit, lowering it shortens the time
+      before those changes are given up. A replication server which does not
+      read what the domain has already written to it gets as long again, after
+      which the domain closes the session without waiting any longer. A value
+      of 0 sets no limit: a connection, an SSL negotiation and a stopping
+      replication domain then wait for as long as it takes.
+    </adm:description>
     <adm:default-behavior>
       <adm:defined>
         <adm:value>5 seconds</adm:value>
