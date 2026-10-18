@@ -2803,12 +2803,7 @@ public class ReplicationBroker
 
         if (!shutdown)
         {
-          /*
-           * A session the stop gave up on fails this read as soon as its sockets are closed, which
-           * comes before the close is marked begun: the stop marked its give-up before it, and has
-           * said why.
-           */
-          if ((rs.session == null || !rs.session.closeInitiated()) && !gaveUpForTheStop())
+          if (rs.session == null || !rs.session.closeInitiated())
           {
             // We did not initiate the close on our side, log an error message.
             logger.error(WARN_REPLICATION_SERVER_BADLY_DISCONNECTED,

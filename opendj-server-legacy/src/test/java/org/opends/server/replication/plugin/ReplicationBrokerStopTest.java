@@ -18,6 +18,7 @@ package org.opends.server.replication.plugin;
 import static java.util.concurrent.TimeUnit.*;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.messages.ReplicationMessages.WARN_REPLICATION_SERVER_BADLY_DISCONNECTED;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
@@ -52,6 +53,7 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.DoneMsg;
 import org.opends.server.replication.protocol.EntryMsg;
+import org.opends.server.replication.protocol.HeartbeatMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
@@ -84,7 +86,9 @@ import org.testng.annotations.Test;
  * <p>
  * A replication server which reads nothing of the session holds the stop as well, once the socket
  * buffers are full: a write then blocks in the socket, with the locks it is made under, and only
- * the close of the socket ends it.
+ * the close of the socket ends it. A replication server which is gone altogether, heartbeats
+ * included, holds that write with no stop at all: the heartbeat monitor has to close the session
+ * the same way.
  * <p>
  * The stop gives the replication server the connection timeout of the replication provider to give
  * credit, and as long again to read what was written. The suite sets it to 30 seconds: the cases run
@@ -114,6 +118,11 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
   private static final int LARGE_MESSAGE_SIZE = 256 * 1024;
   /** How many of those messages a case writes at most before it reports that no write blocks. */
   private static final int MAX_LARGE_MESSAGES = 400;
+  /**
+   * The heartbeat interval of the case of a replication server which is gone: long enough for its
+   * writes to fill the socket buffers before the heartbeat monitor gives up on the session.
+   */
+  private static final long HEARTBEAT_INTERVAL_MS = 4000;
   /** A value which makes a change of the description one of those messages. */
   private static final String LARGE_VALUE = "x".repeat(LARGE_MESSAGE_SIZE);
 
@@ -669,18 +678,9 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     try
     {
       final LDAPReplicationDomain domain = startDomain(rs);
+      TestCaseUtils.ERROR_TEXT_WRITER.clear();
       rs.stopReading();
-      writer = startThread("writer", () -> {
-        while (keepWriting.get() && changes.get() < MAX_LARGE_MESSAGES)
-        {
-          final ResultCode result = replaceDescription(changes.get() + LARGE_VALUE);
-          if (result != ResultCode.SUCCESS)
-          {
-            failed.compareAndSet(null, result);
-          }
-          changes.incrementAndGet();
-        }
-      });
+      writer = startLargeChanges(keepWriting, changes, failed);
       waitForAWriteToBlock(writer, changes);
       keepWriting.set(false);
 
@@ -691,6 +691,9 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
       assertFalse(disabling.isAlive(), "disable() waits for a write the replication server does not read");
       assertTrue(disableMS >= 2 * LONG_CONNECTION_TIMEOUT_MS, "disable() gave the replication server "
           + disableMS + " ms, not twice the connection timeout of " + LONG_CONNECTION_TIMEOUT_MS + " ms");
+      // The disable joined the listener, whose read the close of the session ended.
+      assertEquals(badDisconnectionsLogged(), 0,
+          "the close of the session by the stop was reported as one by the replication server");
       writer.join(stopBoundMS());
       assertFalse(writer.isAlive(), "the local change is still blocked in its write");
       assertNull(failed.get(), "a local change failed");
@@ -773,6 +776,7 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     try
     {
       connect(broker, 0);
+      TestCaseUtils.ERROR_TEXT_WRITER.clear();
       listener = startThread("listener", () -> {
         try
         {
@@ -801,6 +805,8 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
           "the listener opened a session again while the broker was being stopped");
       listener.join(stopBoundMS());
       assertFalse(listener.isAlive(), "the listener did not end with the stop");
+      assertEquals(badDisconnectionsLogged(), 0,
+          "the close of the session by the stop was reported as one by the replication server");
 
       rs.resumeReading();
       rs.waitForTheSessionToEnd();
@@ -813,13 +819,73 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     }
   }
 
+  /**
+   * A replication server which is gone without a reset reads nothing, sends no heartbeat and answers
+   * no connection. Once a write to it blocks, the heartbeat monitor still has to close the session,
+   * not wait for that write, which nothing but TCP would end: the change then ends, and once the
+   * replication server is back, the domain connects again and its changes reach it, the one cut
+   * short included.
+   */
+  @Test(timeOut = 120_000)
+  public void theHeartbeatMonitorEndsAWriteToAReplicationServerWhichIsGone() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    final WithholdingReplicationServer rs = new WithholdingReplicationServer(LARGE_WINDOW);
+    final AtomicBoolean keepWriting = new AtomicBoolean(true);
+    final AtomicInteger changes = new AtomicInteger();
+    final AtomicReference<ResultCode> failed = new AtomicReference<>();
+    Thread writer = null;
+    try
+    {
+      final LDAPReplicationDomain domain = startDomain(rs, HEARTBEAT_INTERVAL_MS);
+      TestCaseUtils.ERROR_TEXT_WRITER.clear();
+      rs.goAway();
+      final long away = System.nanoTime();
+      writer = startLargeChanges(keepWriting, changes, failed);
+      waitForAWriteToBlock(writer, changes);
+      keepWriting.set(false);
+      final long blocked = System.nanoTime();
+
+      // The monitor gives up two or three intervals after the last heartbeat.
+      writer.join(4 * HEARTBEAT_INTERVAL_MS + 10000);
+      final long released = System.nanoTime();
+      assertFalse(writer.isAlive(), "the write still blocks once the heartbeats of the replication server stopped");
+      assertTrue(NANOSECONDS.toMillis(released - away) >= 2 * HEARTBEAT_INTERVAL_MS, "the write of change "
+          + changes.get() + ", blocked " + NANOSECONDS.toMillis(blocked - away) + " ms after the replication server went away, ended "
+          + NANOSECONDS.toMillis(released - away) + " ms after it: before the heartbeat monitor could give the session up");
+      assertNull(failed.get(), "a local change failed");
+
+      rs.resumeReading();
+      waitForConnection(domain);
+      final CSN last = domain.getServerState().getCSN(DS_ID);
+      assertNotNull(last, "the domain has no change of its own in its state");
+      newTimer().repeatUntilSuccess(() -> assertTrue(rs.receivedUpdateCSNs().contains(last),
+          "the change cut short, " + last + ", did not reach the replication server: it has "
+          + rs.receivedUpdateCSNs()));
+      assertTrue(rs.sessionsStarted() > 1, "the domain kept the session whose heartbeats stopped");
+      // The listener connected again: it is past what it reports of the read the close ended.
+      assertEquals(badDisconnectionsLogged(), 0,
+          "the close of the session by the heartbeat monitor was reported as one by the replication server");
+    }
+    finally
+    {
+      cleanUp(rs, writer);
+    }
+  }
+
   private LDAPReplicationDomain startDomain(WithholdingReplicationServer rs) throws Exception
+  {
+    // Heartbeats far apart: the session stays up whatever the replication server reads.
+    return startDomain(rs, 100000);
+  }
+
+  private LDAPReplicationDomain startDomain(WithholdingReplicationServer rs, long heartbeatIntervalMS)
+      throws Exception
   {
     rs.start();
     final DomainFakeCfg conf = new DomainFakeCfg(baseDN, DS_ID,
         new TreeSet<>(Collections.singleton("127.0.0.1:" + rs.getPort())));
-    // The replication server sends no heartbeat: the session has to stay up all the same.
-    conf.setHeartbeatInterval(100000);
+    conf.setHeartbeatInterval(heartbeatIntervalMS);
     final LDAPReplicationDomain domain = MultimasterReplication.createNewDomain(conf);
     domain.start();
     waitForConnection(domain);
@@ -898,17 +964,56 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
   }
 
   /**
+   * Returns how many times the error log says, since it was cleared, that the session was closed by
+   * the replication server rather than by this server: what the listener reports when a read fails
+   * on a session whose close it does not find begun.
+   */
+  private static int badDisconnectionsLogged()
+  {
+    int count = 0;
+    for (String record : TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+    {
+      count += record.contains("msgID=" + WARN_REPLICATION_SERVER_BADLY_DISCONNECTED.ordinal() + " ") ? 1 : 0;
+    }
+    return count;
+  }
+
+  /**
+   * Starts a thread which makes changes of {@link #LARGE_MESSAGE_SIZE} until it is told to stop,
+   * counting them, and keeping the first result which is no success.
+   */
+  private Thread startLargeChanges(final AtomicBoolean keepWriting, final AtomicInteger changes,
+      final AtomicReference<ResultCode> failed)
+  {
+    return startThread("writer", () -> {
+      while (keepWriting.get() && changes.get() < MAX_LARGE_MESSAGES)
+      {
+        final ResultCode result = replaceDescription(changes.get() + LARGE_VALUE);
+        if (result != ResultCode.SUCCESS)
+        {
+          failed.compareAndSet(null, result);
+        }
+        changes.incrementAndGet();
+      }
+    });
+  }
+
+  /**
    * Waits for the writer to stay in a write to the session, the number of the changes it made
    * standing still: the socket buffers are full, and the replication server reads nothing.
    */
   private static void waitForAWriteToBlock(final Thread writer, final AtomicInteger changes) throws Exception
   {
-    newTimer().repeatUntilSuccess(() -> {
+    // Two seconds in a row, so that a pause of the collector in the middle of a write is not taken for it.
+    new TestTimer.Builder().maxSleep(20, SECONDS).sleepTimes(50, MILLISECONDS).toTimer().repeatUntilSuccess(() -> {
       assertTrue(writer.isAlive(), "no write blocked after " + changes.get() + " changes");
       final int before = changes.get();
-      Thread.sleep(500);
-      assertTrue(changes.get() == before && isIn(writer, Session.class, "send"),
-          "no write blocks after " + changes.get() + " changes");
+      for (int second = 0; second < 2; second++)
+      {
+        Thread.sleep(1000);
+        assertTrue(changes.get() == before && isIn(writer, Session.class, "send"),
+            "no write blocks after " + changes.get() + " changes");
+      }
     });
   }
 
@@ -1008,9 +1113,10 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
    * but gives no credit beyond the window it opens the session with - of one update, unless the
    * test opens a larger one - unless the test asks it to. Like a replication server, it reports the
    * changes it received as its state: a domain which finds itself ahead of it republishes what it
-   * misses. It stops reading its sessions when the test asks it to, and serves each connection on
-   * a thread of its own, as a replication server does: a session it does not read does not keep
-   * the next connection waiting.
+   * misses. It sends the heartbeats the domain asks for, stops reading its sessions - or goes away
+   * altogether, heartbeats included - when the test asks it to, and serves each connection on a
+   * thread of its own, as a replication server does: a session it does not read does not keep the
+   * next connection waiting.
    */
   private static final class WithholdingReplicationServer extends Thread
   {
@@ -1029,10 +1135,12 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     /** The CSNs of the changes received on the sessions, in the order they came. */
     private final List<CSN> updateCSNs = new CopyOnWriteArrayList<>();
     private final ServerState state = new ServerState();
-    /** Guards {@link #reading}. */
+    /** Guards {@link #reading} and the changes of {@link #away}. */
     private final Object readingLock = new Object();
     /** Whether the sessions read what the domain writes: each reads one message more once it is not. */
     private boolean reading = true;
+    /** Whether this server is away: it then sends no heartbeat, and answers no connection either. */
+    private volatile boolean away;
 
     WithholdingReplicationServer() throws IOException
     {
@@ -1083,6 +1191,8 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
       Session s = null;
       try
       {
+        // A server which is away answers no connection: the connection waits for it to come back.
+        waitToBeBack();
         s = new ReplSessionSecurity().createServerSession(socket, MultimasterReplication.getConnectionTimeoutMS());
         sessions.add(s);
         final ServerStartMsg start = (ServerStartMsg) s.receive();
@@ -1102,6 +1212,7 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
             new RSInfo(RS_ID, url, start.getGenerationId(), start.getGroupId(), 1))));
         s.setSoTimeout(0);
         session.set(s);
+        startHeartbeats(s, start.getHeartbeatInterval());
         while (true)
         {
           waitToRead();
@@ -1141,7 +1252,49 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
       }
     }
 
-    /** Stops reading the sessions, after the message each of them is reading. */
+    private void waitToBeBack() throws InterruptedException
+    {
+      synchronized (readingLock)
+      {
+        while (away)
+        {
+          readingLock.wait();
+        }
+      }
+    }
+
+    /**
+     * Sends heartbeats on the session at the interval the domain asked for, as a replication server
+     * does from a thread of its own, until the session ends - and none while this server is away.
+     */
+    private void startHeartbeats(final Session s, final long intervalMS)
+    {
+      if (intervalMS <= 0)
+      {
+        return;
+      }
+      final Thread heartbeats = new Thread(() -> {
+        try
+        {
+          while (!s.closeInitiated())
+          {
+            Thread.sleep(intervalMS / 2);
+            if (!away)
+            {
+              s.publish(new HeartbeatMsg());
+            }
+          }
+        }
+        catch (IOException | InterruptedException e)
+        {
+          // The session ended.
+        }
+      }, getName() + " heartbeats");
+      heartbeats.setDaemon(true);
+      heartbeats.start();
+    }
+
+    /** Stops reading the sessions, after the message each of them is reading; the heartbeats go on. */
     void stopReading()
     {
       synchronized (readingLock)
@@ -1150,10 +1303,25 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
       }
     }
 
+    /**
+     * Goes away as a server whose host is down does, with no reset of its connections: it reads
+     * nothing more, sends no heartbeat, and answers no new connection.
+     */
+    void goAway()
+    {
+      synchronized (readingLock)
+      {
+        away = true;
+        reading = false;
+      }
+    }
+
+    /** Reads the sessions again - and, if it was away, sends heartbeats and answers connections again. */
     void resumeReading()
     {
       synchronized (readingLock)
       {
+        away = false;
         reading = true;
         readingLock.notifyAll();
       }

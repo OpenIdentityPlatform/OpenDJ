@@ -13,11 +13,15 @@
  *
  * Copyright 2007-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.opends.server.replication.service;
 
 import static org.opends.messages.ReplicationMessages.*;
+
+import java.io.IOException;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.protocol.Session;
 
@@ -107,6 +111,7 @@ final class HeartbeatMonitor extends DirectoryThread
                 heartbeatInterval);
     }
 
+    boolean heartbeatsStopped = false;
     try
     {
       boolean gotOneFailure = false;
@@ -124,6 +129,7 @@ final class HeartbeatMonitor extends DirectoryThread
 
             // Exit monitor and close session.
             shutdown = true;
+            heartbeatsStopped = true;
             break;
           }
           else
@@ -161,7 +167,23 @@ final class HeartbeatMonitor extends DirectoryThread
       {
         logger.trace("Heartbeat monitor is exiting");
       }
-      session.close();
+      if (heartbeatsStopped)
+      {
+        /*
+         * A replication server which is gone without a reset acknowledges nothing, and the writes to
+         * it fill the socket buffers: a write then blocks in the socket, holding the lock a close of
+         * a session with no error waits for, until TCP gives up retransmitting. Nothing else ends
+         * that write, nor the read of the listener, which neither data nor a reset ends: the
+         * session is closed as a failed one, with no StopMsg the replication server would not read.
+         */
+        session.abort(new IOException("No heartbeat came from replication server RS("
+            + replicationServerID + ") at " + session.getReadableRemoteAddress() + " for twice "
+            + heartbeatInterval + " ms"));
+      }
+      else
+      {
+        session.close();
+      }
     }
   }
 }

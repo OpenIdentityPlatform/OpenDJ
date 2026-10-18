@@ -194,17 +194,34 @@ public final class Session extends DirectoryThread implements Closeable
   @Override
   public void close()
   {
+    close(false);
+  }
+
+  /**
+   * Closes the session, as {@link #close()} or as {@link #abort(IOException)} does.
+   *
+   * @param abort
+   *          whether the sockets are to be closed at once, before anything waits for the
+   *          publisher thread or for {@code publishLock} - even when a close had begun already
+   */
+  private void close(final boolean abort)
+  {
     Throwable localSessionError;
+    final boolean closing;
 
     synchronized (stateLock)
     {
-      if (closeInitiated)
-      {
-        return;
-      }
-
+      closing = closeInitiated;
       localSessionError = sessionError;
       closeInitiated = true;
+    }
+    if (abort)
+    {
+      StaticUtils.close(plainSocket, secureSocket);
+    }
+    if (closing)
+    {
+      return;
     }
 
     try {
@@ -327,10 +344,12 @@ public final class Session extends DirectoryThread implements Closeable
    * {@link #close()} of a session with no error takes {@code publishLock} before it closes the
    * sockets, and a write blocked in the socket holds that lock for as long as the peer does not
    * read, which TCP does not bound; and any close first joins the publisher thread, which may be
-   * the writer. So the error is recorded first, and the sockets are closed before the close runs:
-   * that ends the write, whichever thread makes it, and releases a close which had begun before,
-   * with no error, and waits for the lock - the call here then returns at once. The close itself
-   * takes the branch of a session which failed, and writes nothing.
+   * the writer. So the error is recorded first, and the close is marked begun, so that a reader
+   * whose read the close of the sockets ends finds it begun - see {@link #closeInitiated()}. Then
+   * the sockets are closed, before the join: that ends the write, whichever thread makes it, and
+   * releases a close which had begun before, with no error, and waits for the lock - the call here
+   * then returns at once. The close itself takes the branch of a session which failed, and writes
+   * nothing.
    *
    * @param cause
    *          why the session is given up, which it then reports as its error
@@ -338,8 +357,7 @@ public final class Session extends DirectoryThread implements Closeable
   public void abort(final IOException cause)
   {
     setSessionError(cause);
-    StaticUtils.close(plainSocket, secureSocket);
-    close();
+    close(true);
   }
 
 
