@@ -205,9 +205,9 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
 
   /**
    * Has this message published as one no acknowledgement is waited for: it is no longer assured,
-   * and is encoded again. A recovery publishes the local changes it kept so, after the operations
-   * which waited for their acknowledgement have given up on it, as it publishes the changes it
-   * rebuilds from the historical information.
+   * and is encoded again. A recovery publishes the local changes it kept so, as it publishes the
+   * changes it rebuilds from the historical information: an operation which still waits for the
+   * acknowledgement of one gets none, and times out.
    *
    * This method is not synchronized and therefore not MT safe.
    */

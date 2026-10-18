@@ -1662,6 +1662,98 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   }
 
   /**
+   * A session which starts while a round of a recovery holds the local changes back to publish the ones
+   * the recovery kept has its replication server get them all: the recovery goes on from its start with
+   * what it kept. Taking the changes it kept for short of the last local change, as they are when one of
+   * them was not kept, the round had the recovery keep none from then on, and the run for the new session
+   * searched the historical information for them, which holds nothing of a change whose values a later
+   * one replaced.
+   */
+  @Test
+  public void aSessionWhichStartsWhileTheLocalChangesAreHeldBackGetsTheChangesTheRecoveryKept() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    final int secondPort = TestCaseUtils.findFreePort();
+    final SortedSet<String> towardsSecond = towards(secondPort);
+    // Created before the first one, the second replication server is the one which registers the
+    // changelog backend of the server: the first one, which goes away during the test, would take that
+    // backend with it, and the second one would fail on every change it is sent from then on. It is in
+    // another group than the domain, which goes to the first one, knowing of both, for as long as it is
+    // there.
+    ReplicationServer second =
+        createIsolatedReplicationServer(secondPort, "HistoricalCsnOrderingSecond", SECOND_RS_ID, 2);
+    ReplicationServer rs = createReplicationServer();
+    final SortedSet<String> towardsRs = new TreeSet<>(replServers);
+    final SortedSet<String> towardsBoth = new TreeSet<>(towardsRs);
+    towardsBoth.addAll(towardsSecond);
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      final DN dnA = addPerson("a");
+      final DN dnB = addPerson("b");
+      final DN dnC = addPerson("c");
+      final CSN onBoth = aChangeBothReplicationServersHold(rd1, dnA, rs, towardsRs, second, towardsSecond);
+      connectTo(rd1, towardsBoth, FIRST_RS_ID);
+
+      // Both replication servers miss the changes done from here on. The recovery of the session started
+      // again rebuilds the first one from the historical information, and keeps the others: the first
+      // round keeps one done while it searches, the round which publishes it keeps two more, of the same
+      // values, and the round after it holds the local changes back to publish them.
+      refuseTheLocalChanges(rd1);
+      final List<CSN> done = new CopyOnWriteArrayList<>();
+      replace(dnB, "description", "missed by both");
+      done.add(rd1.getLastLocalChange());
+      rd1.setMissingChangesSearchHook(once(() ->
+      {
+        replace(dnC, "description", "kept while the first round searches");
+        done.add(rd1.getLastLocalChange());
+      }));
+      final AtomicBoolean changeOnce = new AtomicBoolean(true);
+      final AtomicBoolean startOnce = new AtomicBoolean(true);
+      rd1.setKeptChangesPublishedHook(heldBack -> unchecked(() ->
+      {
+        if (!heldBack && changeOnce.compareAndSet(true, false))
+        {
+          replace(dnA, "description", "first");
+          done.add(rd1.getLastLocalChange());
+          replace(dnA, "description", "second");
+          done.add(rd1.getLastLocalChange());
+        }
+        else if (heldBack && startOnce.compareAndSet(true, false))
+        {
+          // The first replication server goes away once the held round has published the changes to it.
+          // The broker starts a session to the second one, which misses them, without the lock the round
+          // holds, and the session hands its start over to the publisher before the round ends.
+          rs.remove();
+          waitUntilAStartIsHandedOver(rd1);
+        }
+      }).run());
+      rd1.disable();
+      rd1.enable();
+
+      new TestTimer.Builder()
+          .maxSleep(30, SECONDS)
+          .sleepTimes(100, MILLISECONDS)
+          .toTimer()
+          .repeatUntilSuccess(() -> assertThat(changelogAfter(second, baseDN, onBoth))
+              .as("the changes the second replication server holds after the one it had")
+              .isEqualTo(done));
+      assertFalse(startOnce.get(), "the round which held the local changes back saw the start handed over");
+      waitUntilTheRecoveryIsOver(rd1);
+      replace(dnA, "description", "once the recovery is over");
+      assertInTheChangelog(second, baseDN, rd1.getLastLocalChange());
+    }
+    finally
+    {
+      rd1.setMissingChangesSearchHook(null);
+      rd1.setKeptChangesPublishedHook(null);
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs, second);
+    }
+  }
+
+  /**
    * The local changes a recovery kept are not published once the data they were done on has been
    * replaced, as a restore or an import does while the domain is disabled: the replicas would get
    * changes this one does not hold. The recovery searches the data it finds then instead.
@@ -1974,6 +2066,104 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   }
 
   /**
+   * The local changes a recovery kept outlive a domain disabled and enabled back on its own data whose
+   * save on its way down did not write the state - a save gives its turn up to the one in flight, and a
+   * write may fail: the state read back is brought up to the changes the historical information of the
+   * entries holds, so it covers them, and they are not taken for changes the data does not reflect.
+   */
+  @Test
+  public void theLocalChangesARecoveryKeptOutliveADisableWhoseSaveDidNotWrite() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      final DN dnA = addPerson("a");
+      final CSN rsMaxCSN = rd1.getLastLocalChange();
+      assertInTheChangelog(rs, baseDN, rsMaxCSN);
+
+      // The broker refuses the announcement that the replica goes offline as well, which would have
+      // the replication server hold a CSN past the changes.
+      startRecovery(rd1);
+      final List<CSN> done = new ArrayList<>();
+      replace(dnA, "description", "first");
+      done.add(rd1.getLastLocalChange());
+      replace(dnA, "description", "second");
+      done.add(rd1.getLastLocalChange());
+
+      // The base entry holds the state saved before the changes.
+      rd1.disable();
+      leaveTheSavedState(baseDN, rsMaxCSN);
+      rd1.enable();
+      new TestTimer.Builder()
+          .maxSleep(30, SECONDS)
+          .sleepTimes(100, MILLISECONDS)
+          .toTimer()
+          .repeatUntilSuccess(() -> assertThat(changelogAfter(rs, baseDN, rsMaxCSN))
+              .as("the changes the replication server holds after the ones it had")
+              .isEqualTo(done));
+      waitUntilTheRecoveryIsOver(rd1);
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  /**
+   * A suffix deleted and added back while a recovery runs outlives a domain disabled and enabled back
+   * before the state could be saved into the base entry added back. The state read back held no change
+   * of this replica, and the state is brought up to the changes of this replica the historical
+   * information holds only past the newest one it read: the changes the recovery kept were all taken
+   * for changes the data does not reflect, the add of the base entry was dropped, and the recovery
+   * published the deletes which removed the suffix alone - the other replicas lost it.
+   */
+  @Test
+  public void aSuffixAddedBackDuringARecoveryOutlivesAStateWhichCouldNotBeSavedInIt() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      final DN dnA = addPerson("a");
+      final CSN rsMaxCSN = rd1.getLastLocalChange();
+      assertInTheChangelog(rs, baseDN, rsMaxCSN);
+
+      startRecovery(rd1);
+      final List<CSN> done = new ArrayList<>();
+      TestCaseUtils.deleteEntry(dnA);
+      done.add(rd1.getLastLocalChange());
+      TestCaseUtils.deleteEntry(baseDN);
+      done.add(rd1.getLastLocalChange());
+      TestCaseUtils.addEntry(StaticUtils.createEntry(baseDN));
+      done.add(rd1.getLastLocalChange());
+
+      // The base entry added back holds no state: none was saved into it.
+      rd1.disable();
+      leaveTheSavedState(baseDN);
+      rd1.enable();
+      new TestTimer.Builder()
+          .maxSleep(30, SECONDS)
+          .sleepTimes(100, MILLISECONDS)
+          .toTimer()
+          .repeatUntilSuccess(() -> assertThat(changelogAfter(rs, baseDN, rsMaxCSN))
+              .as("the changes the replication server holds after the ones it had")
+              .isEqualTo(done));
+      waitUntilTheRecoveryIsOver(rd1);
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  /**
    * A delete kept aside goes with the data it was done on: once the data is restored from a backup
    * taken before it, the entry is back, and a recovery which published the delete would have the
    * other replicas delete an entry this one holds (issue #1221).
@@ -2109,8 +2299,10 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       waitUntilTheRecoveryIsOver(rd1);
 
       final List<String> errors = TestCaseUtils.ERROR_TEXT_WRITER.getMessages();
-      assertThat(errors).as("the first failure").anyMatch(record -> record.contains("tries again in 1000 ms"));
-      assertThat(errors).as("the second failure in a row").anyMatch(record -> record.contains("tries again in 2000 ms"));
+      assertThat(errors).as("the first failure")
+          .anyMatch(record -> record.contains("tries again within 1000 ms"));
+      assertThat(errors).as("the second failure in a row")
+          .anyMatch(record -> record.contains("tries again within 2000 ms"));
       assertThat(searches.size()).as("the searches of the recovery").isGreaterThanOrEqualTo(3);
       assertThat(NANOSECONDS.toMillis(searches.get(2) - searches.get(1)))
           .as("the time from the second failure to the next search").isGreaterThanOrEqualTo(2000);
@@ -2368,8 +2560,8 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
   /**
    * A local change an assured domain does during a recovery is published by it as not assured, as a
-   * recovery publishes what it rebuilds: the operation has given up waiting for its acknowledgement,
-   * and the replication servers would wait for acknowledgements nobody waits for.
+   * recovery publishes what it rebuilds: its operation, which may still be waiting for the
+   * acknowledgement, gets none and times out.
    */
   @Test
   public void aKeptChangeIsPublishedNotAssured() throws Exception
@@ -2785,8 +2977,15 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   private ReplicationServer createIsolatedReplicationServer(int port, String dirName, int rsServerId)
       throws Exception
   {
+    return createIsolatedReplicationServer(port, dirName, rsServerId, 1);
+  }
+
+  /** Creates a replication server which knows of no other, in the provided group. */
+  private ReplicationServer createIsolatedReplicationServer(int port, String dirName, int rsServerId, int groupId)
+      throws Exception
+  {
     final ReplicationServer replicationServer = new ReplicationServer(new ReplServerFakeConfiguration(
-        port, dirName, 0, rsServerId, 0, 100, towards(port), 1, 1000, 5000));
+        port, dirName, 0, rsServerId, 0, 100, towards(port), groupId, 1000, 5000));
     clearChangelogDB(replicationServer);
     return replicationServer;
   }
@@ -2880,6 +3079,30 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
         });
   }
 
+  /**
+   * Has the base entry hold the provided ServerState - none if no CSN is provided - as a save of the
+   * state which did not write leaves an older one there.
+   */
+  private static void leaveTheSavedState(DN baseDN, CSN... csns) throws Exception
+  {
+    final MemoryBackend backend =
+        (MemoryBackend) getServerContext().getBackendConfigManager().getLocalBackendById(TEST_BACKEND_ID);
+    final AttributeType stateType = getServerContext().getSchema().getAttributeType("ds-sync-state");
+    final Entry saved = backend.getEntry(baseDN);
+    final Entry left = saved.duplicate(false);
+    left.removeAttribute(stateType);
+    if (csns.length > 0)
+    {
+      final AttributeBuilder state = new AttributeBuilder(stateType);
+      for (CSN csn : csns)
+      {
+        state.add(csn.toString());
+      }
+      left.putAttribute(stateType, newArrayList(state.toAttribute()));
+    }
+    backend.replaceEntry(saved, left, null);
+  }
+
   /** Replaces the data of the test backend with the provided entries, as a restore does. */
   private static void restore(List<Entry> backup) throws Exception
   {
@@ -2912,6 +3135,35 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     final Field field = LDAPReplicationDomain.class.getDeclaredField("importingData");
     field.setAccessible(true);
     field.setBoolean(domain, importing);
+  }
+
+  /**
+   * Waits for a session which started while the missing change publisher of the domain runs to hand it
+   * its start - under the lock the session hands it over under, which a thread holding the lock of the
+   * pending changes may take.
+   */
+  private static void waitUntilAStartIsHandedOver(final LDAPReplicationDomain domain) throws Exception
+  {
+    final Field recoveryLockField = LDAPReplicationDomain.class.getDeclaredField("recoveryLock");
+    recoveryLockField.setAccessible(true);
+    final Object recoveryLock = recoveryLockField.get(domain);
+    final Field publisherField = LDAPReplicationDomain.class.getDeclaredField("rsUpdater");
+    publisherField.setAccessible(true);
+    new TestTimer.Builder()
+        .maxSleep(30, SECONDS)
+        .sleepTimes(100, MILLISECONDS)
+        .toTimer()
+        .repeatUntilSuccess(() ->
+        {
+          synchronized (recoveryLock)
+          {
+            final Object publisher = publisherField.get(domain);
+            assertNotNull(publisher, "a missing change publisher runs");
+            final Field nextStart = publisher.getClass().getDeclaredField("nextStart");
+            nextStart.setAccessible(true);
+            assertNotNull(nextStart.get(publisher), "a session handed its start over");
+          }
+        });
   }
 
   /** Waits for a missing change publisher of the domain to end the recovery. */

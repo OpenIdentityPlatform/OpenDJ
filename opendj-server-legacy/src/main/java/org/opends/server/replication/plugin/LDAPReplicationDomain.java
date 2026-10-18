@@ -654,6 +654,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * has ended the recovery and before its publisher has left - where nothing else holds it on cue.
    */
   private volatile Runnable missingChangesPublisherRunHook;
+  /**
+   * Run by a round of a recovery which publishes the local changes the recovery kept, once it has
+   * published them and before it ends the recovery, handed whether the round holds the local changes
+   * back. Only there for the tests which do local changes at that point, or start a session there -
+   * one which hands its start over while the round holds the local changes back - where nothing else
+   * holds the round on cue: it searches nothing.
+   */
+  private volatile Consumer<Boolean> keptChangesPublishedHook;
 
   /** Published by a configuration change, read by the changelog threads without a lock. */
   private volatile ExternalChangelogDomain eclDomain;
@@ -5762,6 +5770,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   {
     state.clearInMemory();
     state.loadState();
+    bringAStateWithNoChangeOfThisReplicaUpToTheData();
     getGenerator().adjust(state.getMaxCSN(getServerId()));
     forgetTheLocalChangesTheDataLacks();
 
@@ -5775,12 +5784,14 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * imported, since they were done, and a recovery which published them would have the other
    * replicas delete or change entries which this one holds as they were.
    * <p>
-   * What comes after the newest change of this replica the state holds is not in the data, as far as
-   * the state tells - it covers the changes the historical information of the entries holds - except
-   * for a delete, which leaves no historical information, and which the state misses too when it
-   * could not be saved: a delete of the base entry takes the saved state away with it. A delete is
+   * What comes after the newest change of this replica the state holds is not in the data: the state
+   * read back covers the changes the historical information of the entries holds, whether the save
+   * which was to write them wrote or not (see {@link #bringAStateWithNoChangeOfThisReplicaUpToTheData()})
+   * - except for a delete, which leaves no historical information, and which the state misses too when
+   * it could not be saved: a delete of the base entry takes the saved state away with it. A delete is
    * therefore dropped only if its entry is in the data. A domain enabled back on its own data loses
-   * none of them.
+   * none of them, unless the search which brings its state up to the data does not go through, which
+   * {@code ERR_CANNOT_RECOVER_CHANGES} tells.
    */
   private void forgetTheLocalChangesTheDataLacks()
   {
@@ -5815,6 +5826,83 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       }
     }
     pendingChanges.dropKeptChanges(keptChangesTheDataLacks);
+  }
+
+  /**
+   * Brings a ServerState just read back which holds no change of this replica up to the changes of
+   * this replica the data holds, from the first local change the recovery which runs kept.
+   * <p>
+   * The state read back may miss the last changes of this replica: the save which was to write them
+   * did not - a save gives its turn up to the one in flight, and a write may fail. The state is
+   * brought up to the changes the historical information of the entries holds past the newest change
+   * of this replica it read as it is loaded, but one which read none is left as it is, as that search
+   * would go through every entry this replica ever changed. Such a state is read back once the base
+   * entry, which holds the saved state, was deleted and added back, and no save wrote the state into it
+   * since: the local changes a recovery kept meanwhile would all be taken for changes the data does not
+   * reflect, and the add of the base entry dropped, while the deletes which removed the suffix are
+   * published. The search here starts at the first change the recovery kept, which bounds it.
+   */
+  private void bringAStateWithNoChangeOfThisReplicaUpToTheData()
+  {
+    if (state.getMaxCSN(getServerId()) != null)
+    {
+      return;
+    }
+    final List<LDAPUpdateMsg> kept = pendingChanges.keptChangesNewerThan(null);
+    if (kept.isEmpty())
+    {
+      return;
+    }
+    final CSN newest = newestChangeOfThisReplicaInTheDataFrom(kept.get(0).getCSN());
+    if (newest != null)
+    {
+      state.update(newest);
+    }
+  }
+
+  /**
+   * Returns the newest change of this replica the historical information of the entries holds, among
+   * the changes from the provided one on.
+   *
+   * @return the change, or {@code null} if the data holds none, or the search did not go through: the
+   *         changes are then taken for changes the data does not hold, as they are when the search which
+   *         brings the state up to them as it is loaded does not go through
+   */
+  private CSN newestChangeOfThisReplicaInTheDataFrom(CSN from)
+  {
+    final InternalSearchOperation op;
+    try
+    {
+      op = searchForChangedEntries(getBaseDN(), from, null);
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+      logger.error(ERR_CANNOT_RECOVER_CHANGES, getBaseDN());
+      return null;
+    }
+    if (op.getResultCode() != ResultCode.SUCCESS)
+    {
+      // A suffix whose base entry is gone holds no change.
+      if (op.getResultCode() != ResultCode.NO_SUCH_OBJECT)
+      {
+        logger.error(ERR_CANNOT_RECOVER_CHANGES, getBaseDN());
+      }
+      return null;
+    }
+    CSN newest = null;
+    for (SearchResultEntry entry : op.getSearchEntries())
+    {
+      for (FakeOperation change : EntryHistorical.generateFakeOperations(entry))
+      {
+        final CSN csn = change.getCSN();
+        if (csn.getServerId() == getServerId() && (newest == null || csn.isNewerThan(newest)))
+        {
+          newest = csn;
+        }
+      }
+    }
+    return newest;
   }
 
   /**
@@ -7562,6 +7650,11 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
         logger.debug(LocalizableMessage.raw("publish loop of the kept changes >" + fromCSN
             + " published=" + kept.size() + " upTo=" + publishedUpTo));
       }
+      final Consumer<Boolean> publishedHook = keptChangesPublishedHook;
+      if (publishedHook != null)
+      {
+        publishedHook.accept(heldBack);
+      }
       final boolean endedRecovery = !pendingChanges.recoveryUntil(publishedUpTo, this::endRecovery);
       if (!endedRecovery && heldBack && !startHandedOver())
       {
@@ -7652,6 +7745,19 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   void setMissingChangesPublisherRunHook(Runnable hook)
   {
     missingChangesPublisherRunHook = hook;
+  }
+
+  /**
+   * Sets what a round of a recovery which publishes the local changes the recovery kept runs once it
+   * has published them, before it ends the recovery.
+   *
+   * @param hook what to run there, handed whether the round holds the local changes back, or
+   *          {@code null} to run nothing
+   */
+  @VisibleForTesting
+  void setKeptChangesPublishedHook(Consumer<Boolean> hook)
+  {
+    keptChangesPublishedHook = hook;
   }
 
   /**

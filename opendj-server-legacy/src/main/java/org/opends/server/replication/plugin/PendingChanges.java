@@ -513,11 +513,10 @@ class PendingChanges
         return;
       }
       /*
-       * Published once the operation which waited for its acknowledgement has given up on it - the
-       * broker refuses it now - and published as a recovery publishes what it rebuilds: not assured,
-       * or the replication servers would wait for acknowledgements nobody waits for any more. The
-       * operation waits as the domain is configured to, on the CSN of the message, and not as the
-       * message says.
+       * Published as a recovery publishes what it rebuilds: not assured. Its operation may still be
+       * waiting for the acknowledgement when a round publishes it - nothing orders the two - and it
+       * then gets none and times out, as it does when the round comes later: it waits as the domain
+       * is configured to, on the CSN of the message, and not as the message says.
        */
       if (msg.isAssured())
       {
