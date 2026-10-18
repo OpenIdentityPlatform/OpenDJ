@@ -1114,8 +1114,8 @@ jobs:
     # that the replicas hold the same data; next to docker-test, on the image of build-docker
     needs: build-docker
     # a red row turns the Build run red, and deploy.yml then skips the snapshot deploy and the
-    # publishing of the docs of a push to master: rs534 fails until #1206 is fixed, combined
-    # can fail until #1195 is
+    # publishing of the docs of a push to master: rs534 fails until #1206 is fixed and can fail
+    # until #1215 is, combined can fail until #1195 is
     runs-on: 'ubuntu-latest'
     permissions:
       contents: read
@@ -1142,10 +1142,10 @@ jobs:
           TOPOLOGY: ${{ matrix.topology }}
           DURATION: "1800"
           # the replicas fall behind during the load and catch up after it: 900 s at 325 and 65
-          # a second converged in 396 s (run 38944365728); the backlog grows with the load above
-          # the replay capacity (run 38865878001), so twice as long at 30% more is expected to
-          # need 1000 to 1500 s
-          QUIESCE_TIMEOUT: "2700"
+          # a second converged in 396 s (run 38944365728), 1800 s at 423 and 85 in 2489 s (run
+          # 39043600905), the backlog growing faster than the load above the replay capacity; a
+          # run that does not converge in time skips the checks of the data
+          QUIESCE_TIMEOUT: "4500"
           SAMPLE_DATA: "10000"
           OUT: ${{ runner.temp }}/replication-out
         run: .github/scripts/replication/run.sh "localhost:5000/${GITHUB_REPOSITORY,,}:${{ needs.build-docker.outputs.release_version }}"
