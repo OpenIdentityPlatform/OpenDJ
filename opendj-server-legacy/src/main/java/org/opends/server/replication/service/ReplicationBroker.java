@@ -3127,7 +3127,7 @@ public class ReplicationBroker
           // Update the existing info for the replication server
           rsInfo.update(newRSInfo, connectedDSs);
           updateLocallyConfiguredFlag(rsInfo, newRSInfo.getServerUrl(),
-              configuredReplicationServerUrls);
+              configuredReplicationServerUrls, dsServerId);
         }
       }
 
@@ -3211,6 +3211,14 @@ public class ReplicationBroker
      * handshake names a server with the configured URL it reached it at. So a
      * resolution failing for a moment cannot take the flag from the server the
      * broker is connected to.
+     * <p>
+     * A server which has the flag, but whose URL the configured ones no longer
+     * have, is checked once more as a new server is, resolving host names: the
+     * configured URL may only have been written another way, and the restart of
+     * the session which a change of the configuration asks for is refused while
+     * a total update into this replica runs. A server found so is known with the
+     * configured URL from then on; any other loses the flag, and is not resolved
+     * again.
      *
      * @param rsInfo
      *          the Replication server to check and update
@@ -3218,11 +3226,16 @@ public class ReplicationBroker
      *          the URL the server comes with in the new topology
      * @param configuredReplicationServerUrls
      *          the configured replication server URLs
+     * @param dsServerId
+     *          the server id of the local DS, for the trace
      */
     private void updateLocallyConfiguredFlag(ReplicationServerInfo rsInfo,
-        String newServerUrl, Set<String> configuredReplicationServerUrls)
+        String newServerUrl, Set<String> configuredReplicationServerUrls,
+        int dsServerId)
     {
-      if (isConfigured(rsInfo.getServerURL(), configuredReplicationServerUrls))
+      final boolean wasLocallyConfigured = rsInfo.isLocallyConfigured();
+      final String knownServerUrl = rsInfo.getServerURL();
+      if (isConfigured(knownServerUrl, configuredReplicationServerUrls))
       {
         rsInfo.setLocallyConfigured(true);
       }
@@ -3231,9 +3244,24 @@ public class ReplicationBroker
         rsInfo.setLocallyConfigured(true);
         rsInfo.setServerURL(newServerUrl);
       }
+      else if (wasLocallyConfigured)
+      {
+        setLocallyConfiguredFlag(rsInfo, configuredReplicationServerUrls);
+      }
       else
       {
         rsInfo.setLocallyConfigured(false);
+      }
+
+      // The previous topology holds the same object, so its comparison with the
+      // new one cannot show this change
+      if (logger.isTraceEnabled()
+          && (wasLocallyConfigured != rsInfo.isLocallyConfigured()
+              || !Objects.equals(knownServerUrl, rsInfo.getServerURL())))
+      {
+        logger.trace("RS(%d) on DS(%d): locally configured %s -> %s, URL %s -> %s",
+            rsInfo.getServerId(), dsServerId, wasLocallyConfigured,
+            rsInfo.isLocallyConfigured(), knownServerUrl, rsInfo.getServerURL());
       }
     }
 
