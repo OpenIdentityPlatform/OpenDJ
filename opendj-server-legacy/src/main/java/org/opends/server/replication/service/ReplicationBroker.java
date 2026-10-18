@@ -2311,7 +2311,8 @@ public class ReplicationBroker
          * that nothing older is to come from this replica, while it still has the changes given up -
          * and hold the stop for as long as the connection takes: the stop waits for this lock. The
          * loop waits for the end of the stop instead - the listener gets here when the stop closes
-         * the session it reads.
+         * the session it reads. A connection already under way when the stop gives up still opens
+         * its session, which publish() then writes nothing to, and which the stop closes as it ends.
          */
         if (!gaveUpForTheStop())
         {
@@ -2507,6 +2508,18 @@ public class ReplicationBroker
             Check the session. If it has changed, some disconnection or
             reconnection happened and we need to restart from scratch.
             */
+            if (gaveUpForTheStop())
+            {
+              /*
+               * The stop gave up since the loop head, while this publish waited for this lock - for
+               * a connection, say, which held it past the deadline of the watchdog of the stop, and
+               * left it no session to close: the loop head decides, rather than this publish writes
+               * to the session that connection opened. The watchdog marks the give-up before it
+               * reads the session, and a connection sets its session before it releases this lock:
+               * either the watchdog closes the session read here, or this read finds the mark.
+               */
+              continue;
+            }
             final Session session = connectedRS.get().session;
             if (session != null && session == currentSession)
             {
@@ -2543,9 +2556,10 @@ public class ReplicationBroker
             Send a WindowProbeMsg message to wake up the receiver in case the
             window update message was lost somehow...
             then loop to check again if connection was closed.
+            Not once the stop gave up, which it may have done while this waited for the lock.
             */
             Session session = connectedRS.get().session;
-            if (session != null)
+            if (session != null && !gaveUpForTheStop())
             {
               session.publish(new WindowProbeMsg());
             }
@@ -2903,15 +2917,16 @@ public class ReplicationBroker
       }
       stop = stopping;
     }
-    if (newStop && stop.bounded)
-    {
-      new DirectoryThread(() -> endWhatStillHoldsTheStop(stop),
-          "Replica DS(" + getServerId() + ") watchdog of the stop for domain \"" + getBaseDN() + "\"")
-          .start();
-    }
 
     try
     {
+      // In the try: a watchdog which cannot be started must not leave the broker stopping either.
+      if (newStop && stop.bounded)
+      {
+        new DirectoryThread(() -> endWhatStillHoldsTheStop(stop),
+            "Replica DS(" + getServerId() + ") watchdog of the stop for domain \"" + getBaseDN() + "\"")
+            .start();
+      }
       domain.publishReplicaOfflineMsg();
     }
     finally
@@ -2979,6 +2994,11 @@ public class ReplicationBroker
       }
 
       stop.gaveUp = true;
+      /*
+       * Read after the mark: a connection under way leaves no session to close here, and publish()
+       * writes nothing to the one it then opens, as it reads the mark again under the lock that
+       * connection holds. The stop closes that session as it ends.
+       */
       final ConnectedRS rs = connectedRS.get();
       if (rs.session != null)
       {

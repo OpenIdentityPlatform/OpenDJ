@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -123,6 +124,12 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
    * writes to fill the socket buffers before the heartbeat monitor gives up on the session.
    */
   private static final long HEARTBEAT_INTERVAL_MS = 4000;
+  /**
+   * The replication servers which answer no connection in the case of a connection under way: each
+   * costs the connection the connection timeout, and together they hold it well past twice that, the
+   * deadline of the watchdog of a stop.
+   */
+  private static final int SILENT_SERVERS = 4;
   /** A value which makes a change of the description one of those messages. */
   private static final String LARGE_VALUE = "x".repeat(LARGE_MESSAGE_SIZE);
 
@@ -691,6 +698,10 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
       assertFalse(disabling.isAlive(), "disable() waits for a write the replication server does not read");
       assertTrue(disableMS >= 2 * LONG_CONNECTION_TIMEOUT_MS, "disable() gave the replication server "
           + disableMS + " ms, not twice the connection timeout of " + LONG_CONNECTION_TIMEOUT_MS + " ms");
+      // Half a connection timeout above: the bound of the join leaves room for three times it.
+      assertTrue(disableMS < 2 * LONG_CONNECTION_TIMEOUT_MS + LONG_CONNECTION_TIMEOUT_MS / 2,
+          "disable() gave the replication server " + disableMS
+          + " ms, more than two and a half times the connection timeout of " + LONG_CONNECTION_TIMEOUT_MS + " ms");
       // The disable joined the listener, whose read the close of the session ended.
       assertEquals(badDisconnectionsLogged(), 0,
           "the close of the session by the stop was reported as one by the replication server");
@@ -812,6 +823,185 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
       rs.waitForTheSessionToEnd();
       assertEquals(rs.count(LDAPUpdateMsg.class), 0, "a change was written after the entry the stop gave up");
       assertFalse(broker.isConnected(), "the broker still runs its session after it was stopped");
+    }
+    finally
+    {
+      cleanUp(rs, stopping, listener);
+    }
+  }
+
+  /**
+   * A connection under way when the watchdog of the stop gives up leaves it no session to close: the
+   * listener lost the session in the stop, and connects again holding the lock of the connection
+   * phase, while replication servers which take a connection but answer none cost it the connection
+   * timeout each. A publish of the stop which waited for that lock must not write to the session the
+   * connection then opens: one which the replication server does not read would hold the stop, with
+   * nothing left to end it. The entry here goes to a replication server which reads, and must not be
+   * written at all.
+   */
+  @Test(timeOut = 120_000)
+  public void aConnectionUnderWayWhenTheStopGivesUpGetsNothingWritten() throws Exception
+  {
+    final WithholdingReplicationServer rs = new WithholdingReplicationServer(LARGE_WINDOW);
+    rs.start();
+    final List<SilentReplicationServer> silentServers = new ArrayList<>();
+    final SortedSet<String> urls = new TreeSet<>(Collections.singleton("127.0.0.1:" + rs.getPort()));
+    for (int i = 0; i < SILENT_SERVERS; i++)
+    {
+      final SilentReplicationServer silent = new SilentReplicationServer();
+      silent.start();
+      silentServers.add(silent);
+      urls.add("127.0.0.1:" + silent.getPort());
+    }
+    final DomainFakeCfg config = new DomainFakeCfg(baseDN, OTHER_DS_ID, urls);
+    config.setHeartbeatInterval(100000);
+    final AtomicReference<ReplicationBroker> brokerRef = new AtomicReference<>();
+    final AtomicReference<Thread> listenerRef = new AtomicReference<>();
+    final ReplicationBroker broker = new ReplicationBroker(new DummyReplicationDomain(getGenerationId(baseDN))
+    {
+      @Override
+      public void publishReplicaOfflineMsg()
+      {
+        try
+        {
+          for (SilentReplicationServer silent : silentServers)
+          {
+            silent.answerNothing();
+          }
+          // The replication server ends the session in order, and the listener connects again.
+          rs.closeTheSession();
+          newTimer().repeatUntilSuccess(() -> assertTrue(
+              isIn(listenerRef.get(), ReplicationBroker.class, "collectReplicationServersInfo"),
+              "the listener does not connect again"));
+        }
+        catch (Exception e)
+        {
+          throw new IllegalStateException(e);
+        }
+        // Waits for the lock the connection holds.
+        brokerRef.get().publish(new EntryMsg(OTHER_DS_ID, WithholdingReplicationServer.RS_ID, new byte[16], 1));
+      }
+    }, new ServerState(), config, getReplSessionSecurity());
+    brokerRef.set(broker);
+    Thread listener = null;
+    Thread stopping = null;
+    try
+    {
+      connect(broker, 0);
+      listener = startThread("listener", () -> {
+        try
+        {
+          while (broker.receive() != null)
+          {
+            // What the replication server sends needs no answer here.
+          }
+        }
+        catch (SocketTimeoutException e)
+        {
+          throw new IllegalStateException(e);
+        }
+      });
+      listenerRef.set(listener);
+
+      final long beforeTheStop = System.nanoTime();
+      final Thread stop = startThread("stop", broker::stop);
+      stopping = stop;
+      newTimer().repeatUntilSuccess(() -> assertTrue(
+          stop.getState() == Thread.State.BLOCKED && isIn(stop, ReplicationBroker.class, "publish"),
+          "the entry of the stop does not wait for the lock of the connection phase"));
+      // Past the deadline of the watchdog, which then found the connection still under way.
+      Thread.sleep(Math.max(0, 2 * SHORT_CONNECTION_TIMEOUT_MS + 500
+          - NANOSECONDS.toMillis(System.nanoTime() - beforeTheStop)));
+      assertFalse(watchdogRuns(), "the watchdog of the stop did not act at its deadline");
+      assertTrue(isIn(listener, ReplicationBroker.class, "connectAsDataServer"),
+          "the connection ended before the watchdog of the stop acted: the case tests nothing");
+
+      stop.join(stopBoundMS());
+      assertFalse(stop.isAlive(), "stop() did not end once the connection did");
+      assertEquals(rs.sessionsStarted(), 2, "the connection under way did not open its session");
+      rs.waitForTheSessionToEnd();
+      assertEquals(rs.count(EntryMsg.class), 0,
+          "the stop wrote to the session a connection opened once the stop had given up");
+      listener.join(stopBoundMS());
+      assertFalse(listener.isAlive(), "the listener did not end with the stop");
+    }
+    finally
+    {
+      for (SilentReplicationServer silent : silentServers)
+      {
+        silent.shutdown();
+      }
+      cleanUp(rs, stopping, listener);
+    }
+  }
+
+  /**
+   * A give-up for credit closes nothing: a replication server which then drops the session is
+   * reported as one which did, as it is with no stop at all. Only a close this server makes - by the
+   * watchdog of a stop, or by the heartbeat monitor - is not reported, as the close is marked begun
+   * before the sockets are closed.
+   */
+  @Test(timeOut = 120_000)
+  public void aDropByTheReplicationServerAfterAGiveUpIsStillReported() throws Exception
+  {
+    final WithholdingReplicationServer rs = new WithholdingReplicationServer();
+    rs.start();
+    final CSNGenerator csns = new CSNGenerator(OTHER_DS_ID, 0);
+    final AtomicReference<ReplicationBroker> brokerRef = new AtomicReference<>();
+    final AtomicReference<Thread> listenerRef = new AtomicReference<>();
+    final AtomicInteger reportedInTheStop = new AtomicInteger(-1);
+    final ReplicationBroker broker = new ReplicationBroker(new DummyReplicationDomain(getGenerationId(baseDN))
+    {
+      @Override
+      public void publishReplicaOfflineMsg()
+      {
+        // No credit: the change is given up at the credit deadline of the stop.
+        brokerRef.get().publish(newDeleteMsg(csns));
+        try
+        {
+          rs.dropTheSession();
+          // The listener reports what ended its read before it waits for the end of the stop.
+          newTimer().repeatUntilSuccess(() -> assertTrue(waitsIn(listenerRef.get(), ReplicationBroker.class, "reStart"),
+              "the listener does not wait for the end of the stop"));
+        }
+        catch (Exception e)
+        {
+          throw new IllegalStateException(e);
+        }
+        reportedInTheStop.set(badDisconnectionsLogged());
+      }
+    }, new ServerState(), newFakeCfg(baseDN, OTHER_DS_ID, rs.getPort()), getReplSessionSecurity());
+    brokerRef.set(broker);
+    Thread listener = null;
+    Thread stopping = null;
+    try
+    {
+      connect(broker, 0);
+      listener = startThread("listener", () -> {
+        try
+        {
+          while (broker.receive() != null)
+          {
+            // What the replication server sends needs no answer here.
+          }
+        }
+        catch (SocketTimeoutException e)
+        {
+          throw new IllegalStateException(e);
+        }
+      });
+      listenerRef.set(listener);
+      // The only credit of the window goes to a first change.
+      broker.publish(newDeleteMsg(csns));
+      rs.waitForUpdates(1);
+      TestCaseUtils.ERROR_TEXT_WRITER.clear();
+
+      stopping = startThread("stop", broker::stop);
+      stopping.join(stopBoundMS());
+      assertFalse(stopping.isAlive(), "stop() did not end");
+      assertTrue(reportedInTheStop.get() > 0,
+          "the replication server dropped the session after a give-up for credit, and nothing reported it");
+      assertEquals(rs.count(LDAPUpdateMsg.class), 1, "the change was written with no credit");
     }
     finally
     {
@@ -1015,6 +1205,20 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
             "no write blocks after " + changes.get() + " changes");
       }
     });
+  }
+
+  /** Tells whether the watchdog of a stop of the broker of {@link #OTHER_DS_ID} runs. */
+  private static boolean watchdogRuns()
+  {
+    final String name = "Replica DS(" + OTHER_DS_ID + ") watchdog of the stop";
+    for (Thread thread : Thread.getAllStackTraces().keySet())
+    {
+      if (thread.isAlive() && thread.getName().startsWith(name))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /** Tells whether the thread waits, for a lock or for a time, inside the method provided. */
@@ -1352,6 +1556,18 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
       }
     }
 
+    /** Ends the latest session in order, with a StopMsg, as a replication server which stops does. */
+    void closeTheSession()
+    {
+      session.get().close();
+    }
+
+    /** Drops the latest session with no StopMsg, as a replication server which fails does. */
+    void dropTheSession()
+    {
+      session.get().abort(new IOException("the replication server drops the session"));
+    }
+
     /** Returns how many sessions were started, the connections which only ask for the state left out. */
     int sessionsStarted()
     {
@@ -1443,6 +1659,69 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
       {
         server.join(30000);
       }
+    }
+  }
+
+  /**
+   * A replication server which takes each connection and, once told to, answers nothing on it, as
+   * one which hangs does: a connection to it waits for the connection timeout in its SSL
+   * negotiation. Until then it closes each connection at once, which fails it at once.
+   */
+  private static final class SilentReplicationServer extends Thread
+  {
+    private final ServerSocket listenSocket;
+    private final List<Socket> held = new CopyOnWriteArrayList<>();
+    private volatile boolean silent;
+
+    SilentReplicationServer() throws IOException
+    {
+      super(ReplicationBrokerStopTest.class.getSimpleName() + " silent replication server");
+      setDaemon(true);
+      listenSocket = new ServerSocket(0, 50, InetAddress.getLoopbackAddress());
+    }
+
+    int getPort()
+    {
+      return listenSocket.getLocalPort();
+    }
+
+    @Override
+    public void run()
+    {
+      while (!listenSocket.isClosed())
+      {
+        try
+        {
+          final Socket socket = listenSocket.accept();
+          if (silent)
+          {
+            held.add(socket);
+          }
+          else
+          {
+            socket.close();
+          }
+        }
+        catch (IOException e)
+        {
+          // The test closed this server.
+        }
+      }
+    }
+
+    void answerNothing()
+    {
+      silent = true;
+    }
+
+    void shutdown() throws Exception
+    {
+      listenSocket.close();
+      for (Socket socket : held)
+      {
+        socket.close();
+      }
+      join(30000);
     }
   }
 }
