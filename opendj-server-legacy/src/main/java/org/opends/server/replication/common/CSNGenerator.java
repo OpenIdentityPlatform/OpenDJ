@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.common;
 
@@ -115,17 +116,15 @@ public class CSNGenerator
    * received {@link CSN}
    *
    * @param number
-   *          the {@link CSN} to adjust with
+   *          the {@link CSN} to adjust with, or {@code null} for none: the generator is then left
+   *          as it is. Moved back to the clock, it numbered the next CSNs as, or before, ones it had
+   *          generated or seen already - a domain reads back a ServerState which holds no change of
+   *          its own after a restore or a total update (issue #1223).
    */
   public void adjust(CSN number)
   {
     if (number==null)
     {
-      synchronized(this)
-      {
-        lastTime = TimeThread.getTime();
-        seqnum = 0;
-      }
       return;
     }
 

@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -32,6 +33,8 @@ public class FakeDelOperation extends FakeOperation
 {
   private final DN dn;
   private final String entryUUID;
+  /** Whether a replication server has taken the delete: set by the threads which publish it. */
+  private volatile boolean published;
 
   /**
    * Creates a new FakeDelOperation from the provided information.
@@ -63,5 +66,32 @@ public class FakeDelOperation extends FakeOperation
   public String getEntryUUID()
   {
     return entryUUID;
+  }
+
+  /**
+   * Retrieves the DN of the entry that was deleted with this operation.
+   *
+   * @return  The DN of the entry that was deleted with this operation.
+   */
+  DN getDN()
+  {
+    return dn;
+  }
+
+  /** Records that a replication server has taken the delete: the broker wrote it to a session. */
+  void published()
+  {
+    published = true;
+  }
+
+  /**
+   * Tells whether a replication server has taken the delete: one which none has is published by
+   * nobody once it is dropped from the deletes the domain keeps aside.
+   *
+   * @return {@code true} if the broker wrote the delete to a session
+   */
+  boolean isPublished()
+  {
+    return published;
   }
 }

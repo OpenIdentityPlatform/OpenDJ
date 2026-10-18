@@ -17,11 +17,17 @@
  */
 package org.opends.server.replication.plugin;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.annotations.VisibleForTesting;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
@@ -42,6 +48,15 @@ import org.opends.server.types.operation.PluginOperation;
  */
 class PendingChanges
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /**
+   * How many local changes a recovery keeps at most, and how many bytes their messages take at
+   * most: past either, it keeps none, and searches for them as for the changes done before it began.
+   */
+  static final int MAX_KEPT_CHANGES = 10000;
+  static final long MAX_KEPT_BYTES = 32L * 1024 * 1024;
+
   /** A map used to store the pending changes. */
   private final TreeMap<CSN, PendingChange> pendingChanges = new TreeMap<>();
 
@@ -57,8 +72,15 @@ class PendingChanges
   /** Told that the replica of this domain announces itself offline, or takes that back. */
   private final ReplicaOfflineAnnouncer replicaOfflineAnnouncer;
 
-  /** Changed under the lock of this list, except to start a recovery; read without it by {@link #isRecovering()}. */
+  /**
+   * Changed under the lock the domain starts and ends a recovery under - and ended under the lock of
+   * this list as well - and read without either by {@link #isRecovering()}.
+   */
   private volatile boolean recoveringOldChanges;
+  /** What the recovery which runs keeps of the local changes: {@code null} until it first needs it. */
+  private Recovery recovery;
+  /** How many local changes a recovery keeps at most: fewer in the tests which make it run over. */
+  private int maxKeptChanges = MAX_KEPT_CHANGES;
 
   /**
    * Creates a new PendingChanges using the provided CSNGenerator.
@@ -201,9 +223,26 @@ class PendingChanges
         }
         else
         {
-          // do not push updates until the RS catches up.
+          // do not push updates until the RS catches up: the recovery publishes them.
+          // Kept before the state takes it: the first change kept fixes where the search of the
+          // recovery ends, at the last change pushed before it.
           // @see #setRecovering(boolean)
+          recovery().keep((LDAPUpdateMsg) msg);
           domain.getServerState().update(msg.getCSN());
+        }
+      }
+      else if (msg instanceof ReplicaOfflineMsg && recoveringOldChanges)
+      {
+        /*
+         * The announcement carries the newest CSN of this replica, past the changes the recovery
+         * has still to publish: the replication server would take this replica for offline from
+         * there - its changelog index past the changes which reach it afterwards. It is given up
+         * on, as one a change in flight holds back is, whatever the broker would refuse.
+         */
+        if (logger.isTraceEnabled())
+        {
+          logger.trace("The announcement that the replica goes offline at " + msg.getCSN()
+              + " is given up on: a recovery has changes before it to publish");
         }
       }
       else if (msg instanceof ReplicaOfflineMsg)
@@ -258,6 +297,15 @@ class PendingChanges
    * changes from the pendingChanges because there are older changes that need
    * to be published before.
    *
+   * <p>
+   * The local changes pushed meanwhile are kept for the recovery, which publishes them once it has
+   * published the ones done before it began. A recovery which is already running goes on, with what
+   * it kept: a session which starts while it runs starts no other.
+   * <p>
+   * It is set without the lock of this list, which the start of a session must not take, but under
+   * the one the domain ends a recovery under as well: a recovery the session needs is not ended by
+   * one which was about to end.
+   *
    * @param recovering
    *          The recovering status that must be set.
    */
@@ -281,6 +329,55 @@ class PendingChanges
   }
 
   /**
+   * Tells whether the recovery which runs keeps the local changes, and where its search of the
+   * historical information ends then.
+   *
+   * @return the recovery which keeps the local changes, or {@code null} if its search has to go up
+   *         to the last local change: no recovery runs, or it kept too many changes to keep any
+   */
+  synchronized KeptChanges keptChanges()
+  {
+    if (!recoveringOldChanges)
+    {
+      return null;
+    }
+    final Recovery running = recovery();
+    return running.kept != null ? new KeptChanges(running.searchUpTo) : null;
+  }
+
+  /**
+   * Returns the local changes the recovery which runs kept which come after the provided CSN, in
+   * order.
+   *
+   * @param csn
+   *          where the recovery has got to
+   * @return the changes, or {@code null} if no recovery runs, or it kept too many changes to keep any
+   */
+  synchronized List<LDAPUpdateMsg> keptChangesAfter(CSN csn)
+  {
+    final KeptChanges keeping = keptChanges();
+    return keeping != null ? new ArrayList<>(recovery.kept.tailMap(csn, false).values()) : null;
+  }
+
+  /**
+   * Returns the local changes the recovery which runs kept which come after the provided CSN, in
+   * order, whatever it searches for: the data the domain read its state from again may not reflect
+   * them.
+   *
+   * @param newest
+   *          the newest change of this replica the data holds, or {@code null} if it holds none
+   * @return the changes, none if no recovery keeps any
+   */
+  synchronized List<LDAPUpdateMsg> keptChangesNewerThan(CSN newest)
+  {
+    if (recovery == null || recovery.kept == null)
+    {
+      return new ArrayList<>();
+    }
+    return new ArrayList<>((newest != null ? recovery.kept.tailMap(newest, false) : recovery.kept).values());
+  }
+
+  /**
    * Allows to update the recovery situation by comparing the CSN of the last
    * change that was sent to the ReplicationServer with the CSN of the last
    * operation that was taken out of the PendingChanges list. If the two match
@@ -290,28 +387,183 @@ class PendingChanges
    * <p>
    * The recovery ends at once for every change pushed after it: a change which comes here once
    * this list publishes again must find the broker taking it as well, or it is refused, while
-   * the domain state records it as done and no recovery is left to publish it.
-   * {@code onRecovered} is therefore run here, under the lock {@link #pushCommittedChanges()}
-   * takes, before any change can be pushed.
+   * the domain state records it as done and no recovery is left to publish it. The recovery is
+   * therefore ended here, under the lock {@link #pushCommittedChanges()} takes, before any change
+   * can be pushed. What it kept is dropped with it.
    *
    * @param recovered
    *          The CSN of the last change that was published to the
    *          ReplicationServer.
-   * @param onRecovered
-   *          Run when this call ends the recovery, before any change is pushed after it: it
-   *          lets the broker take the changes again.
+   * @param recoveryEnd
+   *          Ends the recovery, unless a session which started meanwhile needs it, and has the
+   *          broker take the changes again.
    * @return A boolean indicating if the recovery is completed (false) or must
    *         continue (true).
    */
-  synchronized boolean recoveryUntil(CSN recovered, Runnable onRecovered)
+  synchronized boolean recoveryUntil(CSN recovered, RecoveryEnd recoveryEnd)
   {
     final CSN lastLocalChange = domain.getLastLocalChange();
     if (recoveringOldChanges && recovered != null && recovered.isNewerThanOrEqualTo(lastLocalChange))
     {
-      recoveringOldChanges = false;
-      onRecovered.run();
+      recoveryEnd.end(() ->
+      {
+        recoveringOldChanges = false;
+        recovery = null;
+      });
     }
     return recoveringOldChanges;
+  }
+
+  /**
+   * Drops the provided local changes the recovery which runs kept: the data of the domain, read
+   * again, does not hold them - it was restored or imported since they were done - and the replicas
+   * would get changes this one does not hold.
+   *
+   * @param csns
+   *          the CSNs of the changes to drop
+   */
+  synchronized void dropKeptChanges(Collection<CSN> csns)
+  {
+    if (recovery == null || recovery.kept == null || csns.isEmpty())
+    {
+      return;
+    }
+    recovery.kept.keySet().removeAll(csns);
+    recovery.keptBytes = 0;
+    for (LDAPUpdateMsg msg : recovery.kept.values())
+    {
+      recovery.keptBytes += msg.size();
+    }
+  }
+
+  /**
+   * Has the recovery which runs keep no more local changes, and drop the ones it kept: it searches
+   * for them in the historical information instead, as one which kept too many does.
+   */
+  synchronized void keepNoMoreChanges()
+  {
+    if (recovery != null)
+    {
+      recovery.kept = null;
+    }
+  }
+
+  /**
+   * Returns what the recovery which runs keeps of the local changes, under the lock of this list.
+   * It is made as it is first needed - as the recovery keeps its first change, or as its publisher
+   * asks where its search ends - so the search ends at the last change pushed before any was kept.
+   */
+  private Recovery recovery()
+  {
+    if (recovery == null)
+    {
+      recovery = new Recovery(domain.getLastLocalChange());
+    }
+    return recovery;
+  }
+
+  /**
+   * Sets how many local changes a recovery which starts from now on keeps at most: with none, it
+   * searches for all of them in the historical information.
+   *
+   * @param maxKeptChanges
+   *          how many local changes a recovery keeps at most
+   */
+  @VisibleForTesting
+  synchronized void setMaxKeptChanges(int maxKeptChanges)
+  {
+    this.maxKeptChanges = maxKeptChanges;
+  }
+
+  /**
+   * What a recovery keeps of the local changes pushed while it runs.
+   * <p>
+   * A recovery republishes what the replication server misses from the historical information of
+   * the entries, and its search of it races the commits: a change committed while it searches is in
+   * the domain state, and not in what it found. The changes pushed once it began are kept instead,
+   * in order and with their messages, so that its search only has to cover the ones pushed before:
+   * up to the last of them, which no commit moves. A change kept is published as it was done, where
+   * a later change of the same values leaves nothing of it in the historical information, and a
+   * delete kept does not depend on the deletes the domain keeps aside, which are capped.
+   * <p>
+   * What it keeps stays until it ends: a missing change publisher whose broker refused a change,
+   * or whose session was replaced by one whose replication server holds less, leaves them to the
+   * one which goes on, which may start from further back. Past {@link #maxKeptChanges} changes or
+   * {@link #MAX_KEPT_BYTES} bytes it keeps none, and the recovery searches for them from where it
+   * has got to, holding the local changes back at the end, as it does when nothing is kept.
+   */
+  private final class Recovery
+  {
+    /** The last local change pushed before this recovery kept any: its search ends there. */
+    private final CSN searchUpTo;
+    /** The local changes pushed since, in order; {@code null} once there were too many. */
+    private TreeMap<CSN, LDAPUpdateMsg> kept;
+    private long keptBytes;
+
+    private Recovery(CSN searchUpTo)
+    {
+      this.searchUpTo = searchUpTo;
+      this.kept = maxKeptChanges > 0 ? new TreeMap<CSN, LDAPUpdateMsg>() : null;
+    }
+
+    private void keep(LDAPUpdateMsg msg)
+    {
+      if (kept == null)
+      {
+        return;
+      }
+      /*
+       * Published once the operation which waited for its acknowledgement has given up on it - the
+       * broker refuses it now - and published as a recovery publishes what it rebuilds: not assured,
+       * or the replication servers would wait for acknowledgements nobody waits for any more. The
+       * operation waits as the domain is configured to, on the CSN of the message, and not as the
+       * message says.
+       */
+      if (msg.isAssured())
+      {
+        msg.setNotAssured();
+      }
+      kept.put(msg.getCSN(), msg);
+      keptBytes += msg.size();
+      if (kept.size() > maxKeptChanges || keptBytes > MAX_KEPT_BYTES)
+      {
+        kept = null;
+        if (logger.isDebugEnabled())
+        {
+          logger.debug(LocalizableMessage.raw("the recovery keeps no more local changes after " + msg.getCSN()
+              + ": it searches for them in the historical information"));
+        }
+      }
+    }
+  }
+
+  /** A recovery which keeps the local changes pushed while it runs. */
+  static final class KeptChanges
+  {
+    /**
+     * The last local change pushed before the recovery kept any: its search ends there, and the
+     * changes it kept come next. {@code null} if the domain state held no change of this replica.
+     */
+    final CSN searchUpTo;
+
+    private KeptChanges(CSN searchUpTo)
+    {
+      this.searchUpTo = searchUpTo;
+    }
+  }
+
+  /** Ends a recovery the pending changes have caught up with. */
+  interface RecoveryEnd
+  {
+    /**
+     * Ends the recovery, unless a session which started meanwhile has given it changes of its own
+     * to recover: runs {@code recovered} under the lock a recovery is started under, and has the
+     * broker take the changes again. Called under the lock of the pending changes.
+     *
+     * @param recovered
+     *          lets the pending changes publish the local changes again
+     */
+    void end(Runnable recovered);
   }
 
   /**

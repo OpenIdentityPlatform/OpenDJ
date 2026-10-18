@@ -13,6 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.common;
 
@@ -54,6 +55,46 @@ public class CSNGeneratorTest extends ReplicationTestCase
     CSN csn2 = generator.newCSN();
     assertTrue(csn2.compareTo(csn1) > 0,
         "CSNGenerator generated an earlier CSN after calling the adjust method.");
+  }
+
+  /**
+   * An adjust with no CSN - a domain reads back a ServerState which holds no change of its own -
+   * leaves the generator where it is: moved back to the clock, it numbered the next change as one it
+   * had numbered already, or before it.
+   */
+  @Test
+  public void adjustWithNoCSNDoesNotNumberBeforeTheCSNsGenerated()
+  {
+    // Ahead of the clock, as a generator is once it numbered changes within the current tick of the
+    // clock, or followed the CSNs of a server whose clock runs ahead.
+    CSNGenerator generator = new CSNGenerator(5, TimeThread.getTime() + 3600 * 1000);
+    CSN csn1 = generator.newCSN();
+
+    generator.adjust((CSN) null);
+
+    CSN csn2 = generator.newCSN();
+    assertTrue(csn2.compareTo(csn1) > 0,
+        "CSNGenerator generated an earlier CSN after an adjust with no CSN.");
+  }
+
+  /**
+   * An adjust with no CSN does not take the generator back past the CSNs received from the other
+   * servers either: a local change numbered before a change of another server it follows would lose
+   * the conflict resolution to it on the other servers.
+   */
+  @Test
+  public void adjustWithNoCSNDoesNotNumberBeforeTheCSNsReceived()
+  {
+    CSNGenerator generator = new CSNGenerator(5, TimeThread.getTime());
+    // From a server whose clock runs an hour ahead.
+    CSN received = new CSN(TimeThread.getTime() + 3600 * 1000, 0, 6);
+    generator.adjust(received);
+
+    generator.adjust((CSN) null);
+
+    CSN csn = generator.newCSN();
+    assertTrue(csn.compareTo(received) > 0,
+        "CSNGenerator generated a CSN earlier than one it received after an adjust with no CSN.");
   }
 
   /**
