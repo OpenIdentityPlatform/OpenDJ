@@ -699,7 +699,7 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
       assertNull(failed.get(), "a local change failed");
 
       // The change cut short ends what the replication server reads, and nothing comes after it.
-      rs.resumeReading();
+      rs.resumeReadingTheSessionTheDomainClosed();
       rs.waitForTheSessionToEnd();
       final List<CSN> beforeTheEnable = rs.receivedUpdateCSNs();
       assertEquals(rs.count(ReplicaOfflineMsg.class), 0,
@@ -808,7 +808,7 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
       assertEquals(badDisconnectionsLogged(), 0,
           "the close of the session by the stop was reported as one by the replication server");
 
-      rs.resumeReading();
+      rs.resumeReadingTheSessionTheDomainClosed();
       rs.waitForTheSessionToEnd();
       assertEquals(rs.count(LDAPUpdateMsg.class), 0, "a change was written after the entry the stop gave up");
       assertFalse(broker.isConnected(), "the broker still runs its session after it was stopped");
@@ -1327,6 +1327,31 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
       }
     }
 
+    /**
+     * Reads the sessions again once the domain closed its session while this server read nothing,
+     * and ends that session at once. What the domain left queued at its end goes out once its TCP
+     * finds the window open again: from the update the reads here send, or else from its next window
+     * probe - and after a stall of seconds the probes are seconds apart, 13 s after a stall of 14 s
+     * on Linux, longer than the wait for the end of the session. A heartbeat the other way has the
+     * closed end answer with a reset at once: this server reads what reached it, and the read ends.
+     */
+    void resumeReadingTheSessionTheDomainClosed()
+    {
+      final Session closed = session.get();
+      resumeReading();
+      if (closed != null)
+      {
+        try
+        {
+          closed.publish(new HeartbeatMsg());
+        }
+        catch (IOException e)
+        {
+          // The reset came already.
+        }
+      }
+    }
+
     /** Returns how many sessions were started, the connections which only ask for the state left out. */
     int sessionsStarted()
     {
@@ -1396,7 +1421,10 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
           "window probes the replication server received"));
     }
 
-    /** Waits for the session to end: what the domain wrote to it has all been read by then. */
+    /**
+     * Waits for the session to end: what the domain wrote to it has all been read by then - or, once
+     * the session was ended by a reset, what of it reached this server.
+     */
     void waitForTheSessionToEnd() throws Exception
     {
       newTimer().repeatUntilSuccess(() -> assertNull(session.get(), "the session of the domain is still up"));
