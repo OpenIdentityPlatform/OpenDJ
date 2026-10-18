@@ -34,6 +34,7 @@ import static org.testng.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -43,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.assertj.core.api.SoftAssertions;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -58,12 +60,16 @@ import org.opends.server.api.LocalBackend;
 import org.opends.server.backends.ChangelogBackend.ChangeNumberRange;
 import org.opends.server.controls.EntryChangelogNotificationControl;
 import org.opends.server.controls.ExternalChangelogRequestControl;
+import org.opends.server.controls.PersistentSearchChangeType;
+import org.opends.server.controls.PersistentSearchControl;
 import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.PersistentSearch;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.Requests;
 import org.opends.server.protocols.internal.SearchRequest;
@@ -103,6 +109,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchResultReference;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TestTimer;
 import org.opends.server.util.TestTimer.CallableVoid;
@@ -353,6 +360,104 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       contains("unknown replicated domain", DN_OTEST.toString());
 
     debugInfo(test, "Ending test successfully");
+  }
+
+  /**
+   * A change the changelog already holds can reach its replication server again: a directory
+   * server publishes it again, or a peer replication server sends it from its own changelog. The
+   * replica DB does not take it, and a cookie based persistent search must not be notified of it a
+   * second time.
+   */
+  @Test
+  public void aChangeTheChangelogAlreadyHoldsIsNotNotifiedAgainToACookieBasedPersistentSearch() throws Exception
+  {
+    String test = "CookiePersistentSearchNotifiedOnce";
+    debugInfo(test, "Starting test");
+
+    final List<CSN> notified = new CopyOnWriteArrayList<>();
+    final InternalSearchOperation searchOp =
+        startChangesOnlyCookieBasedPersistentSearch("(targetdn=*" + test + "*,o=test)", notified);
+    try
+    {
+      final CSN[] csns = generateCSNs(2, server1);
+      final UpdateMsg sentAgain = generateDeleteMsg(server1, csns[0], test, 1);
+      publishUpdateMessagesInOTest(test, false, sentAgain, sentAgain, generateDeleteMsg(server1, csns[1], test, 2));
+
+      // the replication server handles the changes of a session in order: once the last one is
+      // notified, the one sent again has been handled
+      TestTimer timer = new TestTimer.Builder()
+        .maxSleep(30, SECONDS)
+        .sleepTimes(100, MILLISECONDS)
+        .toTimer();
+      timer.repeatUntilSuccess(new CallableVoid()
+      {
+        @Override
+        public void call() throws Exception
+        {
+          assertThat(notified).contains(csns[1]);
+        }
+      });
+      assertThat(notified).as("the changes the persistent search was notified of")
+          .containsExactly(csns[0], csns[1]);
+    }
+    finally
+    {
+      cancelPersistentSearch(searchOp);
+    }
+    debugInfo(test, "Ending test successfully");
+  }
+
+  /**
+   * Starts a persistent search of the changes only, in cookie mode, which records the CSN of every
+   * change it is notified of.
+   */
+  private InternalSearchOperation startChangesOnlyCookieBasedPersistentSearch(String filterString,
+      final List<CSN> notified) throws Exception
+  {
+    final SearchRequest request = newSearchRequest(filterString)
+        .addControl(createCookieControl(""))
+        .addControl(new PersistentSearchControl(EnumSet.allOf(PersistentSearchChangeType.class), true, false));
+    final InternalSearchOperation searchOp = connection.processSearch(request, new InternalSearchListener()
+    {
+      @Override
+      public void handleInternalSearchEntry(InternalSearchOperation searchOperation, SearchResultEntry searchEntry)
+      {
+        notified.add(new CSN(getAttributeValue(searchEntry, "replicationcsn")));
+      }
+
+      @Override
+      public void handleInternalSearchReference(InternalSearchOperation searchOperation,
+          SearchResultReference searchReference)
+      {
+        // the changelog holds no reference
+      }
+    });
+    assertThat(findPersistentSearch(searchOp)).as(searchOp.getErrorMessage().toString()).isNotNull();
+    return searchOp;
+  }
+
+  private void cancelPersistentSearch(InternalSearchOperation searchOp)
+  {
+    final PersistentSearch pSearch = findPersistentSearch(searchOp);
+    if (pSearch != null)
+    {
+      pSearch.cancel();
+    }
+  }
+
+  private PersistentSearch findPersistentSearch(InternalSearchOperation searchOp)
+  {
+    for (PersistentSearch pSearch : ChangelogBackend.getInstance().getPersistentSearches())
+    {
+      // the persistent search holds the operation the backend processed, which wraps the given one
+      final Operation op = pSearch.getSearchOperation();
+      if (op.getClientConnection() == searchOp.getClientConnection()
+          && op.getOperationID() == searchOp.getOperationID())
+      {
+        return pSearch;
+      }
+    }
+    return null;
   }
 
   /**

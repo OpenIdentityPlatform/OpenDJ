@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -80,6 +81,29 @@ public class LogTest extends DirectoryServerTestCase
     final ReplicationEnvironment replicationEnv = mock(ReplicationEnvironment.class);
 
     return Log.openLog(replicationEnv, LOG_DIRECTORY, parser, rotationParams);
+  }
+
+  /**
+   * A record whose key is not after the newest one is not appended, whether the head log file is
+   * to be rotated or not, and the log tells so.
+   */
+  @Test
+  public void appendTellsWhetherTheRecordWasAppended() throws Exception
+  {
+    try (Log<String, String> log = openLog(RECORD_PARSER))
+    {
+      // the head log file holds 2 records: the next append rotates it
+      assertThat(log.append(Record.from("key010", "value10 again"))).as("the newest key again").isFalse();
+      assertThat(log.append(Record.from("key005", "value5 again"))).as("an older key").isFalse();
+      assertThat(log.append(Record.from("key011", "value11"))).as("a newer key").isTrue();
+      // the new head log file holds 1 record: no rotation
+      assertThat(log.append(Record.from("key011", "value11 again"))).as("the newest key again").isFalse();
+
+      try (DBCursor<Record<String, String>> cursor = log.getCursor())
+      {
+        assertThatCursorCanBeFullyReadFromStart(cursor, 1, 11);
+      }
+    }
   }
 
   @Test

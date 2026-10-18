@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -411,10 +412,12 @@ final class Log<K extends Comparable<K>, V> implements Closeable
    *
    * @param record
    *          The record to add.
+   * @return {@code true} if the record was appended, {@code false} if it was not: its key is not
+   *         higher than the key of the last record added, or this log is closed
    * @throws ChangelogException
    *           If an error occurs while adding the record to the log.
    */
-  public void append(final Record<K, V> record) throws ChangelogException
+  public boolean append(final Record<K, V> record) throws ChangelogException
   {
     // Fast-path - assume that no rotation is needed and use shared lock.
     sharedLock.lock();
@@ -422,13 +425,12 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     {
       if (isClosed)
       {
-        return;
+        return false;
       }
       LogFile<K, V> headLogFile = getHeadLogFile();
       if (!mustRotate(headLogFile))
       {
-        headLogFile.append(record);
-        return;
+        return headLogFile.append(record);
       }
     }
     finally
@@ -442,13 +444,13 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     {
       if (isClosed)
       {
-        return;
+        return false;
       }
       LogFile<K, V> headLogFile = getHeadLogFile();
       if (headLogFile.appendWouldBreakKeyOrdering(record))
       {
         // abort rotation
-        return;
+        return false;
       }
       if (mustRotate(headLogFile))
       {
@@ -457,7 +459,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
         rotateHeadLogFile();
         headLogFile = getHeadLogFile();
       }
-      headLogFile.append(record);
+      return headLogFile.append(record);
     }
     finally
     {
