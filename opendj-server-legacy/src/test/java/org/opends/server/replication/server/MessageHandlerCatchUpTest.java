@@ -330,7 +330,7 @@ public class MessageHandlerCatchUpTest extends ReplicationTestCase
   /**
    * A replica offline message carries the CSN of no change, and no state of a consumer ever holds
    * it: one in the queue before the first change the consumer lacks must not keep the handler from
-   * its queue.
+   * its queue, even once its replica, back online, has written a change the consumer lacks.
    */
   @Test
   public void aReplicaOfflineMessageDoesNotHoldTheHandlerBack() throws Exception
@@ -341,24 +341,176 @@ public class MessageHandlerCatchUpTest extends ReplicationTestCase
     {
       replicationServer = newReplicationServer("messageHandlerOfflineDb");
       final long t = TimeThread.getTime() - 60000;
+      final DeleteMsg c0 = newDeleteMsg(baseDN, "c0", new CSN(t, 0, C));
       final DeleteMsg a1 = newDeleteMsg(baseDN, "a1", new CSN(t + 1, 1, A));
       final DeleteMsg a2 = newDeleteMsg(baseDN, "a2", new CSN(t + 3, 2, A));
-      final MessageHandler handler = newHandler(replicationServer, baseDN, LARGE_QUEUE_SIZE, stateOf(a1));
+      final DeleteMsg c3 = newDeleteMsg(baseDN, "c3", new CSN(t + 4, 3, C));
+      final MessageHandler handler = newHandler(replicationServer, baseDN, LARGE_QUEUE_SIZE, stateOf(c0, a1));
 
+      arrive(replicationServer, handler, c0);
       arrive(replicationServer, handler, a1);
       // a replica offline message is not written to the changelog, its CSN goes to the state of
       // the replica instead: ReplicationServerDomain.publishUpdateMsg()
       handler.add(new ReplicaOfflineMsg(new CSN(t + 2, 0, C)));
       arrive(replicationServer, handler, a2);
+      arrive(replicationServer, handler, c3);
 
-      final List<Sent> sent = nextMessages(handler, 1);
-      assertThat(csnsOf(sent)).containsExactly(a2.getCSN());
-      assertThat(handler.isFollowing())
-          .as("the handler did not go back to its queue, which holds every change the consumer lacks")
-          .isTrue();
+      final List<UpdateMsg> expected = new ArrayList<>();
+      expected.add(a2);
+      expected.add(c3);
+      assertServedFromTheQueueAfterTheFirst(handler, expected);
     }
     finally
     {
+      removeQuietly(replicationServer);
+    }
+  }
+
+  /**
+   * The queue still holds a change the changelog no longer holds, as after the changelog was
+   * cleared for a new generation id, and the changelog gives the handler nothing but the replica
+   * offline message of a replica which wrote since: no read of the changelog can give the consumer
+   * that change, and the handler must not read the changelog again and again for it. It goes back
+   * to its queue, leaving out what the queue holds before the offline message, that change too.
+   */
+  @Test
+  public void aQueuedChangeTheChangelogNoLongerHoldsDoesNotHoldTheHandlerBack() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer replicationServer = null;
+    try
+    {
+      replicationServer = newReplicationServer("messageHandlerQueuedNoLongerHeldDb");
+      final long t = TimeThread.getTime() - 60000;
+      final DeleteMsg c0 = newDeleteMsg(baseDN, "c0", new CSN(t, 0, C));
+      final DeleteMsg a1 = newDeleteMsg(baseDN, "a1", new CSN(t + 1, 1, A));
+      final CSN offlineC = new CSN(t + 2, 0, C);
+      final DeleteMsg a2 = newDeleteMsg(baseDN, "a2", new CSN(t + 3, 2, A));
+      // the consumer has every change the changelog holds
+      final MessageHandler handler = newHandler(replicationServer, baseDN, LARGE_QUEUE_SIZE, stateOf(c0));
+
+      publishToChangelogOnly(replicationServer, baseDN, c0);
+      // the change of a changelog cleared since
+      handler.add(a1);
+      // every read of the changelog gives it, as no state of a consumer ever holds its CSN
+      replicationServer.getChangelogDB().getReplicationDomainDB().notifyReplicaOffline(baseDN, offlineC);
+
+      assertThat(csnsOf(nextMessages(handler, 1)))
+          .as("the handler kept reading the changelog for a change no read can give")
+          .containsExactly(offlineC);
+      assertThat(handler.isFollowing()).isTrue();
+
+      arrive(replicationServer, handler, a2);
+      final List<Sent> sent = nextMessages(handler, 1);
+      assertThat(csnsOf(sent)).containsExactly(a2.getCSN());
+      assertThat(sent.get(0).fromTheChangelog).isFalse();
+    }
+    finally
+    {
+      removeQuietly(replicationServer);
+    }
+  }
+
+  /**
+   * The full queue of a handler drops a replica offline message, which the domain hands to the
+   * handler of a peer replication server: the consumer has every change of that replica the
+   * changelog holds, and no state of a consumer ever holds the CSN of the message, so it must not
+   * keep the handler from its queue, which holds every change the consumer lacks.
+   */
+  @Test
+  public void aDroppedReplicaOfflineMessageDoesNotHoldTheHandlerBack() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer replicationServer = null;
+    try
+    {
+      replicationServer = newReplicationServer("messageHandlerDroppedOfflineDb");
+      final long t = TimeThread.getTime() - 60000;
+      final DeleteMsg b0 = newDeleteMsg(baseDN, "b0", new CSN(t, 0, B));
+      final List<UpdateMsg> changesOfA = changesOfA(baseDN, t, 1, 5);
+      // full with the changes of A: they make it drop the offline message, its oldest one
+      final MessageHandler handler = newHandler(replicationServer, baseDN, changesOfA.size(), stateOf(b0));
+
+      publishToChangelogOnly(replicationServer, baseDN, b0);
+      handler.add(new ReplicaOfflineMsg(new CSN(t + 5, 0, B)));
+      for (UpdateMsg msg : changesOfA)
+      {
+        arrive(replicationServer, handler, msg);
+      }
+
+      assertServedFromTheQueueAfterTheFirst(handler, changesOfA);
+    }
+    finally
+    {
+      removeQuietly(replicationServer);
+    }
+  }
+
+  /**
+   * A handler which has been handed a change catches up from the changelog until a read gives
+   * nothing, and goes back to its queue: the change handed to it after that read is served from
+   * the queue.
+   */
+  @Test
+  public void aHandlerWhichCaughtUpFromTheChangelogFollowsTheQueueAgain() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer replicationServer = null;
+    ChangeAfterTheRead domain = null;
+    try
+    {
+      replicationServer = newReplicationServer("messageHandlerCaughtUpDb");
+      final long t = TimeThread.getTime() - 60000;
+      final List<UpdateMsg> changesOfA = changesOfA(baseDN, t, 1, 3);
+      final MessageHandler handler = newHandler(replicationServer, baseDN, LARGE_QUEUE_SIZE, new ServerState());
+      domain = new ChangeAfterTheRead(replicationServer, handler, changesOfA.get(2), true);
+
+      publishToChangelogOnly(replicationServer, baseDN, changesOfA.get(0));
+      arrive(replicationServer, handler, changesOfA.get(1));
+
+      assertServedFromTheQueueAfterAReadGaveNothing(handler, changesOfA);
+    }
+    finally
+    {
+      deregister(domain);
+      removeQuietly(replicationServer);
+    }
+  }
+
+  /**
+   * The same as {@link #aHandlerWhichCaughtUpFromTheChangelogFollowsTheQueueAgain()} for a handler
+   * which is never handed the changes of a replica, as the handler of a peer replication server is
+   * never handed the changes of the replicas connected to other replication servers: the domain held
+   * a change of B when it handed the queue its first change, so the handler reads it from the
+   * changelog, although it finds in its queue the first change it reads, then goes back to its queue.
+   */
+  @Test
+  public void aHandlerWhichReadTheChangesOfAReplicaItIsNeverHandedFollowsTheQueueAgain() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer replicationServer = null;
+    ChangeAfterTheRead domain = null;
+    try
+    {
+      replicationServer = newReplicationServer("messageHandlerNeverHandedDb");
+      final long t = TimeThread.getTime() - 60000;
+      final List<UpdateMsg> changesOfA = changesOfA(baseDN, t, 1, 2);
+      final DeleteMsg b1 = newDeleteMsg(baseDN, "b1", new CSN(t + 30, 1, B));
+      final MessageHandler handler = newHandler(replicationServer, baseDN, LARGE_QUEUE_SIZE, new ServerState());
+      domain = new ChangeAfterTheRead(replicationServer, handler, changesOfA.get(1), true);
+
+      publishToChangelogOnly(replicationServer, baseDN, b1);
+      arrive(replicationServer, handler, changesOfA.get(0));
+
+      final List<UpdateMsg> expected = new ArrayList<>();
+      expected.add(changesOfA.get(0));
+      expected.add(b1);
+      expected.add(changesOfA.get(1));
+      assertServedFromTheQueueAfterAReadGaveNothing(handler, expected);
+    }
+    finally
+    {
+      deregister(domain);
       removeQuietly(replicationServer);
     }
   }
@@ -444,22 +596,36 @@ public class MessageHandlerCatchUpTest extends ReplicationTestCase
 
   /**
    * The domain of a handler, which hands it a change once it has read the changelog for the first
-   * time, before it looks at its queue: the domain writes the changes it receives and hands them
-   * over on threads of their own, and nothing keeps one from coming in between. The change comes
-   * the way {@code ReplicationServerDomain.put()} hands it over - see {@link #arrive}.
+   * time - or once a read of the changelog gave nothing - before it looks at its queue: the domain
+   * writes the changes it receives and hands them over on threads of their own, and nothing keeps
+   * one from coming in between. The change comes the way {@code ReplicationServerDomain.put()}
+   * hands it over - see {@link #arrive}.
    */
   private final class ChangeAfterTheRead extends ReplicationServerDomain
   {
     private final ReplicationServer replicationServer;
     private final MessageHandler handler;
+    private final boolean onceAReadGivesNothing;
     private UpdateMsg change;
 
     private ChangeAfterTheRead(ReplicationServer replicationServer, MessageHandler handler, UpdateMsg change)
+    {
+      this(replicationServer, handler, change, false);
+    }
+
+    /**
+     * @param onceAReadGivesNothing
+     *          whether the change comes once a read of the changelog gave nothing, rather than once
+     *          the changelog was read for the first time
+     */
+    private ChangeAfterTheRead(ReplicationServer replicationServer, MessageHandler handler, UpdateMsg change,
+        boolean onceAReadGivesNothing)
     {
       super(handler.getBaseDN(), replicationServer);
       this.replicationServer = replicationServer;
       this.handler = handler;
       this.change = change;
+      this.onceAReadGivesNothing = onceAReadGivesNothing;
       handler.replicationServerDomain = this;
     }
 
@@ -476,6 +642,8 @@ public class MessageHandlerCatchUpTest extends ReplicationTestCase
       final DBCursor<UpdateMsg> read = super.getCursorFrom(startAfterServerState);
       return new DBCursor<UpdateMsg>()
       {
+        private boolean gaveSomething;
+
         @Override
         public UpdateMsg getRecord()
         {
@@ -485,14 +653,16 @@ public class MessageHandlerCatchUpTest extends ReplicationTestCase
         @Override
         public boolean next() throws ChangelogException
         {
-          return read.next();
+          final boolean hasNext = read.next();
+          gaveSomething |= hasNext;
+          return hasNext;
         }
 
         @Override
         public void close()
         {
           read.close();
-          if (change != null)
+          if (change != null && (!onceAReadGivesNothing || !gaveSomething))
           {
             final UpdateMsg msg = change;
             change = null;
@@ -542,6 +712,21 @@ public class MessageHandlerCatchUpTest extends ReplicationTestCase
     assertThat(csnsOf(sent)).containsExactlyElementsOf(csnsOf(expected));
     assertThat(sent.get(1).fromTheChangelog)
         .as("the handler did not go back to its queue, which holds every change the consumer lacks")
+        .isFalse();
+    assertThat(handler.isFollowing()).isTrue();
+  }
+
+  /**
+   * The handler sends the given changes, in order, and serves the last one from its queue: it is
+   * handed to the queue once a read of the changelog gave nothing, see {@link ChangeAfterTheRead}.
+   */
+  private void assertServedFromTheQueueAfterAReadGaveNothing(MessageHandler handler, List<UpdateMsg> expected)
+      throws Exception
+  {
+    final List<Sent> sent = nextMessages(handler, expected.size());
+    assertThat(csnsOf(sent)).containsExactlyElementsOf(csnsOf(expected));
+    assertThat(sent.get(sent.size() - 1).fromTheChangelog)
+        .as("the handler did not go back to its queue once the changelog had nothing more for the consumer")
         .isFalse();
     assertThat(handler.isFollowing()).isTrue();
   }

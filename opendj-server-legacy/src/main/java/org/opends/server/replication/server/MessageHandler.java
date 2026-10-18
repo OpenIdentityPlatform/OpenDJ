@@ -82,11 +82,13 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   private boolean following;
   /**
    * For each replica, the newest of its changes the queue may lack: the changes the domain held
-   * when it handed the queue its first change - the domain hands it every change it receives once
-   * the handler is registered, and the ones before never reached it - and the changes the queue
-   * dropped when it was full. The consumer must have those the changelog still holds before it is
-   * served from the queue again, see {@link #consumerHasWhatTheQueueLacks()}. Guarded by
-   * {@link #msgQueue}.
+   * when it handed the queue its first change - the ones before never reached it - and the changes
+   * the queue dropped when it was full. Once the handler is registered, the domain hands it every
+   * change it receives which is meant for its consumer: a peer replication server is handed only
+   * the changes of the directory servers connected to this one, and a directory server nothing
+   * while its status is bad generation id or full update, which it leaves only with a new session.
+   * The consumer must have those the changelog still holds before it is served from the queue
+   * again, see {@link #consumerHasWhatTheQueueLacks(ServerState)}. Guarded by {@link #msgQueue}.
    */
   private final ServerState queueLacksUpTo = new ServerState();
   /** Whether the queue has been handed a change yet. Guarded by {@link #msgQueue}. */
@@ -177,27 +179,45 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
 
   /**
    * Whether the consumer has every change the queue may lack which the changelog still holds - see
-   * {@link #queueLacksUpTo}. A change the changelog no longer holds, such as one of a changelog
-   * cleared for a new generation id, cannot be read from it either: it does not keep this handler
-   * from its queue.
+   * {@link #queueLacksUpTo} and {@link #consumerLacksFromTheChangelog(CSN, ServerState)}.
    * <p>
    * Must be called while holding the {@link #msgQueue} monitor.
    *
+   * @param inTheChangelog
+   *          the newest change of each replica the changelog holds
    * @return {@code true} when the queue lacks nothing the consumer may still be sent
    */
-  private boolean consumerHasWhatTheQueueLacks()
+  private boolean consumerHasWhatTheQueueLacks(ServerState inTheChangelog)
   {
-    final ServerState inTheChangelog = replicationServerDomain.getLatestServerState();
     for (CSN lacked : queueLacksUpTo)
     {
-      final CSN newest = inTheChangelog.getCSN(lacked.getServerId());
-      final CSN sent = serverState.getCSN(lacked.getServerId());
-      if (!serverState.cover(lacked) && newest != null && (sent == null || newest.isNewerThan(sent)))
+      if (consumerLacksFromTheChangelog(lacked, inTheChangelog))
       {
         return false;
       }
     }
     return true;
+  }
+
+  /**
+   * Whether the consumer lacks the given change, and a read of the changelog can still give it the
+   * changes of that replica it lacks. A change the changelog no longer holds, such as one of a
+   * changelog cleared for a new generation id, cannot be read from it: once the consumer has every
+   * change of its replica the changelog holds, no read gives anything more of that replica, and such
+   * a change must not keep this handler from its queue.
+   *
+   * @param csn
+   *          the CSN of the change
+   * @param inTheChangelog
+   *          the newest change of each replica the changelog holds
+   * @return {@code true} when the consumer lacks the change and the changelog holds a change of its
+   *         replica the consumer lacks
+   */
+  private boolean consumerLacksFromTheChangelog(CSN csn, ServerState inTheChangelog)
+  {
+    final CSN newest = inTheChangelog.getCSN(csn.getServerId());
+    final CSN sent = serverState.getCSN(csn.getServerId());
+    return !serverState.cover(csn) && newest != null && (sent == null || newest.isNewerThan(sent));
   }
 
   private boolean isMsgQueueAboveThreshold()
@@ -385,7 +405,8 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
               // msgQueue without fearing the msgQueue gets trimmed.
               // The changelog was read without the lock: a change written since may have been
               // dropped from the queue already
-              if (isMsgQueueBelowThreshold() && consumerHasWhatTheQueueLacks())
+              if (isMsgQueueBelowThreshold()
+                  && consumerHasWhatTheQueueLacks(replicationServerDomain.getLatestServerState()))
               {
                 following = true;
               }
@@ -406,6 +427,8 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
              * the changes before it are ones the consumer has: one such late change may have reached
              * the queue since the changelog was read. Served from the queue then, the consumer would
              * not be sent those changes, and its state would move past them for good - see #1206.
+             * Only the changes the changelog can still give count: a read which gives nothing but
+             * replica offline messages would otherwise be made again and again, with no wait.
              */
             UpdateMsg msg = lateQueue.first();
             synchronized (msgQueue)
@@ -419,9 +442,10 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
                }
               }
 
+              final ServerState inTheChangelog = replicationServerDomain.getLatestServerState();
               if (msgQueue.contains(msg)
-                  && consumerHasWhatTheQueueLacks()
-                  && msgQueue.isCoveredBefore(msg, serverState))
+                  && consumerHasWhatTheQueueLacks(inTheChangelog)
+                  && !msgQueue.holdsAChangeBefore(msg, csn -> consumerLacksFromTheChangelog(csn, inTheChangelog)))
               {
                 /* we finally catch up with the regular queue */
                 following = true;
@@ -451,8 +475,11 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
 
             if (lateQueue.isEmpty() && msgQueue.isEmpty())
             {
+              // no change left after the state of the consumer means it has what the queue lacks,
+              // unless the changelog could not be read
               CSN nextChange = findOldestCSNFromReplicaDBs();
-              if (nextChange == null)
+              if (nextChange == null
+                  && consumerHasWhatTheQueueLacks(replicationServerDomain.getLatestServerState()))
               {
                 following = true;
               }

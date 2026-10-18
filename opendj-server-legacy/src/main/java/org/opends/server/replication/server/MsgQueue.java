@@ -20,12 +20,12 @@ package org.opends.server.replication.server;
 import static org.opends.messages.ReplicationMessages.*;
 
 import java.util.TreeMap;
+import java.util.function.Predicate;
 
 import net.jcip.annotations.ThreadSafe;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 
 /**
@@ -180,29 +180,28 @@ public class MsgQueue
   }
 
   /**
-   * Returns whether the given state covers every UpdateMsg of this queue which comes before the
-   * given one and carries the CSN of a change: a replica offline message, for one, does not, and
-   * no state ever covers its CSN.
+   * Returns whether this queue holds, before the given UpdateMsg, an UpdateMsg which carries the
+   * CSN of a change and matches the given condition: a replica offline message, for one, does not
+   * carry the CSN of a change, and no state ever covers its CSN.
    *
    * @param msg
    *          the UpdateMsg the ones to check come before
-   * @param state
-   *          the state which must cover them
-   * @return {@code true} if the given state covers every change of this queue before the given
-   *         UpdateMsg
+   * @param condition
+   *          the condition the CSN of a change must match
+   * @return {@code true} if a change of this queue before the given UpdateMsg matches the condition
    */
-  public boolean isCoveredBefore(UpdateMsg msg, ServerState state)
+  public boolean holdsAChangeBefore(UpdateMsg msg, Predicate<CSN> condition)
   {
     synchronized (lock)
     {
       for (UpdateMsg before : map.headMap(msg.getCSN()).values())
       {
-        if (before.contributesToDomainState() && !state.cover(before.getCSN()))
+        if (before.contributesToDomainState() && condition.test(before.getCSN()))
         {
-          return false;
+          return true;
         }
       }
-      return true;
+      return false;
     }
   }
 
