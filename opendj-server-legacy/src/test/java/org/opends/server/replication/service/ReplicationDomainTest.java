@@ -43,11 +43,14 @@ import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.protocol.ByteArrayBuilder;
 import org.opends.server.replication.protocol.ErrorMsg;
+import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.ServerHandler;
 import org.opends.server.replication.service.ReplicationDomain.ImportExportContext;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.tasks.InitializeTask;
@@ -781,6 +784,138 @@ public class ReplicationDomainTest extends ReplicationTestCase
       stop(broker11, broker2);
       remove(replServer1, replServer2);
     }
+  }
+
+  @DataProvider
+  public Object[][] errorMsgIDsOfAPeer()
+  {
+    return new Object[][] {
+      // the generation id warning, as replication servers send it since OpenDJ 3.0 and as OpenDJ 2.6 sends it
+      { "org.opends.messages.replication-77", true },
+      { "14811213", true },
+      // another message, in either form
+      { "org.opends.messages.replication-78", false },
+      { "14811214", false },
+    };
+  }
+
+  /**
+   * Of the ErrorMsgs a peer replication server sends to the server id of a replication server, only the
+   * generation id warning stays with the replication server, in either form of the id of its message;
+   * the replica with that server id gets the others (issue #1207). A replication server of this version
+   * sends only the form used since OpenDJ 3.0, so the peer here sends ErrorMsgs decoded from their bytes.
+   */
+  @Test(dataProvider = "errorMsgIDsOfAPeer")
+  public void onlyTheGenerationIdWarningOfAPeerStaysWithTheReplicationServer(String msgID,
+      boolean staysWithTheReplicationServer) throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer1 = null;
+    ReplicationServer replServer2 = null;
+    ReplicationBroker broker11 = null;
+
+    try
+    {
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      replServer1 = createReplicationServer(11, ports[0], "errorMsgOfAPeer1", 100);
+      replServer2 = createReplicationServer(12, ports[1], "errorMsgOfAPeer2", 100, "localhost:" + ports[0]);
+      broker11 = openReplicationSession(testService, 11, 100, ports[0], 1000);
+      // a replication server connects to its peers for the domains it has
+      replServer2.getReplicationServerDomain(testService, true);
+      waitReplicationServerConnected(replServer1, testService, 12);
+      waitReplicationServerConnected(replServer2, testService, 11);
+      TestCaseUtils.ERROR_TEXT_WRITER.clear();
+
+      ServerHandler toReplServer1 = replServer2.getReplicationServerDomain(testService).getConnectedRSs().get(11);
+      String details = "error " + msgID;
+      toReplServer1.send(errorMsg(12, 11, msgID, details));
+      // sent on the same connection after the first one: the replica gets the first one before it, or never
+      String lastDetails = "last error";
+      toReplServer1.send(errorMsg(12, 11, "org.opends.messages.replication-78", lastDetails));
+
+      List<String> received = receiveErrorMsgsUntil(broker11, lastDetails);
+      if (staysWithTheReplicationServer)
+      {
+        assertFalse(received.contains(details), "DS(11) received the generation id warning " + msgID);
+        waitErrorMsgReceived(details);
+      }
+      else
+      {
+        assertTrue(received.contains(details), "DS(11) did not receive the ErrorMsg " + msgID + ": " + received);
+      }
+    }
+    finally
+    {
+      stop(broker11);
+      remove(replServer1, replServer2);
+    }
+  }
+
+  /**
+   * Returns an ErrorMsg that carries the provided id of message, decoded from its bytes as a replication
+   * server decodes it: the constructors of ErrorMsg build that id from the details.
+   */
+  private static ErrorMsg errorMsg(int senderId, int destination, String msgID, String details) throws Exception
+  {
+    byte[] bytes = new ByteArrayBuilder()
+        .appendByte(14) // ReplicationMsg.MSG_TYPE_ERROR
+        .appendIntUTF8(senderId)
+        .appendIntUTF8(destination)
+        .appendString(msgID)
+        .appendString(details)
+        .appendLongUTF8(System.currentTimeMillis())
+        .toByteArray();
+    return (ErrorMsg) ReplicationMsg.generateMsg(bytes, ProtocolVersion.getCurrentVersion());
+  }
+
+  /** Returns the details of the ErrorMsgs the replica receives before the one with the provided details. */
+  private List<String> receiveErrorMsgsUntil(ReplicationBroker broker, String lastDetails) throws Exception
+  {
+    final List<String> received = newArrayList();
+    final long deadline = System.currentTimeMillis() + SECONDS.toMillis(30);
+    while (System.currentTimeMillis() < deadline)
+    {
+      final ReplicationMsg msg;
+      try
+      {
+        msg = broker.receive();
+      }
+      catch (SocketTimeoutException e)
+      {
+        continue;
+      }
+      assertNotNull(msg, "DS(" + broker.getServerId() + ") lost its connection");
+      if (msg instanceof ErrorMsg)
+      {
+        final String details = ((ErrorMsg) msg).getDetails().toString();
+        if (details.equals(lastDetails))
+        {
+          return received;
+        }
+        received.add(details);
+      }
+    }
+    throw new AssertionError("DS(" + broker.getServerId() + ") did not receive the ErrorMsg '" + lastDetails
+        + "', only " + received);
+  }
+
+  private void waitReplicationServerConnected(ReplicationServer replServer, DN baseDN, int peerId) throws Exception
+  {
+    newTimer().repeatUntilSuccess(() -> assertTrue(
+        replServer.getReplicationServerDomain(baseDN, true).getConnectedRSs().containsKey(peerId),
+        "RS(" + peerId + ") connected to " + replServer.getMonitorInstanceName()));
+  }
+
+  /** Waits for the error log record in which a replication server reports the ErrorMsg it kept. */
+  private void waitErrorMsgReceived(String details) throws Exception
+  {
+    final String received = ERR_ERROR_MSG_RECEIVED.get(details).toString();
+    newTimer().repeatUntilSuccess(() ->
+    {
+      final List<String> records = TestCaseUtils.ERROR_TEXT_WRITER.getMessages();
+      assertTrue(records.stream().anyMatch(record -> record.contains(received)),
+          "no replication server reported the ErrorMsg '" + details + "': " + records);
+    });
   }
 
   /**

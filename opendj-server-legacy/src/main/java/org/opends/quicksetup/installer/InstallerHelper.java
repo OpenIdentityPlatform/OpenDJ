@@ -787,7 +787,8 @@ public class InstallerHelper {
    * server of an earlier version takes the total update messages sent to its own ID as messages for
    * itself, and the assured replication counts the acknowledgments of a replication server and of a
    * directory server with the same ID as one. The set only holds what the descriptors carry: the
-   * domains of the base DNs they were loaded for, and nothing of a server that has no descriptor.
+   * domains of the backend base DNs they were loaded for, not a domain of another base DN such as one
+   * below a backend base DN, and nothing of a server that has no descriptor.
    *
    * @param servers the servers of the topology.
    * @return the server IDs that the replication servers and the replication domains of the provided

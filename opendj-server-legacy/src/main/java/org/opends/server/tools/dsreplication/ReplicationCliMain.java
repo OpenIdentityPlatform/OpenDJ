@@ -4593,7 +4593,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private void updateConfiguration(ConnectionWrapper conn1, ConnectionWrapper conn2, EnableReplicationUserData uData)
       throws ReplicationCliException
   {
-    // Every base DN: a new replication server takes an id that no domain of any base DN has (issue #1207).
+    // Every base DN: a new replication server takes an id that no domain of any backend base DN has (issue #1207).
     // The filter only decides which of the backends and domains read anyway the descriptors keep.
     final TopologyCacheFilter filter = new TopologyCacheFilter();
     filter.setSearchMonitoringInformation(false);
@@ -5002,7 +5002,9 @@ public class ReplicationCliMain extends ConsoleApplication
 
   /**
    * Returns the server ids that the replication servers and the replication domains of the two
-   * servers and of their topologies use, in one set (issue #1207).
+   * servers and of their topologies use, in one set (issue #1207). Only the domains of a backend base
+   * DN are in it: the descriptors give a domain id only to the replica of the backend base DN of the
+   * domain, so the id of a domain of another base DN, such as one below a backend base DN, is not.
    */
   static Set<Integer> getUsedServerIds(TopologyCache cache1, TopologyCache cache2,
       ServerDescriptor... servers)
