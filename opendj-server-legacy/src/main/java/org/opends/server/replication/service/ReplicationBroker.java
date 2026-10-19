@@ -2259,7 +2259,7 @@ public class ReplicationBroker
    */
   public void publish(ReplicationMsg msg)
   {
-    publish(msg, false, true);
+    publish(msg, false, true, null);
   }
 
   /**
@@ -2270,16 +2270,40 @@ public class ReplicationBroker
    */
   boolean publish(ReplicationMsg msg, boolean retryOnFailure)
   {
-    return publish(msg, false, retryOnFailure);
+    return publish(msg, false, retryOnFailure, null);
   }
 
   /**
-   * Publish a recovery message to the other servers.
-   * @param msg the message to publish
+   * Returns the session this broker publishes on, which a recovery started for it publishes on:
+   * see {@link #publishRecovery(ReplicationMsg, Session)}.
+   *
+   * @return the session this broker publishes on, or {@code null} if it has none
    */
-  public void publishRecovery(ReplicationMsg msg)
+  public Session getSession()
   {
-    publish(msg, true, true);
+    return connectedRS.get().session;
+  }
+
+  /**
+   * Publish a recovery message to the other servers, on the provided session only.
+   * <p>
+   * A recovery publishes what the replication server of its session misses, and that one only: the
+   * replication server of a session which replaced it may miss older changes, and would take none
+   * of them once it had a newer one. The message is refused rather than published on another
+   * session.
+   *
+   * @param msg the message to publish
+   * @param session the session the recovery publishes on, as {@link #getSession()} returned it
+   *        when the recovery was started for it
+   * @return {@code false} if the broker refused the message: no replication
+   *         server was reachable, the session is not the one the broker publishes
+   *         on anymore, or the broker was stopped; {@code true} once the session
+   *         took it - which still drops it if it is closing, as it does any
+   *         message the broker publishes.
+   */
+  public boolean publishRecovery(ReplicationMsg msg, Session session)
+  {
+    return publish(msg, true, true, session);
   }
 
   /**
@@ -2287,10 +2311,11 @@ public class ReplicationBroker
    * @param msg the message to publish
    * @param recoveryMsg the message is a recovery LocalizableMessage
    * @param retryOnFailure whether retry should be done on failure
+   * @param recoverySession the only session a recovery message may be published on
    * @return whether the message was successfully sent.
    */
   private boolean publish(ReplicationMsg msg, boolean recoveryMsg,
-      boolean retryOnFailure)
+      boolean retryOnFailure, Session recoverySession)
   {
     boolean done = false;
 
@@ -2338,8 +2363,23 @@ public class ReplicationBroker
         recover some changes then it is not allowed to send this
         change but it will be the responsibility of the recovery thread to
         do it.
+        The messages which are no change of this replica - acknowledgements,
+        total updates, monitoring requests, the reset of the generation ID -
+        do not wait for the recovery (issue #1220): only a change, or the
+        announcement that the replica goes offline, which carries its newest
+        CSN, would get to the replication server ahead of the changes it misses.
         */
-        if (!recoveryMsg & connectRequiresRecovery)
+        if (!recoveryMsg && connectRequiresRecovery && msg instanceof UpdateMsg)
+        {
+          return false;
+        }
+        /*
+        A recovery message is for the session the recovery was started for:
+        the one which replaced it has a recovery of its own, from what its
+        replication server holds. The write below takes the message only on
+        the session read here.
+        */
+        if (recoveryMsg && (recoverySession == null || currentSession != recoverySession))
         {
           return false;
         }

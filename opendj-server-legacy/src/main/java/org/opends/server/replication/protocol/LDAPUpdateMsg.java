@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -200,6 +201,20 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   public void encode()
   {
     bytes = getBytes(ProtocolVersion.getCurrentVersion());
+  }
+
+  /**
+   * Has this message published as one no acknowledgement is waited for: it is no longer assured,
+   * and is encoded again. A recovery publishes the local changes it kept so, as it publishes the
+   * changes it rebuilds from the historical information: an operation which still waits for the
+   * acknowledgement of one gets none, and times out.
+   *
+   * This method is not synchronized and therefore not MT safe.
+   */
+  public void setNotAssured()
+  {
+    setAssured(false);
+    bytes = null;
   }
 
   /** {@inheritDoc} */
