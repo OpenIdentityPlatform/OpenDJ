@@ -3186,15 +3186,14 @@ public class ReplicationBroker
         rsInfo.setLocallyConfigured(false);
         return;
       }
-      for (String serverUrl : configuredReplicationServerUrls)
+      final String serverUrl =
+          findEquivalentConfiguredUrl(rsUrl, configuredReplicationServerUrls);
+      if (serverUrl != null)
       {
-        if (isSameReplicationServerUrl(serverUrl, rsUrl))
-        {
-          // This RS is locally configured, mark this
-          rsInfo.setLocallyConfigured(true);
-          rsInfo.setServerURL(serverUrl);
-          return;
-        }
+        // This RS is locally configured, mark this
+        rsInfo.setLocallyConfigured(true);
+        rsInfo.setServerURL(serverUrl);
+        return;
       }
       rsInfo.setLocallyConfigured(false);
     }
@@ -3209,16 +3208,18 @@ public class ReplicationBroker
      * resolution, unlike setLocallyConfiguredFlag(): a server found
      * locally configured is known with the configured URL, and a phase-one
      * handshake names a server with the configured URL it reached it at. So a
-     * resolution failing for a moment cannot take the flag from the server the
-     * broker is connected to.
+     * resolution failing for a moment cannot take the flag from a server known
+     * with a configured URL.
      * <p>
      * A server which has the flag, but whose URL the configured ones no longer
-     * have, is checked once more as a new server is, resolving host names: the
-     * configured URL may only have been written another way, and the restart of
-     * the session which a change of the configuration asks for is refused while
-     * a total update into this replica runs. A server found so is known with the
-     * configured URL from then on; any other loses the flag, and is not resolved
-     * again.
+     * have, is checked once more, resolving host names, with the URL it is known
+     * with and then with the one it comes with, which is the URL a new server is
+     * checked with: the configured URL may only have been written another way,
+     * and the restart of the session which a change of the configuration asks
+     * for is refused while a total update into this replica runs. A server found
+     * so is known with the configured URL from then on; any other loses the
+     * flag, keeps the URL it is known with, and is not resolved again. A
+     * resolution failing at that moment takes the flag.
      *
      * @param rsInfo
      *          the Replication server to check and update
@@ -3246,7 +3247,19 @@ public class ReplicationBroker
       }
       else if (wasLocallyConfigured)
       {
-        setLocallyConfiguredFlag(rsInfo, configuredReplicationServerUrls);
+        String configuredUrl = findEquivalentConfiguredUrl(knownServerUrl,
+            configuredReplicationServerUrls);
+        if (configuredUrl == null
+            && !Objects.equals(newServerUrl, knownServerUrl))
+        {
+          configuredUrl = findEquivalentConfiguredUrl(newServerUrl,
+              configuredReplicationServerUrls);
+        }
+        rsInfo.setLocallyConfigured(configuredUrl != null);
+        if (configuredUrl != null)
+        {
+          rsInfo.setServerURL(configuredUrl);
+        }
       }
       else
       {
@@ -3270,6 +3283,33 @@ public class ReplicationBroker
     {
       // A server with no URL (protocol version < 4) cannot be connected to
       return rsUrl != null && configuredReplicationServerUrls.contains(rsUrl);
+    }
+
+    /**
+     * Returns the configured replication server URL which names the same server
+     * as the passed URL, resolving host names.
+     *
+     * @param rsUrl
+     *          the URL of the server, or null if it has none
+     * @param configuredReplicationServerUrls
+     *          the configured replication server URLs
+     * @return the configured URL which names the same server, or null if none
+     *         does or if the server has no URL
+     */
+    private String findEquivalentConfiguredUrl(String rsUrl,
+        Set<String> configuredReplicationServerUrls)
+    {
+      if (rsUrl != null)
+      {
+        for (String serverUrl : configuredReplicationServerUrls)
+        {
+          if (isSameReplicationServerUrl(serverUrl, rsUrl))
+          {
+            return serverUrl;
+          }
+        }
+      }
+      return null;
     }
 
     @Override
