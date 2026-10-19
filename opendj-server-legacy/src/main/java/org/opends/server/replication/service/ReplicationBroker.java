@@ -3126,6 +3126,8 @@ public class ReplicationBroker
         {
           // Update the existing info for the replication server
           rsInfo.update(newRSInfo, connectedDSs);
+          updateLocallyConfiguredFlag(rsInfo, newRSInfo.getServerUrl(),
+              configuredReplicationServerUrls, dsServerId);
         }
       }
 
@@ -3184,17 +3186,130 @@ public class ReplicationBroker
         rsInfo.setLocallyConfigured(false);
         return;
       }
-      for (String serverUrl : configuredReplicationServerUrls)
+      final String serverUrl =
+          findEquivalentConfiguredUrl(rsUrl, configuredReplicationServerUrls);
+      if (serverUrl != null)
       {
-        if (isSameReplicationServerUrl(serverUrl, rsUrl))
-        {
-          // This RS is locally configured, mark this
-          rsInfo.setLocallyConfigured(true);
-          rsInfo.setServerURL(serverUrl);
-          return;
-        }
+        // This RS is locally configured, mark this
+        rsInfo.setLocallyConfigured(true);
+        rsInfo.setServerURL(serverUrl);
+        return;
       }
       rsInfo.setLocallyConfigured(false);
+    }
+
+    /**
+     * Sets the locally configured flag for a ReplicationServerInfo object the
+     * previous topology already had: the configured replication servers may
+     * have changed since its flag was set.
+     * <p>
+     * The server is locally configured when the URL it is known with, or the
+     * one it now comes with, is a configured one. This needs no host name
+     * resolution, unlike setLocallyConfiguredFlag(): a server found
+     * locally configured is known with the configured URL, and a phase-one
+     * handshake names a server with the configured URL it reached it at. So a
+     * resolution failing for a moment cannot take the flag from a server known
+     * with a configured URL.
+     * <p>
+     * A server which has the flag, but whose URL the configured ones no longer
+     * have, is checked once more, resolving host names, with the URL it is known
+     * with and then with the one it comes with, which is the URL a new server is
+     * checked with: the configured URL may only have been written another way,
+     * and the restart of the session which a change of the configuration asks
+     * for is refused while a total update into this replica runs. A server found
+     * so is known with the configured URL from then on; any other loses the
+     * flag, keeps the URL it is known with, and is not resolved again. A
+     * resolution failing at that moment takes the flag.
+     *
+     * @param rsInfo
+     *          the Replication server to check and update
+     * @param newServerUrl
+     *          the URL the server comes with in the new topology
+     * @param configuredReplicationServerUrls
+     *          the configured replication server URLs
+     * @param dsServerId
+     *          the server id of the local DS, for the trace
+     */
+    private void updateLocallyConfiguredFlag(ReplicationServerInfo rsInfo,
+        String newServerUrl, Set<String> configuredReplicationServerUrls,
+        int dsServerId)
+    {
+      final boolean wasLocallyConfigured = rsInfo.isLocallyConfigured();
+      final String knownServerUrl = rsInfo.getServerURL();
+      if (isConfigured(knownServerUrl, configuredReplicationServerUrls))
+      {
+        rsInfo.setLocallyConfigured(true);
+      }
+      else if (isConfigured(newServerUrl, configuredReplicationServerUrls))
+      {
+        rsInfo.setLocallyConfigured(true);
+        rsInfo.setServerURL(newServerUrl);
+      }
+      else if (wasLocallyConfigured)
+      {
+        String configuredUrl = findEquivalentConfiguredUrl(knownServerUrl,
+            configuredReplicationServerUrls);
+        if (configuredUrl == null
+            && !Objects.equals(newServerUrl, knownServerUrl))
+        {
+          configuredUrl = findEquivalentConfiguredUrl(newServerUrl,
+              configuredReplicationServerUrls);
+        }
+        rsInfo.setLocallyConfigured(configuredUrl != null);
+        if (configuredUrl != null)
+        {
+          rsInfo.setServerURL(configuredUrl);
+        }
+      }
+      else
+      {
+        rsInfo.setLocallyConfigured(false);
+      }
+
+      // The previous topology holds the same object, so its comparison with the
+      // new one cannot show this change
+      if (logger.isTraceEnabled()
+          && (wasLocallyConfigured != rsInfo.isLocallyConfigured()
+              || !Objects.equals(knownServerUrl, rsInfo.getServerURL())))
+      {
+        logger.trace("RS(%d) on DS(%d): locally configured %s -> %s, URL %s -> %s",
+            rsInfo.getServerId(), dsServerId, wasLocallyConfigured,
+            rsInfo.isLocallyConfigured(), knownServerUrl, rsInfo.getServerURL());
+      }
+    }
+
+    private boolean isConfigured(String rsUrl,
+        Set<String> configuredReplicationServerUrls)
+    {
+      // A server with no URL (protocol version < 4) cannot be connected to
+      return rsUrl != null && configuredReplicationServerUrls.contains(rsUrl);
+    }
+
+    /**
+     * Returns the configured replication server URL which names the same server
+     * as the passed URL, resolving host names.
+     *
+     * @param rsUrl
+     *          the URL of the server, or null if it has none
+     * @param configuredReplicationServerUrls
+     *          the configured replication server URLs
+     * @return the configured URL which names the same server, or null if none
+     *         does or if the server has no URL
+     */
+    private String findEquivalentConfiguredUrl(String rsUrl,
+        Set<String> configuredReplicationServerUrls)
+    {
+      if (rsUrl != null)
+      {
+        for (String serverUrl : configuredReplicationServerUrls)
+        {
+          if (isSameReplicationServerUrl(serverUrl, rsUrl))
+          {
+            return serverUrl;
+          }
+        }
+      }
+      return null;
     }
 
     @Override
