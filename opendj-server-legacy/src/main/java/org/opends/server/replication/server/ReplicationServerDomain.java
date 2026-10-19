@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2026 3A Systems, LLC
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -148,6 +148,19 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
   /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /**
+   * The id of the message of the warning a peer replication server sends when the generation ids
+   * differ, in the form an ErrorMsg carries it on the wire since OpenDJ 3.0.
+   */
+  private static final String GENERATION_ID_WARNING_MSG_ID =
+      WARN_BAD_GENERATION_ID_FROM_RS.resourceName() + "-" + WARN_BAD_GENERATION_ID_FROM_RS.ordinal();
+
+  /**
+   * The id an OpenDJ 2.6 replication server gives the same warning: the numeric id of its message
+   * descriptor, category SYNC (0x00E00000), severity SEVERE_WARNING (0x00020000), ordinal 77.
+   */
+  private static final String GENERATION_ID_WARNING_MSG_ID_2X = String.valueOf(0x00E00000 | 0x00020000 | 77);
 
   /**
    * The needed info for each received assured update message we are waiting
@@ -1194,13 +1207,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
             stopMonitoringPublisher();
           }
 
-          if (connectedRSs.containsKey(sHandler.getServerId()))
+          // The handler, not its server id, tells which of the two maps holds it: a directory server
+          // can have the server id of a replication server (issue #1207)
+          final boolean isDataServer = !sHandler.isReplicationServer();
+          final Map<Integer, ? extends ServerHandler> connectedServers = isDataServer ? connectedDSs : connectedRSs;
+          if (connectedServers.containsKey(sHandler.getServerId()))
           {
-            unregisterServerHandler(sHandler, shutdown, false);
-          }
-          else if (connectedDSs.containsKey(sHandler.getServerId()))
-          {
-            unregisterServerHandler(sHandler, shutdown, true);
+            unregisterServerHandler(sHandler, shutdown, isDataServer);
           }
         }
         catch(Exception e)
@@ -1569,6 +1582,12 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   /**
    * Processes a message coming from one server in the topology and potentially
    * forwards it to one or all other servers.
+   * <p>
+   * A directory server that has the server id of this replication server gets the messages sent to
+   * that id: a replication server holds no data to export or import, so the total update messages
+   * routed by id are for the directory server. Only the warning of a peer replication server about
+   * the generation id, and a message no directory server with the id can get, are for this
+   * replication server.
    *
    * @param msg
    *          The message received and to be processed.
@@ -1577,7 +1596,18 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   void process(RoutableMsg msg, ServerHandler sender)
   {
-    if (msg.getDestination() == localReplicationServer.getServerId())
+    if (isGenerationIdWarningOfAPeer(msg, sender))
+    {
+      logger.error(ERR_ERROR_MSG_RECEIVED, ((ErrorMsg) msg).getDetails());
+      return;
+    }
+
+    List<ServerHandler> servers = getDestinationServers(msg, sender);
+    if (!servers.isEmpty())
+    {
+      forwardMsgToAllServers(msg, servers, sender);
+    }
+    else if (msg.getDestination() == localReplicationServer.getServerId())
     {
       // Handle routable messages targeted at this RS.
       if (msg instanceof ErrorMsg)
@@ -1592,17 +1622,33 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
     else
     {
-      // Forward message not destined for this RS.
-      List<ServerHandler> servers = getDestinationServers(msg, sender);
-      if (!servers.isEmpty())
-      {
-        forwardMsgToAllServers(msg, servers, sender);
-      }
-      else
-      {
-        replyWithUnreachablePeerMsg(sender, msg);
-      }
+      replyWithUnreachablePeerMsg(sender, msg);
     }
+  }
+
+  /**
+   * Returns whether the message is the warning a peer replication server sends this one when their
+   * generation ids differ (see {@link #receiveTopoInfoFromRS}). A directory server with the server id
+   * of this replication server must not get it: it would take it for the end of the total update it
+   * is in. The warning is told from the other messages a peer replication server sends to that id by
+   * the id of its message (see {@link #isGenerationIdWarningMsgID(String)}).
+   */
+  private boolean isGenerationIdWarningOfAPeer(RoutableMsg msg, ServerHandler sender)
+  {
+    return sender.isReplicationServer()
+        && msg.getDestination() == localReplicationServer.getServerId()
+        && msg instanceof ErrorMsg
+        && isGenerationIdWarningMsgID(((ErrorMsg) msg).getMsgID());
+  }
+
+  /**
+   * Returns whether the id of the message an ErrorMsg carries is the one of the warning about the
+   * generation id: {@code <resource name>-<ordinal>} as replication servers send it since OpenDJ 3.0,
+   * or the numeric id of the message descriptor as an OpenDJ 2.6 replication server sends it.
+   */
+  static boolean isGenerationIdWarningMsgID(String msgID)
+  {
+    return GENERATION_ID_WARNING_MSG_ID.equals(msgID) || GENERATION_ID_WARNING_MSG_ID_2X.equals(msgID);
   }
 
   /**
@@ -2725,8 +2771,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     startMonitoringPublisher();
 
+    final int serverId = dsHandler.getServerId();
+    if (serverId == localReplicationServer.getServerId() || connectedRSs.containsKey(serverId))
+    {
+      warnReplicaHasTheServerIdOfAReplicationServer(serverId);
+    }
+
     // connected with new DS: store handler.
-    connectedDSs.put(dsHandler.getServerId(), dsHandler);
+    connectedDSs.put(serverId, dsHandler);
 
     // Tell peer RSs and DSs a new DS just connected to us
     // No need to re-send TopologyMsg to this just new DS
@@ -2743,9 +2795,26 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     startMonitoringPublisher();
 
+    final int serverId = rsHandler.getServerId();
+    if (connectedDSs.containsKey(serverId))
+    {
+      warnReplicaHasTheServerIdOfAReplicationServer(serverId);
+    }
+
     // connected with new RS (either outgoing or incoming
     // connection): store handler.
-    connectedRSs.put(rsHandler.getServerId(), rsHandler);
+    connectedRSs.put(serverId, rsHandler);
+  }
+
+  /**
+   * Reports a directory server connected to this replication server that has the server id of a
+   * replication server. This replication server routes the messages sent to that id to the
+   * directory server, but a replication server of an earlier version keeps those messages for itself.
+   */
+  private void warnReplicaHasTheServerIdOfAReplicationServer(int serverId)
+  {
+    logger.warn(WARN_REPLICA_HAS_THE_SERVER_ID_OF_A_REPLICATION_SERVER,
+        localReplicationServer.getMonitorInstanceName(), serverId, baseDN, serverId);
   }
 
   private void debug(String message)

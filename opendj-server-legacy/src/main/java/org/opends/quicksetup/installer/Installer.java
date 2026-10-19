@@ -2166,41 +2166,23 @@ public class Installer extends GuiApplication
     notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CONFIGURING_REPLICATION.get()));
 
     InstallerHelper helper = new InstallerHelper();
-    Set<Integer> knownReplicaServerIds = new HashSet<>();
-    Set<Integer> knownReplicationServerIds = new HashSet<>();
+    final Set<Integer> knownServerIds;
     if (lastLoadedCache != null)
     {
-      for (SuffixDescriptor suffix : lastLoadedCache.getSuffixes())
-      {
-        for (ReplicaDescriptor replica : suffix.getReplicas())
-        {
-          knownReplicaServerIds.add(replica.getServerId());
-        }
-      }
-      for (ServerDescriptor server : lastLoadedCache.getServers())
-      {
-        Object v = server.getServerProperties().get(REPLICATION_SERVER_ID);
-        if (v != null)
-        {
-          knownReplicationServerIds.add((Integer) v);
-        }
-      }
+      knownServerIds = InstallerHelper.getUsedServerIds(lastLoadedCache.getServers());
     }
     else
     {
       /* There is no ADS anywhere. Just use the SuffixDescriptors we found */
+      Set<ServerDescriptor> servers = new HashSet<>();
       for (SuffixDescriptor suffix : getUserData().getSuffixesToReplicateOptions().getAvailableSuffixes())
       {
         for (ReplicaDescriptor replica : suffix.getReplicas())
         {
-          knownReplicaServerIds.add(replica.getServerId());
-          Object v = replica.getServer().getServerProperties().get(REPLICATION_SERVER_ID);
-          if (v != null)
-          {
-            knownReplicationServerIds.add((Integer) v);
-          }
+          servers.add(replica.getServer());
         }
       }
+      knownServerIds = InstallerHelper.getUsedServerIds(servers);
     }
 
     /*
@@ -2258,8 +2240,7 @@ public class Installer extends GuiApplication
       helper.configureReplication(conn, replicationServers,
           getUserData().getReplicationOptions().getReplicationPort(),
           getUserData().getReplicationOptions().useSecureReplication(),
-          knownReplicationServerIds,
-          knownReplicaServerIds);
+          knownServerIds);
       localTimeMeasureTime = System.currentTimeMillis();
       localTime = Utils.getServerClock(conn);
       localServerDisplay = conn.getHostPort();
@@ -2353,8 +2334,7 @@ public class Installer extends GuiApplication
         try (ConnectionWrapper conn = getRemoteConnection(server))
         {
           ConfiguredReplication repl = helper.configureReplication(
-              conn, remoteReplicationServers, replicationPort, enableSecureReplication,
-              knownReplicationServerIds, knownReplicaServerIds);
+              conn, remoteReplicationServers, replicationPort, enableSecureReplication, knownServerIds);
           long remoteTimeMeasureTime = System.currentTimeMillis();
           long remoteTime = Utils.getServerClock(conn);
           if (localTime != -1

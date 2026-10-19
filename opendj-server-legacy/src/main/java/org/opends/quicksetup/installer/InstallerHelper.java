@@ -69,6 +69,8 @@ import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn;
 import org.forgerock.opendj.server.config.meta.ReplicationServerCfgDefn;
 import org.forgerock.opendj.server.config.meta.ReplicationSynchronizationProviderCfgDefn;
 import org.forgerock.opendj.server.config.server.BackendCfg;
+import org.opends.admin.ads.ReplicaDescriptor;
+import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.BackendMessages;
@@ -388,17 +390,17 @@ public class InstallerHelper {
    * configured (it might not exist and the user specified it in the setup).
    * @param useSecureReplication whether to encrypt connections with the
    * replication port or not.
-   * @param usedReplicationServerIds the list of replication server ids that
-   * are already used.
-   * @param usedReplicaServerIds the list of server ids (domain ids) that
-   * are already used by replicas.
+   * @param usedServerIds the server ids that the replication servers and the
+   * replication domains of the topology already use, in one set (see
+   * {@link #getUsedServerIds(Collection)}). A new replication server or domain
+   * takes its id outside of it, and the set is updated with the ids of the
+   * replication server and of the domains of this server.
    * @throws ApplicationException if something goes wrong.
    * @return a ConfiguredReplication object describing what has been configured.
    */
   public ConfiguredReplication configureReplication(
       ConnectionWrapper conn, Map<DN, Set<HostPort>> replicationServers,
-      int replicationPort, boolean useSecureReplication, Set<Integer> usedReplicationServerIds,
-      Set<Integer> usedReplicaServerIds)
+      int replicationPort, boolean useSecureReplication, Set<Integer> usedServerIds)
   throws ApplicationException
   {
     boolean synchProviderCreated;
@@ -477,8 +479,7 @@ public class InstallerHelper {
         {
           secureReplicationEnabled = false;
         }
-        int id = getReplicationId(usedReplicationServerIds);
-        usedReplicationServerIds.add(id);
+        int id = addNewReplicationId(usedServerIds);
         replicationServer = sync.createReplicationServer(
             ReplicationServerCfgDefn.getInstance(),
             new ArrayList<PropertyException>());
@@ -490,8 +491,7 @@ public class InstallerHelper {
       {
         secureReplicationEnabled = false;
         replicationServer = sync.getReplicationServer();
-        usedReplicationServerIds.add(
-            replicationServer.getReplicationServerId());
+        usedServerIds.add(replicationServer.getReplicationServerId());
         replicationServerCreated = false;
       }
 
@@ -542,8 +542,7 @@ public class InstallerHelper {
         }
         if (domain == null)
         {
-          int replicaServerId = getReplicationId(usedReplicaServerIds);
-          usedReplicaServerIds.add(replicaServerId);
+          int replicaServerId = addNewReplicationId(usedServerIds);
           domainName = getDomainName(domainNames, dn);
           domain = sync.createReplicationDomain(
               ReplicationDomainCfgDefn.getInstance(), domainName,
@@ -563,7 +562,7 @@ public class InstallerHelper {
         }
         servers = toLowerCaseStrings(entry.getValue());
         domain.setReplicationServer(servers);
-        usedReplicaServerIds.add(domain.getServerId());
+        usedServerIds.add(domain.getServerId());
 
         domain.commit();
         Set<String> addedServers = intersect(servers, oldServers);
@@ -780,11 +779,48 @@ public class InstallerHelper {
   }
 
   /**
-   * Returns the ID to be used for a new replication server or domain.
-   * @param usedIds the list of already used ids.
+   * Returns the server IDs that the replication servers and the replication domains of the provided
+   * servers use, in one set.
+   * <p>
+   * A new replication server and a new replication domain both take their ID outside of this set, so
+   * that no replication domain of any base DN has the ID of a replication server: a replication
+   * server of an earlier version takes the total update messages sent to its own ID as messages for
+   * itself, and the assured replication counts the acknowledgments of a replication server and of a
+   * directory server with the same ID as one. The set only holds what the descriptors carry: the
+   * domains of the backend base DNs they were loaded for, not a domain of another base DN such as one
+   * below a backend base DN, and nothing of a server that has no descriptor.
+   *
+   * @param servers the servers of the topology.
+   * @return the server IDs that the replication servers and the replication domains of the provided
+   *         servers use.
+   */
+  public static Set<Integer> getUsedServerIds(Collection<ServerDescriptor> servers)
+  {
+    final Set<Integer> ids = new HashSet<>();
+    for (ServerDescriptor server : servers)
+    {
+      if (server.isReplicationServer())
+      {
+        ids.add(server.getReplicationServerId());
+      }
+      for (ReplicaDescriptor replica : server.getReplicas())
+      {
+        if (replica.isReplicated())
+        {
+          ids.add(replica.getServerId());
+        }
+      }
+    }
+    return ids;
+  }
+
+  /**
+   * Returns the ID to be used for a new replication server or domain, and adds it to the used ids,
+   * so that the next new replication server or domain takes another one (issue #1207).
+   * @param usedIds the already used ids. The new ID is taken outside of them and added to them.
    * @return the ID to be used for a new replication server or domain.
    */
-  public static int getReplicationId(Set<Integer> usedIds)
+  public static int addNewReplicationId(Set<Integer> usedIds)
   {
     Random r = new Random();
     int id = 0;
@@ -792,6 +828,7 @@ public class InstallerHelper {
     {
       id = r.nextInt(MAX_ID_VALUE);
     }
+    usedIds.add(id);
     return id;
   }
 

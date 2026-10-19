@@ -13,7 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2025-2026 3A Systems,LLC.
+ * Portions Copyright 2025-2026 3A Systems, LLC.
  */
 package org.opends.server.replication.service;
 
@@ -24,6 +24,8 @@ import static org.opends.server.TestCaseUtils.generateThreadDump;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
+import java.net.SocketTimeoutException;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.concurrent.BlockingQueue;
@@ -41,11 +43,14 @@ import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.protocol.ByteArrayBuilder;
 import org.opends.server.replication.protocol.ErrorMsg;
+import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.ServerHandler;
 import org.opends.server.replication.service.ReplicationDomain.ImportExportContext;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.tasks.InitializeTask;
@@ -537,6 +542,502 @@ public class ReplicationDomainTest extends ReplicationTestCase
       disable(domain1, domain2);
       remove(replServer1, replServer2);
     }
+  }
+
+  @DataProvider
+  public Object[][] replicaWithTheIdOfItsReplicationServer()
+  {
+    // the id of the replication server is 11
+    return new Object[][] {
+      { 1, 11 }, // the importer has it: InitializeTargetMsg and the entries are sent to 11
+      { 11, 2 }, // the exporter has it: InitializeRequestMsg and the acknowledgements are sent to 11
+    };
+  }
+
+  /**
+   * A replica whose server id is the one of the replication server it is connected to can be
+   * initialized, and can initialize others, through it (issue #1207).
+   * <p>
+   * The replication server takes a message for one of its replicas, not for itself: it has no data to
+   * export or import, and before the fix it answered every total update message sent to its own id
+   * with an ErrorMsg, so the total update never got through.
+   */
+  @Test(dataProvider = "replicaWithTheIdOfItsReplicationServer")
+  public void exportAndImportWithAReplicaHavingTheIdOfItsReplicationServer(int exporterId, int importerId)
+      throws Exception
+  {
+    final int ENTRYCOUNT = 100;
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer = null;
+    FakeReplicationDomain exporter = null;
+    FakeReplicationDomain importer = null;
+
+    try
+    {
+      int replServerPort = TestCaseUtils.findFreePort();
+      replServer = createReplicationServer(11, replServerPort, "replicaWithTheIdOfItsRS", 100);
+      SortedSet<String> servers = newTreeSet("localhost:" + replServerPort);
+
+      String exportedData = buildExportedData(ENTRYCOUNT);
+      exporter = new FakeReplicationDomain(testService, exporterId, servers, 0, exportedData, null, ENTRYCOUNT);
+      StringBuffer importedData = new StringBuffer();
+      importer = new FakeReplicationDomain(testService, importerId, servers, 0, null, importedData, 0);
+      waitTopologyKnowsReplica(importer, exporterId);
+      waitTopologyKnowsReplica(exporter, importerId);
+
+      importer.initializeFromRemote(exporterId, NO_INIT_TASK);
+
+      waitEndExport(exportedData, importedData);
+      assertExportSucessful(exporter, importer, exportedData, importedData);
+    }
+    finally
+    {
+      disable(exporter, importer);
+      remove(replServer);
+    }
+  }
+
+  @DataProvider
+  public Object[][] replicaWithTheIdOfAnotherReplicationServer()
+  {
+    // the replica with the id of the first replication server, 11, is the importer
+    return new Object[][] {
+      { 0, 1 }, // a replica of the first RS sends to 11: the first RS hands it on to the second
+      { 1, 0 }, // a replica of the second RS sends to 11: the first RS gets it from the second RS
+    };
+  }
+
+  /**
+   * A replica whose server id is the one of a replication server can be initialized across two
+   * replication servers, whether it is connected to that replication server or to the other one
+   * (issue #1207).
+   */
+  @Test(dataProvider = "replicaWithTheIdOfAnotherReplicationServer")
+  public void exportAndImportAcross2ReplServersWithAReplicaHavingTheIdOfAReplicationServer(
+      int exporterRs, int importerRs) throws Exception
+  {
+    final int ENTRYCOUNT = 100;
+    final int exporterId = 1;
+    final int importerId = 11;
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer1 = null;
+    ReplicationServer replServer2 = null;
+    FakeReplicationDomain exporter = null;
+    FakeReplicationDomain importer = null;
+
+    try
+    {
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      replServer1 = createReplicationServer(11, ports[0], "replicaWithTheIdOfAnRS1", 100);
+      replServer2 = createReplicationServer(12, ports[1], "replicaWithTheIdOfAnRS2", 100, "localhost:" + ports[0]);
+
+      String exportedData = buildExportedData(ENTRYCOUNT);
+      exporter = new FakeReplicationDomain(testService, exporterId, newTreeSet("localhost:" + ports[exporterRs]),
+          0, exportedData, null, ENTRYCOUNT);
+      StringBuffer importedData = new StringBuffer();
+      importer = new FakeReplicationDomain(testService, importerId, newTreeSet("localhost:" + ports[importerRs]),
+          0, null, importedData, 0);
+      waitTopologyKnowsReplica(importer, exporterId);
+      waitTopologyKnowsReplica(exporter, importerId);
+
+      importer.initializeFromRemote(exporterId, NO_INIT_TASK);
+
+      waitEndExport(exportedData, importedData);
+      assertExportSucessful(exporter, importer, exportedData, importedData);
+    }
+    finally
+    {
+      disable(exporter, importer);
+      remove(replServer1, replServer2);
+    }
+  }
+
+  /** A replication server reports a replica which connects to it with its own server id (issue #1207). */
+  @Test
+  public void replicaWithTheIdOfItsReplicationServerIsReported() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer = null;
+    FakeReplicationDomain domain = null;
+
+    try
+    {
+      int replServerPort = TestCaseUtils.findFreePort();
+      replServer = createReplicationServer(11, replServerPort, "replicaWithTheIdOfItsRSIsReported", 100);
+      TestCaseUtils.ERROR_TEXT_WRITER.clear();
+
+      domain = new FakeReplicationDomain(testService, 11, newTreeSet("localhost:" + replServerPort), 0, 1);
+
+      waitSharedServerIdReported(replServer, 11, testService);
+    }
+    finally
+    {
+      disable(domain);
+      remove(replServer);
+    }
+  }
+
+  /**
+   * A replication server reports a replica which connects to it with the server id of a replication
+   * server it is connected to, and only that replica (issue #1207).
+   */
+  @Test
+  public void replicaWithTheIdOfAConnectedReplicationServerIsReported() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer1 = null;
+    ReplicationServer replServer2 = null;
+    FakeReplicationDomain domain2 = null;
+    FakeReplicationDomain domain11 = null;
+
+    try
+    {
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      replServer1 = createReplicationServer(11, ports[0], "replicaWithTheIdOfAConnectedRS1", 100);
+      replServer2 = createReplicationServer(12, ports[1], "replicaWithTheIdOfAConnectedRS2", 100,
+          "localhost:" + ports[0]);
+      TestCaseUtils.ERROR_TEXT_WRITER.clear();
+      // the domain of the second replication server connects it to the first one
+      domain2 = new FakeReplicationDomain(testService, 2, newTreeSet("localhost:" + ports[1]), 0, 1);
+      waitTopologyKnowsReplicationServers(domain2, 2);
+
+      domain11 = new FakeReplicationDomain(testService, 11, newTreeSet("localhost:" + ports[1]), 0, 1);
+
+      waitSharedServerIdReported(replServer2, 11, testService);
+      assertEquals(sharedServerIdRecords(replServer2, 2, testService), newArrayList(),
+          "a replica whose server id no replication server has must not be reported");
+    }
+    finally
+    {
+      disable(domain2, domain11);
+      remove(replServer1, replServer2);
+    }
+  }
+
+  /**
+   * A replication server reports a replication server which connects to it with the server id of one
+   * of its replicas (issue #1207).
+   */
+  @Test
+  public void replicationServerWithTheIdOfAConnectedReplicaIsReported() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer1 = null;
+    ReplicationServer replServer2 = null;
+    FakeReplicationDomain domain11 = null;
+
+    try
+    {
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      replServer2 = createReplicationServer(12, ports[1], "rsWithTheIdOfAConnectedReplica2", 100);
+      domain11 = new FakeReplicationDomain(testService, 11, newTreeSet("localhost:" + ports[1]), 0, 1);
+      waitConnected(domain11);
+      TestCaseUtils.ERROR_TEXT_WRITER.clear();
+
+      replServer1 = createReplicationServer(11, ports[0], "rsWithTheIdOfAConnectedReplica1", 100,
+          "localhost:" + ports[1]);
+      // a replication server connects to its peers for the domains it has
+      replServer1.getReplicationServerDomain(testService, true);
+
+      waitSharedServerIdReported(replServer2, 11, testService);
+    }
+    finally
+    {
+      disable(domain11);
+      remove(replServer1, replServer2);
+    }
+  }
+
+  /**
+   * A replication server takes for itself the warning a peer replication server sends it when their
+   * generation ids differ, also when one of its replicas has its server id: the replica would take the
+   * warning for the end of the total update it is in (issue #1207).
+   */
+  @Test
+  public void generationIdWarningOfAPeerIsNotForTheReplicaWithTheIdOfTheReplicationServer() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer1 = null;
+    ReplicationServer replServer2 = null;
+    ReplicationBroker broker11 = null;
+    ReplicationBroker broker2 = null;
+
+    try
+    {
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      replServer1 = createReplicationServer(11, ports[0], "genIdWarningOfAPeer1", 100);
+      replServer2 = createReplicationServer(12, ports[1], "genIdWarningOfAPeer2", 100);
+      // a replication server takes the generation id of the first replica which connects to it
+      broker11 = openReplicationSession(testService, 11, 100, ports[0], 1000, 1111);
+      broker2 = openReplicationSession(testService, 2, 100, ports[1], 1000, 2222);
+      TestCaseUtils.ERROR_TEXT_WRITER.clear();
+
+      // the second replication server connects to the first one and warns it that their generation ids differ
+      replServer2.applyConfigurationChange(new ReplServerFakeConfiguration(
+          ports[1], "genIdWarningOfAPeer2", 0, 12, 0, 100, newTreeSet("localhost:" + ports[0])));
+
+      waitGenerationIdWarningOfPeerReceived(testService, 11, 1111, 12, 2222);
+      assertNoErrorMsgReceived(broker11);
+    }
+    finally
+    {
+      stop(broker11, broker2);
+      remove(replServer1, replServer2);
+    }
+  }
+
+  @DataProvider
+  public Object[][] errorMsgIDsOfAPeer()
+  {
+    return new Object[][] {
+      // the generation id warning, as replication servers send it since OpenDJ 3.0 and as OpenDJ 2.6 sends it
+      { "org.opends.messages.replication-77", true },
+      { "14811213", true },
+      // another message, in either form
+      { "org.opends.messages.replication-78", false },
+      { "14811214", false },
+    };
+  }
+
+  /**
+   * Of the ErrorMsgs a peer replication server sends to the server id of a replication server, only the
+   * generation id warning stays with the replication server, in either form of the id of its message;
+   * the replica with that server id gets the others (issue #1207). A replication server of this version
+   * sends only the form used since OpenDJ 3.0, so the peer here sends ErrorMsgs decoded from their bytes.
+   */
+  @Test(dataProvider = "errorMsgIDsOfAPeer")
+  public void onlyTheGenerationIdWarningOfAPeerStaysWithTheReplicationServer(String msgID,
+      boolean staysWithTheReplicationServer) throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer1 = null;
+    ReplicationServer replServer2 = null;
+    ReplicationBroker broker11 = null;
+
+    try
+    {
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      replServer1 = createReplicationServer(11, ports[0], "errorMsgOfAPeer1", 100);
+      replServer2 = createReplicationServer(12, ports[1], "errorMsgOfAPeer2", 100, "localhost:" + ports[0]);
+      broker11 = openReplicationSession(testService, 11, 100, ports[0], 1000);
+      // a replication server connects to its peers for the domains it has
+      replServer2.getReplicationServerDomain(testService, true);
+      waitReplicationServerConnected(replServer1, testService, 12);
+      waitReplicationServerConnected(replServer2, testService, 11);
+      TestCaseUtils.ERROR_TEXT_WRITER.clear();
+
+      ServerHandler toReplServer1 = replServer2.getReplicationServerDomain(testService).getConnectedRSs().get(11);
+      String details = "error " + msgID;
+      toReplServer1.send(errorMsg(12, 11, msgID, details));
+      // sent on the same connection after the first one: the replica gets the first one before it, or never
+      String lastDetails = "last error";
+      toReplServer1.send(errorMsg(12, 11, "org.opends.messages.replication-78", lastDetails));
+
+      List<String> received = receiveErrorMsgsUntil(broker11, lastDetails);
+      if (staysWithTheReplicationServer)
+      {
+        assertFalse(received.contains(details), "DS(11) received the generation id warning " + msgID);
+        waitErrorMsgReceived(details);
+      }
+      else
+      {
+        assertTrue(received.contains(details), "DS(11) did not receive the ErrorMsg " + msgID + ": " + received);
+      }
+    }
+    finally
+    {
+      stop(broker11);
+      remove(replServer1, replServer2);
+    }
+  }
+
+  /**
+   * Returns an ErrorMsg that carries the provided id of message, decoded from its bytes as a replication
+   * server decodes it: the constructors of ErrorMsg build that id from the details.
+   */
+  private static ErrorMsg errorMsg(int senderId, int destination, String msgID, String details) throws Exception
+  {
+    byte[] bytes = new ByteArrayBuilder()
+        .appendByte(14) // ReplicationMsg.MSG_TYPE_ERROR
+        .appendIntUTF8(senderId)
+        .appendIntUTF8(destination)
+        .appendString(msgID)
+        .appendString(details)
+        .appendLongUTF8(System.currentTimeMillis())
+        .toByteArray();
+    return (ErrorMsg) ReplicationMsg.generateMsg(bytes, ProtocolVersion.getCurrentVersion());
+  }
+
+  /** Returns the details of the ErrorMsgs the replica receives before the one with the provided details. */
+  private List<String> receiveErrorMsgsUntil(ReplicationBroker broker, String lastDetails) throws Exception
+  {
+    final List<String> received = newArrayList();
+    final long deadline = System.currentTimeMillis() + SECONDS.toMillis(30);
+    while (System.currentTimeMillis() < deadline)
+    {
+      final ReplicationMsg msg;
+      try
+      {
+        msg = broker.receive();
+      }
+      catch (SocketTimeoutException e)
+      {
+        continue;
+      }
+      assertNotNull(msg, "DS(" + broker.getServerId() + ") lost its connection");
+      if (msg instanceof ErrorMsg)
+      {
+        final String details = ((ErrorMsg) msg).getDetails().toString();
+        if (details.equals(lastDetails))
+        {
+          return received;
+        }
+        received.add(details);
+      }
+    }
+    throw new AssertionError("DS(" + broker.getServerId() + ") did not receive the ErrorMsg '" + lastDetails
+        + "', only " + received);
+  }
+
+  private void waitReplicationServerConnected(ReplicationServer replServer, DN baseDN, int peerId) throws Exception
+  {
+    newTimer().repeatUntilSuccess(() -> assertTrue(
+        replServer.getReplicationServerDomain(baseDN, true).getConnectedRSs().containsKey(peerId),
+        "RS(" + peerId + ") connected to " + replServer.getMonitorInstanceName()));
+  }
+
+  /** Waits for the error log record in which a replication server reports the ErrorMsg it kept. */
+  private void waitErrorMsgReceived(String details) throws Exception
+  {
+    final String received = ERR_ERROR_MSG_RECEIVED.get(details).toString();
+    newTimer().repeatUntilSuccess(() ->
+    {
+      final List<String> records = TestCaseUtils.ERROR_TEXT_WRITER.getMessages();
+      assertTrue(records.stream().anyMatch(record -> record.contains(received)),
+          "no replication server reported the ErrorMsg '" + details + "': " + records);
+    });
+  }
+
+  /**
+   * A replication server tells its peers that a replica has left also when the replica has the server
+   * id of one of these peers (issue #1207).
+   */
+  @Test
+  public void replicaWithTheIdOfAPeerReplicationServerIsForgottenWhenItLeaves() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer1 = null;
+    ReplicationServer replServer2 = null;
+    FakeReplicationDomain domain1 = null;
+    FakeReplicationDomain domain11 = null;
+
+    try
+    {
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      replServer1 = createReplicationServer(11, ports[0], "replicaWithTheIdOfAPeerLeaves1", 100);
+      replServer2 = createReplicationServer(12, ports[1], "replicaWithTheIdOfAPeerLeaves2", 100,
+          "localhost:" + ports[0]);
+      domain1 = new FakeReplicationDomain(testService, 1, newTreeSet("localhost:" + ports[0]), 0, 1);
+      domain11 = new FakeReplicationDomain(testService, 11, newTreeSet("localhost:" + ports[1]), 0, 1);
+      waitTopologyKnowsReplica(domain1, 11);
+
+      domain11.disableService();
+
+      waitTopologyForgetsReplica(domain1, 11);
+    }
+    finally
+    {
+      disable(domain1, domain11);
+      remove(replServer1, replServer2);
+    }
+  }
+
+  private static TestTimer newTimer()
+  {
+    return new TestTimer.Builder()
+        .maxSleep(30, SECONDS)
+        .sleepTimes(100, MILLISECONDS)
+        .toTimer();
+  }
+
+  private void waitConnected(ReplicationDomain domain) throws Exception
+  {
+    newTimer().repeatUntilSuccess(() -> assertTrue(domain.isConnected(), "DS(" + domain.getServerId() + ") connected"));
+  }
+
+  private void waitTopologyForgetsReplica(ReplicationDomain domain, int dsId) throws Exception
+  {
+    newTimer().repeatUntilSuccess(() -> assertFalse(domain.getReplicaInfos().containsKey(dsId),
+        "DS(" + dsId + ") has left, and DS(" + domain.getServerId() + ") still knows it"));
+  }
+
+  private void waitTopologyKnowsReplicationServers(ReplicationDomain domain, int count) throws Exception
+  {
+    newTimer().repeatUntilSuccess(() -> assertEquals(domain.getRsInfos().size(), count,
+        "replication servers known to DS(" + domain.getServerId() + ")"));
+  }
+
+  private void waitSharedServerIdReported(ReplicationServer replServer, int serverId, DN baseDN) throws Exception
+  {
+    newTimer().repeatUntilSuccess(() -> assertFalse(sharedServerIdRecords(replServer, serverId, baseDN).isEmpty(),
+        replServer.getMonitorInstanceName() + " did not report that DS(" + serverId + ") has the id of an RS"));
+  }
+
+  /**
+   * Waits for the error log record in which a replication server reports the warning a peer sent it
+   * because their generation ids differ.
+   */
+  private void waitGenerationIdWarningOfPeerReceived(DN baseDN, int rsId, long rsGenerationId, int peerId,
+      long peerGenerationId) throws Exception
+  {
+    // the warning names the address the peer sees the replication server at, which is not known here
+    final String[] warning = WARN_BAD_GENERATION_ID_FROM_RS.get(
+        rsId, "@", rsGenerationId, baseDN, peerId, peerGenerationId).toString().split("@");
+    final String received = ERR_ERROR_MSG_RECEIVED.get(warning[0]).toString();
+    newTimer().repeatUntilSuccess(() ->
+    {
+      for (String record : TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+      {
+        if (record.contains(received) && record.contains(warning[1]))
+        {
+          return;
+        }
+      }
+      fail("RS(" + rsId + ") did not receive the warning of RS(" + peerId + "): "
+          + TestCaseUtils.ERROR_TEXT_WRITER.getMessages());
+    });
+  }
+
+  private void assertNoErrorMsgReceived(ReplicationBroker broker)
+  {
+    try
+    {
+      ReplicationMsg msg;
+      while ((msg = broker.receive()) != null)
+      {
+        assertFalse(msg instanceof ErrorMsg, "DS(" + broker.getServerId() + ") received " + msg);
+      }
+    }
+    catch (SocketTimeoutException expected)
+    {
+      // nothing more to receive
+    }
+  }
+
+  /** Returns the records of the error log in which the replication server reports the provided replica. */
+  private List<String> sharedServerIdRecords(ReplicationServer replServer, int serverId, DN baseDN)
+  {
+    final String message = WARN_REPLICA_HAS_THE_SERVER_ID_OF_A_REPLICATION_SERVER.get(
+        replServer.getMonitorInstanceName(), serverId, baseDN, serverId).toString();
+    final List<String> records = newArrayList();
+    for (String record : TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+    {
+      if (record.contains(message))
+      {
+        records.add(record);
+      }
+    }
+    return records;
   }
 
   /**

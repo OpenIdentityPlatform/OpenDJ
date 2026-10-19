@@ -4593,11 +4593,10 @@ public class ReplicationCliMain extends ConsoleApplication
   private void updateConfiguration(ConnectionWrapper conn1, ConnectionWrapper conn2, EnableReplicationUserData uData)
       throws ReplicationCliException
   {
+    // Every base DN: a new replication server takes an id that no domain of any backend base DN has (issue #1207).
+    // The filter only decides which of the backends and domains read anyway the descriptors keep.
     final TopologyCacheFilter filter = new TopologyCacheFilter();
     filter.setSearchMonitoringInformation(false);
-    filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
-    filter.addBaseDNToSearch(Constants.SCHEMA_DN);
-    filter.addBaseDNsToSearch(uData.getBaseDNs());
 
     final ServerDescriptor serverDesc1 = createStandalone(conn1, filter);
     final ServerDescriptor serverDesc2 = createStandalone(conn2, filter);
@@ -4608,7 +4607,7 @@ public class ReplicationCliMain extends ConsoleApplication
     if (!argParser.isInteractive())
     {
       // Inform the user of the potential errors that we found in the already registered servers.
-      printErrorWhenServersAlreadyHaveErrors(conn1, conn2, uData, adsCtx1, adsCtx2);
+      printErrorWhenServersAlreadyHaveErrors(conn1, conn2, adsCtx1, adsCtx2);
     }
     warnIfOnlyOneReplicationServerInTopology(uData, adsCtx1, adsCtx2);
 
@@ -4767,7 +4766,6 @@ public class ReplicationCliMain extends ConsoleApplication
       uData.addBaseDN(Constants.SCHEMA_DN);
     }
 
-    final Set<Integer> usedReplicationServerIds = new HashSet<>();
     final TopologyCache cache1;
     final TopologyCache cache2;
     try
@@ -4775,16 +4773,8 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<PreferredConnection> cnx = new LinkedHashSet<>();
       cnx.addAll(getPreferredConnections(conn1));
       cnx.addAll(getPreferredConnections(conn2));
-      cache1 = createTopologyCacheOrNull(adsCtx1, cnx, uData);
-      if (cache1 != null)
-      {
-        usedReplicationServerIds.addAll(getReplicationServerIds(cache1));
-      }
-      cache2 = createTopologyCacheOrNull(adsCtx2, cnx, uData);
-      if (cache1 != null)
-      {
-        usedReplicationServerIds.addAll(getReplicationServerIds(cache1));
-      }
+      cache1 = createTopologyCacheOrNull(adsCtx1, cnx);
+      cache2 = createTopologyCacheOrNull(adsCtx2, cnx);
     }
     catch (ADSContextException adce)
     {
@@ -4799,12 +4789,14 @@ public class ReplicationCliMain extends ConsoleApplication
           ERROR_READING_TOPOLOGY_CACHE, tce);
     }
 
+    // The new replication servers and the new domains of every base DN take their ids outside of one set
+    final Set<Integer> usedServerIds = getUsedServerIds(cache1, cache2, serverDesc1, serverDesc2);
+
     final Set<HostPort> twoReplServers = new LinkedHashSet<>();
-    addToSets(serverDesc1, uData.getServer1(), conn1, twoReplServers, usedReplicationServerIds);
-    addToSets(serverDesc2, uData.getServer2(), conn2, twoReplServers, usedReplicationServerIds);
+    addReplicationServer(serverDesc1, uData.getServer1(), conn1, twoReplServers);
+    addReplicationServer(serverDesc2, uData.getServer2(), conn2, twoReplServers);
 
     final Map<DN, Set<HostPort>> hmRepServers = new HashMap<>();
-    final Map<DN, Set<Integer>> hmUsedReplicaServerIds = new HashMap<>();
     for (DN baseDN : uData.getBaseDNs())
     {
       Set<HostPort> repServersForBaseDN = new LinkedHashSet<>();
@@ -4812,25 +4804,6 @@ public class ReplicationCliMain extends ConsoleApplication
       repServersForBaseDN.addAll(getReplicationServers(baseDN, cache2, serverDesc2));
       repServersForBaseDN.addAll(twoReplServers);
       hmRepServers.put(baseDN, repServersForBaseDN);
-
-      Set<Integer> replicaServerIds = new HashSet<>();
-      addReplicaServerIds(replicaServerIds, serverDesc1, baseDN);
-      addReplicaServerIds(replicaServerIds, serverDesc2, baseDN);
-      if (cache1 != null)
-      {
-        for (ServerDescriptor server : cache1.getServers())
-        {
-          addReplicaServerIds(replicaServerIds, server, baseDN);
-        }
-      }
-      if (cache2 != null)
-      {
-        for (ServerDescriptor server : cache2.getServers())
-        {
-          addReplicaServerIds(replicaServerIds, server, baseDN);
-        }
-      }
-      hmUsedReplicaServerIds.put(baseDN, replicaServerIds);
     }
 
     final Set<HostPort> allRepServers = new LinkedHashSet<>();
@@ -4841,22 +4814,21 @@ public class ReplicationCliMain extends ConsoleApplication
 
     Set<String> alreadyConfiguredReplicationServers = new HashSet<>();
     configureServer(conn1, serverDesc1, uData.getServer1(), argParser.server1.replicationPortArg,
-        usedReplicationServerIds, allRepServers, alreadyConfiguredReplicationServers,
+        usedServerIds, allRepServers, alreadyConfiguredReplicationServers,
         WARN_FIRST_REPLICATION_SERVER_ALREADY_CONFIGURED);
     configureServer(conn2, serverDesc2, uData.getServer2(), argParser.server2.replicationPortArg,
-        usedReplicationServerIds, allRepServers, alreadyConfiguredReplicationServers,
+        usedServerIds, allRepServers, alreadyConfiguredReplicationServers,
         WARN_SECOND_REPLICATION_SERVER_ALREADY_CONFIGURED);
 
     for (DN baseDN : uData.getBaseDNs())
     {
       Set<HostPort> repServers = hmRepServers.get(baseDN);
-      Set<Integer> usedIds = hmUsedReplicaServerIds.get(baseDN);
       Set<String> alreadyConfiguredServers = new HashSet<>();
 
       configureToReplicateBaseDN(uData.getServer1(), conn1, serverDesc1, cache1, baseDN,
-          usedIds, alreadyConfiguredServers, repServers, allRepServers, alreadyConfiguredReplicationServers);
+          usedServerIds, alreadyConfiguredServers, repServers, allRepServers, alreadyConfiguredReplicationServers);
       configureToReplicateBaseDN(uData.getServer2(), conn2, serverDesc2, cache2, baseDN,
-          usedIds, alreadyConfiguredServers, repServers, allRepServers, alreadyConfiguredReplicationServers);
+          usedServerIds, alreadyConfiguredServers, repServers, allRepServers, alreadyConfiguredReplicationServers);
     }
 
     // Now that replication is configured in all servers, simply try to
@@ -4930,7 +4902,7 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private void printErrorWhenServersAlreadyHaveErrors(ConnectionWrapper conn1, ConnectionWrapper conn2,
-      EnableReplicationUserData uData, final ADSContext adsCtx1, final ADSContext adsCtx2)
+      final ADSContext adsCtx1, final ADSContext adsCtx2)
       throws ReplicationCliException
   {
     final Set<LocalizableMessage> messages = new LinkedHashSet<>();
@@ -4939,12 +4911,12 @@ public class ReplicationCliMain extends ConsoleApplication
       final Set<PreferredConnection> cnx = new LinkedHashSet<>();
       cnx.addAll(getPreferredConnections(conn1));
       cnx.addAll(getPreferredConnections(conn2));
-      final TopologyCache cache1 = createTopologyCacheOrNull(adsCtx1, cnx, uData);
+      final TopologyCache cache1 = createTopologyCacheOrNull(adsCtx1, cnx);
       if (cache1 != null)
       {
         messages.addAll(cache1.getErrorMessages());
       }
-      final TopologyCache cache2 = createTopologyCacheOrNull(adsCtx2, cnx, uData);
+      final TopologyCache cache2 = createTopologyCacheOrNull(adsCtx2, cnx);
       if (cache2 != null)
       {
         messages.addAll(cache2.getErrorMessages());
@@ -5028,22 +5000,33 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private void addReplicaServerIds(Set<Integer> replicaServerIds, ServerDescriptor serverDesc1, DN baseDN)
+  /**
+   * Returns the server ids that the replication servers and the replication domains of the two
+   * servers and of their topologies use, in one set (issue #1207). Only the domains of a backend base
+   * DN are in it: the descriptors give a domain id only to the replica of the backend base DN of the
+   * domain, so the id of a domain of another base DN, such as one below a backend base DN, is not.
+   */
+  static Set<Integer> getUsedServerIds(TopologyCache cache1, TopologyCache cache2,
+      ServerDescriptor... servers)
   {
-    ReplicaDescriptor replica = findReplicatedReplicaForSuffixDN(serverDesc1.getReplicas(), baseDN);
-    if (replica != null)
+    List<ServerDescriptor> all = new ArrayList<>(Arrays.asList(servers));
+    if (cache1 != null)
     {
-      replicaServerIds.add(replica.getServerId());
+      all.addAll(cache1.getServers());
     }
+    if (cache2 != null)
+    {
+      all.addAll(cache2.getServers());
+    }
+    return InstallerHelper.getUsedServerIds(all);
   }
 
-  private void addToSets(ServerDescriptor serverDesc, EnableReplicationServerData serverData, ConnectionWrapper conn,
-      final Set<HostPort> twoReplServers, final Set<Integer> usedReplicationServerIds)
+  private void addReplicationServer(ServerDescriptor serverDesc, EnableReplicationServerData serverData,
+      ConnectionWrapper conn, final Set<HostPort> twoReplServers)
   {
     if (serverDesc.isReplicationServer())
     {
       twoReplServers.add(serverDesc.getReplicationServerHostPort());
-      usedReplicationServerIds.add(serverDesc.getReplicationServerId());
     }
     else if (serverData.configureReplicationServer())
     {
@@ -5080,7 +5063,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private void configureServer(ConnectionWrapper conn, ServerDescriptor serverDesc,
       EnableReplicationServerData enableServer, IntegerArgument replicationPortArg,
-      Set<Integer> usedReplicationServerIds, Set<HostPort> allRepServers,
+      Set<Integer> usedServerIds, Set<HostPort> allRepServers,
       Set<String> alreadyConfiguredReplicationServers, Arg2<Number, Number> replicationServerAlreadyConfiguredMsg)
       throws ReplicationCliException
   {
@@ -5089,7 +5072,7 @@ public class ReplicationCliMain extends ConsoleApplication
       try
       {
         configureAsReplicationServer(conn, enableServer.getReplicationPort(), enableServer.isSecureReplication(),
-            allRepServers, usedReplicationServerIds);
+            allRepServers, usedServerIds);
       }
       catch (Exception ode)
       {
@@ -5124,15 +5107,15 @@ public class ReplicationCliMain extends ConsoleApplication
         ERROR_CONFIGURING_REPLICATIONSERVER, ode);
   }
 
-  private TopologyCache createTopologyCacheOrNull(ADSContext adsCtx, Set<PreferredConnection> cnx,
-      ReplicationUserData uData) throws ADSContextException, TopologyCacheException
+  private TopologyCache createTopologyCacheOrNull(ADSContext adsCtx, Set<PreferredConnection> cnx)
+      throws ADSContextException, TopologyCacheException
   {
     if (adsCtx.hasAdminData())
     {
       TopologyCache cache = new TopologyCache(adsCtx, getTrustManager(sourceServerCI), getConnectTimeout());
       cache.setPreferredConnections(cnx);
+      // Every base DN, as for the descriptors of the two servers of enable
       cache.getFilter().setSearchMonitoringInformation(false);
-      cache.getFilter().addBaseDNsToSearch(uData.getBaseDNs());
       cache.reloadTopology();
       return cache;
     }
@@ -6164,15 +6147,15 @@ public class ReplicationCliMain extends ConsoleApplication
    * the replication port or not.
    * @param replicationServers the list of replication servers to which the
    * replication server will communicate with.
-   * @param usedReplicationServerIds the set of replication server IDs that
-   * are already in use.  The set will be updated with the replication ID
-   * that will be used by the newly configured replication server.
+   * @param usedServerIds the set of the server IDs that the replication servers
+   * and the replication domains already use.  The set will be updated with the
+   * replication ID that will be used by the newly configured replication server.
    * @throws OpenDsException if there is an error updating the configuration.
    */
   private void configureAsReplicationServer(ConnectionWrapper conn,
       int replicationPort, boolean useSecureReplication,
       Set<HostPort> replicationServers,
-      Set<Integer> usedReplicationServerIds) throws Exception
+      Set<Integer> usedServerIds) throws Exception
   {
     Set<String> replicationServersLC = toLowerCaseStrings(replicationServers);
     print(formatter.getFormattedWithPoints(
@@ -6219,8 +6202,7 @@ public class ReplicationCliMain extends ConsoleApplication
         crypto.setSSLEncryption(useSecureReplication);
         crypto.commit();
       }
-      int id = InstallerHelper.getReplicationId(usedReplicationServerIds);
-      usedReplicationServerIds.add(id);
+      int id = InstallerHelper.addNewReplicationId(usedServerIds);
       rsCfgClient = sync.createReplicationServer(
           ReplicationServerCfgDefn.getInstance(),
           new ArrayList<PropertyException>());
@@ -6232,7 +6214,7 @@ public class ReplicationCliMain extends ConsoleApplication
     else
     {
       rsCfgClient = sync.getReplicationServer();
-      usedReplicationServerIds.add(rsCfgClient.getReplicationServerId());
+      usedServerIds.add(rsCfgClient.getReplicationServerId());
       mustCommit = addAllReplicationServers(rsCfgClient, replicationServersLC);
     }
     if (mustCommit)
@@ -6291,26 +6273,6 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
-   * Returns a Set containing all the replication server ids found in the
-   * servers of a given TopologyCache object.
-   * @param cache the TopologyCache object to use.
-   * @return a Set containing all the replication server ids found in a given
-   * TopologyCache object.
-   */
-  private Set<Integer> getReplicationServerIds(TopologyCache cache)
-  {
-    Set<Integer> ids = new HashSet<>();
-    for (ServerDescriptor server : cache.getServers())
-    {
-      if (server.isReplicationServer())
-      {
-        ids.add(server.getReplicationServerId());
-      }
-    }
-    return ids;
-  }
-
-  /**
    * Configures a replication domain for a given base DN in the server for which the connection is
    * provided.
    *
@@ -6320,16 +6282,17 @@ public class ReplicationCliMain extends ConsoleApplication
    *          the base DN of the replication domain to configure.
    * @param replicationServers
    *          the list of replication servers to which the replication domain will communicate with.
-   * @param usedReplicaServerIds
-   *          the set of replication domain IDs that are already in use. The set will be updated
-   *          with the replication ID that will be used by the newly configured replication server.
+   * @param usedServerIds
+   *          the set of the server IDs that the replication servers and the replication domains
+   *          already use. The set will be updated with the server ID that will be used by the newly
+   *          configured replication domain.
    * @throws OpenDsException
    *           if there is an error updating the configuration.
    */
   private void configureToReplicateBaseDN(ConnectionWrapper conn,
       DN baseDN,
       Set<HostPort> replicationServers,
-      Set<Integer> usedReplicaServerIds) throws Exception
+      Set<Integer> usedServerIds) throws Exception
   {
     Set<String> replicationServersLC = toLowerCaseStrings(replicationServers);
 
@@ -6362,8 +6325,7 @@ public class ReplicationCliMain extends ConsoleApplication
     boolean mustCommit = false;
     if (domain == null)
     {
-      int replicaServerId = InstallerHelper.getReplicationId(usedReplicaServerIds);
-      usedReplicaServerIds.add(replicaServerId);
+      int replicaServerId = InstallerHelper.addNewReplicationId(usedServerIds);
       String domainName = InstallerHelper.getDomainName(domainNames, baseDN);
       domain = sync.createReplicationDomain(
           ReplicationDomainCfgDefn.getInstance(), domainName,
@@ -6436,8 +6398,9 @@ public class ReplicationCliMain extends ConsoleApplication
    * provided ServerDescriptor object.
    * @param baseDN the base DN to replicate.
    * @param repServers the replication servers to be defined in the domain.
-   * @param usedIds the replication domain Ids already used.  This Set is
-   * updated with the new domains that are used.
+   * @param usedIds the server Ids that the replication servers and the
+   * replication domains already use.  This Set is updated with the new domains
+   * that are used.
    * @param cache the TopologyCache used to retrieve the different defined
    * replicas.
    * @param server the ServerDescriptor that is used to identify the
@@ -9040,18 +9003,6 @@ public class ReplicationCliMain extends ConsoleApplication
     for (ReplicaDescriptor replica : replicas)
     {
       if (replica.getSuffix().getDN().equals(suffixDN))
-      {
-        return replica;
-      }
-    }
-    return null;
-  }
-
-  private ReplicaDescriptor findReplicatedReplicaForSuffixDN(Set<ReplicaDescriptor> replicas, DN baseDN)
-  {
-    for (ReplicaDescriptor replica : replicas)
-    {
-      if (replica.isReplicated() && replica.getSuffix().getDN().equals(baseDN))
       {
         return replica;
       }
