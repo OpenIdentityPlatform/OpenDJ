@@ -155,10 +155,12 @@ class FileReplicaDB
    *
    * @param updateMsg
    *          The update message to add.
+   * @return {@code true} if the message was added, {@code false} if it was not: this replica DB
+   *         holds it already or holds a newer change, see {@link Log#append(Record)}
    * @throws ChangelogException
    *           If an error occurs when trying to add the message.
    */
-  void add(final UpdateMsg updateMsg) throws ChangelogException
+  boolean add(final UpdateMsg updateMsg) throws ChangelogException
   {
     if (shutdown.get())
     {
@@ -167,7 +169,10 @@ class FileReplicaDB
               .toString(), String.valueOf(baseDN), String.valueOf(serverId)));
     }
 
-    log.append(Record.from(updateMsg.getCSN(), updateMsg));
+    if (!log.append(Record.from(updateMsg.getCSN(), updateMsg)))
+    {
+      return false;
+    }
 
     final CSNLimits limits = csnLimits;
     final boolean updateNew = limits.newestCSN == null || limits.newestCSN.isOlderThan(updateMsg.getCSN());
@@ -178,6 +183,7 @@ class FileReplicaDB
           updateOld ? updateMsg.getCSN() : limits.oldestCSN,
           updateNew ? updateMsg.getCSN() : limits.newestCSN);
     }
+    return true;
   }
 
   /**

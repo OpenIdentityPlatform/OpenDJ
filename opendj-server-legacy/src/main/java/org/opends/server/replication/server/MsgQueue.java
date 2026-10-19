@@ -20,6 +20,7 @@ package org.opends.server.replication.server;
 import static org.opends.messages.ReplicationMessages.*;
 
 import java.util.TreeMap;
+import java.util.function.Predicate;
 
 import net.jcip.annotations.ThreadSafe;
 
@@ -175,6 +176,32 @@ public class MsgQueue
     synchronized (lock)
     {
       return map.containsKey(msg.getCSN());
+    }
+  }
+
+  /**
+   * Returns whether this queue holds, before the given UpdateMsg, an UpdateMsg which carries the
+   * CSN of a change and matches the given condition: a replica offline message, for one, does not
+   * carry the CSN of a change, and no state ever covers its CSN.
+   *
+   * @param msg
+   *          the UpdateMsg the ones to check come before
+   * @param condition
+   *          the condition the CSN of a change must match
+   * @return {@code true} if a change of this queue before the given UpdateMsg matches the condition
+   */
+  public boolean holdsAChangeBefore(UpdateMsg msg, Predicate<CSN> condition)
+  {
+    synchronized (lock)
+    {
+      for (UpdateMsg before : map.headMap(msg.getCSN()).values())
+      {
+        if (before.contributesToDomainState() && condition.test(before.getCSN()))
+        {
+          return true;
+        }
+      }
+      return false;
     }
   }
 

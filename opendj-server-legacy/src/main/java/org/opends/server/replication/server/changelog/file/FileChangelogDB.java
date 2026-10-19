@@ -923,9 +923,12 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     final Pair<FileReplicaDB, Boolean> pair = getOrCreateReplicaDB(baseDN,
         csn.getServerId(), replicationServer);
     final FileReplicaDB replicaDB = pair.getFirst();
-    replicaDB.add(updateMsg);
-
-    ChangelogBackend.getInstance().notifyCookieEntryAdded(baseDN, updateMsg);
+    if (replicaDB.add(updateMsg))
+    {
+      // a change the replica DB does not take - one it holds already, sent again - is not in the
+      // changelog a second time, and the persistent searches were told of it already
+      ChangelogBackend.getInstance().notifyCookieEntryAdded(baseDN, updateMsg);
+    }
 
     final ChangeNumberIndexer indexer = cnIndexer.get();
     if (indexer != null)

@@ -253,10 +253,12 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    *
    * @param record
    *          The record to add.
+   * @return {@code true} if the record was appended, {@code false} if its key is not higher than
+   *         the key of the last record added
    * @throws ChangelogException
    *           If the record can't be added to the log.
    */
-  void append(final Record<K, V> record) throws ChangelogException
+  boolean append(final Record<K, V> record) throws ChangelogException
   {
     checkLogIsEnabledForWrite();
     exclusiveLock.lock();
@@ -264,10 +266,11 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     {
       if (appendWouldBreakKeyOrdering(record))
       {
-        return;
+        return false;
       }
       writer.write(record);
       newestRecord = record;
+      return true;
     }
     finally
     {
