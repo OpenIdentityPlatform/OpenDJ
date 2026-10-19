@@ -2539,10 +2539,10 @@ public class ReplicationBroker
            * Only credit ends this wait on a session the replication server keeps up, and stop()
            * sets the flag of this loop only after the replica offline message, which may need the
            * lock this publish holds. What is given up here is a change which the next session
-           * republishes - from the historical information of its entry, or a local delete from the
-           * operations this domain keeps in memory, which a restart of the server loses, while a
-           * delete the recovery publishes has left them already and is lost - or the replica
-           * offline message, which is then reported as not sent.
+           * republishes - from the historical information of its entry, or a local delete, one the
+           * recovery publishes included, from the deletes this domain keeps aside in memory, which
+           * a restart of the server loses - or the replica offline message, which is then reported
+           * as not sent.
            */
           stop.gaveUp = true;
           return false;
