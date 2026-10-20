@@ -368,15 +368,19 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    *
    * @param record
    *            The initial record this cursor points on
+   * @param initialRecord
+   *            The record the cursor read in advance, which it returns before it reads at the
+   *            provided position, or {@code null} if there is none
    * @param position
    *            The file position this cursor points on
    * @return the cursor
    * @throws ChangelogException
    *            If a problem occurs while creating the cursor.
    */
-  LogFileCursor<K, V> getCursorInitialisedTo(Record<K,V> record, long position) throws ChangelogException
+  LogFileCursor<K, V> getCursorInitialisedTo(Record<K,V> record, Record<K, V> initialRecord, long position)
+      throws ChangelogException
   {
-    return new LogFileCursor<>(this, record, position);
+    return new LogFileCursor<>(this, record, initialRecord, position);
   }
 
   /**
@@ -583,17 +587,19 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     }
 
     /**
-     * Creates a cursor on the provided log, initialised to the provided record and
+     * Creates a cursor on the provided log, initialised to the provided records and
      * pointing to the provided file position.
      * <p>
-     * Note: there is no check to ensure that provided record and file position are
+     * Note: there is no check to ensure that provided records and file position are
      * consistent. It is the responsibility of the caller of this method.
      */
-    private LogFileCursor(LogFile<K, V> logFile, Record<K, V> record, long filePosition) throws ChangelogException
+    private LogFileCursor(LogFile<K, V> logFile, Record<K, V> record, Record<K, V> initialRecord, long filePosition)
+        throws ChangelogException
     {
       this.logFile = logFile;
       this.reader = logFile.getReader();
       this.currentRecord = record;
+      this.initialRecord = initialRecord;
       logFile.sharedLock.lock();
       try
       {
@@ -633,6 +639,17 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     public Record<K,V> getRecord()
     {
       return currentRecord;
+    }
+
+    /**
+     * Returns the record this cursor read in advance when it was positioned, which the next call
+     * to {@link #next()} returns before anything is read from the file.
+     *
+     * @return the record read in advance, or {@code null} if there is none
+     */
+    Record<K, V> getInitialRecord()
+    {
+      return initialRecord;
     }
 
     /** {@inheritDoc} */
