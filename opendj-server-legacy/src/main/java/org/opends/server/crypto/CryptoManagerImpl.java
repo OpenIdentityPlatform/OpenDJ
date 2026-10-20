@@ -26,6 +26,7 @@ import java.io.PrintStream;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -459,17 +460,25 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
   }
 
   /**
-   * Checks that this Java runtime provides the key wrapping transformation. Only a refusal here
-   * names the key-wrapping-transformation property: the wrap which follows it also needs a MAC
-   * key of the mac-algorithm property, and changing the key wrapping property does not help when
-   * that is what the runtime refuses.
+   * Checks that this Java runtime provides the key wrapping transformation, or every algorithm the
+   * RSASVE scheme needs when the transformation names that scheme. Only a refusal here names the
+   * key-wrapping-transformation property: the wrap which follows it also needs a MAC key of the
+   * mac-algorithm property, and changing the key wrapping property does not help when that is what
+   * the runtime refuses.
    */
   private static boolean isKeyWrappingTransformationSupported(
       final String transformation, final List<LocalizableMessage> unacceptableReasons)
   {
     try
     {
-      Cipher.getInstance(transformation);
+      if (RsaSveKeyTransport.isScheme(transformation))
+      {
+        RsaSveKeyTransport.checkSupported();
+      }
+      else
+      {
+        Cipher.getInstance(transformation);
+      }
       return true;
     }
     catch (GeneralSecurityException ex)
@@ -847,6 +856,9 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
    * wrappedKeyAlgorithm ::= e.g., DESede
    * hexifiedwrappedKey ::= 0123456789abcdef01...
    * </pre>
+   * The wrapping transformation is a transformation of the Java runtime, or
+   * RSASVE/KDF-SHA256/AESKWP, the scheme of {@link RsaSveKeyTransport}, whose
+   * wrapped key is the one {@link RsaSveKeyTransport#wrap} returns.
    *
    * @param wrappingKeyID The key identifier of the wrapping key. This
    * parameter is the first field in the encoded value and identifies
@@ -915,10 +927,17 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
               = CertificateFactory.getInstance("X.509");
       final Certificate certificate = cf.generateCertificate(
               new ByteArrayInputStream(wrappingKeyCertificateData));
-      final Cipher wrapper
-              = Cipher.getInstance(wrappingTransformationName);
-      wrapper.init(Cipher.WRAP_MODE, certificate);
-      byte[] wrappedKey = wrapper.wrap(secretKey);
+      final byte[] wrappedKey;
+      if (RsaSveKeyTransport.isScheme(wrappingTransformationName)) {
+        wrappedKey = RsaSveKeyTransport.wrap(certificate,
+                secretKey, wrappingKeyID, secureRandom);
+      }
+      else {
+        final Cipher wrapper
+                = Cipher.getInstance(wrappingTransformationName);
+        wrapper.init(Cipher.WRAP_MODE, certificate);
+        wrappedKey = wrapper.wrap(secretKey);
+      }
       wrappedKeyElement = StaticUtils.bytesToHexNoSpace(wrappedKey);
     }
     catch (GeneralSecurityException ex) {
@@ -938,6 +957,8 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
    * Takes an encoded ds-cfg-symmetric-key attribute value and the
    * associated key algorithm name, and returns an initialized
    * {@code java.security.Key} object.
+   * <p>
+   * Package private for testing.
    * @param symmetricKeyAttribute The encoded
    * ds-cfg-symmetric-key-attribute value.
    * @return A SecretKey object instantiated with the key data,
@@ -946,7 +967,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
    * @throws CryptoManagerException If there is a problem decomposing
    * the supplied attribute value or unwrapping the encoded key.
    */
-  private SecretKey decodeSymmetricKeyAttribute(
+  SecretKey decodeSymmetricKeyAttribute(
           final String symmetricKeyAttribute)
           throws CryptoManagerException {
     // Initial decomposition.
@@ -983,7 +1004,9 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
     }
 
     // Confirm key can be unwrapped at this instance.
-    final String instanceKeyID = getInstanceKeyID();
+    final byte[] instanceKeyCertificate =
+            getInstanceKeyCertificateFromLocalTruststore();
+    final String instanceKeyID = getInstanceKeyID(instanceKeyCertificate);
     if (! wrappingKeyIDElement.equals(instanceKeyID)) {
       return null;
     }
@@ -1008,11 +1031,25 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
     // Unwrap secret key.
     SecretKey secretKey;
     try {
-      final Cipher unwrapper
-              = Cipher.getInstance(wrappingTransformationElement);
-      unwrapper.init(Cipher.UNWRAP_MODE, privateKey);
-      secretKey = (SecretKey)unwrapper.unwrap(wrappedKeyCipherTextElement,
-              wrappedKeyAlgorithmElement, Cipher.SECRET_KEY);
+      if (RsaSveKeyTransport.isScheme(wrappingTransformationElement)) {
+        // The public key comes from the instance key certificate whose
+        // identifier was just matched: a private key held by a token does
+        // not always expose its modulus.
+        final Certificate certificate = CertificateFactory.getInstance("X.509")
+                .generateCertificate(
+                        new ByteArrayInputStream(instanceKeyCertificate));
+        secretKey = RsaSveKeyTransport.unwrap(
+                new KeyPair(certificate.getPublicKey(), privateKey),
+                wrappedKeyCipherTextElement, wrappedKeyAlgorithmElement,
+                wrappingKeyIDElement);
+      }
+      else {
+        final Cipher unwrapper
+                = Cipher.getInstance(wrappingTransformationElement);
+        unwrapper.init(Cipher.UNWRAP_MODE, privateKey);
+        secretKey = (SecretKey)unwrapper.unwrap(wrappedKeyCipherTextElement,
+                wrappedKeyAlgorithmElement, Cipher.SECRET_KEY);
+      }
     } catch(GeneralSecurityException ex) {
       logger.traceException(ex);
       throw new CryptoManagerException(

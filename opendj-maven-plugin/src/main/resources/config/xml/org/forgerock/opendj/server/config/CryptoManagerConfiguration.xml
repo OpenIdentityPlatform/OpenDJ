@@ -185,6 +185,24 @@
       The preferred key wrapping transformation for the directory server. This value must
       be the same for all server instances in a replication topology.
     </adm:synopsis>
+    <adm:description>
+      Besides the transformations of the Java runtime, the value
+      RSASVE/KDF-SHA256/AESKWP selects a scheme built on the hybrid key
+      transport of NIST SP 800-56B Rev. 2, section 9.3, without a nonce
+      of the receiving server, for a Java runtime which offers no
+      RSA-OAEP: it needs only RSA/ECB/NoPadding, SHA-256 and the AES key
+      wrap with padding (AES/KWP/NoPadding) from the runtime. The
+      SunPKCS11 provider of OpenJDK 17 offers no AES/KWP/NoPadding, so a
+      server whose runtime has that provider alone refuses this value;
+      the provider offers it from OpenJDK 19 on. A server which does not
+      support this value cannot unwrap the keys wrapped with it, and
+      neither can a server whose Java runtime lacks one of these
+      algorithms, such as Java 11 without Bouncy Castle FIPS: it only
+      logs an error for each key it cannot unwrap. So every server of
+      the replication topology must run a version which supports this
+      value, on a Java runtime which offers these algorithms, before any
+      server uses it.
+    </adm:description>
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
