@@ -80,12 +80,14 @@ public final class AciHandler extends
   /**
    * String used to indicate that the evaluating ACI had a all
    * operational attributes targetattr match (targetattr="+").
+   * The attachment's value is the entry it holds for.
    */
   static final String ALL_OP_ATTRS_MATCHED = "allOpAttrsMatched";
 
   /**
    * String used to indicate that the evaluating ACI had a all user
    * attributes targetattr match (targetattr="*").
+   * The attachment's value is the entry it holds for.
    */
   static final String ALL_USER_ATTRS_MATCHED = "allUserAttrsMatched";
 
@@ -456,13 +458,15 @@ public final class AciHandler extends
       return false;
     }
 
+    // Each shortcut holds the very entry it was decided for, so that filterEntry() applies it to that entry alone
+    // and to no other entry of the operation (GHSA-6f6q-q9gw-4jr4).
     if (!container.hasEvalUserAttributes())
     {
-      operation.setAttachment(ALL_USER_ATTRS_MATCHED, ALL_USER_ATTRS_MATCHED);
+      operation.setAttachment(ALL_USER_ATTRS_MATCHED, entry);
     }
     if (!container.hasEvalOpAttributes())
     {
-      operation.setAttachment(ALL_OP_ATTRS_MATCHED, ALL_OP_ATTRS_MATCHED);
+      operation.setAttachment(ALL_OP_ATTRS_MATCHED, entry);
     }
 
     return true;

@@ -99,7 +99,8 @@ public final class AccessControlConfigManager
    */
   public boolean isAccessControlEnabled()
   {
-    return currentConfiguration.isEnabled();
+    // Until initializeAccessControl() has run, getAccessControlHandler() permits everything.
+    return currentConfiguration != null && currentConfiguration.isEnabled();
   }
 
   /**

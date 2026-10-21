@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.api;
 
@@ -347,6 +348,10 @@ public abstract class AccessControlHandler
    * Indicates whether the provided operation search filter is allowed
    * based on the access control configuration. This method should not
    * alter the provided operation in any way.
+   * <p>
+   * A sorted search also calls it, with a presence filter on an attribute
+   * type, to decide whether the values of that type may take part in the
+   * sort key of an entry, which it may never return.
    *
    * @param operation
    *          The operation for which to make the determination.
@@ -371,6 +376,10 @@ public abstract class AccessControlHandler
    * Indicates whether the provided search result entry may be sent to
    * the client. Implementations <b>must not under any
    * circumstances</b> modify the search entry in any way.
+   * <p>
+   * A sorted search also calls it for every entry it sorts, to leave out
+   * of the sort the entries the client may not see, including entries it
+   * never returns.
    *
    * @param operation
    *          The operation currently being processed (this will
@@ -391,6 +400,12 @@ public abstract class AccessControlHandler
    * Filter the contents of the provided entry such that it no longer
    * contains any attributes or values that the client is not
    * permitted to access.
+   * <p>
+   * The unfiltered entry is expected to be the very object for which
+   * {@link #maySend(Operation, SearchResultEntry)} has just returned
+   * {@code true}. An implementation may reuse what it decided there
+   * for that object only: any other object, such as a copy of the
+   * entry or the entry read again, is checked without it.
    *
    * @param operation
    *          The operation currently being processed (this will

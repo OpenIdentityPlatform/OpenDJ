@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -588,15 +589,22 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     return i.hasNext() ? i.next() : null;
   }
 
+  /** Indicates whether this index holds the entries of the provided search, ordered by its sort keys. */
+  boolean isApplicable(final SearchOperation searchOperation, final ServerSideSortRequestControl sortControl)
+      throws DirectoryException
+  {
+    return trusted
+        && searchOperation.getBaseDN().equals(baseDN)
+        && searchOperation.getScope().equals(scope)
+        && searchOperation.getFilter().equals(filter)
+        && sortControl.getSortKeys().equals(sortKeys);
+  }
+
   EntryIDSet evaluate(final ReadableTransaction txn, final SearchOperation searchOperation,
       final ServerSideSortRequestControl sortControl, final VLVRequestControl vlvRequest,
       final StringBuilder debugBuilder) throws DirectoryException, StorageRuntimeException
   {
-    if (!trusted ||
-        !searchOperation.getBaseDN().equals(baseDN) ||
-        !searchOperation.getScope().equals(scope) ||
-        !searchOperation.getFilter().equals(filter) ||
-        !sortControl.getSortKeys().equals(sortKeys))
+    if (!isApplicable(searchOperation, sortControl))
     {
       return null;
     }
@@ -638,7 +646,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   }
 
   /** Returns the total number of entries (a.k.a records, a.k.a keys) indexed by this VLV index. */
-  private int getEntryCount(final ReadableTransaction txn)
+  int getEntryCount(final ReadableTransaction txn)
   {
     return (int) counter.getCount(txn, COUNT_KEY);
   }
@@ -899,17 +907,28 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
 
   static ByteString encodeVLVKey(final List<SortKey> sortKeys, final Entry entry, final long entryID)
   {
+    return encodeVLVKey(sortKeys, entry, entryID, Collections.<AttributeType> emptySet());
+  }
+
+  /**
+   * Encodes the VLV key of an entry, leaving out the values of the attribute types in {@code unreadableTypes}, as
+   * if the entry did not have them.
+   */
+  static ByteString encodeVLVKey(final List<SortKey> sortKeys, final Entry entry, final long entryID,
+      final Set<AttributeType> unreadableTypes)
+  {
     final ByteStringBuilder builder = new ByteStringBuilder();
-    encodeVLVKey0(sortKeys, entry, builder);
+    encodeVLVKey0(sortKeys, entry, unreadableTypes, builder);
     builder.appendLong(entryID);
     return builder.toByteString();
   }
 
-  private static void encodeVLVKey0(final List<SortKey> sortKeys, final Entry entry, final ByteStringBuilder builder)
+  private static void encodeVLVKey0(final List<SortKey> sortKeys, final Entry entry,
+      final Set<AttributeType> unreadableTypes, final ByteStringBuilder builder)
   {
     for (final SortKey sortKey : sortKeys)
     {
-      ByteString sortValue = getLowestAttributeValue(entry, sortKey);
+      ByteString sortValue = getLowestAttributeValue(entry, sortKey, unreadableTypes);
       encodeVLVKeyValue(sortValue, builder, sortKey.isReverseOrder());
     }
   }
@@ -918,13 +937,19 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
    * The RFC states that the lowest value of a multi-valued attribute should be used,
    * regardless of the sort order.
    */
-  private static ByteString getLowestAttributeValue(final Entry entry, final SortKey sortKey)
+  private static ByteString getLowestAttributeValue(final Entry entry, final SortKey sortKey,
+      final Set<AttributeType> unreadableTypes)
   {
     final AttributeDescription attrDesc = AttributeDescription.valueOf(sortKey.getAttributeDescription());
     final MatchingRule matchingRule = getEffectiveOrderingRule(sortKey);
     ByteString sortValue = null;
+    // The values may come from subtypes of the sort attribute, each of which may be unreadable on its own.
     for (Attribute a : entry.getAllAttributes(attrDesc.getAttributeType()))
     {
+      if (unreadableTypes.contains(a.getAttributeDescription().getAttributeType()))
+      {
+        continue;
+      }
       for (ByteString v : a)
       {
         try

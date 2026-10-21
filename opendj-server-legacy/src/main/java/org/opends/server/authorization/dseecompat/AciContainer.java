@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -215,19 +216,18 @@ abstract class AciContainer implements AciTargetMatchContext, AciEvalContext {
         }
 
         //If an ACI evaluated because of an Targetattr="*", then the
-        //AciHandler.maySend method signaled this via adding this attachment
-        //string.
-        String allUserAttrs=
-                  (String)operation.getAttachment(ALL_USER_ATTRS_MATCHED);
-        if(allUserAttrs != null)
+        //AciHandler.maySend method signaled this via adding this attachment,
+        //holding the entry it evaluated: it only holds for that very entry.
+        if (entry != null
+            && operation.getAttachment(ALL_USER_ATTRS_MATCHED) == entry)
         {
           evalAllAttributes |= ACI_USER_ATTR_STAR_MATCHED;
         }
         //If an ACI evaluated because of an Targetattr="+", then the
-        //AciHandler.maySend method signaled this via adding this attachment
-        //string.
-        String allOpAttrs=(String)operation.getAttachment(ALL_OP_ATTRS_MATCHED);
-        if(allOpAttrs != null)
+        //AciHandler.maySend method signaled this via adding this attachment,
+        //holding the entry it evaluated: it only holds for that very entry.
+        if (entry != null
+            && operation.getAttachment(ALL_OP_ATTRS_MATCHED) == entry)
         {
           evalAllAttributes |= ACI_OP_ATTR_PLUS_MATCHED;
         }
