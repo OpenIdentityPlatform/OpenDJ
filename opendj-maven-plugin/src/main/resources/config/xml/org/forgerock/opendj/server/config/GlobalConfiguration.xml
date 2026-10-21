@@ -728,7 +728,7 @@
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>0 seconds</adm:value>
+        <adm:value>600 seconds</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -804,10 +804,13 @@
     </adm:synopsis>
     <adm:description>
       A value of 0 indicates that unlimited client connection is allowed.
+      Connections to the administration connector are counted but never
+      rejected by this limit, so that the server can still be administered
+      once the other connections have reached it.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>0</adm:value>
+        <adm:value>4096</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>

@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024-2025 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -757,7 +757,7 @@ $ dsconfig \
 ----
 
 `max-allowed-client-connections`::
-Restricts the number of concurrent client connections to the directory server. Default: 0, meaning no limit is set.
+Restricts the number of concurrent client connections to the directory server. Connections to the administration connector count toward the limit but are never rejected by it. Default: 4096. A value of 0 sets no limit.
 
 +
 To set a limit of 32768 use the following command:
@@ -814,6 +814,7 @@ $ dsconfig \
 ----
 
 --
+Each LDAP connection handler also limits what a single client can hold before it authenticates. The `first-request-time-limit` property closes a connection on which no complete request arrives in time, 60 seconds by default, and the `max-client-connections-per-address` property limits the connections from one client IP address, 1024 by default. For details, see xref:chap-resource-limits.adoc#limit-unauthenticated-connections["Limiting Connections Before Authentication"].
 
 
 [#tls-protocols-cipher-suites]

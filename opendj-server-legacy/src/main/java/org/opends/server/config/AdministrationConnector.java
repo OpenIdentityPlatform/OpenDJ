@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.config;
 
@@ -100,6 +101,13 @@ public final class AdministrationConnector implements
   private static final int ADMIN_MAX_REQUEST_SIZE = 5000000;
   private static final int ADMIN_WRITE_BUFFER_SIZE = 4096;
   private static final int ADMIN_NUM_REQUEST_HANDLERS = 4;
+  /** 1mn, the default of an LDAP connection handler. */
+  private static final long ADMIN_FIRST_REQUEST_TIME_LIMIT = 60000;
+  /**
+   * The default of an LDAP connection handler: the only bound on the connections from one address, since
+   * max-allowed-client-connections never rejects a connection to the administration connector.
+   */
+  private static final int ADMIN_MAX_CLIENT_CONNECTIONS_PER_ADDRESS = 1024;
   private static final boolean ADMIN_SEND_REJECTION_NOTICE = true;
   private static final boolean ADMIN_USE_TCP_KEEP_ALIVE = true;
   private static final boolean ADMIN_USE_TCP_NO_DELAY = true;
@@ -286,6 +294,18 @@ public final class AdministrationConnector implements
     public long getMaxRequestSize()
     {
       return ADMIN_MAX_REQUEST_SIZE;
+    }
+
+    @Override
+    public long getFirstRequestTimeLimit()
+    {
+      return ADMIN_FIRST_REQUEST_TIME_LIMIT;
+    }
+
+    @Override
+    public int getMaxClientConnectionsPerAddress()
+    {
+      return ADMIN_MAX_CLIENT_CONNECTIONS_PER_ADDRESS;
     }
 
     @Override

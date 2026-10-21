@@ -4492,8 +4492,11 @@ public final class DirectoryServer
         }
       }
 
+      // The administration connector is exempt, or clients holding every connection would lock out the
+      // administrator who has to raise the limit.
       final long maxAllowed = getCoreConfigManager().getMaxAllowedConnections();
-      if (0 < maxAllowed && maxAllowed <= directoryServer.currentConnections)
+      if (0 < maxAllowed && maxAllowed <= directoryServer.currentConnections
+          && !isAdministrationConnection(clientConnection))
       {
         return -1;
       }
@@ -4508,6 +4511,12 @@ public final class DirectoryServer
 
       return directoryServer.totalConnections++;
     }
+  }
+
+  private static boolean isAdministrationConnection(ClientConnection clientConnection)
+  {
+    final ConnectionHandler<?> handler = clientConnection.getConnectionHandler();
+    return handler != null && handler.isAdminConnectionHandler();
   }
 
   /**

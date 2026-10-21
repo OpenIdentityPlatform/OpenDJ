@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -136,6 +137,10 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
 
     /** The time that the last operation was completed. */
     private final AtomicLong lastCompletionTime;
+    /** Whether a complete request has arrived on this connection, which ends its first request time limit. */
+    private volatile boolean requestReceived;
+    /** The task which closes this connection unless its first request arrives in time, or {@code null}. */
+    private volatile Future<?> firstRequestTimer;
     /** The next operation ID that should be used for this connection. */
     private final AtomicLong nextOperationID;
 
@@ -645,6 +650,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
 
         // Indicate that this connection is no longer valid.
         connectionValid = false;
+        cancelFirstRequestTimer();
 
         final LocalizableMessage cancelMessage;
         if (message != null) {
@@ -943,6 +949,39 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
     }
 
     /**
+     * Indicates whether a complete request has arrived on this connection.
+     *
+     * @return {@code true} once the first complete request has arrived, {@code false} before
+     */
+    boolean hasReceivedRequest() {
+        return requestReceived;
+    }
+
+    /**
+     * Sets the task which closes this connection unless its first request arrives in time. The task is cancelled once
+     * the first request arrives or the connection ends, so that neither it nor this connection waits out the limit.
+     *
+     * @param timer
+     *            the scheduled task
+     */
+    void setFirstRequestTimer(final Future<?> timer) {
+        firstRequestTimer = timer;
+        // The connection may have ended before the task was set. Its first request cannot have come before: the task
+        // is set while the connection is accepted, and its requests are handled only once it is.
+        if (!connectionValid) {
+            cancelFirstRequestTimer();
+        }
+    }
+
+    private void cancelFirstRequestTimer() {
+        final Future<?> timer = firstRequestTimer;
+        if (timer != null) {
+            firstRequestTimer = null;
+            timer.cancel(false);
+        }
+    }
+
+    /**
      * Returns the total number of operations initiated on this connection.
      *
      * @return the total number of operations on this connection
@@ -966,6 +1005,10 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      */
     @Override
     public Stream<Response> handle(final QueueingStrategy queueingStrategy, final LdapRequestEnvelope message) {
+        if (!requestReceived) {
+            requestReceived = true;
+            cancelFirstRequestTimer();
+        }
         return streamFromPublisher(
                 new BlockingBackpressureSubscription(connectionHandler.getMaxBlockedWriteTimeLimit(),
                         Flowable.create(new FlowableOnSubscribe<Response>() {

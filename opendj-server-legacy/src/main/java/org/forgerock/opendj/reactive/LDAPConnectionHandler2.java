@@ -43,8 +43,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -422,6 +422,12 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
             newSetFromMap(new ConcurrentHashMap<ClientConnection, Boolean>());
 
     /**
+     * The number of connections held by each client address, against {@code max-client-connections-per-address}.
+     * Counted whatever the limit, so that a limit set while connections are open applies to them as well.
+     */
+    private final ConcurrentHashMap<InetAddress, Integer> connectionsPerAddress = new ConcurrentHashMap<>();
+
+    /**
      * Creates a new instance of this LDAP connection handler. It must be initialized before it may be used.
      */
     public LDAPConnectionHandler2() {
@@ -735,8 +741,13 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
 
         // Create and start a connection finalizer thread for this
         // connection handler.
-        connectionFinalizer = Executors.newSingleThreadScheduledExecutor(new DirectoryThread.Factory(
+        final ScheduledThreadPoolExecutor finalizer = new ScheduledThreadPoolExecutor(1, new DirectoryThread.Factory(
                 "LDAP Connection Finalizer for connection handler " + toString()));
+        // The first request time limits still pending must not keep the thread, and the server shutdown, waiting.
+        finalizer.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+        // A connection which sent its first request, or closed, takes its time limit and itself out of the queue.
+        finalizer.setRemoveOnCancelPolicy(true);
+        connectionFinalizer = finalizer;
 
         connectionFinalizerActiveJobQueue = new ArrayList<>();
         connectionFinalizerPendingJobQueue = new ArrayList<>();
@@ -865,7 +876,10 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
 
     private void connectionClosed(ClientConnection connection, Collection<ClientConnection> accepted) {
         accepted.remove(connection);
-        clientConnections.remove(connection);
+        // Several events may report the end of the same connection: only the first gives back its place.
+        if (clientConnections.remove(connection)) {
+            releasePlaceOfAddress(connection.getRemoteAddress());
+        }
         for (TransportDrain drain : drains) {
             drain.connectionClosed();
         }
@@ -936,6 +950,14 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                                 connectionClosed(conn, accepted);
                             }
                         });
+                        // The context reports a close only to the listeners it has at that time: a connection which
+                        // ended before this listener was added, for example from a post-connect plugin, was never
+                        // reported to it. A close reported twice gives back the place of its address only once.
+                        if (!conn.isConnectionValid()) {
+                            connectionClosed(conn, accepted);
+                        }
+                        // Once the listener is in place, so that a connection the time limit closes is reported to it.
+                        limitTimeToFirstRequest(conn);
                         return new ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>() {
                             @Override
                             public Stream<Response> handle(final LDAPClientContext context,
@@ -1100,39 +1122,111 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                             clientConnection.getServerHostPort()));
             throw LdapException.newLdapException(ResultCode.CONSTRAINT_VIOLATION);
         }
+        // Check that the address of the client does not hold all the connections it is allowed already.
+        final int maxConnectionsPerAddress = currentConfig.getMaxClientConnectionsPerAddress();
+        if (!takePlaceOfAddress(clientAddr, maxConnectionsPerAddress)) {
+            clientConnection.disconnect(
+                    DisconnectReason.ADMIN_LIMIT_EXCEEDED,
+                    currentConfig.isSendRejectionNotice(),
+                    ERR_CONNHANDLER_CLIENT_ADDRESS_LIMIT_REACHED.get(clientConnection.getClientHostPort(),
+                            clientConnection.getServerHostPort(), maxConnectionsPerAddress));
+            throw LdapException.newLdapException(ResultCode.ADMIN_LIMIT_EXCEEDED);
+        }
 
-        // If we've gotten here, then we'll take the
-        // connection so invoke the post-connect plugins and
-        // register the client connection with a request
-        // handler.
+        boolean accepted = false;
         try {
-            PluginConfigManager pluginManager = DirectoryServer.getPluginConfigManager();
-            PluginResult.PostConnect pluginResult = pluginManager.invokePostConnectPlugins(clientConnection);
-            if (!pluginResult.continueProcessing()) {
-                clientConnection.disconnect(pluginResult.getDisconnectReason(),
-                        pluginResult.sendDisconnectNotification(), pluginResult.getErrorMessage());
-                throw LdapException.newLdapException(ResultCode.CONSTRAINT_VIOLATION);
-            }
-        } catch (Exception e) {
-            logger.traceException(e);
-
-            LocalizableMessage message = INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(
-                    clientConnection.getClientHostPort(), clientConnection.getServerHostPort(), getExceptionMessage(e));
-            logger.debug(message);
-
-            clientConnection.disconnect(DisconnectReason.SERVER_ERROR, currentConfig.isSendRejectionNotice(), message);
-            throw LdapException.newLdapException(ResultCode.OPERATIONS_ERROR);
-        }
-
-        if (useSSL()) {
+            // If we've gotten here, then we'll take the
+            // connection so invoke the post-connect plugins and
+            // register the client connection with a request
+            // handler.
             try {
-                clientContext.enableTLS(createSSLEngine(), false);
-            } catch (DirectoryException e) {
-                throw LdapException.newLdapException(e.getResultCode(), e);
+                PluginConfigManager pluginManager = DirectoryServer.getPluginConfigManager();
+                PluginResult.PostConnect pluginResult = pluginManager.invokePostConnectPlugins(clientConnection);
+                if (!pluginResult.continueProcessing()) {
+                    clientConnection.disconnect(pluginResult.getDisconnectReason(),
+                            pluginResult.sendDisconnectNotification(), pluginResult.getErrorMessage());
+                    throw LdapException.newLdapException(ResultCode.CONSTRAINT_VIOLATION);
+                }
+            } catch (Exception e) {
+                logger.traceException(e);
+
+                LocalizableMessage message = INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(
+                        clientConnection.getClientHostPort(), clientConnection.getServerHostPort(),
+                        getExceptionMessage(e));
+                logger.debug(message);
+
+                clientConnection.disconnect(
+                        DisconnectReason.SERVER_ERROR, currentConfig.isSendRejectionNotice(), message);
+                throw LdapException.newLdapException(ResultCode.OPERATIONS_ERROR);
+            }
+
+            if (useSSL()) {
+                try {
+                    clientContext.enableTLS(createSSLEngine(), false);
+                } catch (DirectoryException e) {
+                    throw LdapException.newLdapException(e.getResultCode(), e);
+                }
+            }
+
+            accepted = true;
+            return clientConnection;
+        } finally {
+            // The connection is not accepted after all, whatever was thrown: it gives back the place it took.
+            if (!accepted) {
+                releasePlaceOfAddress(clientAddr);
             }
         }
+    }
 
-        return clientConnection;
+    /**
+     * Counts a new connection from the given address, unless the address holds the given number of connections
+     * already.
+     *
+     * @return {@code false} if the connection would exceed the limit, which is then not counted
+     */
+    private boolean takePlaceOfAddress(final InetAddress address, final int maxConnections) {
+        final AtomicBoolean taken = new AtomicBoolean(true);
+        connectionsPerAddress.compute(address, (key, held) -> {
+            final int count = held != null ? held : 0;
+            if (maxConnections > 0 && count >= maxConnections) {
+                taken.set(false);
+                return held;
+            }
+            return count + 1;
+        });
+        return taken.get();
+    }
+
+    /** Uncounts a connection from the given address, which no longer appears once it holds none. */
+    private void releasePlaceOfAddress(final InetAddress address) {
+        if (address != null) {
+            connectionsPerAddress.computeIfPresent(address, (key, held) -> held > 1 ? held - 1 : null);
+        }
+    }
+
+    /**
+     * Closes the connection unless a complete request arrives on it within {@code first-request-time-limit}, so that
+     * clients which send nothing, or only part of a request, cannot hold connections open.
+     */
+    private void limitTimeToFirstRequest(final LDAPClientConnection2 connection) {
+        final long timeLimit = currentConfig.getFirstRequestTimeLimit();
+        if (timeLimit <= 0) {
+            return;
+        }
+        synchronized (connectionFinalizerLock) {
+            // Accepted while this handler is finalized, before its listener stops: nothing is left to time the
+            // connection. A disabled handler is no longer registered, so idle-time-limit does not reach it either:
+            // like every connection the handler leaves open, it lasts until the client closes it or the server stops.
+            if (connectionFinalizer == null) {
+                return;
+            }
+            connection.setFirstRequestTimer(connectionFinalizer.schedule(() -> {
+                if (!connection.hasReceivedRequest()) {
+                    connection.disconnect(DisconnectReason.IDLE_TIME_LIMIT_EXCEEDED, true,
+                            INFO_CONNHANDLER_FIRST_REQUEST_TIME_LIMIT_EXCEEDED.get(timeLimit));
+                }
+            }, timeLimit, TimeUnit.MILLISECONDS));
+        }
     }
 
     /**

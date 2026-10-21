@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems LLC.
 ////
 
 :figure-caption!:
@@ -28,6 +28,8 @@ This chapter shows you how to set resource limits that prevent directory clients
 * Limit the resources used when a user searches the directory
 
 * Limit how long connections can remain idle before they are dropped
+
+* Limit the connections a client can hold before it authenticates
 
 * Limit the size of directory server requests
 
@@ -58,7 +60,7 @@ You can override the limit for a particular user by changing the operational att
 
 * The __idle time limit__ defines how long OpenDJ allows idle connections to remain open.
 +
-No default idle time limit is set. You can set an idle time limit by using the global server property `idle-time-limit`.
+The default idle time limit, which is set by using the global server property `idle-time-limit`, is 600 seconds. Servers set up with earlier versions keep the explicit `0 seconds`, no limit at all, they were set up with; a server with no value, for example after `dsconfig set-global-configuration-prop --reset idle-time-limit`, gets the new default.
 +
 You can override the limit for a particular user by changing the operational attribute, `ds-rlim-idle-time-limit`, on the user's entry. Times for `ds-rlim-idle-time-limit` are expressed in seconds.
 
@@ -152,7 +154,7 @@ ds-rlim-size-limit: 0
 [#limit-idle-time]
 === Limiting Idle Time
 
-If you have applications that leave connections open for long periods, OpenDJ can end up devoting resources to maintaining connections that are no longer used. If your network does not drop such connections eventually, you can configure OpenDJ to drop them by setting the global configuration property, `idle-time-limit`. By default, no idle time limit is set.
+If you have applications that leave connections open for long periods, OpenDJ can end up devoting resources to maintaining connections that are no longer used. If your network does not drop such connections eventually, OpenDJ drops them once they have been idle for the time set by the global configuration property, `idle-time-limit`. By default, the limit is 600 seconds; a value of `0 seconds` sets no limit. Servers set up with earlier versions have no limit until you set one.
 
 If your network load balancer is configured to drop connections that have been idle for some time, make sure you set the OpenDJ idle time limit to a lower value than the idle time limit for the load balancer. This helps to ensure that idle connections are shut down in orderly fashion. Setting the OpenDJ limit lower than the load balancer limit is particularly useful with load balancers that drop idle connections without cleanly closing the connection and notifying the client and server.
 
@@ -174,6 +176,34 @@ $ dsconfig \
  --no-prompt
 ----
 The example shown sets the idle time limit to 24 hours.
+
+
+[#limit-unauthenticated-connections]
+=== Limiting Connections Before Authentication
+
+A client does not need to authenticate to open a connection, so a client that opens connections and never uses them can take the connections, and the file descriptors, that other clients need. The following settings bound what such a client can hold:
+
+* The global server property `max-allowed-client-connections` limits the number of concurrent client connections. By default, the limit is 4096; a value of `0` sets no limit. Connections to the administration connector count toward the limit but are never rejected by it, so that you can still connect to change the configuration once the other connections reach the limit. Servers set up with earlier versions keep the explicit `0` they were set up with; a server with no value, for example after `dsconfig set-global-configuration-prop --reset max-allowed-client-connections`, gets the new default.
+
+* The LDAP connection handler property `first-request-time-limit` sets how long a new connection may stay open before a complete request arrives on it. By default, a connection on which no complete request arrives within 60 seconds is closed; a value of `0 seconds` sets no limit. Once the first request has arrived, `idle-time-limit` applies.
+
+* The LDAP connection handler property `max-client-connections-per-address` limits the number of connections that a single client IP address can hold through the connection handler, so that one client cannot take all the connections allowed by `max-allowed-client-connections`. By default, the limit is 1024; a value of `0` sets no limit. The limit only protects the other clients while it stays below `max-allowed-client-connections`: a limit at or above it never applies, because the server-wide limit rejects the connection first. Clients behind a load balancer or a network address translation device share its address, so set the limit above the number of connections they need together.
+
+The following example limits each client address to 256 connections through the LDAP connection handler:
+
+[source, console]
+----
+$ dsconfig \
+ set-connection-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "LDAP Connection Handler" \
+ --set max-client-connections-per-address:256 \
+ --trustAll \
+ --no-prompt
+----
 
 
 [#limit-max-request-size]

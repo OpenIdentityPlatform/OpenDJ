@@ -649,4 +649,69 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="first-request-time-limit">
+    <adm:synopsis>
+      Specifies the maximum length of time that a client connection may
+      remain established before the client sends its first complete
+      LDAP request.
+    </adm:synopsis>
+    <adm:description>
+      A connection on which no complete request has arrived within this
+      length of time is terminated, so that clients which connect and then
+      send nothing, or only part of a request, cannot hold connections open.
+      Once the first request has arrived, only the server-wide
+      idle-time-limit applies. On a connection which uses SSL, the time
+      also covers the handshake. A value of "0 seconds" indicates that no
+      limit is enforced. Changes to this property only apply to connections
+      accepted after the change.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>60 seconds</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="ms" lower-limit="0" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-first-request-time-limit</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="max-client-connections-per-address">
+    <adm:synopsis>
+      Specifies the maximum number of client connections that may be
+      established at any given time through this
+      <adm:user-friendly-name />
+      from a single client IP address.
+    </adm:synopsis>
+    <adm:description>
+      A connection which would exceed the limit is rejected as soon as it
+      is accepted. Kept below the server-wide
+      max-allowed-client-connections, as the defaults are, this limit
+      prevents a single client address from taking every connection the
+      server allows. A limit at or above a server-wide limit other than 0
+      never applies, because the server-wide limit rejects the connection
+      first. Clients behind a load balancer or a network address
+      translation device share its address, so set the limit above the
+      number of connections all of them need together.
+      A value of 0 indicates that no limit is enforced.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>1024</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0">
+        <adm:unit-synopsis>connections</adm:unit-synopsis>
+      </adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-max-client-connections-per-address</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>
