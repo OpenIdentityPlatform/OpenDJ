@@ -32,6 +32,7 @@ import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.replication.server.changelog.file.Log.LogRotationParameters;
+import org.opends.server.replication.server.changelog.file.Log.RepositionableCursor;
 import org.opends.server.replication.server.changelog.file.LogFileTest.FailingStringRecordParser;
 import org.opends.server.replication.server.changelog.file.Record.Mapper;
 import org.opends.server.util.StaticUtils;
@@ -357,6 +358,69 @@ public class LogTest extends DirectoryServerTestCase
       assertThatCursorCanBeFullyRead(cursor2, 5, 20);
       assertThatCursorCanBeFullyRead(cursor3, 10, 20);
       assertThatCursorCanBeFullyRead(cursor4, 11, 20);
+    }
+  }
+
+  @DataProvider
+  Object[][] positionedOnTheHeadLogFile()
+  {
+    return new Object[][] {
+      // key to position to, key matching strategy, position strategy, index of the first record read
+      { "key009", EQUAL_TO_KEY, ON_MATCHING_KEY, 9 },
+      { "key009", EQUAL_TO_KEY, AFTER_MATCHING_KEY, 10 },
+      { "key009", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 9 },
+      { "key009", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 10 },
+      // key is between key009 and key010: the record before it is read in advance
+      { "key0095", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 9 },
+      // key is after the newest key: the newest record is read in advance
+      { "key0105", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 10 },
+    };
+  }
+
+  /**
+   * A cursor positioned on a key has read the record it is positioned on in advance, and is past it
+   * in the file: when the head log file it is positioned in is rotated before it reads anything, it
+   * must still read that record first (issue #1227).
+   */
+  @Test(dataProvider = "positionedOnTheHeadLogFile")
+  public void aCursorReadsTheRecordItIsPositionedOnWhenTheHeadLogFileIsRotatedBeforeItsFirstRead(String key,
+      KeyMatchingStrategy matchingStrategy, PositionStrategy positionStrategy, int firstIndex) throws Exception
+  {
+    try (Log<String, String> log = openLog(LogFileTest.RECORD_PARSER);
+        DBCursor<Record<String, String>> cursor = log.getCursor(key, matchingStrategy, positionStrategy))
+    {
+      // the head log file holds 2 records: this append rotates it
+      log.append(Record.from("key011", "value11"));
+
+      assertThatCursorCanBeFullyReadFromStart(cursor, firstIndex, 11);
+    }
+  }
+
+  /**
+   * A cursor which read the newest record is positioned again to read the records written since - the
+   * way FileReplicaDBCursor does - and reads the record it is positioned on in advance as well: when
+   * the head log file is rotated before its next read, it must still read that record first (issue
+   * #1227).
+   */
+  @Test
+  public void aCursorPositionedAgainReadsTheRecordItIsPositionedOnWhenTheHeadLogFileIsRotatedBeforeItsNextRead()
+      throws Exception
+  {
+    try (Log<String, String> log = openLog(LogFileTest.RECORD_PARSER))
+    {
+      // the head log file holds 2 records: this append rotates it, and the new one holds key011
+      log.append(Record.from("key011", "value11"));
+      try (RepositionableCursor<String, String> cursor = log.getCursor())
+      {
+        assertThatCursorCanBeFullyReadFromStart(cursor, 1, 11);
+        log.append(Record.from("key012", "value12"));
+
+        assertThat(cursor.positionTo("key011", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY)).isTrue();
+        // the head log file holds 2 records: this append rotates it
+        log.append(Record.from("key013", "value13"));
+
+        assertThatCursorCanBeFullyRead(cursor, 12, 13);
+      }
     }
   }
 
