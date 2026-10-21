@@ -2810,10 +2810,31 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
    * server misses some, up to the pending changes leaving them to the recovery: they are recorded in
    * the domain state only, and the replication server misses them. The recovery the next session
    * starts rebuilds them from the historical information.
+   * <p>
+   * Once the missing change publisher of an earlier session has left, under the lock it leaves under:
+   * it has the broker take the local changes again as it leaves, after the end of its recovery - which
+   * is all {@link #waitUntilTheRecoveryIsOver(LDAPReplicationDomain)} waits for - and the replication
+   * server would get the changes the test has it miss.
    */
-  private static void refuseTheLocalChanges(LDAPReplicationDomain domain) throws Exception
+  private static void refuseTheLocalChanges(final LDAPReplicationDomain domain) throws Exception
   {
-    brokerOf(domain).setRecoveryRequired(true);
+    final Field recoveryLockField = LDAPReplicationDomain.class.getDeclaredField("recoveryLock");
+    recoveryLockField.setAccessible(true);
+    final Object recoveryLock = recoveryLockField.get(domain);
+    final Field publisherField = LDAPReplicationDomain.class.getDeclaredField("rsUpdater");
+    publisherField.setAccessible(true);
+    new TestTimer.Builder()
+        .maxSleep(30, SECONDS)
+        .sleepTimes(100, MILLISECONDS)
+        .toTimer()
+        .repeatUntilSuccess(() ->
+        {
+          synchronized (recoveryLock)
+          {
+            assertNull(publisherField.get(domain), "the missing change publisher of an earlier session has left");
+            brokerOf(domain).setRecoveryRequired(true);
+          }
+        });
   }
 
   private static PendingChanges pendingChangesOf(LDAPReplicationDomain domain) throws Exception
