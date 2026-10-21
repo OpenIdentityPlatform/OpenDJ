@@ -46,6 +46,7 @@ public class ByteStringUtilityTestCase extends ForgeRockTestCase
     ByteStringUtility.setDereferenceUri(false);
     ByteStringUtility.setAllowedUriSchemes("http,https");
     ByteStringUtility.setMaxUriContentLength(10L * 1024 * 1024);
+    ByteStringUtility.setNat64Prefixes("");
   }
 
   @Test
@@ -103,6 +104,13 @@ public class ByteStringUtilityTestCase extends ForgeRockTestCase
       { "http://[fe80::1]/" },
       { "http://[fc00::1]/" },
       { "http://[fd12:3456::1]/" },
+      // IPv6 transition addresses embedding an internal IPv4 (GHSA-97x5-8pm7-xfp7).
+      { "http://[64:ff9b::c0a8:0101]/" },    // NAT64 well-known -> 192.168.1.1
+      { "http://[64:ff9b::0a00:0001]/" },    // NAT64 well-known -> 10.0.0.1
+      { "http://[64:ff9b:1::7f00:1]/" },     // NAT64 local-use (RFC 8215) -> 127.0.0.1
+      { "http://[64:ff9b:1:0:c0:a801:100:0]/" }, // NAT64 local-use, /64 layout -> 192.168.1.1
+      { "http://[2002:0a00:0001::]/" },      // 6to4 -> 10.0.0.1
+      { "http://[2001:0000::3f57:fefe]/" },  // Teredo -> 192.168.1.1 (obfuscated)
     };
   }
 
@@ -143,6 +151,10 @@ public class ByteStringUtilityTestCase extends ForgeRockTestCase
       // 192.0.0.0/24 boundaries
       { "192.0.0.1", true },
       { "192.0.1.1", false },
+      // 192.88.99.0/24 (deprecated 6to4 relay anycast, RFC 7526) boundaries
+      { "192.88.98.255", false },
+      { "192.88.99.1", true },
+      { "192.88.100.0", false },
       // 198.18.0.0/15 boundaries
       { "198.17.255.255", false },
       { "198.18.0.0", true },
@@ -156,6 +168,33 @@ public class ByteStringUtilityTestCase extends ForgeRockTestCase
       { "fc00::1", true },
       { "fdff::1", true },
       { "fe00::1", false },
+      // IPv6 transition addresses embedding an internal IPv4 (GHSA-97x5-8pm7-xfp7).
+      { "64:ff9b::c0a8:0101", true },   // NAT64 well-known -> 192.168.1.1
+      { "64:ff9b::0a00:0001", true },   // NAT64 well-known -> 10.0.0.1
+      { "64:ff9b::7f00:0001", true },   // NAT64 well-known -> 127.0.0.1
+      { "64:ff9b::0808:0808", false },  // NAT64 well-known -> 8.8.8.8 (public)
+      // The NAT64 local-use prefix 64:ff9b:1::/48 (RFC 8215) is blocked outright,
+      // whichever RFC 6052 sub-prefix layout the operator picked inside it.
+      { "64:ff9b:1::7f00:1", true },    // /96 layout -> 127.0.0.1
+      { "64:ff9b:1::a00:1", true },     // /96 layout -> 10.0.0.1
+      { "64:ff9b:1:abcd::c0a8:101", true },  // /96 layout in a subnet of the /48 -> 192.168.1.1
+      { "64:ff9b:1:0:c0:a801:100:0", true }, // /64 layout -> 192.168.1.1
+      { "64:ff9b:1:0:a:102:300:0", true },   // /64 layout -> 10.1.2.3
+      { "64:ff9b:1:7f00:0:100::", true },    // /48 layout -> 127.0.0.1
+      { "64:ff9b:1::808:808", true },   // 8.8.8.8: public, but not reachable through this prefix
+      { "64:ff9b:1:ffff:ffff:ffff:ffff:ffff", true }, // no layout matches, still in the /48
+      // 64:ff9b:1::/48 boundaries.
+      { "64:ff9b:0:1::7f00:1", false }, // 64:ff9b:0:1, not the local-use prefix
+      { "64:ff9b:2::7f00:1", false },   // outside 64:ff9b::/96 and 64:ff9b:1::/48
+      { "64:ff9c:1::7f00:1", false },   // 64:ff9c:1, not the local-use prefix
+      { "2002:0a00:0001::", true },     // 6to4 -> 10.0.0.1
+      { "2002:c0a8:0101::", true },     // 6to4 -> 192.168.1.1
+      { "2002:c058:6301::", true },     // 6to4 -> 192.88.99.1 (blocked IPv4 via transition)
+      { "2002:0808:0808::", false },    // 6to4 -> 8.8.8.8 (public)
+      { "2001:0000::3f57:fefe", true }, // Teredo -> 192.168.1.1 (obfuscated)
+      { "2001:0000::f7f7:f7f7", false },// Teredo -> 8.8.8.8 (public, obfuscated)
+      // A regular global-unicast address under 2001::/16 must not be misread as Teredo/6to4.
+      { "2001:4860:4860::8844", false },
     };
   }
 
@@ -166,6 +205,66 @@ public class ByteStringUtilityTestCase extends ForgeRockTestCase
     InetAddress address = InetAddress.getByName(literal);
     assertEquals(ByteStringUtility.isInternalAddress(address), expectedInternal,
         "isInternalAddress(" + literal + ")");
+  }
+
+  @Test
+  public void testNat64NetworkSpecificPrefixIsNotBlockedByDefault() throws Exception
+  {
+    // An NSP is ordinary operator address space: without configuration it
+    // cannot be told apart from a global address, so it must stay allowed.
+    assertFalse(isInternal("2001:db8:122:344::c0a8:101"));
+  }
+
+  @Test
+  public void testConfiguredNat64PrefixFiltersEmbeddedIPv4() throws Exception
+  {
+    ByteStringUtility.setNat64Prefixes("2001:db8:122:344::/96");
+    assertTrue(isInternal("2001:db8:122:344::c0a8:101"));   // -> 192.168.1.1
+    assertTrue(isInternal("2001:db8:122:344::7f00:1"));     // -> 127.0.0.1
+    assertFalse(isInternal("2001:db8:122:344::808:808"));   // -> 8.8.8.8 (public)
+    assertFalse(isInternal("2001:db8:122:345::c0a8:101"));  // outside the prefix
+  }
+
+  @Test
+  public void testConfiguredNat64PrefixWith64BitLength() throws Exception
+  {
+    // RFC 6052 /64 format: the IPv4 address sits in bytes 9..12, after the "u" byte.
+    ByteStringUtility.setNat64Prefixes("2001:db8:122:344::/64");
+    assertTrue(isInternal("2001:db8:122:344:a:0:100:0"));   // -> 10.0.0.1
+    assertFalse(isInternal("2001:db8:122:344:8:808:800:0"));// -> 8.8.8.8 (public)
+  }
+
+  @Test
+  public void testMultipleNat64PrefixesAreSupported() throws Exception
+  {
+    ByteStringUtility.setNat64Prefixes(" 2001:db8:122:344::/96 , 2001:db8:9::/96 ");
+    assertTrue(isInternal("2001:db8:122:344::a00:1"));      // -> 10.0.0.1
+    assertTrue(isInternal("2001:db8:9::a9fe:a9fe"));        // -> 169.254.169.254
+    assertFalse(isInternal("2001:db8:9::101:101"));         // -> 1.1.1.1 (public)
+  }
+
+  @DataProvider
+  public Object[][] invalidNat64Prefixes()
+  {
+    return new Object[][] {
+      { "2001:db8::" },            // no /length
+      { "2001:db8::/95" },         // not an RFC 6052 prefix length
+      { "2001:db8::/abc" },        // length is not a number
+      { "not-an-address/96" },     // not an IP literal (must not trigger DNS)
+      { "192.0.2.0/96" },          // IPv4, not IPv6
+    };
+  }
+
+  @Test(dataProvider = "invalidNat64Prefixes",
+      expectedExceptions = IllegalArgumentException.class)
+  public void testInvalidNat64PrefixesAreRejected(String prefixes)
+  {
+    ByteStringUtility.setNat64Prefixes(prefixes);
+  }
+
+  private boolean isInternal(String literal) throws Exception
+  {
+    return ByteStringUtility.isInternalAddress(InetAddress.getByName(literal));
   }
 
   @DataProvider

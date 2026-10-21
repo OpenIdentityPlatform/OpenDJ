@@ -128,6 +128,7 @@ public class DSMLServlet extends HttpServlet {
   private static final String DEREF_ANYURI = "ldap.dsml.dereference.anyuri";
   private static final String DEREF_ANYURI_SCHEMES = "ldap.dsml.dereference.anyuri.schemes";
   private static final String DEREF_ANYURI_MAXSIZE = "ldap.dsml.dereference.anyuri.maxsize";
+  private static final String DEREF_ANYURI_NAT64PREFIXES = "ldap.dsml.dereference.anyuri.nat64prefixes";
   private static final String MAX_BATCH_REQUESTS = "ldap.dsml.batchrequests.max";
   private static final String REQUEST_MAXSIZE = "ldap.dsml.request.maxsize";
   private static final String MAX_OPERATIONS = "ldap.dsml.batchrequest.operations.max";
@@ -246,6 +247,22 @@ public class DSMLServlet extends HttpServlet {
         if (maxSize != null && !maxSize.trim().isEmpty())
         {
           ByteStringUtility.setMaxUriContentLength(positiveValue(DEREF_ANYURI_MAXSIZE, maxSize));
+        }
+        // NAT64 Network-Specific Prefixes cannot be detected from an address
+        // (an NSP is ordinary operator address space), so deployments using
+        // NAT64 with an NSP must declare it for the embedded IPv4 address to
+        // be filtered like the built-in transition prefixes.
+        String nat64Prefixes = stringValue(config, DEREF_ANYURI_NAT64PREFIXES);
+        if (nat64Prefixes != null && !nat64Prefixes.trim().isEmpty())
+        {
+          try
+          {
+            ByteStringUtility.setNat64Prefixes(nat64Prefixes);
+          }
+          catch (IllegalArgumentException e)
+          {
+            throw new ServletException(DEREF_ANYURI_NAT64PREFIXES + ": " + e.getMessage());
+          }
         }
       }
 

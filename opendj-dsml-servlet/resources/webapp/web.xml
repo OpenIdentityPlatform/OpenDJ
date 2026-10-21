@@ -103,6 +103,17 @@
     <param-name>ldap.dsml.dereference.anyuri.maxsize</param-name>
     <param-value>10485760</param-value>
   </context-param>
+  If this network uses NAT64 with a Network-Specific Prefix (RFC 6052), declare
+  it here so that the IPv4 address embedded in a translated IPv6 address goes
+  through the same internal-address filter as the built-in transition prefixes
+  (an NSP is ordinary operator address space and cannot be detected
+  automatically). Comma-separated prefix/length entries; the length must be one
+  of 32, 40, 48, 56, 64 or 96.
+  <context-param>
+    <description>NAT64 Network-Specific Prefixes, e.g. 2001:db8:122:344::/96 (default none)</description>
+    <param-name>ldap.dsml.dereference.anyuri.nat64prefixes</param-name>
+    <param-value>2001:db8:122:344::/96</param-value>
+  </context-param>
 -->
 
   <context-param>

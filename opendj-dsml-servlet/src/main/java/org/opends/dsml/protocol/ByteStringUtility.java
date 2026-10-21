@@ -23,9 +23,11 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -64,6 +66,16 @@ class ByteStringUtility
 
   /** Maximum number of bytes read from a dereferenced URI (10 MiB by default). */
   private static volatile long maxUriContentLength = 10L * 1024 * 1024;
+
+  /**
+   * NAT64 Network-Specific Prefixes (RFC 6052 section 2.2) configured by the
+   * deployer. An NSP is chosen by an operator out of their own address space
+   * and is indistinguishable from an ordinary global address, so it cannot be
+   * detected here; deployments using NAT64 with an NSP must declare it so that
+   * the IPv4 address it embeds goes through the same filter as the built-in
+   * transition prefixes. Empty by default.
+   */
+  private static volatile List<Nat64Prefix> nat64Prefixes = Collections.emptyList();
 
   /**
    * Enables or disables server-side dereferencing of xsd:anyURI values.
@@ -110,6 +122,30 @@ class ByteStringUtility
           "The maximum anyURI content length must be positive, but was: " + maxLength);
     }
     maxUriContentLength = maxLength;
+  }
+
+  /**
+   * Sets the NAT64 Network-Specific Prefixes from a comma-separated list of
+   * {@code prefix/length} entries (e.g. {@code "2001:db8:122:344::/96"}). The
+   * length must be one of the RFC 6052 section 2.2 prefix lengths: 32, 40, 48,
+   * 56, 64 or 96. An empty string clears the list.
+   *
+   * @param prefixes comma-separated NAT64 prefixes in {@code prefix/length} form.
+   * @throws IllegalArgumentException if an entry is not a valid IPv6 literal
+   *         with an RFC 6052 prefix length.
+   */
+  static void setNat64Prefixes(String prefixes)
+  {
+    List<Nat64Prefix> parsed = new ArrayList<>();
+    for (String entry : prefixes.split(","))
+    {
+      String trimmed = entry.trim();
+      if (!trimmed.isEmpty())
+      {
+        parsed.add(Nat64Prefix.valueOf(trimmed));
+      }
+    }
+    nat64Prefixes = Collections.unmodifiableList(parsed);
   }
 
   /**
@@ -278,8 +314,13 @@ class ByteStringUtility
    * on behalf of a request: loopback, wildcard, link-local (covers the
    * 169.254.169.254 metadata endpoint), site-local/private, multicast, an
    * IANA-reserved IPv4 range (including 100.64.0.0/10, home of the Alibaba
-   * Cloud metadata endpoint 100.100.100.200), or an IPv6 unique-local address
-   * (fc00::/7).
+   * Cloud metadata endpoint 100.100.100.200), an IPv6 unique-local address
+   * (fc00::/7), an address in the NAT64 local-use prefix 64:ff9b:1::/48
+   * (RFC 8215), or an IPv6 transition address (NAT64 well-known prefix
+   * 64:ff9b::/96, any NAT64 prefix declared via
+   * {@link #setNat64Prefixes(String)}, 6to4 2002::/16, Teredo 2001:0000::/32,
+   * IPv4-mapped/-compatible) that embeds an internal IPv4 address
+   * (GHSA-97x5-8pm7-xfp7).
    */
   static boolean isInternalAddress(InetAddress address)
   {
@@ -292,16 +333,227 @@ class ByteStringUtility
     byte[] bytes = address.getAddress();
     if (bytes.length == 4)
     {
-      int b0 = bytes[0] & 0xff;
-      int b1 = bytes[1] & 0xff;
-      return b0 == 0                                        // 0.0.0.0/8 "this network"
-          || (b0 == 100 && (b1 & 0xc0) == 0x40)             // 100.64.0.0/10 CGNAT
-          || (b0 == 192 && b1 == 0 && (bytes[2] & 0xff) == 0) // 192.0.0.0/24 IETF assignments
-          || (b0 == 198 && (b1 & 0xfe) == 18)               // 198.18.0.0/15 benchmarking
-          || b0 >= 240;                                     // 240.0.0.0/4 reserved + broadcast
+      return isInternalIPv4(bytes);
     }
-    // IPv6 unique-local addresses (fc00::/7) are not covered by isSiteLocalAddress().
-    return bytes.length == 16 && (bytes[0] & 0xfe) == 0xfc;
+    if (bytes.length == 16)
+    {
+      // IPv6 unique-local addresses (fc00::/7) are not covered by isSiteLocalAddress().
+      if ((bytes[0] & 0xfe) == 0xfc)
+      {
+        return true;
+      }
+      // The NAT64 local-use prefix 64:ff9b:1::/48 (RFC 8215) is translation-only
+      // space reserved for use within a site, and the operator chooses the
+      // sub-prefix inside it, so the offset of the embedded IPv4 address is not
+      // knowable here (a /64 sub-prefix puts it in bytes 9..12 rather than
+      // 12..15). RFC 6052 section 3.1 forbids representing non-global IPv4
+      // addresses with the well-known prefix and RFC 8215 exists to provide a
+      // prefix that may be used for exactly that, so this /48 is more likely to
+      // carry an internal target than the well-known prefix is. Nothing in it is
+      // a legitimate fetch target, so block the whole /48 rather than only the
+      // sub-prefixes whose layout can be guessed.
+      if (bytes[0] == 0x00 && bytes[1] == 0x64
+          && (bytes[2] & 0xff) == 0xff && (bytes[3] & 0xff) == 0x9b
+          && bytes[4] == 0x00 && bytes[5] == 0x01)
+      {
+        return true;
+      }
+      // A transition address may embed an internal IPv4 address that would
+      // otherwise bypass the IPv4 filter (GHSA-97x5-8pm7-xfp7).
+      byte[] embedded = embeddedIPv4(bytes);
+      return embedded != null && isInternalIPv4(embedded);
+    }
+    return false;
+  }
+
+  /**
+   * Returns {@code true} if the given four-byte IPv4 address is loopback,
+   * private, link-local, multicast or otherwise reserved/non-routable. Unlike
+   * the {@link InetAddress} predicates, this operates on raw bytes so it can
+   * also classify an IPv4 address extracted from an IPv6 transition address.
+   */
+  private static boolean isInternalIPv4(byte[] v4)
+  {
+    int b0 = v4[0] & 0xff;
+    int b1 = v4[1] & 0xff;
+    int b2 = v4[2] & 0xff;
+    return b0 == 0                                   // 0.0.0.0/8 "this network"
+        || b0 == 10                                  // 10.0.0.0/8 private
+        || b0 == 127                                 // 127.0.0.0/8 loopback
+        || (b0 == 100 && (b1 & 0xc0) == 0x40)        // 100.64.0.0/10 CGNAT
+        || (b0 == 169 && b1 == 254)                  // 169.254.0.0/16 link-local
+        || (b0 == 172 && (b1 & 0xf0) == 0x10)        // 172.16.0.0/12 private
+        || (b0 == 192 && b1 == 168)                  // 192.168.0.0/16 private
+        || (b0 == 192 && b1 == 0 && b2 == 0)         // 192.0.0.0/24 IETF assignments
+        || (b0 == 192 && b1 == 88 && b2 == 99)       // 192.88.99.0/24 6to4 relay anycast (deprecated, RFC 7526)
+        || (b0 == 198 && (b1 & 0xfe) == 18)          // 198.18.0.0/15 benchmarking
+        || (b0 & 0xf0) == 0xe0                        // 224.0.0.0/4 multicast
+        || b0 >= 240;                                // 240.0.0.0/4 reserved + broadcast
+  }
+
+  /**
+   * Extracts the IPv4 address embedded in an IPv6 transition address, or
+   * {@code null} if none is embedded. Covers 6to4 (2002::/16), Teredo
+   * (2001:0000::/32, client address obfuscated), the NAT64 well-known prefix
+   * (64:ff9b::/96), any NAT64 Network-Specific Prefix declared via
+   * {@link #setNat64Prefixes(String)}, and IPv4-mapped/-compatible addresses
+   * (::ffff:0:0/96, ::/96). The NAT64 local-use prefix 64:ff9b:1::/48 (RFC 8215)
+   * is not decoded here: {@link #isInternalAddress(InetAddress)} rejects that
+   * whole /48, whatever sub-prefix layout the operator picked inside it.
+   */
+  private static byte[] embeddedIPv4(byte[] b)
+  {
+    int b0 = b[0] & 0xff;
+    int b1 = b[1] & 0xff;
+    // 6to4: 2002:V4ADDR::/16 -- IPv4 in bytes 2..5.
+    if (b0 == 0x20 && b1 == 0x02)
+    {
+      return new byte[] { b[2], b[3], b[4], b[5] };
+    }
+    // Teredo: 2001:0000::/32 -- client IPv4 in bytes 12..15, obfuscated (one's complement).
+    if (b0 == 0x20 && b1 == 0x01 && (b[2] & 0xff) == 0x00 && (b[3] & 0xff) == 0x00)
+    {
+      return new byte[] { (byte) ~b[12], (byte) ~b[13], (byte) ~b[14], (byte) ~b[15] };
+    }
+    // NAT64 well-known prefix: 64:ff9b::/96 -- IPv4 in bytes 12..15. RFC 6052
+    // defines the well-known prefix with a /96 length only, so this is complete;
+    // the local-use prefix 64:ff9b:1::/48 needs no decoding because
+    // isInternalAddress() rejects that whole /48 outright.
+    if (b0 == 0x00 && b1 == 0x64 && (b[2] & 0xff) == 0xff && (b[3] & 0xff) == 0x9b
+        && isZero(b, 4, 12))
+    {
+      return new byte[] { b[12], b[13], b[14], b[15] };
+    }
+    // IPv4-mapped (::ffff:0:0/96) and IPv4-compatible (::/96) -- IPv4 in bytes 12..15.
+    if (isZero(b, 0, 10)
+        && (((b[10] & 0xff) == 0xff && (b[11] & 0xff) == 0xff)      // ::ffff:0:0/96 mapped
+            || ((b[10] & 0xff) == 0x00 && (b[11] & 0xff) == 0x00))) // ::/96 compatible
+    {
+      return new byte[] { b[12], b[13], b[14], b[15] };
+    }
+    // NAT64 Network-Specific Prefixes declared by the deployer (RFC 6052).
+    for (Nat64Prefix prefix : nat64Prefixes)
+    {
+      if (prefix.matches(b))
+      {
+        return prefix.extractIPv4(b);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * A NAT64 translation prefix (RFC 6052 section 2.2): a 16-byte IPv6 prefix
+   * and its length, one of 32, 40, 48, 56, 64 or 96 bits. The prefix length
+   * determines where the translated IPv4 address sits in the IPv6 address
+   * (bits 64..71, the "u" byte, never carry IPv4 bits).
+   */
+  private static final class Nat64Prefix
+  {
+    private final byte[] prefix;
+    private final int length;
+
+    private Nat64Prefix(byte[] prefix, int length)
+    {
+      this.prefix = prefix;
+      this.length = length;
+    }
+
+    /**
+     * Parses a {@code prefix/length} entry, e.g. {@code "2001:db8:122:344::/96"}.
+     *
+     * @throws IllegalArgumentException if the entry is malformed, the address
+     *         part is not an IPv6 literal, or the length is not an RFC 6052
+     *         prefix length.
+     */
+    static Nat64Prefix valueOf(String entry)
+    {
+      int slash = entry.indexOf('/');
+      if (slash < 0)
+      {
+        throw new IllegalArgumentException(
+            "NAT64 prefix must be in prefix/length form, but was: " + entry);
+      }
+      int length;
+      try
+      {
+        length = Integer.parseInt(entry.substring(slash + 1).trim());
+      }
+      catch (NumberFormatException e)
+      {
+        throw new IllegalArgumentException(
+            "NAT64 prefix length is not a number: " + entry);
+      }
+      if (length != 32 && length != 40 && length != 48 && length != 56 && length != 64
+          && length != 96)
+      {
+        throw new IllegalArgumentException("NAT64 prefix length must be one of "
+            + "32, 40, 48, 56, 64 or 96 (RFC 6052), but was: " + entry);
+      }
+      InetAddress address;
+      try
+      {
+        // The bracketed form only accepts an IP literal, so this cannot
+        // trigger a DNS lookup.
+        address = InetAddress.getByName("[" + entry.substring(0, slash).trim() + "]");
+      }
+      catch (UnknownHostException e)
+      {
+        throw new IllegalArgumentException(
+            "NAT64 prefix is not an IPv6 literal: " + entry);
+      }
+      byte[] bytes = address.getAddress();
+      if (bytes.length != 16)
+      {
+        throw new IllegalArgumentException(
+            "NAT64 prefix is not an IPv6 address: " + entry);
+      }
+      return new Nat64Prefix(bytes, length);
+    }
+
+    /** Returns {@code true} if the first {@code length} bits of {@code b} match this prefix. */
+    boolean matches(byte[] b)
+    {
+      for (int i = 0; i < length / 8; i++)
+      {
+        if (b[i] != prefix[i])
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    /**
+     * Extracts the embedded IPv4 address as laid out by RFC 6052 section 2.2
+     * for this prefix length: the 32 IPv4 bits follow the prefix directly,
+     * except that byte 8 (the "u" byte) is skipped.
+     */
+    byte[] extractIPv4(byte[] b)
+    {
+      switch (length)
+      {
+        case 32: return new byte[] { b[4], b[5], b[6], b[7] };
+        case 40: return new byte[] { b[5], b[6], b[7], b[9] };
+        case 48: return new byte[] { b[6], b[7], b[9], b[10] };
+        case 56: return new byte[] { b[7], b[9], b[10], b[11] };
+        case 64: return new byte[] { b[9], b[10], b[11], b[12] };
+        default: return new byte[] { b[12], b[13], b[14], b[15] };  // 96
+      }
+    }
+  }
+
+  /** Returns {@code true} if bytes {@code [from, to)} of {@code b} are all zero. */
+  private static boolean isZero(byte[] b, int from, int to)
+  {
+    for (int i = from; i < to; i++)
+    {
+      if (b[i] != 0)
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
