@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.openidentityplatform.opendj</groupId>
         <artifactId>opendj-msi</artifactId>
-        <version>5.2.0-SNAPSHOT</version>
+        <version>5.2.0</version>
     </parent>
 
     <artifactId>opendj-msi-standard</artifactId>
@@ -92,26 +92,26 @@
                         <configuration>
                             <target>
                                 <!-- Everything except lib (and macOS/Unix bits) -> stagingRoot -->
-                                <delete dir="${staging.root}"/>
-                                <mkdir dir="${staging.root}"/>
+                                <delete dir="${staging.root}" />
+                                <mkdir dir="${staging.root}" />
                                 <copy toDir="${staging.root}">
                                     <fileset dir="${package.dir}">
-                                        <exclude name="QuickSetup.app/**"/>
-                                        <exclude name="Uninstall.app/**"/>
-                                        <exclude name="bin/**"/>
-                                        <exclude name="lib/**"/>
-                                        <exclude name="setup"/>
-                                        <exclude name="uninstall"/>
-                                        <exclude name="upgrade"/>
-                                        <exclude name="**/*.sh"/>
+                                        <exclude name="QuickSetup.app/**" />
+                                        <exclude name="Uninstall.app/**" />
+                                        <exclude name="bin/**" />
+                                        <exclude name="lib/**" />
+                                        <exclude name="setup" />
+                                        <exclude name="uninstall" />
+                                        <exclude name="upgrade" />
+                                        <exclude name="**/*.sh" />
                                     </fileset>
                                 </copy>
                                 <!-- lib (the Windows launchers included) -> stagingLib -->
-                                <delete dir="${staging.lib}"/>
-                                <mkdir dir="${staging.lib}"/>
+                                <delete dir="${staging.lib}" />
+                                <mkdir dir="${staging.lib}" />
                                 <copy toDir="${staging.lib}">
                                     <fileset dir="${package.dir}/lib">
-                                        <exclude name="**/*.sh"/>
+                                        <exclude name="**/*.sh" />
                                     </fileset>
                                 </copy>
                             </target>
