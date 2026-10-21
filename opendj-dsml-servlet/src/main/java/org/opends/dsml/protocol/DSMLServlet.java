@@ -125,6 +125,11 @@ public class DSMLServlet extends HttpServlet {
   private static final String TRUSTALLCERTS = "ldap.trustall";
   private static final String USEHTTPAUTHZID = "ldap.authzidtypeisid";
   private static final String EXOPSTRINGPREFIX = "ldap.exop.string.";
+  /**
+   * JAXB RI system property mapping xsd:anyURI to java.net.URI instead of
+   * java.lang.String. See the caveats in {@link #init(ServletConfig)}.
+   */
+  private static final String MAP_ANYURI_TO_URI = "mapAnyUriToUri";
   private static final String DEREF_ANYURI = "ldap.dsml.dereference.anyuri";
   private static final String DEREF_ANYURI_SCHEMES = "ldap.dsml.dereference.anyuri.schemes";
   private static final String DEREF_ANYURI_MAXSIZE = "ldap.dsml.dereference.anyuri.maxsize";
@@ -225,11 +230,6 @@ public class DSMLServlet extends HttpServlet {
         }
       }
 
-      // Materialise anyURI values as java.net.URI so that, when dereferencing
-      // is explicitly enabled, they can be fetched. Dereferencing itself is
-      // gated and hardened in ByteStringUtility (disabled by default).
-      System.setProperty("mapAnyUriToUri", "true");
-
       // Server-side dereferencing of anyURI values is disabled by default
       // (SSRF / local-file / unbounded-read hardening, GHSA-68r5-9hpg-7qw9).
       // Enable it explicitly, and optionally tune the scheme allowlist and the
@@ -238,6 +238,27 @@ public class DSMLServlet extends HttpServlet {
       ByteStringUtility.setDereferenceUri(derefAnyUri);
       if (derefAnyUri)
       {
+        // Materialise anyURI values as java.net.URI, otherwise they are bound
+        // to String and are stored verbatim rather than dereferenced. This is
+        // only done when dereferencing is wanted, because the property comes
+        // with four caveats (GHSA-jr68-5c58-j463):
+        // - it is JVM-global rather than per-JAXBContext, so it also changes
+        //   the anyURI binding of every other application initialising JAXB in
+        //   this JVM afterwards;
+        // - the JAXB RI tests it for presence, not for its value, so setting
+        //   it to "false" would enable the mapping just as well;
+        // - it is read once, by the static initialiser of the JAXB runtime, so
+        //   it has no effect if JAXB has already been initialised, and only the
+        //   JAXB RI honours it at all - EclipseLink MOXy ignores it, which is
+        //   why the gateway must ship exactly one Jakarta XML Binding provider
+        //   (pinned by JaxbProviderTestCase);
+        // - the URI binding narrows the accepted values: a lexical form which
+        //   is a valid xsd:anyURI but not a valid java.net.URI is turned into a
+        //   null by the runtime, and is then reported to the client as an
+        //   unresolvableURI error rather than being silently dropped (see
+        //   ByteStringUtility.convertRequiredValue).
+        System.setProperty(MAP_ANYURI_TO_URI, "true");
+
         String schemes = stringValue(config, DEREF_ANYURI_SCHEMES);
         if (schemes != null && !schemes.trim().isEmpty())
         {
@@ -345,8 +366,19 @@ public class DSMLServlet extends HttpServlet {
   }
 
   /**
-   * Check if using the proxy authz control will work, by using it to read
-   * the Root DSE.
+   * Pre-flight probe telling whether the proxy authz control is usable, by
+   * sending it along with a Root DSE read.
+   * <p>
+   * This is a fail-fast diagnostic, not an access decision: the control it
+   * returns is attached to every operation of the batch request, and the
+   * server evaluates it independently on each of them. That evaluation
+   * requires the authenticated identity to hold the {@code proxied-auth}
+   * privilege, the authorization ID to resolve to a usable entry, and an ACI
+   * granting the authenticated identity the {@code proxy} right over that
+   * entry; ordinary per-entry ACI evaluation then applies to the entries the
+   * operation touches. The probe runs the very same checks - the Root DSE is
+   * served by a local backend - so it only turns an authorization failure that
+   * would happen on the first operation into an error reported up front.
    *
    * @param connection The authenticated LDAP connection used to check.
    * @param authorizationID The authorization ID, in the format
@@ -862,7 +894,9 @@ public class DSMLServlet extends HttpServlet {
    *
    * @return a JAXBElement that contains an ErrorResponse
    */
-  private JAXBElement<ErrorResponse> createXMLParsingErrorResponse(
+  // Package-private rather than private so that DSMLXmlParsingTestCase can
+  // exercise the fallback parser on the payloads SAAJ rejects.
+  JAXBElement<ErrorResponse> createXMLParsingErrorResponse(
                                                     InputStream is,
                                                     ObjectFactory objFactory,
                                                     BatchResponse batchResponse,
@@ -1186,7 +1220,10 @@ public class DSMLServlet extends HttpServlet {
    * @throws ParserConfigurationException if we cannot obtain a parser.
    * @throws SAXException if we cannot obtain a parser.
    */
-  private XMLReader createSafeXMLReader()
+  // Package-private rather than private so that DSMLXmlParsingTestCase can
+  // assert that the hardening features really did take effect: safeSetFeature
+  // logs and continues when a feature is unsupported by the parser in use.
+  XMLReader createSafeXMLReader()
           throws ParserConfigurationException, SAXException
   {
     final SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();

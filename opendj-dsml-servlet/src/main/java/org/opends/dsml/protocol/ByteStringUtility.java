@@ -184,6 +184,37 @@ class ByteStringUtility
   }
 
   /**
+   * Returns a ByteString from a DsmlValue Object which the request requires to
+   * carry a value.
+   * <p>
+   * A value the binding could not produce arrives here as {@code null} rather
+   * than as a parse failure: when {@code ldap.dsml.dereference.anyuri} is
+   * enabled, {@code xsd:anyURI} is bound to {@link URI}, and the JAXB runtime
+   * turns a lexical form {@link URI} rejects - one holding a space, a pipe or a
+   * brace, all of them valid {@code xsd:anyURI} - into a {@code null} element.
+   * Passing that on would silently drop the value from an add or modify
+   * request, or build a search filter with no assertion value, so it is
+   * reported to the client instead (GHSA-jr68-5c58-j463).
+   *
+   * @param obj
+   *           the DsmlValue object.
+   * @return a new ByteString object with the value, never {@code null}.
+   * @throws IOException if the value is missing or could not be converted, or
+   *                     if any problem occurred retrieving an anyURI value.
+   */
+  static ByteString convertRequiredValue(Object obj) throws IOException
+  {
+    ByteString value = convertValue(obj);
+    if (value == null)
+    {
+      throw new IOException("Unable to convert a DSML value into an attribute "
+          + "value: the value is missing, or it is an anyURI which is not a "
+          + "valid URI and was dropped by the XML binding");
+    }
+    return value;
+  }
+
+  /**
    * Converts an xsd:anyURI value into a ByteString.
    * <p>
    * Unless dereferencing has been explicitly enabled, the URI is treated as an

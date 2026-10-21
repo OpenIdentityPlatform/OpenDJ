@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.dsml.protocol;
 
@@ -104,7 +105,7 @@ class DSMLModifyOperation
 
       for (Object val : attr.getValue())
       {
-        values.add(ByteStringUtility.convertValue(val));
+        values.add(ByteStringUtility.convertRequiredValue(val));
       }
       LDAPAttribute ldapAttr = new LDAPAttribute(attrType, values);
 

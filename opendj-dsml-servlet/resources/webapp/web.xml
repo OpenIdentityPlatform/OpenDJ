@@ -88,6 +88,14 @@
      independently, so a DNS name whose records change between the two lookups
      (DNS rebinding) can still reach an internal address; only enable
      dereferencing for trusted clients.
+     Enabling this also sets the JVM-global "mapAnyUriToUri" system property,
+     which the JAXB reference implementation reads once, when it initialises:
+     every other application in the same JVM that initialises JAXB afterwards
+     then binds xsd:anyURI to java.net.URI instead of to java.lang.String
+     (GHSA-jr68-5c58-j463). In this gateway that binding also makes an anyURI
+     value which is not a valid java.net.URI - one holding a space, a pipe or a
+     brace - be rejected with an unresolvableURI error instead of being stored
+     verbatim.
   <context-param>
     <description>Enable server-side dereferencing of anyURI values (default false)</description>
     <param-name>ldap.dsml.dereference.anyuri</param-name>

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.dsml.protocol;
 
@@ -81,7 +82,7 @@ class DSMLCompareOperation
     AttributeValueAssertion attrValAssertion = compareRequest.getAssertion();
     String attrName = attrValAssertion.getName();
     Object assertion = attrValAssertion.getValue();
-    ByteString attrValue = ByteStringUtility.convertValue(assertion);
+    ByteString attrValue = ByteStringUtility.convertRequiredValue(assertion);
     ByteString dnStr = ByteString.valueOfUtf8(compareRequest.getDn());
 
     // Create and send the LDAP compare request to the server.

@@ -79,17 +79,42 @@
             <scope>provided</scope>
         </dependency>
 
+        <!--
+          SAAJ, for parsing and building the SOAP envelope. The servlet uses no
+          JAX-WS API, so it depends on the SAAJ API and its implementation
+          rather than on the com.sun.xml.ws:jaxws-ri aggregator, which would
+          also drag the XJC/JXC tools, the documentation and samples archives
+          and - worse - EclipseLink MOXy into WEB-INF/lib. MOXy registers
+          itself as a Jakarta XML Binding provider, so with it on the classpath
+          the provider serving the DSMLv2 bindings is decided by the order the
+          container's classloader happens to use (GHSA-jr68-5c58-j463).
+        -->
         <dependency>
-        	<groupId>com.sun.xml.ws</groupId>
-		    <artifactId>jaxws-ri</artifactId>
-		    <version>4.0.3</version>
-		    <type>pom</type>
+            <groupId>jakarta.xml.soap</groupId>
+            <artifactId>jakarta.xml.soap-api</artifactId>
+            <version>3.0.2</version>
         </dependency>
 
         <dependency>
+            <groupId>com.sun.xml.messaging.saaj</groupId>
+            <artifactId>saaj-impl</artifactId>
+            <version>3.0.4</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!--
+          Exactly one Jakarta XML Binding provider must end up in WEB-INF/lib:
+          the provider is resolved through the ServiceLoader, so a second one
+          would hand the choice back to the container's classloader ordering.
+          JaxbProviderTestCase fails the build if a dependency reintroduces one.
+          The API version is kept aligned with the runtime: 3.0.x pulls a second
+          jakarta.activation implementation, and its jaxb.properties lookup - a
+          per-package way of pinning the provider - no longer exists in 4.0.x.
+        -->
+        <dependency>
 		    <groupId>jakarta.xml.bind</groupId>
 		    <artifactId>jakarta.xml.bind-api</artifactId>
-		    <version>3.0.1</version>
+		    <version>4.0.2</version>
 		</dependency>
 
 		<dependency>

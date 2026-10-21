@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.dsml.protocol;
 
@@ -111,7 +112,7 @@ class DSMLSearchOperation
     throws IOException
   {
     return LDAPFilter.createApproximateFilter(ava.getName(),
-        ByteStringUtility.convertValue(ava.getValue()));
+        ByteStringUtility.convertRequiredValue(ava.getValue()));
   }
 
 
@@ -130,7 +131,7 @@ class DSMLSearchOperation
     throws IOException
   {
     return LDAPFilter.createEqualityFilter(ava.getName(),
-        ByteStringUtility.convertValue(ava.getValue()));
+        ByteStringUtility.convertRequiredValue(ava.getValue()));
   }
 
 
@@ -149,7 +150,7 @@ class DSMLSearchOperation
     throws IOException
   {
     return LDAPFilter.createExtensibleFilter(mra.getMatchingRule(), mra
-        .getName(), ByteStringUtility.convertValue(mra.getValue()),
+        .getName(), ByteStringUtility.convertRequiredValue(mra.getValue()),
         mra.isDnAttributes());
   }
 
@@ -171,7 +172,7 @@ class DSMLSearchOperation
     throws IOException
   {
     return LDAPFilter.createGreaterOrEqualFilter(ava.getName(),
-        ByteStringUtility.convertValue(ava.getValue()));
+        ByteStringUtility.convertRequiredValue(ava.getValue()));
   }
 
 
@@ -191,7 +192,7 @@ class DSMLSearchOperation
     throws IOException
   {
     return LDAPFilter.createLessOrEqualFilter(ava.getName(),
-        ByteStringUtility.convertValue(ava.getValue()));
+        ByteStringUtility.convertRequiredValue(ava.getValue()));
   }
 
 
@@ -282,7 +283,7 @@ class DSMLSearchOperation
 
     for (Object o : anyo)
     {
-      subAnyElements.add(ByteStringUtility.convertValue(o));
+      subAnyElements.add(ByteStringUtility.convertRequiredValue(o));
     }
     if(sf.getInitial() == null && subAnyElements.isEmpty()
             && sf.getFinal()==null)
@@ -292,10 +293,10 @@ class DSMLSearchOperation
     }
     return LDAPFilter.createSubstringFilter(sf.getName(),
         sf.getInitial() == null ? null : ByteStringUtility
-            .convertValue(sf.getInitial()),
+            .convertRequiredValue(sf.getInitial()),
         subAnyElements,
         sf.getFinal() == null ? null : ByteStringUtility
-            .convertValue(sf.getFinal()));
+            .convertRequiredValue(sf.getFinal()));
   }
 
 

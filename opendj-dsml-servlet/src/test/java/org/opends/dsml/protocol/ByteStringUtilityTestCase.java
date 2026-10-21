@@ -322,6 +322,42 @@ public class ByteStringUtilityTestCase extends ForgeRockTestCase
     ByteStringUtility.setMaxUriContentLength(-1);
   }
 
+  @DataProvider
+  public Object[][] convertibleValues()
+  {
+    return new Object[][] {
+      { "a string value", ByteString.valueOfUtf8("a string value") },
+      { new byte[] { 1, 2, 3 }, ByteString.wrap(new byte[] { 1, 2, 3 }) },
+      { URI.create("http://203.0.113.10/secret"),
+        ByteString.valueOfUtf8("http://203.0.113.10/secret") },
+    };
+  }
+
+  @Test(dataProvider = "convertibleValues")
+  public void testRequiredValueIsConverted(Object value, ByteString expected) throws Exception
+  {
+    assertEquals(ByteStringUtility.convertRequiredValue(value), expected);
+  }
+
+  /**
+   * The XML binding turns an anyURI whose lexical form java.net.URI rejects
+   * into a null value. Storing that would silently drop the value from the
+   * request, so it is reported to the client instead.
+   */
+  @Test(expectedExceptions = IOException.class,
+      expectedExceptionsMessageRegExp = ".*value is missing.*")
+  public void testMissingRequiredValueIsRejected() throws Exception
+  {
+    ByteStringUtility.convertRequiredValue(null);
+  }
+
+  @Test(expectedExceptions = IOException.class,
+      expectedExceptionsMessageRegExp = ".*value is missing.*")
+  public void testUnconvertibleRequiredValueIsRejected() throws Exception
+  {
+    ByteStringUtility.convertRequiredValue(Integer.valueOf(42));
+  }
+
   @Test
   public void testSchemeCheckPrecedesHostCheck() throws Exception
   {
