@@ -33,6 +33,13 @@ command -v python3 >/dev/null || { echo "run.sh needs python3" >&2; exit 2; }
 . "$HERE/load.sh"
 . "$HERE/assert-converged.sh"
 . "$HERE/collect.sh"
+if [ "$DISTURBANCE" != none ]; then
+  [ -f "$HERE/disturb-$DISTURBANCE.sh" ] \
+    || { echo "unknown DISTURBANCE $DISTURBANCE: none, or the <name> of a disturb-<name>.sh in $HERE" >&2; exit 2; }
+  [ "$DISTURB_AT" -gt 0 ] && [ "$DISTURB_AT" -lt "$DURATION" ] \
+    || { echo "DISTURB_AT=$DISTURB_AT is not within the load of $DURATION s" >&2; exit 2; }
+  . "$HERE/disturb-$DISTURBANCE.sh"
+fi
 
 # the files of an earlier run would mix into this one's: the samples are appended to, and the
 # summary of a run that failed early would show what a run that got further left
@@ -67,7 +74,7 @@ done
 mark_logs
 record_server_ids
 
-phase "load ($DURATION s)"
+phase "load ($DURATION s${DISTURBED:+, $DISTURBANCE of $DISTURBED at $DISTURB_AT s})"
 # the changes of the load: assert_changelogs looks for gaps among the changes made in between
 LOAD_START_MS=$(($(date +%s) * 1000))
 sampler_start
