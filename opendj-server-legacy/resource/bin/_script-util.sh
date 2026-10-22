@@ -64,7 +64,7 @@ set_opendj_java_bin() {
         OPENDJ_JAVA_BIN=${PROPERTY_VALUE}/bin/java
       else
         TEST_JAVA_PATH=`command -v java 2> /dev/null`
-        if test ! -z ${TEST_JAVA_PATH} -a -f ${TEST_JAVA_PATH}
+        if test ! -z "${TEST_JAVA_PATH}" -a -f "${TEST_JAVA_PATH}"
         then
           OPENDJ_JAVA_BIN=${TEST_JAVA_PATH}
         elif test ! -z "${JAVA_BIN}" -a -f "${JAVA_BIN}"
