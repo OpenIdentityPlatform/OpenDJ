@@ -38,6 +38,13 @@ UP_TIMEOUT=${UP_TIMEOUT:-3600}
 QUIESCE_TIMEOUT=${QUIESCE_TIMEOUT:-900}
 # 1: write to one replica only, which the run must report (a self-test of its checks)
 INJECT_DIVERGENCE=${INJECT_DIVERGENCE:-0}
+# what disturbs the topology during the load (#1208): none, or the <name> of a disturb-<name>.sh
+# next to this script
+DISTURBANCE=${DISTURBANCE:-none}
+# seconds into the load at which the disturbance starts
+DISTURB_AT=${DISTURB_AT:-$((DURATION / 3))}
+# seconds a disturbed server is given to serve again
+DISTURB_TIMEOUT=${DISTURB_TIMEOUT:-900}
 # where the summary, the samples, the exports, the differences and a failed run's state go: a
 # directory that is new or empty
 OUT=${OUT:-$PWD/replication-out}

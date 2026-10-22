@@ -56,6 +56,12 @@ summarize() { # <result>
     echo "| servers | $ALL_NODES |"
     echo "| load | $DURATION s on each directory server, at most $LOAD_MOD_RATE modifications and $LOAD_ADD_RATE adds or deletes a second |"
     echo "| seeded users | $SAMPLE_DATA |"
+    if [ -s "$OUT/disturbances.txt" ]; then
+      awk -v start="${LOAD_START_MS:-0}" '{ printf "| disturbance | %s of %s %d s into the load, serving again %d s later |\n",
+                                            $4, $3, ($1 - start) / 1000, ($2 - $1) / 1000 }' "$OUT/disturbances.txt"
+    elif [ "$DISTURBANCE" != none ]; then
+      echo "| disturbance | $DISTURBANCE at $DISTURB_AT s into the load, not completed |"
+    fi
     echo "| converged | ${CONVERGED_IN:--} s after the load |"
     if [ -s "$OUT/samples.txt" ]; then
       awk '{ t[$1] = 1 } END { for (s in t) { n++; if (!min || s < min) min = s; if (s > max) max = s }

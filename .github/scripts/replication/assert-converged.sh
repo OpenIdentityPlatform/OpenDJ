@@ -88,14 +88,21 @@ assert_offline() {
 # other: a gap in the sequence numbers of a replica's changes during the load is a change that
 # reached no replication server. The data shows it only while no later change of the same
 # attribute overwrites it, and missing-changes never (#1195). docker cp streams the changelog
-# out of the stopped container; changelog-gaps.py reads it
+# out of the stopped container; changelog-gaps.py reads it. A directory server a disturbance
+# restarted numbered a ReplicaOfflineMsg in between, which no log file holds: its window goes
+# with its server id
 assert_changelogs() {
-  local n id code failed=
+  local n id code offline= failed=
   mkdir -p "$OUT/changelog"
+  [ ! -f "$OUT/disturbances.txt" ] \
+    || offline=$(awk 'FILENAME == ARGV[1] { id[$2] = $1; next }
+                      $4 == "restart" && ($3 in id) { printf "--offline=%s:%s:%s\n", id[$3], $1, $2 }' \
+                   "$OUT/server-ids.txt" "$OUT/disturbances.txt")
   for n in $RS_NODES; do
     code=0
+    # one word per window
     docker cp "$n:/opt/opendj/data/changelogDb" - \
-      | python3 -I "$HERE/changelog-gaps.py" "$BASE_DN" "$LOAD_START_MS" "$LOAD_END_MS" \
+      | python3 -I "$HERE/changelog-gaps.py" $offline "$BASE_DN" "$LOAD_START_MS" "$LOAD_END_MS" \
       | awk 'FILENAME == ARGV[1] { name[$1] = $2; next }
              $1 == "replica" { id = $2; sub(/:$/, "", id); if (id in name) $2 = id " (" name[id] "):" }
              { print }' "$OUT/server-ids.txt" - >"$OUT/changelog/$n.txt" || code=$?
