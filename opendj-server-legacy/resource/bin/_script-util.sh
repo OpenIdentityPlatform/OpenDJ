@@ -248,23 +248,31 @@ set_environment_vars() {
   SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=${SCRIPT_NAME}
 	export SCRIPT_NAME_ARG
 	
-  "${OPENDJ_JAVA_BIN}" --add-opens java.base/jdk.internal.loader=ALL-UNNAMED --version > /dev/null 2>&1
-  RESULT_CODE=${?}
-  if test ${RESULT_CODE} -eq 0
-  then
-  	export OPENDJ_JAVA_ARGS="$OPENDJ_JAVA_ARGS --add-exports java.base/sun.security.x509=ALL-UNNAMED --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED --add-opens java.base/jdk.internal.loader=ALL-UNNAMED"
-  fi
+  # upgrade runs this function again in _server-script.sh: flags already there are neither probed nor added twice
+  case " ${OPENDJ_JAVA_ARGS} " in
+    *" --add-exports java.base/sun.security.x509=ALL-UNNAMED --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED --add-opens java.base/jdk.internal.loader=ALL-UNNAMED "*) ;;
+    *)
+      "${OPENDJ_JAVA_BIN}" --add-opens java.base/jdk.internal.loader=ALL-UNNAMED --version > /dev/null 2>&1
+      RESULT_CODE=${?}
+      if test ${RESULT_CODE} -eq 0
+      then
+        export OPENDJ_JAVA_ARGS="$OPENDJ_JAVA_ARGS --add-exports java.base/sun.security.x509=ALL-UNNAMED --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED --add-opens java.base/jdk.internal.loader=ALL-UNNAMED"
+      fi
+      ;;
+  esac
 
-  "${OPENDJ_JAVA_BIN}" --enable-native-access=ALL-UNNAMED --version > /dev/null 2>&1
-  RESULT_CODE=${?}
-  if test ${RESULT_CODE} -eq 0
-  then
-    case " ${OPENDJ_JAVA_ARGS} " in
-      *" --enable-native-access=ALL-UNNAMED "*) ;;
-      *) OPENDJ_JAVA_ARGS="${OPENDJ_JAVA_ARGS} --enable-native-access=ALL-UNNAMED" ;;
-    esac
-    export OPENDJ_JAVA_ARGS
-  fi
+  case " ${OPENDJ_JAVA_ARGS} " in
+    *" --enable-native-access=ALL-UNNAMED "*) ;;
+    *)
+      "${OPENDJ_JAVA_BIN}" --enable-native-access=ALL-UNNAMED --version > /dev/null 2>&1
+      RESULT_CODE=${?}
+      if test ${RESULT_CODE} -eq 0
+      then
+        OPENDJ_JAVA_ARGS="${OPENDJ_JAVA_ARGS} --enable-native-access=ALL-UNNAMED"
+        export OPENDJ_JAVA_ARGS
+      fi
+      ;;
+  esac
 }
 
 # Configure the appropriate CLASSPATH for server, using Opend DJ logger.
