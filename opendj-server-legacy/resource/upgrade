@@ -13,6 +13,7 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Copyright 2013-2015 ForgeRock AS.
+# Portions Copyright 2026 3A Systems, LLC.
 
 
 # This script may be used to perform a backup of a Directory Server backend.
@@ -26,6 +27,17 @@ SCRIPT_DIR=`dirname "${0}"`
 
 INSTALL_ROOT=${SCRIPT_DIR}
 export INSTALL_ROOT
+
+# Look for java on the PATH of the caller, as the other tools do, before set-environment-vars
+# narrows it to /bin:/usr/bin: _server-script.sh takes the OPENDJ_JAVA_BIN found here as it is
+SCRIPT_UTIL_CMD=set-java-home-and-args
+export SCRIPT_UTIL_CMD
+.  "${INSTALL_ROOT}/lib/_script-util.sh"
+RETURN_CODE=$?
+if test ${RETURN_CODE} -ne 0
+then
+  exit ${RETURN_CODE}
+fi
 
 # Set environment variables
 SCRIPT_UTIL_CMD=set-environment-vars
