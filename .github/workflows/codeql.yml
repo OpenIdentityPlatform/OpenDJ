@@ -84,6 +84,20 @@ jobs:
         with:
           submodules: recursive
 
+      # With build-mode 'none' CodeQL infers no JDK from this project and
+      # models the JDK API on the java found on the PATH, so without this step
+      # the results follow the default JDK of the runner image: ubuntu-26.04
+      # brought JDK 25 and with it deprecation alerts for APIs that have no
+      # replacement in Java 11. Pin the JDK the code is compiled for
+      # (maven.compiler.source/target 11), from the same distribution as the
+      # Build workflow. It also serves the Java manual build below.
+      - name: Set up JDK 11
+        if: matrix.language == 'java-kotlin'
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          java-version: '11'
+          distribution: 'zulu'
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
@@ -118,12 +132,6 @@ jobs:
       # ---------------------------------------------------------------------
 
       # --- Java manual build (only used if the java entry is set to 'manual')
-      # - name: Set up JDK 11
-      #   if: matrix.language == 'java-kotlin'
-      #   uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
-      #   with:
-      #     java-version: '11'
-      #     distribution: 'zulu'
       # - name: Cache Maven packages
       #   if: matrix.language == 'java-kotlin'
       #   uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
