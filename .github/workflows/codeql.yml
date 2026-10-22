@@ -87,16 +87,16 @@ jobs:
       # With build-mode 'none' CodeQL infers no JDK from this project and
       # models the JDK API on the java found on the PATH, so without this step
       # the results follow the default JDK of the runner image: ubuntu-26.04
-      # brought JDK 25 and with it deprecation alerts for APIs that have no
-      # replacement in Java 11. Pin the JDK the code is compiled for
-      # (maven.compiler.source/target 11), from the same distribution as the
-      # Build workflow. It also serves the Java manual build below.
-      - name: Set up JDK 11
+      # brought JDK 25 and with it alerts for APIs deprecated only after
+      # Java 11. Pin the JDK and distribution the release is built with
+      # (release.yml): 8 on sustaining/4.10.x, 11 otherwise. It also serves
+      # the Java manual build below.
+      - name: Set up JDK
         if: matrix.language == 'java-kotlin'
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
-          java-version: '11'
-          distribution: 'zulu'
+          java-version: ${{ (github.base_ref || github.ref_name) == 'sustaining/4.10.x' && '8' || '11' }}
+          distribution: 'temurin'
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
