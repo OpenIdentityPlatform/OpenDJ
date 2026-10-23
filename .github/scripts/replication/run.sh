@@ -82,7 +82,11 @@ run_load
 sampler_stop
 
 phase "converge"
-wait_converged
+load_end=$SECONDS
+# a disturbed server is left as topology_up leaves every server, and the wait for convergence
+# still counts from the end of the load
+[ "$DISTURBANCE" = none ] || settle
+wait_converged $load_end
 echo "converged in $CONVERGED_IN s"
 LOAD_END_MS=$(($(date +%s) * 1000))
 

@@ -39,11 +39,12 @@ QUIESCE_TIMEOUT=${QUIESCE_TIMEOUT:-900}
 # 1: write to one replica only, which the run must report (a self-test of its checks)
 INJECT_DIVERGENCE=${INJECT_DIVERGENCE:-0}
 # what disturbs the topology during the load (#1208): none, or the <name> of a disturb-<name>.sh
-# next to this script
+# next to this script, which names the DISTURBED server and defines disturb, run during the load,
+# and settle, run after it
 DISTURBANCE=${DISTURBANCE:-none}
 # seconds into the load at which the disturbance starts
 DISTURB_AT=${DISTURB_AT:-$((DURATION / 3))}
-# seconds a disturbed server is given to serve again
+# seconds a disturbed server is given to serve again, and its join to end after the load
 DISTURB_TIMEOUT=${DISTURB_TIMEOUT:-900}
 # where the summary, the samples, the exports, the differences and a failed run's state go: a
 # directory that is new or empty
@@ -133,6 +134,15 @@ wait_until() { # <seconds> <what> <command> [<argument>...]
 
 is_healthy() { # <container>
   [ "$(docker inspect --format='{{.State.Health.Status}}' "$1")" = healthy ]
+}
+
+# The server of the container logged that it started (msgID 135, once its connection handlers
+# listen) after the Unix time <seconds>: it serves. Not the health of the container: its probe,
+# a JVM of its own, does not get through its 30 s on a runner under load - in run 39834888428 a
+# restarted server served 7 minutes before its container was healthy again. No grep -q: it
+# would cut docker logs off, and pipefail would take that for no match
+started_since() { # <container> <seconds>
+  docker logs --since "$2" "$1" 2>&1 | grep 'category=CORE severity=NOTICE msgID=135 ' >/dev/null
 }
 
 # The background join of the image goes on once the container reports itself healthy: it adds

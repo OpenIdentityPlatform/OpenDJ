@@ -25,19 +25,21 @@ DISTURBED=$(echo $DS_NODES | cut -d' ' -f2)
 
 # docker restart sends SIGTERM and kills the server once its timeout is over: 10 s by default,
 # less than a server under load may need to stop, and a killed server is another disturbance.
-# stop_all gives it 120 s as well. The restart is recorded as the window its ReplicaOfflineMsg
-# falls in (changelog-gaps.py), in whole seconds that take in the second each end falls in
+# stop_all gives it 120 s as well. The restart goes to disturbances.txt for the summary, from
+# the restart until the server serves again
 disturb() {
-  local from to deadline
+  local from
   echo "    [$SECONDS s] restarting $DISTURBED"
-  from=$(($(date +%s) * 1000))
+  from=$(date +%s)
   docker restart -t 120 $DISTURBED >/dev/null
-  # the restart sets the health of the container back to starting, and the server is healthy
-  # once it serves; its join runs again on every start, and is waited for as topology_up does
-  deadline=$((SECONDS + DISTURB_TIMEOUT))
-  wait_until $DISTURB_TIMEOUT "$DISTURBED serves again" is_healthy $DISTURBED
-  wait_until $((deadline > SECONDS ? deadline - SECONDS : 1)) "the join of $DISTURBED ends" bootstrap_ended $DISTURBED
-  to=$((($(date +%s) + 1) * 1000))
-  echo "$from $to $DISTURBED restart" >>"$OUT/disturbances.txt"
+  wait_until $DISTURB_TIMEOUT "$DISTURBED serves again" started_since $DISTURBED $from
+  echo "$((from * 1000)) $(($(date +%s) * 1000)) $DISTURBED restart" >>"$OUT/disturbances.txt"
   echo "    [$SECONDS s] $DISTURBED serves again"
+}
+
+# After the load, before the wait for convergence: the join of the restarted server, which runs
+# again on every start, has ended, as topology_up waits for it. Its container is not waited to
+# be healthy again: the probe may not get through while the replicas catch up either
+settle() {
+  wait_until $DISTURB_TIMEOUT "the join of $DISTURBED ends" bootstrap_ended $DISTURBED
 }
