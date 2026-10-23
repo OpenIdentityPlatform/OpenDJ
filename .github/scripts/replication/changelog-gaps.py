@@ -24,8 +24,7 @@ its way to the replication servers. During the load of the convergence run no op
 replicas misses, while their ServerState and missing-changes say nothing, since both only
 know the newest CSN.
 
-Usage: changelog-gaps.py [--offline=<server id>:<from ms>:<to ms>]... <base DN> <from ms> <to ms>
-                         [<changelogDb directory>]
+Usage: changelog-gaps.py <base DN> <from ms> <to ms> [<changelogDb directory>]
 
 Without a directory it reads the changelogDb as a tar stream on its standard input, as
 "docker cp <container>:/opt/opendj/data/changelogDb -" writes it. It reports, for every
@@ -33,19 +32,18 @@ replica of the domain of <base DN>, the changes whose CSN time is between <from 
 <to ms>, and the sequence numbers missing between them. Exit code 1: a change is missing;
 2: the changelog cannot be read (no such domain, or it is encrypted).
 
-Not every sequence number that no record holds is a lost change: a directory server that goes
-offline (a restart, its domain disabled) numbers its ReplicaOfflineMsg like a change, and the
-changelog keeps only the newest of them, in the offline.state of the replica, not in a log
-file - which the stop of the servers before this check has overwritten. So every --offline
-window, a time the replica went offline in, takes one sequence number of a gap between a
-change before its end and one after its start: one, not the gap, since the changes made right
-before a replica goes offline are those a restart may lose (#1195). The convergence run stops
-the load of a server before it restarts it, so its gap there holds the ReplicaOfflineMsg only.
-
 What it cannot tell. A change lost at either end of a replica's changes in the window - its
 last ones, or its first ones when no earlier change of the replica is in the changelog - leaves
 no gap between two changes that are there; the data of the other replicas shows such a change
 unless a later change of another server overwrites it.
+
+A restart leaves no gap of its own. A directory server that stops numbers its ReplicaOfflineMsg
+like a change, and no log file holds the message - only the offline.state of the replica, the
+newest one. But the message does not enter the ServerState of the replica
+(ReplicaOfflineMsg.contributesToDomainState()), from whose newest change of its own the server
+numbers again once it starts (CSNGenerator), so its first change after the restart takes the
+sequence number of the message again, at a later time: the changes of the restarted server had
+no gap in run 39834888428 (#1208). A gap around a restart is a lost change, the kind #1195 lost.
 
 The file format is the one of FileReplicaDB: every log file is cut into blocks of 256 bytes,
 and every block after the first starts with a 4-byte offset (BlockLogWriter); in between, a
@@ -126,27 +124,12 @@ def from_tar(stream):
                 yield member.name, tar.extractfile(member).read()
 
 
-def offline_windows(options):
-    """The --offline windows by server id, each a (from ms, to ms) pair."""
-    windows = {}
-    for option in options:
-        server_id, start, end = option[len("--offline="):].split(":")
-        windows.setdefault(int(server_id), []).append((int(start), int(end)))
-    return windows
-
-
 def main(argv):
-    options = [arg for arg in argv[1:] if arg.startswith("--offline=")]
-    args = [arg for arg in argv[1:] if not arg.startswith("--offline=")]
-    try:
-        windows = offline_windows(options)
-    except ValueError:
-        windows = None
-    if windows is None or len(args) not in (3, 4):
+    if len(argv) not in (4, 5):
         sys.stderr.write(__doc__)
         return 2
-    base_dn, start, end = args[0].lower(), int(args[1]), int(args[2])
-    entries = from_directory(args[3]) if len(args) == 4 else from_tar(sys.stdin.buffer)
+    base_dn, start, end = argv[1].lower(), int(argv[2]), int(argv[3])
+    entries = from_directory(argv[4]) if len(argv) == 5 else from_tar(sys.stdin.buffer)
     try:
         domains, changes = read_changelog(entries)
     except EncryptedChangelog as e:
@@ -166,25 +149,11 @@ def main(argv):
         if not load:
             continue
         seqnums = [seqnum for seqnum, _, _ in load]
-        offline = sorted(windows.get(server_id, []))
         missing = []
-        taken = 0
         for previous, following in zip(load, load[1:]):
-            gap = list(range(previous[0] + 1, following[0]))
-            if not gap:
-                continue
-            # the windows the gap spans: each one took a sequence number of it, once
-            spanned = [w for w in offline if previous[1] <= w[1] and w[0] <= following[1]][:len(gap)]
-            for window in spanned:
-                offline.remove(window)
-            taken += len(spanned)
-            missing += [(seqnum, previous, following) for seqnum in gap[len(spanned):]]
-        went_offline = len(windows.get(server_id, []))
-        print("replica %d: %d changes in the load, sequence numbers %d to %d%s, %d missing"
-              % (server_id, len(load), seqnums[0], seqnums[-1],
-                 ", %d taken by a ReplicaOfflineMsg (offline %d time%s)"
-                 % (taken, went_offline, "" if went_offline == 1 else "s") if went_offline else "",
-                 len(missing)))
+            missing += [(seqnum, previous, following) for seqnum in range(previous[0] + 1, following[0])]
+        print("replica %d: %d changes in the load, sequence numbers %d to %d, %d missing"
+              % (server_id, len(load), seqnums[0], seqnums[-1], len(missing)))
         for seqnum, previous, following in missing[:20]:
             print("  missing %d, between the %s %d (%d) and the %s %d (%d)"
                   % (seqnum, previous[2], previous[0], previous[1], following[2], following[0], following[1]))
