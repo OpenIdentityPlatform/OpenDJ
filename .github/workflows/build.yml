@@ -1111,11 +1111,11 @@ jobs:
 
   docker-convergence:
     # #1090: writes to every directory server of a replication topology at once, then checks
-    # that the replicas hold the same data; next to docker-test, on the image of build-docker
+    # that the replicas hold the same data; next to docker-test, on the image of build-docker.
+    # Each row but the base one disturbs the topology during the load in one way (#1208)
     needs: build-docker
     # a red row turns the Build run red, and deploy.yml then skips the snapshot deploy and the
-    # publishing of the docs of a push to master: rs534 fails until #1206 is fixed and can fail
-    # until #1215 is, combined can fail until #1195 is
+    # publishing of the docs of a push to master
     runs-on: 'ubuntu-latest'
     permissions:
       contents: read
@@ -1123,6 +1123,8 @@ jobs:
       fail-fast: false
       matrix:
         topology: [rs534, combined]
+        # none: the base run; restart-ds: a directory server restarts during the load
+        disturbance: [none, restart-ds]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -1136,11 +1138,15 @@ jobs:
       - name: Load the image
         shell: bash
         run: docker load -i "$RUNNER_TEMP/image/image.tar"
-      - name: Convergence run (${{ matrix.topology }})
+      - name: Convergence run (${{ matrix.topology }}, ${{ matrix.disturbance }})
         shell: bash
         env:
           TOPOLOGY: ${{ matrix.topology }}
-          DURATION: "1800"
+          DISTURBANCE: ${{ matrix.disturbance }}
+          # a disturbed row runs half the load of the base one: what it is after happens around
+          # the disturbance, a third of the way in, and for as long as it runs it holds one of
+          # the runners the whole organization shares
+          DURATION: ${{ matrix.disturbance == 'none' && '1800' || '900' }}
           # the replicas fall behind during the load and catch up after it: 900 s at 325 and 65
           # a second converged in 396 s (run 38944365728), 1800 s at 423 and 85 in 2489 s (run
           # 39043600905), the backlog growing faster than the load above the replay capacity; a
@@ -1153,7 +1159,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: convergence-${{ matrix.topology }}
+          # the base rows keep the names they had before the disturbed ones came
+          name: convergence-${{ matrix.topology }}${{ matrix.disturbance != 'none' && format('-{0}', matrix.disturbance) || '' }}
           path: ${{ runner.temp }}/replication-out
           if-no-files-found: warn
           retention-days: 5

@@ -17,7 +17,8 @@
 # The load of the replication convergence run (#1090), sourced by run.sh: every directory
 # server is written to at once, for DURATION seconds, by rate tools that run in containers of
 # the same image on the network of the topology. Only writes: a read sends nothing to the
-# replication servers.
+# replication servers. The server a disturbance takes down (#1208) is written to before it and
+# after it, by clients of their own.
 
 # <client> <tool> <argument>... : a container that runs one tool of the image against one server
 start_client() {
@@ -31,19 +32,21 @@ CLIENTS=
 # seconds between two lines of the output of a rate tool
 STAT_INTERVAL=10
 
+# The clients of one directory server for <seconds> of the load, a modrate and an addrate.
+# Segment 1 starts with the load; a later one once a disturbance let the server serve again,
+# and it adds entries of its own: the 100 newest of the segment before are still there.
 # Plain LDAP: the run is after the changes the replication carries, and TLS between a client
 # and its server only takes CPU from them. --noRebind: every client keeps its connections open
 # and binds once, as an application does, rather than connecting and binding for every
 # operation, which would cost more than the operation itself. --connectTimeout: the clients
 # start at once next to the servers, and a runner that is short of CPU for a while accepts
 # their connections late
-run_load() {
-  local n c failed
-  mkdir -p "$OUT/load"
-  for n in $DS_NODES; do
-    # entries of its own on each server, so that the adds and deletes of two servers never meet
-    # on one DN: a naming conflict is not what this load is after
-    cat >"$OUT/load/addrate-$n.template" <<TEMPLATE
+start_clients() { # <node> <segment> <seconds>
+  local n=$1 name=$1 c
+  [ "$2" -eq 1 ] || name=$1-$2
+  # entries of its own on each server, so that the adds and deletes of two servers never meet
+  # on one DN: a naming conflict is not what this load is after
+  cat >"$OUT/load/addrate-$name.template" <<TEMPLATE
 define suffix=$BASE_DN
 
 branch: ou=People,[suffix]
@@ -55,30 +58,55 @@ objectClass: top
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
-uid: addrate-$n.<sequential:0>
+uid: addrate-$name.<sequential:0>
 cn: AddRate {uid}
 sn: AddRate
 userPassword: password
 TEMPLATE
-    chmod 644 "$OUT/load/addrate-$n.template"
-    # the same entries from every server at once: concurrent modifications of one attribute of
-    # one entry, applied in the order of their change numbers on every replica (#139). The value
-    # starts with the name of the server: rand and randstr are seeded alike in every client, so
-    # all of them write the same values in the same order, and a change lost on its way would
-    # hide behind the same value written later by another server; the name also tells which
-    # server a value in a diff or a changelog comes from (#1206)
-    start_client load-mod-$n modrate --hostname $n --port 1389 --connectTimeout 120000 --noRebind \
-      --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --maxDuration "$DURATION" \
-      --statInterval $STAT_INTERVAL --numConnections 8 --numThreads 1 --scriptFriendly --targetThroughput "$LOAD_MOD_RATE" \
-      --targetDN "uid=user.%d,ou=People,$BASE_DN" --argument "rand(0,$((SAMPLE_DATA - 1)))" \
-      --argument "randstr(16)" "description:$n-%2\$s"
-    # adds, and deletes of the oldest once 100 of them are there: a slow runner gets to the deletes as well
-    start_client load-add-$n addrate --hostname $n --port 1389 --connectTimeout 120000 --noRebind \
-      --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --maxDuration "$DURATION" \
-      --statInterval $STAT_INTERVAL --numConnections 8 --numThreads 1 --scriptFriendly --targetThroughput "$LOAD_ADD_RATE" \
-      --deleteMode fifo --deleteSizeThreshold 100 "/load/addrate-$n.template"
-    CLIENTS="$CLIENTS load-mod-$n load-add-$n"
+  chmod 644 "$OUT/load/addrate-$name.template"
+  # the same entries from every server at once: concurrent modifications of one attribute of
+  # one entry, applied in the order of their change numbers on every replica (#139). The value
+  # starts with the name of the server: rand and randstr are seeded alike in every client, so
+  # all of them write the same values in the same order, and a change lost on its way would
+  # hide behind the same value written later by another server; the name also tells which
+  # server a value in a diff or a changelog comes from (#1206)
+  start_client load-mod-$name modrate --hostname $n --port 1389 --connectTimeout 120000 --noRebind \
+    --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --maxDuration "$3" \
+    --statInterval $STAT_INTERVAL --numConnections 8 --numThreads 1 --scriptFriendly --targetThroughput "$LOAD_MOD_RATE" \
+    --targetDN "uid=user.%d,ou=People,$BASE_DN" --argument "rand(0,$((SAMPLE_DATA - 1)))" \
+    --argument "randstr(16)" "description:$n-%2\$s"
+  # adds, and deletes of the oldest once 100 of them are there: a slow runner gets to the deletes as well
+  start_client load-add-$name addrate --hostname $n --port 1389 --connectTimeout 120000 --noRebind \
+    --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --maxDuration "$3" \
+    --statInterval $STAT_INTERVAL --numConnections 8 --numThreads 1 --scriptFriendly --targetThroughput "$LOAD_ADD_RATE" \
+    --deleteMode fifo --deleteSizeThreshold 100 "/load/addrate-$name.template"
+  # check_client reads how long each client was to run
+  for c in load-mod-$name load-add-$name; do
+    echo "$3" >"$OUT/load/$c.seconds"
   done
+  CLIENTS="$CLIENTS load-mod-$name load-add-$name"
+}
+
+run_load() {
+  local n c failed start=$SECONDS left
+  mkdir -p "$OUT/load"
+  for n in $DS_NODES; do
+    if [ "$n" = "${DISTURBED:-}" ]; then
+      start_clients $n 1 "$DISTURB_AT"
+    else
+      start_clients $n 1 "$DURATION"
+    fi
+  done
+  if [ "$DISTURBANCE" != none ]; then
+    # the clients of the disturbed server end on their own before the disturbance, which then
+    # cuts none of their operations off: one that had its CSN would read as a lost change
+    docker wait load-mod-$DISTURBED load-add-$DISTURBED >/dev/null
+    disturb
+    left=$((DURATION - (SECONDS - start)))
+    [ "$left" -ge $((3 * STAT_INTERVAL)) ] \
+      || fail "$DISTURBED served again $((SECONDS - start)) s into the load of $DURATION s, too late to take load again"
+    start_clients $DISTURBED 2 $left
+  fi
   for c in $CLIENTS; do
     docker wait $c >/dev/null
   done
@@ -100,10 +128,10 @@ TEMPLATE
 # too, leaves out the line of its last interval - the one that would count the error - and
 # prints the error to its error output, which goes to the same file. So the client has to have
 # done work, every interval of its CSV output has to report no errors (the "Errors/second"
-# column), the output has to cover the load - a line every STAT_INTERVAL seconds, of which the
-# last may be missing - and hold nothing but the CSV
+# column), the output has to cover the seconds the client was to run - a line every
+# STAT_INTERVAL seconds, of which the last may be missing - and hold nothing but the CSV
 check_client() { # <client>
-  awk -F, -v c=$1 -v exit_state="$(cat "$OUT/load/$1.exit")" -v want=$((DURATION / STAT_INTERVAL - 1)) '
+  awk -F, -v c=$1 -v exit_state="$(cat "$OUT/load/$1.exit")" -v want=$(($(cat "$OUT/load/$1.seconds") / STAT_INTERVAL - 1)) '
     /^Time \(seconds\)/ { for (i = 1; i <= NF; i++) { if ($i == "Recent throughput (ops/second)") t = i; if ($i == "Errors/second") e = i }; next }
     t && $1 ~ /^[0-9.]+$/ { rows++; ops += $t; errors += $e; last = $0; next }
     NF { other++ }

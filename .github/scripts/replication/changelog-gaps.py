@@ -35,12 +35,15 @@ replica of the domain of <base DN>, the changes whose CSN time is between <from 
 What it cannot tell. A change lost at either end of a replica's changes in the window - its
 last ones, or its first ones when no earlier change of the replica is in the changelog - leaves
 no gap between two changes that are there; the data of the other replicas shows such a change
-unless a later change of another server overwrites it. And not every sequence number that no
-record holds is a lost change: a directory server that goes offline (a restart, its domain
-disabled) numbers its ReplicaOfflineMsg like a change, and the changelog keeps only the newest
-of them, in the offline.state of the replica, not in a log file. The convergence run restarts
-no server after the topology is up; a run that did would read each restart in the window as a
-lost change.
+unless a later change of another server overwrites it.
+
+A restart leaves no gap of its own. A directory server that stops numbers its ReplicaOfflineMsg
+like a change, and no log file holds the message - only the offline.state of the replica, the
+newest one. But the message does not enter the ServerState of the replica
+(ReplicaOfflineMsg.contributesToDomainState()), from whose newest change of its own the server
+numbers again once it starts (CSNGenerator), so its first change after the restart takes the
+sequence number of the message again, at a later time: the changes of the restarted server had
+no gap in run 39834888428 (#1208). A gap around a restart is a lost change, the kind #1195 lost.
 
 The file format is the one of FileReplicaDB: every log file is cut into blocks of 256 bytes,
 and every block after the first starts with a 4-byte offset (BlockLogWriter); in between, a
