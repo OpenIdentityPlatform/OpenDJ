@@ -715,6 +715,8 @@ jobs:
           # the java of the default image is on the PATH from /opt/java/openjdk/bin alone (alpine has
           # /usr/bin/java, so only the default row can fail), and run.sh runs upgrade on every start of a volume (#1229)
           docker exec test sh -c 'unset JAVA_HOME; sh /opt/opendj/upgrade -n --force'
+          # upgrade runs set_environment_vars twice: the module flags reach the JVM once
+          docker exec test sh -c 'OPENDJ_JAVA_BIN=$(command -v java) INSTALL_ROOT=/opt/opendj INSTANCE_ROOT=/opt/opendj SCRIPT_NAME=upgrade; export OPENDJ_JAVA_BIN INSTALL_ROOT INSTANCE_ROOT SCRIPT_NAME; SCRIPT_UTIL_CMD=set-environment-vars; . /opt/opendj/lib/_script-util.sh; . /opt/opendj/lib/_script-util.sh; test "$(echo " $OPENDJ_JAVA_ARGS " | tr " " "\n" | grep -c -- "^--add-opens$")" -eq 1'
           # a java found nowhere is reported without a shell error about the empty lookup
           out=$(docker exec test sh -c 'unset JAVA_HOME; PATH=/bin:/usr/bin /opt/opendj/bin/ldapsearch --version' 2>&1 || true)
           if grep -F "unexpected operator" <<<"$out"; then echo "::error::The lookup of java on the PATH fails with a shell error where it finds no java"; false; fi
