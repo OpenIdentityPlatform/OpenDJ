@@ -327,7 +327,16 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     sourceHandler.updateServerState(updateMsg);
     sourceHandler.incrementInCount();
-    setGenerationIdIfUnset(sourceHandler.getGenerationId());
+    /*
+     * A directory server which already has changes does not give its generation id at the handshake to a
+     * replication server which has none (DataServerHandler.waitAndProcessStartSessionFromRemoteDS()): its first
+     * update does. The peers learn it only from a TopologyMsg, and forward no update to this replication server
+     * while they hold -1 for it, so it is told to them, as in receiveTopoInfoFromRS() (issue #1240).
+     */
+    if (setGenerationIdIfUnset(sourceHandler.getGenerationId()))
+    {
+      sendTopoInfoToAll();
+    }
 
     /**
      * If this is an assured message (a message requesting ack), we must
@@ -1378,10 +1387,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * connected</li>
    * </ul>
    * So it strongly relies on the {@link #connectedDSs} list
-   *
-   * @return whether the generation id was reset
    */
-  private boolean resetGenerationIdIfPossible()
+  private void resetGenerationIdIfPossible()
   {
     if (logger.isTraceEnabled())
     {
@@ -1434,9 +1441,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         && generationId != -1)
     {
       changeGenerationId(-1);
-      return true;
     }
-    return false;
   }
 
   /**
@@ -2401,16 +2406,18 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       // Handle generation id
       if (allowResetGenId)
       {
+        resetGenerationIdIfPossible();
         /*
          * The peers learn the generation id taken here only from a TopologyMsg, and forward no update to a
          * replication server while they hold another one for it, so it is told to them as changeGenerationId()
-         * tells its own (issue #1236). Right after this replication server reset its own, though, the
-         * generation id of a peer which has no directory server either is no reference to take: two such
-         * replication servers would take each other's again and tell each other, every TopologyMsg making
-         * the other one reset, take it and answer once more.
+         * tells its own (issue #1236). It is taken only from a peer which has directory servers: while they
+         * stay connected, resetGenerationIdIfPossible() resets it neither here nor on that peer. A peer without
+         * any can reset the one it presented on the next TopologyMsg it receives, and two replication servers
+         * taking such a generation id from each other and telling each other would go on resetting it and
+         * taking it again in turn. Such a peer has no update of a directory server to forward here anyway,
+         * and the handshake still takes its generation id, see ReplicationServerHandler.checkGenerationId().
          */
-        final boolean reset = resetGenerationIdIfPossible();
-        if ((!reset || rsHandler.hasRemoteLDAPServers()) && setGenerationIdIfUnset(rsHandler.getGenerationId()))
+        if (rsHandler.hasRemoteLDAPServers() && setGenerationIdIfUnset(rsHandler.getGenerationId()))
         {
           sendTopoInfoToAll();
         }

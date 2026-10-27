@@ -46,16 +46,20 @@ import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.plugin.DomainFakeCfg;
+import org.opends.server.replication.plugin.DummyReplicationDomain;
 import org.opends.server.replication.protocol.ByteArrayBuilder;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ErrorMsg;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.protocol.ResetGenerationIdMsg;
 import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
+import org.opends.server.replication.server.ReplicationServerHandler;
 import org.opends.server.replication.server.ServerHandler;
 import org.opends.server.replication.service.ReplicationDomain.ImportExportContext;
 import org.forgerock.opendj.ldap.DN;
@@ -927,6 +931,232 @@ public class ReplicationDomainTest extends ReplicationTestCase
     {
       remove(replServer1, replServer2);
     }
+  }
+
+  /**
+   * A replication server without a generation id does not take the one of a peer which has no replica: that
+   * peer can reset it on the next TopologyMsg it receives, and two replication servers taking it from each
+   * other and telling each other would go on resetting it and taking it again in turn (issue #1236).
+   */
+  @Test
+  public void peerWithoutReplicaGivesNoGenerationId() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer1 = null;
+    ReplicationServer replServer2 = null;
+
+    try
+    {
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      replServer1 = createReplicationServer(61, ports[0], "peerWithoutReplicaGivesNoGenerationId1", 100);
+      replServer2 = createReplicationServer(62, ports[1], "peerWithoutReplicaGivesNoGenerationId2", 100,
+          "localhost:" + ports[0]);
+      ReplicationServerDomain domain1 = replServer1.getReplicationServerDomain(testService, true);
+      replServer2.getReplicationServerDomain(testService, true);
+      waitReplicationServerConnected(replServer1, testService, 62);
+      waitReplicationServerConnected(replServer2, testService, 61);
+
+      // what the second replication server sends once it took a generation id which it has not saved, handled
+      // here rather than by the reader of the connection: what this replication server would tell the second one
+      // could only come back after the assertion
+      ReplicationServerHandler toReplServer2 = domain1.getConnectedRSs().get(62);
+      domain1.receiveTopoInfoFromRS(topologyMsgOf(replServer2, 6666), toReplServer2, true);
+
+      assertEquals(toReplServer2.getGenerationId(), 6666L, "generation id RS(61) has for RS(62)");
+      assertEquals(domain1.getGenerationId(), -1L, "generation id of RS(61)");
+    }
+    finally
+    {
+      remove(replServer1, replServer2);
+    }
+  }
+
+  /**
+   * A replication server which resets its generation id on the TopologyMsg of a peer which has a replica and
+   * another generation id takes the one of that peer in the same call, and tells its peers (issue #1236).
+   */
+  @Test
+  public void peerWithReplicaGivesItsGenerationIdRightAfterAReset() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer1 = null;
+    ReplicationServer replServer2 = null;
+    ReplicationBroker broker1 = null;
+
+    try
+    {
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      replServer1 = createReplicationServer(71, ports[0], "givesItsGenerationIdRightAfterAReset1", 100);
+      replServer2 = createReplicationServer(72, ports[1], "givesItsGenerationIdRightAfterAReset2", 100,
+          "localhost:" + ports[0]);
+      broker1 = openReplicationSession(testService, 1, 100, ports[0], 1000, 5555);
+      ReplicationServerDomain domain1 = replServer1.getReplicationServerDomain(testService);
+      ReplicationServerDomain domain2 = replServer2.getReplicationServerDomain(testService, true);
+      waitReplicationServerConnected(replServer1, testService, 72);
+      waitReplicationServerConnected(replServer2, testService, 71);
+
+      // a generation id which the second replication server has not saved and no replica has
+      domain2.changeGenerationId(7777);
+      waitGenerationIdOfPeer(replServer1, testService, 72, 7777);
+
+      // sent once, so that the second replication server can only take the generation id in the call that resets it
+      domain1.getConnectedRSs().get(72).send(domain1.createTopologyMsgForRS());
+      waitGenerationId(replServer2, testService, 5555);
+      waitGenerationIdOfPeer(replServer1, testService, 72, 5555);
+    }
+    finally
+    {
+      stop(broker1);
+      remove(replServer1, replServer2);
+    }
+  }
+
+  /**
+   * Two replication servers without a generation id, which have replicas, as dsreplication
+   * pre-external-initialization leaves them, do not take -1 from each other: taking it would tell the other
+   * one, which would take it in turn and answer, with no end (issue #1236).
+   */
+  @Test
+  public void peersWithReplicasAndWithoutGenerationIdStayQuiet() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer1 = null;
+    ReplicationServer replServer2 = null;
+    ReplicationBroker broker1 = null;
+    ReplicationBroker broker2 = null;
+
+    try
+    {
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      replServer1 = createReplicationServer(81, ports[0], "peersWithReplicasStayQuiet1", 100);
+      replServer2 = createReplicationServer(82, ports[1], "peersWithReplicasStayQuiet2", 100,
+          "localhost:" + ports[0]);
+      broker1 = openReplicationSession(testService, 1, 100, ports[0], 1000, 5555);
+      broker2 = openReplicationSession(testService, 2, 100, ports[1], 1000, 5555);
+      waitReplicationServerConnected(replServer1, testService, 82);
+      waitReplicationServerConnected(replServer2, testService, 81);
+
+      // what dsreplication pre-external-initialization asks a replica for
+      broker1.publish(new ResetGenerationIdMsg(-1));
+      waitGenerationId(replServer1, testService, -1);
+      waitGenerationId(replServer2, testService, -1);
+      waitReplicaOfPeer(replServer1, testService, 82, -1);
+      waitReplicaOfPeer(replServer2, testService, 81, -1);
+
+      broker1.setSoTimeout(100);
+      // the TopologyMsgs of the reset itself
+      countTopologyMsgs(broker1, SECONDS.toMillis(1));
+      final int received = countTopologyMsgs(broker1, SECONDS.toMillis(2));
+      assertTrue(received < 5, "DS(1) received " + received + " TopologyMsgs in two seconds without a change");
+    }
+    finally
+    {
+      stop(broker1, broker2);
+      remove(replServer1, replServer2);
+    }
+  }
+
+  /**
+   * A replication server without a generation id, which takes the one of a replica that already has changes
+   * from the first update of that replica, tells its peers, and they forward it the updates again
+   * (issue #1240).
+   */
+  @Test
+  public void generationIdTakenFromAnUpdateIsToldToThePeers() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer1 = null;
+    ReplicationServer replServer2 = null;
+    ReplicationBroker broker1 = null;
+    ReplicationBroker broker2 = null;
+
+    try
+    {
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      replServer1 = createReplicationServer(91, ports[0], "generationIdTakenFromAnUpdate1", 100);
+      replServer2 = createReplicationServer(92, ports[1], "generationIdTakenFromAnUpdate2", 100,
+          "localhost:" + ports[0]);
+      broker1 = openReplicationSession(testService, 1, 100, ports[0], 1000, 5555);
+      ReplicationServerDomain domain2 = replServer2.getReplicationServerDomain(testService, true);
+      waitReplicationServerConnected(replServer1, testService, 92);
+      waitReplicationServerConnected(replServer2, testService, 91);
+
+      domain2.changeGenerationId(-1);
+      waitGenerationIdOfPeer(replServer1, testService, 92, -1);
+
+      // a replica which has changes does not give its generation id at the handshake
+      CSNGenerator csnGenerator2 = new CSNGenerator(2, 0);
+      ServerState state2 = new ServerState();
+      state2.update(csnGenerator2.newCSN());
+      broker2 = openReplicationSession(testService, 2, ports[1], state2, 5555);
+      // the TopologyMsg the second replication server sent for the replica is handled, and nothing is left
+      // to tell the first one the generation id but the update
+      waitReplicaOfPeer(replServer1, testService, 92, -1);
+      assertEquals(domain2.getGenerationId(), -1L, "generation id of RS(92) before the update of DS(2)");
+
+      broker2.publish(new DeleteMsg(DN.valueOf("cn=deleted2," + testService), csnGenerator2.newCSN(), "uuid2"));
+      waitGenerationId(replServer2, testService, 5555);
+      waitGenerationIdOfPeer(replServer1, testService, 92, 5555);
+
+      CSN csn1 = new CSNGenerator(1, 0).newCSN();
+      broker1.publish(new DeleteMsg(DN.valueOf("cn=deleted1," + testService), csn1, "uuid1"));
+      newTimer().repeatUntilSuccess(() -> assertTrue(domain2.getLatestServerState().cover(csn1),
+          "RS(92) did not get the update " + csn1 + " of DS(1)"));
+    }
+    finally
+    {
+      stop(broker1, broker2);
+      remove(replServer1, replServer2);
+    }
+  }
+
+  /** Opens a session of a replica which announces the provided server state rather than an empty one. */
+  private ReplicationBroker openReplicationSession(DN baseDN, int serverId, int port, ServerState state,
+      long generationId) throws Exception
+  {
+    final DomainFakeCfg config = newFakeCfg(baseDN, serverId, port);
+    config.setWindowSize(100);
+    final ReplicationBroker broker = new ReplicationBroker(
+        new DummyReplicationDomain(generationId), state, config, getReplSessionSecurity());
+    connect(broker, 1000);
+    return broker;
+  }
+
+  /** Returns how many TopologyMsgs the broker receives in the provided time. */
+  private static int countTopologyMsgs(ReplicationBroker broker, long millis)
+  {
+    int count = 0;
+    final long end = System.currentTimeMillis() + millis;
+    while (System.currentTimeMillis() < end)
+    {
+      try
+      {
+        if (broker.receive(false, false, true) instanceof TopologyMsg)
+        {
+          count++;
+        }
+      }
+      catch (SocketTimeoutException e)
+      {
+        // nothing came within the timeout of the session
+      }
+    }
+    return count;
+  }
+
+  /** Waits until a replication server knows a replica of a peer, and the provided generation id of that peer. */
+  private void waitReplicaOfPeer(ReplicationServer replServer, DN baseDN, int peerId, long generationId)
+      throws Exception
+  {
+    newTimer().repeatUntilSuccess(() ->
+    {
+      final ReplicationServerHandler peer =
+          replServer.getReplicationServerDomain(baseDN).getConnectedRSs().get(peerId);
+      assertTrue(peer.hasRemoteLDAPServers(),
+          replServer.getMonitorInstanceName() + " knows a replica of RS(" + peerId + ")");
+      assertEquals(peer.getGenerationId(), generationId,
+          "generation id " + replServer.getMonitorInstanceName() + " has for RS(" + peerId + ")");
+    });
   }
 
   private void waitGenerationId(ReplicationServer replServer, DN baseDN, long generationId) throws Exception
