@@ -142,16 +142,65 @@ unindexed_searches() { # <node>
 # The number of lines each server's errors log held once the topology was up: the joins log
 # replication errors of their own while the servers come up one after the other, and only what
 # follows is the run's
+errors_lines() { # <node>
+  docker exec $1 sh -c 'cat /opt/opendj/data/logs/errors | wc -l'
+}
+
 mark_logs() {
   local n
   mkdir -p "$OUT/logs"
   for n in $ALL_NODES; do
-    docker exec $n sh -c 'cat /opt/opendj/data/logs/errors | wc -l' >"$OUT/logs/$n.mark"
+    errors_lines $n >"$OUT/logs/$n.mark"
   done
 }
 
 since_mark() { # <node>
   docker exec $1 tail -n +$(($(cat "$OUT/logs/$1.mark") + 1)) /opt/opendj/data/logs/errors
+}
+
+# A disturbance window over the errors log of every server (#1208): window_open before the
+# disturbance, window_close once the disturbed server serves again, a line "<lines before>
+# <lines after>" in logs/<node>.windows
+window_open() {
+  local n
+  for n in $ALL_NODES; do
+    errors_lines $n >"$OUT/logs/$n.window"
+  done
+}
+
+window_close() {
+  local n lines
+  for n in $ALL_NODES; do
+    lines=$(errors_lines $n)
+    echo "$(cat "$OUT/logs/$n.window") $lines" >>"$OUT/logs/$n.windows"
+    rm "$OUT/logs/$n.window"
+  done
+}
+
+# The replication errors <node> logged after mark_logs. A disturbance window expects the
+# handshakes that a server starting on a loaded runner fails, the other end giving up first: a
+# directory server (178) or a replication server (179) that disconnected in the handshake, both
+# at ERROR on the replication server it connected to, and the SSLHandshakeException of a server
+# whose peer closed the handshake once its read timed out. In run 39909337627 a restarted
+# directory server timed out connecting (212) and its replication server logged 178, and a
+# replication server logged 311 with SocketTimeoutException when the restarted server logged
+# 119 with "Remote host terminated the handshake". Those go to logs/<node>.expected;
+# outside a window, and anything else inside one, they are errors
+replication_errors() { # <node>
+  local windows=
+  [ ! -f "$OUT/logs/$1.windows" ] || windows=$(tr '\n' ' ' <"$OUT/logs/$1.windows")
+  since_mark $1 | awk -v first=$(($(cat "$OUT/logs/$1.mark") + 1)) -v windows="$windows" \
+                      -v expected="$OUT/logs/$1.expected" '
+    BEGIN { n = split(windows, w, " ") }
+    !/category=SYNC severity=ERROR|SSLHandshakeException|bad_certificate/ { next }
+    {
+      line = first + NR - 1
+      if (/category=SYNC severity=ERROR msgID=17[89] / \
+          || /category=SYNC severity=WARNING .*SSLHandshakeException\(Remote host terminated the handshake\)/)
+        for (i = 1; i < n; i += 2)
+          if (line > w[i] + 0 && line <= w[i + 1] + 0) { print >expected; next }
+      print
+    }'
 }
 
 # How often each directory server connected to a replication server again after the topology
@@ -218,10 +267,9 @@ assert_online() {
     fi
   done
   for n in $ALL_NODES; do
-    if ! lines=$(since_mark $n); then
+    if ! lines=$(replication_errors $n); then
       echo "::error::the errors log of $n could not be read"; failed=1; continue
     fi
-    lines=$(grep -E "category=SYNC severity=ERROR|SSLHandshakeException|bad_certificate" <<<"$lines" || true)
     [ -z "$lines" ] || { printf '%s\n' "$lines" >"$OUT/logs/$n.errors"; echo "::error::$n logged replication errors, see logs/$n.errors"; failed=1; }
   done
   assert_rs_mesh || failed=1

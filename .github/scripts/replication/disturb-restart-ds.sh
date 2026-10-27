@@ -26,13 +26,16 @@ DISTURBED=$(echo $DS_NODES | cut -d' ' -f2)
 # docker restart sends SIGTERM and kills the server once its timeout is over: 10 s by default,
 # less than a server under load may need to stop, and a killed server is another disturbance.
 # stop_all gives it 120 s as well. The restart goes to disturbances.txt for the summary, from
-# the restart until the server serves again
+# the restart until the server serves again, and is a window of the errors logs: the handshakes
+# its start fails on a loaded runner are expected there (replication_errors)
 disturb() {
   local from
   echo "    [$SECONDS s] restarting $DISTURBED"
+  window_open
   from=$(date +%s)
   docker restart -t 120 $DISTURBED >/dev/null
   wait_until $DISTURB_TIMEOUT "$DISTURBED serves again" started_since $DISTURBED $from
+  window_close
   echo "$((from * 1000)) $(($(date +%s) * 1000)) $DISTURBED restart" >>"$OUT/disturbances.txt"
   echo "    [$SECONDS s] $DISTURBED serves again"
 }

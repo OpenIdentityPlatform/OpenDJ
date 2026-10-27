@@ -91,6 +91,16 @@ summarize() { # <result>
       done | grep . || echo "none"
       echo '```'
     fi
+    if ls "$OUT"/logs/*.expected >/dev/null 2>&1; then
+      echo
+      echo "Handshakes failed while a disturbed server came back, which the disturbance expects (logs/*.expected):"
+      echo
+      echo '```'
+      for f in "$OUT"/logs/*.expected; do
+        sed "s/^/$(basename "$f" .expected): /" "$f"
+      done
+      echo '```'
+    fi
     if ls "$OUT"/load/*.csv >/dev/null 2>&1; then
       echo
       echo "| client | average ops/s | intervals |"
