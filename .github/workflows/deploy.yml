@@ -189,7 +189,7 @@ jobs:
           done
           echo "::warning title=Could not refresh the launcher binaries::$BRANCH kept moving under this job. Refresh opendj-server-legacy/lib/*.exe from the windows-exe-11 artifact of Build run ${RUN_ID} and commit them."
       - name: Set up Java for publishing to Maven Central Repository OSS
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           java-version: ${{ github.event.workflow_run.head_branch == 'sustaining/4.10.x' && '8' || '11'}}
           distribution: 'temurin'
