@@ -180,12 +180,15 @@ window_close() {
 # The replication errors <node> logged after mark_logs. A disturbance window expects the
 # handshakes that a server starting on a loaded runner fails, the other end giving up first: a
 # directory server (178) or a replication server (179) that disconnected in the handshake, both
-# at ERROR on the replication server it connected to, and the SSLHandshakeException of a server
-# whose peer closed the handshake once its read timed out. In run 39909337627 a restarted
-# directory server timed out connecting (212) and its replication server logged 178, and a
-# replication server logged 311 with SocketTimeoutException when the restarted server logged
-# 119 with "Remote host terminated the handshake". Those go to logs/<node>.expected;
-# outside a window, and anything else inside one, they are errors
+# at ERROR on the replication server it connected to, a replication server whose connection
+# crossed one the other way and lost the domain lock to it (145, a warning that abortStart logs
+# at ERROR, as it does 178 and 179: #1241), and the SSLHandshakeException of a server whose peer
+# closed the handshake once its read timed out. In run 39909337627 a restarted directory server
+# timed out connecting (212) and its replication server logged 178, and a replication server
+# logged 311 with SocketTimeoutException when the restarted server logged 119 with "Remote host
+# terminated the handshake"; in run 40463887505 a replication server logged 145 on the
+# connection of the restarted one. Those go to logs/<node>.expected; outside a window, and
+# anything else inside one, they are errors
 replication_errors() { # <node>
   local windows=
   [ ! -f "$OUT/logs/$1.windows" ] || windows=$(tr '\n' ' ' <"$OUT/logs/$1.windows")
@@ -195,7 +198,7 @@ replication_errors() { # <node>
     !/category=SYNC severity=ERROR|SSLHandshakeException|bad_certificate/ { next }
     {
       line = first + NR - 1
-      if (/category=SYNC severity=ERROR msgID=17[89] / \
+      if (/category=SYNC severity=ERROR msgID=(145|178|179) / \
           || /category=SYNC severity=WARNING .*SSLHandshakeException\(Remote host terminated the handshake\)/)
         for (i = 1; i < n; i += 2)
           if (line > w[i] + 0 && line <= w[i + 1] + 0) { print >expected; next }
