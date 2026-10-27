@@ -25,6 +25,7 @@ import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.net.SocketTimeoutException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
@@ -39,17 +40,22 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.Task;
 import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.ByteArrayBuilder;
+import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ErrorMsg;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.server.ServerHandler;
 import org.opends.server.replication.service.ReplicationDomain.ImportExportContext;
 import org.forgerock.opendj.ldap.DN;
@@ -784,6 +790,166 @@ public class ReplicationDomainTest extends ReplicationTestCase
       stop(broker11, broker2);
       remove(replServer1, replServer2);
     }
+  }
+
+  /**
+   * A peer replication server which presents no generation id has reset its own, seeing no replica left in
+   * the topology: it has none to differ from, and a replication server which still has one does not warn
+   * about it, nor send it the warning (issue #1235). A peer which presents another generation id is still
+   * warned about.
+   */
+  @Test
+  public void peerWithoutGenerationIdIsNotWarnedAbout() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer1 = null;
+    ReplicationServer replServer2 = null;
+    ReplicationBroker broker1 = null;
+
+    try
+    {
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      replServer1 = createReplicationServer(21, ports[0], "peerWithoutGenerationId1", 100);
+      replServer2 = createReplicationServer(22, ports[1], "peerWithoutGenerationId2", 100, "localhost:" + ports[0]);
+      // the first replication server takes the generation id of the replica, which keeps it from resetting it,
+      // and the second one takes it from the first
+      broker1 = openReplicationSession(testService, 1, 100, ports[0], 1000, 3333);
+      replServer2.getReplicationServerDomain(testService, true);
+      waitReplicationServerConnected(replServer1, testService, 22);
+      waitReplicationServerConnected(replServer2, testService, 21);
+
+      // what the second replication server sends once it has reset its generation id
+      ServerHandler toReplServer1 = replServer2.getReplicationServerDomain(testService).getConnectedRSs().get(21);
+      toReplServer1.send(topologyMsgOf(replServer2, -1));
+      // sent on the same connection after it: once the warning about this one is back, the one before was handled
+      toReplServer1.send(topologyMsgOf(replServer2, 4444));
+
+      waitGenerationIdWarningOfPeerReceived(testService, 22, 4444L, 21, 3333L);
+      // the warning, as the first replication server logs it or as the second one logs it on receipt
+      final String[] warning = WARN_BAD_GENERATION_ID_FROM_RS.get(
+          22, "@", -1L, testService, 21, 3333L).toString().split("@");
+      for (String record : TestCaseUtils.ERROR_TEXT_WRITER.getMessages())
+      {
+        assertFalse(record.contains(warning[0]) && record.contains(warning[1]),
+            "RS(22) without a generation id was taken for a mismatch: " + record);
+      }
+    }
+    finally
+    {
+      stop(broker1);
+      remove(replServer1, replServer2);
+    }
+  }
+
+  /**
+   * A replication server which takes the generation id of a peer from its TopologyMsg, after it reset its own,
+   * tells its peers, and they forward it the updates again (issue #1236).
+   */
+  @Test
+  public void peerWhichTakesTheGenerationIdAgainIsForwardedUpdates() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer1 = null;
+    ReplicationServer replServer2 = null;
+    ReplicationBroker broker1 = null;
+    ReplicationBroker broker2 = null;
+
+    try
+    {
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      replServer1 = createReplicationServer(41, ports[0], "takesTheGenerationIdAgain1", 100);
+      replServer2 = createReplicationServer(42, ports[1], "takesTheGenerationIdAgain2", 100, "localhost:" + ports[0]);
+      broker1 = openReplicationSession(testService, 1, 100, ports[0], 1000, 5555);
+      ReplicationServerDomain domain2 = replServer2.getReplicationServerDomain(testService, true);
+      waitReplicationServerConnected(replServer1, testService, 42);
+      waitReplicationServerConnected(replServer2, testService, 41);
+      waitGenerationIdOfPeer(replServer1, testService, 42, 5555);
+
+      // what the second replication server does when it sees no replica left in the topology
+      domain2.changeGenerationId(-1);
+      waitGenerationIdOfPeer(replServer1, testService, 42, -1);
+
+      // a replica connecting to the first replication server makes it send its TopologyMsg to its peers
+      broker2 = openReplicationSession(testService, 2, 100, ports[0], 1000, 5555);
+      waitGenerationId(replServer2, testService, 5555);
+      waitGenerationIdOfPeer(replServer1, testService, 42, 5555);
+
+      CSN csn = new CSNGenerator(1, 0).newCSN();
+      broker1.publish(new DeleteMsg(DN.valueOf("cn=deleted," + testService), csn, "uuid"));
+      newTimer().repeatUntilSuccess(() -> assertTrue(domain2.getLatestServerState().cover(csn),
+          "RS(42) did not get the update " + csn + " of DS(1)"));
+    }
+    finally
+    {
+      stop(broker1, broker2);
+      remove(replServer1, replServer2);
+    }
+  }
+
+  /**
+   * Two replication servers which have no replica and the same generation id, which they did not save, send
+   * each other a TopologyMsg with it: each resets its own and does not take the one of the other again, so
+   * they end without a generation id rather than resetting and taking it again from each other (issue #1236).
+   */
+  @Test
+  public void peersWithoutReplicaEndWithoutGenerationId() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer1 = null;
+    ReplicationServer replServer2 = null;
+
+    try
+    {
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      replServer1 = createReplicationServer(51, ports[0], "peersWithoutReplica1", 100);
+      replServer2 = createReplicationServer(52, ports[1], "peersWithoutReplica2", 100, "localhost:" + ports[0]);
+      ReplicationServerDomain domain1 = replServer1.getReplicationServerDomain(testService, true);
+      ReplicationServerDomain domain2 = replServer2.getReplicationServerDomain(testService, true);
+      waitReplicationServerConnected(replServer1, testService, 52);
+      waitReplicationServerConnected(replServer2, testService, 51);
+
+      // the generation id the last replicas left them, each telling the other
+      domain1.changeGenerationId(6666);
+      domain2.changeGenerationId(6666);
+
+      waitGenerationId(replServer1, testService, -1);
+      waitGenerationId(replServer2, testService, -1);
+      // and they stay there
+      final long end = System.currentTimeMillis() + SECONDS.toMillis(2);
+      while (System.currentTimeMillis() < end)
+      {
+        assertEquals(domain1.getGenerationId(), -1L, "generation id of RS(51)");
+        assertEquals(domain2.getGenerationId(), -1L, "generation id of RS(52)");
+        Thread.sleep(10);
+      }
+    }
+    finally
+    {
+      remove(replServer1, replServer2);
+    }
+  }
+
+  private void waitGenerationId(ReplicationServer replServer, DN baseDN, long generationId) throws Exception
+  {
+    newTimer().repeatUntilSuccess(() -> assertEquals(
+        replServer.getReplicationServerDomain(baseDN).getGenerationId(), generationId,
+        "generation id of " + replServer.getMonitorInstanceName()));
+  }
+
+  private void waitGenerationIdOfPeer(ReplicationServer replServer, DN baseDN, int peerId, long generationId)
+      throws Exception
+  {
+    newTimer().repeatUntilSuccess(() -> assertEquals(
+        replServer.getReplicationServerDomain(baseDN).getConnectedRSs().get(peerId).getGenerationId(),
+        generationId, "generation id " + replServer.getMonitorInstanceName() + " has for RS(" + peerId + ")"));
+  }
+
+  /** Returns the TopologyMsg a replication server with no replica sends its peers, with the provided generation id. */
+  private static TopologyMsg topologyMsgOf(ReplicationServer replServer, long generationId)
+  {
+    RSInfo rsInfo = new RSInfo(replServer.getServerId(), replServer.getServerURL(), generationId,
+        replServer.getGroupId(), replServer.getWeight());
+    return new TopologyMsg(Collections.<DSInfo> emptyList(), newArrayList(rsInfo));
   }
 
   @DataProvider

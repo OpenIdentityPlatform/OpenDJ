@@ -1378,8 +1378,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * connected</li>
    * </ul>
    * So it strongly relies on the {@link #connectedDSs} list
+   *
+   * @return whether the generation id was reset
    */
-  private void resetGenerationIdIfPossible()
+  private boolean resetGenerationIdIfPossible()
   {
     if (logger.isTraceEnabled())
     {
@@ -1432,7 +1434,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         && generationId != -1)
     {
       changeGenerationId(-1);
+      return true;
     }
+    return false;
   }
 
   /**
@@ -2397,14 +2401,33 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       // Handle generation id
       if (allowResetGenId)
       {
-        resetGenerationIdIfPossible();
-        setGenerationIdIfUnset(rsHandler.getGenerationId());
+        /*
+         * The peers learn the generation id taken here only from a TopologyMsg, and forward no update to a
+         * replication server while they hold another one for it, so it is told to them as changeGenerationId()
+         * tells its own (issue #1236). Right after this replication server reset its own, though, the
+         * generation id of a peer which has no directory server either is no reference to take: two such
+         * replication servers would take each other's again and tell each other, every TopologyMsg making
+         * the other one reset, take it and answer once more.
+         */
+        final boolean reset = resetGenerationIdIfPossible();
+        if ((!reset || rsHandler.hasRemoteLDAPServers()) && setGenerationIdIfUnset(rsHandler.getGenerationId()))
+        {
+          sendTopoInfoToAll();
+        }
       }
 
-      if (isDifferentGenerationId(rsHandler.getGenerationId()))
+      /*
+       * A peer which presents no generation id has none to differ from this one - the handshake already
+       * holds this, see ReplicationServerHandler.checkGenerationId(). It reset its own, either seeing no
+       * directory server left in the topology or told to by a reset of the generation id, such as the one
+       * of dsreplication pre-external-initialization. Warning about it would ask for a re-initialization
+       * every time the directory servers of a domain which had no change all stop (issue #1235).
+       */
+      final long peerGenerationId = rsHandler.getGenerationId();
+      if (peerGenerationId > 0 && isDifferentGenerationId(peerGenerationId))
       {
         LocalizableMessage message = WARN_BAD_GENERATION_ID_FROM_RS.get(rsHandler.getServerId(),
-            rsHandler.session.getReadableRemoteAddress(), rsHandler.getGenerationId(),
+            rsHandler.session.getReadableRemoteAddress(), peerGenerationId,
             baseDN, getLocalRSServerId(), generationId);
         logger.warn(message);
 
@@ -2430,14 +2453,17 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
   }
 
-  private void setGenerationIdIfUnset(long generationId)
+  /** Takes the provided generation id when this domain has none, and returns whether it took it. */
+  private boolean setGenerationIdIfUnset(long generationId)
   {
     synchronized (generationIDLock)
     {
-      if (this.generationId < 0)
+      if (this.generationId < 0 && this.generationId != generationId)
       {
         this.generationId = generationId;
+        return true;
       }
+      return false;
     }
   }
 
