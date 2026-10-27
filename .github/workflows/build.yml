@@ -686,6 +686,10 @@ jobs:
         shell: bash
         run: |
           trap 'code=$?; echo "::group::container logs (test)"; docker logs test 2>&1 || true; echo "::endgroup::"; exit $code' ERR
+          # the image draws nothing: the OS carries none of what AWT needs to, freetype with brotli, X11 or ALSA.
+          # The temurin JRE of the default image keeps a freetype of its own in /opt/java, linking nothing but libc (#1238)
+          awt=$(docker run --rm --entrypoint sh localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }} -c 'find / -xdev \( -name "libfreetype.so*" ! -path "/opt/java/*" -o -name "libbrotli*.so*" -o -name "libX11.so*" -o -name "libasound.so*" \) 2>/dev/null; true')
+          if [ -n "$awt" ]; then echo "::error::The image carries libraries only AWT needs:"; echo "$awt"; false; fi
           docker run -it -d --memory="512m" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
           # the bootstrap's server is down before the marker the health check waits for is
           # written: the stop has logged its record by the time the marker is there
