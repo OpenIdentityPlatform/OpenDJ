@@ -892,8 +892,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
   /**
    * Two replication servers which have no replica and the same generation id, which they did not save, send
-   * each other a TopologyMsg with it: each resets its own and does not take the one of the other again, so
-   * they end without a generation id rather than resetting and taking it again from each other (issue #1236).
+   * each other a TopologyMsg with it: both end without a generation id and stay there (issue #1236).
    */
   @Test
   public void peersWithoutReplicaEndWithoutGenerationId() throws Exception
@@ -1047,6 +1046,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
       // the TopologyMsgs of the reset itself
       countTopologyMsgs(broker1, SECONDS.toMillis(1));
       final int received = countTopologyMsgs(broker1, SECONDS.toMillis(2));
+      // a closed session receives nothing, which would count as quiet
+      assertTrue(broker1.isConnected(), "DS(1) is still connected");
       assertTrue(received < 5, "DS(1) received " + received + " TopologyMsgs in two seconds without a change");
     }
     finally
