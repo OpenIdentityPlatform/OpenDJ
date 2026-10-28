@@ -18,8 +18,17 @@
 # setting comes from the environment, so that the same run goes in CI and on a laptop.
 
 TOPOLOGY=${TOPOLOGY:-rs534}
-# seconds of load
-DURATION=${DURATION:-120}
+# what disturbs the topology during the load (#1208): none, or the <name> of a disturb-<name>.sh
+# next to this script, which names the DISTURBED server and defines disturb, run during the load,
+# and settle, run after it
+DISTURBANCE=${DISTURBANCE:-none}
+# seconds of load. A disturbed run takes the load of its CI rows: a restarted server served
+# again 131 to 225 s after the restart there, and the load has to go on after that
+if [ "$DISTURBANCE" = none ]; then
+  DURATION=${DURATION:-120}
+else
+  DURATION=${DURATION:-900}
+fi
 # the most modifications, and adds or deletes, per second the load sends to each directory
 # server; a runner that cannot keep up sends fewer, which the summary shows
 LOAD_MOD_RATE=${LOAD_MOD_RATE:-423}
@@ -38,6 +47,10 @@ UP_TIMEOUT=${UP_TIMEOUT:-3600}
 QUIESCE_TIMEOUT=${QUIESCE_TIMEOUT:-900}
 # 1: write to one replica only, which the run must report (a self-test of its checks)
 INJECT_DIVERGENCE=${INJECT_DIVERGENCE:-0}
+# seconds into the load at which the disturbance starts
+DISTURB_AT=${DISTURB_AT:-$((DURATION / 3))}
+# seconds a disturbed server is given to serve again, and its join to end after the load
+DISTURB_TIMEOUT=${DISTURB_TIMEOUT:-900}
 # where the summary, the samples, the exports, the differences and a failed run's state go: a
 # directory that is new or empty
 OUT=${OUT:-$PWD/replication-out}
@@ -126,6 +139,15 @@ wait_until() { # <seconds> <what> <command> [<argument>...]
 
 is_healthy() { # <container>
   [ "$(docker inspect --format='{{.State.Health.Status}}' "$1")" = healthy ]
+}
+
+# The server of the container logged that it started (msgID 135, once its connection handlers
+# listen) after the Unix time <seconds>: it serves. Not the health of the container: its probe,
+# a JVM of its own, does not get through its 30 s on a runner under load - in run 39834888428 a
+# restarted server served 7 minutes before its container was healthy again. No grep -q: it
+# would cut docker logs off, and pipefail would take that for no match
+started_since() { # <container> <seconds>
+  docker logs --since "$2" "$1" 2>&1 | grep 'category=CORE severity=NOTICE msgID=135 ' >/dev/null
 }
 
 # The background join of the image goes on once the container reports itself healthy: it adds

@@ -56,6 +56,15 @@ summarize() { # <result>
     echo "| servers | $ALL_NODES |"
     echo "| load | $DURATION s on each directory server, at most $LOAD_MOD_RATE modifications and $LOAD_ADD_RATE adds or deletes a second |"
     echo "| seeded users | $SAMPLE_DATA |"
+    if [ -s "$OUT/disturbances.txt" ]; then
+      awk -v start="${LOAD_START_MS:-0}" '{ printf "| disturbance | %s of %s %d s into the load, serving again %d s later |\n",
+                                            $4, $3, ($1 - start) / 1000, ($2 - $1) / 1000 }' "$OUT/disturbances.txt"
+    elif [ "$DISTURBANCE" != none ] && [ -z "${LOAD_START_MS:-}" ]; then
+      # run.sh sets LOAD_START_MS as the load starts
+      echo "| disturbance | $DISTURBANCE at $DISTURB_AT s into the load, not started: the run ended before the load |"
+    elif [ "$DISTURBANCE" != none ]; then
+      echo "| disturbance | $DISTURBANCE at $DISTURB_AT s into the load, not completed |"
+    fi
     echo "| converged | ${CONVERGED_IN:--} s after the load |"
     if [ -s "$OUT/samples.txt" ]; then
       awk '{ t[$1] = 1 } END { for (s in t) { n++; if (!min || s < min) min = s; if (s > max) max = s }
@@ -83,6 +92,16 @@ summarize() { # <result>
       for f in "$OUT"/changelog/*.txt; do
         grep -E ' [1-9][0-9]* missing$|cannot be read|encrypted|no domain' "$f" | sed "s/^/$(basename "$f" .txt): /"
       done | grep . || echo "none"
+      echo '```'
+    fi
+    if ls "$OUT"/logs/*.expected >/dev/null 2>&1; then
+      echo
+      echo "Handshakes failed while a disturbed server came back, which the disturbance expects (logs/*.expected):"
+      echo
+      echo '```'
+      for f in "$OUT"/logs/*.expected; do
+        sed "s/^/$(basename "$f" .expected): /" "$f"
+      done
       echo '```'
     fi
     if ls "$OUT"/load/*.csv >/dev/null 2>&1; then
