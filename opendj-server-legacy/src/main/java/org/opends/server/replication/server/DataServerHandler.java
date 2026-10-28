@@ -467,9 +467,9 @@ public class DataServerHandler extends ServerHandler
       }
       catch(IOException e)
       {
-        LocalizableMessage errMessage = ERR_DS_DISCONNECTED_DURING_HANDSHAKE.get(
-            inServerStartMsg.getServerId(), replicationServer.getServerId());
-        throw new DirectoryException(ResultCode.OTHER, errMessage);
+        abortStartWithWarning(WARN_DS_DISCONNECTED_DURING_HANDSHAKE.get(
+            inServerStartMsg.getServerId(), replicationServer.getServerId()));
+        return;
       }
       catch (Exception e)
       {

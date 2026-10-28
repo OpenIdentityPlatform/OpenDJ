@@ -288,10 +288,9 @@ public class ReplicationServerHandler extends ServerHandler
     catch (IOException e)
     {
       logger.traceException(e);
-      LocalizableMessage errMessage = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
+      abortStartWithWarning(WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(
           getReplicationServerId(),
-          session.getReadableRemoteAddress());
-      abortStart(errMessage);
+          session.getReadableRemoteAddress()));
       return false;
     }
     catch (DirectoryException e)
@@ -325,7 +324,13 @@ public class ReplicationServerHandler extends ServerHandler
       // The initiator decides if the session is encrypted
       sslEncryption = processStartFromRemote(inReplServerStartMsg);
 
-      lockDomainWithTimeout();
+      if (!lockDomainWithTimeout())
+      {
+        // This server gives way to a cross connection, see lockDomainWithTimeout().
+        abortStartWithWarning(WARN_TIMEOUT_WHEN_CROSS_CONNECTION.get(getBaseDN(), serverId,
+            session.getReadableRemoteAddress(), getReplicationServerId()));
+        return;
+      }
 
       if (replicationServerDomain.isAlreadyConnectedToRS(this))
       {
@@ -417,7 +422,7 @@ public class ReplicationServerHandler extends ServerHandler
     catch (IOException e)
     {
       logger.traceException(e);
-      abortStart(ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
+      abortStartWithWarning(WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(
           inReplServerStartMsg.getServerId(), replicationServer.getServerId()));
     }
     catch (DirectoryException e)

@@ -778,11 +778,13 @@ public class ReplicationServer
      * about a domain which has no session for it. The remaining four have their reason
      * logged here by abortStart(), and they are not all of one kind: this server rejecting
      * the peer, the peer going away while the handshake ran, and whatever else fails on
-     * this side of it. So the message reported for an answer without a session tells the
-     * two apart by where a reason was logged rather than by naming a side: the operator is
-     * sent to the log of the peer only where nothing was logged here, and that is also the
-     * abort the peer may have logged nothing about either -- it resolves a cross connect
-     * with the same silent abortStart(null), one line up in startFromRemoteRS().
+     * this side of it -- the second logged as a warning, being no error of this server, and
+     * the other two as errors. So the message reported for an answer without a session
+     * tells the two apart by where a reason was logged rather than by naming a side: the
+     * operator is sent to the log of the peer only where nothing was logged here, and that
+     * is also the abort the peer may have logged nothing about either -- it resolves a
+     * cross connect with the same silent abortStart(null), one line up in
+     * startFromRemoteRS().
      *
      * The cross connect this server resolves is the one abort of the three where a session
      * for the domain does exist: it is the connection the peer made. For a peer which names

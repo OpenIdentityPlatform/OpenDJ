@@ -205,10 +205,32 @@ public abstract class ServerHandler extends MessageHandler
   }
 
   /**
-   * Abort a start procedure currently establishing.
+   * Abort a start procedure currently establishing, logging the reason as an error.
    * @param reason The provided reason.
    */
   protected void abortStart(LocalizableMessage reason)
+  {
+    abortStart(reason, false);
+  }
+
+  /**
+   * Abort a start procedure currently establishing, logging the reason as a warning.
+   * <p>
+   * For the aborts which are no error of this server and no fault of its peer
+   * either: the peer going away while the handshake ran, which the peer logs
+   * as a warning itself when it gave up on its own timeout, and this server
+   * giving way to a cross connection. Both are what a peer restarting under
+   * load leaves behind, and logged as errors they read as errors of every
+   * server it was handshaking with.
+   *
+   * @param reason The provided reason.
+   */
+  protected void abortStartWithWarning(LocalizableMessage reason)
+  {
+    abortStart(reason, true);
+  }
+
+  private void abortStart(LocalizableMessage reason, boolean isWarning)
   {
     // We did not recognize the message, close session as what can happen after
     // is undetermined and we do not want the server to be disturbed
@@ -221,7 +243,14 @@ public abstract class ServerHandler extends MessageHandler
         {
          logger.trace("In " + this + " closing session with err=" + reason);
         }
-        logger.error(reason);
+        if (isWarning)
+        {
+          logger.warn(reason);
+        }
+        else
+        {
+          logger.error(reason);
+        }
       }
 
       // This method is only called when aborting a failing handshake and
@@ -790,25 +819,18 @@ public abstract class ServerHandler extends MessageHandler
    * thread to take the lock it was waiting for and process the connection
    * attempt.
    *
-   * @throws DirectoryException
-   *           When an exception occurs.
+   * @return {@code true} if the lock was acquired, {@code false} if the wait
+   *         timed out, which is the connection attempt to abort
    * @throws InterruptedException
    *           If the current thread was interrupted while waiting for the lock.
    */
-  public void lockDomainWithTimeout() throws DirectoryException,
-      InterruptedException
+  public boolean lockDomainWithTimeout() throws InterruptedException
   {
     final Random random = new Random();
     final int randomTime = random.nextInt(6); // Random from 0 to 5
     // Wait at least 3 seconds + (0 to 5 seconds)
     final long timeout = 3000 + randomTime * 1000L;
-    final boolean lockAcquired = replicationServerDomain.tryLock(timeout);
-    if (!lockAcquired)
-    {
-      LocalizableMessage message = WARN_TIMEOUT_WHEN_CROSS_CONNECTION.get(
-          getBaseDN(), serverId, session.getReadableRemoteAddress(), getReplicationServerId());
-      throw new DirectoryException(ResultCode.OTHER, message);
-    }
+    return replicationServerDomain.tryLock(timeout);
   }
 
   /**
