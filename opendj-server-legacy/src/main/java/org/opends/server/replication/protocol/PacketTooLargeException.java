@@ -18,13 +18,14 @@ package org.opends.server.replication.protocol;
 import java.io.IOException;
 
 /**
- * Raised by {@link Session#receive()} when the length header of a frame announces more bytes
- * than this server can allocate.
+ * Raised by {@link Session#receive()} when this server runs out of heap for a frame: most
+ * likely one whose length header announces more bytes than it can allocate, though an
+ * {@link OutOfMemoryError} reading or decoding a frame of an ordinary size is raised as this too.
  * <p>
  * It is an {@link IOException}, so that every caller which takes it for a session to give up
  * still does. A handshake tells it apart from the other ones, which are the peer going away:
- * no handshake message comes near such a size, so this is the peer breaking the protocol, or
- * this server short of heap, and either is an error.
+ * either the peer breaks the protocol, no handshake message coming near the size such a header
+ * announces, or this server is short of heap, and either is an error.
  */
 public class PacketTooLargeException extends IOException
 {

@@ -739,8 +739,8 @@ public final class Session extends DirectoryThread implements Closeable
    *
    * @return The ReplicationMsg that was received.
    * @throws IOException When error happened during IO process, a
-   *         {@link PacketTooLargeException} when the frame received is too
-   *         large to allocate.
+   *         {@link PacketTooLargeException} when this server runs out of heap
+   *         for the frame received.
    * @throws DataFormatException When the data received is not formatted as a
    *         ReplicationMsg.
    * @throws NotSupportedOldVersionPDUException If the received PDU is part of

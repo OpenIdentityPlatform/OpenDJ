@@ -224,9 +224,12 @@ public abstract class ServerHandler extends MessageHandler
    * server it was handshaking with.
    * <p>
    * The peer going away is an {@code IOException} of the session, in either
-   * phase of the handshake, except a
+   * phase of the handshake. A peer silent past the connection timeout is one
+   * too: it is also what the connect thread of a cross connection reads while
+   * the listen thread of its peer waits for the domain lock. The exception is a
    * {@link org.opends.server.replication.protocol.PacketTooLargeException}:
-   * a frame too large to allocate is not the peer going away, and is an error.
+   * a frame this server has no heap for is not the peer going away, and is an
+   * error.
    *
    * @param reason The provided reason.
    */

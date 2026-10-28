@@ -779,7 +779,8 @@ public class ReplicationServer
      * logged here by abortStart(), and they are not all of one kind: this server rejecting
      * the peer, the peer going away while the handshake ran, and whatever else fails on
      * this side of it -- the second logged as a warning, being no error of this server, and
-     * the other two as errors. A frame too large to allocate is of the first kind, though
+     * the other two as errors. A peer silent past the connection timeout is of the second
+     * kind. A frame this server has no heap for is of the first kind or of the third, though
      * the session reports it as an IOException, which the second kind is as well. So the
      * message reported for an answer without a session tells the two apart by where a
      * reason was logged rather than by naming a side: the operator is sent to the log of the

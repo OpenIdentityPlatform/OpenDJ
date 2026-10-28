@@ -469,7 +469,9 @@ public class DataServerHandler extends ServerHandler
       catch (PacketTooLargeException e)
       {
         // Not the peer going away, see PacketTooLargeException.
-        abortStart(LocalizableMessage.raw(e.getLocalizedMessage()));
+        logger.traceException(e);
+        abortStart(LocalizableMessage.raw(
+            e.getLocalizedMessage() + " Peer: " + session.getReadableRemoteAddress()));
         return;
       }
       catch(IOException e)

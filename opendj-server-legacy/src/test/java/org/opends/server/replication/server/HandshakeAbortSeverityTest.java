@@ -61,10 +61,18 @@ import org.testng.annotations.Test;
  * ({@code WARN_TIMEOUT_WHEN_CROSS_CONNECTION}, a warning by its own name), and the
  * handshake its peer left ({@code *_DISCONNECTED_DURING_HANDSHAKE}, where a peer which gave
  * up on its own timeout logs that timeout at WARNING itself). Both are warnings now, in
- * either phase of the handshake. What this server rejects, a peer which breaks the protocol
- * and a frame too large to allocate are still errors: the cases which say so pin every
- * {@code abortStart} of a reason a handshake of a replication server or of a data server
- * reaches, so that logging every abort as a warning is not a way to pass the others.
+ * either phase of the handshake, and so is a peer which stays silent past the connection
+ * timeout: this server gives up on it as it does on a peer which went away.
+ * <p>
+ * What this server rejects, a peer which breaks the protocol, a frame which does not decode
+ * and a frame too large to allocate are still errors. Each call site picks the severity of its
+ * own abort, so a case pins only the one it reaches: the cases which say so reach every
+ * {@code abortStart} of a reason in the handshakes of a replication server and of a data
+ * server but two, so that logging an abort as a warning is not a way to pass them. The two are
+ * the {@code catch (Exception)} of {@code startFromRemoteRS()}, which a peer reaches only
+ * through a failure of the JDK (a topology without the replication server which sent it fails
+ * on {@code get(0)}), and the {@code catch (DirectoryException)} of
+ * {@code startFromRemoteDS()}, which no peer reaches with a message.
  * <p>
  * Each test drives one handler on a session pair of its own, as the listen thread or the
  * connect thread of the server would, and reads the severity off the record of the reason.
@@ -76,6 +84,8 @@ import org.testng.annotations.Test;
 public class HandshakeAbortSeverityTest extends ReplicationTestCase
 {
   private static final int SOCKET_TIMEOUT_MS = 30000;
+  /** The connection timeout of a handshake whose peer stays silent: nothing comes before it. */
+  private static final int SILENT_PEER_TIMEOUT_MS = 500;
   /** Longer than the longest wait of {@code lockDomainWithTimeout()}, which is 8 seconds. */
   private static final long LOCK_TIMEOUT_MS = 30000;
   private static final int REMOTE_DS_ID = 61;
@@ -176,6 +186,64 @@ public class HandshakeAbortSeverityTest extends ReplicationTestCase
       assertThat(recordOf(records, WARN_DS_DISCONNECTED_DURING_HANDSHAKE.get(REMOTE_DS_ID, rsId)))
           .as("a directory server which went away during the handshake is a warning")
           .contains("severity=WARNING");
+      assertAbortedHandshakeWentNoFurther(session);
+    });
+  }
+
+  /**
+   * A peer which stays connected and says nothing past the connection timeout is given up on
+   * as one which went away.
+   */
+  @Test
+  public void aDataServerSilentDuringTheHandshakeIsAWarning() throws Exception
+  {
+    final int rsId = 8274;
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    runCase("handshakeAbortSeveritySilentDSDb", rsId, (replicationServer, remoteEnd, session) -> {
+      final ServerStartMsg startMsg =
+          (ServerStartMsg) sendThrough(remoteEnd, session, serverStartMsg(baseDN));
+      session.setSoTimeout(SILENT_PEER_TIMEOUT_MS);
+      final DataServerHandler handler =
+          new DataServerHandler(session, 100, replicationServer, 100);
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        handler.startFromRemoteDS(startMsg);
+        return null;
+      });
+
+      assertThat(recordOf(records, WARN_DS_DISCONNECTED_DURING_HANDSHAKE.get(REMOTE_DS_ID, rsId)))
+          .as("a directory server silent past the connection timeout is a warning")
+          .contains("severity=WARNING");
+      assertAbortedHandshakeWentNoFurther(session);
+    });
+  }
+
+  /**
+   * A directory server which sends something else where its start session message is due
+   * breaks the protocol, and that is still an error.
+   */
+  @Test
+  public void aDataServerWhichSendsNoStartSessionIsAnError() throws Exception
+  {
+    final int rsId = 8275;
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    runCase("handshakeAbortSeverityNoStartSessionDb", rsId, (replicationServer, remoteEnd, session) -> {
+      final ServerStartMsg startMsg =
+          (ServerStartMsg) sendThrough(remoteEnd, session, serverStartMsg(baseDN));
+      // Published ahead of the start message it answers: the session reads it all the same.
+      remoteEnd.publish(serverStartMsg(baseDN));
+      final DataServerHandler handler =
+          new DataServerHandler(session, 100, replicationServer, 100);
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        handler.startFromRemoteDS(startMsg);
+        return null;
+      });
+
+      assertThat(recordOf(records, LocalizableMessage.raw("Protocol error: StartSessionMsg required.")))
+          .as("a directory server which breaks the protocol is an error")
+          .contains("severity=ERROR");
+      assertAbortedHandshakeWentNoFurther(session);
     });
   }
 
@@ -226,6 +294,34 @@ public class HandshakeAbortSeverityTest extends ReplicationTestCase
   }
 
   /**
+   * What the connect thread of a cross connection reads, when the listen thread of its peer
+   * waits for the domain lock longer than the connection timeout: up to 8 seconds against 5 by
+   * default.
+   */
+  @Test
+  public void aReplicationServerSilentDuringTheHandshakeThisServerStartedIsAWarning()
+      throws Exception
+  {
+    final int rsId = 8276;
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    runCase("handshakeAbortSeveritySilentToRSDb", rsId, (replicationServer, remoteEnd, session) -> {
+      session.setSoTimeout(SILENT_PEER_TIMEOUT_MS);
+      final ReplicationServerHandler handler =
+          new ReplicationServerHandler(session, 100, replicationServer, 100);
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        assertFalse(handler.connect(baseDN, true), "the peer did not answer, so this is no session");
+        return null;
+      });
+
+      assertThat(recordOf(records,
+              WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(rsId, session.getReadableRemoteAddress())))
+          .as("a replication server silent past the connection timeout is a warning")
+          .contains("severity=WARNING");
+    });
+  }
+
+  /**
    * The second phase of the handshake reads the topology of the peer through a method of its
    * own, which used to report every failure of the session as the error of a raw message.
    */
@@ -253,6 +349,35 @@ public class HandshakeAbortSeverityTest extends ReplicationTestCase
 
       assertThat(recordOf(records, WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(REMOTE_RS_ID, rsId)))
           .as("a replication server which went away before it sent its topology is a warning")
+          .contains("severity=WARNING");
+    });
+  }
+
+  /**
+   * The case above for a peer which stays silent: the second phase used to log the timeout
+   * as the error of the raw "Read timed out".
+   */
+  @Test
+  public void aReplicationServerSilentBeforeItsTopologyInTheHandshakeItStartedIsAWarning()
+      throws Exception
+  {
+    final int rsId = 8277;
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    runCase("handshakeAbortSeveritySilentFromRSTopoDb", rsId, (replicationServer, remoteEnd, session) -> {
+      final ReplServerStartMsg startMsg =
+          (ReplServerStartMsg) sendThrough(remoteEnd, session, replServerStartMsg(baseDN));
+      session.setSoTimeout(SILENT_PEER_TIMEOUT_MS);
+      final ReplicationServerHandler handler =
+          new ReplicationServerHandler(session, 100, replicationServer, 100);
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        handler.startFromRemoteRS(startMsg);
+        return null;
+      });
+
+      assertThat(recordOf(records, WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(REMOTE_RS_ID, rsId)))
+          .as("a replication server silent past the connection timeout before it sent its topology"
+              + " is a warning")
           .contains("severity=WARNING");
     });
   }
@@ -438,8 +563,41 @@ public class HandshakeAbortSeverityTest extends ReplicationTestCase
         return null;
       });
 
-      assertTooLargeFrameIsAnError(records,
+      assertTooLargeFrameIsAnError(records, session,
           WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(rsId, session.getReadableRemoteAddress()));
+    });
+  }
+
+  /**
+   * A frame which does not decode fails in {@code Session.receive()} with neither an
+   * {@code IOException} nor a {@code DirectoryException}, and is aborted on from the
+   * {@code catch (Exception)} of the handshake, still as an error.
+   */
+  @Test
+  public void aFrameWhichDoesNotDecodeInTheHandshakeThisServerStartedIsAnError()
+      throws Exception
+  {
+    final int rsId = 8278;
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    runCase("handshakeAbortSeverityToRSUndecodableDb", rsId, (replicationServer, remoteEnd, session) -> {
+      // A frame of one byte, a message type which no message has.
+      sendRaw(remoteEnd, new byte[] { '0', '0', '0', '0', '0', '0', '0', '1', 0 });
+      final ReplicationServerHandler handler =
+          new ReplicationServerHandler(session, 100, replicationServer, 100);
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        assertFalse(handler.connect(baseDN, true), "the frame cannot be decoded, so this is no session");
+        return null;
+      });
+
+      assertThat(recordOf(records, LocalizableMessage.raw("received message with unknown type")))
+          .as("a frame which does not decode is an error")
+          .contains("severity=ERROR");
+      assertThat(countRecordsOf(records,
+              WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(rsId, session.getReadableRemoteAddress())
+                  .toString()))
+          .as("a frame which does not decode is not the peer going away")
+          .isZero();
     });
   }
 
@@ -460,7 +618,7 @@ public class HandshakeAbortSeverityTest extends ReplicationTestCase
         return null;
       });
 
-      assertTooLargeFrameIsAnError(records,
+      assertTooLargeFrameIsAnError(records, session,
           WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(REMOTE_RS_ID, rsId));
     });
   }
@@ -482,8 +640,9 @@ public class HandshakeAbortSeverityTest extends ReplicationTestCase
         return null;
       });
 
-      assertTooLargeFrameIsAnError(records,
+      assertTooLargeFrameIsAnError(records, session,
           WARN_DS_DISCONNECTED_DURING_HANDSHAKE.get(REMOTE_DS_ID, rsId));
+      assertAbortedHandshakeWentNoFurther(session);
     });
   }
 
@@ -554,22 +713,45 @@ public class HandshakeAbortSeverityTest extends ReplicationTestCase
    */
   private static void sendTooLargeFrameHeader(Session remoteEnd) throws Exception
   {
+    sendRaw(remoteEnd, String.format("%08x", Integer.MAX_VALUE).getBytes());
+  }
+
+  /** Writes the provided bytes from the remote end to the socket under it, as they are. */
+  private static void sendRaw(Session remoteEnd, byte[] bytes) throws Exception
+  {
     final Field secureSocket = Session.class.getDeclaredField("secureSocket");
     secureSocket.setAccessible(true);
     final OutputStream output = ((SSLSocket) secureSocket.get(remoteEnd)).getOutputStream();
-    output.write(String.format("%08x", Integer.MAX_VALUE).getBytes());
+    output.write(bytes);
     output.flush();
   }
 
-  private static void assertTooLargeFrameIsAnError(List<String> records,
+  private static void assertTooLargeFrameIsAnError(List<String> records, Session session,
       LocalizableMessage disconnected)
   {
-    assertThat(recordOf(records, PACKET_TOO_LARGE))
+    final String record = recordOf(records, PACKET_TOO_LARGE);
+    assertThat(record)
         .as("a frame too large to allocate is an error")
         .contains("severity=ERROR");
+    assertThat(record)
+        .as("the record of a frame too large to allocate names the peer which sent it")
+        .contains("Peer: " + session.getReadableRemoteAddress());
     assertThat(countRecordsOf(records, disconnected.toString()))
         .as("a frame too large to allocate is not the peer going away")
         .isZero();
+  }
+
+  /**
+   * Asserts that the handshake of a data server ended where it was aborted: only
+   * {@code finalizeStart()} starts the thread of the session, once the handler is registered
+   * with the domain. Read off the thread rather than off the domain, which the reader of a
+   * handler started on a closed session may have unregistered it from already.
+   */
+  private static void assertAbortedHandshakeWentNoFurther(Session session)
+  {
+    assertThat(session.getState())
+        .as("a handshake which was aborted starts no session thread")
+        .isEqualTo(Thread.State.NEW);
   }
 
   private ReplicationServer newReplicationServer(String dbName, int rsId) throws Exception
