@@ -59,6 +59,9 @@ summarize() { # <result>
     if [ -s "$OUT/disturbances.txt" ]; then
       awk -v start="${LOAD_START_MS:-0}" '{ printf "| disturbance | %s of %s %d s into the load, serving again %d s later |\n",
                                             $4, $3, ($1 - start) / 1000, ($2 - $1) / 1000 }' "$OUT/disturbances.txt"
+    elif [ "$DISTURBANCE" != none ] && [ -z "${LOAD_START_MS:-}" ]; then
+      # run.sh sets LOAD_START_MS as the load starts
+      echo "| disturbance | $DISTURBANCE at $DISTURB_AT s into the load, not started: the run ended before the load |"
     elif [ "$DISTURBANCE" != none ]; then
       echo "| disturbance | $DISTURBANCE at $DISTURB_AT s into the load, not completed |"
     fi

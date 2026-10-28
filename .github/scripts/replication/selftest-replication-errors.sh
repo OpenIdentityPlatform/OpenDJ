@@ -46,11 +46,13 @@ E179='[t] category=SYNC severity=ERROR msgID=179 msg=Replication server 1 was at
 E145='[t] category=SYNC severity=ERROR msgID=145 msg=Timed out while trying to acquire the domain lock for domain "dc=example,dc=com". The connection attempt from replication server RS(29892) at cv-c1.convergence/172.18.0.3:52382 to this replication server RS(27915) will be aborted. This is probably benign and a result of a simultaneous cross connection attempt'
 W119='[t] category=SYNC severity=WARNING msgID=119 msg=Directory server DS(24329) encountered an unexpected error while connecting to replication server cv-r0:8989 for domain "cn=schema": SSLHandshakeException(Remote host terminated the handshake)'
 E119=${W119/severity=WARNING/severity=ERROR}
+W119CORE=${W119/category=SYNC/category=CORE}
 WBAD='[t] category=SYNC severity=WARNING msgID=119 msg=Directory server DS(1) encountered an unexpected error while connecting: SSLHandshakeException(Received fatal alert: bad_certificate)'
 WBADCORE='[t] category=CORE severity=WARNING msgID=1 msg=SSLException(Received fatal alert: bad_certificate)'
 E106='[t] category=SYNC severity=ERROR msgID=106 msg=another replication error'
 E1450='[t] category=SYNC severity=ERROR msgID=1450 msg=an id that starts like one a window expects'
 E45='[t] category=SYNC severity=ERROR msgID=45 msg=an id that ends like one a window expects'
+E106ID='[t] category=SYNC severity=ERROR msgID=106 msg=Replication server 32179 lost its connection'
 N62='[t] category=SYNC severity=NOTICE msgID=62 msg=Directory server DS(1) has connected'
 CORE178='[t] category=CORE severity=ERROR msgID=178 msg=not a replication error'
 
@@ -88,10 +90,12 @@ case_ 179-in-a-window            0 1 '[' "$E179" ']'
 case_ 145-in-a-window            0 1 '[' "$E145" ']'
 case_ terminated-handshake       0 1 '[' "$W119" ']'
 case_ terminated-handshake-error 1 0 '[' "$E119" ']'
+case_ terminated-elsewhere       1 0 '[' "$W119CORE" ']'
 case_ bad-certificate            1 0 '[' "$WBAD" ']'
 case_ bad-certificate-elsewhere  1 0 '[' "$WBADCORE" ']'
 case_ another-error-in-a-window  1 0 '[' "$E106" ']'
 case_ ids-like-expected-ones     2 0 '[' "$E1450" "$E45" ']'
+case_ an-id-in-the-message       1 0 '[' "$E106ID" ']'
 case_ another-category           0 0 '[' "$CORE178" ']'
 case_ a-notice                   0 0     "$N62"
 case_ before-a-window            1 1     "$E178" '[' "$E178" ']'

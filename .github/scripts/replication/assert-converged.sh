@@ -141,9 +141,11 @@ unindexed_searches() { # <node>
 
 # The number of lines each server's errors log held once the topology was up: the joins log
 # replication errors of their own while the servers come up one after the other, and only what
-# follows is the run's
+# follows is the run's. A log that cannot be read fails the run: a cat that fails in a pipe
+# would count 0 lines and exit 0, and window_open would take that for a window from the first
+# line, while a redirect that fails ends sh with 2
 errors_lines() { # <node>
-  docker exec $1 sh -c 'cat /opt/opendj/data/logs/errors | wc -l'
+  docker exec $1 sh -c 'wc -l </opt/opendj/data/logs/errors'
 }
 
 mark_logs() {

@@ -1143,11 +1143,14 @@ jobs:
         with:
           sparse-checkout: |
             .github/scripts/replication
-      # what a disturbance window of the errors log check expects, which a green row does not
-      # show: nothing it expects is logged outside the window there, and a base row has none
-      - name: Self-test of the errors log check
+      # what a green row does not show: what a disturbance window of the errors log check
+      # expects - nothing it expects is logged outside the window there, and a base row has
+      # none - and where restart-ds opens and closes the window
+      - name: Self-tests of the errors log check and of restart-ds
         shell: bash
-        run: .github/scripts/replication/selftest-replication-errors.sh
+        run: |
+          .github/scripts/replication/selftest-replication-errors.sh
+          .github/scripts/replication/selftest-disturb-restart-ds.sh
       - name: Download the image
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
