@@ -16,7 +16,7 @@
 # Copyright 2026 3A Systems, LLC.
 
 # A self-test of the disturbance restart-ds of the replication convergence run (#1208), with no
-# topology: what disturb and settle call, in which order, and what disturb writes to
+# topology: what disturb, settle and run_load call, in which order, and what disturb writes to
 # disturbances.txt. The window of the errors logs opens before the restart and closes 10 s after
 # the server serves again, and the restart ends when the server served, not after the grace. A
 # restart-ds row shows neither, unless a handshake record lands where the order moved. docker,
@@ -54,5 +54,18 @@ calls=
 settle
 check "settle called" "$calls" " wait_until 900 the join of d1 ends bootstrap_ended d1"
 
-echo "disturb-restart-ds: $((3 - failed)) checks passed, $failed failed"
+# run_load stops the clients of the disturbed server at DISTURB_AT, waits for them to end before
+# it disturbs, and has clients of its own write to it for the rest of the load. SECONDS without
+# its special properties, so that run_load reads the clock of the stubs: the restart takes 200 s
+DURATION=900 DISTURB_AT=300 DISTURBANCE=restart-ds
+. "$HERE/load.sh"
+unset SECONDS
+start_clients() { calls="$calls clients $*"; }
+disturb() { calls="$calls disturb"; SECONDS=$((SECONDS + 200)); }
+calls= SECONDS=0
+run_load
+check "run_load called" "$calls" \
+  " clients d0 1 900 clients d1 1 300 docker wait load-mod-d1 load-add-d1 disturb clients d1 2 700"
+
+echo "disturb-restart-ds: $((4 - failed)) checks passed, $failed failed"
 [ "$failed" -eq 0 ]

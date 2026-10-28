@@ -161,20 +161,24 @@ since_mark() { # <node>
 }
 
 # A disturbance window over the errors log of every server (#1208): window_open before the
-# disturbance, window_close once the disturbed server serves again, a line "<lines before>
-# <lines after>" in logs/<node>.windows
-window_open() {
-  local n
+# disturbance, with the msgIDs of the errors it expects besides the failed handshakes,
+# window_close once the disturbed server serves again, a line "<lines before> <lines after>
+# [<msgID>...]" in logs/<node>.windows
+window_open() { # [<msgID>...]
+  local n lines
   for n in $ALL_NODES; do
-    errors_lines $n >"$OUT/logs/$n.window"
+    # an assignment, so that a log that cannot be read stops the run here as well
+    lines=$(errors_lines $n)
+    echo "$lines${*:+ $*}" >"$OUT/logs/$n.window"
   done
 }
 
 window_close() {
-  local n lines
+  local n lines before ids
   for n in $ALL_NODES; do
     lines=$(errors_lines $n)
-    echo "$(cat "$OUT/logs/$n.window") $lines" >>"$OUT/logs/$n.windows"
+    read -r before ids <"$OUT/logs/$n.window"
+    echo "$before $lines${ids:+ $ids}" >>"$OUT/logs/$n.windows"
     rm "$OUT/logs/$n.window"
   done
 }
@@ -189,24 +193,43 @@ window_close() {
 # timed out connecting (212) and its replication server logged 178, and a replication server
 # logged 311 with SocketTimeoutException when the restarted server logged 119 with "Remote host
 # terminated the handshake"; in run 40463887505 a replication server logged 145 on the
-# connection of the restarted one. Those go to logs/<node>.expected; outside a window, and
-# anything else inside one, they are errors. A window expects them on any server, not only on
-# the connections of the disturbed one: 178 and 179 name the servers by id alone, and a server
-# has one in each of its domains and another for its replication server. A handshake that fails
-# is followed by a connection elsewhere, and a change it lost the checks of the data find
+# connection of the restarted one. A window opened with msgIDs expects the SYNC errors of those
+# msgIDs as well: what one disturbance leaves behind besides the handshakes, such as the
+# connections a killed replication server breaks (disturb-restart-rs.sh), which a window of
+# another one does not expect. Those go to logs/<node>.expected; outside a window, and anything
+# else inside one, they are errors. A window expects them on any server, not only on the
+# connections of the disturbed one: 178 and 179 name the servers by id alone, and a server has
+# one in each of its domains and another for its replication server. A handshake that fails is
+# followed by a connection elsewhere, and a change it lost the checks of the data find
 replication_errors() { # <node>
   local windows=
-  [ ! -f "$OUT/logs/$1.windows" ] || windows=$(tr '\n' ' ' <"$OUT/logs/$1.windows")
+  [ ! -f "$OUT/logs/$1.windows" ] || windows=$(tr '\n' ';' <"$OUT/logs/$1.windows")
   since_mark $1 | awk -v first=$(($(cat "$OUT/logs/$1.mark") + 1)) -v windows="$windows" \
                       -v expected="$OUT/logs/$1.expected" '
-    BEGIN { n = split(windows, w, " ") }
+    BEGIN {
+      n = split(windows, w, ";")
+      for (i = 1; i <= n; i++) {
+        k = split(w[i], f, " ")
+        from[i] = f[1]; to[i] = f[2]; ids[i] = " "
+        for (j = 3; j <= k; j++) ids[i] = ids[i] f[j] " "
+      }
+    }
     !/category=SYNC severity=ERROR|SSLHandshakeException|bad_certificate/ { next }
     {
       line = first + NR - 1
-      if (/category=SYNC severity=ERROR msgID=(145|178|179) / \
-          || /category=SYNC severity=WARNING .*SSLHandshakeException\(Remote host terminated the handshake\)/)
-        for (i = 1; i < n; i += 2)
-          if (line > w[i] + 0 && line <= w[i + 1] + 0) { print >expected; next }
+      handshake = /category=SYNC severity=ERROR msgID=(145|178|179) / \
+                  || /category=SYNC severity=WARNING .*SSLHandshakeException\(Remote host terminated the handshake\)/
+      id = ""
+      if (match($0, /category=SYNC severity=ERROR msgID=[0-9]+ /)) {
+        id = substr($0, RSTART, RLENGTH)
+        sub(/.*msgID=/, "", id)
+        sub(/ $/, "", id)
+      }
+      for (i = 1; i <= n; i++)
+        if (line > from[i] + 0 && line <= to[i] + 0 && (handshake || index(ids[i], " " id " "))) {
+          print >expected
+          next
+        }
       print
     }'
 }
@@ -228,12 +251,17 @@ record_reconnections() {
 
 # A directory server is connected to one replication server at a time, so the replication
 # servers reach each other only through their own connections: each one names every peer it is
-# connected to "Connected replication server RS(<id>) <host:port>" (ReplicationServerHandler)
+# connected to "Connected replication server RS(<id>) <host:port>" (ReplicationServerHandler).
+# The number of them, 0 where the search fails
+rs_peers() { # <replication server>
+  admin_search $1 "$MONITOR_DOMAIN" sub "(cn=Connected replication server*)" 1.1 | grep -c '^dn:' || true
+}
+
 assert_rs_mesh() {
   local rs want got failed=
   want=$(($(echo $RS_NODES | wc -w) - 1))
   for rs in $RS_NODES; do
-    got=$(admin_search $rs "$MONITOR_DOMAIN" sub "(cn=Connected replication server*)" 1.1 | grep -c '^dn:' || true)
+    got=$(rs_peers $rs)
     [ "${got:-0}" -eq "$want" ] || { echo "::error::$rs is connected to ${got:-0} replication servers, not $want"; failed=1; }
   done
   [ -z "$failed" ]

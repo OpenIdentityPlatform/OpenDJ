@@ -17,8 +17,9 @@
 # The load of the replication convergence run (#1090), sourced by run.sh: every directory
 # server is written to at once, for DURATION seconds, by rate tools that run in containers of
 # the same image on the network of the topology. Only writes: a read sends nothing to the
-# replication servers. The server a disturbance takes down (#1208) is written to before it and
-# after it, by clients of their own.
+# replication servers. A directory server a disturbance takes down (#1208) is written to before
+# it and after it, by clients of their own; replication servers it takes down leave the clients
+# be, and the directory servers write through the replication server still up.
 
 # <client> <tool> <argument>... : a container that runs one tool of the image against one server
 start_client() {
@@ -99,14 +100,23 @@ run_load() {
     fi
   done
   if [ "$DISTURBANCE" != none ]; then
-    # the clients of the disturbed server end on their own before the disturbance, which then
-    # cuts none of their operations off: one that had its CSN would read as a lost change
-    docker wait load-mod-$DISTURBED load-add-$DISTURBED >/dev/null
-    disturb
-    left=$((DURATION - (SECONDS - start)))
-    [ "$left" -ge $((3 * STAT_INTERVAL)) ] \
-      || fail "$DISTURBED served again $((SECONDS - start)) s into the load of $DURATION s, too late to take load again"
-    start_clients $DISTURBED 2 $left
+    case " $DS_NODES " in
+      *" $DISTURBED "*)
+        # the clients of the disturbed server end on their own before the disturbance, which
+        # then cuts none of their operations off: one that had its CSN would read as a lost change
+        docker wait load-mod-$DISTURBED load-add-$DISTURBED >/dev/null
+        disturb
+        left=$((DURATION - (SECONDS - start)))
+        [ "$left" -ge $((3 * STAT_INTERVAL)) ] \
+          || fail "$DISTURBED served again $((SECONDS - start)) s into the load of $DURATION s, too late to take load again"
+        start_clients $DISTURBED 2 $left
+        ;;
+      *)
+        left=$((DISTURB_AT - (SECONDS - start)))
+        [ "$left" -le 0 ] || sleep $left
+        disturb
+        ;;
+    esac
   fi
   for c in $CLIENTS; do
     docker wait $c >/dev/null
