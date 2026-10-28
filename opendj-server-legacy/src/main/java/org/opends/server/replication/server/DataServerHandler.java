@@ -40,6 +40,7 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.common.StatusMachine;
 import org.opends.server.replication.common.StatusMachineEvent;
 import org.opends.server.replication.protocol.ChangeStatusMsg;
+import org.opends.server.replication.protocol.PacketTooLargeException;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplServerStartDSMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -465,11 +466,19 @@ public class DataServerHandler extends ServerHandler
 
         logStartSessionHandshake(inStartSessionMsg, outTopoMsg);
       }
+      catch (PacketTooLargeException e)
+      {
+        // Not the peer going away, see PacketTooLargeException.
+        logger.traceException(e);
+        abortStart(LocalizableMessage.raw(
+            e.getLocalizedMessage() + " Peer: " + session.getReadableRemoteAddress()));
+        return;
+      }
       catch(IOException e)
       {
-        LocalizableMessage errMessage = ERR_DS_DISCONNECTED_DURING_HANDSHAKE.get(
-            inServerStartMsg.getServerId(), replicationServer.getServerId());
-        throw new DirectoryException(ResultCode.OTHER, errMessage);
+        abortStartWithWarning(WARN_DS_DISCONNECTED_DURING_HANDSHAKE.get(
+            inServerStartMsg.getServerId(), replicationServer.getServerId()));
+        return;
       }
       catch (Exception e)
       {

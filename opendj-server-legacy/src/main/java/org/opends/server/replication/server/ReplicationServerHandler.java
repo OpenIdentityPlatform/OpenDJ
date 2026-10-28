@@ -37,6 +37,7 @@ import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.protocol.PacketTooLargeException;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -160,7 +161,7 @@ public class ReplicationServerHandler extends ServerHandler
    * on an outgoing connection.
    * <p>
    * A handshake which does not complete is aborted rather than thrown out of here, and
-   * three of its seven aborts carry no message at all: a peer which stops the handshake
+   * three of its eight aborts carry no message at all: a peer which stops the handshake
    * answers with a {@link StopMsg}, which {@code Session.close()} publishes for every
    * abort of its own, and {@link #abortStart} logs nothing when the reason is null. The
    * caller is what is left to tell a connection from an attempt which only reached the
@@ -285,13 +286,20 @@ public class ReplicationServerHandler extends ServerHandler
       super.finalizeStart();
       return true;
     }
+    catch (PacketTooLargeException e)
+    {
+      // Not the peer going away, see PacketTooLargeException.
+      logger.traceException(e);
+      abortStart(LocalizableMessage.raw(
+          e.getLocalizedMessage() + " Peer: " + session.getReadableRemoteAddress()));
+      return false;
+    }
     catch (IOException e)
     {
       logger.traceException(e);
-      LocalizableMessage errMessage = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
+      abortStartWithWarning(WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(
           getReplicationServerId(),
-          session.getReadableRemoteAddress());
-      abortStart(errMessage);
+          session.getReadableRemoteAddress()));
       return false;
     }
     catch (DirectoryException e)
@@ -325,7 +333,13 @@ public class ReplicationServerHandler extends ServerHandler
       // The initiator decides if the session is encrypted
       sslEncryption = processStartFromRemote(inReplServerStartMsg);
 
-      lockDomainWithTimeout();
+      if (!lockDomainWithTimeout())
+      {
+        // This server gives way to a cross connection, see lockDomainWithTimeout().
+        abortStartWithWarning(WARN_TIMEOUT_WHEN_CROSS_CONNECTION.get(getBaseDN(), serverId,
+            session.getReadableRemoteAddress(), getReplicationServerId()));
+        return;
+      }
 
       if (replicationServerDomain.isAlreadyConnectedToRS(this))
       {
@@ -414,10 +428,17 @@ public class ReplicationServerHandler extends ServerHandler
 
       super.finalizeStart();
     }
+    catch (PacketTooLargeException e)
+    {
+      // Not the peer going away, see PacketTooLargeException.
+      logger.traceException(e);
+      abortStart(LocalizableMessage.raw(
+          e.getLocalizedMessage() + " Peer: " + session.getReadableRemoteAddress()));
+    }
     catch (IOException e)
     {
       logger.traceException(e);
-      abortStart(ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
+      abortStartWithWarning(WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(
           inReplServerStartMsg.getServerId(), replicationServer.getServerId()));
     }
     catch (DirectoryException e)
@@ -440,14 +461,21 @@ public class ReplicationServerHandler extends ServerHandler
    * Wait receiving the TopologyMsg from the remote RS and process it.
    * @return the topologyMsg received or {@code null} if stop was received.
    * @throws DirectoryException
+   * @throws IOException
+   *           If the session failed, which the caller reports as it does a
+   *           failure of the session in the first phase of the handshake.
    */
   private TopologyMsg waitAndProcessTopoFromRemoteRS()
-      throws DirectoryException
+      throws DirectoryException, IOException
   {
     ReplicationMsg msg;
     try
     {
       msg = session.receive();
+    }
+    catch (IOException e)
+    {
+      throw e;
     }
     catch(Exception e)
     {
