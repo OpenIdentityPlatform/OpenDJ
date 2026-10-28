@@ -222,6 +222,11 @@ public abstract class ServerHandler extends MessageHandler
    * giving way to a cross connection. Both are what a peer restarting under
    * load leaves behind, and logged as errors they read as errors of every
    * server it was handshaking with.
+   * <p>
+   * The peer going away is an {@code IOException} of the session, in either
+   * phase of the handshake, except a
+   * {@link org.opends.server.replication.protocol.PacketTooLargeException}:
+   * a frame too large to allocate is not the peer going away, and is an error.
    *
    * @param reason The provided reason.
    */

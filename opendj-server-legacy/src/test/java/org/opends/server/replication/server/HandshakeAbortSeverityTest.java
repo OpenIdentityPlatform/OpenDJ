@@ -21,17 +21,23 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLSocket;
+
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
@@ -54,9 +60,11 @@ import org.testng.annotations.Test;
  * listen thread which gives way to a cross connection
  * ({@code WARN_TIMEOUT_WHEN_CROSS_CONNECTION}, a warning by its own name), and the
  * handshake its peer left ({@code *_DISCONNECTED_DURING_HANDSHAKE}, where a peer which gave
- * up on its own timeout logs that timeout at WARNING itself). Both are warnings now; what
- * this server rejects, and a peer which breaks the protocol, are still errors -- the last
- * test pins that, so that logging every abort as a warning is not a way to pass the others.
+ * up on its own timeout logs that timeout at WARNING itself). Both are warnings now, in
+ * either phase of the handshake. What this server rejects, a peer which breaks the protocol
+ * and a frame too large to allocate are still errors: the cases which say so pin every
+ * {@code abortStart} of a reason a handshake of a replication server or of a data server
+ * reaches, so that logging every abort as a warning is not a way to pass the others.
  * <p>
  * Each test drives one handler on a session pair of its own, as the listen thread or the
  * connect thread of the server would, and reads the severity off the record of the reason.
@@ -72,6 +80,10 @@ public class HandshakeAbortSeverityTest extends ReplicationTestCase
   private static final long LOCK_TIMEOUT_MS = 30000;
   private static final int REMOTE_DS_ID = 61;
   private static final int REMOTE_RS_ID = 62;
+  private static final String REMOTE_RS_URL = "127.0.0.1:8989";
+  /** What {@code Session.receive()} reports of the frame {@link #sendTooLargeFrameHeader} announces. */
+  private static final LocalizableMessage PACKET_TOO_LARGE = LocalizableMessage.raw(
+      "Packet too large, can't allocate " + Integer.MAX_VALUE + " bytes.");
 
   /**
    * The listen thread waits a random 3 to 8 seconds for the domain lock, so that of two
@@ -83,27 +95,20 @@ public class HandshakeAbortSeverityTest extends ReplicationTestCase
   {
     final int rsId = 8261;
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
-    final ExecutorService lockHolder = Executors.newSingleThreadExecutor();
-    ReplicationServer replicationServer = null;
-    try (ServerSocket listen = TestCaseUtils.bindFreePort())
-    {
-      listen.setSoTimeout(SOCKET_TIMEOUT_MS);
-      replicationServer = newReplicationServer("handshakeAbortSeverityCrossDb", rsId);
+    runCase("handshakeAbortSeverityCrossDb", rsId, (replicationServer, remoteEnd, session) -> {
       final ReplicationServerDomain domain =
           replicationServer.getReplicationServerDomain(baseDN, true);
+      final ReplServerStartMsg startMsg =
+          (ReplServerStartMsg) sendThrough(remoteEnd, session, replServerStartMsg(baseDN));
+      final ReplicationServerHandler handler =
+          new ReplicationServerHandler(session, 100, replicationServer, 100);
 
-      final Session[] sessionPair =
-          connectSessionPair(listen, getReplSessionSecurity());
-      try (Session remoteEnd = sessionPair[0];
-          Session session = sessionPair[1])
+      // The lock is held by a thread of its own, as the connect thread holds it: the
+      // domain lock is reentrant, so the thread of the handshake would take it.
+      final ExecutorService lockHolder = Executors.newSingleThreadExecutor();
+      final List<String> records;
+      try
       {
-        final ReplServerStartMsg startMsg =
-            (ReplServerStartMsg) sendThrough(remoteEnd, session, replServerStartMsg(baseDN));
-        final ReplicationServerHandler handler =
-            new ReplicationServerHandler(session, 100, replicationServer, 100);
-
-        // The lock is held by a thread of its own, as the connect thread holds it: the
-        // domain lock is reentrant, so the thread of the handshake would take it.
         final CountDownLatch locked = new CountDownLatch(1);
         final CountDownLatch handshakeDone = new CountDownLatch(1);
         final Future<Void> holding = lockHolder.submit(() -> {
@@ -122,7 +127,6 @@ public class HandshakeAbortSeverityTest extends ReplicationTestCase
         assertTrue(locked.await(LOCK_TIMEOUT_MS, TimeUnit.MILLISECONDS),
             "the domain lock should have been taken");
 
-        final List<String> records;
         try
         {
           records = errorLogRecordsOf(() -> {
@@ -135,18 +139,21 @@ public class HandshakeAbortSeverityTest extends ReplicationTestCase
           handshakeDone.countDown();
         }
         holding.get(LOCK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-
-        assertThat(recordOf(records, WARN_TIMEOUT_WHEN_CROSS_CONNECTION.get(
-                baseDN, REMOTE_RS_ID, session.getReadableRemoteAddress(), rsId)))
-            .as("giving way to a cross connection is a warning, as its message says")
-            .contains("severity=WARNING");
       }
-    }
-    finally
-    {
-      lockHolder.shutdownNow();
-      removeQuietly(replicationServer);
-    }
+      finally
+      {
+        lockHolder.shutdownNow();
+      }
+
+      assertThat(recordOf(records, WARN_TIMEOUT_WHEN_CROSS_CONNECTION.get(
+              baseDN, REMOTE_RS_ID, session.getReadableRemoteAddress(), rsId)))
+          .as("giving way to a cross connection is a warning, as its message says")
+          .contains("severity=WARNING");
+      assertThat(countRecordsOf(records,
+              WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(REMOTE_RS_ID, rsId).toString()))
+          .as("the handshake ends where this server gives way to the cross connection")
+          .isZero();
+    });
   }
 
   @Test
@@ -154,38 +161,22 @@ public class HandshakeAbortSeverityTest extends ReplicationTestCase
   {
     final int rsId = 8262;
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
-    ReplicationServer replicationServer = null;
-    try (ServerSocket listen = TestCaseUtils.bindFreePort())
-    {
-      listen.setSoTimeout(SOCKET_TIMEOUT_MS);
-      replicationServer = newReplicationServer("handshakeAbortSeverityDSDb", rsId);
+    runCase("handshakeAbortSeverityDSDb", rsId, (replicationServer, remoteEnd, session) -> {
+      final ServerStartMsg startMsg =
+          (ServerStartMsg) sendThrough(remoteEnd, session, serverStartMsg(baseDN));
+      remoteEnd.abort(new IOException("the directory server gave up on the handshake"));
+      final DataServerHandler handler =
+          new DataServerHandler(session, 100, replicationServer, 100);
 
-      final Session[] sessionPair =
-          connectSessionPair(listen, getReplSessionSecurity());
-      try (Session remoteEnd = sessionPair[0];
-          Session session = sessionPair[1])
-      {
-        final ServerStartMsg startMsg = (ServerStartMsg) sendThrough(remoteEnd, session,
-            new ServerStartMsg(REMOTE_DS_ID, "127.0.0.1:1389", baseDN, 100, 0,
-                new ServerState(), -1, true, (byte) 1));
-        remoteEnd.abort(new IOException("the directory server gave up on the handshake"));
-        final DataServerHandler handler =
-            new DataServerHandler(session, 100, replicationServer, 100);
+      final List<String> records = errorLogRecordsOf(() -> {
+        handler.startFromRemoteDS(startMsg);
+        return null;
+      });
 
-        final List<String> records = errorLogRecordsOf(() -> {
-          handler.startFromRemoteDS(startMsg);
-          return null;
-        });
-
-        assertThat(recordOf(records, WARN_DS_DISCONNECTED_DURING_HANDSHAKE.get(REMOTE_DS_ID, rsId)))
-            .as("a directory server which went away during the handshake is a warning")
-            .contains("severity=WARNING");
-      }
-    }
-    finally
-    {
-      removeQuietly(replicationServer);
-    }
+      assertThat(recordOf(records, WARN_DS_DISCONNECTED_DURING_HANDSHAKE.get(REMOTE_DS_ID, rsId)))
+          .as("a directory server which went away during the handshake is a warning")
+          .contains("severity=WARNING");
+    });
   }
 
   @Test
@@ -193,37 +184,22 @@ public class HandshakeAbortSeverityTest extends ReplicationTestCase
   {
     final int rsId = 8263;
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
-    ReplicationServer replicationServer = null;
-    try (ServerSocket listen = TestCaseUtils.bindFreePort())
-    {
-      listen.setSoTimeout(SOCKET_TIMEOUT_MS);
-      replicationServer = newReplicationServer("handshakeAbortSeverityFromRSDb", rsId);
+    runCase("handshakeAbortSeverityFromRSDb", rsId, (replicationServer, remoteEnd, session) -> {
+      final ReplServerStartMsg startMsg =
+          (ReplServerStartMsg) sendThrough(remoteEnd, session, replServerStartMsg(baseDN));
+      remoteEnd.abort(new IOException("the replication server gave up on the handshake"));
+      final ReplicationServerHandler handler =
+          new ReplicationServerHandler(session, 100, replicationServer, 100);
 
-      final Session[] sessionPair =
-          connectSessionPair(listen, getReplSessionSecurity());
-      try (Session remoteEnd = sessionPair[0];
-          Session session = sessionPair[1])
-      {
-        final ReplServerStartMsg startMsg =
-            (ReplServerStartMsg) sendThrough(remoteEnd, session, replServerStartMsg(baseDN));
-        remoteEnd.abort(new IOException("the replication server gave up on the handshake"));
-        final ReplicationServerHandler handler =
-            new ReplicationServerHandler(session, 100, replicationServer, 100);
+      final List<String> records = errorLogRecordsOf(() -> {
+        handler.startFromRemoteRS(startMsg);
+        return null;
+      });
 
-        final List<String> records = errorLogRecordsOf(() -> {
-          handler.startFromRemoteRS(startMsg);
-          return null;
-        });
-
-        assertThat(recordOf(records, WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(REMOTE_RS_ID, rsId)))
-            .as("a replication server which went away during the handshake it started is a warning")
-            .contains("severity=WARNING");
-      }
-    }
-    finally
-    {
-      removeQuietly(replicationServer);
-    }
+      assertThat(recordOf(records, WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(REMOTE_RS_ID, rsId)))
+          .as("a replication server which went away during the handshake it started is a warning")
+          .contains("severity=WARNING");
+    });
   }
 
   @Test
@@ -231,31 +207,311 @@ public class HandshakeAbortSeverityTest extends ReplicationTestCase
   {
     final int rsId = 8264;
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    runCase("handshakeAbortSeverityToRSDb", rsId, (replicationServer, remoteEnd, session) -> {
+      remoteEnd.abort(new IOException("the replication server went away"));
+      final ReplicationServerHandler handler =
+          new ReplicationServerHandler(session, 100, replicationServer, 100);
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        assertFalse(handler.connect(baseDN, true), "the peer went away, so this is no session");
+        return null;
+      });
+
+      assertThat(recordOf(records,
+              WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(rsId, session.getReadableRemoteAddress())))
+          .as("a replication server which went away during the handshake this server started"
+              + " is a warning")
+          .contains("severity=WARNING");
+    });
+  }
+
+  /**
+   * The second phase of the handshake reads the topology of the peer through a method of its
+   * own, which used to report every failure of the session as the error of a raw message.
+   */
+  @Test
+  public void aReplicationServerGoneBeforeItsTopologyInTheHandshakeItStartedIsAWarning()
+      throws Exception
+  {
+    final int rsId = 8266;
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    runCase("handshakeAbortSeverityFromRSTopoDb", rsId, (replicationServer, remoteEnd, session) -> {
+      final ReplServerStartMsg startMsg =
+          (ReplServerStartMsg) sendThrough(remoteEnd, session, replServerStartMsg(baseDN));
+      final ReplicationServerHandler handler =
+          new ReplicationServerHandler(session, 100, replicationServer, 100);
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        // Gone once it has read the start message of this server: that is sent, and the
+        // handshake waits for the topology of the peer.
+        goneAfterReading(1, remoteEnd, () -> {
+          handler.startFromRemoteRS(startMsg);
+          return null;
+        });
+        return null;
+      });
+
+      assertThat(recordOf(records, WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(REMOTE_RS_ID, rsId)))
+          .as("a replication server which went away before it sent its topology is a warning")
+          .contains("severity=WARNING");
+    });
+  }
+
+  @Test
+  public void aReplicationServerGoneBeforeItsTopologyInTheHandshakeThisServerStartedIsAWarning()
+      throws Exception
+  {
+    final int rsId = 8267;
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    runCase("handshakeAbortSeverityToRSTopoDb", rsId, (replicationServer, remoteEnd, session) -> {
+      // Published ahead of the start message it answers: the session reads it all the same.
+      remoteEnd.publish(replServerStartMsg(baseDN));
+      final ReplicationServerHandler handler =
+          new ReplicationServerHandler(session, 100, replicationServer, 100);
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        // Gone once it has read the start message and the topology of this server: both
+        // are sent, and the handshake waits for the topology of the peer.
+        assertFalse(goneAfterReading(2, remoteEnd, () -> handler.connect(baseDN, true)),
+            "the peer went away, so this is no session");
+        return null;
+      });
+
+      assertThat(recordOf(records,
+              WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(rsId, session.getReadableRemoteAddress())))
+          .as("a replication server which went away before it sent its topology is a warning")
+          .contains("severity=WARNING");
+    });
+  }
+
+  /**
+   * A peer which answers the start message of this server with something else breaks the
+   * protocol, and that is still an error: of the aborts, only the peer going away and the
+   * cross connection are warnings.
+   */
+  @Test
+  public void aPeerWhichBreaksTheProtocolIsStillAnError() throws Exception
+  {
+    final int rsId = 8265;
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    runCase("handshakeAbortSeverityProtocolDb", rsId, (replicationServer, remoteEnd, session) -> {
+      // Published ahead of the start message it answers: the session reads it all the same.
+      remoteEnd.publish(new TopologyMsg(
+          Collections.<DSInfo> emptyList(), Collections.<RSInfo> emptyList()));
+      final ReplicationServerHandler handler =
+          new ReplicationServerHandler(session, 100, replicationServer, 100);
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        assertFalse(handler.connect(baseDN, true), "the peer broke the protocol, so this is no session");
+        return null;
+      });
+
+      assertThat(recordOf(records, ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(
+              TopologyMsg.class.getCanonicalName(), "ReplServerStartMsg")))
+          .as("a peer which breaks the protocol is an error")
+          .contains("severity=ERROR");
+    });
+  }
+
+  /**
+   * The case above in the second phase, which is aborted from the {@code DirectoryException}
+   * arm of the handshake: a peer which sends its start message again where its topology is
+   * due.
+   */
+  @Test
+  public void aPeerWhichSendsNoTopologyInTheHandshakeItStartedIsAnError() throws Exception
+  {
+    final int rsId = 8268;
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    runCase("handshakeAbortSeverityFromRSNoTopoDb", rsId, (replicationServer, remoteEnd, session) -> {
+      final ReplServerStartMsg startMsg =
+          (ReplServerStartMsg) sendThrough(remoteEnd, session, replServerStartMsg(baseDN));
+      remoteEnd.publish(replServerStartMsg(baseDN));
+      final ReplicationServerHandler handler =
+          new ReplicationServerHandler(session, 100, replicationServer, 100);
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        handler.startFromRemoteRS(startMsg);
+        return null;
+      });
+
+      assertThat(recordOf(records, ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(
+              ReplServerStartMsg.class.getCanonicalName(), "TopologyMsg")))
+          .as("a peer which breaks the protocol is an error")
+          .contains("severity=ERROR");
+    });
+  }
+
+  @Test
+  public void aPeerWhichSendsNoTopologyInTheHandshakeThisServerStartedIsAnError() throws Exception
+  {
+    final int rsId = 8269;
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    runCase("handshakeAbortSeverityToRSNoTopoDb", rsId, (replicationServer, remoteEnd, session) -> {
+      // Published ahead of the messages they answer: the session reads them all the same.
+      remoteEnd.publish(replServerStartMsg(baseDN));
+      remoteEnd.publish(replServerStartMsg(baseDN));
+      final ReplicationServerHandler handler =
+          new ReplicationServerHandler(session, 100, replicationServer, 100);
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        assertFalse(handler.connect(baseDN, true), "the peer broke the protocol, so this is no session");
+        return null;
+      });
+
+      assertThat(recordOf(records, ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(
+              ReplServerStartMsg.class.getCanonicalName(), "TopologyMsg")))
+          .as("a peer which breaks the protocol is an error")
+          .contains("severity=ERROR");
+    });
+  }
+
+  /**
+   * A rejection by this server: a peer which names the server id of a replication server the
+   * domain already holds a session with, at another address.
+   */
+  @Test
+  public void aServerIdAnotherReplicationServerHoldsIsAnError() throws Exception
+  {
+    final int rsId = 8270;
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    runCase("handshakeAbortSeverityDuplicateDb", rsId, (replicationServer, firstEnd, first) -> {
+      // The first peer completes its handshake, so that the domain holds it: its topology is
+      // published ahead of the start message of this server it answers.
+      final ReplServerStartMsg firstStartMsg =
+          (ReplServerStartMsg) sendThrough(firstEnd, first, replServerStartMsg(baseDN));
+      firstEnd.publish(new TopologyMsg(Collections.<DSInfo> emptyList(),
+          Collections.singletonList(new RSInfo(REMOTE_RS_ID, REMOTE_RS_URL, -1, (byte) 1, 1))));
+      final ReplicationServerHandler registered =
+          new ReplicationServerHandler(first, 100, replicationServer, 100);
+      registered.startFromRemoteRS(firstStartMsg);
+      // The precondition of the case rather than an assumption.
+      assertThat(replicationServer.getReplicationServerDomain(baseDN).getConnectedRSs().get(REMOTE_RS_ID))
+          .as("the first peer should hold its session")
+          .isSameAs(registered);
+
+      try (ServerSocket listen = TestCaseUtils.bindFreePort())
+      {
+        listen.setSoTimeout(SOCKET_TIMEOUT_MS);
+        final Session[] sessionPair = connectSessionPair(listen, getReplSessionSecurity());
+        try (Session remoteEnd = sessionPair[0];
+            Session session = sessionPair[1])
+        {
+          final ReplServerStartMsg startMsg = (ReplServerStartMsg) sendThrough(remoteEnd, session,
+              replServerStartMsg(baseDN, "127.0.0.1:8990"));
+          final ReplicationServerHandler handler =
+              new ReplicationServerHandler(session, 100, replicationServer, 100);
+
+          final List<String> records = errorLogRecordsOf(() -> {
+            handler.startFromRemoteRS(startMsg);
+            return null;
+          });
+
+          assertThat(recordOf(records, ERR_DUPLICATE_REPLICATION_SERVER_ID.get(
+                  replicationServer.getMonitorInstanceName(), registered.getServerAddressURL(),
+                  handler.getServerAddressURL(), REMOTE_RS_ID)))
+              .as("a peer this server rejects is an error")
+              .contains("severity=ERROR");
+        }
+      }
+    });
+  }
+
+  /**
+   * A frame too large to allocate is not the peer going away, though the session reports it
+   * as an {@code IOException}: either the peer breaks the protocol, a handshake message being
+   * nowhere near that size, or this server has no heap to spare it, and both are errors.
+   */
+  @Test
+  public void aFrameTooLargeForTheStartMessageOfTheHandshakeThisServerStartedIsAnError()
+      throws Exception
+  {
+    final int rsId = 8271;
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    runCase("handshakeAbortSeverityToRSFrameDb", rsId, (replicationServer, remoteEnd, session) -> {
+      sendTooLargeFrameHeader(remoteEnd);
+      final ReplicationServerHandler handler =
+          new ReplicationServerHandler(session, 100, replicationServer, 100);
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        assertFalse(handler.connect(baseDN, true), "the frame cannot be read, so this is no session");
+        return null;
+      });
+
+      assertTooLargeFrameIsAnError(records,
+          WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(rsId, session.getReadableRemoteAddress()));
+    });
+  }
+
+  @Test
+  public void aFrameTooLargeForTheTopologyInTheHandshakeItStartedIsAnError() throws Exception
+  {
+    final int rsId = 8272;
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    runCase("handshakeAbortSeverityFromRSFrameDb", rsId, (replicationServer, remoteEnd, session) -> {
+      final ReplServerStartMsg startMsg =
+          (ReplServerStartMsg) sendThrough(remoteEnd, session, replServerStartMsg(baseDN));
+      sendTooLargeFrameHeader(remoteEnd);
+      final ReplicationServerHandler handler =
+          new ReplicationServerHandler(session, 100, replicationServer, 100);
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        handler.startFromRemoteRS(startMsg);
+        return null;
+      });
+
+      assertTooLargeFrameIsAnError(records,
+          WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(REMOTE_RS_ID, rsId));
+    });
+  }
+
+  @Test
+  public void aFrameTooLargeForTheStartSessionOfADataServerIsAnError() throws Exception
+  {
+    final int rsId = 8273;
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    runCase("handshakeAbortSeverityDSFrameDb", rsId, (replicationServer, remoteEnd, session) -> {
+      final ServerStartMsg startMsg =
+          (ServerStartMsg) sendThrough(remoteEnd, session, serverStartMsg(baseDN));
+      sendTooLargeFrameHeader(remoteEnd);
+      final DataServerHandler handler =
+          new DataServerHandler(session, 100, replicationServer, 100);
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        handler.startFromRemoteDS(startMsg);
+        return null;
+      });
+
+      assertTooLargeFrameIsAnError(records,
+          WARN_DS_DISCONNECTED_DURING_HANDSHAKE.get(REMOTE_DS_ID, rsId));
+    });
+  }
+
+  /** One case: the replication server under test, and a session pair to it. */
+  private interface HandshakeCase
+  {
+    void run(ReplicationServer replicationServer, Session remoteEnd, Session session)
+        throws Exception;
+  }
+
+  /**
+   * Runs the provided case on a replication server of its own and a session pair to it,
+   * which are torn down once it ran.
+   */
+  private void runCase(String dbName, int rsId, HandshakeCase handshakeCase) throws Exception
+  {
     ReplicationServer replicationServer = null;
     try (ServerSocket listen = TestCaseUtils.bindFreePort())
     {
       listen.setSoTimeout(SOCKET_TIMEOUT_MS);
-      replicationServer = newReplicationServer("handshakeAbortSeverityToRSDb", rsId);
+      replicationServer = newReplicationServer(dbName, rsId);
 
       final Session[] sessionPair =
           connectSessionPair(listen, getReplSessionSecurity());
       try (Session remoteEnd = sessionPair[0];
           Session session = sessionPair[1])
       {
-        remoteEnd.abort(new IOException("the replication server went away"));
-        final ReplicationServerHandler handler =
-            new ReplicationServerHandler(session, 100, replicationServer, 100);
-
-        final List<String> records = errorLogRecordsOf(() -> {
-          assertFalse(handler.connect(baseDN, true), "the peer went away, so this is no session");
-          return null;
-        });
-
-        assertThat(recordOf(records,
-                WARN_RS_DISCONNECTED_DURING_HANDSHAKE.get(rsId, session.getReadableRemoteAddress())))
-            .as("a replication server which went away during the handshake this server started"
-                + " is a warning")
-            .contains("severity=WARNING");
+        handshakeCase.run(replicationServer, remoteEnd, session);
       }
     }
     finally
@@ -265,46 +521,55 @@ public class HandshakeAbortSeverityTest extends ReplicationTestCase
   }
 
   /**
-   * A peer which answers the start message of this server with something else breaks the
-   * protocol, and that is still an error: of the aborts, only the two above are warnings.
+   * Runs the provided handshake on a thread of its own, as the listen thread or the connect
+   * thread of the server would, while the remote end reads the provided number of messages
+   * and goes away: the handshake then fails on what it waits for next, rather than on a
+   * message it sends.
    */
-  @Test
-  public void aPeerWhichBreaksTheProtocolIsStillAnError() throws Exception
+  private static <T> T goneAfterReading(int messages, Session remoteEnd, Callable<T> handshake)
+      throws Exception
   {
-    final int rsId = 8265;
-    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
-    ReplicationServer replicationServer = null;
-    try (ServerSocket listen = TestCaseUtils.bindFreePort())
+    final ExecutorService handshakeThread = Executors.newSingleThreadExecutor();
+    try
     {
-      listen.setSoTimeout(SOCKET_TIMEOUT_MS);
-      replicationServer = newReplicationServer("handshakeAbortSeverityProtocolDb", rsId);
-
-      final Session[] sessionPair =
-          connectSessionPair(listen, getReplSessionSecurity());
-      try (Session remoteEnd = sessionPair[0];
-          Session session = sessionPair[1])
+      final Future<T> done = handshakeThread.submit(handshake);
+      for (int i = 0; i < messages; i++)
       {
-        // Published ahead of the start message it answers: the session reads it all the same.
-        remoteEnd.publish(new TopologyMsg(
-            Collections.<DSInfo> emptyList(), Collections.<RSInfo> emptyList()));
-        final ReplicationServerHandler handler =
-            new ReplicationServerHandler(session, 100, replicationServer, 100);
-
-        final List<String> records = errorLogRecordsOf(() -> {
-          assertFalse(handler.connect(baseDN, true), "the peer broke the protocol, so this is no session");
-          return null;
-        });
-
-        assertThat(recordOf(records, ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(
-                TopologyMsg.class.getCanonicalName(), "ReplServerStartMsg")))
-            .as("a peer which breaks the protocol is an error")
-            .contains("severity=ERROR");
+        remoteEnd.receive();
       }
+      remoteEnd.abort(new IOException("the replication server went away"));
+      return done.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     }
     finally
     {
-      removeQuietly(replicationServer);
+      handshakeThread.shutdownNow();
     }
+  }
+
+  /**
+   * Writes the length header of a frame of {@link Integer#MAX_VALUE} bytes from the remote
+   * end, and nothing after it: more than any array can hold, so the local end fails to
+   * allocate it whatever its heap. The session writes no frame it did not encode itself, so
+   * the header goes to the socket under it.
+   */
+  private static void sendTooLargeFrameHeader(Session remoteEnd) throws Exception
+  {
+    final Field secureSocket = Session.class.getDeclaredField("secureSocket");
+    secureSocket.setAccessible(true);
+    final OutputStream output = ((SSLSocket) secureSocket.get(remoteEnd)).getOutputStream();
+    output.write(String.format("%08x", Integer.MAX_VALUE).getBytes());
+    output.flush();
+  }
+
+  private static void assertTooLargeFrameIsAnError(List<String> records,
+      LocalizableMessage disconnected)
+  {
+    assertThat(recordOf(records, PACKET_TOO_LARGE))
+        .as("a frame too large to allocate is an error")
+        .contains("severity=ERROR");
+    assertThat(countRecordsOf(records, disconnected.toString()))
+        .as("a frame too large to allocate is not the peer going away")
+        .isZero();
   }
 
   private ReplicationServer newReplicationServer(String dbName, int rsId) throws Exception
@@ -313,15 +578,26 @@ public class HandshakeAbortSeverityTest extends ReplicationTestCase
         TestCaseUtils.findFreePort(), dbName, 0, rsId, 0, 100, new TreeSet<String>()));
   }
 
+  private ServerStartMsg serverStartMsg(DN baseDN)
+  {
+    return new ServerStartMsg(REMOTE_DS_ID, "127.0.0.1:1389", baseDN, 100, 0,
+        new ServerState(), -1, true, (byte) 1);
+  }
+
+  private ReplServerStartMsg replServerStartMsg(DN baseDN)
+  {
+    return replServerStartMsg(baseDN, REMOTE_RS_URL);
+  }
+
   /**
    * Returns the start message of a fake peer replication server.
    * <p>
    * A generation id of -1 leaves the one of the domain alone, and the session stays
    * encrypted, so that neither end has to leave the SSL session for the handshake to go on.
    */
-  private ReplServerStartMsg replServerStartMsg(DN baseDN)
+  private ReplServerStartMsg replServerStartMsg(DN baseDN, String serverURL)
   {
-    return new ReplServerStartMsg(REMOTE_RS_ID, "127.0.0.1:8989", baseDN, 100,
+    return new ReplServerStartMsg(REMOTE_RS_ID, serverURL, baseDN, 100,
         new ServerState(), -1, true, (byte) 1, 5000);
   }
 

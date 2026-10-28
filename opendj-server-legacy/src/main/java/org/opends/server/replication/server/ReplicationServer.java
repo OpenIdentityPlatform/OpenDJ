@@ -770,21 +770,22 @@ public class ReplicationServer
      * returns false from then on, so the next real outage of it is not reported at all.
      *
      * What the handshake did next is reported all the same, because it is not the log which
-     * can be left to it. ReplicationServerHandler.connect() aborts at seven places, and the
+     * can be left to it. ReplicationServerHandler.connect() aborts at eight places, and the
      * three which pass no message log nothing at all, abortStart() logging nothing without
      * one: a StopMsg read where the peer's ReplServerStartMsg was due, a cross connect this
      * server resolves against a peer it is already connected to, and a phase two the peer
      * leaves unanswered. Those would otherwise leave "connected" as the last thing said
-     * about a domain which has no session for it. The remaining four have their reason
+     * about a domain which has no session for it. The remaining five have their reason
      * logged here by abortStart(), and they are not all of one kind: this server rejecting
      * the peer, the peer going away while the handshake ran, and whatever else fails on
      * this side of it -- the second logged as a warning, being no error of this server, and
-     * the other two as errors. So the message reported for an answer without a session
-     * tells the two apart by where a reason was logged rather than by naming a side: the
-     * operator is sent to the log of the peer only where nothing was logged here, and that
-     * is also the abort the peer may have logged nothing about either -- it resolves a
-     * cross connect with the same silent abortStart(null), one line up in
-     * startFromRemoteRS().
+     * the other two as errors. A frame too large to allocate is of the first kind, though
+     * the session reports it as an IOException, which the second kind is as well. So the
+     * message reported for an answer without a session tells the two apart by where a
+     * reason was logged rather than by naming a side: the operator is sent to the log of the
+     * peer only where nothing was logged here, and that is also the abort the peer may have
+     * logged nothing about either -- it resolves a cross connect with the same silent
+     * abortStart(null), one line up in startFromRemoteRS().
      *
      * The cross connect this server resolves is the one abort of the three where a session
      * for the domain does exist: it is the connection the peer made. For a peer which names

@@ -37,6 +37,7 @@ import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.protocol.PacketTooLargeException;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -285,6 +286,13 @@ public class ReplicationServerHandler extends ServerHandler
       super.finalizeStart();
       return true;
     }
+    catch (PacketTooLargeException e)
+    {
+      // Not the peer going away, see PacketTooLargeException.
+      logger.traceException(e);
+      abortStart(LocalizableMessage.raw(e.getLocalizedMessage()));
+      return false;
+    }
     catch (IOException e)
     {
       logger.traceException(e);
@@ -419,6 +427,12 @@ public class ReplicationServerHandler extends ServerHandler
 
       super.finalizeStart();
     }
+    catch (PacketTooLargeException e)
+    {
+      // Not the peer going away, see PacketTooLargeException.
+      logger.traceException(e);
+      abortStart(LocalizableMessage.raw(e.getLocalizedMessage()));
+    }
     catch (IOException e)
     {
       logger.traceException(e);
@@ -445,14 +459,21 @@ public class ReplicationServerHandler extends ServerHandler
    * Wait receiving the TopologyMsg from the remote RS and process it.
    * @return the topologyMsg received or {@code null} if stop was received.
    * @throws DirectoryException
+   * @throws IOException
+   *           If the session failed, which the caller reports as it does a
+   *           failure of the session in the first phase of the handshake.
    */
   private TopologyMsg waitAndProcessTopoFromRemoteRS()
-      throws DirectoryException
+      throws DirectoryException, IOException
   {
     ReplicationMsg msg;
     try
     {
       msg = session.receive();
+    }
+    catch (IOException e)
+    {
+      throw e;
     }
     catch(Exception e)
     {
