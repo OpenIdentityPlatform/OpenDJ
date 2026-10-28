@@ -1143,6 +1143,11 @@ jobs:
         with:
           sparse-checkout: |
             .github/scripts/replication
+      # what a disturbance window of the errors log check expects, which a green row does not
+      # show: nothing it expects is logged outside the window there, and a base row has none
+      - name: Self-test of the errors log check
+        shell: bash
+        run: .github/scripts/replication/selftest-replication-errors.sh
       - name: Download the image
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:

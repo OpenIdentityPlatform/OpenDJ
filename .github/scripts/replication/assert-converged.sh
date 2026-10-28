@@ -188,7 +188,10 @@ window_close() {
 # logged 311 with SocketTimeoutException when the restarted server logged 119 with "Remote host
 # terminated the handshake"; in run 40463887505 a replication server logged 145 on the
 # connection of the restarted one. Those go to logs/<node>.expected; outside a window, and
-# anything else inside one, they are errors
+# anything else inside one, they are errors. A window expects them on any server, not only on
+# the connections of the disturbed one: 178 and 179 name the servers by id alone, and a server
+# has one in each of its domains and another for its replication server. A handshake that fails
+# is followed by a connection elsewhere, and a change it lost the checks of the data find
 replication_errors() { # <node>
   local windows=
   [ ! -f "$OUT/logs/$1.windows" ] || windows=$(tr '\n' ' ' <"$OUT/logs/$1.windows")

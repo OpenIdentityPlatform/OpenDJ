@@ -27,17 +27,22 @@ DISTURBED=$(echo $DS_NODES | cut -d' ' -f2)
 # less than a server under load may need to stop, and a killed server is another disturbance.
 # stop_all gives it 120 s as well. The restart goes to disturbances.txt for the summary, from
 # the restart until the server serves again, and is a window of the errors logs: the handshakes
-# its start fails on a loaded runner are expected there (replication_errors)
+# its start fails on a loaded runner are expected there (replication_errors). The window closes
+# 10 s after the server serves again: a handshake its start began can still fail then, and a
+# peer logs 145 only once its wait for the domain lock, of up to 8 s, is over
+# (ServerHandler.lockDomainWithTimeout). A handshake that fails later is an error again
 disturb() {
-  local from
+  local from served
   echo "    [$SECONDS s] restarting $DISTURBED"
   window_open
   from=$(date +%s)
   docker restart -t 120 $DISTURBED >/dev/null
   wait_until $DISTURB_TIMEOUT "$DISTURBED serves again" started_since $DISTURBED $from
-  window_close
-  echo "$((from * 1000)) $(($(date +%s) * 1000)) $DISTURBED restart" >>"$OUT/disturbances.txt"
+  served=$(date +%s)
   echo "    [$SECONDS s] $DISTURBED serves again"
+  sleep 10
+  window_close
+  echo "$((from * 1000)) $((served * 1000)) $DISTURBED restart" >>"$OUT/disturbances.txt"
 }
 
 # After the load, before the wait for convergence: the join of the restarted server, which runs
