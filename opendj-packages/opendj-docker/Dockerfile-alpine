@@ -57,9 +57,12 @@ WORKDIR /opt
 
 #COPY opendj-*.zip $OPENDJ_DIST_FILENAME
 
+# The headless JRE: the server and the command-line tools do not draw, and the full JRE only
+# adds what AWT needs to - X11, ALSA, freetype with brotli, the image codecs - along with their
+# CVEs. The GUI tools (control-panel) are run outside the container, against its admin port.
 RUN apk add --update --no-cache --virtual builddeps curl unzip \
  && apk upgrade --update --no-cache \
- && if [ "$TARGETARCH" = "386" ]; then JDK=openjdk11-jre; else JDK=openjdk25-jre; fi \
+ && if [ "$TARGETARCH" = "386" ]; then JDK=openjdk11-jre-headless; else JDK=openjdk25-jre-headless; fi \
  && apk add bash coreutils "$JDK" \
  && if [ -z "$VERSION" ] ; then VERSION="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)"; fi \
  && if [ ! -f "$OPENDJ_DIST_FILENAME" ]; then echo file exists && curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output $OPENDJ_DIST_FILENAME; fi \

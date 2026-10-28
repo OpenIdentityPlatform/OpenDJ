@@ -55,6 +55,12 @@ WORKDIR /opt
 
 #COPY opendj-*.zip $OPENDJ_DIST_FILENAME
 
+# The JRE of the base image has no headless variant, but it draws nothing here: X11 and ALSA are
+# not installed, and the freetype it renders fonts with is a copy of its own that links nothing
+# but libc. What the base image adds for it - fontconfig with the freetype of the OS, brotli and
+# the fonts - is purged along with curl and unzip, and --auto-remove takes the libraries they
+# pulled in (libcurl with its Kerberos, LDAP and SASL libraries among them). The GUI tools
+# (control-panel) are run outside the container, against its admin port.
 RUN  printf 'Acquire::ForceIPv4 "true";\nAcquire::Retries "5";\n' > /etc/apt/apt.conf.d/99-ci-network \
  && apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
@@ -62,7 +68,7 @@ RUN  printf 'Acquire::ForceIPv4 "true";\nAcquire::Retries "5";\n' > /etc/apt/apt
  && if [ -z "$VERSION" ] ; then VERSION="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)"; fi \
  && if [ ! -f "$OPENDJ_DIST_FILENAME" ]; then echo file exists && curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output $OPENDJ_DIST_FILENAME; fi \
  && unzip $OPENDJ_DIST_FILENAME \
- && apt-get remove -y --purge curl unzip \
+ && apt-get purge -y --auto-remove curl unzip fontconfig libfreetype6 \
  && rm -rf /var/lib/apt/lists/* /etc/apt/apt.conf.d/99-ci-network \
  && rm -r $OPENDJ_DIST_FILENAME \
  && groupadd $OPENDJ_USER \
