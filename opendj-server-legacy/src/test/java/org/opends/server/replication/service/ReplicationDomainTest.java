@@ -868,6 +868,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
       waitReplicationServerConnected(replServer1, testService, 42);
       waitReplicationServerConnected(replServer2, testService, 41);
       waitGenerationIdOfPeer(replServer1, testService, 42, 5555);
+      // no TopologyMsg of the first one for its replica is left to cross what follows
+      waitReplicaOfPeer(replServer2, testService, 41, 5555);
 
       // what the second replication server does when it sees no replica left in the topology
       domain2.changeGenerationId(-1);
@@ -993,6 +995,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
       ReplicationServerDomain domain2 = replServer2.getReplicationServerDomain(testService, true);
       waitReplicationServerConnected(replServer1, testService, 72);
       waitReplicationServerConnected(replServer2, testService, 71);
+      // no TopologyMsg of the first one for its replica is left to cross what follows
+      waitReplicaOfPeer(replServer2, testService, 71, 5555);
 
       // a generation id which the second replication server has not saved and no replica has
       domain2.changeGenerationId(7777);
@@ -1011,12 +1015,13 @@ public class ReplicationDomainTest extends ReplicationTestCase
   }
 
   /**
-   * Two replication servers without a generation id, which have replicas, as dsreplication
-   * pre-external-initialization leaves them, do not take -1 from each other: taking it would tell the other
-   * one, which would take it in turn and answer, with no end (issue #1236).
+   * A TopologyMsg which a peer sent before it got a reset of the generation id, as dsreplication
+   * pre-external-initialization asks a replica for, still presents the generation id the reset cleared: a
+   * replication server which has replicas does not take it, which would undo the reset there and on its peers
+   * for good, nothing resetting it again while the replicas stay connected (issue #1236).
    */
   @Test
-  public void peersWithReplicasAndWithoutGenerationIdStayQuiet() throws Exception
+  public void topologyMsgSentBeforeAResetDoesNotUndoIt() throws Exception
   {
     DN testService = DN.valueOf("o=test");
     ReplicationServer replServer1 = null;
@@ -1027,32 +1032,84 @@ public class ReplicationDomainTest extends ReplicationTestCase
     try
     {
       int[] ports = TestCaseUtils.findFreePorts(2);
-      replServer1 = createReplicationServer(81, ports[0], "peersWithReplicasStayQuiet1", 100);
-      replServer2 = createReplicationServer(82, ports[1], "peersWithReplicasStayQuiet2", 100,
+      replServer1 = createReplicationServer(81, ports[0], "topologyMsgSentBeforeAReset1", 100);
+      replServer2 = createReplicationServer(82, ports[1], "topologyMsgSentBeforeAReset2", 100,
           "localhost:" + ports[0]);
       broker1 = openReplicationSession(testService, 1, 100, ports[0], 1000, 5555);
       broker2 = openReplicationSession(testService, 2, 100, ports[1], 1000, 5555);
+      ReplicationServerDomain domain1 = replServer1.getReplicationServerDomain(testService);
+      ReplicationServerDomain domain2 = replServer2.getReplicationServerDomain(testService);
       waitReplicationServerConnected(replServer1, testService, 82);
       waitReplicationServerConnected(replServer2, testService, 81);
+      // once each one knows the replica of the other, no TopologyMsg is left to cross the reset
+      waitReplicaOfPeer(replServer1, testService, 82, 5555);
+      waitReplicaOfPeer(replServer2, testService, 81, 5555);
+      final TopologyMsg sentBeforeTheReset = domain2.createTopologyMsgForRS();
 
       // what dsreplication pre-external-initialization asks a replica for
       broker1.publish(new ResetGenerationIdMsg(-1));
       waitGenerationId(replServer1, testService, -1);
       waitGenerationId(replServer2, testService, -1);
       waitReplicaOfPeer(replServer1, testService, 82, -1);
-      waitReplicaOfPeer(replServer2, testService, 81, -1);
 
-      broker1.setSoTimeout(100);
-      // the TopologyMsgs of the reset itself
-      countTopologyMsgs(broker1, SECONDS.toMillis(1));
-      final int received = countTopologyMsgs(broker1, SECONDS.toMillis(2));
-      // a closed session receives nothing, which would count as quiet
-      assertTrue(broker1.isConnected(), "DS(1) is still connected");
-      assertTrue(received < 5, "DS(1) received " + received + " TopologyMsgs in two seconds without a change");
+      // handled here rather than by the reader of the connection, as when it crosses the reset
+      domain1.receiveTopoInfoFromRS(sentBeforeTheReset, domain1.getConnectedRSs().get(82), true);
+      assertEquals(domain1.getGenerationId(), -1L, "generation id of RS(81)");
     }
     finally
     {
       stop(broker1, broker2);
+      remove(replServer1, replServer2);
+    }
+  }
+
+  /**
+   * A replication server without replicas and without a generation id, to which a peer with replicas presents
+   * none either, as dsreplication pre-external-initialization leaves them, has nothing to take, and tells its
+   * peers nothing (issue #1236).
+   */
+  @Test
+  public void peerWithReplicaAndWithoutGenerationIdIsNotAnswered() throws Exception
+  {
+    DN testService = DN.valueOf("o=test");
+    ReplicationServer replServer1 = null;
+    ReplicationServer replServer2 = null;
+    ReplicationBroker broker1 = null;
+
+    try
+    {
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      replServer1 = createReplicationServer(101, ports[0], "peerWithReplicaIsNotAnswered1", 100);
+      replServer2 = createReplicationServer(102, ports[1], "peerWithReplicaIsNotAnswered2", 100,
+          "localhost:" + ports[0]);
+      broker1 = openReplicationSession(testService, 1, 100, ports[0], 1000, 5555);
+      ReplicationServerDomain domain1 = replServer1.getReplicationServerDomain(testService);
+      ReplicationServerDomain domain2 = replServer2.getReplicationServerDomain(testService, true);
+      waitReplicationServerConnected(replServer1, testService, 102);
+      waitReplicationServerConnected(replServer2, testService, 101);
+      waitReplicaOfPeer(replServer2, testService, 101, 5555);
+
+      // what dsreplication pre-external-initialization asks a replica for
+      broker1.publish(new ResetGenerationIdMsg(-1));
+      waitGenerationId(replServer1, testService, -1);
+      waitGenerationId(replServer2, testService, -1);
+      waitGenerationIdOfPeer(replServer1, testService, 102, -1);
+      waitReplicaOfPeer(replServer2, testService, 101, -1);
+
+      broker1.setSoTimeout(100);
+      // the TopologyMsgs of the reset itself
+      countTopologyMsgs(broker1, SECONDS.toMillis(1));
+      // what the first replication server sends its peers, handled here rather than by the reader of the
+      // connection: whatever the second one tells the first one reaches the replica as a TopologyMsg
+      domain2.receiveTopoInfoFromRS(domain1.createTopologyMsgForRS(), domain2.getConnectedRSs().get(101), true);
+      final int received = countTopologyMsgs(broker1, SECONDS.toMillis(2));
+      // a closed session receives nothing, which would count as quiet
+      assertTrue(broker1.isConnected(), "DS(1) is still connected");
+      assertEquals(received, 0, "TopologyMsgs DS(1) received once RS(102) was presented no generation id");
+    }
+    finally
+    {
+      stop(broker1);
       remove(replServer1, replServer2);
     }
   }
@@ -1081,6 +1138,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
       ReplicationServerDomain domain2 = replServer2.getReplicationServerDomain(testService, true);
       waitReplicationServerConnected(replServer1, testService, 92);
       waitReplicationServerConnected(replServer2, testService, 91);
+      // no TopologyMsg of the first one for its replica is left to cross what follows
+      waitReplicaOfPeer(replServer2, testService, 91, 5555);
 
       domain2.changeGenerationId(-1);
       waitGenerationIdOfPeer(replServer1, testService, 92, -1);

@@ -2410,14 +2410,25 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         /*
          * The peers learn the generation id taken here only from a TopologyMsg, and forward no update to a
          * replication server while they hold another one for it, so it is told to them as changeGenerationId()
-         * tells its own (issue #1236). It is taken only from a peer which has directory servers: while they
-         * stay connected, resetGenerationIdIfPossible() resets it neither here nor on that peer. A peer without
-         * any can reset the one it presented on the next TopologyMsg it receives, and two replication servers
-         * taking such a generation id from each other and telling each other would go on resetting it and
-         * taking it again in turn. Such a peer has no update of a directory server to forward here anyway,
-         * and the handshake still takes its generation id, see ReplicationServerHandler.checkGenerationId().
+         * tells its own (issue #1236).
+         *
+         * It is taken only from a peer which has directory servers. A peer without any can reset the one it
+         * presented on the next TopologyMsg it receives, and two replication servers taking such a generation
+         * id from each other and telling each other would go on resetting it and taking it again in turn. Such
+         * a peer has no update of a directory server to forward here anyway, and the handshake still takes its
+         * generation id, see ReplicationServerHandler.checkGenerationId().
+         *
+         * Nor is it taken while this replication server has directory servers of its own. With them connected,
+         * resetGenerationIdIfPossible() never resets the generation id here: this one has none because a reset
+         * of the generation id asked for it, such as the one of dsreplication pre-external-initialization, or
+         * because its directory servers have changes and gave none at the handshake, and put() takes the one
+         * of their first update. A TopologyMsg which the peer sent before it got such a reset still presents
+         * the generation id the reset cleared: taking it would undo the reset here and, told to the peers,
+         * on them as well, for good while the directory servers stay connected. A replication server without
+         * directory servers which takes it resets it again on the TopologyMsg the peer sends once reset.
          */
-        if (rsHandler.hasRemoteLDAPServers() && setGenerationIdIfUnset(rsHandler.getGenerationId()))
+        if (connectedDSs.isEmpty() && rsHandler.hasRemoteLDAPServers()
+            && setGenerationIdIfUnset(rsHandler.getGenerationId()))
         {
           sendTopoInfoToAll();
         }
