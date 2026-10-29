@@ -56,6 +56,23 @@ class PendingChanges
    */
   static final int MAX_KEPT_CHANGES = 10000;
   static final long MAX_KEPT_BYTES = 32L * 1024 * 1024;
+  /**
+   * How many of the last local changes the domain keeps the messages of at most, and how much of the
+   * heap those take at most, as {@link #footprint(LDAPUpdateMsg)} reckons it: a recovery publishes the
+   * changes its replication server misses from them, and rebuilds the ones before them from the
+   * historical information - see {@link LastLocalChanges}. Under the load of the replication convergence
+   * run, a few hundred changes a second, a replication server more than two minutes behind is covered.
+   */
+  static final int MAX_RECENT_CHANGES = 100000;
+  static final long MAX_RECENT_BYTES = 64L * 1024 * 1024;
+  /**
+   * What a message kept takes besides twice its {@link LDAPUpdateMsg#size()}, which counts its encoded
+   * changes once, and its encoding holds them again: its DN, entry UUID and CSN, the objects of its
+   * changes, and its place in the map. Measured on the messages of the load of the convergence run,
+   * kept as they are here: 880 bytes of heap for a modify whose size() is 168, 1300 for an add whose
+   * size() is 370.
+   */
+  static final int MESSAGE_OVERHEAD = 512;
 
   /** A map used to store the pending changes. */
   private final TreeMap<CSN, PendingChange> pendingChanges = new TreeMap<>();
@@ -81,6 +98,10 @@ class PendingChanges
   private Recovery recovery;
   /** How many local changes a recovery keeps at most: fewer in the tests which make it run over. */
   private int maxKeptChanges = MAX_KEPT_CHANGES;
+  /** The messages of the last local changes, which a recovery publishes as they were done. */
+  private final LastLocalChanges lastLocalChanges = new LastLocalChanges();
+  /** How many of the last local changes the domain keeps the messages of at most: fewer in tests. */
+  private int maxRecentChanges = MAX_RECENT_CHANGES;
 
   /**
    * Creates a new PendingChanges using the provided CSNGenerator.
@@ -193,8 +214,8 @@ class PendingChanges
    *         {@code null} if none was pushed or the broker refused it. The announcement that a
    *         replica goes offline is the one message whose delivery the caller must know about:
    *         it is stored nowhere, so nothing publishes it again, while a change the broker
-   *         refuses is republished from the historical information of its entry on the next
-   *         session.
+   *         refuses is republished on the next session, from the message kept of it or, once that
+   *         is dropped, from the historical information of its entry.
    */
   synchronized CSN pushCommittedChanges()
   {
@@ -217,6 +238,8 @@ class PendingChanges
           && op != null
           && !op.isSynchronizationOperation())
       {
+        // Kept before the domain state takes it, published or not: a recovery publishes it as it was done.
+        lastLocalChanges.add(firstEntry.getKey(), (LDAPUpdateMsg) msg);
         if (!recoveringOldChanges)
         {
           domain.publish(msg);
@@ -533,6 +556,176 @@ class PendingChanges
               + ": it searches for them in the historical information"));
         }
       }
+    }
+  }
+
+  /**
+   * Returns the messages the domain kept of its local changes which come after the provided CSN, up
+   * to the provided one, in order, or tells where the messages it kept begin if they do not go back
+   * that far.
+   *
+   * @param after
+   *          where the recovery has got to
+   * @param upTo
+   *          where the changes to publish end, or {@code null} for the last local change
+   * @return the messages, or where the ones kept begin
+   */
+  synchronized RecentChanges recentChangesAfter(CSN after, CSN upTo)
+  {
+    return lastLocalChanges.after(after, upTo != null ? upTo : domain.getLastLocalChange());
+  }
+
+  /**
+   * Forgets the messages kept of the last local changes: the domain read its state from data which
+   * may lack their changes - it was restored or imported since - and a recovery which published them
+   * would have the other replicas do changes this one does not hold. The messages of the local changes
+   * pushed from now on are kept, and a recovery rebuilds the ones before from the historical information.
+   */
+  synchronized void forgetRecentChanges()
+  {
+    lastLocalChanges.forget();
+  }
+
+  /**
+   * Sets how many of the last local changes the domain keeps the messages of at most: with none, a
+   * recovery rebuilds every change from the historical information.
+   *
+   * @param maxRecentChanges
+   *          how many of the last local changes the domain keeps the messages of at most
+   */
+  @VisibleForTesting
+  synchronized void setMaxRecentChanges(int maxRecentChanges)
+  {
+    this.maxRecentChanges = maxRecentChanges;
+    lastLocalChanges.trim();
+  }
+
+  /**
+   * The messages of the last local changes, in order, which a recovery publishes as they were done.
+   * <p>
+   * A recovery publishes the changes its replication server misses of this replica, and rebuilt from
+   * the historical information of the entries, those are not the changes: it holds nothing of a change
+   * whose values a later one replaced, nor of the add of an entry deleted since. A replication server
+   * which took the later changes takes none of the older ones afterwards - from the peer which got them
+   * from this replica either, whose changes it takes in order, as a log ordered by CSN - so a directory
+   * server which failed over to a replication server behind it, or which the load balancing moved to
+   * one, left gaps in its changelog for good (issue #1246). The message of every local change pushed -
+   * published, refused by the broker, or left to a recovery - is kept here instead, for as many changes
+   * as {@link #maxRecentChanges} and {@link #MAX_RECENT_BYTES} allow, the oldest dropped first.
+   * <p>
+   * Every local change after {@link #keptAfter} has its message kept: the CSN right before the first one
+   * kept, and the newest one dropped once some were. A recovery from further back rebuilds the changes up
+   * to there from the historical information. It is not the last local change the domain state holds:
+   * the state read back once the data was restored, or once the domain was enabled again, can be older
+   * than changes done since the domain started - a delete leaves no historical information to bring it
+   * up to - and taking the messages kept for the changes after it skipped those changes.
+   */
+  private final class LastLocalChanges
+  {
+    private final TreeMap<CSN, LDAPUpdateMsg> messages = new TreeMap<>();
+    private long bytes;
+    /**
+     * Every local change after this one has its message kept; {@code null} if none was kept since the
+     * domain started or forgot them.
+     */
+    private CSN keptAfter;
+
+    private void add(CSN csn, LDAPUpdateMsg msg)
+    {
+      if (maxRecentChanges <= 0)
+      {
+        return;
+      }
+      if (keptAfter == null)
+      {
+        keptAfter = justBefore(csn);
+      }
+      // A change is pushed again when the publish of the push before threw: it is counted once.
+      final LDAPUpdateMsg replaced = messages.put(csn, msg);
+      bytes += footprint(msg) - (replaced != null ? footprint(replaced) : 0);
+      trim();
+    }
+
+    private void trim()
+    {
+      if (maxRecentChanges <= 0)
+      {
+        forget();
+        return;
+      }
+      while (!messages.isEmpty() && (messages.size() > maxRecentChanges || bytes > MAX_RECENT_BYTES))
+      {
+        final Entry<CSN, LDAPUpdateMsg> oldest = messages.pollFirstEntry();
+        bytes -= footprint(oldest.getValue());
+        keptAfter = oldest.getKey();
+      }
+    }
+
+    private void forget()
+    {
+      messages.clear();
+      bytes = 0;
+      keptAfter = null;
+    }
+
+    private RecentChanges after(CSN after, CSN upTo)
+    {
+      if (keptAfter == null)
+      {
+        return new RecentChanges(null, upTo, null);
+      }
+      if (after.isOlderThan(keptAfter))
+      {
+        return new RecentChanges(null, upTo, keptAfter);
+      }
+      final List<LDAPUpdateMsg> found = upTo != null && after.isOlderThan(upTo)
+          ? new ArrayList<>(messages.subMap(after, false, upTo, true).values())
+          : new ArrayList<LDAPUpdateMsg>();
+      return new RecentChanges(found, upTo, keptAfter);
+    }
+  }
+
+  /**
+   * Returns the CSN right before the provided one among the CSNs of its server: no CSN of that server
+   * comes in between. For a sequence number of 0, it is the greatest one of the millisecond before, as
+   * {@code Integer.MAX_VALUE} rather than -1: a search window of a recovery may start there, and the
+   * index of the historical information reads -1 as the greatest sequence number of its millisecond.
+   */
+  private static CSN justBefore(CSN csn)
+  {
+    return csn.getSeqnum() > 0
+        ? new CSN(csn.getTime(), csn.getSeqnum() - 1, csn.getServerId())
+        : new CSN(csn.getTime() - 1, Integer.MAX_VALUE, csn.getServerId());
+  }
+
+  /** Returns how much of the heap a message kept takes, as reckoned for {@link #MAX_RECENT_BYTES}. */
+  static long footprint(LDAPUpdateMsg msg)
+  {
+    return 2L * msg.size() + MESSAGE_OVERHEAD;
+  }
+
+  /** What the domain kept of the messages of its local changes from a CSN on, up to another one. */
+  static final class RecentChanges
+  {
+    /**
+     * The messages of the local changes after the CSN asked from, up to {@link #upTo}, in order;
+     * {@code null} if the messages kept do not go back that far, or the domain keeps none.
+     */
+    final List<LDAPUpdateMsg> messages;
+    /** Where the changes asked for end: the CSN asked for, or the last local change. */
+    final CSN upTo;
+    /**
+     * Every local change after this one has its message kept: where the changes to rebuild from the
+     * historical information end when {@link #messages} is {@code null}. {@code null} if no message is
+     * kept, and the changes are all to rebuild.
+     */
+    final CSN keptAfter;
+
+    private RecentChanges(List<LDAPUpdateMsg> messages, CSN upTo, CSN keptAfter)
+    {
+      this.messages = messages;
+      this.upTo = upTo;
+      this.keptAfter = keptAfter;
     }
   }
 

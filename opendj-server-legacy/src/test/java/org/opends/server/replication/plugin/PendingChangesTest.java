@@ -23,11 +23,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
+import java.util.Arrays;
+
 import org.forgerock.opendj.ldap.DN;
 import org.mockito.ArgumentCaptor;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
+import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ReplicaOfflineMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -238,6 +241,194 @@ public class PendingChangesTest extends DirectoryServerTestCase
 
     assertTrue(onlyMsgPublishedBy(domain) instanceof LDAPUpdateMsg, "the change was published");
     assertEquals(pendingChanges.size(), 0, "and is not queued for a second attempt");
+  }
+
+  /**
+   * The domain keeps the messages of its last local changes, in order, so that a recovery publishes
+   * them as they were done rather than rebuild them from the historical information, which holds
+   * nothing of a change a later one replaced (issue #1246).
+   */
+  @Test
+  public void theMessagesOfTheLastLocalChangesAreKeptInOrder() throws Exception
+  {
+    final PendingChanges pendingChanges = newPendingChanges(domainWhichPublishes(true));
+    final LDAPUpdateMsg first = pushLocalChange(pendingChanges);
+    final LDAPUpdateMsg second = pushLocalChange(pendingChanges);
+    final LDAPUpdateMsg third = pushLocalChange(pendingChanges);
+
+    assertEquals(pendingChanges.recentChangesAfter(first.getCSN(), third.getCSN()).messages,
+        Arrays.asList(second, third));
+    assertEquals(pendingChanges.recentChangesAfter(first.getCSN(), second.getCSN()).messages,
+        Arrays.asList(second));
+  }
+
+  /**
+   * The messages kept go back to the CSN right before the first one: a recovery from there - from the
+   * change before it, done in the same millisecond - gets the first change as it was done, rather than
+   * rebuilt from the historical information.
+   */
+  @Test
+  public void theMessagesKeptGoBackToRightBeforeTheFirstOne() throws Exception
+  {
+    final PendingChanges pendingChanges = newPendingChanges(domainWhichPublishes(true));
+    final LDAPUpdateMsg first = pushLocalChange(pendingChanges);
+
+    assertEquals(pendingChanges.recentChangesAfter(rightBefore(first), first.getCSN()).messages,
+        Arrays.asList(first));
+  }
+
+  /**
+   * Past as many changes as it keeps at most, the domain drops the oldest messages, and tells where
+   * the ones it kept begin: a recovery rebuilds the changes before that from the historical
+   * information.
+   */
+  @Test
+  public void pastTheMostChangesKeptTheOldestAreDropped() throws Exception
+  {
+    final PendingChanges pendingChanges = newPendingChanges(domainWhichPublishes(true));
+    pendingChanges.setMaxRecentChanges(2);
+    final LDAPUpdateMsg first = pushLocalChange(pendingChanges);
+    final LDAPUpdateMsg second = pushLocalChange(pendingChanges);
+    final LDAPUpdateMsg third = pushLocalChange(pendingChanges);
+
+    assertEquals(pendingChanges.recentChangesAfter(first.getCSN(), third.getCSN()).messages,
+        Arrays.asList(second, third));
+    final PendingChanges.RecentChanges fromBefore =
+        pendingChanges.recentChangesAfter(new CSN(0, 0, SERVER_ID), third.getCSN());
+    assertNull(fromBefore.messages, "the messages kept do not go back that far");
+    assertEquals(fromBefore.keptAfter, first.getCSN());
+  }
+
+  /** Past as much of the heap as their messages take at most, the domain drops the oldest messages. */
+  @Test
+  public void pastTheMostBytesKeptTheOldestAreDropped() throws Exception
+  {
+    final PendingChanges pendingChanges = newPendingChanges(domainWhichPublishes(true));
+    final int half = sizeTaking(PendingChanges.MAX_RECENT_BYTES / 2);
+    final LDAPUpdateMsg first = pushLocalChange(pendingChanges, half);
+    final LDAPUpdateMsg second = pushLocalChange(pendingChanges, half);
+    assertEquals(pendingChanges.recentChangesAfter(rightBefore(first), second.getCSN()).messages,
+        Arrays.asList(first, second));
+
+    final LDAPUpdateMsg third = pushLocalChange(pendingChanges, 0);
+
+    assertEquals(pendingChanges.recentChangesAfter(first.getCSN(), third.getCSN()).messages,
+        Arrays.asList(second, third));
+    assertEquals(pendingChanges.recentChangesAfter(rightBefore(first), third.getCSN()).keptAfter, first.getCSN());
+  }
+
+  /**
+   * A change pushed again - the publish of the push before threw, and left it pending - is counted
+   * once: counted twice, it took more of the heap than it does, and was dropped though it was the only
+   * message kept.
+   */
+  @Test
+  public void aChangePushedAgainIsCountedOnce() throws Exception
+  {
+    final ReplicationDomain domain = mock(ReplicationDomain.class);
+    when(domain.publish(any(UpdateMsg.class))).thenThrow(new IllegalStateException("the publish failed"))
+        .thenReturn(true);
+    final PendingChanges pendingChanges = newPendingChanges(domain);
+    final CSN csn = pendingChanges.putLocalOperation(newLocalOperation());
+    final LDAPUpdateMsg large = newMsg(csn, sizeTaking(PendingChanges.MAX_RECENT_BYTES * 3 / 5));
+    try
+    {
+      pendingChanges.commitAndPushCommittedChanges(csn, large);
+      fail("the publish threw");
+    }
+    catch (IllegalStateException expected)
+    {
+      // The change is still pending, and the next push pushes it again.
+    }
+
+    final LDAPUpdateMsg next = pushLocalChange(pendingChanges, 0);
+
+    assertEquals(pendingChanges.recentChangesAfter(rightBefore(large), next.getCSN()).messages,
+        Arrays.asList(large, next));
+  }
+
+  /**
+   * A change the pending changes leave to a recovery is kept as well: the recovery of a later
+   * session, whose replication server misses it, publishes it as it was done.
+   */
+  @Test
+  public void aChangeLeftToARecoveryIsKeptAsWell() throws Exception
+  {
+    final ReplicationDomain domain = domainWhichPublishes(true);
+    when(domain.getServerState()).thenReturn(new ServerState());
+    final PendingChanges pendingChanges = newPendingChanges(domain);
+    final LDAPUpdateMsg published = pushLocalChange(pendingChanges);
+    pendingChanges.setRecovering(true);
+
+    final LDAPUpdateMsg kept = pushLocalChange(pendingChanges);
+
+    assertEquals(onlyMsgPublishedBy(domain), published);
+    assertEquals(pendingChanges.recentChangesAfter(published.getCSN(), kept.getCSN()).messages,
+        Arrays.asList(kept));
+  }
+
+  /**
+   * The messages kept are forgotten once the domain reads its state from data which may lack their
+   * changes, and none of the changes before is taken for kept: the state read back can be older than
+   * changes done since the domain started. The messages of the changes pushed from there are kept.
+   */
+  @Test
+  public void theMessagesKeptAreForgotten() throws Exception
+  {
+    final ReplicationDomain domain = domainWhichPublishes(true);
+    final PendingChanges pendingChanges = newPendingChanges(domain);
+    final CSN first = pushLocalChange(pendingChanges).getCSN();
+    final CSN last = pushLocalChange(pendingChanges).getCSN();
+    // The state read back is older than the last change.
+    when(domain.getLastLocalChange()).thenReturn(first);
+
+    pendingChanges.forgetRecentChanges();
+
+    final PendingChanges.RecentChanges fromFirst = pendingChanges.recentChangesAfter(first, last);
+    assertNull(fromFirst.messages, "the messages were forgotten");
+    assertNull(fromFirst.keptAfter, "and the change after the last one of the state is not taken for kept");
+
+    final LDAPUpdateMsg next = pushLocalChange(pendingChanges);
+    final LDAPUpdateMsg afterNext = pushLocalChange(pendingChanges);
+    assertNull(pendingChanges.recentChangesAfter(first, afterNext.getCSN()).messages,
+        "the change forgotten is not taken for kept");
+    assertEquals(pendingChanges.recentChangesAfter(next.getCSN(), afterNext.getCSN()).messages,
+        Arrays.asList(afterNext));
+  }
+
+  /** Pushes a local change whose message takes no bytes, and returns its message. */
+  private LDAPUpdateMsg pushLocalChange(PendingChanges pendingChanges)
+  {
+    return pushLocalChange(pendingChanges, 0);
+  }
+
+  /** Pushes a local change whose message has the provided size, and returns its message. */
+  private LDAPUpdateMsg pushLocalChange(PendingChanges pendingChanges, int size)
+  {
+    final CSN csn = pendingChanges.putLocalOperation(newLocalOperation());
+    final LDAPUpdateMsg msg = newMsg(csn, size);
+    pendingChanges.commitAndPushCommittedChanges(csn, msg);
+    return msg;
+  }
+
+  private static LDAPUpdateMsg newMsg(CSN csn, int size)
+  {
+    final LDAPUpdateMsg msg = mock(LDAPUpdateMsg.class);
+    when(msg.getCSN()).thenReturn(csn);
+    when(msg.size()).thenReturn(size);
+    return msg;
+  }
+
+  /** Returns the size of a message which takes the provided part of the heap once kept. */
+  private static int sizeTaking(long footprint)
+  {
+    return (int) ((footprint - PendingChanges.MESSAGE_OVERHEAD) / 2);
+  }
+
+  /** Returns the CSN right before the one of the message: the change before it, in the same millisecond. */
+  private static CSN rightBefore(LDAPUpdateMsg msg)
+  {
+    return new CSN(msg.getCSN().getTime(), msg.getCSN().getSeqnum() - 1, SERVER_ID);
   }
 
   /**
