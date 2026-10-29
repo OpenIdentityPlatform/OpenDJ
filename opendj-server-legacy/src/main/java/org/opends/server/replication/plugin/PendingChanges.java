@@ -239,7 +239,7 @@ class PendingChanges
           && !op.isSynchronizationOperation())
       {
         // Kept before the domain state takes it, published or not: a recovery publishes it as it was done.
-        lastLocalChanges.add(firstEntry.getKey(), (LDAPUpdateMsg) msg);
+        lastLocalChanges.add(firstChange.getCSN(), (LDAPUpdateMsg) msg);
         if (!recoveringOldChanges)
         {
           domain.publish(msg);
