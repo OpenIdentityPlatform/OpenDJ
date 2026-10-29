@@ -62,9 +62,14 @@ class PendingChanges
    * changes its replication server misses from them, and rebuilds the ones before them from the
    * historical information - see {@link LastLocalChanges}. Under the load of the replication convergence
    * run, a few hundred changes a second, a replication server more than two minutes behind is covered.
+   * <p>
+   * Every domain written to keeps that much, whether a recovery runs or not, so the bytes are a sixteenth
+   * of the heap at most: a server given a small one - an image which sets no {@code -Xmx} has the default
+   * share of the memory of its container - covers a shorter lag. A recovery round holds the messages it
+   * publishes besides: while it runs, as much again can stay on the heap.
    */
   static final int MAX_RECENT_CHANGES = 100000;
-  static final long MAX_RECENT_BYTES = 64L * 1024 * 1024;
+  static final long MAX_RECENT_BYTES = Math.min(64L * 1024 * 1024, Runtime.getRuntime().maxMemory() / 16);
   /**
    * What a message kept takes besides twice its {@link LDAPUpdateMsg#size()}, which counts its encoded
    * changes once, and its encoding holds them again: its DN, entry UUID and CSN, the objects of its

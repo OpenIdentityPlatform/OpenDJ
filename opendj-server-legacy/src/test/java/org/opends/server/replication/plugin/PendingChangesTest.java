@@ -278,6 +278,30 @@ public class PendingChangesTest extends DirectoryServerTestCase
   }
 
   /**
+   * The messages kept of a first change numbered 0 go back to the greatest sequence number of the
+   * millisecond before, which no CSN of the server comes after before that change: a recovery from there
+   * gets the change as it was done. A CSN which went back to the same millisecond would come after the
+   * change, and the recovery would rebuild it from the historical information instead.
+   */
+  @Test
+  public void theMessagesKeptOfAChangeNumberedZeroGoBackToTheMillisecondBefore() throws Exception
+  {
+    final ServerState state = new ServerState();
+    // The generator goes on from the greatest sequence number, so its first change wraps to 0.
+    state.update(new CSN(0, Integer.MAX_VALUE, SERVER_ID));
+    final PendingChanges pendingChanges = new PendingChanges(new CSNGenerator(SERVER_ID, state),
+        domainWhichPublishes(true), new ShutdownSyncAnnouncer(new DSRSShutdownSync(), baseDN));
+    final LDAPUpdateMsg first = pushLocalChange(pendingChanges);
+    assertEquals(first.getCSN().getSeqnum(), 0);
+
+    final CSN justBefore = new CSN(first.getCSN().getTime() - 1, Integer.MAX_VALUE, SERVER_ID);
+    assertEquals(pendingChanges.recentChangesAfter(new CSN(0, 0, SERVER_ID), first.getCSN()).keptAfter,
+        justBefore);
+    assertEquals(pendingChanges.recentChangesAfter(justBefore, first.getCSN()).messages,
+        Arrays.asList(first));
+  }
+
+  /**
    * Past as many changes as it keeps at most, the domain drops the oldest messages, and tells where
    * the ones it kept begin: a recovery rebuilds the changes before that from the historical
    * information.

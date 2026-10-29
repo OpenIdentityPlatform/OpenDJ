@@ -20,7 +20,6 @@ package org.opends.server.replication.plugin;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
@@ -1447,13 +1446,15 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       done.add(rd1.getLastLocalChange());
       startRecovery(rd1, true, true);
 
-      final int logged = TestCaseUtils.ERROR_TEXT_WRITER.getMessages().size();
       final List<ReplicationMsg> published = new ArrayList<>();
-      assertTrue(rd1.buildAndPublishMissingChanges(fromCSN, new TestBroker(published)));
+      // A publisher of its own, which has each record once: the error log of the tests has two, whose
+      // copies of one record differ when the second of their time stamps ticks in between.
+      final List<String> records = errorLogRecordsOf(() -> {
+        assertTrue(rd1.buildAndPublishMissingChanges(fromCSN, new TestBroker(published)));
+        return null;
+      });
       assertThat(csns(published)).containsExactlyElementsOf(done);
-      // Each record twice: the error log of the tests has two publishers.
-      final List<String> records = TestCaseUtils.ERROR_TEXT_WRITER.getMessages();
-      assertThat(new LinkedHashSet<>(records.subList(logged, records.size())))
+      assertThat(records)
           .filteredOn(record -> record.contains("category=SYNC severity=WARNING msgID="
               + WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION.ordinal() + " "))
           .as("the domain says it rebuilds changes from the historical information, once")
@@ -2052,6 +2053,49 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       assertThat(published).isEmpty();
       final List<String> records = TestCaseUtils.ERROR_TEXT_WRITER.getMessages();
       assertThat(records.subList(logged, records.size()))
+          .filteredOn(record -> record.contains("category=SYNC severity=WARNING msgID="
+              + WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION.ordinal() + " "))
+          .as("the recovery says it rebuilds changes")
+          .isEmpty();
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  /**
+   * A recovery from the last change done before a restart, whose replication server misses the changes
+   * done since, says none is rebuilt from the historical information: the messages kept begin right before
+   * the first change done since, later than the last one done before, and the window in between holds no
+   * change of this replica to rebuild (issue #1246).
+   */
+  @Test
+  public void aRecoveryFromTheChangeBeforeTheMessagesKeptSaysNoneIsRebuilt() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      final DN dnA = addPerson("a");
+      final CSN rsMaxCSN = rd1.getLastLocalChange();
+      // As after a restart: nothing kept of the changes before, and the time of the generator moved on.
+      pendingChangesOf(rd1).forgetRecentChanges();
+      rd1.getGenerator().adjust(new CSN(rsMaxCSN.getTime() + 1000, 0, serverId));
+      replace(dnA, "description", "since");
+      final CSN since = rd1.getLastLocalChange();
+      startRecovery(rd1, true, true);
+
+      final List<ReplicationMsg> published = new ArrayList<>();
+      final List<String> records = errorLogRecordsOf(() -> {
+        assertTrue(rd1.buildAndPublishMissingChanges(rsMaxCSN, new TestBroker(published)));
+        return null;
+      });
+      assertThat(csns(published)).containsExactly(since);
+      assertThat(records)
           .filteredOn(record -> record.contains("category=SYNC severity=WARNING msgID="
               + WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION.ordinal() + " "))
           .as("the recovery says it rebuilds changes")
