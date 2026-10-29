@@ -128,6 +128,8 @@ import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ModifyDnContext;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.OperationContext;
+import org.opends.server.replication.protocol.ProtocolVersion;
+import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.RoutableMsg;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -5784,7 +5786,8 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * Drops the deletes kept aside, and the local changes a recovery kept, which the data the
    * ServerState was just read from does not reflect (issue #1221): it was restored from a backup, or
    * imported, since they were done, and a recovery which published them would have the other
-   * replicas delete or change entries which this one holds as they were.
+   * replicas delete or change entries which this one holds as they were. The messages kept of the
+   * last local changes are forgotten for the same reason.
    * <p>
    * What comes after the newest change of this replica the state holds is not in the data: the state
    * read back covers the changes the historical information of the entries holds, whether the save
@@ -5828,6 +5831,8 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       }
     }
     pendingChanges.dropKeptChanges(keptChangesTheDataLacks);
+    // Which of the last local changes the data lacks is not looked up: their messages are forgotten.
+    pendingChanges.forgetRecentChanges();
   }
 
   /**
@@ -7274,10 +7279,12 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * Build the list of changes that have been processed by this server after the
    * CSN given as a parameter and publish them using the given session.
    * <p>
-   * The changes done before the recovery began are rebuilt from the historical information of
-   * their entries, in rounds, each one from where the round before it stopped, up to the last of
-   * them: each of them has its entry written by then, so the search of a round finds it, or a later
-   * change of the same values, which supersedes it. The local changes pushed since the recovery began
+   * The changes done before the recovery began are published from the messages the domain kept of its
+   * last local changes, as they were done; the ones done before the first of those are rebuilt from
+   * the historical information of their entries, in rounds, each one from where the round before it
+   * stopped, up to there: each of them has its entry written by then, so the search of a round finds
+   * it, or a later change of the same values, which supersedes it - and the replication server never
+   * holds the change superseded (issue #1246). The local changes pushed since the recovery began
    * are kept by the pending changes, with their messages, and they are published next, in order. The
    * recovery ends with the round which publishes up to the last local change, no change having been
    * pushed meanwhile; once a round has caught up with the local changes and some were pushed while it
@@ -7399,6 +7406,8 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     private final ReplicationBroker recoveryBroker;
     private final Session recoverySession;
     private final RSUpdater publisher;
+    /** Whether this run said it rebuilds changes from the historical information: it says so once. */
+    private boolean rebuildingReported;
 
     private MissingChanges(ReplicationBroker recoveryBroker, Session recoverySession, RSUpdater publisher)
     {
@@ -7463,9 +7472,8 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
 
     /**
      * Runs one round: publishes the changes done before the recovery began which come after
-     * {@code fromCSN}, rebuilt from the historical information, up to the end of a search window;
-     * past them, the local changes the recovery kept; or, if it kept too many to keep any, the
-     * changes rebuilt from the historical information up to the last local change.
+     * {@code fromCSN} - see {@link #publishChangesDone(CSN, CSN)}; past them, the local changes the
+     * recovery kept; or, if it kept too many to keep any, the changes done up to the last local change.
      *
      * @param heldBack
      *          whether the round runs while the local changes are held back
@@ -7482,19 +7490,116 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       final PendingChanges.KeptChanges keeping = pendingChanges.keptChanges();
       if (keeping == null)
       {
-        return publishMissingChanges(fromCSN, null);
+        return publishChangesDone(fromCSN, null);
       }
       if (keeping.searchUpTo != null && fromCSN.isOlderThan(keeping.searchUpTo))
       {
-        return publishMissingChanges(fromCSN, keeping.searchUpTo);
+        return publishChangesDone(fromCSN, keeping.searchUpTo);
       }
       final List<LDAPUpdateMsg> kept = pendingChanges.keptChangesAfter(fromCSN);
       if (kept == null)
       {
         // It kept too many since.
-        return publishMissingChanges(fromCSN, null);
+        return publishChangesDone(fromCSN, null);
       }
       return publishKeptChanges(fromCSN, kept, heldBack);
+    }
+
+    /**
+     * Runs a round which publishes the changes of this replica which come after {@code fromCSN}, up to
+     * {@code upTo} - where the search of the recovery ends - or, if it is {@code null}, up to the last
+     * local change: the messages the domain kept of them, as they were done, or - for the changes done
+     * before the first of those - the changes rebuilt from the historical information, up to there.
+     * <p>
+     * Rebuilt, a change whose values a later one replaced is published as the later one, and the add of
+     * an entry deleted since not at all, and the replication server of the session, which takes no change
+     * older than the newest one it holds of this replica, never holds them (issue #1246). The domain says
+     * so, once per run: its replication server is further behind than the messages it keeps go back.
+     *
+     * @return the round, or {@code null} if the domain was shut down meanwhile
+     * @throws MissingChangesSearchFailedException
+     *           if the search did not go through: the round published nothing
+     */
+    private MissingChangesRound publishChangesDone(CSN fromCSN, CSN upTo) throws Exception
+    {
+      final PendingChanges.RecentChanges recent = pendingChanges.recentChangesAfter(fromCSN, upTo);
+      if (recent.messages != null)
+      {
+        return publishRecentChanges(fromCSN, recent, upTo == null);
+      }
+      // The messages kept go on from where the ones the domain kept begin, if they begin before the end.
+      final CSN rebuiltUpTo = recent.keptAfter != null && (upTo == null || recent.keptAfter.isOlderThan(upTo))
+          ? recent.keptAfter : upTo;
+      // Said only of changes there may be: a publisher which ends a recovery has none to rebuild.
+      final CSN rebuildEnd = rebuiltUpTo != null ? rebuiltUpTo : getLastLocalChange();
+      if (!rebuildingReported && rebuildEnd != null && rebuildEnd.isNewerThan(fromCSN))
+      {
+        rebuildingReported = true;
+        logger.warn(WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION, getBaseDN(), fromCSN, rebuildEnd);
+      }
+      return publishMissingChanges(fromCSN, rebuiltUpTo);
+    }
+
+    /**
+     * Runs a round which publishes the messages the domain kept of its local changes after
+     * {@code fromCSN}, in order and as they were done, up to the end the domain read them up to; a round
+     * which went up to the last local change ends the recovery if no change was pushed since.
+     *
+     * @param reachesLastChange
+     *          whether the messages go up to the last local change, rather than to where the search of
+     *          the recovery ends
+     * @return the round, or {@code null} if the domain was shut down meanwhile
+     */
+    private MissingChangesRound publishRecentChanges(CSN fromCSN, PendingChanges.RecentChanges recent,
+        boolean reachesLastChange) throws Exception
+    {
+      for (LDAPUpdateMsg msg : recent.messages)
+      {
+        if (shutdown.get())
+        {
+          return null;
+        }
+        if (importingData)
+        {
+          return refusedForTheImport(fromCSN);
+        }
+        if (!recoveryBroker.publishRecovery(notAssured(msg), recoverySession))
+        {
+          return refused(fromCSN, msg.getCSN());
+        }
+        if (msg instanceof DeleteMsg)
+        {
+          deleteKeptAsidePublished(msg.getCSN());
+        }
+      }
+      final CSN publishedUpTo = recent.upTo != null && recent.upTo.isNewerThan(fromCSN) ? recent.upTo : fromCSN;
+      if (logger.isDebugEnabled())
+      {
+        logger.debug(LocalizableMessage.raw("publish loop of the recent changes >" + fromCSN
+            + " published=" + recent.messages.size() + " upTo=" + publishedUpTo));
+      }
+      final boolean endedRecovery =
+          reachesLastChange && !pendingChanges.recoveryUntil(publishedUpTo, this::endRecovery);
+      return new MissingChangesRound(publishedUpTo, reachesLastChange, true, endedRecovery);
+    }
+
+    /**
+     * Returns the message to publish for a local change the domain kept: itself, or - if it was
+     * published assured - a copy which is not, as a recovery publishes the changes it rebuilds and the
+     * ones it kept: an operation which still waits for the acknowledgement of one gets none, and times
+     * out. The message kept was handed to the broker already, so it is not changed in its place: the
+     * operation which published it may still wait for its acknowledgement.
+     */
+    private LDAPUpdateMsg notAssured(LDAPUpdateMsg msg) throws Exception
+    {
+      if (!msg.isAssured())
+      {
+        return msg;
+      }
+      final short version = ProtocolVersion.getCurrentVersion();
+      final LDAPUpdateMsg copy = (LDAPUpdateMsg) ReplicationMsg.generateMsg(msg.getBytes(version), version);
+      copy.setNotAssured();
+      return copy;
     }
 
     /**
