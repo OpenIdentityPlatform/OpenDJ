@@ -95,7 +95,10 @@ logs_count() { # <container> <text>
 }
 
 # the container logged the text after the last line that holds <since> - after a restart,
-# say, which the join of the start before may still have logged into until it was stopped
+# say, which the join of the start before may still have logged into until it was stopped.
+# Not right after the start: until this start logs <since> itself, the last such line and the
+# text after it are those of the start before - run.sh prints "Starting OpenDJ" only after
+# the upgrade
 logs_have_since() { # <container> <since> <text>
   docker logs "$1" 2>&1 | awk -v s="$2" 'index($0, s) { buf = ""; next } { buf = buf $0 "\n" } END { printf "%s", buf }' \
     | grep -F -- "$3" >/dev/null
@@ -1045,12 +1048,16 @@ for n in dj-d0 dj-d1; do
 done
 add_ou dj-d0 roles-other-rs
 wait_has dj-d1 "ou=roles-other-rs,dc=example,dc=com"
-docker start dj-r0 >/dev/null
 # dj-r1 joins through dj-r0 below, and a joiner skips a peer that publishes itself rejoining:
 # a replication server does so on every start until its join finds it a member again, and
 # it reports itself healthy as soon as it serves, before that. What it published on its
-# start before still reads ready until this join replaces it, so the join is waited for
-wait_until 300 "the restarted dj-r0 is a member again" logs_have_since dj-r0 "Starting OpenDJ" "the health check may probe it"
+# start before still reads ready until this join replaces it, so the join is waited for -
+# by a count taken while dj-r0 is down: its log still holds the line the join of the start
+# before logged, and the new start prints "Starting OpenDJ" only after its upgrade
+members=$(logs_count dj-r0 "the health check may probe it")
+docker start dj-r0 >/dev/null
+rejoined() { [ "$(logs_count dj-r0 "the health check may probe it")" -gt "$members" ]; }
+wait_until 300 "the restarted dj-r0 is a member again" rejoined
 published_ready dj-r0 || fail "dj-r0 does not publish itself ready after it rejoined"
 wait_healthy dj-r0
 
