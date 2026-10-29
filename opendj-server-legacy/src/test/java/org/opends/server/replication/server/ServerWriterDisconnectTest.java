@@ -30,9 +30,8 @@ import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -262,19 +261,26 @@ public class ServerWriterDisconnectTest extends ReplicationTestCase
     return logged;
   }
 
-  private static Set<String> badlyDisconnected(final List<String> logged, final int dsId)
+  private static List<String> badlyDisconnected(final List<String> logged, final int dsId)
   {
-    final Set<String> records = withMsgID(logged, ERR_DS_BADLY_DISCONNECTED.ordinal());
+    final List<String> records = withMsgID(logged, ERR_DS_BADLY_DISCONNECTED.ordinal());
     records.removeIf(record -> !record.contains("DS(" + dsId + ")"));
     return records;
   }
 
-  private static Set<String> withMsgID(final List<String> logged, final int msgID)
+  /**
+   * Answers the records logged at ERROR with the provided ordinal of the replication messages. The
+   * category is matched as well: the messages of other categories share the ordinals, and another
+   * thread of the server may log one of them meanwhile. Every record is kept, none deduplicated:
+   * the timestamp resolves only to the second, so a message logged twice in a row is the same line
+   * twice.
+   */
+  private static List<String> withMsgID(final List<String> logged, final int msgID)
   {
-    final Set<String> records = new LinkedHashSet<>();
+    final List<String> records = new ArrayList<>();
     for (final String record : logged)
     {
-      if (record.contains("msgID=" + msgID + " "))
+      if (record.contains("category=SYNC severity=ERROR msgID=" + msgID + " "))
       {
         records.add(record);
       }
@@ -326,7 +332,16 @@ public class ServerWriterDisconnectTest extends ReplicationTestCase
       final Socket serverSocket = listen.accept();
       serverSocket.setTcpNoDelay(true);
       final Session serverEnd = security.createServerSession(serverSocket, SOCKET_TIMEOUT_MS);
-      return new Session[] { clientEnd.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS), serverEnd };
+      try
+      {
+        return new Session[] { clientEnd.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS), serverEnd };
+      }
+      catch (Exception e)
+      {
+        // the factories close what they opened when they fail, but not the end already built
+        StaticUtils.close(serverEnd);
+        throw e;
+      }
     }
     finally
     {
