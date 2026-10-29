@@ -16,6 +16,7 @@
 package org.opends.server.replication.server;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,10 +25,11 @@ import static org.opends.messages.ReplicationMessages.ERR_WRITER_UNEXPECTED_EXCE
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.net.SocketTimeoutException;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +40,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.protocol.DeleteMsg;
@@ -51,13 +52,14 @@ import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
 /**
- * A {@code ServerWriter} reports a connection which broke under it as badly disconnected - msgID
- * 211 for a directory server, 181 for a replication server, both at ERROR - but not a write which
- * fails on a session this side has closed itself: {@code ServerReader} closes the session once
- * the peer has sent its {@code StopMsg}, and a writer which had an update for that peer at that
- * moment then fails on the closed socket. Under load that is every peer which leaves in order: a
- * directory server stopped, or moving to another replication server, a replication server stopped
- * - the restart rows of the replication convergence run (#1208) logged it for each of them.
+ * A {@code ServerWriter} reports a write which fails on a session nothing on this side has closed
+ * as a peer badly disconnected - msgID 211 for a directory server, 181 for a replication server,
+ * both at ERROR - but not a write which fails on a session this side has closed itself:
+ * {@code ServerReader} closes the session once its read has ended, and a writer which had an
+ * update for that peer at that moment then fails on the closed socket. Under load that is every
+ * peer which leaves in order: a directory server stopped, or moving to another replication
+ * server, a replication server stopped - the restart rows of the replication convergence run
+ * (#1208) logged it for each of them. How the connection ended is the reader's to report.
  * <p>
  * The writer runs on the thread of the test, against a session over the loopback and a handler
  * which hands it one update: what is under test is only what the writer logs when the write of
@@ -105,7 +107,10 @@ public class ServerWriterDisconnectTest extends ReplicationTestCase
 
   /**
    * The sockets of the session are closed under it, nothing on this side having closed the
-   * session: the write fails on a connection which broke, and the writer reports it.
+   * session, and its publisher thread is not running: the write fails on a connection which broke,
+   * and the writer reports it. A replication server session does not get here - see
+   * {@link #closeTheSocketsUnder(Session)} - this is what keeps the guard of the writer from being
+   * one that never reports.
    */
   @Test
   public void aWriteFailingOnASessionNothingClosedIsReported() throws Exception
@@ -165,10 +170,51 @@ public class ServerWriterDisconnectTest extends ReplicationTestCase
   }
 
   /**
+   * The peer goes away without a {@code StopMsg} - killed, older than protocol V4, or giving up a
+   * session which had failed - and the read of the session fails on it. {@code ServerReader} then
+   * reports the end of the connection itself and closes the session in its {@code finally}, as
+   * here: the close takes the branch of a session which failed and writes nothing. The update the
+   * writer takes next fails on the closed socket, and the writer reports nothing.
+   */
+  @Test
+  public void aWriteFailingOnASessionClosedAfterItsReadFailedIsNotReported() throws Exception
+  {
+    final int dsId = 9314;
+    try (ServerSocket listen = new ServerSocket(0))
+    {
+      final Session[] pair = connectSessionPair(listen);
+      final Session session = pair[1];
+      try
+      {
+        session.start();
+        session.waitForStartup();
+        closeTheSocketsUnder(pair[0]);
+        // an end of the stream, or a reset when the peer had left something unread
+        assertThatThrownBy(session::receive)
+            .as("the read of a session whose peer went away")
+            .isInstanceOf(IOException.class)
+            .isNotInstanceOf(SocketTimeoutException.class);
+        session.close();
+
+        final List<String> logged = runWriterWithOneUpdate(session, dsId, false);
+
+        assertThat(badlyDisconnected(logged, dsId))
+            .as("a write which failed on a session closed after its read failed was reported as "
+                + "a peer badly disconnected")
+            .isEmpty();
+      }
+      finally
+      {
+        StaticUtils.close(pair);
+      }
+    }
+  }
+
+  /**
    * Runs a writer for a directory server on the thread of the test, its handler handing it one
-   * update, and answers what was logged meanwhile, each record once - the error log of the tests
-   * holds every record twice. It checks that the writer got as far as the write, and that the
-   * write failed on the socket rather than on anything else.
+   * update, and answers what was logged meanwhile. It checks that the writer got as far as the
+   * write, and that the write failed - a write which returned would have the writer take the next
+   * update - on the socket rather than on anything else.
    */
   private List<String> runWriterWithOneUpdate(final Session session, final int dsId,
       final boolean shuttingDown) throws Exception
@@ -197,12 +243,18 @@ public class ServerWriterDisconnectTest extends ReplicationTestCase
     final ReplicationServerDomain domain = mock(ReplicationServerDomain.class);
     when(domain.getBaseDN()).thenReturn(baseDN);
 
-    final int before = TestCaseUtils.ERROR_TEXT_WRITER.getMessages().size();
-    new ServerWriter(session, handler, domain, new DSRSShutdownSync()).run();
-    final List<String> all = TestCaseUtils.ERROR_TEXT_WRITER.getMessages();
-    final List<String> logged = new ArrayList<>(new LinkedHashSet<>(all.subList(before, all.size())));
+    /*
+     * A publisher of its own rather than the error log of the tests, which holds every record
+     * twice, each copy with a timestamp of its own: one record is then one line.
+     */
+    final List<String> logged = errorLogRecordsOf(() ->
+    {
+      new ServerWriter(session, handler, domain, new DSRSShutdownSync()).run();
+      return null;
+    });
 
     verify(handler).countSentUpdate(update);
+    verify(handler).take();
     verify(domain).stopServer(handler, false);
     assertThat(withMsgID(logged, ERR_WRITER_UNEXPECTED_EXCEPTION.ordinal()))
         .as("the write of the update failed on something else than the socket")
@@ -232,11 +284,18 @@ public class ServerWriterDisconnectTest extends ReplicationTestCase
 
   /**
    * Closes the sockets a session writes through while leaving the session unaware of it, so that
-   * its next write fails - the state a connection which broke leaves it in.
+   * its next write fails. A session whose publisher thread is not running is then in the state a
+   * connection which broke leaves it in. A replication server session runs it - ServerHandler
+   * starts it - and is never in that state: its publish() queues, and the publisher records a
+   * write which failed without handing it to the writer, until a close takes the session off the
+   * queueing branch.
+   * <p>
+   * The plain socket is closed first, as Session.close() does: the close of the SSL socket layered
+   * on it would otherwise wait out the timeout of the socket for a close_notify of the peer.
    */
   private static void closeTheSocketsUnder(final Session session) throws Exception
   {
-    for (final String name : new String[] { "secureSocket", "plainSocket" })
+    for (final String name : new String[] { "plainSocket", "secureSocket" })
     {
       final Field socket = Session.class.getDeclaredField(name);
       socket.setAccessible(true);
