@@ -42,9 +42,11 @@ rs_serves_since() { # <rs> <seconds>
 # until it serves again. docker kill leaves the container to stop, which docker start has to
 # wait for, and docker restart gives the server 120 s to stop, as restart-ds does. The window
 # closes 10 s after the server serves again, as the one of restart-ds does. It does not wait
-# for directory servers to connect to the server again: they stay with the other one for as
-# long as the server misses changes of theirs (filterServersWithAllLocalDSChanges in
-# ReplicationBroker), which under the load it does
+# for directory servers to connect to the server again: the load balancing moves them when the
+# weights say so (msgID 213 on their side), minutes later or not at all, and whether or not the
+# server still misses changes of theirs - under the load no replication server holds the newest
+# change of a directory server, and filterServersWithAllLocalDSChanges in ReplicationBroker then
+# keeps them all (#1246). Such a move ends its connection with a StopMsg, as a stop does
 down_and_up() {
   local how=$1 rs=$2 from served
   shift 2
@@ -72,7 +74,8 @@ down_and_up() {
 # ReplicationBroker.receive logs at ERROR), and the killed one, as it starts, 284 for the
 # changelog file it recovers (an info that LogFile logs at ERROR). A stop leaves none of them:
 # the server ends each connection with a StopMsg (Session.close), on which a directory server
-# logs a warning
+# logs a warning. A replication server whose ServerWriter had an update for the server at that
+# moment still logs 181 or 211 at ERROR (#1245); no window expects that, which is a defect
 disturb() {
   local left
   down_and_up kill $KILLED 180 181 284
