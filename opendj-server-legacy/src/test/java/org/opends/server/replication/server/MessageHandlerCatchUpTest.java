@@ -20,6 +20,7 @@ import static org.forgerock.opendj.ldap.ModificationType.REPLACE;
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 import static org.opends.server.util.CollectionUtils.newArrayList;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
@@ -513,6 +514,82 @@ public class MessageHandlerCatchUpTest extends ReplicationTestCase
       deregister(domain);
       removeQuietly(replicationServer);
     }
+  }
+
+  /**
+   * The case of #1252: the writer of a handler which follows its queue waits on it, empty, and
+   * more changes arrive than the queue holds before the writer has the monitor back. The queue
+   * drops its oldest changes and stops following; the writer must then go back to the changelog
+   * for them rather than take the head of the queue, which is the first change after them.
+   * <p>
+   * Nothing holds the writer off the monitor on cue but the monitor itself, so the test takes it
+   * while the changes arrive, as the threads which add changes kept it from the writer in the run
+   * of #1252.
+   */
+  @Test
+  public void changesTheQueueDroppedWhileTheWriterWaitedOnItAreSent() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer replicationServer = null;
+    final ExecutorService writer = Executors.newSingleThreadExecutor();
+    try
+    {
+      replicationServer = newReplicationServer("messageHandlerWaitingDb");
+      final List<UpdateMsg> changesOfA = changesOfA(baseDN, TimeThread.getTime() - 60000, 1, 15);
+      final MessageHandler handler = newHandler(replicationServer, baseDN, 10, new ServerState());
+
+      // the changelog is empty: the writer has nothing to catch up on, follows the queue and waits on it
+      final Future<Thread> writerThread = writer.submit(Thread::currentThread);
+      final Future<UpdateMsg> first = writer.submit(handler::getNextMessage);
+      waitUntilItWaitsOnItsQueue(handler, writerThread.get());
+
+      synchronized (queueOf(handler))
+      {
+        for (UpdateMsg change : changesOfA)
+        {
+          arrive(replicationServer, handler, change);
+        }
+        assertThat(handler.isFollowing())
+            .as("the queue did not drop any change: the test shows nothing")
+            .isFalse();
+      }
+
+      final List<UpdateMsg> sent = new ArrayList<>();
+      sent.add(first.get(NEXT_MESSAGE_TIMEOUT_MS, TimeUnit.MILLISECONDS));
+      for (Sent next : nextMessages(handler, changesOfA.size() - 1))
+      {
+        sent.add(next.msg);
+      }
+      assertThat(csnsOf(sent))
+          .as("the consumer was not sent every change, in order")
+          .containsExactlyElementsOf(csnsOf(changesOfA));
+    }
+    finally
+    {
+      writer.shutdownNow();
+      removeQuietly(replicationServer);
+    }
+  }
+
+  /** Waits until the writer waits on the queue of the handler, which it then follows. */
+  private static void waitUntilItWaitsOnItsQueue(MessageHandler handler, Thread writer) throws Exception
+  {
+    final long deadline = System.currentTimeMillis() + NEXT_MESSAGE_TIMEOUT_MS;
+    while (!handler.isFollowing() || writer.getState() != Thread.State.TIMED_WAITING)
+    {
+      assertThat(System.currentTimeMillis())
+          .as("the writer did not come to wait on the queue it follows")
+          .isLessThan(deadline);
+      Thread.sleep(10);
+    }
+  }
+
+  /** The queue of the handler, the monitor of which its writer waits on. */
+  private static Object queueOf(MessageHandler handler) throws Exception
+  {
+    final Field queue = MessageHandler.class.getDeclaredField("msgQueue");
+    queue.setAccessible(true);
+    return queue.get(handler);
   }
 
   /**
