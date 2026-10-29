@@ -1046,6 +1046,12 @@ done
 add_ou dj-d0 roles-other-rs
 wait_has dj-d1 "ou=roles-other-rs,dc=example,dc=com"
 docker start dj-r0 >/dev/null
+# dj-r1 joins through dj-r0 below, and a joiner skips a peer that publishes itself rejoining:
+# a replication server does so on every start until its join finds it a member again, and
+# it reports itself healthy as soon as it serves, before that. What it published on its
+# start before still reads ready until this join replaces it, so the join is waited for
+wait_until 300 "the restarted dj-r0 is a member again" logs_have_since dj-r0 "Starting OpenDJ" "the health check may probe it"
+published_ready dj-r0 || fail "dj-r0 does not publish itself ready after it rejoined"
 wait_healthy dj-r0
 
 phase "roles: joins on empty volumes"
