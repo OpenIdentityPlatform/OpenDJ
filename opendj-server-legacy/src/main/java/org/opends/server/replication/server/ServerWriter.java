@@ -145,11 +145,23 @@ public class ServerWriter extends DirectoryThread
     catch (SocketException e)
     {
       /*
-       * The remote host has disconnected and this particular Tree is going to
-       * be removed, just ignore the exception and let the thread die as well
+       * A write which fails on a session this side has closed is no disconnection for this writer
+       * to report: ServerReader closes the session once the peer has sent its StopMsg, or once it
+       * has reported the broken connection itself, and a shutdown of the handler closes it too -
+       * which of those it was is what the reader saw, not this writer. And that is the failure
+       * this writer meets while the session runs the publisher thread ServerHandler starts:
+       * publish() then queues, a write of that thread which fails never comes back here, and
+       * publish() writes the socket itself once a close has taken the session off the queueing
+       * branch. Reported here, a peer leaving in order under load - a directory server stopped
+       * or moving to another replication server, a replication server stopped - read as a badly
+       * disconnected one whenever this writer had an update for it at that moment. The directory
+       * server end makes the same check, in ReplicationBroker.receive().
        */
-      errMessage = handler.getBadlyDisconnectedErrorMessage();
-      logger.error(errMessage);
+      if (!handler.shuttingDown() && !session.closeInitiated())
+      {
+        errMessage = handler.getBadlyDisconnectedErrorMessage();
+        logger.error(errMessage);
+      }
     }
     catch (Exception e)
     {
