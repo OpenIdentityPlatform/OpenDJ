@@ -5768,10 +5768,16 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * If there is no such information check if there is a
    * ReplicaUpdateVector entry and translate it into a state
    * and generationId.
+   * <p>
+   * The messages kept of the last local changes are forgotten first, whether the state is read or not:
+   * the data was replaced, by a restore, an import or a total update, and a later recovery would
+   * publish changes done on the data it replaced - see {@link #forgetTheLocalChangesTheDataLacks()}.
    * @exception DirectoryException Thrown when an error occurs.
    */
   private void loadDataState() throws DirectoryException
   {
+    // Which of them the data lacks is not looked up: the read of the state may fail, and this needs none.
+    pendingChanges.forgetRecentChanges();
     state.clearInMemory();
     state.loadState();
     bringAStateWithNoChangeOfThisReplicaUpToTheData();
@@ -5787,7 +5793,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * ServerState was just read from does not reflect (issue #1221): it was restored from a backup, or
    * imported, since they were done, and a recovery which published them would have the other
    * replicas delete or change entries which this one holds as they were. The messages kept of the
-   * last local changes are forgotten for the same reason.
+   * last local changes are forgotten for the same reason, by {@link #loadDataState()}.
    * <p>
    * What comes after the newest change of this replica the state holds is not in the data: the state
    * read back covers the changes the historical information of the entries holds, whether the save
@@ -5831,8 +5837,6 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       }
     }
     pendingChanges.dropKeptChanges(keptChangesTheDataLacks);
-    // Which of the last local changes the data lacks is not looked up: their messages are forgotten.
-    pendingChanges.forgetRecentChanges();
   }
 
   /**
@@ -7514,7 +7518,9 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
      * Rebuilt, a change whose values a later one replaced is published as the later one, and the add of
      * an entry deleted since not at all, and the replication server of the session, which takes no change
      * older than the newest one it holds of this replica, never holds them (issue #1246). The domain says
-     * so, once per run: its replication server is further behind than the messages it keeps go back.
+     * so, once per run, in the first round which rebuilds a change - see
+     * {@link #publishMissingChanges(CSN, CSN)}: its replication server is further behind than the messages
+     * it keeps go back.
      *
      * @return the round, or {@code null} if the domain was shut down meanwhile
      * @throws MissingChangesSearchFailedException
@@ -7530,13 +7536,6 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       // The messages kept go on from where the ones the domain kept begin, if they begin before the end.
       final CSN rebuiltUpTo = recent.keptAfter != null && (upTo == null || recent.keptAfter.isOlderThan(upTo))
           ? recent.keptAfter : upTo;
-      // Said only of changes there may be: a publisher which ends a recovery has none to rebuild.
-      final CSN rebuildEnd = rebuiltUpTo != null ? rebuiltUpTo : getLastLocalChange();
-      if (!rebuildingReported && rebuildEnd != null && rebuildEnd.isNewerThan(fromCSN))
-      {
-        rebuildingReported = true;
-        logger.warn(WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION, getBaseDN(), fromCSN, rebuildEnd);
-      }
       return publishMissingChanges(fromCSN, rebuiltUpTo);
     }
 
@@ -7679,6 +7678,16 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
        * nothing else to be published from.
        */
       final NavigableMap<CSN, FakeOperation> opsToSend = new TreeMap<>(found.headMap(bound, true));
+      /*
+       * Said only of a change the round rebuilds, and not of the window it searches: after a restart the
+       * messages kept begin at the first change done since, later than the last one done before, and the
+       * window in between may hold none. The deletes kept aside, added next, are published whole.
+       */
+      if (!rebuildingReported && !opsToSend.isEmpty())
+      {
+        rebuildingReported = true;
+        logger.warn(WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION, getBaseDN(), fromCSN, lastChange);
+      }
       if (bound.isNewerThan(fromCSN))
       {
         synchronized (replayOperations)
