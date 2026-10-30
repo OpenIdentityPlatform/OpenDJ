@@ -145,11 +145,31 @@ public class ServerWriter extends DirectoryThread
     catch (SocketException e)
     {
       /*
-       * The remote host has disconnected and this particular Tree is going to
-       * be removed, just ignore the exception and let the thread die as well
+       * A write which fails on a session this side has closed is no disconnection for this writer
+       * to report: ServerReader closes the session once its read has ended, and a shutdown of the
+       * handler closes it too - how the connection ended is what the reader saw, not this writer.
+       * The reader logs nothing for the StopMsg of a peer leaving in order, and reports a read
+       * which failed on the socket as a bad disconnection, at ERROR. An end of the stream with no
+       * StopMsg before it - a peer older than protocol V4, a peer killed with nothing left unread,
+       * a peer giving up a session which had failed - it reports only at NOTICE, as
+       * NOTE_READER_EXCEPTION (issue #1250).
+       *
+       * And a session closed on this side is the only one this writer meets a failing write on
+       * while the session runs the publisher thread ServerHandler starts: publish() then queues, a
+       * write of that thread which fails never comes back here, and publish() writes the socket
+       * itself once a close has taken the session off the queueing branch. So what is reported
+       * below is a write on a session whose publisher thread is not running. Reported here, a peer
+       * leaving in order under load - a directory server stopped or moving to another replication
+       * server, a replication server stopped - read as a badly disconnected one whenever this
+       * writer had an update for it at that moment, and the end of the stream of a peer which went
+       * away without a StopMsg read at ERROR or at NOTICE as that same race went. The directory
+       * server end makes the same check, in ReplicationBroker.receive().
        */
-      errMessage = handler.getBadlyDisconnectedErrorMessage();
-      logger.error(errMessage);
+      if (!handler.shuttingDown() && !session.closeInitiated())
+      {
+        errMessage = handler.getBadlyDisconnectedErrorMessage();
+        logger.error(errMessage);
+      }
     }
     catch (Exception e)
     {
