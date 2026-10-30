@@ -22,6 +22,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.Closeable;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -795,7 +796,7 @@ public final class Session extends DirectoryThread implements Closeable
       if (read == -1)
       {
         lastReceiveTime = 0;
-        throw new IOException("no more data");
+        throw new EOFException("no more data");
       }
       length += read;
     }
