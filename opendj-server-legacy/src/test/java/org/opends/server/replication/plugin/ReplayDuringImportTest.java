@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2026 3A Systems, LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -24,7 +25,9 @@ import static org.opends.server.core.DirectoryServer.*;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
@@ -38,6 +41,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.LockFileManager;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
@@ -57,6 +61,7 @@ import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.OperationType;
+import org.opends.server.tasks.TaskUtils;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -120,6 +125,58 @@ public class ReplayDuringImportTest extends ReplicationTestCase
   private TestSynchronousReplayQueue queue;
   private ReplicationBroker exporter;
   private CSNGenerator gen;
+
+  @Test(timeOut = 120_000)
+  public void aFailedImportUnlockForgetsMessagesOfTheReplacedData() throws Exception
+  {
+    TestCaseUtils.addEntry("dn: cn=before," + EXAMPLE_DN, "objectClass: top", "objectClass: person",
+        "cn: before", "sn: before");
+    final CSN change = domain.getLastLocalChange();
+    final CSN before = new CSN(change.getTime(), change.getSeqnum() - 1, DS_ID);
+    final Field pendingField = LDAPReplicationDomain.class.getDeclaredField("pendingChanges");
+    pendingField.setAccessible(true);
+    final PendingChanges pending = (PendingChanges) pendingField.get(domain);
+    assertThat(pending.recentChangesAfter(before, change).messages).hasSize(1);
+
+    final String lockFile = LockFileManager.getBackendLockFileName(
+        getServerContext().getBackendConfigManager().findLocalBackendForEntry(baseDN));
+    final Field locksField = LockFileManager.class.getDeclaredField("exclusiveLocks");
+    final Field mapLockField = LockFileManager.class.getDeclaredField("mapLock");
+    locksField.setAccessible(true);
+    mapLockField.setAccessible(true);
+    final Map<?, ?> locks = (Map<?, ?>) locksField.get(null);
+    final Object mapLock = mapLockField.get(null);
+    try
+    {
+      final String[] exported = exportedEntries();
+      startImportInto(exported.length);
+      waitUntil(() -> {
+        synchronized (mapLock)
+        {
+          return locks.containsKey(lockFile);
+        }
+      }, "the import did not acquire its exclusive lock");
+      assertTrue(LockFileManager.releaseLock(lockFile, new StringBuilder()));
+      finishImport(exported);
+      assertThat(errorLogRecordsOf(org.opends.messages.ToolMessages.WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.ordinal()))
+          .isNotEmpty();
+      assertNull(pending.recentChangesAfter(before, change).messages,
+          "the import replaced the data even though its lock could not be released");
+      final Field ignored = LDAPReplicationDomain.class.getDeclaredField("ignoreBackendInitializationEvent");
+      ignored.setAccessible(true);
+      assertFalse(ignored.getBoolean(domain), "a later backend enable must reach the domain");
+    }
+    finally
+    {
+      final Field ignored = LDAPReplicationDomain.class.getDeclaredField("ignoreBackendInitializationEvent");
+      ignored.setAccessible(true);
+      ignored.setBoolean(domain, false);
+      if (getServerContext().getBackendConfigManager().findLocalBackendForEntry(baseDN) == null)
+      {
+        TaskUtils.enableBackend("userRoot");
+      }
+    }
+  }
 
   @BeforeMethod
   public void setUpLocal() throws Exception
