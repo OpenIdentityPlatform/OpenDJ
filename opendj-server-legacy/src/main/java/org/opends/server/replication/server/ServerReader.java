@@ -13,9 +13,11 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
+import java.io.EOFException;
 import java.net.SocketException;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -204,6 +206,22 @@ public class ServerReader extends DirectoryThread
       {
         errMessage = handler.getBadlyDisconnectedErrorMessage();
         logger.error(errMessage);
+      }
+    }
+    catch (EOFException e)
+    {
+      // V4 and later peers send StopMsg before an orderly close.
+      if (!handler.shuttingDown() && !session.closeInitiated()
+          && session.getProtocolVersion() >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
+      {
+        logException(e);
+        errMessage = handler.getBadlyDisconnectedErrorMessage();
+        logger.error(errMessage);
+      }
+      else
+      {
+        errMessage = NOTE_READER_EXCEPTION.get(handler, stackTraceToSingleLineString(e));
+        logger.info(errMessage);
       }
     }
     catch (Exception e)
