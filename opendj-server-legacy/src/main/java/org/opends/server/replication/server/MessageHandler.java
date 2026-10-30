@@ -513,9 +513,16 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
           {
             return null;
           }
-          if (msgQueue.isEmpty())
+          if (msgQueue.isEmpty() || !following)
           {
-            // this handler is going back to the changelog, see stopFollowingWhenChangesAreMissing()
+            /*
+             * This handler is going back to the changelog: changes are missing, see
+             * stopFollowingWhenChangesAreMissing(), or the queue dropped its oldest changes in
+             * add() while this thread waited without the monitor - more changes arrived than
+             * it holds. Its head is then the first change after the dropped ones: taken now, it
+             * would move the state of the consumer past them, and the changelog would be read
+             * from after them, so they would never be sent - see issue #1252.
+             */
             continue;
           }
           UpdateMsg msg = msgQueue.removeFirst();
