@@ -150,9 +150,8 @@ public class ServerWriter extends DirectoryThread
        * handler closes it too - how the connection ended is what the reader saw, not this writer.
        * The reader logs nothing for the StopMsg of a peer leaving in order, and reports a read
        * which failed on the socket as a bad disconnection, at ERROR. An end of the stream with no
-       * StopMsg before it - a peer older than protocol V4, a peer killed with nothing left unread,
-       * a peer giving up a session which had failed - it reports only at NOTICE, as
-       * NOTE_READER_EXCEPTION (issue #1250).
+       * StopMsg before it is reported as a bad disconnection for a peer using protocol V4 or
+       * later, and at NOTICE for an older peer.
        *
        * And a session closed on this side is the only one this writer meets a failing write on
        * while the session runs the publisher thread ServerHandler starts: publish() then queues, a
