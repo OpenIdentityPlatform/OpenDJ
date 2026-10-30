@@ -1438,6 +1438,8 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       final CSN fromCSN = new CSN(rd1.getLastLocalChange().getTime() - 3 * SEARCH_WINDOW_MS, 0, serverId);
 
       pendingChangesOf(rd1).setMaxRecentChanges(2);
+      // Put the last rebuilt change in a different search window from the adds.
+      rd1.getGenerator().adjust(new CSN(rd1.getLastLocalChange().getTime() + SEARCH_WINDOW_MS, 0, serverId));
       replace(dnB, "description", "rebuilt");
       done.add(rd1.getLastLocalChange());
       replace(dnA, "description", "first");
@@ -2057,6 +2059,74 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
               + WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION.ordinal() + " "))
           .as("the recovery says it rebuilds changes")
           .isEmpty();
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  @Test
+  public void aRecoveryWarnsWhenOnlyTheDeleteOfAnEntryCanBePublished() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      addPerson("before");
+      final CSN from = rd1.getLastLocalChange();
+      final DN deleted = addPerson("deleted");
+      TestCaseUtils.deleteEntry(deleted);
+      final CSN delete = rd1.getLastLocalChange();
+      startRecovery(rd1, false);
+
+      final List<ReplicationMsg> published = new ArrayList<>();
+      final List<String> records = errorLogRecordsOf(() -> {
+        assertTrue(rd1.buildAndPublishMissingChanges(from, new TestBroker(published)));
+        return null;
+      });
+      assertThat(csns(published)).containsExactly(delete);
+      assertThat(records).filteredOn(record -> record.contains("category=SYNC severity=WARNING msgID="
+          + WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION.ordinal() + " ")).hasSize(1);
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  @Test
+  public void messagesAreForgottenEvenWhenTheStateCannotBeRead() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      addPerson("a");
+      final CSN change = rd1.getLastLocalChange();
+      final CSN before = new CSN(change.getTime(), change.getSeqnum() - 1, serverId);
+      assertThat(pendingChangesOf(rd1).recentChangesAfter(before, change).messages).hasSize(1);
+      rd1.disable();
+
+      final MemoryBackend backend =
+          (MemoryBackend) getServerContext().getBackendConfigManager().getLocalBackendById(TEST_BACKEND_ID);
+      final AttributeType stateType = getServerContext().getSchema().getAttributeType("ds-sync-state");
+      final Entry saved = backend.getEntry(baseDN);
+      final Entry invalid = saved.duplicate(false);
+      final AttributeBuilder state = new AttributeBuilder(stateType);
+      state.add("not-a-csn");
+      invalid.putAttribute(stateType, newArrayList(state.toAttribute()));
+      backend.replaceEntry(saved, invalid, null);
+
+      rd1.enable();
+
+      assertNull(pendingChangesOf(rd1).recentChangesAfter(before, change).messages);
     }
     finally
     {

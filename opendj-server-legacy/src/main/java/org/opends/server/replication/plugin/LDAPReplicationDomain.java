@@ -6433,6 +6433,8 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     }
     finally
     {
+      // The import may have replaced the data even if closing it or reading its state fails.
+      pendingChanges.forgetRecentChanges();
       try
       {
         // Cleanup
@@ -6503,22 +6505,25 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    */
   private void closeBackendImport(LocalBackend<?> backend) throws DirectoryException
   {
-    String lockFile = LockFileManager.getBackendLockFileName(backend);
-    StringBuilder failureReason = new StringBuilder();
-
-    // Release lock
-    if (!LockFileManager.releaseLock(lockFile, failureReason))
+    try
     {
-      LocalizableMessage message =
-          WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason);
-      logger.warn(message);
-      throw new DirectoryException(ResultCode.OTHER, message);
+      String lockFile = LockFileManager.getBackendLockFileName(backend);
+      StringBuilder failureReason = new StringBuilder();
+      if (!LockFileManager.releaseLock(lockFile, failureReason))
+      {
+        LocalizableMessage message =
+            WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason);
+        logger.warn(message);
+        throw new DirectoryException(ResultCode.OTHER, message);
+      }
+
+      TaskUtils.enableBackend(backend.getBackendID());
     }
-
-    TaskUtils.enableBackend(backend.getBackendID());
-
-    // Restore the processing of backend finalization events.
-    ignoreBackendInitializationEvent = false;
+    finally
+    {
+      // A later enable must reach the domain even if releasing the lock failed.
+      ignoreBackendInitializationEvent = false;
+    }
 
   }
 
@@ -7518,7 +7523,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
      * Rebuilt, a change whose values a later one replaced is published as the later one, and the add of
      * an entry deleted since not at all, and the replication server of the session, which takes no change
      * older than the newest one it holds of this replica, never holds them (issue #1246). The domain says
-     * so, once per run, in the first round which rebuilds a change - see
+     * so, once per run, in the first round which finds a change or a kept delete - see
      * {@link #publishMissingChanges(CSN, CSN)}: its replication server is further behind than the messages
      * it keeps go back.
      *
@@ -7678,22 +7683,23 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
        * nothing else to be published from.
        */
       final NavigableMap<CSN, FakeOperation> opsToSend = new TreeMap<>(found.headMap(bound, true));
-      /*
-       * Said only of a change the round rebuilds, and not of the window it searches: after a restart the
-       * messages kept begin at the first change done since, later than the last one done before, and the
-       * window in between may hold none. The deletes kept aside, added next, are published whole.
-       */
-      if (!rebuildingReported && !opsToSend.isEmpty())
-      {
-        rebuildingReported = true;
-        logger.warn(WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION, getBaseDN(), fromCSN, lastChange);
-      }
       if (bound.isNewerThan(fromCSN))
       {
         synchronized (replayOperations)
         {
           opsToSend.putAll(replayOperations.subMap(fromCSN, false, bound, true));
         }
+      }
+      /*
+       * A delete is published whole, but its entry may have held earlier changes which the search
+       * cannot find. A value replaced by a later kept message may leave no trace here at all. An
+       * empty window alone does not warrant a warning: after a restart it can precede the first
+       * message kept without containing any change.
+       */
+      if (!rebuildingReported && !opsToSend.isEmpty())
+      {
+        rebuildingReported = true;
+        logger.warn(WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION, getBaseDN(), fromCSN, lastChange);
       }
 
       for (FakeOperation opToSend : opsToSend.values())

@@ -19,9 +19,11 @@ package org.opends.server.replication.plugin;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 
@@ -63,10 +65,10 @@ class PendingChanges
    * historical information - see {@link LastLocalChanges}. Under the load of the replication convergence
    * run, a few hundred changes a second, a replication server more than two minutes behind is covered.
    * <p>
-   * Every domain written to keeps that much, whether a recovery runs or not, so the bytes are a sixteenth
-   * of the heap at most: a server given a small one - an image which sets no {@code -Xmx} has the default
-   * share of the memory of its container - covers a shorter lag. A recovery round holds the messages it
-   * publishes besides: while it runs, as much again can stay on the heap.
+   * Each domain written to keeps that much, whether a recovery runs or not, so its bytes are a sixteenth
+   * of the heap at most; multiple written domains can keep that share each. A server given a small heap
+   * covers a shorter lag. A recovery round holds the messages it publishes besides: while it runs, as much
+   * again can stay on the heap.
    */
   static final int MAX_RECENT_CHANGES = 100000;
   static final long MAX_RECENT_BYTES = Math.min(64L * 1024 * 1024, Runtime.getRuntime().maxMemory() / 16);
@@ -77,10 +79,12 @@ class PendingChanges
    * kept as they are here: 880 bytes of heap for a modify whose size() is 168, 1300 for an add whose
    * size() is 370.
    */
-  static final int MESSAGE_OVERHEAD = 512;
+  static final int MESSAGE_OVERHEAD = 560;
 
   /** A map used to store the pending changes. */
   private final TreeMap<CSN, PendingChange> pendingChanges = new TreeMap<>();
+  /** Changes already committed to data replaced before their turn in the queue. */
+  private final Set<CSN> committedBeforeDataReload = new HashSet<>();
 
   /**
    * The {@link CSNGenerator} to use to create new unique CSNs
@@ -134,6 +138,7 @@ class PendingChanges
   synchronized void remove(CSN csn)
   {
     pendingChanges.remove(csn);
+    committedBeforeDataReload.remove(csn);
   }
 
   /**
@@ -244,7 +249,15 @@ class PendingChanges
           && !op.isSynchronizationOperation())
       {
         // Kept before the domain state takes it, published or not: a recovery publishes it as it was done.
-        lastLocalChanges.add(firstChange.getCSN(), (LDAPUpdateMsg) msg);
+        if (committedBeforeDataReload.contains(firstChange.getCSN()))
+        {
+          // There is a gap in the messages kept after the reload; earlier ones cannot cover it.
+          lastLocalChanges.forget();
+        }
+        else
+        {
+          lastLocalChanges.add(firstChange.getCSN(), (LDAPUpdateMsg) msg);
+        }
         if (!recoveringOldChanges)
         {
           domain.publish(msg);
@@ -296,6 +309,7 @@ class PendingChanges
 
       // false warning: firstEntry will not be null if firstChange is not null
       pendingChanges.remove(firstEntry.getKey());
+      committedBeforeDataReload.remove(firstChange.getCSN());
 
       // peek the oldest change
       firstEntry = pendingChanges.firstEntry();
@@ -589,6 +603,13 @@ class PendingChanges
   synchronized void forgetRecentChanges()
   {
     lastLocalChanges.forget();
+    for (PendingChange change : pendingChanges.values())
+    {
+      if (change.isCommitted() && change.getMsg() instanceof LDAPUpdateMsg)
+      {
+        committedBeforeDataReload.add(change.getCSN());
+      }
+    }
   }
 
   /**

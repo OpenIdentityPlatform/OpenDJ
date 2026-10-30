@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2026 3A Systems, LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -327,6 +328,8 @@ public class PendingChangesTest extends DirectoryServerTestCase
   @Test
   public void pastTheMostBytesKeptTheOldestAreDropped() throws Exception
   {
+    assertTrue(PendingChanges.MAX_RECENT_BYTES <= Runtime.getRuntime().maxMemory() / 16,
+        "a domain must not reserve more than a sixteenth of the heap for recent messages");
     final PendingChanges pendingChanges = newPendingChanges(domainWhichPublishes(true));
     final int half = sizeTaking(PendingChanges.MAX_RECENT_BYTES / 2);
     final LDAPUpdateMsg first = pushLocalChange(pendingChanges, half);
@@ -418,6 +421,24 @@ public class PendingChangesTest extends DirectoryServerTestCase
         "the change forgotten is not taken for kept");
     assertEquals(pendingChanges.recentChangesAfter(next.getCSN(), afterNext.getCSN()).messages,
         Arrays.asList(afterNext));
+  }
+
+  @Test
+  public void aCommittedChangeHeldBehindAnotherIsNotKeptAfterTheDataWasReplaced() throws Exception
+  {
+    final PendingChanges pending = newPendingChanges(domainWhichPublishes(false));
+    final CSN first = pending.putLocalOperation(newLocalOperation());
+    final CSN second = pending.putLocalOperation(newLocalOperation());
+    final LDAPUpdateMsg secondMsg = newMsg(second, 0);
+    pending.commitAndPushCommittedChanges(second, secondMsg);
+
+    pending.forgetRecentChanges();
+    pending.commitAndPushCommittedChanges(first, newMsg(first, 0));
+    final LDAPUpdateMsg after = pushLocalChange(pending);
+
+    assertNull(pending.recentChangesAfter(first, after.getCSN()).messages,
+        "the change made on the replaced data must not be treated as kept");
+    assertEquals(pending.recentChangesAfter(second, after.getCSN()).messages, Arrays.asList(after));
   }
 
   /** Pushes a local change whose message takes no bytes, and returns its message. */
