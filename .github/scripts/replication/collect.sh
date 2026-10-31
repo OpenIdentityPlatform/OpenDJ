@@ -96,7 +96,7 @@ summarize() { # <result>
     fi
     if ls "$OUT"/logs/*.expected >/dev/null 2>&1; then
       echo
-      echo "Handshakes failed while a disturbed server came back, which the disturbance expects (logs/*.expected):"
+      echo "Errors logged while a disturbed server went down and came back, which the disturbance expects - failed handshakes, and what a kill leaves behind (logs/*.expected):"
       echo
       echo '```'
       for f in "$OUT"/logs/*.expected; do
