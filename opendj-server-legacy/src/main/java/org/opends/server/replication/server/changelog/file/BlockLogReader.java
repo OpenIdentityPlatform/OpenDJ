@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -600,10 +601,17 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
  {
    try
    {
-     final long lastBlockStart = getClosestBlockStartToEndOfFile();
+     long lastBlockStart = getClosestBlockStartToEndOfFile();
+     if (lastBlockStart > 0 && getFileLength() - lastBlockStart < SIZE_OF_BLOCK_OFFSET)
+     {
+       // A crash may interrupt the block offset itself. Read from the preceding complete block.
+       lastBlockStart -= blockSize;
+     }
      positionToRecordFromBlockStart(lastBlockStart);
 
-     long lastValidPosition = lastBlockStart;
+     // The first record may be incomplete and start before this block: remove it in its entirety.
+     // With a zero offset the reader skipped the offset field, which must be removed with the record.
+     long lastValidPosition = Math.min(lastBlockStart, reader.getFilePointer());
      for (ByteString recordData = readNextRecord(); recordData != null; recordData = readNextRecord()) {
        parser.decodeRecord(recordData);
        lastValidPosition = reader.getFilePointer();
