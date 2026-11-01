@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -249,6 +250,79 @@ public class LogFileTest extends DirectoryServerTestCase
       {
         assertThatCursorCanBeFullyRead(cursor, 1, 11);
       }
+    }
+  }
+
+  @DataProvider
+  Object[][] interruptedRecordData()
+  {
+    return new Object[][]
+    {
+      // First value length, complete prefix length, interrupted file length (256-byte blocks).
+      { 93, 104, 350 },  // incomplete body crossing a block
+      { 93, 104, 700 },  // incomplete body crossing several blocks
+      { 242, 253, 300 }, // length header split across a block, as in issue #1256
+      { 494, 509, 600 }, // split length header after a complete record spanning blocks
+      { 245, 256, 260 }, // zero block offset, with no record bytes after it
+      { 245, 256, 270 }, // incomplete record starting at a block boundary
+      { 93, 104, 256 },  // incomplete body ending exactly at a block boundary
+      { 93, 104, 260 },  // complete block offset, but no continuation bytes
+      { 93, 104, 257 },  // the block offset itself is incomplete
+      { 93, 104, 258 },
+      { 93, 104, 259 },
+      { 245, 256, 257 }, // incomplete offset following a complete record
+      { 0, 0, 300 },     // the first record is incomplete
+    };
+  }
+
+  @Test(dataProvider="interruptedRecordData")
+  public void recoveryRemovesTheWholeInterruptedRecordBeforeAppending(
+      int firstValueLength, long completePrefixLength, long interruptedLength) throws Exception
+  {
+    try (RandomAccessFile output = new RandomAccessFile(TEST_LOG_FILE, "rw"))
+    {
+      output.setLength(0);
+    }
+    final Record<String, String> first =
+        Record.from("key01", new String(new char[firstValueLength]).replace('\0', 'a'));
+    final Record<String, String> interrupted =
+        Record.from("key02", new String(new char[900]).replace('\0', 'b'));
+    final Record<String, String> appended = Record.from("key03", "after recovery");
+    try (LogFile<String, String> logFile = getLogFile(RECORD_PARSER))
+    {
+      if (completePrefixLength > 0)
+      {
+        assertThat(logFile.append(first)).isTrue();
+      }
+      assertThat(TEST_LOG_FILE.length()).isEqualTo(completePrefixLength);
+      assertThat(logFile.append(interrupted)).isTrue();
+    }
+    assertThat(TEST_LOG_FILE.length()).isGreaterThan(interruptedLength);
+    try (RandomAccessFile output = new RandomAccessFile(TEST_LOG_FILE, "rw"))
+    {
+      output.setLength(interruptedLength);
+    }
+
+    try (LogFile<String, String> logFile = getLogFile(RECORD_PARSER))
+    {
+      assertThat(TEST_LOG_FILE.length()).as("the entire incomplete record must be removed")
+          .isEqualTo(completePrefixLength);
+      assertThat(logFile.getNewestRecord()).isEqualTo(completePrefixLength > 0 ? first : null);
+      assertThat(logFile.append(appended)).isTrue();
+    }
+    // A second open must preserve both the complete prefix and the newly appended record.
+    try (LogFile<String, String> logFile = getLogFile(RECORD_PARSER);
+         DBCursor<Record<String, String>> cursor = logFile.getCursor())
+    {
+      assertThat(logFile.getNewestRecord()).isEqualTo(appended);
+      if (completePrefixLength > 0)
+      {
+        assertThat(cursor.next()).isTrue();
+        assertThat(cursor.getRecord()).isEqualTo(first);
+      }
+      assertThat(cursor.next()).isTrue();
+      assertThat(cursor.getRecord()).isEqualTo(appended);
+      assertThatCursorIsExhausted(cursor);
     }
   }
 
