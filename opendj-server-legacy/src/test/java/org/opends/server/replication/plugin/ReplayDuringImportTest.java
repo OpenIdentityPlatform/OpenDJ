@@ -264,6 +264,132 @@ public class ReplayDuringImportTest extends ReplicationTestCase
     }
   }
 
+  @org.testng.annotations.DataProvider(name = "failedPreparation")
+  public Object[][] failedPreparation()
+  {
+    return new Object[][] { { false }, { true } };
+  }
+
+  /** A failed preparation must not quarantine data which the import never replaced. */
+  @Test(dataProvider = "failedPreparation", timeOut = 120_000)
+  public void aFailedPreparationCleanupLeavesTheOriginalDataRecoverable(boolean disabledBackend) throws Exception
+  {
+    final Entry original = TestCaseUtils.addEntry("dn: cn=original," + EXAMPLE_DN,
+        "objectClass: person", "cn: original", "sn: original");
+    final String lockFile = LockFileManager.getBackendLockFileName(
+        getServerContext().getBackendConfigManager().findLocalBackendForEntry(baseDN));
+    boolean lockHeld = disabledBackend;
+    if (disabledBackend)
+    {
+      assertTrue(LockFileManager.acquireSharedLock(lockFile, new StringBuilder()));
+    }
+    ShortCircuitPlugin.registerShortCircuit(OperationType.MODIFY, "PreParse", ResultCode.UNAVAILABLE.intValue(),
+        disabledBackend ? 1 : 0, 2, operation -> {
+          final org.opends.server.types.operation.PreParseModifyOperation modify =
+              (org.opends.server.types.operation.PreParseModifyOperation) operation;
+          return DN.valueOf(modify.getRawEntryDN().toString())
+              .equals(DN.valueOf("ds-cfg-backend-id=userRoot,cn=Backends,cn=config"));
+        });
+    try
+    {
+      final int completions = errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.ordinal()).size();
+      exporter.publish(new InitializeTargetMsg(baseDN, EXPORTER_ID, DS_ID, EXPORTER_ID, 3, INIT_WINDOW));
+      waitUntil(() -> !domain.ieRunning()
+          && errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.ordinal()).size() > completions,
+          "the failed preparation did not complete");
+      assertTrue(ShortCircuitPlugin.getShortCircuitCount(OperationType.MODIFY, "PreParse") > 0);
+      assertNull(org.opends.server.api.LocalBackend.getWriteFailure(baseDN),
+          "an import which replaced no data must not quarantine the original suffix");
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.MODIFY, "PreParse");
+      if (disabledBackend)
+      {
+        assertFalse(domain.isConnected(), "a domain with an unavailable backend must be stopped reversibly");
+        TaskUtils.enableBackend("userRoot");
+        assertTrue(LockFileManager.releaseLock(lockFile, new StringBuilder()));
+        lockHeld = false;
+      }
+      waitUntil(domain::isConnected, "the backend enable must restore replication without a process restart");
+      assertTrue(entryExists(original.getName()));
+      TestCaseUtils.addEntry("dn: cn=after," + EXAMPLE_DN,
+          "objectClass: person", "cn: after", "sn: after");
+      // The restored listener must consume new traffic, not just keep a connected broker.
+      startImportInto(exportedEntries().length);
+      finishImport(exportedEntries());
+      assertTrue(entryExists(DN.valueOf(IMPORTED_ENTRY_DN)));
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.MODIFY, "PreParse");
+      clearWriteFailure();
+      final Field ignored = LDAPReplicationDomain.class.getDeclaredField("ignoreBackendInitializationEvent");
+      ignored.setAccessible(true);
+      ignored.setBoolean(domain, false);
+      if (lockHeld)
+      {
+        assertTrue(LockFileManager.releaseLock(lockFile, new StringBuilder()));
+      }
+      if (getServerContext().getBackendConfigManager().findLocalBackendForEntry(baseDN) == null)
+      {
+        TaskUtils.enableBackend("userRoot");
+      }
+    }
+  }
+
+  /** The reconnect after an abandoned import already satisfies replay's outstanding restart. */
+  @Test(timeOut = 120_000)
+  public void anAbandonedImportConsumesTheReplayRestart() throws Exception
+  {
+    final Entry original = TestCaseUtils.addEntry("dn: cn=original," + EXAMPLE_DN,
+        "objectClass: person", "cn: original", "sn: original");
+    final Field stateField = LDAPReplicationDomain.class.getDeclaredField("state");
+    stateField.setAccessible(true);
+    final Object state = stateField.get(domain);
+    final Field saveLockField = PersistentServerState.class.getDeclaredField("saveLock");
+    saveLockField.setAccessible(true);
+    final java.util.concurrent.locks.Lock saveLock = (java.util.concurrent.locks.Lock) saveLockField.get(state);
+    final Field importing = LDAPReplicationDomain.class.getDeclaredField("importingData");
+    importing.setAccessible(true);
+    final CSN csn = gen.newCSN();
+    final ModifyMsg msg = new ModifyMsg(csn, original.getName(), generatemods("description", "replayed"),
+        getEntryUUID(original.getName()));
+    final ModifyMsg queued = new ModifyMsg(gen.newCSN(), original.getName(),
+        generatemods("description", "queued before the import"), getEntryUUID(original.getName()));
+    domain.processUpdate(queued);
+    final LDAPUpdateMsg queuedDelivery = queue.take().getUpdateMessage();
+    final int completions = errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.ordinal()).size();
+    domain.setReplayDrainTimeout(3000);
+    saveLock.lock();
+    try
+    {
+      exporter.publish(new InitializeTargetMsg(baseDN, EXPORTER_ID, DS_ID, EXPORTER_ID, 3, INIT_WINDOW));
+      new org.opends.server.util.TestTimer.Builder().maxSleep(30, TimeUnit.SECONDS)
+          .sleepTimes(10, TimeUnit.MILLISECONDS).toTimer()
+          .repeatUntilSuccess(() -> assertTrue(importing.getBoolean(domain)));
+      replayMsg(msg);
+      assertFalse(domain.getServerState().cover(csn), "the replay must be deferred by the import");
+      domain.failNextSessionRestarts(1);
+      waitUntil(() -> !domain.ieRunning()
+          && errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.ordinal()).size() > completions,
+          "the import did not abandon its wait for the state save");
+      Thread.sleep(2000);
+      assertEquals(domain.getSessionRestartFailuresLeft(), 1,
+          "the checkpointer restarted the session which import completion already restarted");
+      assertTrue(domain.isConnected());
+      replayMsg(msg);
+      // This delivery was already queued before the import: it must still be listed, without
+      // processUpdate inserting it again. Clearing all pending changes would discard its replay.
+      replay(queuedDelivery);
+      assertTrue(domain.getServerState().cover(queued.getCSN()));
+      assertThat(DirectoryServer.getEntry(original.getName()).getAllAttributes("description")).isNotEmpty();
+    }
+    finally
+    {
+      saveLock.unlock();
+      domain.failNextSessionRestarts(0);
+      domain.setReplayDrainTimeout(30_000);
+    }
+  }
+
   @org.testng.annotations.DataProvider(name = "importDrains")
   public Object[][] importDrains()
   {
@@ -294,6 +420,7 @@ public class ReplayDuringImportTest extends ReplicationTestCase
     final java.util.concurrent.locks.Lock lock = (java.util.concurrent.locks.Lock) lockField.get(owner);
     final Object backend = getServerContext().getBackendConfigManager().findLocalBackendForEntry(baseDN);
     final int completions = errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.ordinal()).size();
+    final int shutdownWarnings = errorLogRecordsOf(WARN_REPLAY_NOT_DRAINED.ordinal()).size();
     domain.setReplayDrainTimeout(100);
     lock.lock();
     try
@@ -305,6 +432,9 @@ public class ReplayDuringImportTest extends ReplicationTestCase
       assertSame(getServerContext().getBackendConfigManager().findLocalBackendForEntry(baseDN), backend);
       assertTrue(entryExists(original.getName()), "a rejected preflight must leave the original data intact");
       assertNull(org.opends.server.api.LocalBackend.getWriteFailure(baseDN));
+      assertThat(errorLogRecordsOf(WARN_REPLAY_NOT_DRAINED.ordinal())).hasSize(shutdownWarnings);
+      final ErrorMsg failure = waitForSpecificMsg(exporter, ErrorMsg.class);
+      assertEquals(failure.getDetails().toString(), ERR_INIT_OPERATIONS_NOT_DRAINED.get(baseDN).toString());
     }
     finally
     {

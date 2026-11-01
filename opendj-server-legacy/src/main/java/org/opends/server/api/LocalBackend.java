@@ -82,7 +82,8 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
   private static final Map<DN, LocalizableMessage> writeFailures = new ConcurrentHashMap<>();
 
   /**
-   * Prevents writes overlapping a failed data replacement until the server is restarted.
+   * Prevents writes overlapping a failed data replacement until the server process is restarted.
+   * An in-core restart keeps the barrier, as it keeps the JVM running.
    * The barrier survives backend and synchronization-provider reconfiguration.
    * @param baseDN the suffix whose data cannot safely be written
    * @param reason the reason to report to the operator and to rejected updates

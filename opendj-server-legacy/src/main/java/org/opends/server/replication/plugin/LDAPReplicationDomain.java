@@ -5697,6 +5697,12 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    */
   private boolean awaitReplayDrained()
   {
+    return awaitReplayDrained(true);
+  }
+
+  /** Waits for replay, optionally reporting the consequences of taking the domain down. */
+  private boolean awaitReplayDrained(boolean goingDown)
+  {
     boolean drained = false;
     boolean interrupted = false;
     try
@@ -5732,11 +5738,11 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
      * replay of this domain takes, and the timeout it never spent would have an operator
      * reading a backend which is slow into it.
      */
-    if (interrupted)
+    if (goingDown && interrupted)
     {
       logger.warn(WARN_REPLAY_DRAIN_INTERRUPTED, getBaseDN());
     }
-    else
+    else if (goingDown)
     {
       logger.warn(WARN_REPLAY_NOT_DRAINED, getBaseDN(), replayDrainTimeoutInMs);
     }
@@ -6463,10 +6469,11 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
        * it is the session the entries are about to stream over, on this very thread.
        */
       importingData = true;
-      if (!awaitReplayDrained() || !state.suspendSaves(replayDrainTimeoutInMs))
+      if (!awaitReplayDrained(false) || !state.suspendSaves(replayDrainTimeoutInMs))
       {
-        throw new DirectoryException(ResultCode.UNAVAILABLE,
-            ERR_INIT_OPERATIONS_NOT_DRAINED.get(getBaseDN()));
+        ieCtx.setExceptionIfNoneSet(new DirectoryException(ResultCode.UNAVAILABLE,
+            ERR_INIT_OPERATIONS_NOT_DRAINED.get(getBaseDN())));
+        return;
       }
 
       if (!backend.supports(BackendOperation.LDIF_IMPORT))
@@ -6544,47 +6551,69 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       }
       catch (Exception fe)
       {
-        // A successful import and a failed import both need trustworthy cleanup before reuse.
-        // Preserve an earlier import error in the terminal reason, rather than hiding this failure.
-        final LocalizableMessage reason = ERR_INIT_DOMAIN_STOPPED.get(getBaseDN(),
-            ieCtx.getException() == null ? "" : ieCtx.getException().getLocalizedMessage(),
-            stackTraceToSingleLineString(fe));
-        failedImportCleanup = true;
-        disabled = true;
-        LocalBackend.quarantineWrites(getBaseDN(), reason);
-        logger.error(reason);
-        ieCtx.setException(new DirectoryException(ResultCode.OTHER, reason));
-        stopServicePermanently();
+        if (!progress.replacingData)
+        {
+          // Preparation changed no data: neither a refused disable nor a refused lock warrants
+          // a process-lifetime quarantine. Report cleanup too, preserving the original failure.
+          final LocalizableMessage reason = ERR_INIT_IMPORT_FAILURE.get(stackTraceToSingleLineString(fe));
+          logger.error(reason);
+          ieCtx.setExceptionIfNoneSet(new DirectoryException(ResultCode.OTHER, reason, fe));
+          if (getBackend() == null)
+          {
+            // The backend could not be enabled back. Keep the domain stopped until a later backend
+            // enable reloads its state. This runs on the listener: it cannot join itself, nor take
+            // serviceStateLock while a concurrent disable may hold it and wait for this listener.
+            disabled = true;
+            stopServiceAfterAbortedImport();
+            remotePendingChanges.clear();
+          }
+        }
+        else
+        {
+          // A successful import and a failed import both need trustworthy cleanup before reuse.
+          // Preserve an earlier import error in the terminal reason, rather than hiding this failure.
+          final LocalizableMessage reason = ERR_INIT_DOMAIN_STOPPED.get(getBaseDN(),
+              ieCtx.getException() == null ? "" : ieCtx.getException().getLocalizedMessage(),
+              stackTraceToSingleLineString(fe));
+          failedImportCleanup = true;
+          disabled = true;
+          LocalBackend.quarantineWrites(getBaseDN(), reason);
+          logger.error(reason);
+          ieCtx.setException(new DirectoryException(ResultCode.OTHER, reason));
+          stopServicePermanently();
+        }
       }
       finally
       {
         /*
-         * The ServerState has been reloaded, or the domain has been stopped permanently.
-         * The changes listed as pending must not outlive their data, as they do not when
-         * the domain is disabled: a change given back while the import ran would stay
+         * Once replacement has begun, the changes listed as pending must not outlive their data,
+         * as they do not when the domain is disabled: a change given back while the import ran would stay
          * listed, uncommitted and owned by nobody, and a commit stops at the first
          * uncommitted change - the state would never move past it, and the replication
          * server does not send a change again which the state it is given covers. Nothing
          * listed a change meanwhile: the listener thread is the one running this import,
-         * and the replay threads gave up every attempt while the flag was set. The restarts
-         * they asked for on their way out, while the total update owned the session, and
-         * any asked for before it did, go with them, as do the deliveries folded into no
-         * warning: unless stopped permanently, the caller starts from the reloaded state. A replay
-         * thread which reaches its give-up after this clear finds its change unlisted and
+         * and the replay threads gave up every attempt while the flag was set. A replay thread
+         * which reaches its give-up after this clear finds its change unlisted and
          * asks for nothing.
          */
         if (progress.replacingData)
         {
           remotePendingChanges.clear();
-          sessionRestarts.clear();
-          consecutiveSessionRestarts.set(0);
-          foldedReplayRetryWarnings.set(0);
         }
+        // The caller reconnects even after abandoning replacement, unless the service was stopped
+        // above. That reconnect satisfies requests already made during the drain; if the backend
+        // is unavailable, its later enable does so instead. A request made later is a new request.
+        sessionRestarts.clear();
+        consecutiveSessionRestarts.set(0);
+        foldedReplayRetryWarnings.set(0);
         if (!failedImportCleanup)
         {
           state.resumeSaves();
         }
         importingData = false;
+        // In particular, an enable refused during preparation must not suppress the later event
+        // which restores a temporarily stopped domain. All import bookkeeping is settled first.
+        ignoreBackendInitializationEvent = false;
       }
     }
 

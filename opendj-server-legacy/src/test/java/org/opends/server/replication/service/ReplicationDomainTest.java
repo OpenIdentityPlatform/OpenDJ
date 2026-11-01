@@ -25,6 +25,9 @@ import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.net.SocketTimeoutException;
+import java.io.InputStream;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.ExecutionException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -1644,6 +1647,86 @@ public class ReplicationDomainTest extends ReplicationTestCase
       disable(domain1);
       remove(replServer);
     }
+  }
+
+  /** A failed target must not keep the exporter occupied until an operator restarts its process. */
+  @Test
+  public void permanentlyStoppedImportersReleaseTheExporter() throws Exception
+  {
+    final DN baseDN = DN.valueOf("o=test");
+    final int port = TestCaseUtils.findFreePort();
+    final ReplicationServer rs = createReplicationServer(15, port, "stoppedImportersDb", 100);
+    final SortedSet<String> servers = newTreeSet("localhost:" + port);
+    FakeReplicationDomain exporter = null;
+    FakeReplicationDomain first = null;
+    FakeReplicationDomain second = null;
+    FakeReplicationDomain healthy = null;
+    FutureTask<Void> export = null;
+    Thread exportThread = null;
+    final CountDownLatch targetsStopped = new CountDownLatch(2);
+    try
+    {
+      exporter = new FakeReplicationDomain(baseDN, 1, servers, 0, buildExportedData(3), null, 3);
+      first = stoppingImporter(baseDN, 2, servers, targetsStopped);
+      second = stoppingImporter(baseDN, 3, servers, targetsStopped);
+      final FakeReplicationDomain source = exporter;
+      newTimer().repeatUntilSuccess(() -> assertEquals(source.getReplicaInfos().size(), 2));
+      export = new FutureTask<>(() -> {
+        source.initializeRemote(org.opends.server.replication.protocol.RoutableMsg.ALL_SERVERS, NO_INIT_TASK);
+        return null;
+      });
+      exportThread = new Thread(export, "export to permanently stopped targets");
+      exportThread.start();
+      assertTrue(targetsStopped.await(30, SECONDS), "the importers did not finish receiving their data");
+      final long stoppedAt = System.nanoTime();
+      try
+      {
+        export.get(20, SECONDS);
+        fail("an export to disconnected targets must report failure");
+      }
+      catch (ExecutionException e)
+      {
+        assertTrue(e.getCause() instanceof DirectoryException, e.toString());
+        assertEquals(((DirectoryException) e.getCause()).getMessageObject().toString(),
+            ERR_INIT_NO_SUCCESS_END_FROM_SERVERS.get(source.getGenerationID(), newTreeSet(2, 3)).toString());
+      }
+      assertTrue(System.nanoTime() - stoppedAt >= SECONDS.toNanos(9),
+          "two absent targets must not halve the reconnection grace");
+      assertFalse(source.ieRunning(), "failed export retained its context");
+
+      final StringBuffer imported = new StringBuffer();
+      healthy = new FakeReplicationDomain(baseDN, 4, servers, 0, null, imported, 0);
+      newTimer().repeatUntilSuccess(() -> assertTrue(source.getReplicaInfos().containsKey(4)));
+      source.initializeRemote(4, NO_INIT_TASK);
+      assertEquals(imported.toString(), buildExportedData(3));
+      assertFalse(source.ieRunning());
+    }
+    finally
+    {
+      disable(exporter, first, second, healthy);
+      if (exportThread != null)
+      {
+        exportThread.join(30000);
+      }
+      remove(rs);
+    }
+  }
+
+  private FakeReplicationDomain stoppingImporter(DN baseDN, int id, SortedSet<String> servers,
+      CountDownLatch stopped) throws Exception
+  {
+    return new FakeReplicationDomain(baseDN, id, servers, 0, null, new StringBuffer(), 0)
+    {
+      @Override
+      protected void importBackend(InputStream input) throws DirectoryException
+      {
+        super.importBackend(input);
+        stopServicePermanently();
+        stopped.countDown();
+        throw new DirectoryException(org.forgerock.opendj.ldap.ResultCode.OTHER,
+            LocalizableMessage.raw("injected cleanup failure"));
+      }
+    };
   }
 
   /** InitializeTask double recording the completion reported by the domain. */
