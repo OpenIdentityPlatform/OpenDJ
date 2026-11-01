@@ -424,6 +424,16 @@ public class MultimasterReplication
     try
     {
       LDAPReplicationDomain rd = createNewDomain(configuration);
+      if (rd == null)
+      {
+        ccr.setResultCode(ResultCode.UNAVAILABLE);
+        final LocalizableMessage reason = LocalBackend.getWriteFailure(configuration.getBaseDN());
+        if (reason != null)
+        {
+          ccr.addMessage(reason);
+        }
+        return ccr;
+      }
       if (State.RUNNING.equals(state.get()))
       {
         rd.start();

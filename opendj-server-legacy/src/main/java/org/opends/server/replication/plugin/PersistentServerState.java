@@ -60,9 +60,11 @@ class PersistentServerState
    private final ServerState state;
    /**
     * Held by the save which is writing the state to the backend. It is taken
-    * with {@link Lock#tryLock()} and never waited for: see {@link #save()}.
+    * without waiting by save(); the total-update preflight waits for it before replacing data.
     */
    private final Lock saveLock = new ReentrantLock();
+   /** A total update must not let a snapshot of the old state reach the replacement data. */
+   private volatile boolean savesSuspended;
 
    /**
     * The attribute name used to store the state in the backend.
@@ -131,7 +133,7 @@ class PersistentServerState
    */
   public void save()
   {
-    if (state.isSaved())
+    if (savesSuspended || state.isSaved())
     {
       // Nothing to write: stay out of the way of whoever is writing.
       return;
@@ -143,7 +145,7 @@ class PersistentServerState
     }
     try
     {
-      if (state.isSaved())
+      if (savesSuspended || state.isSaved())
       {
         // The save which just completed carried what this one came to write.
         return;
@@ -180,9 +182,50 @@ class PersistentServerState
   }
 
   /**
+   * Stops new saves and waits for the one already writing, before replacing the data.
+   * A timeout leaves saves suspended: the caller must abandon the replacement before resuming them.
+   * @param timeoutMillis maximum time to wait for the previous write
+   * @return whether no previous write can still reach the backend
+   * @throws InterruptedException if the wait is interrupted
+   */
+  boolean suspendSaves(long timeoutMillis) throws InterruptedException
+  {
+    savesSuspended = true;
+    if (!saveLock.tryLock(timeoutMillis, java.util.concurrent.TimeUnit.MILLISECONDS))
+    {
+      return false;
+    }
+    saveLock.unlock();
+    return true;
+  }
+
+  /** Resumes saves after an abandoned replacement or after its new state has been loaded. */
+  void resumeSaves()
+  {
+    savesSuspended = false;
+  }
+
+  /**
    * Load the ServerState from the backing entry in database to memory.
    */
   public void loadState()
+  {
+    try
+    {
+      loadState(false);
+    }
+    catch (DirectoryException e)
+    {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  /**
+   * Loads state, refusing read failures after an online replacement rather than using stale fallbacks.
+   * @param strict whether a failed read must prevent replication from restarting
+   * @throws DirectoryException if a required read fails in strict mode
+   */
+  void loadState(boolean strict) throws DirectoryException
   {
     /*
      * Whatever the state holds on the way in has, as far as this object knows,
@@ -195,14 +238,14 @@ class PersistentServerState
     final boolean hadCSNs = !state.isEmpty();
 
     // try to load the state from the base entry.
-    SearchResultEntry stateEntry = searchBaseEntry();
+    SearchResultEntry stateEntry = searchBaseEntry(strict);
     if (stateEntry == null)
     {
       /*
       The base entry does not exist yet in the database or was deleted.
       Try to read the ServerState from the configuration instead.
       */
-      stateEntry = searchConfigEntry();
+      stateEntry = searchConfigEntry(strict);
     }
 
     if (stateEntry != null)
@@ -216,7 +259,7 @@ class PersistentServerState
      * updated after the last write of the ServerState.
      * Inconsistencies may append after a crash.
      */
-    checkAndUpdateServerState();
+    checkAndUpdateServerState(strict);
 
     if (hadCSNs)
     {
@@ -230,7 +273,7 @@ class PersistentServerState
    *
    * @return The base entry or null if no entry was found;
    */
-  private SearchResultEntry searchBaseEntry()
+  private SearchResultEntry searchBaseEntry(boolean strict) throws DirectoryException
   {
     // Search the database entry that is used to periodically save the ServerState
     final SearchRequest request = newSearchRequest(baseDN, SearchScope.BASE_OBJECT).addAttribute(REPLICATION_STATE);
@@ -239,7 +282,12 @@ class PersistentServerState
     if (resultCode != ResultCode.SUCCESS
         && resultCode != ResultCode.NO_SUCH_OBJECT)
     {
-      logger.error(ERR_ERROR_SEARCHING_RUV, search.getResultCode().getName(), search, search.getErrorMessage(), baseDN);
+      if (strict)
+      {
+        throw new DirectoryException(resultCode,
+            ERR_ERROR_SEARCHING_RUV.get(resultCode.getName(), search, search.getErrorMessage(), baseDN));
+      }
+      logger.error(ERR_ERROR_SEARCHING_RUV, resultCode.getName(), search, search.getErrorMessage(), baseDN);
       return null;
     }
     return getFirstResult(search);
@@ -251,7 +299,7 @@ class PersistentServerState
    *
    * @return The configuration Entry or null if no entry was found;
    */
-  private SearchResultEntry searchConfigEntry()
+  private SearchResultEntry searchConfigEntry(boolean strict) throws DirectoryException
   {
     try
     {
@@ -260,11 +308,19 @@ class PersistentServerState
           .setSizeLimit(1)
           .addAttribute(REPLICATION_STATE);
       final InternalSearchOperation op = getRootConnection().processSearch(request);
+      if (strict && op.getResultCode() != ResultCode.SUCCESS && op.getResultCode() != ResultCode.NO_SUCH_OBJECT)
+      {
+        throw new DirectoryException(op.getResultCode(),
+            ERR_ERROR_SEARCHING_RUV.get(op.getResultCode().getName(), op, op.getErrorMessage(), baseDN));
+      }
       return getFirstResult(op);
     }
     catch (DirectoryException e)
     {
-      // can not happen
+      if (strict)
+      {
+        throw e;
+      }
       return null;
     }
   }
@@ -410,7 +466,7 @@ class PersistentServerState
    * This is done by using the HistoricalCsnOrderingMatchingRule
    * and an ordering index for historical attribute
    */
-  private final void checkAndUpdateServerState()
+  private void checkAndUpdateServerState(boolean strict) throws DirectoryException
   {
     // Retrieves the entries that have changed since the
     // maxCsn stored in the serverState
@@ -428,13 +484,21 @@ class PersistentServerState
         op = LDAPReplicationDomain.searchForChangedEntries(baseDN,
                 serverStateMaxCSN, null);
       }
-      catch (Exception  e)
+      catch (Exception e)
       {
+        if (strict)
+        {
+          throw new DirectoryException(ResultCode.OTHER, ERR_CANNOT_RECOVER_CHANGES.get(baseDN), e);
+        }
         return;
       }
 
       if (op.getResultCode() != ResultCode.SUCCESS)
       {
+        if (strict && op.getResultCode() != ResultCode.NO_SUCH_OBJECT)
+        {
+          throw new DirectoryException(op.getResultCode(), ERR_CANNOT_RECOVER_CHANGES.get(baseDN));
+        }
         // An error happened trying to search for the updates
         // Log an error
         logger.error(ERR_CANNOT_RECOVER_CHANGES, baseDN);

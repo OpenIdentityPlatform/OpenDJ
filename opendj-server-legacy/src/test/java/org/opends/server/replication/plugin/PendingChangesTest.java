@@ -438,7 +438,21 @@ public class PendingChangesTest extends DirectoryServerTestCase
 
     assertNull(pending.recentChangesAfter(first, after.getCSN()).messages,
         "the change made on the replaced data must not be treated as kept");
-    assertEquals(pending.recentChangesAfter(second, after.getCSN()).messages, Arrays.asList(after));
+    assertEquals(pending.recentChangesAfter(rightBefore(after), after.getCSN()).messages, Arrays.asList(after));
+  }
+
+  @Test
+  public void anUncommittedChangeAtDataReloadIsNotKeptAfterItCommits() throws Exception
+  {
+    final PendingChanges pending = newPendingChanges(domainWhichPublishes(false));
+    final CSN old = pending.putLocalOperation(newLocalOperation());
+    pending.forgetRecentChanges();
+    pending.commitAndPushCommittedChanges(old, newMsg(old, 0));
+    final LDAPUpdateMsg after = pushLocalChange(pending);
+
+    assertNull(pending.recentChangesAfter(rightBefore(newMsg(old, 0)), after.getCSN()).messages,
+        "a change pending at reload must not be published from the recent messages");
+    assertEquals(pending.recentChangesAfter(rightBefore(after), after.getCSN()).messages, Arrays.asList(after));
   }
 
   /** Pushes a local change whose message takes no bytes, and returns its message. */

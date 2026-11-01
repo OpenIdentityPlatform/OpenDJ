@@ -83,8 +83,8 @@ class PendingChanges
 
   /** A map used to store the pending changes. */
   private final TreeMap<CSN, PendingChange> pendingChanges = new TreeMap<>();
-  /** Changes already committed to data replaced before their turn in the queue. */
-  private final Set<CSN> committedBeforeDataReload = new HashSet<>();
+  /** Local operations pending at a reload, which may have written to the replaced data. */
+  private final Set<CSN> pendingAtDataReload = new HashSet<>();
 
   /**
    * The {@link CSNGenerator} to use to create new unique CSNs
@@ -138,7 +138,7 @@ class PendingChanges
   synchronized void remove(CSN csn)
   {
     pendingChanges.remove(csn);
-    committedBeforeDataReload.remove(csn);
+    pendingAtDataReload.remove(csn);
   }
 
   /**
@@ -249,7 +249,7 @@ class PendingChanges
           && !op.isSynchronizationOperation())
       {
         // Kept before the domain state takes it, published or not: a recovery publishes it as it was done.
-        if (committedBeforeDataReload.contains(firstChange.getCSN()))
+        if (pendingAtDataReload.contains(firstChange.getCSN()))
         {
           // There is a gap in the messages kept after the reload; earlier ones cannot cover it.
           lastLocalChanges.forget();
@@ -309,7 +309,7 @@ class PendingChanges
 
       // false warning: firstEntry will not be null if firstChange is not null
       pendingChanges.remove(firstEntry.getKey());
-      committedBeforeDataReload.remove(firstChange.getCSN());
+      pendingAtDataReload.remove(firstChange.getCSN());
 
       // peek the oldest change
       firstEntry = pendingChanges.firstEntry();
@@ -597,17 +597,19 @@ class PendingChanges
   /**
    * Forgets the messages kept of the last local changes: the domain read its state from data which
    * may lack their changes - it was restored or imported since - and a recovery which published them
-   * would have the other replicas do changes this one does not hold. The messages of the local changes
-   * pushed from now on are kept, and a recovery rebuilds the ones before from the historical information.
+   * would have the other replicas do changes this one does not hold. Local operations still pending
+   * may have written to the replaced data even if they have not yet committed, so their messages are
+   * not kept when they are pushed. Later messages are kept, and a recovery rebuilds the changes before
+   * them from the historical information.
    */
   synchronized void forgetRecentChanges()
   {
     lastLocalChanges.forget();
     for (PendingChange change : pendingChanges.values())
     {
-      if (change.isCommitted() && change.getMsg() instanceof LDAPUpdateMsg)
+      if (change.getOp() != null && !change.getOp().isSynchronizationOperation())
       {
-        committedBeforeDataReload.add(change.getCSN());
+        pendingAtDataReload.add(change.getCSN());
       }
     }
   }

@@ -20,6 +20,8 @@ package org.opends.server.api;
 import static org.opends.messages.BackendMessages.*;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -75,6 +77,38 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
 // should have been BackendCfg instead of Configuration
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /** Process-lifetime write barriers for data which cannot safely be used after an online replacement. */
+  private static final Map<DN, LocalizableMessage> writeFailures = new ConcurrentHashMap<>();
+
+  /**
+   * Prevents writes overlapping a failed data replacement until the server is restarted.
+   * The barrier survives backend and synchronization-provider reconfiguration.
+   * @param baseDN the suffix whose data cannot safely be written
+   * @param reason the reason to report to the operator and to rejected updates
+   */
+  public static void quarantineWrites(DN baseDN, LocalizableMessage reason)
+  {
+    writeFailures.putIfAbsent(baseDN, reason);
+  }
+
+  /**
+   * Returns the reason writes overlapping a suffix are forbidden, or null if none are forbidden.
+   * Ancestors are included because deleting or moving a subtree affects the suffix below it.
+   * @param dn the DN of the entry or subtree an operation changes
+   * @return the recorded failure, or null
+   */
+  public static LocalizableMessage getWriteFailure(DN dn)
+  {
+    for (Map.Entry<DN, LocalizableMessage> failure : writeFailures.entrySet())
+    {
+      if (dn.isSubordinateOrEqualTo(failure.getKey()) || dn.isSuperiorOrEqualTo(failure.getKey()))
+      {
+        return failure.getValue();
+      }
+    }
+    return null;
+  }
 
   /** Indicates whether this is a private backend or one that holds user data. */
   private boolean isPrivateBackend;

@@ -427,6 +427,8 @@ public class LocalBackendModifyDNOperation
 
       LocalBackendWorkflowElement.checkIfBackendIsWritable(currentBackend,
           this, entryDN, ERR_MODDN_SERVER_READONLY, ERR_MODDN_BACKEND_READONLY);
+      LocalBackendWorkflowElement.checkIfBackendIsWritable(currentBackend,
+          this, newDN, ERR_MODDN_SERVER_READONLY, ERR_MODDN_BACKEND_READONLY);
 
       if (noOp)
       {

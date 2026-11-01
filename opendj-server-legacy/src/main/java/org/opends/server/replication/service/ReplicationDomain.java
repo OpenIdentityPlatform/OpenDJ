@@ -2722,9 +2722,12 @@ public abstract class ReplicationDomain
       right here, right now
       we never want retryOnFailure if we fails reconnecting in the restart.
       */
-      broker.reStart(false);
+      if (!isServicePermanentlyStopped())
+      {
+        broker.reStart(false);
+      }
 
-      if (ieCtx.getException() != null
+      if (!isServicePermanentlyStopped() && ieCtx.getException() != null
           && broker.isConnected()
           && initFromTask != null
           && ++ieCtx.attemptCnt < 2)
@@ -2785,7 +2788,7 @@ public abstract class ReplicationDomain
 
       try
       {
-        if (broker.isConnected() && ieCtx.getException() != null)
+        if (!isServicePermanentlyStopped() && broker.isConnected() && ieCtx.getException() != null)
         {
           // Let's notify the exporter
           ErrorMsg errorMsg = new ErrorMsg(requesterServerId,
@@ -3410,6 +3413,10 @@ public abstract class ReplicationDomain
    */
   public void startListenService()
   {
+    if (isServicePermanentlyStopped())
+    {
+      return;
+    }
     synchronized (sessionLock)
     {
       if (listenerThread != null)
@@ -3597,6 +3604,18 @@ public abstract class ReplicationDomain
     return sessionGeneration;
   }
 
+  /** Stops the broker without joining the listener which may be running this import. */
+  protected final void stopServicePermanently()
+  {
+    broker.stopPermanently();
+  }
+
+  /** Returns whether a failed import has permanently stopped this service. */
+  protected final boolean isServicePermanentlyStopped()
+  {
+    return broker != null && broker.isPermanentlyStopped();
+  }
+
   /**
    * Restart the Replication service after a {@link #disableService()}.
    * <p>
@@ -3613,6 +3632,10 @@ public abstract class ReplicationDomain
   {
     synchronized (serviceStateLock)
     {
+      if (isServicePermanentlyStopped())
+      {
+        return;
+      }
       synchronized (sessionLock)
       {
         broker.start();

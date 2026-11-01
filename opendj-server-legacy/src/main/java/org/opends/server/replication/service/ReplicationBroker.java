@@ -236,6 +236,8 @@ public class ReplicationBroker
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private volatile boolean shutdown;
+  /** A backend whose state could not be restored must never reconnect through this broker. */
+  private volatile boolean permanentlyStopped;
   /**
    * The stop in progress: set by {@link #stop()} before anything else it does, and cleared to
    * {@code null} by {@link #start()}. While it is set, a publish which finds no window credit by
@@ -366,7 +368,7 @@ public class ReplicationBroker
   {
     synchronized (startStopLock)
     {
-      if (!shutdown)
+      if (!shutdown || permanentlyStopped)
       {
         return;
       }
@@ -2300,7 +2302,7 @@ public class ReplicationBroker
       // Synchronize inside the loop in order to allow shutdown.
       synchronized (startStopLock)
       {
-        if (rs.isConnected() || shutdown)
+        if (rs.isConnected() || shutdown || permanentlyStopped)
         {
           break;
         }
@@ -2416,7 +2418,7 @@ public class ReplicationBroker
   {
     boolean done = false;
 
-    while (!done && !shutdown && !gaveUpForTheStop())
+    while (!done && !shutdown && !permanentlyStopped && !gaveUpForTheStop())
     {
       if (connectionError)
       {
@@ -2508,7 +2510,7 @@ public class ReplicationBroker
             Check the session. If it has changed, some disconnection or
             reconnection happened and we need to restart from scratch.
             */
-            if (gaveUpForTheStop())
+            if (permanentlyStopped || gaveUpForTheStop())
             {
               /*
                * The stop gave up since the loop head, while this publish waited for this lock - for
@@ -2559,7 +2561,7 @@ public class ReplicationBroker
             Not once the stop gave up, which it may have done while this waited for the lock.
             */
             Session session = connectedRS.get().session;
-            if (session != null && !gaveUpForTheStop())
+            if (session != null && !permanentlyStopped && !gaveUpForTheStop())
             {
               session.publish(new WindowProbeMsg());
             }
@@ -2659,7 +2661,7 @@ public class ReplicationBroker
       boolean reconnectOnFailure, boolean returnOnTopoChange)
     throws SocketTimeoutException
   {
-    while (!shutdown)
+    while (!shutdown && !permanentlyStopped)
     {
       ConnectedRS rs = connectedRS.get();
       if (!rs.isConnected())
@@ -2896,6 +2898,27 @@ public class ReplicationBroker
     }
   }
 
+  /**
+   * Stops a domain with untrusted data state. No offline CSN is announced and buffered messages
+   * are discarded rather than drained to the peer. A later configuration change cannot restart it.
+   */
+  void stopPermanently()
+  {
+    permanentlyStopped = true;
+    final Session session = connectedRS.get().session;
+    if (session != null)
+    {
+      session.abort(new IOException("The total update could not restore its backend state"));
+    }
+    stop();
+  }
+
+  /** Returns whether this broker has been permanently stopped following an import failure. */
+  boolean isPermanentlyStopped()
+  {
+    return permanentlyStopped;
+  }
+
   /** Stop the server. */
   public void stop()
   {
@@ -2927,7 +2950,10 @@ public class ReplicationBroker
             "Replica DS(" + getServerId() + ") watchdog of the stop for domain \"" + getBaseDN() + "\"")
             .start();
       }
-      domain.publishReplicaOfflineMsg();
+      if (!permanentlyStopped)
+      {
+        domain.publishReplicaOfflineMsg();
+      }
     }
     finally
     {
@@ -3674,7 +3700,7 @@ public class ReplicationBroker
    */
   boolean shuttingDown()
   {
-    return shutdown;
+    return shutdown || permanentlyStopped;
   }
 
   /**

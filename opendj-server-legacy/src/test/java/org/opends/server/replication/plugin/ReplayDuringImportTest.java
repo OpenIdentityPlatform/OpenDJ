@@ -149,6 +149,8 @@ public class ReplayDuringImportTest extends ReplicationTestCase
     try
     {
       final String[] exported = exportedEntries();
+      final CSN importedState = gen.newCSN();
+      exported[0] = exported[0].replace("dc: example\n", "dc: example\nds-sync-state: " + importedState + "\n");
       startImportInto(exported.length);
       waitUntil(() -> {
         synchronized (mapLock)
@@ -158,16 +160,39 @@ public class ReplayDuringImportTest extends ReplicationTestCase
       }, "the import did not acquire its exclusive lock");
       assertTrue(LockFileManager.releaseLock(lockFile, new StringBuilder()));
       finishImport(exported);
+      assertNull(getServerContext().getBackendConfigManager().findLocalBackendForEntry(baseDN),
+          "the failed unlock must leave the backend disabled");
       assertThat(errorLogRecordsOf(org.opends.messages.ToolMessages.WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.ordinal()))
           .isNotEmpty();
       assertNull(pending.recentChangesAfter(before, change).messages,
           "the import replaced the data even though its lock could not be released");
-      final Field ignored = LDAPReplicationDomain.class.getDeclaredField("ignoreBackendInitializationEvent");
-      ignored.setAccessible(true);
-      assertFalse(ignored.getBoolean(domain), "a later backend enable must reach the domain");
+      assertFalse(domain.isConnected(), "a failed cleanup must stop the replication session");
+      TaskUtils.enableBackend("userRoot");
+      domain.enable();
+      domain.enableService();
+      assertFalse(domain.isConnected(), "enabling the backend or service must not revive a failed import");
+      assertEquals(org.opends.server.protocols.internal.InternalClientConnection.getRootConnection()
+          .processDelete(IMPORTED_ENTRY_DN).getResultCode(), ResultCode.UNAVAILABLE,
+          "writes must be rejected even when the backend is enabled again");
+      domain.backupStart();
+      domain.disable();
+      assertEquals(new PersistentServerState(baseDN, DS_ID,
+          new org.opends.server.replication.common.ServerState()).getMaxCSN(importedState.getServerId()),
+          importedState, "backup or disable must not overwrite the imported server state");
+      MultimasterReplication.deleteDomain(baseDN);
+      assertEquals(org.opends.server.protocols.internal.InternalClientConnection.getRootConnection()
+          .processDelete(IMPORTED_ENTRY_DN).getResultCode(), ResultCode.UNAVAILABLE,
+          "deleting the replication domain must not permit writes to quarantined data");
+      final DomainFakeCfg replacement = new DomainFakeCfg(baseDN, DS_ID, new TreeSet<String>());
+      assertNull(MultimasterReplication.createNewDomain(replacement),
+          "recreating the domain must not clear the failed-import quarantine");
+      assertEquals(new MultimasterReplication().applyConfigurationAdd(replacement).getResultCode(),
+          ResultCode.UNAVAILABLE, "configuration add must report failure without dereferencing a missing domain");
     }
     finally
     {
+      // A process restart clears the production quarantine; this test shares its JVM with other cases.
+      clearWriteFailure();
       final Field ignored = LDAPReplicationDomain.class.getDeclaredField("ignoreBackendInitializationEvent");
       ignored.setAccessible(true);
       ignored.setBoolean(domain, false);
@@ -176,6 +201,163 @@ public class ReplayDuringImportTest extends ReplicationTestCase
         TaskUtils.enableBackend("userRoot");
       }
     }
+  }
+
+  @Test(timeOut = 120_000)
+  public void anUnavailableStateReadAfterImportStopsTheDomain() throws Exception
+  {
+    final String[] exported = exportedEntries();
+    startImportInto(exported.length);
+    ShortCircuitPlugin.registerShortCircuit(OperationType.SEARCH, "PreParse", ResultCode.UNAVAILABLE.intValue(),
+        0, 1, operation -> {
+          final org.opends.server.types.operation.PreParseSearchOperation search =
+              (org.opends.server.types.operation.PreParseSearchOperation) operation;
+          return search.getRawBaseDN().toString().equals(EXAMPLE_DN)
+              && search.getAttributes().contains("ds-sync-state");
+        });
+    try
+    {
+      finishImport(exported);
+      assertTrue(ShortCircuitPlugin.getShortCircuitCount(OperationType.SEARCH, "PreParse") > 0,
+          "the state-read failure was not injected");
+      assertFalse(domain.isConnected(), "an unavailable state read must not fall back to stale configuration state");
+      assertNotNull(org.opends.server.api.LocalBackend.getWriteFailure(baseDN));
+    }
+    finally
+    {
+      ShortCircuitPlugin.deregisterShortCircuit(OperationType.SEARCH, "PreParse");
+      clearWriteFailure();
+    }
+  }
+
+  @Test(timeOut = 120_000)
+  public void anImportWhichCannotAcquireItsLockDoesNotReleaseAnotherOwnersLock() throws Exception
+  {
+    TestCaseUtils.addEntry("dn: cn=original," + EXAMPLE_DN,
+        "objectClass: person", "cn: original", "sn: original");
+    final String lockFile = LockFileManager.getBackendLockFileName(
+        getServerContext().getBackendConfigManager().findLocalBackendForEntry(baseDN));
+    assertTrue(LockFileManager.acquireSharedLock(lockFile, new StringBuilder()));
+    try
+    {
+      final int completions = errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.ordinal()).size();
+      exporter.publish(new InitializeTargetMsg(baseDN, EXPORTER_ID, DS_ID, EXPORTER_ID, 3, INIT_WINDOW));
+      waitUntil(() -> !domain.ieRunning()
+          && errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.ordinal()).size() > completions,
+          "the import did not report its failed exclusive lock");
+      assertNotNull(getServerContext().getBackendConfigManager().findLocalBackendForEntry(baseDN));
+      assertTrue(entryExists(DN.valueOf("cn=original," + EXAMPLE_DN)));
+      assertNull(org.opends.server.api.LocalBackend.getWriteFailure(baseDN));
+      final Field references = LockFileManager.class.getDeclaredField("sharedLockReferences");
+      final Field mapLock = LockFileManager.class.getDeclaredField("mapLock");
+      references.setAccessible(true);
+      mapLock.setAccessible(true);
+      synchronized (mapLock.get(null))
+      {
+        assertEquals(((Map<?, ?>) references.get(null)).get(lockFile), Integer.valueOf(2),
+            "the backend and the other owner must both retain their shared locks");
+      }
+    }
+    finally
+    {
+      assertTrue(LockFileManager.releaseLock(lockFile, new StringBuilder()));
+    }
+  }
+
+  @org.testng.annotations.DataProvider(name = "importDrains")
+  public Object[][] importDrains()
+  {
+    return new Object[][] { { false }, { true } };
+  }
+
+  @Test(dataProvider = "importDrains", timeOut = 120_000)
+  public void aTimedOutDrainLeavesTheOriginalDataUsable(boolean stateSave) throws Exception
+  {
+    final Entry original = TestCaseUtils.makeEntry("dn: cn=original," + EXAMPLE_DN,
+        "objectClass: top", "objectClass: person", "cn: original", "sn: original");
+    TestCaseUtils.addEntry(original);
+    final Object owner;
+    final Field lockField;
+    if (stateSave)
+    {
+      final Field stateField = LDAPReplicationDomain.class.getDeclaredField("state");
+      stateField.setAccessible(true);
+      owner = stateField.get(domain);
+      lockField = PersistentServerState.class.getDeclaredField("saveLock");
+    }
+    else
+    {
+      owner = domain;
+      lockField = LDAPReplicationDomain.class.getDeclaredField("replayReadLock");
+    }
+    lockField.setAccessible(true);
+    final java.util.concurrent.locks.Lock lock = (java.util.concurrent.locks.Lock) lockField.get(owner);
+    final Object backend = getServerContext().getBackendConfigManager().findLocalBackendForEntry(baseDN);
+    final int completions = errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.ordinal()).size();
+    domain.setReplayDrainTimeout(100);
+    lock.lock();
+    try
+    {
+      exporter.publish(new InitializeTargetMsg(baseDN, EXPORTER_ID, DS_ID, EXPORTER_ID, 3, INIT_WINDOW));
+      waitUntil(() -> !domain.ieRunning()
+          && errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.ordinal()).size() > completions,
+          "the import did not abandon the drain before replacing data");
+      assertSame(getServerContext().getBackendConfigManager().findLocalBackendForEntry(baseDN), backend);
+      assertTrue(entryExists(original.getName()), "a rejected preflight must leave the original data intact");
+      assertNull(org.opends.server.api.LocalBackend.getWriteFailure(baseDN));
+    }
+    finally
+    {
+      lock.unlock();
+      domain.setReplayDrainTimeout(30_000);
+    }
+    waitUntil(domain::isConnected, "a preflight failure must leave the domain recoverable");
+    final String[] exported = exportedEntries();
+    startImportInto(exported.length);
+    finishImport(exported);
+    assertTrue(entryExists(DN.valueOf(IMPORTED_ENTRY_DN)), "a later import must still work");
+  }
+
+  @Test
+  public void writeQuarantineSurvivesProviderRemovalAndRejectsMovesIntoTheSuffix() throws Exception
+  {
+    TestCaseUtils.addEntry("dn: ou=People," + EXAMPLE_DN, "objectClass: organizationalUnit", "ou: People");
+    TestCaseUtils.addEntry("dn: cn=outside," + EXAMPLE_DN,
+        "objectClass: person", "cn: outside", "sn: outside");
+    final DN quarantined = DN.valueOf("ou=People," + EXAMPLE_DN);
+    final java.util.List<org.opends.server.api.SynchronizationProvider<
+        org.forgerock.opendj.server.config.server.SynchronizationProviderCfg>> providers =
+        new ArrayList<>(getSynchronizationProviders());
+    org.opends.server.api.LocalBackend.quarantineWrites(quarantined,
+        org.forgerock.i18n.LocalizableMessage.raw("failed import test"));
+    try
+    {
+      for (org.opends.server.api.SynchronizationProvider<?> provider : providers)
+      {
+        deregisterSynchronizationProvider(provider);
+      }
+      final org.opends.server.protocols.internal.InternalClientConnection connection =
+          org.opends.server.protocols.internal.InternalClientConnection.getRootConnection();
+      assertEquals(connection.processDelete(quarantined).getResultCode(), ResultCode.UNAVAILABLE);
+      assertEquals(connection.processModifyDN("cn=outside," + EXAMPLE_DN, "cn=outside", true,
+          quarantined.toString()).getResultCode(), ResultCode.UNAVAILABLE,
+          "a move into quarantined data must be refused even when its source is healthy");
+      assertTrue(entryExists(DN.valueOf("cn=outside," + EXAMPLE_DN)));
+    }
+    finally
+    {
+      getSynchronizationProviders().addAll(providers);
+      final Field failures = org.opends.server.api.LocalBackend.class.getDeclaredField("writeFailures");
+      failures.setAccessible(true);
+      ((Map<?, ?>) failures.get(null)).remove(quarantined);
+    }
+  }
+
+  private void clearWriteFailure() throws Exception
+  {
+    final Field failures = org.opends.server.api.LocalBackend.class.getDeclaredField("writeFailures");
+    failures.setAccessible(true);
+    ((Map<?, ?>) failures.get(null)).remove(baseDN);
   }
 
   @BeforeMethod
