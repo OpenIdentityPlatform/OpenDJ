@@ -198,7 +198,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * This flag prevents the Replication Domain to disable/enable itself when
    * it is the event initiator
    */
-  private boolean ignoreBackendInitializationEvent;
+  private volatile boolean ignoreBackendInitializationEvent;
+  /** Exact backend whose enable may have been ignored while an aborted import was stopping. */
+  private volatile String backendAwaitingInitialization;
   /** This domain must not resume against data whose post-import state could not be loaded. */
   private volatile boolean failedImportCleanup;
 
@@ -283,10 +285,31 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
   @Override
   public void performBackendPostInitializationProcessing(LocalBackend<?> backend) {
-    if (!ignoreBackendInitializationEvent
-            && getBackend().getBackendID().equals(backend.getBackendID())) {
-      enable();
+    // The import invokes this callback on its listener. A concurrent disable may hold
+    // serviceStateLock while joining that listener, so the outside guard is essential.
+    // Backend configuration also holds a global lock: skip foreign domains before locking.
+    if (!ignoreBackendInitializationEvent && isBackendForInitialization(backend))
+    {
+      synchronized (serviceStateLock)
+      {
+        if (!ignoreBackendInitializationEvent && disabled && isBackendForInitialization(backend))
+        {
+          enable();
+        }
+      }
     }
+  }
+
+  private boolean isBackendForInitialization(LocalBackend<?> backend)
+  {
+    final String awaiting = backendAwaitingInitialization;
+    if (awaiting != null)
+    {
+      // A disabled nested suffix can resolve to its parent until its own backend reopens.
+      return awaiting.equals(backend.getBackendID());
+    }
+    final LocalBackend<?> current = getBackend();
+    return current != null && current.getBackendID().equals(backend.getBackendID());
   }
 
   @Override
@@ -782,6 +805,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           {
             wait(1000);
           }
+          restoreBackendAfterAbortedImport();
           if (!disabled && !ieRunning())
           {
             saveState();
@@ -5631,6 +5655,8 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
        * it lists after this would be the one left behind.
        */
       remotePendingChanges.clear();
+      // An explicit disable wins over a recovery requested by the listener we just joined.
+      backendAwaitingInitialization = null;
       /*
        * The recovery from a failed replay is over as well: the change it was asking for
        * is gone with the pending changes, so a leftover request would have a replay thread
@@ -5734,7 +5760,8 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
      * restore, a backend being taken offline - for as long as a backend which stopped
      * answering takes to answer.
      *
-     * An interrupted wait is reported as what it is: it says nothing about how long the
+     * On shutdown an interrupted wait is reported as what it is; an import reports its own
+     * preparation failure instead. An interruption says nothing about how long the
      * replay of this domain takes, and the timeout it never spent would have an operator
      * reading a backend which is slow into it.
      */
@@ -5968,6 +5995,33 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     }
   }
 
+  /** Rechecks an enable which cleanup may have ignored, from a thread that can join the listener. */
+  private void restoreBackendAfterAbortedImport()
+  {
+    if (backendAwaitingInitialization == null || ignoreBackendInitializationEvent || ieRunning())
+    {
+      return;
+    }
+    synchronized (serviceStateLock)
+    {
+      final String backendID = backendAwaitingInitialization;
+      if (backendID != null && disabled && !shutdown.get() && !serverShutdownRequested
+          && !failedImportCleanup && !ignoreBackendInitializationEvent && !ieRunning()
+          && getServerContext().getBackendConfigManager().hasLocalBackend(backendID))
+      {
+        try
+        {
+          enable();
+        }
+        catch (Exception e)
+        {
+          // An unsuccessful restart must not terminate the state checkpointer.
+          logger.error(ERR_LOADING_GENERATION_ID, getBaseDN(), stackTraceToSingleLineString(e));
+        }
+      }
+    }
+  }
+
   /**
    * Enable back the domain after a previous disable.
    * The domain will connect back to a replication Server and
@@ -5984,6 +6038,8 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       {
         return;
       }
+      // Consume the missed event before a new listener can request another recovery.
+      backendAwaitingInitialization = null;
       /*
        * Cleared here as well as by disable(): a request made after disable()'s own clear -
        * every road which releases a change asks for the restart, whether or not the domain
@@ -6469,10 +6525,23 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
        * it is the session the entries are about to stream over, on this very thread.
        */
       importingData = true;
-      if (!awaitReplayDrained(false) || !state.suspendSaves(replayDrainTimeoutInMs))
+      boolean drained;
+      try
       {
-        ieCtx.setExceptionIfNoneSet(new DirectoryException(ResultCode.UNAVAILABLE,
-            ERR_INIT_OPERATIONS_NOT_DRAINED.get(getBaseDN())));
+        drained = awaitReplayDrained(false) && state.suspendSaves(replayDrainTimeoutInMs);
+      }
+      catch (InterruptedException e)
+      {
+        Thread.currentThread().interrupt();
+        drained = false;
+      }
+      if (!drained)
+      {
+        final LocalizableMessage reason = Thread.currentThread().isInterrupted()
+            ? ERR_INIT_PREPARATION_INTERRUPTED.get(getBaseDN())
+            : ERR_INIT_OPERATIONS_NOT_DRAINED.get(getBaseDN());
+        logger.error(reason);
+        ieCtx.setExceptionIfNoneSet(new DirectoryException(ResultCode.UNAVAILABLE, reason));
         return;
       }
 
@@ -6558,7 +6627,8 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
           final LocalizableMessage reason = ERR_INIT_IMPORT_FAILURE.get(stackTraceToSingleLineString(fe));
           logger.error(reason);
           ieCtx.setExceptionIfNoneSet(new DirectoryException(ResultCode.OTHER, reason, fe));
-          if (getBackend() == null)
+          // A DN lookup could find the parent backend of a disabled nested suffix.
+          if (!getServerContext().getBackendConfigManager().hasLocalBackend(backend.getBackendID()))
           {
             // The backend could not be enabled back. Keep the domain stopped until a later backend
             // enable reloads its state. This runs on the listener: it cannot join itself, nor take
@@ -6566,6 +6636,10 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
             disabled = true;
             stopServiceAfterAbortedImport();
             remotePendingChanges.clear();
+            // A backend enable between the availability check and the final flag clear is
+            // deliberately ignored by the callback. Recheck it after import completion.
+            backendAwaitingInitialization = backend.getBackendID();
+            logger.error(ERR_INIT_DOMAIN_AWAITING_BACKEND, getBaseDN(), backend.getBackendID());
           }
         }
         else

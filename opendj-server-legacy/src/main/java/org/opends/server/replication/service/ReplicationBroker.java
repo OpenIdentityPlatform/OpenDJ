@@ -2922,6 +2922,20 @@ public class ReplicationBroker
   /** Stop the server. */
   public void stop()
   {
+    stop(true);
+  }
+
+  /**
+   * Stops an aborted import on its listener without waiting for credit that only that listener
+   * can receive. The next enable may start a new session; no offline CSN is announced.
+   */
+  void stopAfterAbortedImport()
+  {
+    stop(false);
+  }
+
+  private void stop(boolean announceOffline)
+  {
     if (logger.isTraceEnabled() && !shutdown)
     {
       debugInfo("is stopping and will close the connection to RS(" + getRsServerId() + ")");
@@ -2944,13 +2958,30 @@ public class ReplicationBroker
     try
     {
       // In the try: a watchdog which cannot be started must not leave the broker stopping either.
-      if (newStop && stop.bounded)
+      if (newStop && stop.bounded && announceOffline)
       {
         new DirectoryThread(() -> endWhatStillHoldsTheStop(stop),
             "Replica DS(" + getServerId() + ") watchdog of the stop for domain \"" + getBaseDN() + "\"")
             .start();
       }
-      if (!permanentlyStopped)
+      if (!announceOffline)
+      {
+        synchronized (stop)
+        {
+          if (!stop.ended)
+          {
+            // End blocked writes too: closing in order could wait for the peer to read forever.
+            // stop.end() takes this monitor, so this close cannot reach a later session.
+            stop.gaveUp = true;
+            final Session session = connectedRS.get().session;
+            if (session != null)
+            {
+              session.abort(new IOException("The total update preparation left its backend unavailable"));
+            }
+          }
+        }
+      }
+      else if (!permanentlyStopped)
       {
         domain.publishReplicaOfflineMsg();
       }

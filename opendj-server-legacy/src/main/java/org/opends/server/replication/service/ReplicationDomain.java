@@ -1983,6 +1983,8 @@ public abstract class ReplicationDomain
     replicasWeAreWaitingFor.addAll(getReplicaInfos().keySet());
 
     final Map<Integer, Long> disconnectedSince = new HashMap<>();
+    // An absence bound, not a bound on every possible reconnect: the importer's connection
+    // timeout and RS list are not carried in the topology and may differ from this server's.
     final long reconnectGraceNanos = java.util.concurrent.TimeUnit.SECONDS.toNanos(10);
     boolean done;
     do
@@ -3633,7 +3635,7 @@ public abstract class ReplicationDomain
     {
       listener.initiateShutdown();
     }
-    broker.stop();
+    broker.stopAfterAbortedImport();
   }
 
   /** Returns whether a failed import has permanently stopped this service. */
