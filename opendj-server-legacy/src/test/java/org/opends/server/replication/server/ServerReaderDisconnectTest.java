@@ -60,6 +60,14 @@ public class ServerReaderDisconnectTest extends ReplicationTestCase
   }
 
   @Test
+  public void eofFromCurrentPeerIsReported() throws Exception
+  {
+    assertThat(records(new byte[0], ProtocolVersion.getCurrentVersion(), false, false))
+        .filteredOn(s -> s.contains("category=SYNC severity=ERROR msgID=211 "))
+        .hasSize(1);
+  }
+
+  @Test
   public void truncatedFrameFromModernPeerIsReported() throws Exception
   {
     assertThat(records("00000004x".getBytes(StandardCharsets.US_ASCII),
@@ -79,8 +87,9 @@ public class ServerReaderDisconnectTest extends ReplicationTestCase
   @Test
   public void eofDuringShutdownIsNotReportedAsBadDisconnection() throws Exception
   {
-    assertThat(records(new byte[0], ProtocolVersion.REPLICATION_PROTOCOL_V4, true, false))
-        .filteredOn(s -> s.contains("category=SYNC severity=ERROR msgID=211 ")).isEmpty();
+    final List<String> logged = records(new byte[0], ProtocolVersion.REPLICATION_PROTOCOL_V4, true, false);
+    assertThat(logged).filteredOn(s -> s.contains("category=SYNC severity=ERROR msgID=211 ")).isEmpty();
+    assertThat(logged).filteredOn(s -> s.contains("category=SYNC severity=NOTICE msgID=53 ")).hasSize(1);
   }
 
   @Test
@@ -158,8 +167,9 @@ public class ServerReaderDisconnectTest extends ReplicationTestCase
     final ByteArrayOutputStream frame = new ByteArrayOutputStream();
     frame.write(String.format("%08x", message.length).getBytes(StandardCharsets.US_ASCII));
     frame.write(message);
-    assertThat(records(frame.toByteArray(), ProtocolVersion.REPLICATION_PROTOCOL_V4, false, false))
-        .filteredOn(s -> s.contains("category=SYNC severity=ERROR msgID=211 ")).isEmpty();
+    final List<String> logged = records(frame.toByteArray(), ProtocolVersion.REPLICATION_PROTOCOL_V4, false, false);
+    assertThat(logged).filteredOn(s -> s.contains("category=SYNC severity=ERROR msgID=211 ")).isEmpty();
+    assertThat(logged).filteredOn(s -> s.contains("category=SYNC severity=NOTICE msgID=53 ")).isEmpty();
   }
 
   private List<String> records(final byte[] input, final short version, final boolean shuttingDown,
