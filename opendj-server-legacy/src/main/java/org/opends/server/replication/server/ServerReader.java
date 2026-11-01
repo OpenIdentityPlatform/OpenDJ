@@ -210,7 +210,7 @@ public class ServerReader extends DirectoryThread
     }
     catch (EOFException e)
     {
-      // V4 and later peers send StopMsg before an orderly close.
+      // V4 and later peers send StopMsg before an orderly close unless their session recorded an error.
       if (!handler.shuttingDown() && !session.closeInitiated()
           && session.getProtocolVersion() >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
       {

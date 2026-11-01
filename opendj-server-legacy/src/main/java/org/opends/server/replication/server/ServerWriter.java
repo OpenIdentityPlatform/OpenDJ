@@ -151,7 +151,8 @@ public class ServerWriter extends DirectoryThread
        * The reader logs nothing for the StopMsg of a peer leaving in order, and reports a read
        * which failed on the socket as a bad disconnection, at ERROR. An end of the stream with no
        * StopMsg before it is reported as a bad disconnection for a peer using protocol V4 or
-       * later, and at NOTICE for an older peer.
+       * later, unless the handler is shutting down or this side has begun the close; otherwise,
+       * and for an older peer, at NOTICE.
        *
        * And a session closed on this side is the only one this writer meets a failing write on
        * while the session runs the publisher thread ServerHandler starts: publish() then queues, a

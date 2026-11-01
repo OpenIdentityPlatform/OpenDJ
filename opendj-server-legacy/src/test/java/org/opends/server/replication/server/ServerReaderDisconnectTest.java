@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2026 3A Systems, LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -25,11 +26,17 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLSocket;
 
@@ -84,6 +91,67 @@ public class ServerReaderDisconnectTest extends ReplicationTestCase
   }
 
   @Test
+  public void eofAfterConcurrentLocalCloseIsNotReportedAsBadDisconnection() throws Exception
+  {
+    final CountDownLatch reading = new CountDownLatch(1);
+    final CountDownLatch eof = new CountDownLatch(1);
+    final InputStream input = new InputStream()
+    {
+      @Override
+      public int read() throws IOException
+      {
+        reading.countDown();
+        try
+        {
+          assertThat(eof.await(10, TimeUnit.SECONDS)).as("local close released the read").isTrue();
+        }
+        catch (InterruptedException e)
+        {
+          Thread.currentThread().interrupt();
+          throw new InterruptedIOException("Interrupted while waiting for EOF");
+        }
+        return -1;
+      }
+    };
+    try (ServerSocket listener = new ServerSocket(0);
+         Socket peer = new Socket("127.0.0.1", listener.getLocalPort());
+         Socket socket = listener.accept();
+         Session session = new Session(socket, new TestSocket(input)))
+    {
+      session.setProtocolVersion(ProtocolVersion.REPLICATION_PROTOCOL_V4);
+      final DataServerHandler handler = handler(session, false);
+      final ExecutorService executor = Executors.newSingleThreadExecutor();
+      try
+      {
+        final List<String> logged = errorLogRecordsOf(() -> {
+          final Future<?> reader = executor.submit(() -> new ServerReader(session, handler).run());
+          try
+          {
+            assertThat(reading.await(10, TimeUnit.SECONDS)).as("reader entered receive").isTrue();
+            // Reading closeInitiated before receive() would miss this close and log a false ERROR.
+            session.close();
+            eof.countDown();
+            reader.get(10, TimeUnit.SECONDS);
+          }
+          finally
+          {
+            eof.countDown();
+            executor.shutdownNow();
+            assertThat(executor.awaitTermination(10, TimeUnit.SECONDS)).as("reader stopped").isTrue();
+          }
+          return null;
+        });
+        assertThat(logged).filteredOn(s -> s.contains("category=SYNC severity=ERROR msgID=211 ")).isEmpty();
+        assertThat(logged).filteredOn(s -> s.contains("category=SYNC severity=NOTICE msgID=53 ")).hasSize(1);
+      }
+      finally
+      {
+        executor.shutdownNow();
+      }
+    }
+  }
+
+  @Test
   public void stopMessageIsNotReportedAsBadDisconnection() throws Exception
   {
     final byte[] message = new StopMsg().getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V4);
@@ -104,15 +172,7 @@ public class ServerReaderDisconnectTest extends ReplicationTestCase
       final SSLSocket secure = new TestSocket(input);
       final Session session = new Session(socket, secure);
       session.setProtocolVersion(version);
-      final DataServerHandler handler = mock(DataServerHandler.class);
-      final ReplicationServer server = mock(ReplicationServer.class);
-      when(server.getServerId()).thenReturn(9301);
-      final java.lang.reflect.Field field = MessageHandler.class.getDeclaredField("replicationServer");
-      field.setAccessible(true);
-      field.set(handler, server);
-      when(handler.shuttingDown()).thenReturn(shuttingDown);
-      when(handler.getBadlyDisconnectedErrorMessage()).thenReturn(ERR_DS_BADLY_DISCONNECTED.get(
-          9301, 9311, session.getReadableRemoteAddress(), DN.valueOf(TEST_ROOT_DN_STRING)));
+      final DataServerHandler handler = handler(session, shuttingDown);
       if (closeFirst)
       {
         session.close();
@@ -131,12 +191,27 @@ public class ServerReaderDisconnectTest extends ReplicationTestCase
     }
   }
 
+  private static DataServerHandler handler(final Session session, final boolean shuttingDown) throws Exception
+  {
+    final DataServerHandler handler = mock(DataServerHandler.class);
+    final ReplicationServer server = mock(ReplicationServer.class);
+    when(server.getServerId()).thenReturn(9301);
+    final java.lang.reflect.Field field = MessageHandler.class.getDeclaredField("replicationServer");
+    field.setAccessible(true);
+    field.set(handler, server);
+    when(handler.shuttingDown()).thenReturn(shuttingDown);
+    when(handler.getBadlyDisconnectedErrorMessage()).thenReturn(ERR_DS_BADLY_DISCONNECTED.get(
+        9301, 9311, session.getReadableRemoteAddress(), DN.valueOf(TEST_ROOT_DN_STRING)));
+    return handler;
+  }
+
   private static final class TestSocket extends SSLSocket
   {
     private final InputStream input;
     private final OutputStream output = new ByteArrayOutputStream();
 
-    TestSocket(final byte[] bytes) { input = new ByteArrayInputStream(bytes); }
+    TestSocket(final byte[] bytes) { this(new ByteArrayInputStream(bytes)); }
+    TestSocket(final InputStream input) { this.input = input; }
     @Override public InputStream getInputStream() { return input; }
     @Override public OutputStream getOutputStream() { return output; }
     @Override public String[] getSupportedCipherSuites() { return new String[0]; }
