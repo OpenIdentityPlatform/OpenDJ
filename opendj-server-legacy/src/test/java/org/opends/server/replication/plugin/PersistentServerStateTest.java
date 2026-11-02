@@ -403,6 +403,61 @@ public class PersistentServerStateTest extends ReplicationTestCase
     return new PersistentServerState(baseDn, serverId, new ServerState()).getMaxCSN(serverId);
   }
 
+  @Test
+  public void suspendedSavesDrainBeforeDataReplacementAndStaySuspended() throws Exception
+  {
+    final DN dn = DN.valueOf(TEST_ROOT_DN_STRING);
+    final ServerState memory = new ServerState();
+    final CountDownLatch writing = new CountDownLatch(1);
+    final CountDownLatch release = new CountDownLatch(1);
+    final AtomicInteger writes = new AtomicInteger();
+    final PersistentServerState state = new HookedWrite(dn, 1, memory, null, entryDN -> {
+      if (writes.incrementAndGet() == 1)
+      {
+        writing.countDown();
+        try
+        {
+          assertTrue(release.await(30, SECONDS));
+        }
+        catch (InterruptedException e)
+        {
+          throw new AssertionError(e);
+        }
+      }
+    });
+    final CSN first = new CSNGenerator(1, memory).newCSN();
+    state.update(first);
+    final AtomicReference<Throwable> failure = new AtomicReference<>();
+    final Thread writer = new Thread(state::save, "suspended state save");
+    writer.setDaemon(true);
+    writer.setUncaughtExceptionHandler((thread, error) -> failure.set(error));
+    try
+    {
+      writer.start();
+      assertTrue(writing.await(30, SECONDS));
+      assertFalse(state.suspendSaves(10), "data must not be replaced while the old write is pending");
+      release.countDown();
+      writer.join(30_000);
+      assertFalse(writer.isAlive());
+      assertNull(failure.get());
+      assertTrue(state.suspendSaves(1000));
+      final CSN newer = new CSNGenerator(2, memory).newCSN();
+      state.update(newer);
+      state.save();
+      assertEquals(writes.get(), 1, "a suspended save must not write stale state over imported data");
+      assertNull(loadMaxCSN(dn, 2));
+      state.resumeSaves();
+      state.save();
+      assertEquals(loadMaxCSN(dn, 2), newer);
+    }
+    finally
+    {
+      release.countDown();
+      writer.join(30_000);
+      state.resumeSaves();
+    }
+  }
+
   /**
    * A PersistentServerState whose write can be steered from the test, at the
    * point where the snapshot that goes to the backend has already been taken.

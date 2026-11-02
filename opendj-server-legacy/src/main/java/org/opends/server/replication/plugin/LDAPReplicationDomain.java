@@ -128,6 +128,8 @@ import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ModifyDnContext;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.OperationContext;
+import org.opends.server.replication.protocol.ProtocolVersion;
+import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.RoutableMsg;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -196,7 +198,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * This flag prevents the Replication Domain to disable/enable itself when
    * it is the event initiator
    */
-  private boolean ignoreBackendInitializationEvent;
+  private volatile boolean ignoreBackendInitializationEvent;
+  /** Exact backend whose enable may have been ignored while an aborted import was stopping. */
+  private volatile String backendAwaitingInitialization;
+  /** This domain must not resume against data whose post-import state could not be loaded. */
+  private volatile boolean failedImportCleanup;
 
   private volatile boolean  serverShutdownRequested;
 
@@ -279,10 +285,31 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
   @Override
   public void performBackendPostInitializationProcessing(LocalBackend<?> backend) {
-    if (!ignoreBackendInitializationEvent
-            && getBackend().getBackendID().equals(backend.getBackendID())) {
-      enable();
+    // The import invokes this callback on its listener. A concurrent disable may hold
+    // serviceStateLock while joining that listener, so the outside guard is essential.
+    // Backend configuration also holds a global lock: skip foreign domains before locking.
+    if (!ignoreBackendInitializationEvent && isBackendForInitialization(backend))
+    {
+      synchronized (serviceStateLock)
+      {
+        if (!ignoreBackendInitializationEvent && disabled && isBackendForInitialization(backend))
+        {
+          enable();
+        }
+      }
     }
+  }
+
+  private boolean isBackendForInitialization(LocalBackend<?> backend)
+  {
+    final String awaiting = backendAwaitingInitialization;
+    if (awaiting != null)
+    {
+      // A disabled nested suffix can resolve to its parent until its own backend reopens.
+      return awaiting.equals(backend.getBackendID());
+    }
+    final LocalBackend<?> current = getBackend();
+    return current != null && current.getBackendID().equals(backend.getBackendID());
   }
 
   @Override
@@ -291,7 +318,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     // And ignore the event if this replica is the event trigger (e.g. importing).
     if (!ignoreBackendInitializationEvent
             && !serverShutdownRequested
-            && getBackend().getBackendID().equals(backend.getBackendID())) {
+            && isBackendForInitialization(backend)) {
       disable();
     }
   }
@@ -612,7 +639,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * backend the replay would apply a change to is deregistered for the length of it.
    * <p>
    * It is what {@link #disabled} is for an import or a restore run on this server, on the
-   * one road which does not set that flag: {@link #preBackendImport(LocalBackend)} takes
+   * one road which does not set that flag: {@link #preBackendImport(LocalBackend, BackendImportState)} takes
    * the backend away without disabling the domain, because the domain can not stop the
    * session it is importing over. The replay threads read it where they read
    * {@link #disabled}: an attempt made meanwhile is made into no backend, and whatever it
@@ -778,6 +805,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           {
             wait(1000);
           }
+          restoreBackendAfterAbortedImport();
           if (!disabled && !ieRunning())
           {
             saveState();
@@ -1063,6 +1091,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       DSRSShutdownSync dsrsShutdownSync) throws ConfigException
   {
     super(configuration, -1);
+    final LocalizableMessage failure = LocalBackend.getWriteFailure(getBaseDN());
+    if (failure != null)
+    {
+      throw new ConfigException(failure);
+    }
 
     this.updateToReplayQueue = updateToReplayQueue;
     this.dsrsShutdownSync = dsrsShutdownSync;
@@ -5622,6 +5655,8 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
        * it lists after this would be the one left behind.
        */
       remotePendingChanges.clear();
+      // An explicit disable wins over a recovery requested by the listener we just joined.
+      backendAwaitingInitialization = null;
       /*
        * The recovery from a failed replay is over as well: the change it was asking for
        * is gone with the pending changes, so a leftover request would have a replay thread
@@ -5686,7 +5721,13 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * lock is released before returning for the same reason - what keeps the replay out is
    * the flag, not the lock.
    */
-  private void awaitReplayDrained()
+  private boolean awaitReplayDrained()
+  {
+    return awaitReplayDrained(true);
+  }
+
+  /** Waits for replay, optionally reporting the consequences of taking the domain down. */
+  private boolean awaitReplayDrained(boolean goingDown)
   {
     boolean drained = false;
     boolean interrupted = false;
@@ -5710,7 +5751,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     if (drained)
     {
       replayWriteLock.unlock();
-      return;
+      return true;
     }
     /*
      * The change which is being applied may reach the backend without being recorded in the
@@ -5719,18 +5760,20 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
      * restore, a backend being taken offline - for as long as a backend which stopped
      * answering takes to answer.
      *
-     * An interrupted wait is reported as what it is: it says nothing about how long the
+     * On shutdown an interrupted wait is reported as what it is; an import reports its own
+     * preparation failure instead. An interruption says nothing about how long the
      * replay of this domain takes, and the timeout it never spent would have an operator
      * reading a backend which is slow into it.
      */
-    if (interrupted)
+    if (goingDown && interrupted)
     {
       logger.warn(WARN_REPLAY_DRAIN_INTERRUPTED, getBaseDN());
     }
-    else
+    else if (goingDown)
     {
       logger.warn(WARN_REPLAY_NOT_DRAINED, getBaseDN(), replayDrainTimeoutInMs);
     }
+    return false;
   }
 
   /**
@@ -5766,36 +5809,52 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * If there is no such information check if there is a
    * ReplicaUpdateVector entry and translate it into a state
    * and generationId.
+   * <p>
+   * The messages kept of the last local changes are forgotten first, whether the state is read or not:
+   * the data was replaced, by a restore, an import or a total update, and a later recovery would
+   * publish changes done on the data it replaced - see {@link #forgetTheLocalChangesTheDataLacks()}.
    * @exception DirectoryException Thrown when an error occurs.
    */
   private void loadDataState() throws DirectoryException
   {
+    loadDataState(false);
+  }
+
+  /** Loads state after a replacement, optionally refusing every failed read. */
+  private void loadDataState(boolean strict) throws DirectoryException
+  {
+    // Which of them the data lacks is not looked up: the read of the state may fail, and this needs none.
+    // A total update also forgets before enabling the backend. This second forget can mark operations
+    // on the new data, sending their range back to the historical rebuild. It also covers operations
+    // still pending as the state is reloaded.
+    pendingChanges.forgetRecentChanges();
     state.clearInMemory();
-    state.loadState();
-    bringAStateWithNoChangeOfThisReplicaUpToTheData();
+    state.loadState(strict);
+    bringAStateWithNoChangeOfThisReplicaUpToTheData(strict);
     getGenerator().adjust(state.getMaxCSN(getServerId()));
-    forgetTheLocalChangesTheDataLacks();
+    forgetTheLocalChangesTheDataLacks(strict);
 
     // Retrieves the generation ID associated with the data imported
-    generationId = loadGenerationId();
+    generationId = loadGenerationId(strict);
   }
 
   /**
    * Drops the deletes kept aside, and the local changes a recovery kept, which the data the
    * ServerState was just read from does not reflect (issue #1221): it was restored from a backup, or
    * imported, since they were done, and a recovery which published them would have the other
-   * replicas delete or change entries which this one holds as they were.
+   * replicas delete or change entries which this one holds as they were. The messages kept of the
+   * last local changes are forgotten for the same reason, by {@link #loadDataState()}.
    * <p>
    * What comes after the newest change of this replica the state holds is not in the data: the state
    * read back covers the changes the historical information of the entries holds, whether the save
-   * which was to write them wrote or not (see {@link #bringAStateWithNoChangeOfThisReplicaUpToTheData()})
+   * which was to write them wrote or not (see {@link #bringAStateWithNoChangeOfThisReplicaUpToTheData(boolean)})
    * - except for a delete, which leaves no historical information, and which the state misses too when
    * it could not be saved: a delete of the base entry takes the saved state away with it. A delete is
    * therefore dropped only if its entry is in the data. A domain enabled back on its own data loses
    * none of them, unless the search which brings its state up to the data does not go through, which
    * {@code ERR_CANNOT_RECOVER_CHANGES} tells.
    */
-  private void forgetTheLocalChangesTheDataLacks()
+  private void forgetTheLocalChangesTheDataLacks(boolean strict) throws DirectoryException
   {
     final CSN newest = state.getMaxCSN(getServerId());
 
@@ -5809,7 +5868,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     final List<CSN> deletesTheDataLacks = new ArrayList<>();
     for (FakeDelOperation delete : deletes)
     {
-      if (holdsTheEntry(delete.getEntryUUID()))
+      if (holdsTheEntry(delete.getEntryUUID(), strict))
       {
         deletesTheDataLacks.add(delete.getCSN());
       }
@@ -5822,7 +5881,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     final List<CSN> keptChangesTheDataLacks = new ArrayList<>();
     for (LDAPUpdateMsg kept : pendingChanges.keptChangesNewerThan(newest))
     {
-      if (!(kept instanceof DeleteMsg) || holdsTheEntry(kept.getEntryUUID()))
+      if (!(kept instanceof DeleteMsg) || holdsTheEntry(kept.getEntryUUID(), strict))
       {
         keptChangesTheDataLacks.add(kept.getCSN());
       }
@@ -5844,7 +5903,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * reflect, and the add of the base entry dropped, while the deletes which removed the suffix are
    * published. The search here starts at the first change the recovery kept, which bounds it.
    */
-  private void bringAStateWithNoChangeOfThisReplicaUpToTheData()
+  private void bringAStateWithNoChangeOfThisReplicaUpToTheData(boolean strict) throws DirectoryException
   {
     if (state.getMaxCSN(getServerId()) != null)
     {
@@ -5855,7 +5914,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     {
       return;
     }
-    final CSN newest = newestChangeOfThisReplicaInTheDataFrom(kept.get(0).getCSN());
+    final CSN newest = newestChangeOfThisReplicaInTheDataFrom(kept.get(0).getCSN(), strict);
     if (newest != null)
     {
       state.update(newest);
@@ -5870,7 +5929,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    *         changes are then taken for changes the data does not hold, as they are when the search which
    *         brings the state up to them as it is loaded does not go through
    */
-  private CSN newestChangeOfThisReplicaInTheDataFrom(CSN from)
+  private CSN newestChangeOfThisReplicaInTheDataFrom(CSN from, boolean strict) throws DirectoryException
   {
     final InternalSearchOperation op;
     try
@@ -5879,6 +5938,10 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     }
     catch (Exception e)
     {
+      if (strict)
+      {
+        throw new DirectoryException(ResultCode.OTHER, ERR_CANNOT_RECOVER_CHANGES.get(getBaseDN()), e);
+      }
       logger.traceException(e);
       logger.error(ERR_CANNOT_RECOVER_CHANGES, getBaseDN());
       return null;
@@ -5888,6 +5951,10 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       // A suffix whose base entry is gone holds no change.
       if (op.getResultCode() != ResultCode.NO_SUCH_OBJECT)
       {
+        if (strict)
+        {
+          throw new DirectoryException(op.getResultCode(), ERR_CANNOT_RECOVER_CHANGES.get(getBaseDN()));
+        }
         logger.error(ERR_CANNOT_RECOVER_CHANGES, getBaseDN());
       }
       return null;
@@ -5912,7 +5979,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * which did not go through counts as one which found it: a delete then is not published, rather
    * than published over an entry which may be there.
    */
-  private boolean holdsTheEntry(String entryUUID)
+  private boolean holdsTheEntry(String entryUUID, boolean strict) throws DirectoryException
   {
     try
     {
@@ -5920,7 +5987,38 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     }
     catch (SearchFailedException e)
     {
+      if (strict)
+      {
+        throw new DirectoryException(ResultCode.OTHER, ERR_CANNOT_RECOVER_CHANGES.get(getBaseDN()), e);
+      }
       return true;
+    }
+  }
+
+  /** Rechecks an enable which cleanup may have ignored, from a thread that can join the listener. */
+  private void restoreBackendAfterAbortedImport()
+  {
+    if (backendAwaitingInitialization == null || ignoreBackendInitializationEvent || ieRunning())
+    {
+      return;
+    }
+    synchronized (serviceStateLock)
+    {
+      final String backendID = backendAwaitingInitialization;
+      if (backendID != null && disabled && !shutdown.get() && !serverShutdownRequested
+          && !failedImportCleanup && !ignoreBackendInitializationEvent && !ieRunning()
+          && getServerContext().getBackendConfigManager().hasLocalBackend(backendID))
+      {
+        try
+        {
+          enable();
+        }
+        catch (Exception e)
+        {
+          // An unsuccessful restart must not terminate the state checkpointer.
+          logger.error(ERR_INIT_DOMAIN_RESTORE_FAILED, getBaseDN(), backendID, stackTraceToSingleLineString(e));
+        }
+      }
     }
   }
 
@@ -5936,6 +6034,12 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   {
     synchronized (serviceStateLock)
     {
+      if (failedImportCleanup)
+      {
+        return;
+      }
+      // Consume the missed event before a new listener can request another recovery.
+      backendAwaitingInitialization = null;
       /*
        * Cleared here as well as by disable(): a request made after disable()'s own clear -
        * every road which releases a change asks for the restart, whether or not the domain
@@ -6082,6 +6186,16 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     return result;
   }
 
+  /** Saves a recomputed ID, making a failed write fatal after an import. */
+  private void saveGenerationId(long id, boolean strict) throws DirectoryException
+  {
+    final ResultCode result = saveGenerationId(id);
+    if (strict && result != ResultCode.SUCCESS && result != ResultCode.NO_SUCH_OBJECT)
+    {
+      throw new DirectoryException(result, ERR_UPDATING_GENERATION_ID.get(getBaseDN(), result.getName()));
+    }
+  }
+
   /**
    * Load the GenerationId from the root entry of the domain
    * from the REPLICATION_GENERATION_ID attribute in database
@@ -6091,6 +6205,12 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * @throws DirectoryException When an error occurs.
    */
   private long loadGenerationId() throws DirectoryException
+  {
+    return loadGenerationId(false);
+  }
+
+  /** Loads the generation ID, refusing read or persistence failures after an online import. */
+  private long loadGenerationId(boolean strict) throws DirectoryException
   {
     if (logger.isTraceEnabled())
     {
@@ -6116,6 +6236,10 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       if (search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
       {
         String errorMsg = search.getResultCode().getName() + " " + search.getErrorMessage();
+        if (strict)
+        {
+          throw new DirectoryException(search.getResultCode(), ERR_SEARCHING_GENERATION_ID.get(getBaseDN(), errorMsg));
+        }
         logger.error(ERR_SEARCHING_GENERATION_ID, getBaseDN(), errorMsg);
       }
     }
@@ -6132,6 +6256,10 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
           if (attr.size()>1)
           {
             String errorMsg = "#Values=" + attr.size() + " Must be exactly 1 in entry " + resultEntry.toLDIFString();
+            if (strict)
+            {
+              throw new DirectoryException(ResultCode.OTHER, ERR_LOADING_GENERATION_ID.get(getBaseDN(), errorMsg));
+            }
             logger.error(ERR_LOADING_GENERATION_ID, getBaseDN(), errorMsg);
           }
           else if (attr.size() == 1)
@@ -6143,6 +6271,11 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
             }
             catch(Exception e)
             {
+              if (strict)
+              {
+                throw new DirectoryException(ResultCode.OTHER,
+                    ERR_LOADING_GENERATION_ID.get(getBaseDN(), stackTraceToSingleLineString(e)), e);
+              }
               logger.error(ERR_LOADING_GENERATION_ID, getBaseDN(), stackTraceToSingleLineString(e));
             }
           }
@@ -6153,7 +6286,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     if (!found)
     {
       aGenerationId = computeGenerationId();
-      saveGenerationId(aGenerationId);
+      saveGenerationId(aGenerationId, strict);
 
       if (logger.isTraceEnabled())
       {
@@ -6347,12 +6480,13 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * @throws DirectoryException
    *           If the backend could not be disabled or locked exclusively.
    */
-  private void preBackendImport(LocalBackend<?> backend) throws DirectoryException
+  private void preBackendImport(LocalBackend<?> backend, BackendImportState progress) throws DirectoryException
   {
     // Prevent the processing of the backend finalisation event as the import will disable the attached backend
     ignoreBackendInitializationEvent = true;
 
     // FIXME setBackendEnabled should be part of TaskUtils ?
+    progress.backendDisabled = true;
     TaskUtils.disableBackend(backend.getBackendID());
 
     // Acquire an exclusive lock for the backend.
@@ -6364,6 +6498,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       logger.error(message);
       throw new DirectoryException(ResultCode.OTHER, message);
     }
+    progress.lockHeld = true;
   }
 
   /**
@@ -6378,6 +6513,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     LocalBackend<?> backend = getBackend();
 
     LDIFImportConfig importConfig = null;
+    final BackendImportState progress = new BackendImportState();
     ImportExportContext ieCtx = getImportExportContext();
     try
     {
@@ -6389,7 +6525,25 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
        * it is the session the entries are about to stream over, on this very thread.
        */
       importingData = true;
-      awaitReplayDrained();
+      boolean drained;
+      try
+      {
+        drained = awaitReplayDrained(false) && state.suspendSaves(replayDrainTimeoutInMs);
+      }
+      catch (InterruptedException e)
+      {
+        Thread.currentThread().interrupt();
+        drained = false;
+      }
+      if (!drained)
+      {
+        final LocalizableMessage reason = Thread.currentThread().isInterrupted()
+            ? ERR_INIT_PREPARATION_INTERRUPTED.get(getBaseDN())
+            : ERR_INIT_OPERATIONS_NOT_DRAINED.get(getBaseDN());
+        logger.error(reason);
+        ieCtx.setExceptionIfNoneSet(new DirectoryException(ResultCode.UNAVAILABLE, reason));
+        return;
+      }
 
       if (!backend.supports(BackendOperation.LDIF_IMPORT))
       {
@@ -6414,70 +6568,126 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
           ExistingFileBehavior.OVERWRITE);
 
       // Process import
-      preBackendImport(backend);
+      preBackendImport(backend, progress);
+      progress.replacingData = true;
       backend.importLDIF(importConfig, getServerContext());
     }
     catch(Exception e)
     {
+      if (e instanceof InterruptedException)
+      {
+        Thread.currentThread().interrupt();
+      }
       ieCtx.setExceptionIfNoneSet(new DirectoryException(ResultCode.OTHER,
           ERR_INIT_IMPORT_FAILURE.get(stackTraceToSingleLineString(e))));
     }
     finally
     {
+      if (progress.replacingData)
+      {
+        // No message of the replaced data may survive a failed cleanup or state reload.
+        pendingChanges.forgetRecentChanges();
+      }
       try
       {
         // Cleanup
         if (importConfig != null)
         {
           importConfig.close();
-          closeBackendImport(backend); // Re-enable backend
-          backend = getBackend();
+        }
+        if (progress.backendDisabled)
+        {
+          closeBackendImport(backend, progress);
+        }
+        else
+        {
+          ignoreBackendInitializationEvent = false;
         }
 
-        loadDataState();
+        if (progress.replacingData)
+        {
+          loadDataState(true);
+        }
 
-        if (ieCtx.getException() != null)
+        if (progress.replacingData && ieCtx.getException() != null)
         {
           // When an error occurred during an import, most of times
           // the generationId coming in the root entry of the imported data,
           // is not valid anymore (partial data in the backend).
           generationId = computeGenerationId();
-          saveGenerationId(generationId);
+          saveGenerationId(generationId, true);
         }
       }
-      catch (DirectoryException fe)
+      catch (Exception fe)
       {
-        // If we already catch an Exception it's quite possible
-        // that the loadDataState() and setGenerationId() fail
-        // so we don't bother about the new Exception.
-        // However if there was no Exception before we want
-        // to return this Exception to the task creator.
-        ieCtx.setExceptionIfNoneSet(new DirectoryException(
-            ResultCode.OTHER,
-            ERR_INIT_IMPORT_FAILURE.get(stackTraceToSingleLineString(fe))));
+        if (!progress.replacingData)
+        {
+          // Preparation changed no data: neither a refused disable nor a refused lock warrants
+          // a process-lifetime quarantine. Report cleanup too, preserving the original failure.
+          final LocalizableMessage reason = ERR_INIT_IMPORT_FAILURE.get(stackTraceToSingleLineString(fe));
+          logger.error(reason);
+          ieCtx.setExceptionIfNoneSet(new DirectoryException(ResultCode.OTHER, reason, fe));
+          // A DN lookup could find the parent backend of a disabled nested suffix.
+          if (!getServerContext().getBackendConfigManager().hasLocalBackend(backend.getBackendID()))
+          {
+            // The backend could not be enabled back. Keep the domain stopped until a later backend
+            // enable reloads its state. This runs on the listener: it cannot join itself, nor take
+            // serviceStateLock while a concurrent disable may hold it and wait for this listener.
+            disabled = true;
+            stopServiceAfterAbortedImport();
+            remotePendingChanges.clear();
+            // A backend enable between the availability check and the final flag clear is
+            // deliberately ignored by the callback. Recheck it after import completion.
+            backendAwaitingInitialization = backend.getBackendID();
+            logger.error(ERR_INIT_DOMAIN_AWAITING_BACKEND, getBaseDN(), backend.getBackendID());
+          }
+        }
+        else
+        {
+          // A successful import and a failed import both need trustworthy cleanup before reuse.
+          // Preserve an earlier import error in the terminal reason, rather than hiding this failure.
+          final LocalizableMessage reason = ERR_INIT_DOMAIN_STOPPED.get(getBaseDN(),
+              ieCtx.getException() == null ? "" : ieCtx.getException().getLocalizedMessage(),
+              stackTraceToSingleLineString(fe));
+          failedImportCleanup = true;
+          disabled = true;
+          LocalBackend.quarantineWrites(getBaseDN(), reason);
+          logger.error(reason);
+          ieCtx.setException(new DirectoryException(ResultCode.OTHER, reason));
+          stopServicePermanently();
+        }
       }
       finally
       {
         /*
-         * The ServerState in memory is the one read from the data now, and the changes
-         * listed as pending must not outlive the one they went with, as they do not when
-         * the domain is disabled: a change given back while the import ran would stay
+         * Once replacement has begun, the changes listed as pending must not outlive their data,
+         * as they do not when the domain is disabled: a change given back while the import ran would stay
          * listed, uncommitted and owned by nobody, and a commit stops at the first
          * uncommitted change - the state would never move past it, and the replication
          * server does not send a change again which the state it is given covers. Nothing
          * listed a change meanwhile: the listener thread is the one running this import,
-         * and the replay threads gave up every attempt while the flag was set. The restarts
-         * they asked for on their way out, while the total update owned the session, and
-         * any asked for before it did, go with them, as do the deliveries folded into no
-         * warning: the caller starts the session again from the reloaded state. A replay
-         * thread which reaches its give-up after this clear finds its change unlisted and
+         * and the replay threads gave up every attempt while the flag was set. A replay thread
+         * which reaches its give-up after this clear finds its change unlisted and
          * asks for nothing.
          */
-        remotePendingChanges.clear();
+        if (progress.replacingData)
+        {
+          remotePendingChanges.clear();
+        }
+        // The caller reconnects even after abandoning replacement, unless the service was stopped
+        // above. That reconnect satisfies requests already made during the drain; if the backend
+        // is unavailable, its later enable does so instead. A request made later is a new request.
         sessionRestarts.clear();
         consecutiveSessionRestarts.set(0);
         foldedReplayRetryWarnings.set(0);
+        if (!failedImportCleanup)
+        {
+          state.resumeSaves();
+        }
         importingData = false;
+        // In particular, an enable refused during preparation must not suppress the later event
+        // which restores a temporarily stopped domain. All import bookkeeping is settled first.
+        ignoreBackendInitializationEvent = false;
       }
     }
 
@@ -6487,18 +6697,25 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     }
   }
 
+  /** Tracks the resources actually acquired by this import, including failed preparation. */
+  private static final class BackendImportState
+  {
+    private boolean backendDisabled;
+    private boolean lockHeld;
+    private boolean replacingData;
+  }
+
   /**
-   * Make post import operations.
-   * @param backend The backend implied in the import.
-   * @exception DirectoryException Thrown when an error occurs.
+   * Releases the import's lock and enables its backend.
+   * @param backend the backend being imported
+   * @param progress resources acquired by this import
+   * @throws DirectoryException if the lock cannot be released or the backend cannot be enabled
    */
-  private void closeBackendImport(LocalBackend<?> backend) throws DirectoryException
+  private void closeBackendImport(LocalBackend<?> backend, BackendImportState progress) throws DirectoryException
   {
     String lockFile = LockFileManager.getBackendLockFileName(backend);
     StringBuilder failureReason = new StringBuilder();
-
-    // Release lock
-    if (!LockFileManager.releaseLock(lockFile, failureReason))
+    if (progress.lockHeld && !LockFileManager.releaseLock(lockFile, failureReason))
     {
       LocalizableMessage message =
           WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason);
@@ -6506,11 +6723,10 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       throw new DirectoryException(ResultCode.OTHER, message);
     }
 
+    progress.lockHeld = false;
     TaskUtils.enableBackend(backend.getBackendID());
-
-    // Restore the processing of backend finalization events.
+    progress.backendDisabled = false;
     ignoreBackendInitializationEvent = false;
-
   }
 
   /**
@@ -6625,6 +6841,12 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   {
     // Check that there is not already a domain with the same DN
     final DN dn = configuration.getBaseDN();
+    final LocalizableMessage failure = LocalBackend.getWriteFailure(dn);
+    if (failure != null)
+    {
+      unacceptableReasons.add(failure);
+      return false;
+    }
     LDAPReplicationDomain domain = MultimasterReplication.findDomain(dn, null);
     if (domain != null && domain.getBaseDN().equals(dn))
     {
@@ -7274,10 +7496,12 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
    * Build the list of changes that have been processed by this server after the
    * CSN given as a parameter and publish them using the given session.
    * <p>
-   * The changes done before the recovery began are rebuilt from the historical information of
-   * their entries, in rounds, each one from where the round before it stopped, up to the last of
-   * them: each of them has its entry written by then, so the search of a round finds it, or a later
-   * change of the same values, which supersedes it. The local changes pushed since the recovery began
+   * The changes done before the recovery began are published from the messages the domain kept of its
+   * last local changes, as they were done; the ones done before the first of those are rebuilt from
+   * the historical information of their entries, in rounds, each one from where the round before it
+   * stopped, up to there: each of them has its entry written by then, so the search of a round finds
+   * it, or a later change of the same values, which supersedes it - and the replication server never
+   * holds the change superseded (issue #1246). The local changes pushed since the recovery began
    * are kept by the pending changes, with their messages, and they are published next, in order. The
    * recovery ends with the round which publishes up to the last local change, no change having been
    * pushed meanwhile; once a round has caught up with the local changes and some were pushed while it
@@ -7399,6 +7623,8 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     private final ReplicationBroker recoveryBroker;
     private final Session recoverySession;
     private final RSUpdater publisher;
+    /** Whether this run said it rebuilds changes from the historical information: it says so once. */
+    private boolean rebuildingReported;
 
     private MissingChanges(ReplicationBroker recoveryBroker, Session recoverySession, RSUpdater publisher)
     {
@@ -7463,9 +7689,8 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
 
     /**
      * Runs one round: publishes the changes done before the recovery began which come after
-     * {@code fromCSN}, rebuilt from the historical information, up to the end of a search window;
-     * past them, the local changes the recovery kept; or, if it kept too many to keep any, the
-     * changes rebuilt from the historical information up to the last local change.
+     * {@code fromCSN} - see {@link #publishChangesDone(CSN, CSN)}; past them, the local changes the
+     * recovery kept; or, if it kept too many to keep any, the changes done up to the last local change.
      *
      * @param heldBack
      *          whether the round runs while the local changes are held back
@@ -7482,19 +7707,111 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       final PendingChanges.KeptChanges keeping = pendingChanges.keptChanges();
       if (keeping == null)
       {
-        return publishMissingChanges(fromCSN, null);
+        return publishChangesDone(fromCSN, null);
       }
       if (keeping.searchUpTo != null && fromCSN.isOlderThan(keeping.searchUpTo))
       {
-        return publishMissingChanges(fromCSN, keeping.searchUpTo);
+        return publishChangesDone(fromCSN, keeping.searchUpTo);
       }
       final List<LDAPUpdateMsg> kept = pendingChanges.keptChangesAfter(fromCSN);
       if (kept == null)
       {
         // It kept too many since.
-        return publishMissingChanges(fromCSN, null);
+        return publishChangesDone(fromCSN, null);
       }
       return publishKeptChanges(fromCSN, kept, heldBack);
+    }
+
+    /**
+     * Runs a round which publishes the changes of this replica which come after {@code fromCSN}, up to
+     * {@code upTo} - where the search of the recovery ends - or, if it is {@code null}, up to the last
+     * local change: the messages the domain kept of them, as they were done, or - for the changes done
+     * before the first of those - the changes rebuilt from the historical information, up to there.
+     * <p>
+     * Rebuilt, a change whose values a later one replaced is published as the later one, and the add of
+     * an entry deleted since not at all, and the replication server of the session, which takes no change
+     * older than the newest one it holds of this replica, never holds them (issue #1246). The domain says
+     * so, once per run, in the first round which finds a change or a kept delete - see
+     * {@link #publishMissingChanges(CSN, CSN)}: its replication server is further behind than the messages
+     * it keeps go back.
+     *
+     * @return the round, or {@code null} if the domain was shut down meanwhile
+     * @throws MissingChangesSearchFailedException
+     *           if the search did not go through: the round published nothing
+     */
+    private MissingChangesRound publishChangesDone(CSN fromCSN, CSN upTo) throws Exception
+    {
+      final PendingChanges.RecentChanges recent = pendingChanges.recentChangesAfter(fromCSN, upTo);
+      if (recent.messages != null)
+      {
+        return publishRecentChanges(fromCSN, recent, upTo == null);
+      }
+      // The messages kept go on from where the ones the domain kept begin, if they begin before the end.
+      final CSN rebuiltUpTo = recent.keptAfter != null && (upTo == null || recent.keptAfter.isOlderThan(upTo))
+          ? recent.keptAfter : upTo;
+      return publishMissingChanges(fromCSN, rebuiltUpTo);
+    }
+
+    /**
+     * Runs a round which publishes the messages the domain kept of its local changes after
+     * {@code fromCSN}, in order and as they were done, up to the end the domain read them up to; a round
+     * which went up to the last local change ends the recovery if no change was pushed since.
+     *
+     * @param reachesLastChange
+     *          whether the messages go up to the last local change, rather than to where the search of
+     *          the recovery ends
+     * @return the round, or {@code null} if the domain was shut down meanwhile
+     */
+    private MissingChangesRound publishRecentChanges(CSN fromCSN, PendingChanges.RecentChanges recent,
+        boolean reachesLastChange) throws Exception
+    {
+      for (LDAPUpdateMsg msg : recent.messages)
+      {
+        if (shutdown.get())
+        {
+          return null;
+        }
+        if (importingData)
+        {
+          return refusedForTheImport(fromCSN);
+        }
+        if (!recoveryBroker.publishRecovery(notAssured(msg), recoverySession))
+        {
+          return refused(fromCSN, msg.getCSN());
+        }
+        if (msg instanceof DeleteMsg)
+        {
+          deleteKeptAsidePublished(msg.getCSN());
+        }
+      }
+      final CSN publishedUpTo = recent.upTo != null && recent.upTo.isNewerThan(fromCSN) ? recent.upTo : fromCSN;
+      if (logger.isDebugEnabled())
+      {
+        logger.debug(LocalizableMessage.raw("publish loop of the recent changes >" + fromCSN
+            + " published=" + recent.messages.size() + " upTo=" + publishedUpTo));
+      }
+      final boolean endedRecovery =
+          reachesLastChange && !pendingChanges.recoveryUntil(publishedUpTo, this::endRecovery);
+      return new MissingChangesRound(publishedUpTo, reachesLastChange, true, endedRecovery);
+    }
+
+    /**
+     * Returns the message to publish for a local change the domain kept: itself, or - if it was
+     * published assured - a copy which is not, as a recovery publishes the changes it rebuilds and the
+     * ones it kept: an operation which still waits for the acknowledgement of one gets none, and times
+     * out. The message kept was handed to the broker already, so it is not changed in its place: the
+     * operation which published it may still wait for its acknowledgement.
+     */
+    private LDAPUpdateMsg notAssured(LDAPUpdateMsg msg) throws Exception
+    {
+      if (!msg.isAssured())
+      {
+        return msg;
+      }
+      final short version = ProtocolVersion.getCurrentVersion();
+      final LDAPUpdateMsg copy = (LDAPUpdateMsg) ReplicationMsg.generateMsg(msg.getBytes(version), version);
+      copy.setNotAssured();
+      return copy;
     }
 
     /**
@@ -7580,6 +7897,17 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
         {
           opsToSend.putAll(replayOperations.subMap(fromCSN, false, bound, true));
         }
+      }
+      /*
+       * A delete is published whole, but its entry may have held earlier changes which the search
+       * cannot find. A value replaced by a later kept message may leave no trace here at all. An
+       * empty window alone does not warrant a warning: after a restart it can precede the first
+       * message kept without containing any change.
+       */
+      if (!rebuildingReported && !opsToSend.isEmpty())
+      {
+        rebuildingReported = true;
+        logger.warn(WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION, getBaseDN(), fromCSN, lastChange);
       }
 
       for (FakeOperation opToSend : opsToSend.values())

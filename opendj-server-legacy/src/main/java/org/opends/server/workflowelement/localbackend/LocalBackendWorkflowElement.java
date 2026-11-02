@@ -723,6 +723,12 @@ public class LocalBackendWorkflowElement
       LocalizableMessageDescriptor.Arg1<Object> backendMsg)
       throws DirectoryException
   {
+    final LocalizableMessage failure = LocalBackend.getWriteFailure(entryDN);
+    if (failure != null)
+    {
+      // This also applies to internal/repair operations and private backends such as cn=schema.
+      throw new DirectoryException(ResultCode.UNAVAILABLE, failure);
+    }
     if (!backend.isPrivateBackend())
     {
       checkIfWritable(DirectoryServer.getCoreConfigManager().getWritabilityMode(), op, serverMsg, entryDN);

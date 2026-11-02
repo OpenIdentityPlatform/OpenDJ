@@ -74,6 +74,7 @@ import org.testng.annotations.Test;
 
 import static java.util.concurrent.TimeUnit.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.opends.messages.ReplicationMessages.WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
@@ -146,6 +147,23 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   }
 
   /**
+   * Runs a test as the domain keeps the messages of its last local changes, which a recovery publishes,
+   * and as it keeps none, and the recovery rebuilds every change from the historical information.
+   */
+  @DataProvider
+  public Object[][] keepingTheRecentChanges()
+  {
+    return new Object[][] { { true }, { false } };
+  }
+
+  /** Runs a test with each of {@link #keepingTheLocalChanges()} and {@link #keepingTheRecentChanges()}. */
+  @DataProvider
+  public Object[][] keepingTheLocalAndTheRecentChanges()
+  {
+    return new Object[][] { { true, true }, { true, false }, { false, true }, { false, false } };
+  }
+
+  /**
    * Forgets the replication server of the test: the next one, and the domains of the next tests,
    * would be configured with its port, which nothing listens on anymore.
    */
@@ -209,6 +227,8 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     ReplicationServer rs = createReplicationServer();
     // Create Replication Server and Domain
     LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    // These rebuild the changes from the historical information: the domain keeps no message of them.
+    pendingChangesOf(rd1).setMaxRecentChanges(0);
 
     try
     {
@@ -308,6 +328,8 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     ReplicationServer rs = createReplicationServer();
     // Create Replication Server and Domain
     LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    // These rebuild the changes from the historical information: the domain keeps no message of them.
+    pendingChangesOf(rd1).setMaxRecentChanges(0);
     long startTime = TimeThread.getTime();
 
     try
@@ -774,10 +796,12 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
    * them, and the deletes kept aside for the recovery were dropped as it ended: the next recovery
    * has to find all of them still. The first change refused is a delete, which only the list it is
    * kept aside in, or the local changes the recovery keeps, can publish again: a modify, the search
-   * of the next recovery finds again.
+   * of the next recovery finds again - or the messages of the last local changes, if the domain keeps
+   * them.
    */
-  @Test(dataProvider = "keepingTheLocalChanges")
-  public void changesTheBrokerRefusedAreLeftToTheNextRecovery(boolean keeps) throws Exception
+  @Test(dataProvider = "keepingTheLocalAndTheRecentChanges")
+  public void changesTheBrokerRefusedAreLeftToTheNextRecovery(boolean keeps, boolean keepsTheRecentChanges)
+      throws Exception
   {
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     TestCaseUtils.initializeTestBackend(true);
@@ -789,7 +813,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       final DN dnB = addPerson("b");
       final CSN rsMaxCSN = rd1.getLastLocalChange();
 
-      startRecovery(rd1, keeps);
+      startRecovery(rd1, keeps, keepsTheRecentChanges);
       final List<CSN> done = new ArrayList<>();
       TestCaseUtils.deleteEntry(dnB);
       done.add(rd1.getLastLocalChange());
@@ -837,6 +861,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       // as the missing change publisher does once it failed
       brokerOf(rd1).setRecoveryRequired(false);
 
+      final int logged = TestCaseUtils.ERROR_TEXT_WRITER.getMessages().size();
       rd1.disable();
       rd1.enable();
       // The broker starts its session before enable() returns: a change done before would have
@@ -845,6 +870,13 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
       replace(dnA, "description", "in a session which needs no recovery");
       assertInTheChangelog(rs, baseDN, rd1.getLastLocalChange());
+      // The publisher which ended the recovery had no change to rebuild, and says none (issue #1246).
+      final List<String> records = TestCaseUtils.ERROR_TEXT_WRITER.getMessages();
+      assertThat(records.subList(logged, records.size()))
+          .filteredOn(record -> record.contains("category=SYNC severity=WARNING msgID="
+              + WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION.ordinal() + " "))
+          .as("the publisher which ended the recovery says it rebuilds changes")
+          .isEmpty();
     }
     finally
     {
@@ -1287,6 +1319,193 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   }
 
   /**
+   * The changes done before a recovery began are published as they were done, from the messages the
+   * domain keeps of its last local changes: a change whose values a later one replaced, and the add of
+   * an entry deleted since, of which the historical information holds nothing. A recovery which
+   * rebuilt them from it published neither, and the replication server it was for took neither once it
+   * held the later changes: a directory server which failed over to a replication server behind it
+   * left gaps in its changelog for good (issue #1246).
+   */
+  @Test(dataProvider = "keepingTheLocalChanges")
+  public void theChangesDoneBeforeTheRecoveryBeganArePublishedAsTheyWereDone(boolean keeps) throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      final DN dnA = addPerson("a");
+      final CSN rsMaxCSN = rd1.getLastLocalChange();
+
+      final List<CSN> done = new ArrayList<>();
+      replace(dnA, "description", "first");
+      done.add(rd1.getLastLocalChange());
+      replace(dnA, "description", "second");
+      done.add(rd1.getLastLocalChange());
+      final DN dnB = addPerson("b");
+      done.add(rd1.getLastLocalChange());
+      TestCaseUtils.deleteEntry(dnB);
+      done.add(rd1.getLastLocalChange());
+      startRecovery(rd1, keeps, true);
+
+      final List<ReplicationMsg> published = new ArrayList<>();
+      assertTrue(rd1.buildAndPublishMissingChanges(rsMaxCSN, new TestBroker(published)));
+      assertThat(csns(published)).containsExactlyElementsOf(done);
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  /**
+   * A directory server which fails over to a replication server behind it has it hold every change it
+   * misses, as it was done: a change whose values a later one replaced, and the add of an entry deleted
+   * since, included. Rebuilt from the historical information, neither reached it, and it took neither
+   * afterwards, as it held later changes of this replica - the gaps the replication convergence run
+   * found in the changelogs (issue #1246).
+   */
+  @Test
+  public void aReplicationServerBehindGetsEveryChangeItMissesAsItWasDone() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    final SortedSet<String> towardsRs = new TreeSet<>(replServers);
+    final int secondPort = TestCaseUtils.findFreePort();
+    final SortedSet<String> towardsSecond = towards(secondPort);
+    ReplicationServer second = null;
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      second = createIsolatedReplicationServer(secondPort, "HistoricalCsnOrderingSecond", SECOND_RS_ID);
+      final DN dnA = addPerson("a");
+      aChangeBothReplicationServersHold(rd1, dnA, rs, towardsRs, second, towardsSecond);
+
+      // Done on the first replication server only.
+      final List<CSN> done = new ArrayList<>();
+      replace(dnA, "description", "first");
+      done.add(rd1.getLastLocalChange());
+      replace(dnA, "description", "second");
+      done.add(rd1.getLastLocalChange());
+      final DN dnB = addPerson("b");
+      done.add(rd1.getLastLocalChange());
+      TestCaseUtils.deleteEntry(dnB);
+      done.add(rd1.getLastLocalChange());
+      for (CSN csn : done)
+      {
+        assertInTheChangelog(rs, baseDN, csn);
+      }
+
+      connectTo(rd1, towardsSecond, SECOND_RS_ID);
+      for (CSN csn : done)
+      {
+        assertInTheChangelog(second, baseDN, csn);
+      }
+      waitUntilTheRecoveryIsOver(rd1);
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs, second);
+    }
+  }
+
+  /**
+   * A replication server further behind than the messages the domain kept of its last local changes go
+   * back gets the changes before the first of them rebuilt from the historical information, and the
+   * others as they were done - a change a later one replaced included - and the domain says so, once
+   * however many rounds rebuild them: that replication server may never hold some of the changes
+   * rebuilt. The recovery starts three search windows back, so that rounds of their own rebuild the
+   * changes, each from where the one before stopped.
+   */
+  @Test
+  public void aRecoveryFromBeforeTheMessagesKeptRebuildsTheChangesBeforeThemAndSaysSo() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      final List<CSN> done = new ArrayList<>();
+      final DN dnA = addPerson("a");
+      done.add(rd1.getLastLocalChange());
+      final DN dnB = addPerson("b");
+      done.add(rd1.getLastLocalChange());
+      final CSN fromCSN = new CSN(rd1.getLastLocalChange().getTime() - 3 * SEARCH_WINDOW_MS, 0, serverId);
+
+      pendingChangesOf(rd1).setMaxRecentChanges(2);
+      // Put the last rebuilt change in a different search window from the adds.
+      rd1.getGenerator().adjust(new CSN(rd1.getLastLocalChange().getTime() + SEARCH_WINDOW_MS, 0, serverId));
+      replace(dnB, "description", "rebuilt");
+      done.add(rd1.getLastLocalChange());
+      replace(dnA, "description", "first");
+      done.add(rd1.getLastLocalChange());
+      replace(dnA, "description", "second");
+      done.add(rd1.getLastLocalChange());
+      startRecovery(rd1, true, true);
+
+      final List<ReplicationMsg> published = new ArrayList<>();
+      // A publisher of its own, which has each record once: the error log of the tests has two, whose
+      // copies of one record differ when the second of their time stamps ticks in between.
+      final List<String> records = errorLogRecordsOf(() -> {
+        assertTrue(rd1.buildAndPublishMissingChanges(fromCSN, new TestBroker(published)));
+        return null;
+      });
+      assertThat(csns(published)).containsExactlyElementsOf(done);
+      assertThat(records)
+          .filteredOn(record -> record.contains("category=SYNC severity=WARNING msgID="
+              + WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION.ordinal() + " "))
+          .as("the domain says it rebuilds changes from the historical information, once")
+          .hasSize(1);
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  /**
+   * A change published assured is published by a recovery as one no acknowledgement is waited for, as
+   * a recovery publishes the changes it rebuilds and the ones it kept: a copy, not the message the domain
+   * kept, which it handed to the broker already and whose acknowledgement the operation may still wait for.
+   */
+  @Test
+  public void aChangePublishedAssuredIsPublishedByARecoveryAsOneNoAcknowledgementIsWaitedFor() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = MultimasterReplication.createNewDomain(new DomainFakeCfg(
+        baseDN, serverId, replServers, AssuredType.SAFE_DATA, 1, 1, 1000, null));
+    rd1.start();
+    try
+    {
+      final DN dnA = addPerson("a");
+      final CSN rsMaxCSN = rd1.getLastLocalChange();
+      replace(dnA, "description", "assured");
+      final CSN done = rd1.getLastLocalChange();
+      startRecovery(rd1, true, true);
+
+      final List<ReplicationMsg> published = new ArrayList<>();
+      assertTrue(rd1.buildAndPublishMissingChanges(rsMaxCSN, new TestBroker(published)));
+      assertThat(csns(published)).containsExactly(done);
+      assertFalse(((UpdateMsg) published.get(0)).isAssured(), "the recovery publishes it not assured");
+      assertTrue(pendingChangesOf(rd1).recentChangesAfter(rsMaxCSN, done).messages.get(0).isAssured(),
+          "the message kept is left as it was published");
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  /**
    * The local changes are held back at the end of a recovery for as long as publishing the ones done
    * during the round before takes, and not for a search: the recovery keeps the changes done since it
    * began, and needs none for them. One which searched for them did so while every local write
@@ -1345,10 +1564,11 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   /**
    * A recovery which kept too many of the local changes done while it runs keeps none, and searches
    * for them in the historical information instead, from where it has got to: none is lost, and the
-   * recovery ends.
+   * recovery ends. With the messages of the last local changes kept, it publishes them from those.
    */
-  @Test
-  public void aRecoveryWhichKeptTooManyChangesSearchesForThemAndLosesNone() throws Exception
+  @Test(dataProvider = "keepingTheRecentChanges")
+  public void aRecoveryWhichKeptTooManyChangesSearchesForThemAndLosesNone(boolean keepsTheRecentChanges)
+      throws Exception
   {
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     TestCaseUtils.initializeTestBackend(true);
@@ -1362,7 +1582,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       final CSN rsMaxCSN = rd1.getLastLocalChange();
 
       pendingChangesOf(rd1).setMaxKeptChanges(2);
-      startRecovery(rd1);
+      startRecovery(rd1, true, keepsTheRecentChanges);
       // Each change of other values than the ones before, which the historical information keeps.
       final List<CSN> done = new ArrayList<>();
       replace(dnA, "description", "kept");
@@ -1388,10 +1608,13 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   /**
    * Local changes go on while a recovery which keeps them runs. The recovery publishes the ones it
    * kept, holds the local changes back only to publish the ones pushed while it published the others,
-   * and ends; each change is published once, by the recovery or, once it has ended, by the broker.
+   * and ends; each change is published once, by the recovery or, once it has ended, by the broker -
+   * whether the changes done before it began are published from the messages the domain kept of them
+   * or rebuilt from the historical information.
    */
-  @Test
-  public void aRecoveryWhichKeepsTheLocalChangesEndsWhileTheyGoOnAndLosesNone() throws Exception
+  @Test(dataProvider = "keepingTheRecentChanges")
+  public void aRecoveryWhichKeepsTheLocalChangesEndsWhileTheyGoOnAndLosesNone(boolean keepsTheRecentChanges)
+      throws Exception
   {
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     TestCaseUtils.initializeTestBackend(true);
@@ -1407,7 +1630,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       }
       final CSN rsMaxCSN = rd1.getLastLocalChange();
 
-      startRecovery(rd1);
+      startRecovery(rd1, true, keepsTheRecentChanges);
       final List<CSN> done = new CopyOnWriteArrayList<>();
       final Future<?> changes = writer.submit(unchecked(() ->
       {
@@ -1756,10 +1979,11 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   /**
    * The local changes a recovery kept are not published once the data they were done on has been
    * replaced, as a restore or an import does while the domain is disabled: the replicas would get
-   * changes this one does not hold. The recovery searches the data it finds then instead.
+   * changes this one does not hold. The recovery searches the data it finds then instead. The messages
+   * the domain kept of its last local changes are forgotten with them (issue #1246).
    */
-  @Test
-  public void theLocalChangesARecoveryKeptGoWithTheDataTheyWereDoneOn() throws Exception
+  @Test(dataProvider = "keepingTheRecentChanges")
+  public void theLocalChangesARecoveryKeptGoWithTheDataTheyWereDoneOn(boolean keepsTheRecentChanges) throws Exception
   {
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     TestCaseUtils.initializeTestBackend(true);
@@ -1776,7 +2000,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
       // The change done then is kept. The broker refuses the announcement that the replica goes
       // offline as well, which would have the replication server hold a CSN past the change.
-      startRecovery(rd1);
+      startRecovery(rd1, true, keepsTheRecentChanges);
       replace(dnA, "description", "on the data which is replaced");
 
       // The data is restored while the domain is disabled, as it was before the change.
@@ -1793,6 +2017,159 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       assertInTheChangelog(rs, baseDN, afterTheRestore);
       assertThat(changelogAfter(rs, baseDN, rsMaxCSN)).as("the changes published once the data was restored")
           .containsExactly(afterTheRestore);
+
+      // A recovery from where the replication server stood before the change - the one of a session to
+      // a replication server behind, say - publishes what the data holds, and not the change either.
+      final List<ReplicationMsg> published = new ArrayList<>();
+      assertTrue(rd1.buildAndPublishMissingChanges(rsMaxCSN, new TestBroker(published)));
+      assertThat(csns(published)).as("the changes a later recovery publishes").containsExactly(afterTheRestore);
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  /**
+   * A recovery which has no change to rebuild - its replication server holds the last local change - says
+   * none is rebuilt from the historical information: the publisher which ends the recovery a failed one
+   * left runs so, and the domain kept no message for it to publish (issue #1246).
+   */
+  @Test
+  public void aRecoveryWithNoChangeToRebuildSaysNoneIsRebuilt() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      addPerson("a");
+      final CSN rsMaxCSN = rd1.getLastLocalChange();
+      startRecovery(rd1, false);
+
+      final int logged = TestCaseUtils.ERROR_TEXT_WRITER.getMessages().size();
+      final List<ReplicationMsg> published = new ArrayList<>();
+      assertTrue(rd1.buildAndPublishMissingChanges(rsMaxCSN, new TestBroker(published)));
+      assertThat(published).isEmpty();
+      final List<String> records = TestCaseUtils.ERROR_TEXT_WRITER.getMessages();
+      assertThat(records.subList(logged, records.size()))
+          .filteredOn(record -> record.contains("category=SYNC severity=WARNING msgID="
+              + WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION.ordinal() + " "))
+          .as("the recovery says it rebuilds changes")
+          .isEmpty();
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  @Test
+  public void aRecoveryWarnsWhenOnlyTheDeleteOfAnEntryCanBePublished() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      addPerson("before");
+      final CSN from = rd1.getLastLocalChange();
+      final DN deleted = addPerson("deleted");
+      TestCaseUtils.deleteEntry(deleted);
+      final CSN delete = rd1.getLastLocalChange();
+      startRecovery(rd1, false);
+
+      final List<ReplicationMsg> published = new ArrayList<>();
+      final List<String> records = errorLogRecordsOf(() -> {
+        assertTrue(rd1.buildAndPublishMissingChanges(from, new TestBroker(published)));
+        return null;
+      });
+      assertThat(csns(published)).containsExactly(delete);
+      assertThat(records).filteredOn(record -> record.contains("category=SYNC severity=WARNING msgID="
+          + WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION.ordinal() + " ")).hasSize(1);
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  @Test
+  public void messagesAreForgottenEvenWhenTheStateCannotBeRead() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      addPerson("a");
+      final CSN change = rd1.getLastLocalChange();
+      final CSN before = new CSN(change.getTime(), change.getSeqnum() - 1, serverId);
+      assertThat(pendingChangesOf(rd1).recentChangesAfter(before, change).messages).hasSize(1);
+      rd1.disable();
+
+      final MemoryBackend backend =
+          (MemoryBackend) getServerContext().getBackendConfigManager().getLocalBackendById(TEST_BACKEND_ID);
+      final AttributeType stateType = getServerContext().getSchema().getAttributeType("ds-sync-state");
+      final Entry saved = backend.getEntry(baseDN);
+      final Entry invalid = saved.duplicate(false);
+      final AttributeBuilder state = new AttributeBuilder(stateType);
+      state.add("not-a-csn");
+      invalid.putAttribute(stateType, newArrayList(state.toAttribute()));
+      backend.replaceEntry(saved, invalid, null);
+
+      rd1.enable();
+
+      assertNull(pendingChangesOf(rd1).recentChangesAfter(before, change).messages);
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(rs);
+    }
+  }
+
+  /**
+   * A recovery from the last change done before a restart, whose replication server misses the changes
+   * done since, says none is rebuilt from the historical information: the messages kept begin right before
+   * the first change done since, later than the last one done before, and the window in between holds no
+   * change of this replica to rebuild (issue #1246).
+   */
+  @Test
+  public void aRecoveryFromTheChangeBeforeTheMessagesKeptSaysNoneIsRebuilt() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    try
+    {
+      final DN dnA = addPerson("a");
+      final CSN rsMaxCSN = rd1.getLastLocalChange();
+      // As after a restart: nothing kept of the changes before, and the time of the generator moved on.
+      pendingChangesOf(rd1).forgetRecentChanges();
+      rd1.getGenerator().adjust(new CSN(rsMaxCSN.getTime() + 1000, 0, serverId));
+      replace(dnA, "description", "since");
+      final CSN since = rd1.getLastLocalChange();
+      startRecovery(rd1, true, true);
+
+      final List<ReplicationMsg> published = new ArrayList<>();
+      final List<String> records = errorLogRecordsOf(() -> {
+        assertTrue(rd1.buildAndPublishMissingChanges(rsMaxCSN, new TestBroker(published)));
+        return null;
+      });
+      assertThat(csns(published)).containsExactly(since);
+      assertThat(records)
+          .filteredOn(record -> record.contains("category=SYNC severity=WARNING msgID="
+              + WARN_LOCAL_CHANGES_REBUILT_FROM_HISTORICAL_INFORMATION.ordinal() + " "))
+          .as("the recovery says it rebuilds changes")
+          .isEmpty();
     }
     finally
     {
@@ -1986,10 +2363,11 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   /**
    * A recovery whose kept changes do not reach the last local change - one which should have been
    * kept is not there - searches for the changes after them, and ends. It went round for ever while
-   * it held the local changes back, every local write waiting for it.
+   * it held the local changes back, every local write waiting for it. With the messages of the last
+   * local changes kept, the change the recovery missed is published from its message.
    */
-  @Test
-  public void aRecoveryWhoseKeptChangesMissOneSearchesForIt() throws Exception
+  @Test(dataProvider = "keepingTheRecentChanges")
+  public void aRecoveryWhoseKeptChangesMissOneSearchesForIt(boolean keepsTheRecentChanges) throws Exception
   {
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     TestCaseUtils.initializeTestBackend(true);
@@ -2001,7 +2379,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       final DN dnB = addPerson("b");
       final CSN rsMaxCSN = rd1.getLastLocalChange();
 
-      startRecovery(rd1);
+      startRecovery(rd1, true, keepsTheRecentChanges);
       final List<CSN> done = new ArrayList<>();
       replace(dnA, "description", "kept");
       done.add(rd1.getLastLocalChange());
@@ -2423,9 +2801,13 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
    * deletes. They are in the data all the same - their entries are gone - and a recovery publishes
    * them, where taking them for changes the data does not reflect dropped them, and the replicas kept
    * the suffix.
+   * <p>
+   * With the messages of the last local changes kept, the messages of the deletes are forgotten as the
+   * state is read back, and the add of the base entry is the first one kept from there: the deletes,
+   * which come after the change the state read back holds, are not taken for kept with it (issue #1246).
    */
-  @Test
-  public void theDeletesOfASuffixOutliveAStateWhichCouldNotBeSaved() throws Exception
+  @Test(dataProvider = "keepingTheRecentChanges")
+  public void theDeletesOfASuffixOutliveAStateWhichCouldNotBeSaved(boolean keepsTheRecentChanges) throws Exception
   {
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     TestCaseUtils.initializeTestBackend(true);
@@ -2438,7 +2820,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       assertInTheChangelog(rs, baseDN, rsMaxCSN);
 
       // The replication server misses the deletes.
-      refuseTheLocalChanges(rd1);
+      refuseTheLocalChanges(rd1, keepsTheRecentChanges);
       final List<CSN> done = new ArrayList<>();
       TestCaseUtils.deleteEntry(dnA);
       done.add(rd1.getLastLocalChange());
@@ -2453,7 +2835,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       TestCaseUtils.addEntry(StaticUtils.createEntry(baseDN));
       done.add(rd1.getLastLocalChange());
       // Started after the changes, which the recovery then searches for.
-      startRecovery(rd1);
+      startRecovery(rd1, true, keepsTheRecentChanges);
       final List<ReplicationMsg> published = new ArrayList<>();
       assertTrue(rd1.buildAndPublishMissingChanges(rsMaxCSN, new TestBroker(published)));
       assertThat(csns(published)).containsExactlyElementsOf(done);
@@ -2782,7 +3164,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
    * {@link LDAPReplicationDomain#buildAndPublishMissingChanges(CSN, ReplicationBroker)} in its
    * place. The pending changes leave the local changes to the recovery, which keeps them, and the
    * broker refuses them. The changes done before are the ones the recovery rebuilds from the
-   * historical information.
+   * historical information: the domain forgets the messages it kept of them.
    */
   private static void startRecovery(LDAPReplicationDomain domain) throws Exception
   {
@@ -2797,9 +3179,26 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
    */
   private static void startRecovery(LDAPReplicationDomain domain, boolean keepsTheLocalChanges) throws Exception
   {
+    startRecovery(domain, keepsTheLocalChanges, false);
+  }
+
+  /**
+   * Puts the domain where a session start leaves it when its replication server misses some of its
+   * changes, as {@link #startRecovery(LDAPReplicationDomain, boolean)} does, with the messages the
+   * domain kept of the changes done before, which the recovery publishes as they were done (issue
+   * #1246), or - as the tests of the search of a recovery have it - none, and the recovery rebuilds them
+   * from the historical information.
+   */
+  private static void startRecovery(LDAPReplicationDomain domain, boolean keepsTheLocalChanges,
+      boolean keepsTheRecentChanges) throws Exception
+  {
     if (!keepsTheLocalChanges)
     {
       pendingChangesOf(domain).setMaxKeptChanges(0);
+    }
+    if (!keepsTheRecentChanges)
+    {
+      pendingChangesOf(domain).setMaxRecentChanges(0);
     }
     pendingChangesOf(domain).setRecovering(true);
     brokerOf(domain).setRecoveryRequired(true);
@@ -2809,7 +3208,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
    * Has the broker refuse the local changes, as it does from the start of a session whose replication
    * server misses some, up to the pending changes leaving them to the recovery: they are recorded in
    * the domain state only, and the replication server misses them. The recovery the next session
-   * starts rebuilds them from the historical information.
+   * starts rebuilds them from the historical information: the domain keeps no message of them.
    * <p>
    * Once the missing change publisher of an earlier session has left, under the lock it leaves under:
    * it has the broker take the local changes again as it leaves, after the end of its recovery - which
@@ -2818,6 +3217,21 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
    */
   private static void refuseTheLocalChanges(final LDAPReplicationDomain domain) throws Exception
   {
+    refuseTheLocalChanges(domain, false);
+  }
+
+  /**
+   * Has the broker refuse the local changes, as {@link #refuseTheLocalChanges(LDAPReplicationDomain)}
+   * does, the domain keeping the messages of the changes it refuses, which the recovery the next session
+   * starts publishes as they were done (issue #1246), or none.
+   */
+  private static void refuseTheLocalChanges(final LDAPReplicationDomain domain, boolean keepsTheRecentChanges)
+      throws Exception
+  {
+    if (!keepsTheRecentChanges)
+    {
+      pendingChangesOf(domain).setMaxRecentChanges(0);
+    }
     final Field recoveryLockField = LDAPReplicationDomain.class.getDeclaredField("recoveryLock");
     recoveryLockField.setAccessible(true);
     final Object recoveryLock = recoveryLockField.get(domain);

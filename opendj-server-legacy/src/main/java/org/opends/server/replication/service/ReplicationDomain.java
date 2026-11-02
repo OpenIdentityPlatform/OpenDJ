@@ -1982,12 +1982,14 @@ public abstract class ReplicationDomain
     */
     replicasWeAreWaitingFor.addAll(getReplicaInfos().keySet());
 
+    final Map<Integer, Long> disconnectedSince = new HashMap<>();
+    // An absence bound, not a bound on every possible reconnect: the importer's connection
+    // timeout and RS list are not carried in the topology and may differ from this server's.
+    final long reconnectGraceNanos = java.util.concurrent.TimeUnit.SECONDS.toNanos(10);
     boolean done;
     do
     {
       done = true;
-      int reconnectMaxDelayInSec = 10;
-      int reconnectWait = 0;
       Iterator<Integer> it = replicasWeAreWaitingFor.iterator();
       while (it.hasNext())
       {
@@ -2006,21 +2008,32 @@ public abstract class ReplicationDomain
           may be for a long time if it crashed or had been stopped
           may be just the time to reconnect after import : should be short
           */
-          if (++reconnectWait<reconnectMaxDelayInSec)
+          // Each absent target gets its own grace, across passes. A target stopped after a failed
+          // import may never reconnect; it must not retain the exporter's import/export context.
+          final long now = System.nanoTime();
+          final long since = disconnectedSince.computeIfAbsent(serverId, id -> now);
+          if (now - since < reconnectGraceNanos)
           {
             // let's still wait to give a chance to this server to reconnect
             done = false;
           }
-          // Else we left enough time to the servers to reconnect
+          else
+          {
+            ieCtx.failureList.add(serverId);
+            it.remove();
+            disconnectedSince.remove(serverId);
+          }
         }
         else
         {
+          disconnectedSince.remove(serverId);
           // this server is connected
           if (dsInfo.getStatus() == ServerStatus.FULL_UPDATE_STATUS)
           {
             // this one is still doing the Full Update ... retry later
             done = false;
-            break;
+            // Still visit the other targets, so their absence is timed while this one imports.
+            continue;
           }
 
           if (dsInfo.getGenerationId() == getGenerationID())
@@ -2722,9 +2735,12 @@ public abstract class ReplicationDomain
       right here, right now
       we never want retryOnFailure if we fails reconnecting in the restart.
       */
-      broker.reStart(false);
+      if (!isServicePermanentlyStopped())
+      {
+        broker.reStart(false);
+      }
 
-      if (ieCtx.getException() != null
+      if (!isServicePermanentlyStopped() && ieCtx.getException() != null
           && broker.isConnected()
           && initFromTask != null
           && ++ieCtx.attemptCnt < 2)
@@ -2785,7 +2801,7 @@ public abstract class ReplicationDomain
 
       try
       {
-        if (broker.isConnected() && ieCtx.getException() != null)
+        if (!isServicePermanentlyStopped() && broker.isConnected() && ieCtx.getException() != null)
         {
           // Let's notify the exporter
           ErrorMsg errorMsg = new ErrorMsg(requesterServerId,
@@ -3410,6 +3426,10 @@ public abstract class ReplicationDomain
    */
   public void startListenService()
   {
+    if (isServicePermanentlyStopped())
+    {
+      return;
+    }
     synchronized (sessionLock)
     {
       if (listenerThread != null)
@@ -3597,6 +3617,33 @@ public abstract class ReplicationDomain
     return sessionGeneration;
   }
 
+  /** Stops the broker without joining the listener which may be running this import. */
+  protected final void stopServicePermanently()
+  {
+    broker.stopPermanently();
+  }
+
+  /**
+   * Stops an import's session reversibly when preparation left its backend unavailable.
+   * Called by the listener itself: joining it, or taking locks held by a thread joining it,
+   * would deadlock. A later enable joins this listener before starting another session.
+   */
+  protected final void stopServiceAfterAbortedImport()
+  {
+    final DirectoryThread listener = listenerThread;
+    if (listener != null)
+    {
+      listener.initiateShutdown();
+    }
+    broker.stopAfterAbortedImport();
+  }
+
+  /** Returns whether a failed import has permanently stopped this service. */
+  protected final boolean isServicePermanentlyStopped()
+  {
+    return broker != null && broker.isPermanentlyStopped();
+  }
+
   /**
    * Restart the Replication service after a {@link #disableService()}.
    * <p>
@@ -3613,8 +3660,18 @@ public abstract class ReplicationDomain
   {
     synchronized (serviceStateLock)
     {
+      if (isServicePermanentlyStopped())
+      {
+        return;
+      }
       synchronized (sessionLock)
       {
+        if (listenerThread != null && listenerThread.isShutdownInitiated())
+        {
+          // An aborted import can stop its own session without joining its listener. Join it
+          // while the broker is still stopped, so it cannot consume the new session's messages.
+          disableService();
+        }
         broker.start();
         startListenService();
       }

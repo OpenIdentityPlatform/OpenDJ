@@ -25,6 +25,9 @@ import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.net.SocketTimeoutException;
+import java.io.InputStream;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.ExecutionException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -1644,6 +1647,194 @@ public class ReplicationDomainTest extends ReplicationTestCase
       disable(domain1);
       remove(replServer);
     }
+  }
+
+  /** A failed target must not keep the exporter occupied until an operator restarts its process. */
+  @Test
+  public void permanentlyStoppedImportersReleaseTheExporter() throws Exception
+  {
+    final DN baseDN = DN.valueOf("o=test");
+    final int port = TestCaseUtils.findFreePort();
+    final ReplicationServer rs = createReplicationServer(15, port, "stoppedImportersDb", 100);
+    final SortedSet<String> servers = newTreeSet("localhost:" + port);
+    FakeReplicationDomain exporter = null;
+    FakeReplicationDomain first = null;
+    FakeReplicationDomain second = null;
+    FakeReplicationDomain healthy = null;
+    FutureTask<Void> export = null;
+    Thread exportThread = null;
+    final CountDownLatch targetsStopped = new CountDownLatch(2);
+    try
+    {
+      exporter = new FakeReplicationDomain(baseDN, 1, servers, 0, buildExportedData(3), null, 3);
+      first = stoppingImporter(baseDN, 2, servers, targetsStopped);
+      second = stoppingImporter(baseDN, 3, servers, targetsStopped);
+      final FakeReplicationDomain source = exporter;
+      newTimer().repeatUntilSuccess(() -> assertEquals(source.getReplicaInfos().size(), 2));
+      export = new FutureTask<>(() -> {
+        source.initializeRemote(org.opends.server.replication.protocol.RoutableMsg.ALL_SERVERS, NO_INIT_TASK);
+        return null;
+      });
+      exportThread = new Thread(export, "export to permanently stopped targets");
+      exportThread.start();
+      assertTrue(targetsStopped.await(30, SECONDS), "the importers did not finish receiving their data");
+      final long stoppedAt = System.nanoTime();
+      try
+      {
+        export.get(20, SECONDS);
+        fail("an export to disconnected targets must report failure");
+      }
+      catch (ExecutionException e)
+      {
+        assertTrue(e.getCause() instanceof DirectoryException, e.toString());
+        assertEquals(((DirectoryException) e.getCause()).getMessageObject().toString(),
+            ERR_INIT_NO_SUCCESS_END_FROM_SERVERS.get(source.getGenerationID(), newTreeSet(2, 3)).toString());
+      }
+      assertTrue(System.nanoTime() - stoppedAt >= SECONDS.toNanos(9),
+          "two absent targets must not halve the reconnection grace");
+      assertFalse(source.ieRunning(), "failed export retained its context");
+
+      final StringBuffer imported = new StringBuffer();
+      healthy = new FakeReplicationDomain(baseDN, 4, servers, 0, null, imported, 0);
+      newTimer().repeatUntilSuccess(() -> assertTrue(source.getReplicaInfos().containsKey(4)));
+      source.initializeRemote(4, NO_INIT_TASK);
+      assertEquals(imported.toString(), buildExportedData(3));
+      assertFalse(source.ieRunning());
+    }
+    finally
+    {
+      disable(exporter, first, second, healthy);
+      if (exportThread != null)
+      {
+        exportThread.join(30000);
+      }
+      remove(rs);
+    }
+  }
+
+  @DataProvider(name = "importingTarget")
+  public Object[][] importingTarget()
+  {
+    // Each target takes a turn importing, so no iteration order of HashSet is assumed.
+    return new Object[][] { { 2 }, { 3 }, { 4 } };
+  }
+
+  /** Missing peers get independent grace periods even while another peer is still importing. */
+  @Test(dataProvider = "importingTarget")
+  public void absentTargetsAreTimedIndependentlyWhileAnotherImports(int importing) throws Exception
+  {
+    final int absent = importing == 2 ? 3 : 2;
+    final int later = 9 - importing - absent;
+    final EndOfInitWait wait = new EndOfInitWait(2, 3, 4);
+    final java.util.concurrent.atomic.AtomicBoolean expiredDuringImport = new java.util.concurrent.atomic.AtomicBoolean();
+    wait.topology = elapsed -> {
+      if (elapsed < 13000 && wait.failures().contains(absent))
+      {
+        expiredDuringImport.set(true);
+      }
+      final Map<Integer, DSInfo> peers = new java.util.HashMap<>();
+      peers.put(importing, initTarget(importing,
+          elapsed < 13000 ? ServerStatus.FULL_UPDATE_STATUS : ServerStatus.NORMAL_STATUS));
+      if (elapsed < 6000 || elapsed >= 12000)
+      {
+        peers.put(later, initTarget(later,
+            elapsed < 6000 ? ServerStatus.FULL_UPDATE_STATUS : ServerStatus.NORMAL_STATUS));
+      }
+      return peers;
+    };
+    wait.run();
+    assertEquals(wait.failures(), newTreeSet(absent), "the later absence must have its own full grace");
+    assertTrue(expiredDuringImport.get(), "a FULL_UPDATE peer prevented timing an absent peer");
+  }
+
+  /** Two short absences separated by a reconnect must not be added into one long absence. */
+  @Test
+  public void aReconnectDuringFullUpdateResetsTheAbsenceTimer() throws Exception
+  {
+    final EndOfInitWait wait = new EndOfInitWait(2);
+    wait.topology = elapsed -> elapsed >= 14000
+        ? Collections.singletonMap(2, initTarget(2, ServerStatus.NORMAL_STATUS))
+        : elapsed >= 6000 && elapsed < 8000
+            ? Collections.singletonMap(2, initTarget(2, ServerStatus.FULL_UPDATE_STATUS))
+            : Collections.emptyMap();
+    wait.run();
+    assertTrue(wait.failures().isEmpty(), "the reconnect did not reset the target's absence timer");
+  }
+
+  private static DSInfo initTarget(int id, ServerStatus status)
+  {
+    return new DSInfo(id, "localhost", 1, 1, status, false,
+        org.opends.server.replication.common.AssuredMode.SAFE_READ_MODE, (byte) 1, (byte) 1,
+        Collections.emptyList(), Collections.emptySet(), Collections.emptySet(),
+        ProtocolVersion.getCurrentVersion());
+  }
+
+  /** Runs the real completion loop against a controlled topology, without network timing races. */
+  private static final class EndOfInitWait extends DummyReplicationDomain
+  {
+    private final ImportExportContext context;
+    private final java.util.Set<Integer> failures;
+    private java.util.function.LongFunction<Map<Integer, DSInfo>> topology;
+    private long started;
+
+    @SuppressWarnings("unchecked")
+    EndOfInitWait(Integer... targets) throws Exception
+    {
+      super(1);
+      final java.lang.reflect.Constructor<ImportExportContext> constructor =
+          ImportExportContext.class.getDeclaredConstructor(boolean.class);
+      constructor.setAccessible(true);
+      context = constructor.newInstance(false);
+      final java.lang.reflect.Field starts = ImportExportContext.class.getDeclaredField("startList");
+      starts.setAccessible(true);
+      ((java.util.Set<Integer>) starts.get(context)).addAll(java.util.Arrays.asList(targets));
+      final java.lang.reflect.Field failed = ImportExportContext.class.getDeclaredField("failureList");
+      failed.setAccessible(true);
+      failures = (java.util.Set<Integer>) failed.get(context);
+      final java.lang.reflect.Field broker = ReplicationDomain.class.getDeclaredField("broker");
+      broker.setAccessible(true);
+      // Only supplies the external shutdown signal; the production wait and its timers are real.
+      broker.set(this, org.mockito.Mockito.mock(ReplicationBroker.class));
+    }
+
+    java.util.Set<Integer> failures()
+    {
+      return failures;
+    }
+
+    @Override
+    public Map<Integer, DSInfo> getReplicaInfos()
+    {
+      final long elapsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started);
+      assertTrue(elapsed < 35000, "the completion loop did not release absent targets");
+      return topology.apply(elapsed);
+    }
+
+    void run() throws Exception
+    {
+      final java.lang.reflect.Method method = ReplicationDomain.class
+          .getDeclaredMethod("waitForRemoteEndOfInit", ImportExportContext.class);
+      method.setAccessible(true);
+      started = System.nanoTime();
+      method.invoke(this, context);
+    }
+  }
+
+  private FakeReplicationDomain stoppingImporter(DN baseDN, int id, SortedSet<String> servers,
+      CountDownLatch stopped) throws Exception
+  {
+    return new FakeReplicationDomain(baseDN, id, servers, 0, null, new StringBuffer(), 0)
+    {
+      @Override
+      protected void importBackend(InputStream input) throws DirectoryException
+      {
+        super.importBackend(input);
+        stopServicePermanently();
+        stopped.countDown();
+        throw new DirectoryException(org.forgerock.opendj.ldap.ResultCode.OTHER,
+            LocalizableMessage.raw("injected cleanup failure"));
+      }
+    };
   }
 
   /** InitializeTask double recording the completion reported by the domain. */
