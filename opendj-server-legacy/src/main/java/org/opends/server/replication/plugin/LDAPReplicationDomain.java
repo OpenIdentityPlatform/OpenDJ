@@ -318,7 +318,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     // And ignore the event if this replica is the event trigger (e.g. importing).
     if (!ignoreBackendInitializationEvent
             && !serverShutdownRequested
-            && getBackend().getBackendID().equals(backend.getBackendID())) {
+            && isBackendForInitialization(backend)) {
       disable();
     }
   }
@@ -6016,7 +6016,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
         catch (Exception e)
         {
           // An unsuccessful restart must not terminate the state checkpointer.
-          logger.error(ERR_LOADING_GENERATION_ID, getBaseDN(), stackTraceToSingleLineString(e));
+          logger.error(ERR_INIT_DOMAIN_RESTORE_FAILED, getBaseDN(), backendID, stackTraceToSingleLineString(e));
         }
       }
     }

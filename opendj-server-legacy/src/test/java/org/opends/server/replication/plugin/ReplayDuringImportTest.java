@@ -326,9 +326,28 @@ public class ReplayDuringImportTest extends ReplicationTestCase
             .contains("severity=ERROR", baseDN.toString(), "userRoot", "disable", "enable");
         if (nestedBackend)
         {
-          domain.performBackendPostInitializationProcessing(
-              getServerContext().getBackendConfigManager().getLocalBackendById("importParent"));
+          final org.opends.server.api.LocalBackend<?> parent =
+              getServerContext().getBackendConfigManager().getLocalBackendById("importParent");
+          domain.performBackendPreFinalizationProcessing(parent);
+          domain.performBackendPostInitializationProcessing(parent);
           assertFalse(domain.isConnected(), "enabling the parent must not revive the missing child backend");
+        }
+        else
+        {
+          // A missing top-level backend must not break another backend's removal.
+          TestCaseUtils.initializeMemoryBackend("foreignImportFinalization", "o=foreignImportFinalization", true);
+          final org.opends.server.api.LocalBackend<?> foreign =
+              getServerContext().getBackendConfigManager().getLocalBackendById("foreignImportFinalization");
+          try
+          {
+            domain.performBackendPreFinalizationProcessing(foreign);
+            assertFalse(domain.isConnected(), "a foreign backend must not restore this domain");
+          }
+          finally
+          {
+            foreign.finalizeBackend();
+            getServerContext().getBackendConfigManager().deregisterLocalBackend(foreign);
+          }
         }
         TaskUtils.enableBackend("userRoot");
         assertTrue(LockFileManager.releaseLock(lockFile, new StringBuilder()));
@@ -618,12 +637,26 @@ public class ReplayDuringImportTest extends ReplicationTestCase
     assertTrue(entryExists(DN.valueOf(IMPORTED_ENTRY_DN)), "a later import must still work");
   }
 
-  @Test(timeOut = 120_000)
-  public void anInterruptedImportDrainReportsTheInterrupt() throws Exception
+  @org.testng.annotations.DataProvider(name = "interruptedPreparation")
+  public Object[][] interruptedPreparation()
   {
-    final Field lockField = LDAPReplicationDomain.class.getDeclaredField("replayReadLock");
+    return new Object[][] { { false }, { true } };
+  }
+
+  @Test(dataProvider = "interruptedPreparation", timeOut = 120_000)
+  public void anInterruptedImportDrainReportsTheInterrupt(boolean waitingForSave) throws Exception
+  {
+    final Field stateField = LDAPReplicationDomain.class.getDeclaredField("state");
+    stateField.setAccessible(true);
+    final Object state = stateField.get(domain);
+    final Field suspended = PersistentServerState.class.getDeclaredField("savesSuspended");
+    suspended.setAccessible(true);
+    final Field lockField = waitingForSave
+        ? PersistentServerState.class.getDeclaredField("saveLock")
+        : LDAPReplicationDomain.class.getDeclaredField("replayReadLock");
     lockField.setAccessible(true);
-    final java.util.concurrent.locks.Lock lock = (java.util.concurrent.locks.Lock) lockField.get(domain);
+    final java.util.concurrent.locks.Lock lock =
+        (java.util.concurrent.locks.Lock) lockField.get(waitingForSave ? state : domain);
     final Field listenerField = org.opends.server.replication.service.ReplicationDomain.class
         .getDeclaredField("listenerThread");
     listenerField.setAccessible(true);
@@ -631,24 +664,38 @@ public class ReplayDuringImportTest extends ReplicationTestCase
     final Field importing = LDAPReplicationDomain.class.getDeclaredField("importingData");
     importing.setAccessible(true);
     final int completions = errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.ordinal()).size();
+    final int interrupts = errorLogRecordsOf(ERR_INIT_PREPARATION_INTERRUPTED.ordinal()).size();
     lock.lock();
     try
     {
       exporter.publish(new InitializeTargetMsg(baseDN, EXPORTER_ID, DS_ID, EXPORTER_ID, 3, INIT_WINDOW));
       new org.opends.server.util.TestTimer.Builder().maxSleep(10, TimeUnit.SECONDS)
             .sleepTimes(10, TimeUnit.MILLISECONDS).toTimer()
-          .repeatUntilSuccess(() -> assertTrue(importing.getBoolean(domain)));
+          .repeatUntilSuccess(() -> {
+            assertTrue(importing.getBoolean(domain));
+            if (waitingForSave)
+            {
+              assertTrue(suspended.getBoolean(state), "the replay drain must finish before interruption");
+              assertEquals(listener.getState(), Thread.State.TIMED_WAITING);
+            }
+          });
       listener.interrupt();
       waitUntil(() -> !domain.ieRunning()
           && errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.ordinal()).size() > completions,
           "the interrupted import did not finish");
-      assertThat(errorLogRecordsOf(ERR_INIT_PREPARATION_INTERRUPTED.ordinal())).anySatisfy(record -> assertThat(record).contains("interrupted"));
+      final List<String> records = errorLogRecordsOf(ERR_INIT_PREPARATION_INTERRUPTED.ordinal());
+      assertThat(records.subList(interrupts, records.size()))
+          .isNotEmpty().allSatisfy(record -> assertThat(record).contains("severity=ERROR", "interrupted"));
       assertNull(org.opends.server.api.LocalBackend.getWriteFailure(baseDN));
     }
     finally
     {
       lock.unlock();
     }
+    waitUntil(domain::isConnected, "an interrupted preparation must leave the domain recoverable");
+    startImportInto(exportedEntries().length);
+    finishImport(exportedEntries());
+    assertTrue(entryExists(DN.valueOf(IMPORTED_ENTRY_DN)));
   }
 
   @Test

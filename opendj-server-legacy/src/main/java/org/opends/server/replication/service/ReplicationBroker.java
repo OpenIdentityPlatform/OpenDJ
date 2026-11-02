@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2023-2026 3A Systems LLC.
+ * Portions Copyright 2023-2026 3A Systems, LLC.
  * Portions Copyright 2025 Wren Security.
  */
 package org.opends.server.replication.service;
@@ -2928,6 +2928,10 @@ public class ReplicationBroker
   /**
    * Stops an aborted import on its listener without waiting for credit that only that listener
    * can receive. The next enable may start a new session; no offline CSN is announced.
+   * An ECL-enabled replica therefore leaves its last known CSN in the replication server's
+   * consistency point, as on an abrupt disconnect: new change-number assignment can stall across
+   * its ECL-enabled domains until this replica reconnects and advances that CSN. Having send credit
+   * alone would not make an offline announcement safe here: its locks or socket write can still block.
    */
   void stopAfterAbortedImport()
   {
