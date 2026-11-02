@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2026 3A Systems, LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -30,6 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.replication.ReplicationTestCase;
@@ -185,7 +187,8 @@ public class ReplicationServerDomainHeartbeatTest extends ReplicationTestCase
   {
     // Keep duplicates: two identical reports in the same second must count as two errors.
     assertThat(logged).filteredOn(record -> record.contains("category=SYNC severity=ERROR msgID=66 "))
-        .hasSize(count);
+        .hasSize(count)
+        .allMatch(record -> record.contains("sending a Message to Replication Server 8989 cn=schema 9301."));
   }
 
   /** Real status-message forwarding and handler send, without a replication topology or teardown. */
@@ -203,7 +206,14 @@ public class ReplicationServerDomainHeartbeatTest extends ReplicationTestCase
       setField(ServerHandler.class, handler, "session", session);
       setField(MessageHandler.class, handler, "replicationServerDomain", domain);
       when(handler.getProtocolVersion()).thenReturn(ProtocolVersion.getCurrentVersion());
-      when(handler.shuttingDown()).thenReturn(shuttingDown);
+      final AtomicBoolean shutdown = new AtomicBoolean(shuttingDown);
+      when(handler.shuttingDown()).thenAnswer(invocation -> shutdown.get());
+      // The real stopServer() engages shutdown before doing any other cleanup.
+      doAnswer(invocation ->
+      {
+        shutdown.set(true);
+        return null;
+      }).when(domain).stopServer(handler, false);
       doCallRealMethod().when(handler).send(heartbeat);
 
       final Class<?> pendingClass = Class.forName(ReplicationServerDomain.class.getName() + "$PendingStatusMessages");
