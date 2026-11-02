@@ -12,14 +12,16 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2026 3A Systems, LLC.
- * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.net.ServerSocket;
@@ -32,8 +34,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.opendj.ldap.DN;
+import org.opends.server.loggers.ConsoleDebugLogPublisher;
+import org.opends.server.loggers.DebugLogger;
+import org.opends.server.loggers.TraceSettings;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.ChangeTimeHeartbeatMsg;
@@ -160,6 +166,98 @@ public class ReplicationServerDomainHeartbeatTest extends ReplicationTestCase
   }
 
   @Test
+  public void heartbeatAfterConcurrentHandlerShutdownIsNotReported() throws Exception
+  {
+    final Session[] pair = connectSessionPair();
+    try
+    {
+      final Session session = pair[1];
+      closeSocketsUnder(session);
+      final Forwarding forwarding = new Forwarding(session, false);
+      doAnswer(invocation ->
+      {
+        // Model another stopServer() engaging shutdown after the domain selected this handler.
+        forwarding.shutdown.set(true);
+        return invocation.callRealMethod();
+      }).when(forwarding.handler).send(forwarding.heartbeat);
+
+      final List<String> logged = errorLogRecordsOf(() ->
+      {
+        forwarding.domain.sendPendingStatusMessages();
+        return null;
+      });
+
+      assertThat(session.closeInitiated()).isFalse();
+      verify(forwarding.handler).send(forwarding.heartbeat);
+      verify(forwarding.domain).stopServer(forwarding.handler, false);
+      assertHeartbeatErrors(logged, 0);
+    }
+    finally
+    {
+      StaticUtils.close(pair);
+    }
+  }
+
+  @Test
+  public void suppressedHeartbeatFailureIsStillTraced() throws Exception
+  {
+    final Session[] pair = connectSessionPair();
+    try
+    {
+      final Session session = pair[1];
+      session.start();
+      session.waitForStartup();
+      session.close();
+      final Forwarding forwarding = new Forwarding(session, false);
+      final AtomicReference<IOException> failure = new AtomicReference<>();
+      doAnswer(invocation ->
+      {
+        try
+        {
+          return invocation.callRealMethod();
+        }
+        catch (IOException e)
+        {
+          failure.set(e);
+          throw e;
+        }
+      }).when(forwarding.handler).send(forwarding.heartbeat);
+
+      final ByteArrayOutputStream trace = new ByteArrayOutputStream();
+      try (PrintStream output = new PrintStream(trace, true, "UTF-8"))
+      {
+        // Capture only this forwarding method, independently of global test trace settings.
+        final ConsoleDebugLogPublisher capture = new ConsoleDebugLogPublisher(output);
+        capture.addTraceSettings(ReplicationServerDomain.class.getName() + "#sendPendingChangeTimeHeartbeatMsgs",
+            new TraceSettings());
+        DebugLogger.getInstance().addLogPublisher(capture);
+        try
+        {
+          final List<String> logged = errorLogRecordsOf(() ->
+          {
+            forwarding.domain.sendPendingStatusMessages();
+            return null;
+          });
+
+          verify(forwarding.domain).stopServer(forwarding.handler, false);
+          assertHeartbeatErrors(logged, 0);
+          assertThat(failure.get()).as("real send failure").isNotNull();
+          assertThat(trace.toString("UTF-8"))
+              .contains("caught={" + failure.get() + "}", "sendPendingChangeTimeHeartbeatMsgs()");
+        }
+        finally
+        {
+          DebugLogger.getInstance().removeLogPublisher(capture);
+        }
+      }
+    }
+    finally
+    {
+      StaticUtils.close(pair);
+    }
+  }
+
+  @Test
   public void heartbeatIsDeliveredToAnOpenSession() throws Exception
   {
     final Session[] pair = connectSessionPair();
@@ -197,6 +295,7 @@ public class ReplicationServerDomainHeartbeatTest extends ReplicationTestCase
     private final ChangeTimeHeartbeatMsg heartbeat = new ChangeTimeHeartbeatMsg(new CSN(1, 1, 9311));
     private final ReplicationServerHandler handler = mock(ReplicationServerHandler.class);
     private final ReplicationServerDomain domain = mock(ReplicationServerDomain.class);
+    private final AtomicBoolean shutdown = new AtomicBoolean();
 
     private Forwarding(final Session session, final boolean shuttingDown) throws Exception
     {
@@ -206,7 +305,7 @@ public class ReplicationServerDomainHeartbeatTest extends ReplicationTestCase
       setField(ServerHandler.class, handler, "session", session);
       setField(MessageHandler.class, handler, "replicationServerDomain", domain);
       when(handler.getProtocolVersion()).thenReturn(ProtocolVersion.getCurrentVersion());
-      final AtomicBoolean shutdown = new AtomicBoolean(shuttingDown);
+      shutdown.set(shuttingDown);
       when(handler.shuttingDown()).thenAnswer(invocation -> shutdown.get());
       // The real stopServer() engages shutdown before doing any other cleanup.
       doAnswer(invocation ->
