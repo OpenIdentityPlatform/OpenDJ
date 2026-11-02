@@ -2996,9 +2996,15 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         catch (IOException e)
         {
           logger.traceException(e);
-          logger.error(ERR_CHANGELOG_ERROR_SENDING_MSG, "Replication Server "
-              + localReplicationServer.getReplicationPort() + " " + baseDN
-              + " " + localReplicationServer.getServerId());
+          // The reader closes its session before doStop() marks the handler as shutting down.
+          // A heartbeat retaining that handler can fail on the closed socket; check after the
+          // send, since a close can start after the handler was selected.
+          if (!rsHandler.shuttingDown() && !rsHandler.session.closeInitiated())
+          {
+            logger.error(ERR_CHANGELOG_ERROR_SENDING_MSG, "Replication Server "
+                + localReplicationServer.getReplicationPort() + " " + baseDN
+                + " " + localReplicationServer.getServerId());
+          }
           stopServer(rsHandler, false);
         }
       }
