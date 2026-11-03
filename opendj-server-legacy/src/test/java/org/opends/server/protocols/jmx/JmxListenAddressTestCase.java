@@ -21,6 +21,7 @@ import static org.testng.Assert.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.rmi.registry.LocateRegistry;
@@ -28,6 +29,8 @@ import java.rmi.registry.Registry;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.management.remote.JMXConnector;
 import javax.net.ssl.SSLContext;
@@ -198,6 +201,83 @@ public class JmxListenAddressTestCase extends DirectoryServerTestCase
     finally
     {
       handler.finalizeConnectionHandler(STOP_REASON);
+    }
+  }
+
+  /** Each handler restart must release the anonymous RMI port, with and without SSL. */
+  @Test(dataProvider = "useSSL")
+  public void releasesTheAnonymousRmiPortAfterEachStop(boolean useSSL) throws Exception
+  {
+    final int listenPort = TestCaseUtils.findFreePort();
+    for (int i = 0; i < 3; i++)
+    {
+      JmxConnectionHandler handler = newHandler(listenAddress, listenPort, 0, useSSL);
+      final int rmiPort;
+      try
+      {
+        handler.run();
+        rmiPort = anonymousRmiPort(listenAddress, listenPort);
+        assertOpensASession(listenAddress, listenPort);
+      }
+      finally
+      {
+        handler.finalizeConnectionHandler(STOP_REASON);
+        // Shutdown may be called both by processServerShutdown and by finalization.
+        handler.finalizeConnectionHandler(STOP_REASON);
+      }
+      assertPortReleased(listenAddress, rmiPort);
+      assertPortReleased(listenAddress, listenPort);
+    }
+  }
+
+  /** Restarting only the connector must close its old socket while keeping the registry usable. */
+  @Test(dataProvider = "useSSL")
+  public void releasesTheAnonymousRmiPortAfterAConfigurationChange(boolean useSSL) throws Exception
+  {
+    final int listenPort = TestCaseUtils.findFreePort();
+    JmxConnectionHandler handler = newHandler(listenAddress, listenPort, 0, useSSL);
+    try
+    {
+      handler.run();
+      final int oldRmiPort = anonymousRmiPort(listenAddress, listenPort);
+      assertOpensASession(listenAddress, listenPort);
+
+      // Select the replacement port while the old connector is listening: it cannot be the old port.
+      final int newRmiPort = TestCaseUtils.findFreePort();
+      applyConfigurationChange(handler, newConfig(listenAddress, listenPort, newRmiPort, useSSL));
+
+      assertPortReleased(listenAddress, oldRmiPort);
+      assertOpensASession(listenAddress, listenPort);
+    }
+    finally
+    {
+      handler.finalizeConnectionHandler(STOP_REASON);
+    }
+  }
+
+  /**
+   * The configured port is zero, so read the assigned port from the stub's endpoint description.
+   * This avoids opening JDK-internal RMI packages for reflection in the test JVM.
+   */
+  private static int anonymousRmiPort(InetAddress address, int listenPort) throws Exception
+  {
+    Registry registry = LocateRegistry.getRegistry(address.getHostAddress(), listenPort);
+    String stub = registry.lookup("org.opends.server.protocols.jmx.client-unknown").toString();
+    Matcher endpoint = Pattern.compile("endpoint:\\[[^\\]]*?:(\\d+)[,\\]]").matcher(stub);
+    assertTrue(endpoint.find(), "Cannot find the RMI endpoint in " + stub);
+    int port = Integer.parseInt(endpoint.group(1));
+    assertTrue(port > 0, "The RMI stub must advertise the assigned port");
+    assertTrue(isAcceptingConnections(address, port), "The RMI connector must listen before it is stopped");
+    return port;
+  }
+
+  private static void assertPortReleased(InetAddress address, int port) throws IOException
+  {
+    assertFalse(isAcceptingConnections(address, port), "The stopped RMI listener still accepts connections on " + port);
+    try (ServerSocket socket = new ServerSocket())
+    {
+      socket.setReuseAddress(true);
+      socket.bind(new InetSocketAddress(address, port));
     }
   }
 

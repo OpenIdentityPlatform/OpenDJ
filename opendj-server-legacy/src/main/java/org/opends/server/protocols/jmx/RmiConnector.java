@@ -20,6 +20,7 @@ package org.opends.server.protocols.jmx;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -164,6 +165,9 @@ public class RmiConnector
    * The Underlying Socket factory.
    */
   private OpendsRmiServerSocketFactory rmiSsf;
+
+  /** The socket factory owned by the RMI connector, separate from the registry's. */
+  private Closeable connectorSocketFactory;
 
   /**
    * The RMI protocol version used by this connector.
@@ -371,8 +375,10 @@ public class RmiConnector
         SSLSocketFactory ssf = ctx.getSocketFactory();
 
         // set the Server socket factory in the JMX map
-        rmiServerSockeyFactory = new DirectoryRMIServerSocketFactory(
+        DirectoryRMIServerSocketFactory factory = new DirectoryRMIServerSocketFactory(
             ssf, false, jmxConnectionHandler.getListenAddress());
+        connectorSocketFactory = factory;
+        rmiServerSockeyFactory = factory;
         env.put(
             "jmx.remote.rmi.server.socket.factory",
             rmiServerSockeyFactory);
@@ -393,8 +399,10 @@ public class RmiConnector
         {
           logger.trace("UNSECURE CONNECTION");
         }
-        rmiServerSockeyFactory = new OpendsRmiServerSocketFactory(
+        OpendsRmiServerSocketFactory factory = new OpendsRmiServerSocketFactory(
             jmxConnectionHandler.getListenAddress());
+        connectorSocketFactory = factory;
+        rmiServerSockeyFactory = factory;
       }
 
       // specify the rmi JMX authenticator to be used
@@ -552,6 +560,11 @@ public class RmiConnector
 
     jmxRmiConnectorNoClientCertificate = null;
     jmxRmiConnectorClientCertificate = null;
+
+    // RMI keeps anonymous-port listeners open even after the last object is unexported.
+    // Close our socket explicitly, also when stop() failed or the registry is being kept.
+    close(connectorSocketFactory);
+    connectorSocketFactory = null;
 
     // Unregister connectors and stop them.
     try

@@ -19,6 +19,7 @@ package org.opends.server.protocols.jmx;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -37,7 +38,7 @@ import javax.net.ssl.SSLSocketFactory;
  * Sockets Layer (SSL) or Transport Layer Security (TLS) protocols.
  */
 public class DirectoryRMIServerSocketFactory implements
-    RMIServerSocketFactory
+    RMIServerSocketFactory, Closeable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -49,6 +50,9 @@ public class DirectoryRMIServerSocketFactory implements
 
   /** The address to listen on, which could be INADDR_ANY. */
   private final InetAddress listenAddress;
+
+  /** The server socket owned by this factory. */
+  private ServerSocket serverSocket;
 
   /**
    * Constructs a new <code>DirectoryRMIServerSocketFactory</code> with the
@@ -105,7 +109,7 @@ public class DirectoryRMIServerSocketFactory implements
   @Override
   public ServerSocket createServerSocket(int port) throws IOException
   {
-    return new ServerSocket(port, 0, listenAddress)
+    serverSocket = new ServerSocket(port, 0, listenAddress)
     {
       @Override
       public Socket accept() throws IOException
@@ -127,6 +131,22 @@ public class DirectoryRMIServerSocketFactory implements
         return sslSocket;
       }
     };
+    return serverSocket;
+  }
+
+  /**
+   * Closes the underlying server socket, including an anonymous RMI listener.
+   *
+   * @throws IOException if the socket cannot be closed
+   */
+  @Override
+  public void close() throws IOException
+  {
+    if (serverSocket != null)
+    {
+      serverSocket.close();
+      serverSocket = null;
+    }
   }
 
   /**
