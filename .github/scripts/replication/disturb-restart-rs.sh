@@ -17,8 +17,9 @@
 # The disturbance restart-rs of the replication convergence run (#1208), sourced by run.sh: the
 # replication servers go down in turn while every directory server goes on taking the load, as
 # a crash and a rolling update take them down. The first is killed DISTURB_AT seconds into the
-# load, the second stopped two thirds of the way in, and each starts again at once. A directory
-# server whose replication server goes down connects to the other one and sends it the changes
+# load, the second stopped no earlier than two thirds of the way in, once the first has caught
+# up with its changelog checkpoint. Each starts again at once. A directory server whose
+# replication server goes down connects to the other one and sends it the changes
 # it has not got (#1195); the killed one starts on a changelog it did not close, and each one
 # catches up from the other. Only in rs534 does a replication server go down alone: in combined
 # it takes its directory server down with it, which restart-ds does by a stop, and a kill there
@@ -36,6 +37,24 @@ DISTURB_STEPS=2
 # reach it
 rs_serves_since() { # <rs> <seconds>
   started_since $1 $2 && [ "$(rs_peers $1)" -eq $(($(echo $RS_NODES | wc -w) - 1)) ]
+}
+
+# Read a fresh checkpoint from the RS about to stop, then require the recovered RS to reach
+# every position, in every domain. Refresh on each retry: catching an old checkpoint after a
+# long wait would leave the new backlog untested. FileReplicaDB's last-change follows append,
+# unlike the periodically cached missing-changes monitor. Reaching a position cannot prove
+# there are no older holes; the final changelog/data checks still enforce that.
+rs_caught_up() { # <recovered RS> <RS about to stop>
+  local rs=$1 reference=$2 dir="$OUT/rs-catchup"
+  mkdir -p "$dir" || return 1
+  echo "waiting for the join of $rs to end" >"$dir/check.txt"
+  bootstrap_ended "$rs" || return 1
+  admin_search "$reference" "cn=monitor" sub "(replicationServer-database=*)" \
+      replicationServer-database domain-name last-change >"$dir/$reference.ldif" 2>"$dir/check.txt" || return 1
+  admin_search "$rs" "cn=monitor" sub "(replicationServer-database=*)" \
+      replicationServer-database domain-name last-change >"$dir/$rs.ldif" 2>>"$dir/check.txt" || return 1
+  python3 -I "$HERE/changelog-checkpoint.py" "$BASE_DN" "$OUT/server-ids.txt" \
+      "$dir/$reference.ldif" "$dir/$rs.ldif" >"$dir/check.txt" 2>&1
 }
 
 # <kill|restart> <rs> [<msgID>...]: <rs> goes down and starts again within a window of the errors
@@ -78,12 +97,21 @@ down_and_up() {
 # logs a warning. The writer suppresses a send failure after local close or shutdown (#1248).
 # An unexpected disconnect still fails the graceful restart window; only the kill expects 181
 disturb() {
-  local left
+  local left timeout
   down_and_up kill $KILLED 180 181 284
   left=$((LOAD_START_MS / 1000 + 2 * DURATION / 3 - $(date +%s)))
   [ "$left" -le 0 ] || sleep $left
   # Re-read after the scheduled sleep too: a slow recovery or a descheduled runner must not
   # turn this into a restart of an idle topology. Keep at least three client sample intervals.
+  left=$((LOAD_START_MS / 1000 + DURATION - $(date +%s)))
+  [ "$left" -ge $((3 * STAT_INTERVAL)) ] \
+    || fail "only $left s left in the load of $DURATION s, too late to restart $RESTARTED under it"
+  timeout=$((left - 3 * STAT_INTERVAL))
+  [ "$timeout" -le "$DISTURB_TIMEOUT" ] || timeout=$DISTURB_TIMEOUT
+  wait_until "$timeout" "$KILLED reaches the changelog checkpoint of $RESTARTED (see rs-catchup/)" \
+    rs_caught_up "$KILLED" "$RESTARTED"
+  # LDAP searches can themselves take tens of seconds under load. Even a successful final
+  # probe must leave the restart its load budget; a timeout leaves the other RS running.
   left=$((LOAD_START_MS / 1000 + DURATION - $(date +%s)))
   [ "$left" -ge $((3 * STAT_INTERVAL)) ] \
     || fail "only $left s left in the load of $DURATION s, too late to restart $RESTARTED under it"

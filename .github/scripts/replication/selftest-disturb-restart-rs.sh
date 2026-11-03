@@ -19,8 +19,8 @@
 # topology: what disturb, settle and run_load call, in which order, and what disturb writes to
 # disturbances.txt. The kill opens a window that expects what a kill leaves behind, the restart
 # one that does not, each closes 10 s after its server serves again, and the restart waits for
-# two thirds of the load unless the kill took longer; run_load leaves the clients of the directory
-# servers be. A restart-rs row shows none of it, unless an error lands where the order moved.
+# two thirds of the load unless the kill took longer, then for changelog catch-up. run_load
+# leaves the clients of the directory servers be. A restart-rs row shows none of it, unless an error lands where the order moved.
 # docker, wait_until, window_open, window_close, date and sleep are stubs that record their calls,
 # and the clock moves in the stubs alone: a docker call takes 5 s, the wait for a server SERVE s.
 #
@@ -55,7 +55,15 @@ now= calls=
 date() { echo $now; }
 sleep() { calls="$calls sleep $1"; now=$((now + $1)); SECONDS=$((SECONDS + $1)); }
 docker() { calls="$calls docker $*"; now=$((now + 5)); }
-wait_until() { calls="$calls wait_until $1 [$2] ${*:3}"; now=$((now + SERVE)); }
+wait_until() {
+  calls="$calls wait_until $1 [$2] ${*:3}"
+  if [ "$3" = rs_caught_up ]; then
+    now=$((now + ${CATCHUP:-0}))
+    [ "${CATCHUP_FAIL:-no}" != yes ] || fail "catch-up failed"
+  else
+    now=$((now + SERVE))
+  fi
+}
 window_open() { calls="$calls window_open${*:+ $*}"; }
 window_close() { calls="$calls window_close"; }
 
@@ -64,7 +72,7 @@ window_close() { calls="$calls window_close"; }
 now=400 SERVE=30 calls=
 disturb >/dev/null
 check "disturb called" "$calls" \
-  " window_open 180 181 284 docker kill r0 docker wait r0 docker start r0 wait_until 900 [r0 serves again] rs_serves_since r0 400 sleep 10 window_close sleep 245 window_open docker restart -t 120 r1 wait_until 900 [r1 serves again] rs_serves_since r1 700 sleep 10 window_close"
+  " window_open 180 181 284 docker kill r0 docker wait r0 docker start r0 wait_until 900 [r0 serves again] rs_serves_since r0 400 sleep 10 window_close sleep 245 wait_until 270 [r0 reaches the changelog checkpoint of r1 (see rs-catchup/)] rs_caught_up r0 r1 window_open docker restart -t 120 r1 wait_until 900 [r1 serves again] rs_serves_since r1 700 sleep 10 window_close"
 check "disturbances.txt holds" " $(tr '\n' ' ' <"$OUT/disturbances.txt")" " 400000 445000 r0 kill 700000 735000 r1 restart "
 
 # a kill that serves again after two thirds of the load: the restart follows at once
@@ -72,7 +80,7 @@ rm "$OUT/disturbances.txt"
 now=400 SERVE=400 calls=
 disturb >/dev/null
 check "a late kill, disturb called" "$calls" \
-  " window_open 180 181 284 docker kill r0 docker wait r0 docker start r0 wait_until 900 [r0 serves again] rs_serves_since r0 400 sleep 10 window_close window_open docker restart -t 120 r1 wait_until 900 [r1 serves again] rs_serves_since r1 825 sleep 10 window_close"
+  " window_open 180 181 284 docker kill r0 docker wait r0 docker start r0 wait_until 900 [r0 serves again] rs_serves_since r0 400 sleep 10 window_close wait_until 145 [r0 reaches the changelog checkpoint of r1 (see rs-catchup/)] rs_caught_up r0 r1 window_open docker restart -t 120 r1 wait_until 900 [r1 serves again] rs_serves_since r1 825 sleep 10 window_close"
 
 calls=
 settle
@@ -95,13 +103,13 @@ check "not started, 1 peer, serves" " $(serves)" " no"
 # A slow recovery must not let the second restart run without useful load left. Run each
 # probe outside an if/|| condition so errexit still stops at the production fail() call.
 fail() { echo "::error::$1"; false; }
-budget_case() { # <name> <serve seconds> <scheduled sleep delay> <exit code> <completed steps>
+budget_case() { # <name> <serve seconds> <sleep delay> <exit code> <steps> [<catch-up seconds>]
   local code
   rm -f "$OUT/disturbances.txt"
   set +e
   (
     set -e
-    now=400 SERVE=$2
+    now=400 SERVE=$2 CATCHUP=${6:-0}
     sleep() {
       now=$((now + $1))
       # A descheduled runner can resume later than sleep requested.
@@ -123,6 +131,84 @@ budget_case "30 seconds left" 545 0 0 2
 budget_case "29 seconds left" 546 0 1 1
 budget_case "load already ended" 600 0 1 1
 budget_case "scheduled sleep overran" 30 300 1 1
+budget_case "catch-up leaves 30 seconds" 30 0 0 2 270
+budget_case "catch-up leaves 29 seconds" 30 0 1 1 271
+
+# A failed catch-up must leave r1 running and retain the completed kill in the summary input.
+rm -f "$OUT/disturbances.txt"
+set +e
+(
+  set -e
+  now=400 SERVE=30 CATCHUP_FAIL=yes
+  disturb >"$OUT/catchup-failed.log"
+)
+code=$?
+set -e
+check "failed catch-up exits with" " $code" " 1"
+check "failed catch-up completed steps" " $(wc -l <"$OUT/disturbances.txt" | tr -d ' ')" " 1"
+check "failed catch-up never starts r1" " $(grep -c '^    .* restart r1$' "$OUT/catchup-failed.log" || true)" " 0"
+
+# Exercise the real checkpoint probe; only the external LDAP reads and bootstrap are stubs.
+# A later retry must refresh r1, not approve r0 against the old snapshot while writes continue.
+BASE_DN=dc=example,dc=com
+printf '1 d0\n2 d1\n' >"$OUT/server-ids.txt"
+checkpoint_entry() {
+  printf 'dn: cn=Changelog for DS(%s),cn=monitor\nreplicationServer-database: %s\ndomain-name: %s\nlast-change: %s\n\n' \
+    "$1" "$1" "$BASE_DN" "$2"
+}
+source_csn=000001a1a1e836e400010000000a
+target_csn=000001a1a1e836e4000100000009
+bootstrap=yes search_fail= calls=
+bootstrap_ended() { [ "$bootstrap" = yes ]; }
+admin_search() {
+  calls="$calls [$*]"
+  local csn=$source_csn
+  [ "$1" != r0 ] || csn=$target_csn
+  checkpoint_entry 1 "$csn"
+  checkpoint_entry 2 000001a1a1e836e400020000000a
+  [ "$search_fail" != "$1" ]
+}
+probe() { if rs_caught_up r0 r1; then echo yes; else echo no; fi; }
+check "behind the first checkpoint" " $(probe)" " no"
+check "the diagnostic names the missing CSN" " $(grep -c "$source_csn" "$OUT/rs-catchup/check.txt" || true)" " 1"
+target_csn=$source_csn source_csn=000001a1a1e836e400010000000b
+check "reached only the previous checkpoint" " $(probe)" " no"
+target_csn=$source_csn
+check "reached the fresh checkpoint" " $(probe)" " yes"
+# Direct invocation retains the stub's call trace, unlike the command substitution in probe.
+calls=
+rs_caught_up r0 r1
+check "source is read before target, over all domains" "$calls" \
+  " [r1 cn=monitor sub (replicationServer-database=*) replicationServer-database domain-name last-change] [r0 cn=monitor sub (replicationServer-database=*) replicationServer-database domain-name last-change]"
+bootstrap=no
+check "bootstrap still running" " $(probe)" " no"
+bootstrap=yes search_fail=r1
+check "failed source read with valid partial output" " $(probe)" " no"
+search_fail=r0
+check "failed target read with valid partial output" " $(probe)" " no"
+search_fail=
+
+# Run the real wait_until and checkpoint probe together: persistent lag must time out,
+# not merely pass a stubbed wait and restart the only caught-up RS.
+rm -f "$OUT/disturbances.txt"
+set +e
+(
+  set -e
+  . "$HERE/lib.sh"
+  RS_ONLY="r0 r1" RS_NODES="r0 r1" DURATION=900 DISTURB_TIMEOUT=4
+  LOAD_START_MS=100000 STAT_INTERVAL=10 now=400 SECONDS=400
+  . "$HERE/disturb-restart-rs.sh"
+  rs_serves_since() { return 0; }
+  source_csn=000001a1a1e836e400010000000a
+  target_csn=000001a1a1e836e4000100000009
+  disturb >"$OUT/catchup-timeout.log"
+)
+code=$?
+set -e
+check "persistent lag exits with" " $code" " 1"
+check "persistent lag completed steps" " $(wc -l <"$OUT/disturbances.txt" | tr -d ' ')" " 1"
+check "persistent lag reports timeout" " $(grep -c 'timed out waiting until r0 reaches' "$OUT/catchup-timeout.log" || true)" " 1"
+check "persistent lag never starts r1" " $(grep -c '^    .* restart r1$' "$OUT/catchup-timeout.log" || true)" " 0"
 
 # run_load waits for DISTURB_AT and disturbs, with the clients of every directory server
 # running the whole load
@@ -137,6 +223,8 @@ start_clients() { calls="$calls clients $*"; SECONDS=$((SECONDS + 160)); }
 calls= SECONDS=0
 run_load
 check "a late start, run_load called" "$calls" " clients d0 1 900 clients d1 1 900 disturb at 320"
+
+python3 -I "$HERE/selftest-changelog-checkpoint.py"
 
 echo "disturb-restart-rs: $((checks - failed)) checks passed, $failed failed"
 [ "$failed" -eq 0 ]
