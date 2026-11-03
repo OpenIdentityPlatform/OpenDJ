@@ -13,9 +13,11 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.protocols.jmx;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -38,7 +40,7 @@ import java.rmi.server.RMIServerSocketFactory;
  * <p>
  * Each connector is registered into the JMX MBean server.
  */
-public class OpendsRmiServerSocketFactory implements RMIServerSocketFactory
+public class OpendsRmiServerSocketFactory implements RMIServerSocketFactory, Closeable
 {
   /** The address to listen on, which could be INADDR_ANY. */
   private final InetAddress listenAddress;
@@ -69,7 +71,8 @@ public class OpendsRmiServerSocketFactory implements RMIServerSocketFactory
    *
    * @throws IOException If an I/O error occurs when closing the socket.
    */
-  void close() throws IOException
+  @Override
+  public void close() throws IOException
   {
     if (serverSocket != null)
     {
