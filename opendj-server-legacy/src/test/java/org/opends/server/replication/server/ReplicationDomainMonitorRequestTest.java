@@ -18,8 +18,10 @@ package org.opends.server.replication.server;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -37,6 +39,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.opendj.ldap.DN;
 import org.mockito.invocation.InvocationOnMock;
+import org.opends.server.loggers.ConsoleDebugLogPublisher;
+import org.opends.server.loggers.DebugLogger;
+import org.opends.server.loggers.TraceSettings;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.MonitorRequestMsg;
@@ -176,6 +181,46 @@ public class ReplicationDomainMonitorRequestTest extends ReplicationTestCase
     }
   }
 
+  @Test
+  public void suppressedRequestFailureIsStillTraced() throws Exception
+  {
+    final Session[] pair = connectSessionPair();
+    try
+    {
+      final Session session = pair[1];
+      session.start();
+      session.waitForStartup();
+      session.close();
+      final Requesting requesting = new Requesting(session, false, 9302);
+      final ByteArrayOutputStream trace = new ByteArrayOutputStream();
+      try (PrintStream output = new PrintStream(trace, true, "UTF-8"))
+      {
+        // Capture only recomputation, independently of global test trace settings.
+        final ConsoleDebugLogPublisher capture = new ConsoleDebugLogPublisher(output);
+        capture.addTraceSettings(ReplicationDomainMonitor.class.getName() + "#recomputeMonitorData",
+            new TraceSettings());
+        DebugLogger.getInstance().addLogPublisher(capture);
+        try
+        {
+          final List<String> logged = requesting.recompute();
+
+          requesting.assertFailedWithoutWaiting(logged);
+          assertRequestErrors(logged, 0);
+          assertThat(trace.toString("UTF-8"))
+              .contains("caught={" + requesting.failure.get() + "}", "recomputeMonitorData()");
+        }
+        finally
+        {
+          DebugLogger.getInstance().removeLogPublisher(capture);
+        }
+      }
+    }
+    finally
+    {
+      StaticUtils.close(pair);
+    }
+  }
+
   @DataProvider
   public Object[][] precedingFailure()
   {
@@ -210,7 +255,7 @@ public class ReplicationDomainMonitorRequestTest extends ReplicationTestCase
         assertThat(received.getDestination()).isEqualTo(9302);
         assertThat(requesting.failure.get()).isNull();
         assertRequestErrors(logged, 0);
-        // The peer deliberately stays silent: only a successfully sent request expects a response.
+        // The peer deliberately stays silent: this delivered request must register an expected response.
         assertThat(logged).filteredOn(record -> record.contains("category=SYNC severity=WARNING msgID=106 "))
             .hasSize(1).allMatch(record -> record.contains("RS(9302)"));
         if (precedingFailure)

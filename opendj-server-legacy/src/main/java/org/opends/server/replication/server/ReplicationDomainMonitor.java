@@ -145,12 +145,13 @@ class ReplicationDomainMonitor
               {
                 rs.send(msg);
 
-                // Only register this server ID to pending table if we were able
-                // to send the message.
+                // Register an expected response when send returns without throwing.
+                // A request dropped during concurrent session close is still awaited.
                 pendingMonitorDataServerIDs.add(serverId);
               }
               catch (IOException e)
               {
+                logger.traceException(e);
                 // The reader closes its session before doStop() marks the handler as shutting down.
                 // Check after the send: local close or shutdown may begin after handler selection.
                 if (!rs.shuttingDown() && !rs.session.closeInitiated())
