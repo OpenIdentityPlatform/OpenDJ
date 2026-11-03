@@ -22,6 +22,7 @@
 # runs restarts with it.
 
 DISTURBED=$(echo $DS_NODES | cut -d' ' -f2)
+DISTURB_STEPS=1
 
 # docker restart sends SIGTERM and kills the server once its timeout is over: 10 s by default,
 # less than a server under load may need to stop, and a killed server is another disturbance.

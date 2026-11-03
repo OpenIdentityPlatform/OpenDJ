@@ -37,7 +37,7 @@ now=100 calls=
 date() { echo $now; }
 sleep() { calls="$calls sleep $1"; now=$((now + $1)); }
 docker() { calls="$calls docker $*"; now=$((now + 5)); }
-wait_until() { calls="$calls wait_until $*"; now=$((now + 30)); }
+wait_until() { calls="$calls wait_until $1 [$2] ${*:3}"; now=$((now + 30)); }
 window_open() { calls="$calls window_open"; }
 window_close() { calls="$calls window_close"; }
 
@@ -48,11 +48,11 @@ check() { # <what> <got> <want>
 
 disturb >/dev/null
 check "disturb called" "$calls" \
-  " window_open docker restart -t 120 d1 wait_until 900 d1 serves again started_since d1 100 sleep 10 window_close"
+  " window_open docker restart -t 120 d1 wait_until 900 [d1 serves again] started_since d1 100 sleep 10 window_close"
 check "disturbances.txt holds" " $(cat "$OUT/disturbances.txt")" " 100000 135000 d1 restart"
 calls=
 settle
-check "settle called" "$calls" " wait_until 900 the join of d1 ends bootstrap_ended d1"
+check "settle called" "$calls" " wait_until 900 [the join of d1 ends] bootstrap_ended d1"
 
 # run_load stops the clients of the disturbed server at DISTURB_AT, waits for them to end before
 # it disturbs, and has clients of its own write to it for the rest of the load. SECONDS without

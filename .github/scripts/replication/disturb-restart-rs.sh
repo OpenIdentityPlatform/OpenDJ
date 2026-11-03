@@ -29,6 +29,7 @@
 KILLED=$(echo $RS_ONLY | cut -d' ' -f1)
 RESTARTED=$(echo $RS_ONLY | cut -d' ' -f2)
 DISTURBED="$KILLED $RESTARTED"
+DISTURB_STEPS=2
 
 # The replication server <rs> logged that it started (msgID 135) after the Unix time <seconds>,
 # and is connected to every other replication server again, from which the changes it missed
@@ -74,13 +75,18 @@ down_and_up() {
 # ReplicationBroker.receive logs at ERROR), and the killed one, as it starts, 284 for the
 # changelog file it recovers (an info that LogFile logs at ERROR). A stop leaves none of them:
 # the server ends each connection with a StopMsg (Session.close), on which a directory server
-# logs a warning. A replication server whose ServerWriter had an update for the server at that
-# moment still logs 181 or 211 at ERROR (#1245); no window expects that, which is a defect
+# logs a warning. The writer suppresses a send failure after local close or shutdown (#1248).
+# An unexpected disconnect still fails the graceful restart window; only the kill expects 181
 disturb() {
   local left
   down_and_up kill $KILLED 180 181 284
   left=$((LOAD_START_MS / 1000 + 2 * DURATION / 3 - $(date +%s)))
   [ "$left" -le 0 ] || sleep $left
+  # Re-read after the scheduled sleep too: a slow recovery or a descheduled runner must not
+  # turn this into a restart of an idle topology. Keep at least three client sample intervals.
+  left=$((LOAD_START_MS / 1000 + DURATION - $(date +%s)))
+  [ "$left" -ge $((3 * STAT_INTERVAL)) ] \
+    || fail "only $left s left in the load of $DURATION s, too late to restart $RESTARTED under it"
   down_and_up restart $RESTARTED
 }
 

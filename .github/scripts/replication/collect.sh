@@ -48,6 +48,7 @@ collect() {
 
 # The summary of the run, into $OUT/summary.md and, in GitHub Actions, the job summary
 summarize() { # <result>
+  local completed=0
   {
     echo "### Replication convergence ($TOPOLOGY): $1"
     echo
@@ -57,13 +58,15 @@ summarize() { # <result>
     echo "| load | $DURATION s on each directory server, at most $LOAD_MOD_RATE modifications and $LOAD_ADD_RATE adds or deletes a second |"
     echo "| seeded users | $SAMPLE_DATA |"
     if [ -s "$OUT/disturbances.txt" ]; then
+      completed=$(wc -l <"$OUT/disturbances.txt")
       awk -v start="${LOAD_START_MS:-0}" '{ printf "| disturbance | %s of %s %d s into the load, serving again %d s later |\n",
                                             $4, $3, ($1 - start) / 1000, ($2 - $1) / 1000 }' "$OUT/disturbances.txt"
-    elif [ "$DISTURBANCE" != none ] && [ -z "${LOAD_START_MS:-}" ]; then
+    fi
+    if [ "$DISTURBANCE" != none ] && [ -z "${LOAD_START_MS:-}" ]; then
       # run.sh sets LOAD_START_MS as the load starts
       echo "| disturbance | $DISTURBANCE at $DISTURB_AT s into the load, not started: the run ended before the load |"
-    elif [ "$DISTURBANCE" != none ]; then
-      echo "| disturbance | $DISTURBANCE at $DISTURB_AT s into the load, not completed |"
+    elif [ "$DISTURBANCE" != none ] && [ "$completed" -lt "$DISTURB_STEPS" ]; then
+      echo "| disturbance | $DISTURBANCE not completed: $((completed)) of $DISTURB_STEPS steps completed |"
     fi
     echo "| converged | ${CONVERGED_IN:--} s after the load |"
     if [ -s "$OUT/samples.txt" ]; then

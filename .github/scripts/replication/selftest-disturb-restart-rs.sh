@@ -55,7 +55,7 @@ now= calls=
 date() { echo $now; }
 sleep() { calls="$calls sleep $1"; now=$((now + $1)); SECONDS=$((SECONDS + $1)); }
 docker() { calls="$calls docker $*"; now=$((now + 5)); }
-wait_until() { calls="$calls wait_until $*"; now=$((now + SERVE)); }
+wait_until() { calls="$calls wait_until $1 [$2] ${*:3}"; now=$((now + SERVE)); }
 window_open() { calls="$calls window_open${*:+ $*}"; }
 window_close() { calls="$calls window_close"; }
 
@@ -64,7 +64,7 @@ window_close() { calls="$calls window_close"; }
 now=400 SERVE=30 calls=
 disturb >/dev/null
 check "disturb called" "$calls" \
-  " window_open 180 181 284 docker kill r0 docker wait r0 docker start r0 wait_until 900 r0 serves again rs_serves_since r0 400 sleep 10 window_close sleep 245 window_open docker restart -t 120 r1 wait_until 900 r1 serves again rs_serves_since r1 700 sleep 10 window_close"
+  " window_open 180 181 284 docker kill r0 docker wait r0 docker start r0 wait_until 900 [r0 serves again] rs_serves_since r0 400 sleep 10 window_close sleep 245 window_open docker restart -t 120 r1 wait_until 900 [r1 serves again] rs_serves_since r1 700 sleep 10 window_close"
 check "disturbances.txt holds" " $(tr '\n' ' ' <"$OUT/disturbances.txt")" " 400000 445000 r0 kill 700000 735000 r1 restart "
 
 # a kill that serves again after two thirds of the load: the restart follows at once
@@ -72,12 +72,12 @@ rm "$OUT/disturbances.txt"
 now=400 SERVE=400 calls=
 disturb >/dev/null
 check "a late kill, disturb called" "$calls" \
-  " window_open 180 181 284 docker kill r0 docker wait r0 docker start r0 wait_until 900 r0 serves again rs_serves_since r0 400 sleep 10 window_close window_open docker restart -t 120 r1 wait_until 900 r1 serves again rs_serves_since r1 825 sleep 10 window_close"
+  " window_open 180 181 284 docker kill r0 docker wait r0 docker start r0 wait_until 900 [r0 serves again] rs_serves_since r0 400 sleep 10 window_close window_open docker restart -t 120 r1 wait_until 900 [r1 serves again] rs_serves_since r1 825 sleep 10 window_close"
 
 calls=
 settle
 check "settle called" "$calls" \
-  " wait_until 900 the join of r0 ends bootstrap_ended r0 wait_until 900 the join of r1 ends bootstrap_ended r1"
+  " wait_until 900 [the join of r0 ends] bootstrap_ended r0 wait_until 900 [the join of r1 ends] bootstrap_ended r1"
 
 # serves again: started since, and connected to the other replication server
 started_since() { [ "$1 $2" = "r0 400" ] && [ "$started" = yes ]; }
@@ -92,6 +92,38 @@ check "started, 2 peers, serves" " $(serves)" " no"
 started=no peers=1
 check "not started, 1 peer, serves" " $(serves)" " no"
 
+# A slow recovery must not let the second restart run without useful load left. Run each
+# probe outside an if/|| condition so errexit still stops at the production fail() call.
+fail() { echo "::error::$1"; false; }
+budget_case() { # <name> <serve seconds> <scheduled sleep delay> <exit code> <completed steps>
+  local code
+  rm -f "$OUT/disturbances.txt"
+  set +e
+  (
+    set -e
+    now=400 SERVE=$2
+    sleep() {
+      now=$((now + $1))
+      # A descheduled runner can resume later than sleep requested.
+      [ "$1" -le 10 ] || now=$((now + delay))
+    }
+    delay=$3
+    disturb >"$OUT/budget.log"
+  )
+  code=$?
+  set -e
+  check "$1 exits with" " $code" " $4"
+  check "$1 completed steps" " $(wc -l <"$OUT/disturbances.txt" | tr -d ' ')" " $5"
+  if [ "$4" -ne 0 ]; then
+    check "$1 reports why" " $(grep -c 'too late to restart r1 under' "$OUT/budget.log" || true)" " 1"
+    check "$1 never starts r1" " $(grep -c '^    .* restart r1$' "$OUT/budget.log" || true)" " 0"
+  fi
+}
+budget_case "30 seconds left" 545 0 0 2
+budget_case "29 seconds left" 546 0 1 1
+budget_case "load already ended" 600 0 1 1
+budget_case "scheduled sleep overran" 30 300 1 1
+
 # run_load waits for DISTURB_AT and disturbs, with the clients of every directory server
 # running the whole load
 start_clients() { calls="$calls clients $*"; }
@@ -99,6 +131,12 @@ disturb() { calls="$calls disturb at $SECONDS"; }
 calls= SECONDS=0
 run_load
 check "run_load called" "$calls" " clients d0 1 900 clients d1 1 900 sleep 300 disturb at 300"
+
+# Starting the clients can itself take longer than DISTURB_AT: no negative sleep.
+start_clients() { calls="$calls clients $*"; SECONDS=$((SECONDS + 160)); }
+calls= SECONDS=0
+run_load
+check "a late start, run_load called" "$calls" " clients d0 1 900 clients d1 1 900 disturb at 320"
 
 echo "disturb-restart-rs: $((checks - failed)) checks passed, $failed failed"
 [ "$failed" -eq 0 ]
