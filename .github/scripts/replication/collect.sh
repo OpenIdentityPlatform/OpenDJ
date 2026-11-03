@@ -66,7 +66,11 @@ summarize() { # <result>
       # run.sh sets LOAD_START_MS as the load starts
       echo "| disturbance | $DISTURBANCE at $DISTURB_AT s into the load, not started: the run ended before the load |"
     elif [ "$DISTURBANCE" != none ] && [ "$completed" -lt "$DISTURB_STEPS" ]; then
-      echo "| disturbance | $DISTURBANCE not completed: $((completed)) of $DISTURB_STEPS steps completed |"
+      if [ "$completed" -eq 0 ]; then
+        echo "| disturbance | $DISTURBANCE scheduled at $DISTURB_AT s into the load, not completed: 0 of $DISTURB_STEPS steps completed |"
+      else
+        echo "| disturbance | $DISTURBANCE not completed: $((completed)) of $DISTURB_STEPS steps completed |"
+      fi
     fi
     echo "| converged | ${CONVERGED_IN:--} s after the load |"
     if [ -s "$OUT/samples.txt" ]; then

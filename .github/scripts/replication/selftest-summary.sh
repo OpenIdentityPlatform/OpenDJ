@@ -17,6 +17,8 @@
 
 # Check the real summary for absent, partial and complete disturbances, without Docker.
 set -eE -o pipefail
+# The fixture summaries must not be appended to the real GitHub Actions job summary.
+unset GITHUB_STEP_SUMMARY
 HERE=$(cd "$(dirname "$0")" && pwd)
 OUT=$(mktemp -d)
 trap 'rm -rf "$OUT"' EXIT
@@ -36,7 +38,7 @@ DISTURBANCE=restart-rs
 . "$HERE/disturb-restart-rs.sh"
 check "load not started" "| disturbance | restart-rs at 300 s into the load, not started: the run ended before the load |"
 LOAD_START_MS=100000
-check "neither step completed" "| disturbance | restart-rs not completed: 0 of 2 steps completed |"
+check "neither step completed" "| disturbance | restart-rs scheduled at 300 s into the load, not completed: 0 of 2 steps completed |"
 echo '400000 445000 r0 kill' >"$OUT/disturbances.txt"
 check "second step not completed" "| disturbance | kill of r0 300 s into the load, serving again 45 s later |
 | disturbance | restart-rs not completed: 1 of 2 steps completed |"
@@ -46,7 +48,7 @@ check "both steps completed" "| disturbance | kill of r0 300 s into the load, se
 DISTURBANCE=restart-ds
 . "$HERE/disturb-restart-ds.sh"
 rm "$OUT/disturbances.txt"
-check "directory restart not completed" "| disturbance | restart-ds not completed: 0 of 1 steps completed |"
+check "directory restart not completed" "| disturbance | restart-ds scheduled at 300 s into the load, not completed: 0 of 1 steps completed |"
 echo '400000 435000 d1 restart' >"$OUT/disturbances.txt"
 check "directory restart completed" "| disturbance | restart of d1 300 s into the load, serving again 35 s later |"
 echo "summary: $((checks - failed)) checks passed, $failed failed"
