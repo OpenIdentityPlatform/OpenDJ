@@ -2969,12 +2969,15 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         }
         catch (IOException e)
         {
-          // We log the error. The requestor will detect a timeout or
-          // any other failure on the connection.
-
+          // The requestor will detect a timeout or any other failure on the connection.
           // FIXME: why do we log for RSs but not DSs?
           logger.traceException(e);
-          logger.error(ERR_CHANGELOG_ERROR_SENDING_MSG, msg.getValue().getDestination());
+          // The reader closes its session before doStop() marks the handler as shutting down.
+          // Check after the send: local close or shutdown may begin after handler selection.
+          if (!rs.shuttingDown() && !rs.session.closeInitiated())
+          {
+            logger.error(ERR_CHANGELOG_ERROR_SENDING_MSG, msg.getValue().getDestination());
+          }
         }
       }
     }
