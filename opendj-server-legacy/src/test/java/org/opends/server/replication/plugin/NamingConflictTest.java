@@ -147,11 +147,13 @@ public class NamingConflictTest extends ReplicationTestCase
     Entry entry = createAndAddEntry("simultaneousModrdnConflict");
     String entryUUID = getEntryUUID(entry.getName());
 
-    // generate two consecutive CSN that will be used in backward order
+    // Changes from different origins can arrive in reverse CSN order. Older changes
+    // from the same origin would already be covered by its applied ServerState.
     CSN csn1 = gen.newCSN();
-    CSN csn2 = gen.newCSN();
+    CSN csn2 = new CSN(csn1.getTime() + 1, 0, 202);
 
     replayMsg(modDnMsg(entry, entryUUID, parentUUID, csn2, "uid=simultaneous2"));
+    assertFalse(domain.getServerState().cover(csn1));
 
     // This MODIFY DN uses an older DN and should therefore be cancelled at replay time.
     replayMsg(modDnMsg(entry, entryUUID, parentUUID, csn1, "uid=simulatneouswrong"));
@@ -287,10 +289,11 @@ public class NamingConflictTest extends ReplicationTestCase
     final String entryUUID = getEntryUUID(entry.getName());
     final int givenUpBefore = failedReplayedUpdates();
 
-    // Two consecutive CSNs, replayed in the reverse order.
+    // Reverse order across origins must still reach naming-conflict resolution.
     final CSN older = gen.newCSN();
-    final CSN newer = gen.newCSN();
+    final CSN newer = new CSN(older.getTime() + 1, 0, 202);
     replayMsg(modDnMsg(entry, entryUUID, parentUUID, newer, "cn=renamedAfter"));
+    assertFalse(domain.getServerState().cover(older));
     replayMsg(modDnMsg(entry, entryUUID, parentUUID, older, "cn=renamedBefore"));
 
     assertTrue(entryExists(DN.valueOf("cn=renamedAfter," + TEST_ROOT_DN_STRING)),

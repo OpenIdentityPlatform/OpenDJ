@@ -18,7 +18,9 @@ package org.opends.server.replication.plugin;
 import static java.util.Collections.*;
 import static org.testng.Assert.*;
 
+import java.lang.reflect.Field;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
@@ -66,6 +68,149 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
 
     assertTrue(state.cover(csn));
     assertEquals(pendingChanges.getQueueSize(), 0);
+  }
+
+  @Test
+  public void appliedChangesAreRejectedAfterLeavingThePendingList() throws Exception
+  {
+    final ServerState state = new ServerState();
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(state);
+    final CSNGenerator generator = new CSNGenerator(SERVER_ID, 0);
+    final CSN first = generator.newCSN();
+    final CSN last = generator.newCSN();
+
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(first, "uuid-1")));
+    pendingChanges.commit(first);
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(last, "uuid-2")));
+    pendingChanges.commit(last);
+
+    assertFalse(pendingChanges.putRemoteUpdate(deleteMsg(first, "uuid-1")));
+    assertFalse(pendingChanges.putRemoteUpdate(deleteMsg(last, "uuid-2")));
+    assertEquals(pendingChanges.getQueueSize(), 0);
+
+    // The watermark belongs to the originating server, not to all servers at once.
+    final CSN anotherOrigin = new CSN(first.getTime(), first.getSeqnum(), SERVER_ID + 1);
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(anotherOrigin, "uuid-3")));
+  }
+
+  @Test
+  public void duplicateDoesNotReplaceAQueuedDelivery() throws Exception
+  {
+    final ServerState state = new ServerState();
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(state);
+    final CSN csn = new CSNGenerator(SERVER_ID, 0).newCSN();
+    final DeleteMsg original = deleteMsg(csn, "uuid-1");
+    final DeleteMsg duplicate = deleteMsg(csn, "uuid-1");
+
+    assertTrue(pendingChanges.putRemoteUpdate(original));
+    assertFalse(pendingChanges.putRemoteUpdate(duplicate));
+    assertFalse(pendingChanges.markInProgress(duplicate));
+    assertTrue(pendingChanges.markInProgress(original));
+    assertTrue(state.isEmpty(), "discarding a duplicate must not record the queued change as replayed");
+    pendingChanges.commit(csn);
+    assertTrue(state.cover(csn));
+  }
+
+  @Test
+  public void duplicateDoesNotReplaceAQueuedRetry() throws Exception
+  {
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final CSN csn = new CSNGenerator(SERVER_ID, 0).newCSN();
+    final DeleteMsg original = deleteMsg(csn, "uuid-1");
+    final DeleteMsg retry = deleteMsg(csn, "uuid-1");
+    final DeleteMsg duplicate = deleteMsg(csn, "uuid-1");
+
+    assertTrue(pendingChanges.putRemoteUpdate(original));
+    assertTrue(pendingChanges.markInProgress(original));
+    assertTrue(pendingChanges.replayFailed(csn));
+    assertTrue(pendingChanges.putRemoteUpdate(retry));
+    assertFalse(pendingChanges.putRemoteUpdate(duplicate));
+    assertFalse(pendingChanges.markInProgress(original));
+    assertFalse(pendingChanges.markInProgress(duplicate));
+    assertTrue(pendingChanges.markInProgress(retry));
+  }
+
+  @Test
+  public void interruptedClaimDoesNotLeaveTheDeliveryMarkedAsQueued() throws Exception
+  {
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final CSN csn = new CSNGenerator(SERVER_ID, 0).newCSN();
+    final DeleteMsg original = deleteMsg(csn, "uuid-1");
+    assertTrue(pendingChanges.putRemoteUpdate(original));
+
+    // Fail the first allocation after the message has been removed from the replay queue.
+    final OutOfMemoryError failure = new OutOfMemoryError("claim allocation failed");
+    final Field field = RemotePendingChanges.class.getDeclaredField("activeAndDependentChanges");
+    field.setAccessible(true);
+    final Object originalSet = field.get(pendingChanges);
+    field.set(pendingChanges, new ConcurrentSkipListSet<PendingChange>()
+    {
+      @Override
+      public boolean add(PendingChange change)
+      {
+        throw failure;
+      }
+    });
+    try
+    {
+      pendingChanges.markInProgress(original);
+      fail("the injected allocation failure did not reach the claim");
+    }
+    catch (OutOfMemoryError e)
+    {
+      assertSame(e, failure);
+    }
+    finally
+    {
+      field.set(pendingChanges, originalSet);
+    }
+
+    final DeleteMsg retry = deleteMsg(csn, "uuid-1");
+    assertTrue(pendingChanges.putRemoteUpdate(retry), "the dequeued delivery has no owner to finish it");
+    assertTrue(pendingChanges.markInProgress(retry));
+  }
+
+  @Test
+  public void lateEnqueueCancellationDoesNotReleaseAnotherDeliveryOrItsOwner() throws Exception
+  {
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final CSN csn = new CSNGenerator(SERVER_ID, 0).newCSN();
+    final DeleteMsg original = deleteMsg(csn, "uuid-1");
+    final DeleteMsg retry = deleteMsg(csn, "uuid-1");
+    assertTrue(pendingChanges.putRemoteUpdate(original));
+    pendingChanges.cancelQueuedUpdate(original);
+    assertTrue(pendingChanges.putRemoteUpdate(retry));
+
+    pendingChanges.cancelQueuedUpdate(original);
+    assertFalse(pendingChanges.putRemoteUpdate(deleteMsg(csn, "uuid-1")),
+        "cancelling the previous delivery must not release its queued replacement");
+    assertTrue(pendingChanges.markInProgress(retry));
+
+    pendingChanges.cancelQueuedUpdate(retry);
+    assertFalse(pendingChanges.putRemoteUpdate(deleteMsg(csn, "uuid-1")),
+        "enqueue cancellation must not take a delivery away from its replay owner");
+    assertTrue(pendingChanges.replayFailed(csn));
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(csn, "uuid-1")));
+  }
+
+  @Test
+  public void resettingStateAllowsPreviouslyAppliedChangesToBeReplayed() throws Exception
+  {
+    final ServerState state = new ServerState();
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(state);
+    final CSN csn = new CSNGenerator(SERVER_ID, 0).newCSN();
+    assertTrue(pendingChanges.putRemoteUpdate(deleteMsg(csn, "uuid-1")));
+    pendingChanges.commit(csn);
+
+    // Disabling a domain clears pending changes, but retains its applied state.
+    pendingChanges.clear();
+    assertFalse(pendingChanges.putRemoteUpdate(deleteMsg(csn, "uuid-1")));
+
+    // A restore/import may reset that state so the same changes are needed again.
+    state.clear();
+    final DeleteMsg redelivered = deleteMsg(csn, "uuid-1");
+    assertTrue(pendingChanges.putRemoteUpdate(redelivered));
+    assertTrue(pendingChanges.markInProgress(redelivered));
   }
 
   /**
@@ -180,9 +325,8 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
   }
 
   /**
-   * The replication server sends the change again over the new session while the message
-   * of the previous delivery may still be waiting in the replay queue: only the delivery
-   * which is listed as pending is replayed, or the same change would be applied twice.
+   * A failed delivery must not claim the change after the replication server has sent
+   * a replacement over the new session: only the replacement may replay it.
    */
   @Test
   public void markInProgressRejectsThePreviousDeliveryOfAChange() throws Exception
@@ -193,7 +337,8 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
     final DeleteMsg newDelivery = deleteMsg(csn, "uuid-1");
 
     assertTrue(pendingChanges.putRemoteUpdate(previousDelivery));
-    pendingChanges.replayFailed(csn);
+    assertTrue(pendingChanges.markInProgress(previousDelivery));
+    assertTrue(pendingChanges.replayFailed(csn));
     assertTrue(pendingChanges.putRemoteUpdate(newDelivery), "the next delivery must be replayed");
 
     assertFalse(pendingChanges.markInProgress(previousDelivery),

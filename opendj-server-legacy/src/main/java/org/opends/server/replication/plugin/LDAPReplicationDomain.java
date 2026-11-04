@@ -2986,9 +2986,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * Marks the specified message as the one currently processed by a replay thread.
    *
    * @param msg the message being processed
-   * @return {@code false} if the change is not pending anymore, which happens when the
-   *         session was restarted after a failed replay while this message was waiting
-   *         in the replay queue: it is sent again, so this copy must not be replayed
+   * @return {@code false} if the change is already committed, the domain has forgotten
+   *         it, or a retry has replaced this stale delivery
    */
   boolean markInProgress(LDAPUpdateMsg msg)
   {
@@ -8193,20 +8192,18 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       if (!remotePendingChanges.putRemoteUpdate(msg))
       {
         /*
-         * A replay thread already owns this change, so this delivery is a duplicate:
-         * ignore it. This happens when there are uncommitted changes in the queue and
-         * session failover occurs causing a recovery of all changes since the current
-         * committed server state. See OPENDJ-1115.
+         * This change is already applied, queued, owned by a replay thread, or committed
+         * behind another pending change. Session failover can deliver any of these again
+         * (OPENDJ-1115 and issue #1269).
          *
-         * The copy which is already listed owns the change: it is the one which records
-         * it in the ServerState once it really has been replayed. Report this delivery
+         * The accepted copy is the one which records the change in the ServerState once
+         * it really has been replayed, if it has not already done so. Report this delivery
          * as done - the window and the ack are per delivery - but as handled
          * asynchronously, so that the listener does not push the CSN to the ServerState
          * over a change which is still being replayed or is failing (issue #889).
          *
-         * A change whose replay failed is not owned by anyone anymore, so this is not the
-         * path it takes: putRemoteUpdate() takes this delivery over from the one which
-         * failed and has it replayed again.
+         * A released change has neither an owner nor a queued delivery, so this is not
+         * the path it takes: putRemoteUpdate() accepts its next delivery for replay.
          */
         if (logger.isTraceEnabled())
         {
@@ -8220,22 +8217,34 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
 
       // Put update message into the replay queue
       // (block until some place in the queue is available)
-      final UpdateToReplay updateToReplay = new UpdateToReplay(msg, this);
-      while (!isListenerShuttingDown())
+      boolean queued = false;
+      try
       {
-        // loop until we can offer to the queue or shutdown was initiated
-        try
+        final UpdateToReplay updateToReplay = new UpdateToReplay(msg, this);
+        while (!isListenerShuttingDown())
         {
-          if (updateToReplayQueue.offer(updateToReplay, 1, TimeUnit.SECONDS))
+          // loop until we can offer to the queue or shutdown was initiated
+          try
           {
-            // successful offer to the queue, let's exit the loop
-            break;
+            if (updateToReplayQueue.offer(updateToReplay, 1, TimeUnit.SECONDS))
+            {
+              queued = true;
+              break;
+            }
+          }
+          catch (InterruptedException e)
+          {
+            // Thread interrupted: check for shutdown.
+            Thread.currentThread().interrupt();
           }
         }
-        catch (InterruptedException e)
+      }
+      finally
+      {
+        if (!queued)
         {
-          // Thread interrupted: check for shutdown.
-          Thread.currentThread().interrupt();
+          // No replay thread can finish this delivery; let the next session retry it.
+          remotePendingChanges.cancelQueuedUpdate(msg);
         }
       }
 

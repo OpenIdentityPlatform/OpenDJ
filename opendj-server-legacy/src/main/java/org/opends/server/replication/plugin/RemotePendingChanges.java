@@ -194,28 +194,24 @@ final class RemotePendingChanges
    * Add a new LDAPUpdateMsg that was received from the replication server
    * to the pendingList.
    * <p>
-   * A change which is already listed and which a replay thread owns - it is being
-   * replayed, it waits for the change it depends on, or it has been replayed and waits
-   * for the changes before it - is left alone: that copy knows what this one does not,
-   * and replaying it again is exactly what the duplicate check is there to prevent
-   * (OPENDJ-1115).
+   * Changes covered by the applied ServerState are rejected even after they have left
+   * the pending list. A listed change is also left alone while its delivery is queued,
+   * owned by a replay thread, or committed and waiting for earlier changes. Replacing a
+   * queued delivery would move it behind newer changes: a DELETE could then be replayed
+   * before its ADD, leaving the entry present once the ADD is replayed (issue #1269).
    * <p>
-   * A change which is listed but which no replay thread owns is taken over by this
-   * delivery: it is the one to replay, and the copy which may still wait in the replay
-   * queue is dropped by {@link #markInProgress(LDAPUpdateMsg)}. That is a change whose
-   * replay failed - it is deliberately left out of the ServerState, so the replication
-   * server sends it again over the session which was restarted (issue #889) - and it is
-   * also, harmlessly, a change which was listed a moment ago by a delivery no replay
-   * thread has picked up yet: the two deliveries carry the same change, and the last one
-   * listed is the one replayed.
+   * Only a delivery which was released after failed or abandoned replay, or cancelled
+   * before being enqueued, may be replaced. It is deliberately left out of the
+   * ServerState so the replication server sends it again over the restarted session
+   * (issue #889). Neither an owner nor a queued delivery remains to finish it.
    * <p>
    * The failures the change went through are kept, whichever delivery replays it: they
    * are what has this replica eventually give up on a change it can not apply.
    *
    * @param update The LDAPUpdateMsg that was received from the replication
    *               server and that will be added to the pending list.
-   * @return {@code false} if the update was already registered in the pending
-   *         changes and is owned by a replay thread.
+   * @return {@code false} if the change is already applied or has a delivery which is
+   *         still queued, owned, or committed
    */
   public boolean putRemoteUpdate(LDAPUpdateMsg update)
   {
@@ -223,18 +219,46 @@ final class RemotePendingChanges
     try
     {
       final CSN csn = update.getCSN();
+      if (state.cover(csn))
+      {
+        return false;
+      }
       final PendingChange listed = pendingChanges.get(csn);
       if (listed == null)
       {
         pendingChanges.put(csn, new PendingChange(csn, null, update));
         return true;
       }
-      if (listed.isCommitted() || listed.isOwned())
+      if (listed.isCommitted() || listed.isOwned() || listed.isQueuedForReplay())
       {
         return false;
       }
       listed.setMsg(update);
       return true;
+    }
+    finally
+    {
+      pendingChangesWriteLock.unlock();
+    }
+  }
+
+  /**
+   * Releases an accepted delivery which could not be put in the replay queue.
+   * The change remains a barrier to state advancement, but may be delivered again.
+   *
+   * @param msg the delivery whose enqueue was abandoned
+   */
+  void cancelQueuedUpdate(LDAPUpdateMsg msg)
+  {
+    pendingChangesWriteLock.lock();
+    try
+    {
+      final PendingChange change = pendingChanges.get(msg.getCSN());
+      if (change != null && !change.isCommitted() && !change.isOwned()
+          && change.getLDAPUpdateMsg() == msg)
+      {
+        change.markDequeued();
+      }
     }
     finally
     {
@@ -520,12 +544,8 @@ final class RemotePendingChanges
    *
    * @param msg
    *          the message whose change is being replayed
-   * @return {@code false} if this message is not the delivery which is listed as
-   *         pending, which happens when the session was restarted after a failed replay
-   *         while this message was still waiting in the replay queue: the replication
-   *         server delivered the change again and that delivery took over from this one,
-   *         or the domain was disabled and forgot the change, so this copy must not be
-   *         replayed.
+   * @return {@code false} if the change is already committed, the domain has forgotten
+   *         it, or this is a stale delivery which a retry has replaced
    */
   public boolean markInProgress(LDAPUpdateMsg msg)
   {
@@ -537,6 +557,9 @@ final class RemotePendingChanges
       {
         return false;
       }
+      // This delivery has left the queue. If an allocation below fails before it gets
+      // an owner, a later delivery must be able to take it over.
+      change.markDequeued();
       /*
        * Listed as being replayed before it is owned, and not the other way round: the
        * caller enters the replay - where the give-back on the way out lives - once this
