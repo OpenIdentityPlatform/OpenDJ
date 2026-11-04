@@ -701,6 +701,32 @@ dn: dc=example,dc=com
 
 To stop the server, stop the container with `docker stop opendj`; `docker start opendj` starts it again. `docker stop` gives the server 10 seconds to shut down before it kills it: give a server with much data more time, for example with `docker stop -t 60 opendj`.
 
+
+[#install-docker-compose]
+Alternatively, save the following as `compose.yaml` and run `docker compose up -d`. This uses a named volume for the same instance directory:
+
+[source,yaml]
+----
+services:
+  opendj:
+    image: openidentityplatform/opendj
+    init: true
+    ports:
+      - "127.0.0.1:1389:1389"
+      - "127.0.0.1:1636:1636"
+      - "127.0.0.1:4444:4444"
+    environment:
+      ROOT_PASSWORD: password
+      ADD_BASE_ENTRY: --addBaseEntry
+    volumes:
+      - opendj-data:/opt/opendj/data
+    stop_grace_period: 60s
+volumes:
+  opendj-data:
+----
+
+Wait for the image's health check to report healthy, as for `docker run` above. `docker compose down` removes the container and network but retains the named volume; `docker compose up -d` then reuses the instance. Adding `--volumes` to `docker compose down` deletes the volume and its directory data. Changing `ROOT_PASSWORD` in the Compose file does not change the password of an existing instance.
+
 ====
 
 [#install-properties-file]

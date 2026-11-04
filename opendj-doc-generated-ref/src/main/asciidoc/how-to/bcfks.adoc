@@ -1,0 +1,90 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+[#how-to-bcfks]
+== Set Up OpenDJ With a BCFKS Keystore
+
+This recipe creates a BCFKS keystore and uses it for a fresh OpenDJ server. It demonstrates Bouncy Castle FIPS provider registration, not certification of a deployment or configuration of an operating system's FIPS mode. Use the provider shipped with your OpenDJ distribution, rather than downloading the old library versions from the wiki example.
+
+Prepare a fresh unpacked installation using xref:../install-guide/chap-install.adoc#before-you-install[the installation prerequisites]. Run the following commands from its root directory with the same Java installation that will run OpenDJ. The example uses a self-signed certificate for `localhost`; see xref:../admin-guide/chap-connection-handlers.adoc#setup-server-cert[Preparing For Secure Communications] for CA-signed certificates.
+
+=== Create the Keystore
+
+Store the keystore outside the installation so setup does not overwrite it. Replace the example password before using the procedure outside a disposable test.
+
+[source,bash]
+----
+umask 077
+mkdir -p ../opendj-certs
+CERT_DIR="$(cd ../opendj-certs && pwd)"
+printf '%s\n' 'KeystorePassword123!' > "$CERT_DIR/keystore.pin"
+
+keytool -genkeypair -alias server-cert -keyalg RSA -keysize 2048 \
+  -sigalg SHA256withRSA -dname 'CN=localhost' -ext 'SAN=dns:localhost' \
+  -validity 365 -storetype BCFKS -keystore "$CERT_DIR/server.bcfks" \
+  -providerclass org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider \
+  -providerpath lib/org.bouncycastle.bc-fips.jar \
+  -storepass:file "$CERT_DIR/keystore.pin" -keypass:file "$CERT_DIR/keystore.pin"
+
+keytool -genkeypair -alias admin-cert -keyalg RSA -keysize 2048 \
+  -sigalg SHA256withRSA -dname 'CN=localhost' -ext 'SAN=dns:localhost' \
+  -validity 365 -storetype BCFKS -keystore "$CERT_DIR/server.bcfks" \
+  -providerclass org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider \
+  -providerpath lib/org.bouncycastle.bc-fips.jar \
+  -storepass:file "$CERT_DIR/keystore.pin" -keypass:file "$CERT_DIR/keystore.pin"
+
+keytool -list -storetype BCFKS -keystore "$CERT_DIR/server.bcfks" \
+  -providerclass org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider \
+  -providerpath lib/org.bouncycastle.bc-fips.jar \
+  -storepass:file "$CERT_DIR/keystore.pin"
+----
+
+The listing should report `BCFKS`, provider `BCFIPS`, and two private-key entries: `server-cert` for LDAP TLS and `admin-cert` for the administration connector. Pass both aliases to setup so its truststores include both certificates and it can verify startup through the administration connector. The JAR has a stable distribution filename even when its bundled version changes.
+
+=== Configure and Start OpenDJ
+
+Register the provider in each environment used to start the server or its tools:
+
+[source,bash]
+----
+export OPENDJ_JAVA_ARGS="${OPENDJ_JAVA_ARGS:-} -Dorg.openidentityplatform.opendj.fips.register=true"
+
+./setup --cli --no-prompt --acceptLicense \
+  --hostname localhost --ldapPort 1389 --ldapsPort 1636 --adminConnectorPort 4444 \
+  --enableStartTLS --useBcfksKeystore "$CERT_DIR/server.bcfks" \
+  --keyStorePasswordFile "$CERT_DIR/keystore.pin" \
+  --certNickname server-cert --certNickname admin-cert \
+  --rootUserDN 'cn=Directory Manager' --rootUserPassword password \
+  --baseDN dc=example,dc=com --addBaseEntry
+
+bin/ldapsearch --hostname localhost --port 1636 --useSSL --trustAll \
+  --bindDN 'cn=Directory Manager' --bindPassword password \
+  --baseDN dc=example,dc=com --searchScope base '(objectClass=*)' dn
+----
+
+The search should return the base entry over LDAPS. Also verify the administration connector:
+
+[source,bash]
+----
+bin/dsconfig list-backends --hostname localhost --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPassword password --trustAll --no-prompt
+----
+
+Expect the enabled `userRoot` backend. `--trustAll` is only used to check this local self-signed installation. Configure certificate trust for normal client use; do not replace a system truststore merely to make this example work. Preserve the provider setting in the service environment for subsequent starts.

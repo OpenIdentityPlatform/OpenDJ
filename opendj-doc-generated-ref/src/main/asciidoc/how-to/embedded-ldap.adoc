@@ -1,0 +1,148 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+[#how-to-embedded-ldap]
+== Run Embedded LDAP in a Spring Boot Application
+:opendj-version: 5.2.0
+
+Use `opendj-embedded` for an LDAP server owned by your application's lifecycle, for example in integration tests. Each `EmbeddedOpenDJ` instance creates a temporary installation and deletes it on `close()`. Use a standalone server when directory data must survive application restarts. Run one embedded server at a time in a JVM, with its LDAP, administration and JMX ports available.
+
+=== Add the Dependency
+
+In an existing Spring Boot Maven application, add:
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+    <groupId>org.openidentityplatform.opendj</groupId>
+    <artifactId>opendj-embedded</artifactId>
+    <version>{opendj-version}</version>
+</dependency>
+----
+
+Use a JDK supported by your Spring Boot version and at least Java 11 for OpenDJ. These are Java module exports, not Java 8 compatibility options. Add them to the JVM running the application and to the test JVM:
+
+[source,xml]
+----
+<properties>
+    <opendj.jvm.args>
+        --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED
+        --add-exports java.base/sun.security.x509=ALL-UNNAMED
+    </opendj.jvm.args>
+</properties>
+----
+
+Merge the following configuration into the existing plugins, preserving any other JVM arguments:
+
+[source,xml]
+----
+<plugin>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-maven-plugin</artifactId>
+    <configuration>
+        <jvmArguments>${opendj.jvm.args}</jvmArguments>
+    </configuration>
+</plugin>
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <configuration>
+        <argLine>${opendj.jvm.args}</argLine>
+    </configuration>
+</plugin>
+----
+
+These plugin settings do not affect `java -jar` or an IDE launch; supply the same exports there.
+
+=== Configure the Bean and Import Data
+
+Put this configuration in your application's component-scan package. It imports `src/main/resources/test-directory.ldif` after startup and closes the server when the Spring context closes, including on initialization failure:
+
+[source,java]
+----
+import java.io.IOException;
+import java.io.InputStream;
+import org.openidentityplatform.opendj.embedded.Config;
+import org.openidentityplatform.opendj.embedded.EmbeddedOpenDJ;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class LdapConfiguration {
+    @Bean(destroyMethod = "close")
+    public EmbeddedOpenDJ embeddedOpenDJ(
+            @Value("${opendj.password:TestPassword123!}") String password) throws Exception {
+        Config config = new Config();
+        config.setBaseDN("dc=example,dc=com");
+        config.setAdminPassword(password);
+        config.setPort(1389);
+        config.setAdminPort(4444);
+        config.setJmxPort(1689);
+        EmbeddedOpenDJ server = new EmbeddedOpenDJ(config);
+        try {
+            server.run();
+            try (InputStream data = getClass().getResourceAsStream("/test-directory.ldif")) {
+                if (data == null) {
+                    throw new IOException("Missing test-directory.ldif");
+                }
+                server.importData(data);
+            }
+            return server;
+        } catch (Exception e) {
+            server.close();
+            throw e;
+        }
+    }
+}
+----
+
+Use this LDIF file. `importData` adds entries; it does not replace existing entries. Check the logs for rejected additions and verify the imported entry:
+
+[source,ldif]
+----
+dn: dc=example,dc=com
+objectClass: domain
+dc: example
+
+dn: ou=people,dc=example,dc=com
+objectClass: organizationalUnit
+ou: people
+
+dn: uid=jdoe,ou=people,dc=example,dc=com
+objectClass: inetOrgPerson
+cn: John Doe
+sn: Doe
+uid: jdoe
+----
+
+=== Verify Through LDAP
+
+With the Spring application running, use `ldapsearch` from an OpenDJ distribution:
+
+[source,bash]
+----
+bin/ldapsearch --hostname localhost --port 1389 \
+  --bindDN 'cn=Directory Manager' --bindPassword 'TestPassword123!' \
+  --baseDN 'uid=jdoe,ou=people,dc=example,dc=com' --searchScope base \
+  '(objectClass=*)' uid cn
+----
+
+Expect `uid: jdoe` and `cn: John Doe`. Use the same assertion in your application's integration tests, for example with Spring LDAP's `LdapTemplate`. Closing the context stops the server and removes its temporary files.

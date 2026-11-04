@@ -735,6 +735,7 @@
                                         <document>admin-guide</document>
                                         <document>server-dev-guide</document>
                                         <document>reference</document>
+                                        <document>how-to</document>
                                     </documents>
                                 </configuration>
                             </execution>

@@ -1,0 +1,1300 @@
+diff --git a/How-To-Guides.md b/How-To-Guides.md
+index 82e2e0c..3e366ed 100644
+--- a/How-To-Guides.md
++++ b/How-To-Guides.md
+@@ -1 +1,19 @@
+-See [[How To]]
+\ No newline at end of file
++<!--
++The contents of this file are subject to the terms of the Common Development and
++Distribution License (the License). You may not use this file except in compliance with the
++License.
++
++You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
++specific language governing permission and limitations under the License.
++
++When distributing Covered Software, include this CDDL Header Notice in each file and include
++the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
++Header, with the fields enclosed by brackets [] replaced by your own identifying
++information: "Portions copyright [year] [name of copyright owner]".
++
++Portions Copyright 2026 3A Systems, LLC.
++-->
++
++This guide has moved to [the OpenDJ documentation](https://doc.openidentityplatform.org/opendj/how-to/).
++
++Please submit documentation changes to the [OpenDJ repository](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-doc-generated-ref/src/main/asciidoc).
+diff --git a/How-To-Run-OpenDJ-in-Kubernetes.md b/How-To-Run-OpenDJ-in-Kubernetes.md
+index 9db58cd..03019aa 100644
+--- a/How-To-Run-OpenDJ-in-Kubernetes.md
++++ b/How-To-Run-OpenDJ-in-Kubernetes.md
+@@ -1,161 +1,19 @@
+-## Preface
++<!--
++The contents of this file are subject to the terms of the Common Development and
++Distribution License (the License). You may not use this file except in compliance with the
++License.
+ 
+-This article describes how to deploy [OpenDJ](/opendj) on Kubernetes.
+-We will use OpenDJ Docker image from Docker Hub Registry
+-[https://hub.docker.com/r/openidentityplatform/opendj/](https://hub.docker.com/r/openidentityplatform/opendj/)
++You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
++specific language governing permission and limitations under the License.
+ 
+-In this tutorial, we will use Minikube as a local Kubernetes cluster.
+-`kubectl` should also be installed
++When distributing Covered Software, include this CDDL Header Notice in each file and include
++the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
++Header, with the fields enclosed by brackets [] replaced by your own identifying
++information: "Portions copyright [year] [name of copyright owner]".
+ 
+-Start Minikube with at least 4 cores, and 8 GB of memory to avoid insufficient resources errors.
++Portions Copyright 2026 3A Systems, LLC.
++-->
+ 
+-```
+-minikube start --cpus=4 --memory=8g
+-```
++This guide has moved to [the OpenDJ documentation](https://doc.openidentityplatform.org/opendj/how-to/kubernetes).
+ 
+-## Create OpenDJ Service
+-
+-The following service will be used for DNS lookups between OpenAM Pods and clients.
+-
+-Create `opendj-service.yaml` file with the following contents:
+-
+-**`opendj-service.yaml`**:
+-```yaml
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  labels:
+-    app: opendj
+-  name: opendj
+-spec:
+-  clusterIP: None
+-  ports:
+-  - port: 1389
+-    name: ldap
+-  - port: 1636
+-    name: ldaps
+-  - port: 4444
+-    name: admin
+-  selector:
+-    app: opendj
+-```
+-
+-Then create service in Kubernetes using `kubectl`:
+-```
+-kubectl apply -f opendj-service.yaml
+-```
+-Make sure the service has been created:
+-
+-```
+-kubectl get svc opendj
+-
+-NAME     TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)                      AGE
+-opendj   ClusterIP   None         <none>        1389/TCP,1636/TCP,4444/TCP   39s
+-```
+-
+-## Create OpenAM StatefulSet
+-
+-Create `opendj-statefulset.yaml` file with the following contents:
+-
+-**`opendj-statefulset.yaml`**:
+-```yaml
+-apiVersion: apps/v1
+-kind: StatefulSet
+-metadata:
+-  name: opendj
+-  labels:
+-    app: opendj
+-spec:
+-  serviceName: opendj
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: opendj
+-  template:
+-    metadata:
+-      labels:
+-        app: opendj
+-    spec:
+-      containers:
+-      - name: opendj
+-        image: openidentityplatform/opendj
+-        imagePullPolicy: Always
+-        ports:
+-        - containerPort: 1389
+-          protocol: TCP
+-        - containerPort: 1636
+-          protocol: TCP
+-        - containerPort: 4444
+-          protocol: TCP
+-        resources: {}
+-        terminationMessagePath: /dev/termination-log
+-        terminationMessagePolicy: File
+-        volumeMounts:
+-        - name: opendj-data
+-          mountPath: /opt/opendj/data
+-  volumeClaimTemplates:
+-  - metadata:
+-      name: opendj-data
+-    spec:
+-      accessModes: [ "ReadWriteOnce" ]
+-      resources:
+-        requests:
+-          storage: 1Gi
+-```
+-
+-Create OpenDJ StatefulSet in Kubernetes
+-```
+-kubectl apply -f opendj-statefulset.yaml
+-```
+-
+-Check if StatefulSet is wokring
+-```
+-kubectl get statefulset opendj
+-
+-NAME     READY   AGE
+-opendj   1/1     2m
+-```
+-Wait for pod is created
+-
+-Get created Pods
+-```
+-kubectl get pods -l="app=opendj"
+-NAME       READY   STATUS    RESTARTS   AGE
+-opendj-0   1/1     Running   0          2m42s
+-```
+-
+-## Check OpenDJ status
+-
+-Lets check OpenDJ pod status
+-```
+-$ kubectl exec -it opendj-0 -- /opt/opendj/bin/status  --bindDN "cn=Directory Manager" --bindPassword password
+-
+-          --- Server Status ---
+-Server Run Status:        Started
+-Open Connections:         1
+-
+-          --- Server Details ---
+-Host Name:                opendj-0.opendj.default.svc.cluster.local
+-Administrative Users:     cn=Directory Manager
+-Installation Path:        /opt/opendj
+-Instance Path:            /opt/opendj/data
+-Version:                  OpenDJ Server 4.4.3
+-Java Version:             1.8.0_111
+-Administration Connector: Port 4444 (LDAPS)
+-
+-          --- Connection Handlers ---
+-Address:Port : Protocol               : State
+--------------:------------------------:---------
+---           : LDIF                   : Disabled
+-0.0.0.0:161  : SNMP                   : Disabled
+-0.0.0.0:1389 : LDAP (allows StartTLS) : Enabled
+-0.0.0.0:1636 : LDAPS                  : Enabled
+-0.0.0.0:1689 : JMX                    : Disabled
+-0.0.0.0:8080 : HTTP                   : Disabled
+-
+-          --- Data Sources ---
+-Base DN:     dc=example,dc=com
+-Backend ID:  userRoot
+-Entries:     1
+-Replication:
+-```
+\ No newline at end of file
++Please submit documentation changes to the [OpenDJ repository](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-doc-generated-ref/src/main/asciidoc).
+diff --git a/How-To.md b/How-To.md
+index faa10f3..5f16538 100644
+--- a/How-To.md
++++ b/How-To.md
+@@ -1,129 +1,97 @@
+-# Get last version
+-```bash
+-export VERSION="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)" 
+-echo "last release: $VERSION"
+-curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output opendj.zip
+-unzip opendj
+-cd opendj
+-```
+-
+-# Setup server 
+-```bash
+-#with clean baseDN
+-./setup --addBaseEntry -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --cli --acceptLicense --no-prompt 
+-
+-#with sample data 
+-./setup --sampleData 100000 -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --cli --acceptLicense --no-prompt 
+-```
+-
+-# Clean and reinstall server 
+-```bash
+-bin/stop-ds 
+-rm -rf {config,db,changelogDb,logs}
+-./setup -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --addBaseEntry --cli --acceptLicense --no-prompt 
+-```
+-
+-# Check server status 
+-```bash
+-bin/status --bindDN "cn=Directory Manager" --bindPassword password
+-```
+-
+-# Backup and restore
+-```bash
+-bin/backup --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backUpAll --backupDirectory bak --start 0 && tail -f logs/errors
+-bin/restore --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --backupDirectory bak/userRoot/ --start 0 && tail -f logs/errors
+-```
+-
+-# Initialize replication between two servers
+-```bash
+-bin/dsreplication enable --host1 localhost --port1 4444 --bindDN1 "cn=Directory Manager" --bindPassword1 password --replicationPort1 2389 --host2 localhost --port2 4445 --bindDN2 "cn=Directory Manager" --bindPassword2 password --replicationPort2 2390 --adminUID admin --adminPassword password --baseDN dc=example,dc=com -X -n
+-bin/dsreplication initialize --baseDN dc=example,dc=com --adminUID admin --adminPassword password --hostSource localhost --portSource 4444 --hostDestination localhost --portDestination 4445 -X -n
+-```
+-
+-# Disable replication on server
+-```bash
+-bin/dsreplication disable --disableAll --port 4444 --hostname localhost --bindDN "cn=Directory Manager" --adminPassword password --trustAll --no-prompt
+-```
+-
+-# List all indexes
+-```bash
+-bin/backendstat show-index-status --backendID userRoot --baseDN dc=example,dc=com
+-```
+-
+-# Rebuild Degraded Indexes ONLINE
+-```bash
+-bin/rebuild-index --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --baseDN dc=example,dc=com --rebuildDegraded --trustAll
+-```
+-
+-# List the available protocols and cipher suites, read the supportedTLSProtocols and supportedTLSCiphers 
+-```bash
+-bin/ldapsearch --hostname localhost --port 1636 --useSSL --trustAll --baseDN "" --searchScope base "(objectclass=*)" supportedTLSCiphers supportedTLSProtocols
+-```
+-
+-# Allow only TLSv1.2 ssl-protocol
+-```bash
+-#LDAPS / LDAP / HTTP Connection Handlers
+-bin/dsconfig --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password set-connection-handler-prop --handler-name "LDAPS Connection Handler" --add ssl-protocol:TLSv1.2 --trustAll --no-prompt
+-#Administration Connector
+-bin/dsconfig --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password set-administration-connector-prop --add ssl-protocol:TLSv1.2 --trustAll --no-prompt
+-#Crypto Manager
+-bin/dsconfig --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password set-crypto-manager-prop --add ssl-protocol:TLSv1.2 --trustAll --no-prompt
+-```
+-
+-# Use Self Signed Certificate 
+-Create the store with the following command. You'll be asked to enter a password for the .pfx file.
+-```bash
+-openssl pkcs12 -export -out opendj.pfx -inkey private.key -in server.crt -certfile cachain.crt
+-```
+-Then when you run the container just set this environment variable with the pfx path and the password.
+-```bash
+-OPENDJ_SSL_OPTIONS="--usePkcs12keyStore /data/opendj.pfx --keyStorePassword PASSWORD"
+-```
+-
+-# Store LDAP catalog data in CASSANDRA noSQL cluster 
+-```bash
+-export OPENDJ_JAVA_ARGS="-server -Ddatastax-java-driver.basic.contact-points.0=localhost:9042 -Ddatastax-java-driver.basic.load-balancing-policy.local-datacenter=datacenter1"
+-
+-#setup without backend
+-./setup -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --cli --acceptLicense --no-prompt
+-
+-#create backend with keyspace: ldap_example_com
+-bin/dsconfig create-backend \
+-   --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password \
+-   --backend-name=userRoot \
+-   --type cas --set db-directory:ldap_example_com \
+-   --set base-dn:dc=example,dc=com \
+-   --set enabled:true \
+-   --no-prompt --trustAll
+-```
+-
+-# Store LDAP catalog data in JDBC databse
+-```bash
+-#setup without backend
+-./setup -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --cli --acceptLicense --no-prompt
+-
+-#create backend jdbc:postgresql://localhost:5432/database_name?user=postgres&password=password
+-bin/dsconfig create-backend \
+-   --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password \
+-   --backend-name=userRoot \
+-   --type jdbc --set db-directory:jdbc:postgresql://localhost:5432/database_name?user=postgres\&password=password  \
+-   --set base-dn:dc=example,dc=com \
+-   --set enabled:true \
+-   --no-prompt --trustAll
+-```
+-
+-# Debug instance
+-```bash
+-export OPENDJ_JAVA_ARGS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=9000"
+-bin/start-ds
+-```
+-
+-* [[How to generate test LDIF data and import to LDAP server OpenDJ]]
+-* [[REST Access to OpenDJ Directory Server]]
+-* [[How to delegate password reset permissions]]
+-* [[How to Run OpenDJ based Embedded LDAP in Spring Boot Application]]
+-* [[How To Run OpenDJ in Kubernetes]]
+-* [[How to Setup OpenDJ with BCFKS FIPS Key Store Type support]]
+-* [[TIP: How to Persist OpenDJ Docker Container Data Between Restarts]]
+-* [[Using a Relational Database as an LDAP Backend]]
+-* [How to use OpenDJ with JIRA](https://support.atlassian.com/jira/kb/how-to-use-opendj-with-jira/)
++<!--
++The contents of this file are subject to the terms of the Common Development and
++Distribution License (the License). You may not use this file except in compliance with the
++License.
++
++You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
++specific language governing permission and limitations under the License.
++
++When distributing Covered Software, include this CDDL Header Notice in each file and include
++the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
++Header, with the fields enclosed by brackets [] replaced by your own identifying
++information: "Portions copyright [year] [name of copyright owner]".
++
++Portions Copyright 2026 3A Systems, LLC.
++-->
++
++# How-To Guides
++
++The maintained guides are now part of the [OpenDJ documentation](https://doc.openidentityplatform.org/opendj/how-to/).
++
++* [Find a procedure](https://doc.openidentityplatform.org/opendj/how-to/tasks) — installation, status, backup, replication, indexes, TLS and Docker persistence.
++* [How To Run OpenDJ in Kubernetes](https://doc.openidentityplatform.org/opendj/how-to/kubernetes)
++* [How to Setup OpenDJ with BCFKS FIPS Key Store Type support](https://doc.openidentityplatform.org/opendj/how-to/bcfks)
++* [Using a Relational Database as an LDAP Backend](https://doc.openidentityplatform.org/opendj/how-to/jdbc-backend)
++* [How to Run OpenDJ based Embedded LDAP in Spring Boot Application](https://doc.openidentityplatform.org/opendj/how-to/embedded-ldap)
++* [REST Access to OpenDJ Directory Server](https://doc.openidentityplatform.org/opendj/how-to/rest-access)
++* [How to delegate password reset permissions](https://doc.openidentityplatform.org/opendj/how-to/delegate-password-reset)
++* [How to generate test LDIF data and import to LDAP server OpenDJ](https://doc.openidentityplatform.org/opendj/how-to/generate-test-data)
++* [TIP: How to Persist OpenDJ Docker Container Data Between Restarts](https://doc.openidentityplatform.org/opendj/install-guide/chap-install#install-docker)
++* [Cassandra backend](https://doc.openidentityplatform.org/opendj/how-to/cassandra-backend)
++* [Debug a local instance](https://doc.openidentityplatform.org/opendj/how-to/debug-instance)
++
++Please submit documentation changes to the [OpenDJ repository](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-doc-generated-ref/src/main/asciidoc).
++
++## Former recipe locations
++
++The headings below retain links into the former collection.
++
++## Get last version
++
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/install-guide/chap-install#command-line-install).
++
++## Setup server
++
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/install-guide/chap-install#command-line-install).
++
++## Clean and reinstall server
++
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/install-guide/chap-uninstall).
++
++## Check server status
++
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/admin-guide/chap-monitoring).
++
++## Backup and restore
++
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/admin-guide/chap-backup-restore).
++
++## Initialize replication between two servers
++
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/admin-guide/chap-replication).
++
++## Disable replication on server
++
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/admin-guide/chap-replication#stop-repl-permanent).
++
++## List all indexes
++
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/admin-guide/chap-indexing).
++
++## Rebuild Degraded Indexes ONLINE
++
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/admin-guide/chap-indexing).
++
++## List the available protocols and cipher suites, read the supportedTLSProtocols and supportedTLSCiphers
++
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/admin-guide/chap-connection-handlers#tls-protocols-cipher-suites).
++
++## Allow only TLSv1.2 ssl-protocol
++
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/admin-guide/chap-connection-handlers#tls-protocols-cipher-suites).
++
++## Use Self Signed Certificate
++
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/admin-guide/chap-connection-handlers#setup-server-cert).
++
++## Store LDAP catalog data in CASSANDRA noSQL cluster
++
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/how-to/cassandra-backend).
++
++## Store LDAP catalog data in JDBC databse
++
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/how-to/jdbc-backend).
++
++## Debug instance
++
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/how-to/debug-instance).
+diff --git a/How-to-Run-OpenDJ-based-Embedded-LDAP-in-Spring-Boot-Application.md b/How-to-Run-OpenDJ-based-Embedded-LDAP-in-Spring-Boot-Application.md
+index 9767e52..c410b1a 100644
+--- a/How-to-Run-OpenDJ-based-Embedded-LDAP-in-Spring-Boot-Application.md
++++ b/How-to-Run-OpenDJ-based-Embedded-LDAP-in-Spring-Boot-Application.md
+@@ -1,174 +1,19 @@
+-# Introduction
++<!--
++The contents of this file are subject to the terms of the Common Development and
++Distribution License (the License). You may not use this file except in compliance with the
++License.
+ 
+-In the following article we will setup a Spring Boot application with embedded OpenDJ-based LDAP server. This may be needed for integration testing or for productive use. For example, it could be useful for authentication via LDAP.
++You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
++specific language governing permission and limitations under the License.
+ 
++When distributing Covered Software, include this CDDL Header Notice in each file and include
++the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
++Header, with the fields enclosed by brackets [] replaced by your own identifying
++information: "Portions copyright [year] [name of copyright owner]".
+ 
+-# Create a Project
+-Create an empty Spring Boot project using the Spring Initializer site or manually. Add the `opendj-embedded` dependency to the `pom.xml` file of the Spring Boot application.
++Portions Copyright 2026 3A Systems, LLC.
++-->
+ 
+-```xml
+-<dependency>
+-    <groupId>org.openidentityplatform.opendj</groupId>
+-    <artifactId>opendj-embedded</artifactId>
+-    <version>4.6.4</version>
+-</dependency>
+-```
++This guide has moved to [the OpenDJ documentation](https://doc.openidentityplatform.org/opendj/how-to/embedded-ldap).
+ 
+-Add Java 8 compatibility arguments to the project properties
+-
+-```xml
+-<properties>
+-		...
+-    <jvm.compatibility.args>
+-        --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED
+-        --add-exports java.base/sun.security.x509=ALL-UNNAMED
+-    </jvm.compatibility.args>
+-</properties>
+-```
+-
+-Then add these arguments to `spring-boot-maven-plugin`:
+-
+-```xml
+-<plugin>
+-    <groupId>org.springframework.boot</groupId>
+-    <artifactId>spring-boot-maven-plugin</artifactId>
+-    <configuration>
+-        <jvmArguments>${jvm.compatibility.args}</jvmArguments>
+-    </configuration>
+-</plugin>
+-```
+-
+-Add bean Embedded OpenDJ to your Spring Boot application.
+-
+-```java
+-@Bean
+-public EmbeddedOpenDJ embeddedOpenDJ() {
+-    EmbeddedOpenDJ embeddedOpenDJ = new EmbeddedOpenDJ();
+-    embeddedOpenDJ.run();
+-    return embeddedOpenDJ;
+-}
+-```
+-
+-In principle, this is all you need to start the embedded OpenDJ. There are still some nuances left. Let's take a look at how to change the default OpenDJ configuration:
+-
+-## Change the Default Configuration
+-
+-Create a new configuration class inherited from the `org.openidentityplatform.opendj.embedded.Config` class and overload the required properties, such as baseDN and admin password:
+-
+-```java
+-@Configuration
+-public class OpenDJConfiguration extends Config {
+-
+-    @Override
+-    @Value("${opendj.basedn:dc=example,dc=openidentityplatform,dc=org}")
+-    public void setBaseDN(String baseDN) {
+-        super.setBaseDN(baseDN);
+-    }
+-
+-    @Override
+-    @Value("${opendj.adminpwd:passw0rd}")
+-    public void setAdminPassword(String adminPassword) {
+-        super.setAdminPassword(adminPassword);
+-    }
+-}
+-```
+-
+-Add the configuration to the bean `EmbeddedOpenDJ` initialization
+-
+-```java
+-@Bean
+-public EmbeddedOpenDJ embeddedOpenDJ(OpenDJConfiguration configuration) throws IOException, EmbeddedDirectoryServerException {
+-    EmbeddedOpenDJ embeddedOpenDJ = new EmbeddedOpenDJ(configuration);
+-    embeddedOpenDJ.run();
+-    return embeddedOpenDJ;
+-}
+-```
+-
+-## Data Import
+-
+-For demonstration purposes, we import the initial ldif data from the string.
+-
+-```java
+-@Bean
+-public EmbeddedOpenDJ embeddedOpenDJ(OpenDJConfiguration configuration) throws IOException, EmbeddedDirectoryServerException {
+-    EmbeddedOpenDJ embeddedOpenDJ = new EmbeddedOpenDJ(configuration);
+-    embeddedOpenDJ.run();
+-    String data = """
+-dn: dc=example,dc=openidentityplatform,dc=org
+-objectClass: top
+-objectClass: domain
+-dc: example
+-
+-dn: ou=people,dc=example,dc=openidentityplatform,dc=org
+-objectclass: top
+-objectclass: organizationalUnit
+-ou: people
+-
+-dn: uid=jdoe,ou=people,dc=example,dc=openidentityplatform,dc=org
+-objectclass: top
+-objectclass: person
+-objectclass: organizationalPerson
+-objectclass: inetOrgPerson
+-cn: John Doe
+-sn: John
+-uid: jdoe
+-""";
+-    InputStream inputStream = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
+-    embeddedOpenDJ.importData(inputStream);
+-    return embeddedOpenDJ;
+-}
+-```
+-
+-If necessary, you can import data from any `InputStream`, such as a file read stream.
+-
+-# Testing
+-
+-You can use the `spring-ldap-core` library to test the embedded LDAP functionality 
+-
+-Add dependencies to the project to run the tests
+-
+-```xml
+-<dependency>
+-    <groupId>org.springframework.boot</groupId>
+-    <artifactId>spring-boot-starter-test</artifactId>
+-    <scope>test</scope>
+-</dependency>
+-<dependency>
+-    <groupId>org.springframework.ldap</groupId>
+-    <artifactId>spring-ldap-core</artifactId>
+-    <scope>test</scope>
+-</dependency>
+-```
+-
+-Add compatibility options to the `maven-surefire-plugin`
+-
+-```xml
+-<plugin>
+-    <artifactId>maven-surefire-plugin</artifactId>
+-    <configuration>
+-        <argLine>${jvm.compatibility.args}</argLine>
+-    </configuration>
+-</plugin>
+-```
+-
+-A simple test that will run a Spring Boot application with built-in OpenDJ authenticate and look for an imported record
+-
+-```java
+-@SpringBootTest
+-class OpenDJEmbeddedApplicationTest {
+-    @Test
+-    public void test() {
+-        LdapContextSource contextSource = new LdapContextSource();
+-        contextSource.setUrl("ldap://localhost:1389");
+-        contextSource.setBase("dc=example,dc=openidentityplatform,dc=org");
+-        contextSource.setUserDn("cn=Directory Manager");
+-        contextSource.setPassword("passw0rd");
+-        contextSource.setPooled(true);
+-        contextSource.afterPropertiesSet();
+-
+-        LdapTemplate template = new LdapTemplate(contextSource);
+-        Object user = template.lookup("uid=jdoe,ou=people");
+-        assertNotNull(user);
+-    }
+-}
+-```
+\ No newline at end of file
++Please submit documentation changes to the [OpenDJ repository](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-doc-generated-ref/src/main/asciidoc).
+diff --git a/How-to-Setup-OpenDJ-with-BCFKS-FIPS-Key-Store-Type-support.md b/How-to-Setup-OpenDJ-with-BCFKS-FIPS-Key-Store-Type-support.md
+index fd96d9f..d4b5a17 100644
+--- a/How-to-Setup-OpenDJ-with-BCFKS-FIPS-Key-Store-Type-support.md
++++ b/How-to-Setup-OpenDJ-with-BCFKS-FIPS-Key-Store-Type-support.md
+@@ -1,84 +1,19 @@
+-## 1. Prepare server with DISA STIG profile (RHEL 8.5>)
+-For example https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html-single/security_hardening/index#assembly_installing-the-system-in-fips-mode_security-hardening
++<!--
++The contents of this file are subject to the terms of the Common Development and
++Distribution License (the License). You may not use this file except in compliance with the
++License.
+ 
+-Or set OpenDJ system properties for non-strict FIPS mode
++You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
++specific language governing permission and limitations under the License.
+ 
+-Add `org.openidentityplatform.opendj.fips.enabled` to the `OPENDJ_JAVA_ARGS` environment variable:
+-```bash
+-export OPENDJ_JAVA_ARGS="... -Dorg.openidentityplatform.opendj.fips.register=true"
+-```
++When distributing Covered Software, include this CDDL Header Notice in each file and include
++the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
++Header, with the fields enclosed by brackets [] replaced by your own identifying
++information: "Portions copyright [year] [name of copyright owner]".
+ 
++Portions Copyright 2026 3A Systems, LLC.
++-->
+ 
+-## 2. Generate BCFKS FIPS compatible keystore
+-```bash
+-cat > /tmp/opendj.keystore.pin
+-Password
+-EOF
+-```
++This guide has moved to [the OpenDJ documentation](https://doc.openidentityplatform.org/opendj/how-to/bcfks).
+ 
+-```bash
+-keytool -genkey -alias server-cert -keyalg rsa -dname "CN=example.com,O=OpenDJ RSA Self-Signed Certificate" \
+- -keystore /etc/certs/opendj.bcfks -storetype BCFKS -validity 3650 -providername BCFIPS \
+- -provider org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider \
+- -providerpath /tmp/libs/bc-fips-1.0.2.3.jar:/tmp/libs/bcpkix-fips-1.0.7.jar \
+- -keypass:file /tmp/opendj.keystore.pin -storepass:file /tmp/opendj.keystore.pin \
+- -keysize 2048 -sigalg SHA256WITHRSA
+-```
+-```bash
+-keytool -selfcert -alias server-cert -keystore /etc/certs/opendj.bcfks -storetype BCFKS -validity 3650 \
+- -providername BCFIPS -provider org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider \
+- -providerpath /tmp/libs/bc-fips-1.0.2.3.jar:/tmp/libs/bcpkix-fips-1.0.7.jar -storepass:file /tmp/opendj.keystore.pin
+-```
+-```bash
+-keytool -genkey -alias admin-cert -keyalg rsa -dname "CN=example.com,O=Administration Connector RSA Self-Signed Certificate" \
+- -keystore /etc/certs/opendj.bcfks -storetype BCFKS -validity 3650 -providername BCFIPS \
+- -provider org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider \
+- -providerpath /tmp/libs/bc-fips-1.0.2.3.jar:/tmp/libs/bcpkix-fips-1.0.7.jar \
+- -keypass:file /tmp/opendj.keystore.pin -storepass:file /tmp/opendj.keystore.pin \
+- -keysize 2048 -sigalg SHA256WITHRSA
+-```
+-```bash
+-keytool -selfcert -alias admin-cert -keystore /etc/certs/opendj.bcfks -storetype BCFKS -validity 3650 \
+- -providername BCFIPS -provider org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider \
+- -providerpath /tmp/libs/bc-fips-1.0.2.3.jar:/tmp/libs/bcpkix-fips-1.0.7.jar -storepass:file /tmp/opendj.keystore.pin
+-```
+-
+- Check keystore
+-```bash
+-keytool -list -storetype BCFKS -providername BCFIPS -provider org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider -providerpath /tmp/libs/bc-fips-1.0.2.1.jar:/tmp/libs/bcpkix-fips-1.0.5.jar -keystore /etc/certs/opendj.bcfks -storepass:file /tmp/opendj.keystore.pin
+-Output:
+-Keystore type: BCFKS
+-Keystore provider: BCFIPS
+-admin-cert, Sep 20, 2023, PrivateKeyEntry, 
+-Certificate fingerprint (SHA-256): 0D:62:B3:85:7C:58:27:4F:00:D3:68:DE:83:50:92:C8:DB:5F:0D:81:4D:14:77:47:C6:C2:D2:B1:05:D2:CB:B0
+-server-cert, Sep 20, 2023, PrivateKeyEntry, 
+-Certificate fingerprint (SHA-256): B4:BC:55:1F:48:28:43:19:0F:0D:D8:06:F8:53:A5:AE:40:B1:EC:DE:99:0C:E4:F1:2E:F7:3D:56:14:ED:BA:F7
+-
+-```
+-Your keystore contains 2 entries
+-
+-```
+-10:55:35 04/15/22 Running: /opt/opendj/setup --no-prompt --cli --propertiesFilePath /opt/opendj/opendj-setup.properties.bcfks --acceptLicense --doNotStart
+-```
+-
+-## 3. Prepare OpenDJ setup properties
+-```
+-...
+-useBcfksKeystore                =/etc/certs/opendj.bcfks
+-keyStorePasswordFile            =/tmp/opendj.keystore.pin
+-...
+-```
+-
+-
+-
+-## 6. Run OpenDJ setup
+-```bash
+-/opt/opendj/setup --no-prompt --cli --propertiesFilePath /opt/opendj/opendj-setup.properties.bcfks --acceptLicense --doNotStart
+-```
+-
+-In order to run OpenDJ tools we need to specify additional parameters: `--trustStorePath /opt/opendj/config/admin-truststore --trustStorePasswordFile /opt/opendj/config/keystore.pin` 
+-
+-In order to use OpenDJ tools without additional parameters we can import OpenDJ trustore into sysatem PKCS11 trustore
+-```bash
+-keytool -importkeystore -destkeystore NONE -deststoretype PKCS11 -deststorepass changeit -srckeystore /opt/opendj/config/truststore -srcstoretype JKS -srcstorepass:file /opt/opendj/config/keystore.pin -noprompt
+-```
+\ No newline at end of file
++Please submit documentation changes to the [OpenDJ repository](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-doc-generated-ref/src/main/asciidoc).
+diff --git a/How-to-delegate-password-reset-permissions.md b/How-to-delegate-password-reset-permissions.md
+index a733a7c..dcb38ff 100644
+--- a/How-to-delegate-password-reset-permissions.md
++++ b/How-to-delegate-password-reset-permissions.md
+@@ -1,38 +1,19 @@
+-# Insufficient Access Rights: You do not have sufficient privileges to perform password reset operations
++<!--
++The contents of this file are subject to the terms of the Common Development and
++Distribution License (the License). You may not use this file except in compliance with the
++License.
+ 
+-Some operations require both privileges and also access control instructions. For example, in order to reset user's passwords, an administrator needs both the **password-reset** privilege and also access control to write **userPassword** values on the user entries. 
++You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
++specific language governing permission and limitations under the License.
+ 
+-By combining an access control instruction with a privilege, you can effectively restrict the scope of that privilege to a particular branch of the Directory Information Tree.
++When distributing Covered Software, include this CDDL Header Notice in each file and include
++the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
++Header, with the fields enclosed by brackets [] replaced by your own identifying
++information: "Portions copyright [year] [name of copyright owner]".
+ 
+-```shell
+-$ bin/ldapmodify --port 1389 --bindDN "cn=Directory Manager" --bindPassword password
+-dn: uid=admin,ou=write-rest,ou=people,dc=example,dc=com
+-changetype: modify
+-add: ds-privilege-name
+-ds-privilege-name: password-reset
++Portions Copyright 2026 3A Systems, LLC.
++-->
+ 
+-Processing MODIFY request for
+-uid=admin,ou=write-rest,ou=people,dc=example,dc=com
+-MODIFY operation successful for DN
+-uid=admin,ou=write-rest,ou=people,dc=example,dc=com
++This guide has moved to [the OpenDJ documentation](https://doc.openidentityplatform.org/opendj/how-to/delegate-password-reset).
+ 
+-dn: ou=People,dc=example,dc=com
+-changetype: modify
+-add: aci
+-aci: (target="ldap:///ou=People,dc=example,dc=com") (targetattr ="*||+")(version 3.0;acl "Admins"; allow(all) userdn ="ldap:///uid=admin,ou=write-rest,ou=people,dc=example,dc=com";)
+-
+-Processing MODIFY request for ou=People,dc=example,dc=com
+-MODIFY operation successful for DN ou=People,dc=example,dc=com
+-^C
+-```
+-test **ldappasswordmodify**
+-```shell
+-$ bin/ldappasswordmodify --port 1389 --bindDN "uid=admin,ou=write-rest,ou=people,dc=example,dc=com" --bindPassword password --authzID "dn:uid=user.0,ou=People,dc=example,dc=com"  --newPassword changeit
+-The LDAP password modify operation was successful
+-```
+-
+-test [REST Access to OpenDJ Directory Server](https://github.com/OpenIdentityPlatform/OpenDJ/wiki/REST-Access-to-OpenDJ-Directory-Server)
+-```shell
+-$ curl -u "admin:password" --request POST -v -k  https://localhost:8443/api/users/user.0?_action=resetPassword
+-{"generatedPassword":"xvu91dui"}
+-```
++Please submit documentation changes to the [OpenDJ repository](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-doc-generated-ref/src/main/asciidoc).
+diff --git a/How-to-generate-test-LDIF-data-and-import-to-LDAP-server-OpenDJ.md b/How-to-generate-test-LDIF-data-and-import-to-LDAP-server-OpenDJ.md
+index 7a4c35f..3b366f7 100644
+--- a/How-to-generate-test-LDIF-data-and-import-to-LDAP-server-OpenDJ.md
++++ b/How-to-generate-test-LDIF-data-and-import-to-LDAP-server-OpenDJ.md
+@@ -1,94 +1,19 @@
+-```bash
+-$ export VERSION="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)" 
++<!--
++The contents of this file are subject to the terms of the Common Development and
++Distribution License (the License). You may not use this file except in compliance with the
++License.
+ 
+-$ echo "last release: $VERSION"
+-last release: 4.9.2
++You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
++specific language governing permission and limitations under the License.
+ 
+-$ curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output opendj.zip
++When distributing Covered Software, include this CDDL Header Notice in each file and include
++the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
++Header, with the fields enclosed by brackets [] replaced by your own identifying
++information: "Portions copyright [year] [name of copyright owner]".
+ 
+-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+-                                 Dload  Upload   Total   Spent    Left  Speed
+-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+-100 72.4M  100 72.4M    0     0   865k      0  0:01:25  0:01:25 --:--:-- 1024k
++Portions Copyright 2026 3A Systems, LLC.
++-->
+ 
+-$ unzip opendj
+-Archive:  opendj.zip
+-   creating: opendj/
+-   creating: opendj/QuickSetup.app/
++This guide has moved to [the OpenDJ documentation](https://doc.openidentityplatform.org/opendj/how-to/generate-test-data).
+ 
+-$ cd opendj
+-
+-$ bin/makeldif -o test.ldif -c numusers=10000000  template/config/MakeLDIF/example.template
+-Processed 1000 entries
+-Processed 2000 entries
+-Processed 3000 entries
+-...
+-Processed 10000000 entries
+-LDIF processing complete. 10000002 entries written
+-
+-$ ./setup --addBaseEntry -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --cli --acceptLicense --no-prompt
+-
+-Configuring Directory Server ..... Done.
+-Configuring Certificates ..... Done.
+-Creating Base Entry dc=example,dc=com ..... Done.
+-Starting Directory Server ....... Done.
+-
+-To see basic server configuration status and configuration, you can launch
+-/private/tmp/opendj/bin/status
+-
+-$ bin/import-ldif --ldifFile test.ldif --backendID=userRoot -h localhost -p 4444 --bindDN "cn=Directory Manager" --bindPassword password --trustAll
+-
+-Import task 20250228170246618 scheduled to start immediately
+-[28/февр./2025:17:02:46 +0300] severity="NOTICE" msgCount=0 msgID=org.opends.messages.backend-413 message="Import task 20250228170246618 started execution"
+-[28/февр./2025:17:02:46 +0300] severity="NOTICE" msgCount=1 msgID=org.opends.messages.backend-370 message="The backend userRoot is now taken offline"
+-[28/февр./2025:17:02:46 +0300] severity="NOTICE" msgCount=2 msgID=org.opends.messages.runtime-21 message="Installation Directory:  /private/tmp/opendj"
+-[28/февр./2025:17:02:46 +0300] severity="NOTICE" msgCount=3 msgID=org.opends.messages.runtime-23 message="Instance Directory:      /private/tmp/opendj"
+-[28/февр./2025:17:02:46 +0300] severity="NOTICE" msgCount=4 msgID=org.opends.messages.runtime-17 message="JVM Information: 23 by Homebrew, 64-bit architecture, 2147483648 bytes heap size"
+-[28/февр./2025:17:02:46 +0300] severity="NOTICE" msgCount=5 msgID=org.opends.messages.runtime-18 message="JVM Host: localhost, running Mac OS X 15.3.1 x86_64, 8589934592 bytes physical memory size, number of processors available 8"
+-[28/февр./2025:17:02:46 +0300] severity="NOTICE" msgCount=6 msgID=org.opends.messages.runtime-19 message="JVM Arguments: "--add-exports=java.base/sun.security.x509=ALL-UNNAMED", "--add-exports=java.base/sun.security.tools.keytool=ALL-UNNAMED", "--add-opens=java.base/jdk.internal.loader=ALL-UNNAMED", "-Dorg.opends.server.scriptName=start-ds""
+-[28/февр./2025:17:02:46 +0300] severity="INFORMATION" msgCount=7 msgID=org.opends.messages.backend-410 message="JE backend 'userRoot' does not specify the number of cleaner threads: defaulting to 8 threads"
+-[28/февр./2025:17:02:46 +0300] severity="INFORMATION" msgCount=8 msgID=org.opends.messages.backend-411 message="JE backend 'userRoot' does not specify the number of lock tables: defaulting to 17"
+-[28/февр./2025:17:02:46 +0300] severity="NOTICE" msgCount=9 msgID=org.opends.messages.backend-533 message="OpenDJ Server 4.9.2 starting import (build 20250204155540, R2fa7a955ea1b9132f6bcfcce18f2979b31085734)"
+-[28/февр./2025:17:02:46 +0300] severity="NOTICE" msgCount=10 msgID=org.opends.messages.backend-528 message="The amount of free memory available to the import task is 1932735283 bytes. The number of phase one buffers required is 160 buffers"
+-[28/февр./2025:17:02:46 +0300] severity="NOTICE" msgCount=11 msgID=org.opends.messages.backend-520 message="Setting DB cache size to 33554432 bytes and phase one buffer size to 3623878 bytes"
+-[28/февр./2025:17:02:47 +0300] severity="NOTICE" msgCount=12 msgID=org.opends.messages.backend-534 message="Import Thread Count: 4 threads"
+-[28/февр./2025:17:10:59 +0300] severity="NOTICE" msgCount=13 msgID=org.opends.messages.backend-531 message="Total import time was 489 seconds. Phase one processing completed in 345 seconds, phase two processing completed in 144 seconds"
+-[28/февр./2025:17:10:59 +0300] severity="NOTICE" msgCount=14 msgID=org.opends.messages.backend-519 message="Processed 10000002 entries, imported 10000002, skipped 0, rejected 0 and migrated 0 in 492 seconds (average rate 20285,8/sec)"
+-[28/февр./2025:17:10:59 +0300] severity="NOTICE" msgCount=15 msgID=org.opends.messages.backend-526 message="Import LDIF environment close took 0 seconds"
+-[28/февр./2025:17:10:59 +0300] severity="NOTICE" msgCount=16 msgID=org.opends.messages.backend-518 message="Flushing data to disk"
+-[28/февр./2025:17:10:59 +0300] severity="INFORMATION" msgCount=17 msgID=org.opends.messages.backend-410 message="JE backend 'userRoot' does not specify the number of cleaner threads: defaulting to 8 threads"
+-[28/февр./2025:17:10:59 +0300] severity="INFORMATION" msgCount=18 msgID=org.opends.messages.backend-411 message="JE backend 'userRoot' does not specify the number of lock tables: defaulting to 17"
+-[28/февр./2025:17:11:00 +0300] severity="NOTICE" msgCount=19 msgID=org.opends.messages.backend-513 message="The database backend userRoot containing 10000002 entries has started"
+-[28/февр./2025:17:11:00 +0300] severity="NOTICE" msgCount=20 msgID=org.opends.messages.backend-414 message="Import task 20250228170246618 finished execution in the state Completed successfully"
+-Import task 20250228170246618 has been successfully completed
+-
+-$ bin/status --bindDN "cn=Directory Manager" --bindPassword password
+-
+-          --- Server Status ---
+-Server Run Status:        Started
+-Open Connections:         1
+-
+-          --- Server Details ---
+-Host Name:                MacBook-Pro-Harseko.local
+-Administrative Users:     cn=Directory Manager
+-Installation Path:        /private/tmp/opendj
+-Version:                  OpenDJ Server 4.9.2
+-Java Version:             23
+-Administration Connector: Port 4444 (LDAPS)
+-
+-          --- Connection Handlers ---
+-Address:Port : Protocol               : State
+--------------:------------------------:---------
+---           : LDIF                   : Disabled
+-0.0.0.0:161  : SNMP                   : Disabled
+-0.0.0.0:1389 : LDAP (allows StartTLS) : Enabled
+-0.0.0.0:1636 : LDAPS                  : Enabled
+-0.0.0.0:1689 : JMX                    : Disabled
+-0.0.0.0:8080 : HTTP                   : Disabled
+-
+-          --- Data Sources ---
+-Base DN:     dc=example,dc=com
+-Backend ID:  userRoot
+-Entries:     10000002
+-Replication: 
+-```
+\ No newline at end of file
++Please submit documentation changes to the [OpenDJ repository](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-doc-generated-ref/src/main/asciidoc).
+diff --git a/REST-Access-to-OpenDJ-Directory-Server.md b/REST-Access-to-OpenDJ-Directory-Server.md
+index 63de688..f251e94 100644
+--- a/REST-Access-to-OpenDJ-Directory-Server.md
++++ b/REST-Access-to-OpenDJ-Directory-Server.md
+@@ -1,150 +1,19 @@
+-# Check Java 1.8+ requirement
++<!--
++The contents of this file are subject to the terms of the Common Development and
++Distribution License (the License). You may not use this file except in compliance with the
++License.
+ 
+-```shell
+-$ java -version
++You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
++specific language governing permission and limitations under the License.
+ 
+-openjdk version "22.0.1" 2024-04-16
+-OpenJDK Runtime Environment Homebrew (build 22.0.1)
+-OpenJDK 64-Bit Server VM Homebrew (build 22.0.1, mixed mode, sharing)
+-```
++When distributing Covered Software, include this CDDL Header Notice in each file and include
++the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
++Header, with the fields enclosed by brackets [] replaced by your own identifying
++information: "Portions copyright [year] [name of copyright owner]".
+ 
+-# Get the Latest Version of the OpenDJ LDAP Server
++Portions Copyright 2026 3A Systems, LLC.
++-->
+ 
+-```shell
+-$ cd /tmp
++This guide has moved to [the OpenDJ documentation](https://doc.openidentityplatform.org/opendj/how-to/rest-access).
+ 
+-$ export VERSION="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)" && echo "last release: $VERSION"
+-
+-last release: 4.6.4
+-
+-$ curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output opendj.zip
+-
+-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+-                                 Dload  Upload   Total   Spent    Left  Speed
+-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+-100 59.7M  100 59.7M    0     0  6770k      0  0:00:09  0:00:09 --:--:-- 8013k
+-
+-$ unzip opendj && cd opendj
+-
+-...
+- inflating: opendj/template/config/wordlist.txt  
+-```
+-
+-# Setup Server With a Sample Data
+-
+-```shell
+-$ ./setup --sampleData 1000 -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --cli --acceptLicense --no-prompt
+-
+-Configuring Directory Server ..... Done.
+-Configuring Certificates ..... Done.
+-Importing Automatically-Generated Data (1000 Entries) ....... Done.
+-Starting Directory Server ....... Done.
+-
+-To see basic server configuration status and configuration, you can launch
+-/private/tmp/opendj/bin/status
+-
+-```
+-
+-# Enable the REST HTTP Connection Handler
+-
+-```shell
+-$ bin/dsconfig set-connection-handler-prop --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword  password --handler-name "HTTP Connection Handler" --set enabled:true --no-prompt --trustAll
+-```
+-
+-# List http-authorization-mechanisms
+-
+-```shell
+-$ bin/dsconfig list-http-authorization-mechanisms --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --trustAll
+-
+-HTTP Authorization Mechanism              : Type
+-------------------------------------------:--------------------------------------------------------
+-HTTP Anonymous                            : http-anonymous-authorization-mechanism
+-HTTP Basic                                : http-basic-authorization-mechanism
+-HTTP OAuth2 CTS                           : http-oauth2-cts-authorization-mechanism
+-HTTP OAuth2 File                          : http-oauth2-file-authorization-mechanism
+-HTTP OAuth2 OpenAM                        : http-oauth2-openam-authorization-mechanism
+-HTTP OAuth2 Token Introspection (RFC7662) : http-oauth2-token-introspection-authorization-mechanism
+-```
+-
+-# List http-endpoints
+-
+-```shell
+-$ bin/dsconfig list-http-endpoints --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --trustAll
+-
+-
+-HTTP Endpoint : Type               : enabled
+---------------:--------------------:--------
+-/admin        : admin-endpoint     : true
+-/api          : rest2ldap-endpoint : true
+-```
+-
+-# Enable the File-Based HTTP Access Logger
+-
+-```shell
+-$ bin/dsconfig set-log-publisher-prop --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword  password --publisher-name "File-Based HTTP Access Logger" --set enabled:true --no-prompt --trustAll
+-```
+-
+-# Create a User With Read/Write Permissions
+-
+-```shell
+-$ bin/ldapmodify --port 1389 --bindDN "cn=Directory Manager" --bindPassword password
+-
+-dn: ou=write-rest,ou=people,dc=example,dc=com
+-objectClass: top
+-objectClass: organizationalUnit
+-ou: write-rest
+-description: REST administrators
+-
+-Processing ADD request for ou=write-rest,ou=people,dc=example,dc=com
+-ADD operation successful for DN ou=write-rest,ou=people,dc=example,dc=com
+-
+-dn: uid=admin,ou=write-rest,ou=people,dc=example,dc=com
+-objectClass: top
+-objectClass: inetOrgPerson
+-objectClass: organizationalPerson
+-objectClass: person
+-cn: admin
+-uid: admin
+-sn: admin
+-description: REST admin
+-userPassword: password
+-
+-Processing ADD request for uid=admin,ou=write-rest,ou=people,dc=example,dc=com
+-ADD operation successful for DN
+-uid=admin,ou=write-rest,ou=people,dc=example,dc=com
+-
+-
+-^C
+-
+-```
+-
+-# Test Reading Other Users
+-
+-```shell
+-$ curl -u "admin:password"  http://localhost:8080/api/users/user.0?_prettyPrint=true
+-{
+-  "_id" : "user.0",
+-  "_rev" : "00000000595bb0ca",
+-  "_schema" : "frapi:opendj:rest2ldap:user:1.0",
+-  "_meta" : { },
+-  "userName" : "user.0@maildomain.net",
+-  "displayName" : [ "Aaccf Amar" ],
+-  "name" : {
+-    "givenName" : "Aaccf",
+-    "familyName" : "Amar"
+-  },
+-  "description" : "This is the description for Aaccf Amar.",
+-  "contactInformation" : {
+-    "telephoneNumber" : "+1 685 622 6202",
+-    "emailAddress" : "user.0@maildomain.net"
+-  }
+-
+-```
+-
+-For more info about REST operations see [Performing RESTful Operations](https://doc.openidentityplatform.org/opendj/server-dev-guide/chap-rest-operations).
+-
+-To change the configuration modify the default file [config/rest2ldap/endpoints/api/example-v1.json](https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/opendj-server-legacy/resource/config/rest2ldap/endpoints/api/example-v1.json)
+-
+-[Set User Password via REST API in OpenDJ](https://github.com/OpenIdentityPlatform/OpenDJ/discussions/355)
+-
+-[[How to delegate password reset permissions]]
+\ No newline at end of file
++Please submit documentation changes to the [OpenDJ repository](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-doc-generated-ref/src/main/asciidoc).
+diff --git a/TIP:-How-to-Persist-OpenDJ-Docker-Container-Data-Between-Restarts.md b/TIP:-How-to-Persist-OpenDJ-Docker-Container-Data-Between-Restarts.md
+index b1ef15f..ac0ee0e 100644
+--- a/TIP:-How-to-Persist-OpenDJ-Docker-Container-Data-Between-Restarts.md
++++ b/TIP:-How-to-Persist-OpenDJ-Docker-Container-Data-Between-Restarts.md
+@@ -1,23 +1,19 @@
+-If you want persist the OpenDJ configuration data, you need to specify a volume that maps `/opt/opendj/data` container directory to a local directory. Example with `docker-compose.yaml`
++<!--
++The contents of this file are subject to the terms of the Common Development and
++Distribution License (the License). You may not use this file except in compliance with the
++License.
+ 
+-```yaml
+-services:
+-  opendj:
+-    image: openidentityplatform/opendj:latest
+-    ports:
+-      - 1389:1389 
+-      - 1636:1636 
+-      - 4444:4444
+-    volumes:
+-      - ./opendj-data:/opt/opendj/data
+-```
++You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
++specific language governing permission and limitations under the License.
+ 
+-With `docker run` command:
++When distributing Covered Software, include this CDDL Header Notice in each file and include
++the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
++Header, with the fields enclosed by brackets [] replaced by your own identifying
++information: "Portions copyright [year] [name of copyright owner]".
+ 
+-```
+-docker run -h ldap-01.domain.com \
+-    -p 1389:1389 -p 1636:1636 -p 4444:4444 \
+-    --name ldap-01 \
+-    -v ./opendj-data:/opt/opendj/data \
+-    openidentityplatform/opendj
+-```
++Portions Copyright 2026 3A Systems, LLC.
++-->
++
++This guide has moved to [the OpenDJ documentation](https://doc.openidentityplatform.org/opendj/install-guide/chap-install#install-docker).
++
++Please submit documentation changes to the [OpenDJ repository](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-doc-generated-ref/src/main/asciidoc).
+diff --git a/Using-a-Relational-Database-as-an-LDAP-Backend.md b/Using-a-Relational-Database-as-an-LDAP-Backend.md
+index 3871bfa..1e9aff2 100644
+--- a/Using-a-Relational-Database-as-an-LDAP-Backend.md
++++ b/Using-a-Relational-Database-as-an-LDAP-Backend.md
+@@ -1,159 +1,19 @@
+-# Preparation
++<!--
++The contents of this file are subject to the terms of the Common Development and
++Distribution License (the License). You may not use this file except in compliance with the
++License.
+ 
+-First, you must have Java at least 1.8 installed and Docker installed. Run the PostgreSQL Docker image with the following command:
++You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
++specific language governing permission and limitations under the License.
+ 
+-```
+-docker run -it -d -p 5432:5432 -e POSTGRES_DB=database_name -e POSTGRES_PASSWORD=password --name postgres postgres
+-```
+-Download the latest OpenDJ version from the GitHub using the following commands:
+-```
+-export VERSION="$(curl -i -o - --silent https://api.github.com/repos/OpenIdentityPlatform/OpenDJ/releases/latest | grep -m1 "\"name\"" | cut -d\" -f4)" 
+-echo "last release: $VERSION"
+-curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output opendj.zip
+-```
++When distributing Covered Software, include this CDDL Header Notice in each file and include
++the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
++Header, with the fields enclosed by brackets [] replaced by your own identifying
++information: "Portions copyright [year] [name of copyright owner]".
+ 
+-Or manually from your browser [https://github.com/OpenIdentityPlatform/OpenDJ/releases](https://github.com/OpenIdentityPlatform/OpenDJ/releases).
++Portions Copyright 2026 3A Systems, LLC.
++-->
+ 
++This guide has moved to [the OpenDJ documentation](https://doc.openidentityplatform.org/opendj/how-to/jdbc-backend).
+ 
+-Unzip the distribution
+-
+-```
+-unzip opendj.zip
+-```
+-
+-Run the OpenDJ setup command
+-
+-```
+-./opendj/setup -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --cli --acceptLicense --no-prompt
+-
+-Configuring Directory Server ..... Done.
+-Configuring Certificates ..... Done.
+-Starting Directory Server ....... Done.
+-
+-To see basic server configuration status and configuration, you can launch
+-/home/user/opendj-postgres/opendj/bin/status
+-```
+-
+-Pay attention to the parameters `rootUserDN` and `rootUserPassword`. Here are the parameters for connecting to OpenDJ with administrative rights.
+-
+-Check the OpenDJ status
+-
+-```
+-./opendj/bin/status --bindDN "cn=Directory Manager" --bindPassword password
+-
+-          --- Server Status ---
+-Server Run Status:        Started
+-Open Connections:         1
+-
+-          --- Server Details ---
+-Host Name:                MacBook-Pro-Maxim.local
+-Administrative Users:     cn=Directory Manager
+-Installation Path:
+-/home/user/opendj-postgres/opendj
+-Version:                  OpenDJ Server 4.9.0
+-Java Version:             21.0.2
+-Administration Connector: Port 4444 (LDAPS)
+-
+-          --- Connection Handlers ---
+-Address:Port : Protocol               : State
+--------------:------------------------:---------
+---           : LDIF                   : Disabled
+-0.0.0.0:161  : SNMP                   : Disabled
+-0.0.0.0:1389 : LDAP (allows StartTLS) : Enabled
+-0.0.0.0:1636 : LDAPS                  : Enabled
+-0.0.0.0:1689 : JMX                    : Disabled
+-0.0.0.0:8080 : HTTP                   : Disabled
+-
+-          --- Data Sources ---
+--No LDAP Databases Found-
+-```
+-
+-As you can see from the output of the command, the LDAP database has not yet been created.
+-
+-# OpenDJ Setup
+-
+-Create OpenDJ backend using PostgreSQL database
+-
+-```
+-./opendj/bin/dsconfig create-backend -h localhost -p 4444 --bindDN "cn=Directory Manager" --bindPassword password --backend-name=userRoot --type jdbc --set base-dn:dc=example,dc=com --set 'db-directory:jdbc:postgresql://localhost:5432/database_name?user=postgres&password=password' --set enabled:true --no-prompt --trustAll
+-```
+-
+-
+-Note the arguments `--type`, which must be set to `jdbc` to use a relational database, and `--set` `'db-directory:jdbc:...'`, a string for connecting to a JDBC-compliant data source.
+-
+-> The DBMS can be almost any database for which there is a JDBC-compatible driver. For example, you can use MySQL, MS SQL Server, and so on. To use a JDBC-compatible database, you need to download the appropriate driver and copy it to the `./opendj/lib` directory and modify the connection string to the JDBC source in the `--set` argument. Example connection string for MySQL: `db-directory:jdbc:mysql://mysqlhost:3306/database_name?user=mysql&password=password`. For more details, refer to the the documentation for the corresponding driver
+-
+-
+-You can read more about the parameters of the `dsconfig create-backend` command at the following link
+-
+-[https://doc.openidentityplatform.org/opendj/reference/dsconfig-subcommands-ref#dsconfig-create-backend](https://doc.openidentityplatform.org/opendj/reference/dsconfig-subcommands-ref#dsconfig-create-backend).
+-
+-# Test the Solution
+-
+-For demonstration purposes, create and load test data in OpenDJ
+-
+-Create ldif file with test data from the template:
+-
+-```
+-./opendj/bin/makeldif -o /tmp/test.ldif -c suffix=dc=example,dc=com ./opendj/config/MakeLDIF/example.template                                                                   
+-Processed 1000 entries
+-Processed 2000 entries
+-Processed 3000 entries
+-Processed 4000 entries
+-Processed 5000 entries
+-Processed 6000 entries
+-Processed 7000 entries
+-Processed 8000 entries
+-Processed 9000 entries
+-Processed 10000 entries
+-LDIF processing complete. 10002 entries written
+-```
+-
+-Load ldif file into OpenDJ
+-
+-```
+-./opendj/bin/ldapmodify --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll -f /tmp/test.ldif -a
+-Processing ADD request for dc=example,dc=com
+-ADD operation successful for DN dc=example,dc=com
+-Processing ADD request for ou=People,dc=example,dc=com
+-ADD operation successful for DN ou=People,dc=example,dc=com
+-Processing ADD request for uid=user.0,ou=People,dc=example,dc=com
+-ADD operation successful for DN uid=user.0,ou=People,dc=example,dc=com
+-Processing ADD request for uid=user.1,ou=People,dc=example,dc=com
+-ADD operation successful for DN uid=user.1,ou=People,dc=example,dc=com
+-Processing ADD request for uid=user.2,ou=People,dc=example,dc=com
+-ADD operation successful for DN uid=user.2,ou=People,dc=example,dc=com
+-....
+-Processing ADD request for uid=user.9998,ou=People,dc=example,dc=com
+-ADD operation successful for DN uid=user.9998,ou=People,dc=example,dc=com
+-Processing ADD request for uid=user.9999,ou=People,dc=example,dc=com
+-ADD operation successful for DN uid=user.9999,ou=People,dc=example,dc=com
+-```
+-
+-Check the loaded data in OpenDJ:
+-
+-```
+-./opendj/bin/ldapsearch  --hostname localhost --port 1389 --bindDN "cn=Directory Manager" --bindPassword password --baseDN "ou=People,dc=example,dc=com" -s one -a always -z 3 "(objectClass=*)" "hasSubordinates" "objectClass"
+-dn: uid=user.0,ou=People,dc=example,dc=com
+-hasSubordinates: false
+-objectClass: inetOrgPerson
+-objectClass: organizationalPerson
+-objectClass: person
+-objectClass: top
+-
+-dn: uid=user.1,ou=People,dc=example,dc=com
+-hasSubordinates: false
+-objectClass: inetOrgPerson
+-objectClass: organizationalPerson
+-objectClass: person
+-objectClass: top
+-
+-dn: uid=user.10,ou=People,dc=example,dc=com
+-hasSubordinates: false
+-objectClass: inetOrgPerson
+-objectClass: organizationalPerson
+-objectClass: person
+-objectClass: top
+-
+-...
+-```
+\ No newline at end of file
++Please submit documentation changes to the [OpenDJ repository](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-doc-generated-ref/src/main/asciidoc).

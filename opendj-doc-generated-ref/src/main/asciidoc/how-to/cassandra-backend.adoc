@@ -1,0 +1,44 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+[#how-to-cassandra-backend]
+== Store Directory Data in Cassandra
+
+This recipe preserves the Cassandra backend setup from the wiki's task collection. It requires a reachable Cassandra cluster and a data center name matching that cluster's configuration. Prepare a fresh OpenDJ installation without a base DN, using only the `./setup` command in xref:./jdbc-backend.adoc[the JDBC setup procedure]. Do not run its `create-backend` command: the Cassandra backend below will use the same `userRoot` name. Configure the driver before running setup.
+
+For a local Cassandra node on port 9042 in data center `datacenter1`:
+
+[source,bash]
+----
+export OPENDJ_JAVA_ARGS="${OPENDJ_JAVA_ARGS:-} -Ddatastax-java-driver.basic.contact-points.0=localhost:9042 -Ddatastax-java-driver.basic.load-balancing-policy.local-datacenter=datacenter1"
+----
+
+Keep these settings in the server's startup environment. Configure authentication and TLS in the driver for a secured cluster. Create the backend with keyspace name `ldap_example_com`:
+
+[source,bash]
+----
+bin/dsconfig create-backend --hostname localhost --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPassword password \
+  --backend-name userRoot --type cas \
+  --set db-directory:ldap_example_com --set base-dn:dc=example,dc=com \
+  --set enabled:true --trustAll --no-prompt
+----
+
+Follow xref:./generate-test-data.adoc[Generate and Load Test LDIF Data] to add entries and check LDAP searches. Choose Cassandra replication and durability settings for your topology before using this backend for persistent directory data; this local recipe does not configure a production cluster.

@@ -1,0 +1,38 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+= How-To Guides
+:doctype: book
+:toc:
+:copyright: Copyright 2026 3A Systems, LLC.
+:imagesdir: ../
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+[abstract]
+Practical recipes for running and integrating OpenDJ. These guides are maintained in the OpenDJ repository; the former wiki articles link here. For procedures already covered by another guide, see the task directory below.
+
+include::./tasks.adoc[]
+include::./kubernetes.adoc[]
+include::./bcfks.adoc[]
+include::./jdbc-backend.adoc[]
+include::./embedded-ldap.adoc[]
+include::./rest-access.adoc[]
+include::./delegate-password-reset.adoc[]
+include::./generate-test-data.adoc[]
+include::./cassandra-backend.adoc[]
+include::./debug-instance.adoc[]
