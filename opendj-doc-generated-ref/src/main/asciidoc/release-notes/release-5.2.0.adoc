@@ -41,7 +41,7 @@ The release provides the following assets:
 |===
 |Asset |Purpose
 |`opendj-5.2.0.zip` |Cross-platform directory server; used by the Getting Started exercise.
-|`opendj-5.2.0-slim.zip` |Slim server distribution. Check that the optional components required by your deployment are present before choosing it.
+|`opendj-5.2.0-slim.zip` |Slim server distribution without the Cassandra, Oracle, MySQL, SQL Server and PostgreSQL drivers.
 |`opendj_5.2.0-1_all.deb` |Debian package.
 |`opendj-5.2.0-1.noarch.rpm` |RPM package.
 |`opendj-5.2.0.msi` |Windows installer.
@@ -49,6 +49,8 @@ The release provides the following assets:
 |`org.openidentityplatform.opendj.opendj-rest2ldap-servlet.war` |REST to LDAP gateway for deployment in a servlet container.
 |`org.openidentityplatform.opendj.opendj-dsml-servlet.war` |DSML gateway for deployment in a servlet container.
 |`OpenDJ.Doc.Generated.References-pdf.zip` |Documentation PDFs packaged with the release.
+|`Dockerfile.zip` |Docker image build files.
+|`opendj-openshift-template.yaml` |OpenShift deployment template.
 |===
 
 The project also publishes the link:https://hub.docker.com/r/openidentityplatform/opendj/[OpenDJ Docker image]. See xref:../install-guide/chap-install.adoc#install-docker[Running OpenDJ in Docker] for image variants, configuration and persistent data.

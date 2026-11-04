@@ -23,7 +23,7 @@ This exercise uses the published OpenDJ {opendj-example-version} ZIP distributio
 
 === Prepare the Environment
 
-Install Java 11 or later, `curl` and `unzip`. Run `java -version` to check the Java runtime. If several runtimes are installed, set `OPENDJ_JAVA_HOME` to the Java installation you want OpenDJ to use.
+Install Java 11 or later, `curl` and `unzip`. Run `java -version` to check the Java runtime. If several runtimes are installed, set `OPENDJ_JAVA_HOME` to the Java installation you want OpenDJ to use. Run the commands below in Bash; on macOS, enter `bash` first if your terminal uses another shell, such as zsh.
 
 Use a host reserved for local evaluation and keep the listener ports inaccessible from other hosts. Ports 1389 (LDAP), 1636 (LDAPS) and 4444 (administration) must be free. The example connects to `localhost`; the setup host name does not restrict listeners to the loopback interface.
 
@@ -40,14 +40,13 @@ unzip -q opendj.zip
 
 === Set Up and Start the Server
 
-Read `opendj/legal/CDDLv1.0.txt` before accepting the license with the setup command below. Choose a nonempty administrator password. Save it in a file readable only by your account so it does not appear in command arguments or shell history:
+Read the link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/{opendj-example-version}/LICENSE.md[license] before accepting it with the setup command below. Choose a nonempty administrator password. Save it in a file readable only by your account so it does not appear in command arguments or shell history:
 
 [source,bash]
 ----
-umask 077
 read -r -s -p 'Directory Manager password: ' quickstart_password
 printf '\n'
-printf '%s\n' "$quickstart_password" > quickstart-password.txt
+(umask 077; printf '%s\n' "$quickstart_password" > quickstart-password.txt)
 unset quickstart_password
 cd opendj
 ./setup --cli --no-prompt --acceptLicense \

@@ -73,7 +73,7 @@ These plugin settings do not affect `java -jar` or an IDE launch; supply the sam
 
 === Configure the Bean and Import Data
 
-Put this configuration in your application's component-scan package. It imports `src/main/resources/test-directory.ldif` after startup and closes the server when the Spring context closes, including on initialization failure:
+Put this configuration in your application's component-scan package. It imports `src/main/resources/test-directory.ldif` after startup and calls the server's `close()` method when the Spring context closes or initialization fails:
 
 [source,java]
 ----
@@ -145,4 +145,4 @@ bin/ldapsearch --hostname localhost --port 1389 \
   '(objectClass=*)' uid cn
 ----
 
-Expect `uid: jdoe` and `cn: John Doe`. Use the same assertion in your application's integration tests, for example with Spring LDAP's `LdapTemplate`. Closing the context stops the server and removes its temporary files.
+Expect `uid: jdoe` and `cn: John Doe`. Use the same assertion in your application's integration tests, for example with Spring LDAP's `LdapTemplate`. Closing the context calls `close()` to stop the server and clean up its temporary files. If the server cannot be stopped, the instance stays open and retains its directory and shutdown hook so that a later `close()` call or JVM exit can retry the stop.

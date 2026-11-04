@@ -21,7 +21,7 @@ Copyright 2026 3A Systems, LLC.
 [#how-to-jdbc-backend]
 == Use a Relational Database as an LDAP Backend
 
-This example stores LDAP entries in PostgreSQL while clients continue to use LDAP. It requires Docker and a fresh OpenDJ installation prepared according to xref:../install-guide/chap-install.adoc#before-you-install[the installation prerequisites]. Use Java 11 or later.
+This example stores LDAP entries in PostgreSQL while clients continue to use LDAP. It requires Docker and a fresh OpenDJ installation from the full server ZIP, prepared according to xref:../install-guide/chap-install.adoc#before-you-install[the installation prerequisites]. Use Java 11 or later.
 
 === Start PostgreSQL
 
@@ -56,7 +56,7 @@ bin/dsconfig create-backend --hostname localhost --port 4444 \
   --set enabled:true --trustAll --no-prompt
 ----
 
-Quote the JDBC URL so the shell does not interpret `&`. The example's database credentials are stored in the backend configuration; restrict access to the instance files. The PostgreSQL driver is included in the distribution. For another supported database, check the backend's SQL dialect support as well as the JDBC driver; a JDBC driver alone does not make every database compatible.
+Quote the JDBC URL so the shell does not interpret `&`. The example's database credentials are stored in the backend configuration; restrict access to the instance files. The PostgreSQL driver is included in the full server ZIP; `opendj-<version>-slim.zip` leaves out the Cassandra, Oracle, MySQL, SQL Server and PostgreSQL drivers. For another supported database, check the backend's SQL dialect support as well as the JDBC driver; a JDBC driver alone does not make every database compatible.
 
 The backend is initially empty. Follow xref:./generate-test-data.adoc[Generate and Load Test LDIF Data] to populate it and verify LDAP searches. See xref:../reference/dsconfig-subcommands-ref.adoc#dsconfig-create-backend[dsconfig create-backend] for configuration properties.
 

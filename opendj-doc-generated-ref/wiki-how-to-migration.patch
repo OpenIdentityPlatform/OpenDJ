@@ -206,7 +206,7 @@ index 9db58cd..03019aa 100644
 \ No newline at end of file
 +Please submit documentation changes to the [OpenDJ repository](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-doc-generated-ref/src/main/asciidoc).
 diff --git a/How-To.md b/How-To.md
-index faa10f3..5f16538 100644
+index faa10f3..83a28ba 100644
 --- a/How-To.md
 +++ b/How-To.md
 @@ -1,129 +1,97 @@
@@ -391,7 +391,7 @@ index faa10f3..5f16538 100644
 +
 +## Check server status
 +
-+See [the maintained procedure](https://doc.openidentityplatform.org/opendj/admin-guide/chap-monitoring).
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/admin-guide/chap-monitoring#monitoring-status-and-tasks).
 +
 +## Backup and restore
 +
@@ -411,7 +411,7 @@ index faa10f3..5f16538 100644
 +
 +## Rebuild Degraded Indexes ONLINE
 +
-+See [the maintained procedure](https://doc.openidentityplatform.org/opendj/admin-guide/chap-indexing).
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/admin-guide/chap-indexing#rebuild-degraded-indexes-example).
 +
 +## List the available protocols and cipher suites, read the supportedTLSProtocols and supportedTLSCiphers
 +
