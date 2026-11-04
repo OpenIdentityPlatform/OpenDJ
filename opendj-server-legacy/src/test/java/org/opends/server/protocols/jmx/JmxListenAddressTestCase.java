@@ -15,11 +15,14 @@
  */
 package org.opends.server.protocols.jmx;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
 import java.io.IOException;
+import java.net.BindException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -49,6 +52,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.HostPort;
+import org.opends.server.util.TestTimer;
 import org.testng.SkipException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -271,14 +275,25 @@ public class JmxListenAddressTestCase extends DirectoryServerTestCase
     return port;
   }
 
-  private static void assertPortReleased(InetAddress address, int port) throws IOException
+  private static void assertPortReleased(InetAddress address, int port) throws Exception
   {
-    assertFalse(isAcceptingConnections(address, port), "The stopped RMI listener still accepts connections on " + port);
-    try (ServerSocket socket = new ServerSocket())
-    {
-      socket.setReuseAddress(true);
-      socket.bind(new InetSocketAddress(address, port));
-    }
+    // The JDK may defer closing the socket until its accept thread exits the pending I/O.
+    // On Linux, close() can therefore return before the port stops accepting connections.
+    new TestTimer.Builder().maxSleep(5, SECONDS).sleepTimes(10, MILLISECONDS).toTimer()
+        .repeatUntilSuccess(() ->
+        {
+          assertFalse(isAcceptingConnections(address, port),
+              "The stopped RMI listener still accepts connections on " + port);
+          try (ServerSocket socket = new ServerSocket())
+          {
+            socket.setReuseAddress(true);
+            socket.bind(new InetSocketAddress(address, port));
+          }
+          catch (BindException e)
+          {
+            throw new AssertionError("The stopped RMI listener's port cannot be rebound: " + port, e);
+          }
+        });
   }
 
   /** A change that restarts the RMI connector keeps the listen address that is reported. */
