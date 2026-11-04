@@ -14,13 +14,21 @@ information: "Portions copyright [year] [name of copyright owner]".
 Copyright 2026 3A Systems, LLC.
 -->
 
-# Maintaining the How-To guides
+# Maintaining the AsciiDoc guides
 
 Edit `src/main/asciidoc/how-to`, not the generated site modules or the former wiki tutorials. Each task has one maintained procedure. Link to the Installation, Administration or Developer's Guide when that procedure already exists there.
 
 The `how-to/index.adoc` book includes its chapters using `include::./name.adoc[]`. The Maven `documents` list selects guides for preprocessing, Antora conversion and PDF generation. Register navigation and the generated PDF filename separately in `opendj/antora.yml` in the documentation-site repository. Do not hand-edit the generated `modules` tree there: deployment replaces it.
 
 Use `xref:../guide/chapter.adoc#anchor[Title]` for cross-guide links and `xref:./chapter.adoc[Title]` for another How-To. Each chapter must define any attributes it uses, because the site renders chapters separately. Use `subs="+attributes"` on a code block only when it intentionally substitutes an AsciiDoc attribute. Keep language expressions such as Java placeholders literal.
+
+## Getting Started and Release Notes
+
+`getting-started` contains the introductory concepts and a runnable first-directory exercise. Keep its download pinned to a published release, even when this repository builds a SNAPSHOT. Re-run the exercise when changing its version or commands.
+
+`release-notes` contains version-specific summaries and installation/upgrade considerations. Verify release facts against the tagged source and the GitHub release record. Link to the complete changelog and security advisories instead of copying their full contents. Add a chapter and update the book includes when documenting a new release; do not silently relabel an older release's notes.
+
+Both books follow the same Maven, Antora and PDF pipeline as How-To. Their site PDF filenames are `Getting_Started.pdf` and `Release_Notes.pdf`. Register their navigation before the Installation Guide. The historical DocBook sources are maintained separately and are not inputs to these new guides.
 
 ## Wiki migration inventory
 

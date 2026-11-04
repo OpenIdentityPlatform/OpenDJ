@@ -731,6 +731,8 @@
                                 </goals>
                                 <configuration>
                                     <documents>
+                                        <document>release-notes</document>
+                                        <document>getting-started</document>
                                         <document>install-guide</document>
                                         <document>admin-guide</document>
                                         <document>server-dev-guide</document>

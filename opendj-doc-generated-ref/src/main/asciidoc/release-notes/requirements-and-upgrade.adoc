@@ -1,0 +1,52 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+[#release-requirements]
+== Requirements and Upgrade Considerations
+
+=== Java and Installation Environment
+
+OpenDJ 5.2.0 requires Java 11 or later. This is the minimum in the link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/5.2.0/README.md[release README]; the server ZIP does not supply a Java runtime. The Docker image supplies its own Java environment.
+
+Install with an operating-system account that can write the server's configuration, database and logs. Ensure the selected listener ports are available and the server host name resolves as intended. Choose memory, disk space and file-descriptor limits for the size of your directory and workload; the small Getting Started exercise is not production sizing guidance. See xref:../install-guide/chap-install.adoc#before-you-install[Preparing For Installation] and xref:../admin-guide/chap-tuning.adoc[Tuning Servers].
+
+The standalone server does not require a servlet container. The separate REST to LDAP and DSML WAR files do; follow their installation procedures in the xref:../install-guide/chap-install.adoc[Installation Guide].
+
+=== Plan an Upgrade
+
+Read the release records for every version between your installed release and the target version. Test the upgrade with a copy of your configuration and data, including application binds, searches, access controls, custom schema, plugins and replication.
+
+Back up the installation before replacing its files, and retain the original binaries and configuration for recovery. Follow the xref:../install-guide/chap-upgrade.adoc#before-you-upgrade[upgrade preparation] and the procedure for your installation type:
+
+* xref:../install-guide/chap-upgrade.adoc#upgrade-zip[ZIP and native packages].
+* xref:../install-guide/chap-upgrade.adoc#upgrade-msi[Windows MSI].
+* xref:../install-guide/chap-upgrade.adoc#upgrade-docker[Docker containers].
+* xref:../install-guide/chap-upgrade.adoc#upgrade-repl[Replicated servers].
+
+The `upgrade` tool updates configuration and data for the new binaries. With `--no-prompt`, `--acceptLicense` accepts the license; `--force` also performs tasks that otherwise require confirmation. These options have different purposes. Inspect the upgrade result and logs before returning the instance to service.
+
+=== Compatibility Checks
+
+* Move installations using Java older than 11 to a suitable runtime before running OpenDJ 5.2.0. Check `OPENDJ_JAVA_HOME`, `OPENDJ_JAVA_BIN` and configured Java properties if different tools select different runtimes.
+* For ZIP upgrades from releases before 5.1.2, review the stale `lib/org.openidentityplatform.opendj.opendj-server-legacy.jar` warning in the xref:../install-guide/chap-upgrade.adoc#upgrade-zip[ZIP upgrade procedure]. Unpacking an archive does not remove obsolete files.
+* When migrating from OpenDJ 3 or earlier to the 5.x line, review the REST to LDAP configuration change described in the xref:../install-guide/chap-upgrade.adoc#upgrade-zip[upgrade procedure]. Do not assume an old HTTP mapping can be reused unchanged; see the xref:../reference/appendix-rest2ldap.adoc[REST to LDAP configuration reference].
+* For a container upgrade, retain the data volume and check the documented image upgrade procedure and health status. Replacing a container without its persistent volume creates a different instance.
+
+=== Known Issues and Help
+
+The link:https://github.com/OpenIdentityPlatform/OpenDJ/issues[issue tracker] records reported problems and ongoing work. An open issue is not, by itself, proof that a particular released version is affected: read its description, reproduction and linked fixes. Consult the link:https://github.com/OpenIdentityPlatform/OpenDJ/security/advisories[security advisories] separately for published security information.
+
+For usage questions, use the link:https://github.com/OpenIdentityPlatform/OpenDJ/discussions[community discussions]. A useful bug report includes the OpenDJ and Java versions, installation type, relevant configuration, reproduction steps and sanitized logs. Follow the project's link:https://github.com/OpenIdentityPlatform/OpenDJ/security/policy[security policy] when reporting a suspected vulnerability.

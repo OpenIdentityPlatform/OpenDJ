@@ -1,0 +1,172 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+:opendj-example-version: 5.2.0
+
+[#getting-started-first-directory]
+== Your First Directory
+
+This exercise uses the published OpenDJ {opendj-example-version} ZIP distribution on Linux or macOS with Bash. It creates a new evaluation instance, uses a self-signed certificate for LDAPS, and leaves existing installations alone. For Windows, native packages or Docker, use the xref:../install-guide/chap-install.adoc[Installation Guide].
+
+=== Prepare the Environment
+
+Install Java 11 or later, `curl` and `unzip`. Run `java -version` to check the Java runtime. If several runtimes are installed, set `OPENDJ_JAVA_HOME` to the Java installation you want OpenDJ to use.
+
+Use a host reserved for local evaluation and keep the listener ports inaccessible from other hosts. Ports 1389 (LDAP), 1636 (LDAPS) and 4444 (administration) must be free. The example connects to `localhost`; the setup host name does not restrict listeners to the loopback interface.
+
+Download and unpack the server in a new directory:
+
+[source,bash,subs="+attributes"]
+----
+mkdir opendj-quickstart
+cd opendj-quickstart
+curl --fail --location --output opendj.zip \
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/{opendj-example-version}/opendj-{opendj-example-version}.zip
+unzip -q opendj.zip
+----
+
+=== Set Up and Start the Server
+
+Read `opendj/legal/CDDLv1.0.txt` before accepting the license with the setup command below. Choose a nonempty administrator password. Save it in a file readable only by your account so it does not appear in command arguments or shell history:
+
+[source,bash]
+----
+umask 077
+read -r -s -p 'Directory Manager password: ' quickstart_password
+printf '\n'
+printf '%s\n' "$quickstart_password" > quickstart-password.txt
+unset quickstart_password
+cd opendj
+./setup --cli --no-prompt --acceptLicense \
+  --hostname localhost --ldapPort 1389 --ldapsPort 1636 \
+  --adminConnectorPort 4444 --generateSelfSignedCertificate \
+  --rootUserDN 'cn=Directory Manager' \
+  --rootUserPasswordFile ../quickstart-password.txt \
+  --baseDN 'dc=example,dc=com' --addBaseEntry
+----
+
+Setup creates the base entry and starts the server. Keep this terminal in the `opendj` directory for the remaining commands.
+
+Verify that the base entry exists:
+
+[source,bash]
+----
+./bin/ldapsearch --hostname localhost --port 1636 --useSSL --trustAll \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile ../quickstart-password.txt \
+  --baseDN 'dc=example,dc=com' --searchScope base '(objectClass=*)' dn
+----
+
+The output should contain `dn: dc=example,dc=com`. The `--trustAll` option accepts the evaluation certificate without validating its identity. For a deployed service, configure a trusted certificate and client trust instead; see xref:../admin-guide/chap-connection-handlers.adoc#setup-server-cert[Preparing For Secure Communications].
+
+=== Add a Person
+
+Create a People organizational unit and Alice's entry in an LDIF file. The parent entry must precede its child:
+
+[source,bash]
+----
+cat > people.ldif <<'LDIF'
+dn: ou=People,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: People
+
+dn: uid=alice,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+uid: alice
+cn: Alice Jensen
+sn: Jensen
+mail: alice@example.com
+LDIF
+./bin/ldapmodify --hostname localhost --port 1636 --useSSL --trustAll \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile ../quickstart-password.txt \
+  --defaultAdd --filename people.ldif
+----
+
+Both additions should succeed. Alice is a directory record here; this example does not assign her a password or configure application access.
+
+=== Search and Change the Entry
+
+Search below the base DN for Alice, requesting only her name and email address:
+
+[source,bash]
+----
+./bin/ldapsearch --hostname localhost --port 1636 --useSSL --trustAll \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile ../quickstart-password.txt \
+  --baseDN 'dc=example,dc=com' '(uid=alice)' cn mail
+----
+
+The result includes Alice's DN, `cn: Alice Jensen` and `mail: alice@example.com`.
+
+Replace the email address using an LDIF change record:
+
+[source,bash]
+----
+cat > update-alice.ldif <<'LDIF'
+dn: uid=alice,ou=People,dc=example,dc=com
+changetype: modify
+replace: mail
+mail: alice.jensen@example.com
+LDIF
+./bin/ldapmodify --hostname localhost --port 1636 --useSSL --trustAll \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile ../quickstart-password.txt \
+  --filename update-alice.ldif
+----
+
+Repeat the search. It should now return `mail: alice.jensen@example.com`.
+
+=== Restart and Remove the Sample Data
+
+Stop and restart the server as the same operating-system user who ran setup:
+
+[source,bash]
+----
+./bin/stop-ds
+./bin/start-ds
+----
+
+Repeat the search to verify that Alice's changed email address survives the restart.
+
+Delete the child entry before its parent:
+
+[source,bash]
+----
+for dn in 'uid=alice,ou=People,dc=example,dc=com' 'ou=People,dc=example,dc=com'; do
+  ./bin/ldapdelete --hostname localhost --port 1636 --useSSL --trustAll \
+    --bindDN 'cn=Directory Manager' --bindPasswordFile ../quickstart-password.txt \
+    "$dn"
+done
+----
+
+Repeat the search once more. It should return no entries. The base entry remains available for another exercise.
+
+Stop the evaluation server and remove the temporary password and LDIF files when finished:
+
+[source,bash]
+----
+./bin/stop-ds
+rm ../quickstart-password.txt people.ldif update-alice.ldif
+----
+
+The installation and its database remain on disk. To use it again, run `./bin/start-ds` and re-create `../quickstart-password.txt` with the same administrator password and restrictive permissions before repeating the client commands. To remove it, follow xref:../install-guide/chap-uninstall.adoc[Removing OpenDJ Servers].
+
+=== Next Steps
+
+* xref:../admin-guide/chap-privileges-acis.adoc[Configuring Privileges and Access Control] explains how to give application accounts the access they need.
+* xref:../admin-guide/chap-backup-restore.adoc[Backing Up and Restoring Data] and xref:../admin-guide/chap-monitoring.adoc[Monitoring] cover routine operations.
+* xref:../admin-guide/chap-replication.adoc[Managing Data Replication] covers multiple servers.
+* xref:../how-to/tasks.adoc[How-To Task Directory] links deployment and integration recipes.
+* xref:../release-notes/release-5.2.0.adoc[OpenDJ 5.2.0 Release Notes] describes this release and links the complete change list.

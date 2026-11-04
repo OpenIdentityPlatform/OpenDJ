@@ -1,0 +1,45 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+[#getting-started-overview]
+== Directory Concepts
+
+OpenDJ stores directory entries and makes them available to applications through LDAP. A directory is commonly used to hold users, groups and application configuration. Applications bind to the server to authenticate, then search or update entries according to their access rights.
+
+Entry::
+A record containing named attributes. A person entry can have `cn` (common name), `sn` (surname) and `mail` attributes. Some attributes can have multiple values.
+
+Distinguished name (DN)::
+The name identifying an entry in the directory tree. For example, `uid=alice,ou=People,dc=example,dc=com` identifies Alice beneath the People organizational unit. Its parent is `ou=People,dc=example,dc=com`.
+
+Base DN::
+The starting point of a search or the root of a directory suffix. The tutorial creates a suffix with base DN `dc=example,dc=com`.
+
+Object class and schema::
+An entry's `objectClass` values determine which attributes are required or permitted. For example, `inetOrgPerson` permits `mail` and requires the inherited `cn` and `sn` attributes. The server checks changes against its schema.
+
+Bind::
+Authentication of a client connection. The tutorial binds as `cn=Directory Manager`, an administrative account created by setup. Applications should use accounts with only the access they need.
+
+Search::
+A request with a base DN, scope and filter. The filter `(uid=alice)` finds entries whose `uid` is `alice`; the attributes requested determine which values are returned. Access controls still apply to matching entries.
+
+LDIF::
+LDAP Data Interchange Format, a text format for entries and changes. Each attribute appears as `name: value`, and a blank line separates entries. Change records also specify an operation, such as `changetype: modify`.
+
+A server stores a suffix in a backend. Replication can synchronize directory data between servers; it does not replace backups. This tutorial uses one server and one backend.
+
+Continue with xref:./first-steps.adoc[Your First Directory]. For a fuller explanation, see xref:../admin-guide/chap-understanding-ldap.adoc[Understanding Directory Services].
