@@ -14,115 +14,12 @@
 #
 # Copyright 2026 3A Systems, LLC.
 
-# The disturbance restart-rs of the replication convergence run (#1208), sourced by run.sh: the
-# replication servers go down in turn while every directory server goes on taking the load, as
-# a crash and a rolling update take them down. The first is killed DISTURB_AT seconds into the
-# load, the second stopped no earlier than two thirds of the way in, once the first has caught
-# up with its changelog checkpoint. Each starts again at once. A directory server whose
-# replication server goes down connects to the other one and sends it the changes
-# it has not got (#1195); the killed one starts on a changelog it did not close, and each one
-# catches up from the other. Only in rs534 does a replication server go down alone: in combined
-# it takes its directory server down with it, which restart-ds does by a stop, and a kill there
-# is another disturbance.
+# Gracefully restart one replication-only server under load (#1208). The other RS stays up
+# throughout this run. A separate kill-rs run exercises crash recovery on a fresh topology.
+. "$HERE/rs-disturbance.sh"
 
-[ $(echo $RS_ONLY | wc -w) -ge 2 ] \
-  || { echo "restart-rs takes down replication servers without data, one while another serves the directory servers: TOPOLOGY=rs534" >&2; exit 2; }
-KILLED=$(echo $RS_ONLY | cut -d' ' -f1)
-RESTARTED=$(echo $RS_ONLY | cut -d' ' -f2)
-DISTURBED="$KILLED $RESTARTED"
-DISTURB_STEPS=2
-
-# The replication server <rs> logged that it started (msgID 135) after the Unix time <seconds>,
-# and is connected to every other replication server again, from which the changes it missed
-# reach it
-rs_serves_since() { # <rs> <seconds>
-  started_since $1 $2 && [ "$(rs_peers $1)" -eq $(($(echo $RS_NODES | wc -w) - 1)) ]
-}
-
-# Read a fresh checkpoint from the RS about to stop, then require the recovered RS to reach
-# every position, in every domain. Refresh on each retry: catching an old checkpoint after a
-# long wait would leave the new backlog untested. FileReplicaDB's last-change follows append,
-# unlike the periodically cached missing-changes monitor. Reaching a position cannot prove
-# there are no older holes; the final changelog/data checks still enforce that.
-rs_caught_up() { # <recovered RS> <RS about to stop>
-  local rs=$1 reference=$2 dir="$OUT/rs-catchup"
-  mkdir -p "$dir" || return 1
-  echo "waiting for the join of $rs to end" >"$dir/check.txt"
-  bootstrap_ended "$rs" || return 1
-  admin_search "$reference" "cn=monitor" sub "(replicationServer-database=*)" \
-      replicationServer-database domain-name last-change >"$dir/$reference.ldif" 2>"$dir/check.txt" || return 1
-  admin_search "$rs" "cn=monitor" sub "(replicationServer-database=*)" \
-      replicationServer-database domain-name last-change >"$dir/$rs.ldif" 2>>"$dir/check.txt" || return 1
-  python3 -I "$HERE/changelog-checkpoint.py" "$BASE_DN" "$OUT/server-ids.txt" \
-      "$dir/$reference.ldif" "$dir/$rs.ldif" >"$dir/check.txt" 2>&1
-}
-
-# <kill|restart> <rs> [<msgID>...]: <rs> goes down and starts again within a window of the errors
-# logs that expects the errors of those msgIDs as well, and goes to disturbances.txt from then
-# until it serves again. docker kill leaves the container to stop, which docker start has to
-# wait for, and docker restart gives the server 120 s to stop, as restart-ds does. The window
-# closes 10 s after the server serves again, as the one of restart-ds does. It does not wait
-# for directory servers to connect to the server again: the load balancing moves them when the
-# weights say so (msgID 213 on their side), minutes later or not at all, and whether or not the
-# server still misses changes of theirs - under the load no replication server holds the newest
-# change of a directory server, and filterServersWithAllLocalDSChanges in ReplicationBroker then
-# keeps them all (#1246). Such a move ends its connection with a StopMsg, as a stop does
-down_and_up() {
-  local how=$1 rs=$2 from served
-  shift 2
-  echo "    [$SECONDS s] $how $rs"
-  window_open "$@"
-  from=$(date +%s)
-  if [ "$how" = kill ]; then
-    docker kill $rs >/dev/null
-    docker wait $rs >/dev/null
-    docker start $rs >/dev/null
-  else
-    docker restart -t 120 $rs >/dev/null
-  fi
-  wait_until $DISTURB_TIMEOUT "$rs serves again" rs_serves_since $rs $from
-  served=$(date +%s)
-  echo "    [$SECONDS s] $rs serves again"
-  sleep 10
-  window_close
-  echo "$((from * 1000)) $((served * 1000)) $rs $how" >>"$OUT/disturbances.txt"
-}
-
-# What a kill leaves behind in the errors logs, all of it at ERROR: the other replication server
-# logs 181 for each connection to the killed one that broke (ServerReader, ServerWriter), each
-# directory server connected to the killed one 180 for each of its domains (a warning that
-# ReplicationBroker.receive logs at ERROR), and the killed one, as it starts, 284 for the
-# changelog file it recovers (an info that LogFile logs at ERROR). A stop leaves none of them:
-# the server ends each connection with a StopMsg (Session.close), on which a directory server
-# logs a warning. The writer suppresses a send failure after local close or shutdown (#1248).
-# An unexpected disconnect still fails the graceful restart window; only the kill expects 181
+# An orderly stop ends connections with StopMsg. Unexpected disconnects and recovery of a
+# torn changelog record remain errors; only the existing handshake allowances apply.
 disturb() {
-  local left timeout
-  down_and_up kill $KILLED 180 181 284
-  left=$((LOAD_START_MS / 1000 + 2 * DURATION / 3 - $(date +%s)))
-  [ "$left" -le 0 ] || sleep $left
-  # Re-read after the scheduled sleep too: a slow recovery or a descheduled runner must not
-  # turn this into a restart of an idle topology. Keep at least three client sample intervals.
-  left=$((LOAD_START_MS / 1000 + DURATION - $(date +%s)))
-  [ "$left" -ge $((3 * STAT_INTERVAL)) ] \
-    || fail "only $left s left in the load of $DURATION s, too late to restart $RESTARTED under it"
-  timeout=$((left - 3 * STAT_INTERVAL))
-  [ "$timeout" -le "$DISTURB_TIMEOUT" ] || timeout=$DISTURB_TIMEOUT
-  wait_until "$timeout" "$KILLED reaches the changelog checkpoint of $RESTARTED (see rs-catchup/)" \
-    rs_caught_up "$KILLED" "$RESTARTED"
-  # LDAP searches can themselves take tens of seconds under load. Even a successful final
-  # probe must leave the restart its load budget; a timeout leaves the other RS running.
-  left=$((LOAD_START_MS / 1000 + DURATION - $(date +%s)))
-  [ "$left" -ge $((3 * STAT_INTERVAL)) ] \
-    || fail "only $left s left in the load of $DURATION s, too late to restart $RESTARTED under it"
-  down_and_up restart $RESTARTED
-}
-
-# After the load, before the wait for convergence: the joins of both, which run again on every
-# start, have ended, as topology_up waits for them
-settle() {
-  local rs
-  for rs in $DISTURBED; do
-    wait_until $DISTURB_TIMEOUT "the join of $rs ends" bootstrap_ended $rs
-  done
+  down_and_up restart
 }

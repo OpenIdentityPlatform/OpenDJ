@@ -195,7 +195,7 @@ window_close() {
 # terminated the handshake"; in run 40463887505 a replication server logged 145 on the
 # connection of the restarted one. A window opened with msgIDs expects the SYNC errors of those
 # msgIDs as well: what one disturbance leaves behind besides the handshakes, such as the
-# connections a killed replication server breaks (disturb-restart-rs.sh), which a window of
+# connections a killed replication server breaks (disturb-kill-rs.sh), which a window of
 # another one does not expect. Those go to logs/<node>.expected; outside a window, and anything
 # else inside one, they are errors. A window expects them on any server, not only on the
 # connections of the disturbed one: 178 and 179 name the servers by id alone, and a server has

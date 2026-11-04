@@ -56,7 +56,7 @@ E45='[t] category=SYNC severity=ERROR msgID=45 msg=an id that ends like one a wi
 E106ID='[t] category=SYNC severity=ERROR msgID=106 msg=Replication server 32179 lost its connection'
 N62='[t] category=SYNC severity=NOTICE msgID=62 msg=Directory server DS(1) has connected'
 CORE178='[t] category=CORE severity=ERROR msgID=178 msg=not a replication error'
-# what a kill of a replication server leaves behind (disturb-restart-rs.sh), and ids like theirs
+# what a kill of a replication server leaves behind (disturb-kill-rs.sh), and ids like theirs
 E180='[t] category=SYNC severity=ERROR msgID=180 msg=Directory server DS(13411) encountered an error while receiving changes for domain "dc=example,dc=com" from replication server RS(23837) at cv-r0:8989. The connection will be closed, and this directory server will now try to connect to another replication server'
 E181='[t] category=SYNC severity=ERROR msgID=181 msg=The connection from this replication server RS(31531) to replication server RS(23837) at cv-r0:8989 for domain "dc=example,dc=com" has failed'
 E284="[t] category=SYNC severity=ERROR msgID=284 msg=Log file '/opt/opendj/data/changelogDb/2.dom/13411.server/head.log' was successfully recovered by removing a partially written record"

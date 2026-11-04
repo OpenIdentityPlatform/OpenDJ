@@ -34,17 +34,18 @@ check() { # <case> <expected disturbance rows>
 }
 DISTURBANCE=none
 check "no disturbance" ""
-DISTURBANCE=restart-rs
-. "$HERE/disturb-restart-rs.sh"
-check "load not started" "| disturbance | restart-rs at 300 s into the load, not started: the run ended before the load |"
-LOAD_START_MS=100000
-check "neither step completed" "| disturbance | restart-rs scheduled at 300 s into the load, not completed: 0 of 2 steps completed |"
-echo '400000 445000 r0 kill' >"$OUT/disturbances.txt"
-check "second step not completed" "| disturbance | kill of r0 300 s into the load, serving again 45 s later |
-| disturbance | restart-rs not completed: 1 of 2 steps completed |"
-echo '700000 735000 r1 restart' >>"$OUT/disturbances.txt"
-check "both steps completed" "| disturbance | kill of r0 300 s into the load, serving again 45 s later |
-| disturbance | restart of r1 600 s into the load, serving again 35 s later |"
+for DISTURBANCE in restart-rs kill-rs; do
+  . "$HERE/disturb-$DISTURBANCE.sh"
+  rm -f "$OUT/disturbances.txt"
+  unset LOAD_START_MS
+  check "$DISTURBANCE load not started" "| disturbance | $DISTURBANCE at 300 s into the load, not started: the run ended before the load |"
+  LOAD_START_MS=100000
+  check "$DISTURBANCE not completed" "| disturbance | $DISTURBANCE scheduled at 300 s into the load, not completed: 0 of 1 steps completed |"
+  how=restart
+  [ "$DISTURBANCE" != kill-rs ] || how=kill
+  echo "400000 445000 r0 $how" >"$OUT/disturbances.txt"
+  check "$DISTURBANCE completed" "| disturbance | $how of r0 300 s into the load, serving again 45 s later |"
+done
 DISTURBANCE=restart-ds
 . "$HERE/disturb-restart-ds.sh"
 rm "$OUT/disturbances.txt"
