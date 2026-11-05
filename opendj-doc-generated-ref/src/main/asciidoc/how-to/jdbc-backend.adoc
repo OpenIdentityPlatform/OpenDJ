@@ -1,0 +1,63 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+[#how-to-jdbc-backend]
+== Use a Relational Database as an LDAP Backend
+
+This example stores LDAP entries in PostgreSQL while clients continue to use LDAP. It requires Docker and a fresh OpenDJ installation from the full server ZIP, prepared according to xref:../install-guide/chap-install.adoc#before-you-install[the installation prerequisites]. Use Java 11 or later.
+
+=== Start PostgreSQL
+
+[source,bash]
+----
+docker run -d --name opendj-postgres \
+  -p 127.0.0.1:5432:5432 \
+  -e POSTGRES_DB=opendj -e POSTGRES_PASSWORD=password \
+  postgres:17
+
+docker exec opendj-postgres pg_isready -U postgres -d opendj
+----
+
+Wait until `pg_isready` reports that the database accepts connections. This container is a disposable demonstration; configure database persistence and credentials for a lasting deployment.
+
+=== Create the LDAP Backend
+
+Run setup from the unpacked OpenDJ directory without a base DN, so it does not create `userRoot`:
+
+[source,bash]
+----
+./setup --cli --no-prompt --acceptLicense \
+  --hostname localhost --ldapPort 1389 --adminConnectorPort 4444 \
+  --enableStartTLS --generateSelfSignedCertificate \
+  --rootUserDN 'cn=Directory Manager' --rootUserPassword password
+
+bin/dsconfig create-backend --hostname localhost --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPassword password \
+  --backend-name userRoot --type jdbc \
+  --set base-dn:dc=example,dc=com \
+  --set 'db-directory:jdbc:postgresql://localhost:5432/opendj?user=postgres&password=password' \
+  --set enabled:true --trustAll --no-prompt
+----
+
+Quote the JDBC URL so the shell does not interpret `&`. The example's database credentials are stored in the backend configuration; restrict access to the instance files. The PostgreSQL driver is included in the full server ZIP; `opendj-<version>-slim.zip` leaves out the Cassandra, Oracle, MySQL, SQL Server and PostgreSQL drivers. For another supported database, check the backend's SQL dialect support as well as the JDBC driver; a JDBC driver alone does not make every database compatible.
+
+The backend is initially empty. Follow xref:./generate-test-data.adoc[Generate and Load Test LDIF Data] to populate it and verify LDAP searches. See xref:../reference/dsconfig-subcommands-ref.adoc#dsconfig-create-backend[dsconfig create-backend] for configuration properties.
+
+When finished, stop OpenDJ with `bin/stop-ds`, then remove the demonstration database with `docker rm -fv opendj-postgres`. The `-v` option also removes its anonymous data volume and discards the demonstration database.

@@ -1,0 +1,129 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+[#how-to-kubernetes]
+== Run OpenDJ in Kubernetes
+:opendj-version: 5.2.0
+
+This recipe runs one directory server with persistent storage in a local Minikube cluster. It requires `minikube`, `kubectl`, and a default StorageClass that supports dynamic volume provisioning. It does not configure replication; increasing the replica count alone does not create a replicated directory.
+
+[source,bash]
+----
+minikube start --cpus=4 --memory=8g
+kubectl create namespace opendj-demo
+kubectl -n opendj-demo create secret generic opendj-root \
+  --from-literal=password='DemoPassword123!'
+----
+
+=== Create the Service and StatefulSet
+
+Save the following as `opendj.yaml`. The root password comes from the Secret. A PersistentVolumeClaim keeps the instance under `/opt/opendj/data`, the same location described in xref:../install-guide/chap-install.adoc#install-docker[Running OpenDJ in Docker]. `fsGroup` lets the non-root server write to the mounted volume on storage that supports Kubernetes volume ownership management.
+
+[source,yaml,subs="+attributes"]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: opendj
+spec:
+  clusterIP: None
+  selector:
+    app: opendj
+  ports:
+    - name: ldap
+      port: 1389
+    - name: ldaps
+      port: 1636
+    - name: admin
+      port: 4444
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: opendj
+spec:
+  serviceName: opendj
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opendj
+  template:
+    metadata:
+      labels:
+        app: opendj
+    spec:
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        fsGroup: 1001
+      containers:
+        - name: opendj
+          image: openidentityplatform/opendj:{opendj-version}
+          env:
+            - name: ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: opendj-root
+                  key: password
+            - name: ADD_BASE_ENTRY
+              value: --addBaseEntry
+          ports:
+            - containerPort: 1389
+            - containerPort: 1636
+            - containerPort: 4444
+          readinessProbe:
+            exec:
+              command: [/opt/opendj/healthcheck.sh]
+            periodSeconds: 10
+            timeoutSeconds: 30
+          volumeMounts:
+            - name: data
+              mountPath: /opt/opendj/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 1Gi
+----
+
+[source,bash]
+----
+kubectl -n opendj-demo apply -f opendj.yaml
+kubectl -n opendj-demo rollout status statefulset/opendj --timeout=600s
+kubectl -n opendj-demo get pods,pvc
+----
+
+Wait for the pod to be Ready. The readiness probe checks completed bootstrap and LDAP availability; a listening TCP port alone is insufficient during first startup. If the claim stays Pending, check the StorageClass. If the pod does not become Ready, inspect `kubectl -n opendj-demo logs opendj-0` and `kubectl -n opendj-demo describe pod opendj-0`.
+
+=== Verify the Directory and Persistence
+
+[source,bash]
+----
+kubectl -n opendj-demo exec opendj-0 -- /opt/opendj/bin/ldapsearch \
+  --hostname localhost --port 1389 \
+  --bindDN 'cn=Directory Manager' --bindPassword 'DemoPassword123!' \
+  --baseDN dc=example,dc=com --searchScope base '(objectClass=*)' dn
+----
+
+Expect `dn: dc=example,dc=com`. Entries added to this instance remain on the claim when the pod is replaced. To verify, add a test entry, delete only the pod with `kubectl -n opendj-demo delete pod opendj-0`, wait for the replacement to become Ready, and search for the entry again. Do not delete the claim during this check.
+
+Deleting the StatefulSet normally retains its claim. Deleting the demonstration namespace with `kubectl delete namespace opendj-demo` also deletes its claims and can delete the backing storage, depending on its reclaim policy.

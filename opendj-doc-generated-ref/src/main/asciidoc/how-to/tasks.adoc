@@ -1,0 +1,53 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+[#how-to-tasks]
+== Find a Procedure
+
+The examples use a disposable local instance and illustrative passwords. Run server commands from the installation directory. Follow the xref:../install-guide/chap-install.adoc#before-you-install[installation prerequisites], including Java 11 or later, before starting.
+
+[cols="1,2",options="header"]
+|===
+|Task |Procedure
+|Download and set up a server, with an empty suffix or sample data
+|xref:../install-guide/chap-install.adoc#command-line-install[Command-line installation]
+|Stop, remove and reinstall a disposable server
+|xref:../install-guide/chap-uninstall.adoc[Uninstalling OpenDJ]; then follow command-line installation. Back up any data to keep before removal.
+|Check server status
+|xref:../admin-guide/chap-monitoring.adoc[Monitoring OpenDJ]
+|Back up and restore data
+|xref:../admin-guide/chap-backup-restore.adoc[Backing Up and Restoring Data]
+|Enable and initialize replication, or remove a replica
+|xref:../admin-guide/chap-replication.adoc[Managing Data Replication]
+|Inspect indexes and rebuild degraded indexes
+|xref:../admin-guide/chap-indexing.adoc[Managing Indexes]
+|List supported TLS protocols and cipher suites, or restrict them
+|xref:../admin-guide/chap-connection-handlers.adoc#tls-protocols-cipher-suites[TLS Protocols and Cipher Suites]
+|Use an existing certificate or create a self-signed certificate
+|xref:../admin-guide/chap-connection-handlers.adoc#setup-server-cert[Preparing For Secure Communications]
+|Keep Docker data when replacing a container, including with Compose
+|xref:../install-guide/chap-install.adoc#install-docker[Running OpenDJ in Docker]
+|Pass a PKCS#12 certificate to the Docker image
+|link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/opendj-packages/opendj-docker/README.md[Docker image configuration] (`OPENDJ_SSL_OPTIONS`)
+|Use OpenDJ with Jira
+|link:https://support.atlassian.com/jira/kb/how-to-use-opendj-with-jira/[Atlassian's integration instructions]
+|===
+
+The following chapters cover additional tasks. Each procedure has one maintained location; use the links above for the full instructions rather than a second copy of them.

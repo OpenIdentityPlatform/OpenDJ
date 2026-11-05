@@ -1,0 +1,58 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+[#release-5-2-0]
+== OpenDJ 5.2.0
+
+OpenDJ 5.2.0 was published on 21 October 2026. These notes describe that released version. Documentation built from a development branch can also describe changes intended for a later release; a `SNAPSHOT` build is not a published release.
+
+The link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/5.2.0[5.2.0 release record] is the authoritative list of release assets and changes. The link:https://github.com/OpenIdentityPlatform/OpenDJ/compare/5.1.2...5.2.0[complete comparison with 5.1.2] provides the corresponding source history. For newer releases, consult the link:https://github.com/OpenIdentityPlatform/OpenDJ/releases[release list].
+
+=== Selected Changes
+
+The release includes the following changes, among others:
+
+* Security fixes for the DSML gateway, OAuth2 file token authorization, LDAP connection handling, and access control for sort and virtual list view (VLV) requests. Review the link:https://github.com/OpenIdentityPlatform/OpenDJ/security/advisories[published security advisories] for affected versions, impact and remediation details.
+* Directory and replication reliability fixes, including startup failure reporting when a replication server cannot open its port or changelog, and persistent-search notification handling.
+* JDBC backend fixes for Microsoft SQL Server upsert conflicts and deadlocks.
+* Docker improvements for arbitrary user IDs in group 0, secret handling, health checks, background replication joining and upgrades from a released image.
+* REST to LDAP fixes for HTTP Basic credentials and bind templates, and reloading file-based key stores and trust stores when their files change.
+
+This is a summary, not a second copy of the full change list. Use the release record to identify individual fixes and their pull requests.
+
+=== Distributions
+
+The release provides the following assets:
+
+[cols="1,2",options="header"]
+|===
+|Asset |Purpose
+|`opendj-5.2.0.zip` |Cross-platform directory server; used by the Getting Started exercise.
+|`opendj-5.2.0-slim.zip` |Slim server distribution without the Cassandra, Oracle, MySQL, SQL Server and PostgreSQL drivers.
+|`opendj_5.2.0-1_all.deb` |Debian package.
+|`opendj-5.2.0-1.noarch.rpm` |RPM package.
+|`opendj-5.2.0.msi` |Windows installer.
+|`org.openidentityplatform.opendj.opendj-ldap-toolkit.zip` |LDAP client toolkit.
+|`org.openidentityplatform.opendj.opendj-rest2ldap-servlet.war` |REST to LDAP gateway for deployment in a servlet container.
+|`org.openidentityplatform.opendj.opendj-dsml-servlet.war` |DSML gateway for deployment in a servlet container.
+|`OpenDJ.Doc.Generated.References-pdf.zip` |Documentation PDFs packaged with the release.
+|`Dockerfile.zip` |Docker image build files.
+|`opendj-openshift-template.yaml` |OpenShift deployment template.
+|===
+
+The project also publishes the link:https://hub.docker.com/r/openidentityplatform/opendj/[OpenDJ Docker image]. See xref:../install-guide/chap-install.adoc#install-docker[Running OpenDJ in Docker] for image variants, configuration and persistent data.
+
+Before installation or upgrade, read xref:./requirements-and-upgrade.adoc[Requirements and Upgrade Considerations]. For a first evaluation, follow xref:../getting-started/first-steps.adoc[Your First Directory].

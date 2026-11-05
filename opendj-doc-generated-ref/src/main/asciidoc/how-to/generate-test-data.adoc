@@ -1,0 +1,55 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+[#how-to-generate-test-data]
+== Generate and Load Test LDIF Data
+
+Use `makeldif` to generate repeatable sample data, then add it through LDAP. This works with a running backend, including the JDBC backend in xref:./jdbc-backend.adoc[Use a Relational Database as an LDAP Backend]. For offline bulk import and its replacement semantics, use xref:../admin-guide/chap-import-export.adoc#import-ldif[Importing Data] instead.
+
+=== Generate the File
+
+Use an empty backend with base DN `dc=example,dc=com`: do not populate it with `--addBaseEntry` or `--sampleData` during setup. The generated file includes the base entry, `ou=People`, and 100 users. See xref:../admin-guide/chap-import-export.adoc#generating-ldif[Generating Test Data] to customize the template.
+
+[source,bash]
+----
+bin/makeldif --outputLDIF test.ldif --randomSeed 0 \
+  --constant suffix=dc=example,dc=com --constant numusers=100 \
+  config/MakeLDIF/example.template
+----
+
+Expect 102 generated entries. Change `numusers` for a larger test; the unmodified template defaults to 10,000 users. The file contains sample passwords; use it for a disposable test directory.
+
+=== Add and Verify Entries
+
+With the server running and StartTLS enabled on port 1389:
+
+[source,bash]
+----
+bin/ldapmodify --hostname localhost --port 1389 --useStartTLS --trustAll \
+  --bindDN 'cn=Directory Manager' --bindPassword password \
+  --defaultAdd --filename test.ldif
+
+bin/ldapsearch --hostname localhost --port 1389 --useStartTLS --trustAll \
+  --bindDN 'cn=Directory Manager' --bindPassword password \
+  --baseDN 'ou=People,dc=example,dc=com' \
+  '(|(uid=user.0)(uid=user.1)(uid=user.2))' uid cn
+----
+
+The search returns three entries. Unlike offline import, LDAP add does not replace the existing database: repeating the load reports `Entry Already Exists`. Use a fresh backend for another complete load. `--trustAll` is for the self-signed certificate in this local example.

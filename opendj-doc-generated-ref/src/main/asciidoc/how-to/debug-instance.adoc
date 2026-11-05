@@ -1,0 +1,34 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+[#how-to-debug-instance]
+== Attach a Java Debugger to a Local Instance
+
+Stop the disposable instance with `bin/stop-ds`, then start it with a JDWP listener on the loopback interface:
+
+[source,bash]
+----
+export OPENDJ_JAVA_ARGS="${OPENDJ_JAVA_ARGS:-} -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=127.0.0.1:9000"
+bin/start-ds --nodetach
+----
+
+Attach the IDE's remote Java debugger to `localhost:9000`. With `suspend=y`, startup waits for the debugger before the server opens its LDAP listener. Set `suspend=n` if startup should proceed without a debugger. Run clients from a second terminal without the JDWP setting, otherwise they try to bind the same debug port.
+
+After debugging, stop the foreground server and remove the JDWP option from `OPENDJ_JAVA_ARGS` before starting it normally. Keep this unauthenticated debug listener local; it grants control of the JVM to anyone who can connect.

@@ -731,10 +731,13 @@
                                 </goals>
                                 <configuration>
                                     <documents>
+                                        <document>release-notes</document>
+                                        <document>getting-started</document>
                                         <document>install-guide</document>
                                         <document>admin-guide</document>
                                         <document>server-dev-guide</document>
                                         <document>reference</document>
+                                        <document>how-to</document>
                                     </documents>
                                 </configuration>
                             </execution>

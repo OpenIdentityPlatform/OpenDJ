@@ -68,6 +68,8 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
                 <configuration>
+                    <!-- Exercise the documented embedded startup without module-opening flags. -->
+                    <argLine>-Xmx512m -Dorg.bouncycastle.native.cpu_variant=java</argLine>
                     <properties>
                         <property>
                             <name>usedefaultlisteners</name>

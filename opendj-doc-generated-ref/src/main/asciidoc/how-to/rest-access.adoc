@@ -1,0 +1,82 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+[#how-to-rest-access]
+== Access Directory Entries Over REST
+
+This recipe enables the built-in HTTP handler and reads a user through the default `/api` mapping. Start with a fresh server using xref:../install-guide/chap-install.adoc#command-line-install[command-line installation]. For this recipe, pass `--hostname localhost`, `--sampleData 1000`, `--baseDN dc=example,dc=com`, `--enableStartTLS` and `--generateSelfSignedCertificate` to setup. Use administration port 4444 and LDAP port 1389, with Directory Manager password `password`. The generated certificate and its `localhost` identity are used by the HTTPS and StartTLS checks below.
+
+=== Enable the Handler
+
+Bind HTTPS to loopback and reuse the JKS certificate generated during setup. Password-reset actions require a secure connection, even on loopback. See xref:../admin-guide/chap-connection-handlers.adoc#setup-http-connection-handler[Setting Up an HTTP Connection Handler] for other certificate configurations. `--trustAll` below is for the local server's self-signed administration certificate.
+
+[source,bash]
+----
+bin/dsconfig set-connection-handler-prop \
+  --hostname localhost --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPassword password \
+  --handler-name 'HTTP Connection Handler' \
+  --set listen-address:127.0.0.1 --set listen-port:8443 \
+  --set use-ssl:true --set key-manager-provider:JKS --set enabled:true \
+  --trustAll --no-prompt
+
+bin/stop-ds --restart
+
+bin/dsconfig list-http-authorization-mechanisms \
+  --hostname localhost --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPassword password --trustAll --no-prompt
+
+bin/dsconfig list-http-endpoints \
+  --hostname localhost --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPassword password --trustAll --no-prompt
+----
+
+Restarting applies the listener and TLS settings. The default `/api` endpoint is enabled and uses `HTTP Basic`. The exact-match identity mapper resolves a username to its `uid` entry. The sample users have password `password`.
+
+=== Read a User
+
+Export the locally generated certificate so `curl` can verify it:
+
+[source,bash]
+----
+keytool -exportcert -rfc -alias server-cert -keystore config/keystore \
+  -storepass:file config/keystore.pin -file server-cert.pem
+----
+
+[source,bash]
+----
+curl --fail-with-body --cacert server-cert.pem --user 'user.0:password' \
+  'https://localhost:8443/api/users/user.0?_prettyPrint=true'
+----
+
+The JSON response identifies `user.0` and includes its mapped name and contact information. The mapping is in `config/rest2ldap/endpoints/api/example-v1.json`; its default user base is `ou=people,dc=example,dc=com`. Adapt that mapping if you use a different suffix.
+
+To enable HTTP access logging:
+
+[source,bash]
+----
+bin/dsconfig set-log-publisher-prop \
+  --hostname localhost --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPassword password \
+  --publisher-name 'File-Based HTTP Access Logger' --set enabled:true \
+  --trustAll --no-prompt
+----
+
+See xref:../server-dev-guide/chap-rest-operations.adoc[Performing RESTful Operations] for creating, updating and deleting resources, API versions and password actions. HTTP authentication does not grant additional LDAP privileges or access rights. For read/write delegation, use xref:../admin-guide/chap-privileges-acis.adoc[Configuring Privileges and Access Control] rather than relying on the name or location of a user entry. To delegate password resets, follow xref:./delegate-password-reset.adoc[Delegate Password Reset Permissions].
