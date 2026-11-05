@@ -24,12 +24,16 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.IsolationPolicy;
+import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.AddOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
@@ -67,6 +71,9 @@ public class DuplicateReplayTest extends ReplicationTestCase
   private OutOfMemoryError pollFailure;
   private boolean failBeforePoll;
   private Runnable beforeEnqueue;
+  private boolean refuseEnqueue;
+  private Runnable onEmpty;
+  private Runnable afterPoll;
 
   @BeforeMethod
   public void setUpLocal() throws Exception
@@ -77,6 +84,9 @@ public class DuplicateReplayTest extends ReplicationTestCase
     pollFailure = null;
     failBeforePoll = false;
     beforeEnqueue = null;
+    refuseEnqueue = false;
+    onEmpty = null;
+    afterPoll = null;
     queue = new TestSynchronousReplayQueue()
     {
       @Override
@@ -90,7 +100,7 @@ public class DuplicateReplayTest extends ReplicationTestCase
         {
           throw enqueueFailure;
         }
-        return super.offer(update, timeout, unit);
+        return !refuseEnqueue && super.offer(update, timeout, unit);
       }
 
       @Override
@@ -111,7 +121,22 @@ public class DuplicateReplayTest extends ReplicationTestCase
         {
           throw pollFailure;
         }
+        if (afterPoll != null)
+        {
+          afterPoll.run();
+        }
         return result;
+      }
+
+      @Override
+      public boolean isEmpty()
+      {
+        final boolean empty = super.isEmpty();
+        if (empty && onEmpty != null)
+        {
+          onEmpty.run();
+        }
+        return empty;
       }
     };
     final DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
@@ -177,44 +202,67 @@ public class DuplicateReplayTest extends ReplicationTestCase
   @Test
   public void deliveryAbandonedBeforeEnqueueCanBeRetried() throws Exception
   {
-    domain.disableService();
-    domain.processUpdate(addMsg());
-    assertTrue(queue.isEmpty());
-    assertFalse(domain.getServerState().cover(addCSN));
+    final AtomicBoolean recovering = (AtomicBoolean) domainField("replayFailureRecovery");
+    final SessionRestartRequests restarts = (SessionRestartRequests) domainField("sessionRestarts");
+    recovering.set(true);
+    try
+    {
+      domain.disableService();
+      domain.processUpdate(addMsg());
+      assertTrue(queue.isEmpty());
+      assertFalse(domain.getServerState().cover(addCSN));
 
-    domain.enableService();
-    domain.processUpdate(addMsg());
-    replayQueuedMessages();
+      domain.enableService();
+      domain.processUpdate(addMsg());
+      replayQueuedMessages();
 
-    assertTrue(entryExists(entry.getName()), "a delivery abandoned before enqueue was refused on retry");
-    assertTrue(domain.getServerState().cover(addCSN));
+      assertTrue(entryExists(entry.getName()), "a delivery abandoned before enqueue was refused on retry");
+      assertTrue(domain.getServerState().cover(addCSN));
+    }
+    finally
+    {
+      restarts.clear();
+      recovering.set(false);
+    }
   }
 
   @Test
   public void failedEnqueueCanBeRetried() throws Exception
   {
-    enqueueFailure = new OutOfMemoryError("enqueue allocation failed");
+    final AtomicBoolean recovering = (AtomicBoolean) domainField("replayFailureRecovery");
+    final SessionRestartRequests restarts = (SessionRestartRequests) domainField("sessionRestarts");
+    recovering.set(true);
     try
     {
+      enqueueFailure = new OutOfMemoryError("enqueue allocation failed");
+      try
+      {
+        domain.processUpdate(addMsg());
+        fail("the injected allocation failure did not reach enqueue");
+      }
+      catch (OutOfMemoryError e)
+      {
+        assertSame(e, enqueueFailure);
+      }
+      finally
+      {
+        enqueueFailure = null;
+      }
+      assertTrue(queue.isEmpty());
+      assertFalse(domain.getServerState().cover(addCSN));
+
+      assertTrue(restarts.isPending(), "a failed enqueue must request redelivery");
       domain.processUpdate(addMsg());
-      fail("the injected allocation failure did not reach enqueue");
-    }
-    catch (OutOfMemoryError e)
-    {
-      assertSame(e, enqueueFailure);
+      replayQueuedMessages();
+
+      assertTrue(entryExists(entry.getName()), "a failed enqueue was refused on retry");
+      assertTrue(domain.getServerState().cover(addCSN));
     }
     finally
     {
-      enqueueFailure = null;
+      restarts.clear();
+      recovering.set(false);
     }
-    assertTrue(queue.isEmpty());
-    assertFalse(domain.getServerState().cover(addCSN));
-
-    domain.processUpdate(addMsg());
-    replayQueuedMessages();
-
-    assertTrue(entryExists(entry.getName()), "a failed enqueue was refused on retry");
-    assertTrue(domain.getServerState().cover(addCSN));
   }
 
   @Test
@@ -369,6 +417,203 @@ public class DuplicateReplayTest extends ReplicationTestCase
     }
   }
 
+  @DataProvider
+  public Object[][] listenerStops()
+  {
+    return new Object[][] { { false }, { true } };
+  }
+
+  @Test(dataProvider = "listenerStops")
+  public void shutdownCancellationRestartsOnlyAfterAnIncompleteJoin(boolean interruptJoin) throws Exception
+  {
+    final AtomicBoolean recovering = (AtomicBoolean) domainField("replayFailureRecovery");
+    final SessionRestartRequests restarts = (SessionRestartRequests) domainField("sessionRestarts");
+    final CountDownLatch offering = new CountDownLatch(1);
+    final CountDownLatch releaseOffer = new CountDownLatch(1);
+    final CountDownLatch stopping = new CountDownLatch(1);
+    final AtomicReference<Throwable> listenerFailure = new AtomicReference<>();
+    final Field listenerField = ReplicationDomain.class.getDeclaredField("listenerThread");
+    listenerField.setAccessible(true);
+    recovering.set(true);
+    domain.disableService();
+    refuseEnqueue = true;
+    beforeEnqueue = () ->
+    {
+      offering.countDown();
+      await(releaseOffer);
+    };
+    // Use the real listener slot and disableService/join, but supply the incoming change
+    // directly so the interleaving does not need a replication server or a full 10000-slot queue.
+    final DirectoryThread listener = new DirectoryThread(() ->
+    {
+      try
+      {
+        domain.processUpdate(addMsg());
+      }
+      catch (Throwable t)
+      {
+        listenerFailure.set(t);
+      }
+    }, "held duplicate-replay listener");
+    final FutureTask<Void> stop = new FutureTask<>(() -> { domain.disableService(); return null; });
+    final Thread stopper = new Thread(stop, "duplicate-replay service stop");
+    try
+    {
+      listenerField.set(domain, listener);
+      listener.start();
+      assertTrue(offering.await(10, TimeUnit.SECONDS));
+      domain.setServiceStopHook(stopping::countDown);
+      stopper.start();
+      assertTrue(stopping.await(10, TimeUnit.SECONDS));
+      if (interruptJoin)
+      {
+        stopper.interrupt();
+        stop.get(10, TimeUnit.SECONDS);
+        domain.setServiceStopHook(null);
+        domain.enableService();
+        domain.processUpdate(addMsg()); // The new session refuses the still-live old delivery.
+        assertTrue(queue.isEmpty());
+        domain.disableService();
+        restarts.clear(); // A restart before cancellation cannot be enough.
+      }
+      else
+      {
+        // Taking sessionLock would deadlock with join; wait on the thread's own flag.
+        final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (!listener.isShutdownInitiated() && System.nanoTime() < deadline)
+        {
+          Thread.yield();
+        }
+        assertTrue(listener.isShutdownInitiated());
+      }
+      releaseOffer.countDown();
+      stop.get(10, TimeUnit.SECONDS);
+      listener.join(10000);
+      assertFalse(listener.isAlive());
+      assertNull(listenerFailure.get());
+      assertEquals(restarts.isPending(), interruptJoin,
+          "a completed join already precedes redelivery; a detached listener needs a fresh restart");
+      refuseEnqueue = false;
+      beforeEnqueue = null;
+      domain.enableService();
+      domain.processUpdate(addMsg());
+      replayQueuedMessages();
+      assertTrue(entryExists(entry.getName()));
+    }
+    finally
+    {
+      releaseOffer.countDown();
+      stopper.join(10000);
+      listener.join(10000);
+      domain.setServiceStopHook(null);
+      restarts.clear();
+      recovering.set(false);
+    }
+  }
+
+  @Test
+  public void failedHandoffByRegisteredListenerRequestsRestart() throws Exception
+  {
+    final AtomicBoolean recovering = (AtomicBoolean) domainField("replayFailureRecovery");
+    final SessionRestartRequests restarts = (SessionRestartRequests) domainField("sessionRestarts");
+    final AtomicReference<Throwable> listenerFailure = new AtomicReference<>();
+    final Field listenerField = ReplicationDomain.class.getDeclaredField("listenerThread");
+    listenerField.setAccessible(true);
+    recovering.set(true);
+    domain.disableService();
+    enqueueFailure = new OutOfMemoryError("registered listener enqueue failed");
+    final DirectoryThread listener = new DirectoryThread(() ->
+    {
+      try
+      {
+        domain.processUpdate(addMsg());
+      }
+      catch (Throwable t)
+      {
+        listenerFailure.set(t);
+      }
+    }, "failed duplicate-replay listener");
+    try
+    {
+      listenerField.set(domain, listener);
+      listener.start();
+      listener.join(10000);
+      assertFalse(listener.isAlive());
+      assertSame(listenerFailure.get(), enqueueFailure);
+      assertTrue(restarts.isPending(), "failure needs recovery even while the listener is registered");
+      enqueueFailure = null;
+      domain.disableService();
+      domain.enableService();
+      domain.processUpdate(addMsg());
+      replayQueuedMessages();
+      assertTrue(entryExists(entry.getName()));
+    }
+    finally
+    {
+      listener.join(10000);
+      enqueueFailure = null;
+      restarts.clear();
+      recovering.set(false);
+    }
+  }
+
+  @Test
+  public void replayConsumerWakesForAnEmptyQueueAndDrainsItsBacklog() throws Exception
+  {
+    final CountDownLatch empty = new CountDownLatch(1);
+    final CountDownLatch removed = new CountDownLatch(2);
+    final CountDownLatch replayed = new CountDownLatch(1);
+    final ReplayThread consumer = new ReplayThread(queue, new ReentrantLock());
+    onEmpty = () ->
+    {
+      empty.countDown();
+      if (domain.getServerState().cover(deleteCSN))
+      {
+        replayed.countDown();
+      }
+    };
+    afterPoll = removed::countDown;
+    try
+    {
+      consumer.start();
+      assertTrue(empty.await(10, TimeUnit.SECONDS));
+      synchronized (queue)
+      {
+        // The consumer observed an empty queue while holding this monitor. Acquiring it
+        // proves it has now entered wait(). Deliver both changes before it can wake up.
+        domain.processUpdate(addMsg());
+        domain.processUpdate(deleteMsg());
+      }
+      assertTrue(removed.await(750, TimeUnit.MILLISECONDS),
+          "notification must wake the consumer and a non-empty queue must not wait again");
+      // poll() runs before replay. Stopping at the second removal could abandon DELETE.
+      assertTrue(replayed.await(10, TimeUnit.SECONDS), "the consumer did not commit its backlog");
+    }
+    finally
+    {
+      consumer.shutdown();
+      consumer.join(10000);
+      onEmpty = null;
+      afterPoll = null;
+    }
+    assertFalse(consumer.isAlive());
+    assertFalse(entryExists(entry.getName()));
+    assertTrue(domain.getServerState().cover(deleteCSN));
+  }
+
+  private static void await(CountDownLatch latch)
+  {
+    try
+    {
+      assertTrue(latch.await(10, TimeUnit.SECONDS), "controlled hand-off timed out");
+    }
+    catch (InterruptedException e)
+    {
+      Thread.currentThread().interrupt();
+      throw new AssertionError(e);
+    }
+  }
+
   private Object domainField(String name) throws Exception
   {
     final Field field = LDAPReplicationDomain.class.getDeclaredField(name);
@@ -430,7 +675,7 @@ public class DuplicateReplayTest extends ReplicationTestCase
         }
       } : addMsg();
       original.setAssured(firstAssured);
-      original.setAssuredMode(AssuredMode.SAFE_READ_MODE);
+      original.setAssuredMode(AssuredMode.SAFE_DATA_MODE);
       domain.processUpdate(original);
       for (int i = 0; i < 2; i++)
       {

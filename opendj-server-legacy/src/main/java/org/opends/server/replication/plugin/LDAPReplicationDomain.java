@@ -8223,6 +8223,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       // Put update message into the replay queue
       // (block until some place in the queue is available)
       boolean queued = false;
+      boolean handoffFailed = true;
       try
       {
         while (!isListenerShuttingDown())
@@ -8246,14 +8247,20 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
             Thread.currentThread().interrupt();
           }
         }
+        handoffFailed = false;
       }
       finally
       {
         if (!queued)
         {
-          // A newer session may already have refused this delivery as queued. Release it
-          // without taking a lock, then leave a fresh restart request for the checkpointer.
-          updateToReplay.cancel();
+          // Cancel before comparing listener identity. If join completes, the next session
+          // starts after this cancellation and can redeliver without an extra restart. If
+          // join was interrupted, a newer session may already have refused the delivery.
+          updateToReplay.cancel(false);
+          if (handoffFailed || !isCurrentListenerThread())
+          {
+            requestSessionRestart();
+          }
         }
       }
 

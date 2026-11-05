@@ -77,7 +77,7 @@ final class RemotePendingChanges
    * Uncommitted changes, registered before enqueue. A queued change whose hand-off
    * fails must remain a predecessor: otherwise its DELETE can run before its ADD retry.
    */
-  private final ConcurrentSkipListSet<PendingChange> replayDependencies = new ConcurrentSkipListSet<>();
+  private final ConcurrentSkipListSet<PendingChange> replayDependencies;
 
   /**
    * The change each replay thread is replaying right now, read by the give-back on the way
@@ -158,6 +158,14 @@ final class RemotePendingChanges
   RemotePendingChanges(ServerState state, int localServerId,
       ConcurrentMap<Thread, CSN> changeBeingReplayed)
   {
+    this(state, localServerId, changeBeingReplayed, new ConcurrentSkipListSet<PendingChange>());
+  }
+
+  RemotePendingChanges(ServerState state, int localServerId,
+      ConcurrentMap<Thread, CSN> changeBeingReplayed,
+      ConcurrentSkipListSet<PendingChange> replayDependencies)
+  {
+    this.replayDependencies = replayDependencies;
     this.state = state;
     this.localServerId = localServerId;
     this.changeBeingReplayed = changeBeingReplayed;
@@ -299,9 +307,10 @@ final class RemotePendingChanges
         catch (RuntimeException | Error e)
         {
           // No other admission sees this partial registration while the write lock is held.
+          // Request recovery before rollback: removing a skip-list node can also fail.
+          delivery.cancel();
           pendingChanges.remove(csn);
           replayDependencies.remove(change);
-          delivery.cancel();
           throw e;
         }
         return Admission.ACCEPTED;
@@ -313,6 +322,8 @@ final class RemotePendingChanges
       if (listed.isQueuedForReplay())
       {
         // Keep the queue position, but complete for the latest delivery's assured mode.
+        // This changes in-memory ack metadata only; the received message's cached wire
+        // encoding is stale and must not be reused to publish this message.
         final LDAPUpdateMsg accepted = listed.getLDAPUpdateMsg();
         accepted.setAssured(update.isAssured());
         accepted.setAssuredMode(update.getAssuredMode());

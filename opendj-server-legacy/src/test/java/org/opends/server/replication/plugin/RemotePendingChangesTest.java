@@ -20,6 +20,7 @@ import static org.testng.Assert.*;
 
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -37,6 +38,7 @@ import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -168,6 +170,68 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
     final DeleteMsg retry = deleteMsg(csn, "uuid-1");
     assertTrue(pendingChanges.putRemoteUpdate(retry), "the dequeued delivery has no owner to finish it");
     assertTrue(pendingChanges.markInProgress(retry));
+  }
+
+  @DataProvider
+  public Object[][] registrationFailures()
+  {
+    return new Object[][] { { false }, { true } };
+  }
+
+  @Test(dataProvider = "registrationFailures")
+  public void failedDependencyRegistrationCancelsDeliveryBeforeRollback(boolean failRollback) throws Exception
+  {
+    final OutOfMemoryError registrationFailure = new OutOfMemoryError("dependency registration failed");
+    final OutOfMemoryError rollbackFailure = new OutOfMemoryError("dependency rollback failed");
+    final AtomicBoolean failRegistration = new AtomicBoolean(true);
+    final ServerState state = new ServerState();
+    final RemotePendingChanges pending = new RemotePendingChanges(state, -1, new ConcurrentHashMap<>(),
+        new ConcurrentSkipListSet<PendingChange>()
+        {
+          @Override
+          public boolean add(PendingChange change)
+          {
+            if (failRegistration.getAndSet(false))
+            {
+              // Also cover a set insertion that throws after linking its element.
+              super.add(change);
+              throw registrationFailure;
+            }
+            return super.add(change);
+          }
+
+          @Override
+          public boolean remove(Object change)
+          {
+            if (failRollback)
+            {
+              throw rollbackFailure;
+            }
+            return super.remove(change);
+          }
+        });
+    final CSN csn = new CSNGenerator(SERVER_ID, 0).newCSN();
+    final UpdateToReplay delivery = new UpdateToReplay(deleteMsg(csn, "uuid-1"), null);
+    try
+    {
+      pending.putRemoteUpdate(delivery);
+      fail("registration failure must escape admission");
+    }
+    catch (OutOfMemoryError e)
+    {
+      assertSame(e, failRollback ? rollbackFailure : registrationFailure);
+    }
+    assertTrue(delivery.isCancelled(), "rollback failure must not skip delivery cancellation");
+    assertFalse(state.cover(csn));
+    if (!failRollback)
+    {
+      assertEquals(pending.getQueueSize(), 0);
+      final DeleteMsg retry = deleteMsg(csn, "uuid-1");
+      assertTrue(pending.putRemoteUpdate(retry), "failed registration must not wedge the next delivery");
+      assertTrue(pending.markInProgress(retry));
+      pending.commit(csn);
+      assertTrue(state.cover(csn));
+    }
   }
 
   @Test

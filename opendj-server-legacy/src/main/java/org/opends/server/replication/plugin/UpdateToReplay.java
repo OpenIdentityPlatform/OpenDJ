@@ -50,8 +50,14 @@ public class UpdateToReplay
    */
   void cancel()
   {
+    cancel(true);
+  }
+
+  /** Cancels this delivery, optionally requesting another session. */
+  void cancel(boolean requestRestart)
+  {
     cancelled = true;
-    if (replicationDomain != null)
+    if (requestRestart && replicationDomain != null)
     {
       replicationDomain.requestSessionRestart();
     }
