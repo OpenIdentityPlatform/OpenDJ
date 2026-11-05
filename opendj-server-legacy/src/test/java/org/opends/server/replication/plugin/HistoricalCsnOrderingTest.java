@@ -1827,6 +1827,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
     final CountDownLatch held = new CountDownLatch(1);
     final CountDownLatch release = new CountDownLatch(1);
+    final CountDownLatch changeDone = new CountDownLatch(1);
     try
     {
       second = createIsolatedReplicationServer(secondPort, "HistoricalCsnOrderingSecond", SECOND_RS_ID);
@@ -1859,11 +1860,15 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
           {
             replace(dnA, "displayName", "once the publisher ran on the session before");
             done.add(rd1.getLastLocalChange());
+            changeDone.countDown();
           }).run();
         }
       });
       release.countDown();
 
+      // Wait for both expected CSNs before reading the list the publisher updates.
+      assertTrue(changeDone.await(30, SECONDS), "the publisher recorded the second change");
+      final List<CSN> expected = new ArrayList<>(done);
       final ReplicationServer secondRs = second;
       new TestTimer.Builder()
           .maxSleep(30, SECONDS)
@@ -1871,7 +1876,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
           .toTimer()
           .repeatUntilSuccess(() -> assertThat(changelogAfter(secondRs, baseDN, onBoth))
               .as("the changes the second replication server holds after the one it had")
-              .isEqualTo(done));
+              .isEqualTo(expected));
       waitUntilTheRecoveryIsOver(rd1);
     }
     finally
