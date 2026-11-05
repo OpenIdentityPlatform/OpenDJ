@@ -36,6 +36,7 @@
         <sdkDocTargetVersion>${project.version}</sdkDocTargetVersion>
         <!-- The Asciidoctor of asciidoctor-maven-plugin, which the tests of the doc extensions also run on -->
         <asciidoctorj.version>2.5.11</asciidoctorj.version>
+        <xref.sourceDirectory>${project.build.directory}/asciidoc/source</xref.sourceDirectory>
     </properties>
 
     <dependencies>
@@ -714,6 +715,34 @@
                                 <version>${asciidoctorj.version}</version>
                             </dependency>
                         </dependencies>
+                    </plugin>
+
+                    <!-- verify runs after package has generated and preprocessed every partial. -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>check-cross-guide-xrefs</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${java.home}/bin/java</executable>
+                                    <!-- Reuse the AsciidoctorJ/JRuby dependency of the extension tests. -->
+                                    <classpathScope>test</classpathScope>
+                                    <arguments>
+                                        <argument>-Xmx512m</argument>
+                                        <argument>-cp</argument>
+                                        <classpath/>
+                                        <argument>org.jruby.Main</argument>
+                                        <argument>${project.basedir}/src/main/resources/asciidoc/check-xrefs.rb</argument>
+                                        <argument>${xref.sourceDirectory}</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
                     </plugin>
 
                     <!-- Format man pages -->

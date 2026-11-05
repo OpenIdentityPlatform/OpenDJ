@@ -302,7 +302,7 @@ For details see xref:../reference/admin-tools-ref.adoc#ldapsearch-1[ldapsearch(1
 Display differences between two LDIF files, with the resulting output having LDIF format.
 
 +
-For details see xref:../reference/admin-tools-ref.adoc#ldif-diff-1[ldif-diff(1)] in the __Reference__.
+For details see xref:../reference/admin-tools-ref.adoc#ldifdiff-1[ldif-diff(1)] in the __Reference__.
 
 `ldifmodify`::
 Similar to the `ldapmodify` command, modify specified attribute values for specified entries in an LDIF file.
