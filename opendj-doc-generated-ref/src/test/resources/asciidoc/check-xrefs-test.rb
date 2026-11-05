@@ -31,10 +31,10 @@ def check_xrefs_test
     write.call 'partials/generated.adoc', "include::nested/anchors.adoc[]\n"
     write.call 'partials/nested/anchors.adoc', "[#generated]\n== Generated Section\n\n=== Automatic Section\n\nInline [[inline-anchor]] anchor.\n"
     write.call 'getting-started/page.adoc', "= Start\n\nxref:../reference/page.adoc#generated[Generated]\n"
-    assert_check = lambda do |expected, patterns = ['getting-started/*.adoc']|
+    assert_check = lambda do |expected, patterns = ['getting-started/*.adoc'], expected_status = (expected ? 1 : 0)|
       status, output = CheckXrefs.run [root, *patterns]
       if expected
-        raise "expected failure containing #{expected.inspect}, got #{status}: #{output}" unless status != 0 && output.include?(expected)
+        raise "expected failure containing #{expected.inspect}, got #{status}: #{output}" unless status == expected_status && output.include?(expected)
       else
         raise "expected success, got #{status}: #{output}" unless status == 0
       end
@@ -43,7 +43,12 @@ def check_xrefs_test
     end
     assert_check.call nil
     write.call 'man-pages/staged.adoc', 'xref:unpublished-page.adoc[]'
+    %w[partials attachments images].each do |folder|
+      write.call "#{folder}/unpublished.adoc", 'xref:missing.adoc[]'
+    end
     assert_check.call nil, []
+    write.call 'getting-started/page.adoc', "= Start\n\nxref:https://example.com/page.adoc#fragment[External]\n"
+    assert_check.call nil
     ['_automatic_section', 'inline-anchor'].each do |id|
       write.call 'getting-started/page.adoc', "= Start\n\nxref:../reference/page.adoc##{id}[Target]\n"
       assert_check.call nil
@@ -58,11 +63,16 @@ def check_xrefs_test
     assert_check.call '#generated'
     File.delete File.join(root, 'partials/nested/anchors.adoc')
     assert_check.call 'anchors.adoc'
-    assert_check.call 'no input', ['how-to/*.adoc']
-    assert_check.call 'no input', ['getting-started/*.adoc', 'how-to/*.adoc']
+    assert_check.call 'no input', ['how-to/*.adoc'], 2
+    assert_check.call 'no input', ['getting-started/*.adoc', 'how-to/*.adoc'], 2
     write.call 'reference/page.adoc', "= Target\n:idprefix: custom-\n:idseparator: -\n\n== Automatic Section\n"
     write.call 'getting-started/page.adoc', "= Start\n:target: ../reference/page.adoc\n\nxref:{target}#custom-automatic-section[Target]\n"
     assert_check.call nil
+    # WARN-level diagnostics must reject a partly parsed target.
+    write.call 'partials/tagged.adoc', "// tag::present[]\n== Tagged\n// end::present[]\n"
+    write.call 'reference/tagged.adoc', "= Tagged\n\ninclude::../partials/tagged.adoc[tag=nosuch]\n"
+    write.call 'getting-started/page.adoc', "= Start\n\nxref:../reference/tagged.adoc[Target]\n"
+    assert_check.call 'nosuch'
     # Commented, escaped, conditional and verbatim macros are not published links.
     write.call 'getting-started/page.adoc', <<~'ADOC'
       = Start
@@ -92,7 +102,7 @@ def check_xrefs_test
     FileUtils.mkdir_p File.join(root, 'reference/page.adoc')
     assert_check.call 'page.adoc'
     status, output = CheckXrefs.run [File.join(root, 'absent')]
-    raise output if status == 0
+    raise output unless status == 2
     count += 1
     write.call 'getting-started/unreadable.adoc', '= Unreadable'
     unreadable = File.join root, 'getting-started/unreadable.adoc'
@@ -106,16 +116,66 @@ def check_xrefs_test
     FileUtils.mkdir_p directory
     begin
       File.chmod 0, directory
-      assert_check.call 'unreadable-directory' unless File.readable? directory
+      assert_check.call 'unreadable-directory', ['getting-started/*.adoc'], 2 unless File.readable? directory
     ensure
       File.chmod 0700, directory
     end
     status, output = CheckXrefs.run []
-    raise output if status == 0
+    raise output unless status == 2
     count += 1
-    # Traverse errors must not be swallowed by a glob or by the CLI.
+    # A symlinked guide directory must fail traversal instead of being skipped.
+    FileUtils.mkdir_p File.join(temporary, 'elsewhere')
+    File.write File.join(temporary, 'elsewhere/linked.adoc'), "= Linked\n\nxref:missing.adoc[]\n"
+    linked = File.join root, 'linked-guide'
+    File.symlink File.join(temporary, 'elsewhere'), linked
+    begin
+      assert_check.call 'cannot traverse symbolic directory', [], 2
+    ensure
+      File.unlink linked
+    end
+    # A dangling file symlink fails when the page is loaded.
     File.symlink File.join(root, 'absent'), File.join(root, 'getting-started/broken.adoc')
     assert_check.call 'broken.adoc'
   end
   "#{count} xref regression checks passed"
+end
+
+# Targets must have the anchors of the published page, not staging/aggregate input.
+def check_xrefs_publication_test
+  failures = []
+  count = 0
+  Dir.mktmpdir('xref-publication-') do |root|
+    write = lambda do |name, text|
+      path = File.join root, name
+      FileUtils.mkdir_p File.dirname(path)
+      File.write path, text
+    end
+    assert_result = lambda do |status_expected, text_expected|
+      status, report = CheckXrefs.run [root, 'start/*.adoc']
+      failures << "expected #{status_expected} containing #{text_expected.inspect}, got #{status}: #{report}" unless
+          status == status_expected && report.include?(text_expected)
+      count += 1
+    end
+    %w[partials attachments images man-pages].each do |folder|
+      write.call "#{folder}/fragment.adoc", "[#in-partial]\n== Fragment\n"
+      write.call 'start/page.adoc', "= Start\n\nxref:../#{folder}/fragment.adoc#in-partial[Target]\n"
+      assert_result.call 1, 'not a published page'
+    end
+    write.call 'guide/chapter.adoc', "[#chapter-id]\n== Chapter\n"
+    write.call 'guide/index.adoc', "= Guide\n\n[#index-id]\n== Contents\n\ninclude::./chapter.adoc[]\n"
+    write.call 'start/page.adoc', "= Start\n\nxref:../guide/index.adoc#chapter-id[Chapter]\n"
+    assert_result.call 1, 'missing anchor #chapter-id'
+    write.call 'start/page.adoc', "= Start\n\nxref:../guide/index.adoc#index-id[Contents]\n"
+    assert_result.call 0, 'Checked 1 file xrefs'
+    write.call 'start/page.adoc', "= Start\n\nxref:../guide/chapter.adoc#chapter-id[Chapter]\n"
+    assert_result.call 0, 'Checked 1 file xrefs'
+    # The converted index must retain its source path and line in diagnostics.
+    write.call 'guide/index.adoc', "= Guide\n\ninclude::./missing.adoc[]\n"
+    status, report = CheckXrefs.run [root, 'guide/index.adoc']
+    failures << "expected missing index chapter diagnostic, got #{status}: #{report}" unless
+        status == 1 && report.include?('index.adoc:3:') && report.include?('missing.adoc')
+    count += 1
+  end
+  raise failures.join("\n") unless failures.empty?
+  "#{count} publication checks passed"
 end

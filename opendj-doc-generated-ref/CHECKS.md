@@ -48,6 +48,10 @@ mvn -Pman-pages exec:exec@check-cross-guide-xrefs -Dxref.sourceDirectory=/path/t
 The checker discovers every `.adoc` page, including Getting Started, Release Notes
 and How-To when present. `partials`, `attachments`, `images` and the `man-pages` staging directory are not
 independent guide pages; their content is checked in the context of the pages that include it.
+A file xref into one of these staging directories fails: the target is not a
+published page. Guide `index.adoc` pages are checked as Antora publishes them,
+with chapter includes replaced by links. A fragment on an index target must
+therefore belong to the index itself, rather than an included chapter.
 Do not run against `src/main/asciidoc`: generated partials are required inputs.
 
 For a subset, invoke the same script with the module's dependency classpath:
@@ -81,7 +85,10 @@ or discovery failures.
 The module's TestNG suite runs the Ruby regression fixtures through the bundled
 JRuby. It exercises valid references and failures after deleting targets or
 renaming generated anchors, nested includes, automatic IDs, quoted patterns and
-missing inputs. To run these tests without regenerating the documentation:
+missing inputs. It also pins staging targets and discovery exclusions, published
+index anchors, WARN diagnostics, external URLs and directory symlinks. Separate
+JVM processes verify the actual CLI exit statuses 0, 1 and 2. To run these tests
+without regenerating the documentation:
 
 ```sh
 mvn compiler:testCompile surefire:test

@@ -43,6 +43,9 @@ module CheckXrefs
   end
 
   class Resolver
+    # Staging inputs are included by pages, never published as pages themselves.
+    UNPUBLISHED = %w[partials attachments images man-pages].freeze
+
     attr_reader :errors, :checked
 
     def initialize root
@@ -63,7 +66,7 @@ module CheckXrefs
         files << path.delete_prefix(@root + '/') if path.end_with? '.adoc'
       end
       if patterns.empty?
-        selected = files.reject {|path| %w[partials attachments images man-pages].include? path.split('/').first }
+        selected = files.reject {|path| UNPUBLISHED.include? path.split('/').first }
       else
         selected = patterns.flat_map do |pattern|
           matches = files.select {|path| File.fnmatch? pattern, path, File::FNM_PATHNAME | File::FNM_EXTGLOB }
@@ -84,12 +87,22 @@ module CheckXrefs
       raise IOError, "missing or unreadable file: #{path}" unless File.file?(path) && File.readable?(path)
       logger = Asciidoctor::MemoryLogger.new
       converter = Converter.new 'html5'
-      document = Asciidoctor.load_file path, safe: :unsafe, sourcemap: true,
+      options = { safe: :unsafe, sourcemap: true,
           base_dir: File.dirname(path), converter: converter, logger: logger,
-          attributes: { 'relfilesuffix' => '.adoc' }
+          attributes: { 'relfilesuffix' => '.adoc' } }
+      if File.basename(path) == 'index.adoc'
+        # AntoraMojo publishes guide indexes as chapter links, not an aggregate.
+        source = File.read(path).gsub 'include::./', '* xref:'
+        options[:attributes].merge! 'docfile' => path, 'docdir' => File.dirname(path),
+            'docname' => 'index', 'docfilesuffix' => '.adoc'
+        document = Asciidoctor.load source, options
+      else
+        document = Asciidoctor.load_file path, options
+      end
       document.convert
-      # Include failures are errors; warnings such as maximum include depth also
-      # mean that the document was only partly traversed and must fail the check.
+      # Include failures and the maximum include depth are errors; warnings such as a
+      # missing include tag also mean that the document was only partly traversed and
+      # must fail the check.
       diagnostics = logger.messages.select {|entry| (Asciidoctor::Logger::Severity.const_get entry[:severity]) >= Asciidoctor::Logger::Severity::WARN }
       unless diagnostics.empty?
         messages = diagnostics.map do |entry|
@@ -122,6 +135,9 @@ module CheckXrefs
             prefix = "#{source}#{line ? ':' + line.to_s : ''}: xref:#{reference}"
             begin
               target = File.expand_path path, File.dirname(page)
+              if target.start_with?(@root + '/') && UNPUBLISHED.include?(target.delete_prefix(@root + '/').split('/').first)
+                raise IOError, "not a published page: #{target}"
+              end
               ids, = load_page target
               if fragment && !fragment.empty? && !ids.include?(fragment)
                 @errors << "#{prefix}: missing anchor ##{fragment} in #{target}"
