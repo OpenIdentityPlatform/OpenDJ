@@ -38,7 +38,9 @@ public class CheckXrefsTest extends ForgeRockTestCase {
             ruby.put("test_file", new File(System.getProperty("basedir", "."),
                     "src/test/resources/asciidoc/check-xrefs-test.rb").getAbsolutePath());
             ruby.runScriptlet("require test_file");
-            assertThat(ruby.runScriptlet("check_xrefs_test").toString()).endsWith("xref regression checks passed");
+            final String regressionReport = ruby.runScriptlet("check_xrefs_test").toString();
+            System.out.println(regressionReport);
+            assertThat(regressionReport).contains("xref regression checks passed");
             assertThat(ruby.runScriptlet("check_xrefs_publication_test").toString()).endsWith("publication checks passed");
         } finally {
             ruby.terminate();
@@ -60,6 +62,7 @@ public class CheckXrefsTest extends ForgeRockTestCase {
         final Path root = Files.createTempDirectory("xref-cli-");
         final Path page = root.resolve("page.adoc");
         final Path output = root.resolve("output.log");
+        final Path errors = root.resolve("errors.log");
         Process process = null;
         try {
             Files.write(page, source.getBytes(StandardCharsets.UTF_8));
@@ -72,16 +75,19 @@ public class CheckXrefsTest extends ForgeRockTestCase {
                     new File(System.getProperty("basedir", "."),
                             "src/main/resources/asciidoc/check-xrefs.rb").getAbsolutePath(),
                     root.toString(), pattern)
-                    .redirectErrorStream(true).redirectOutput(output.toFile()).start();
+                    .redirectOutput(output.toFile()).redirectError(errors.toFile()).start();
             assertThat(process.waitFor(60, TimeUnit.SECONDS)).as("checker process finished").isTrue();
             final String report = new String(Files.readAllBytes(output), StandardCharsets.UTF_8);
-            assertThat(process.exitValue()).as(report).isEqualTo(status);
-            assertThat(report).contains(diagnostic);
+            final String errorReport = new String(Files.readAllBytes(errors), StandardCharsets.UTF_8);
+            assertThat(process.exitValue()).as(report + errorReport).isEqualTo(status);
+            assertThat(status == 0 ? report : errorReport).contains(diagnostic);
+            assertThat(status == 0 ? errorReport : report).doesNotContain(diagnostic);
         } finally {
             if (process != null && process.isAlive()) {
                 process.destroyForcibly().waitFor();
             }
             Files.deleteIfExists(output);
+            Files.deleteIfExists(errors);
             Files.deleteIfExists(page);
             Files.delete(root);
         }

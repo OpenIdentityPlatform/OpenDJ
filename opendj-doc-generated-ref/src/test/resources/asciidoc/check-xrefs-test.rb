@@ -19,6 +19,7 @@ require_relative '../../../main/resources/asciidoc/check-xrefs'
 # These run against the same CLI entry point as Maven, in one JRuby VM.
 def check_xrefs_test
   count = 0
+  skipped = []
   Dir.mktmpdir('xref-') do |temporary|
     root = File.join temporary, 'sources-{1}[1]'
     FileUtils.mkdir_p root
@@ -56,7 +57,7 @@ def check_xrefs_test
     write.call 'getting-started/page.adoc', "= Start\n\nxref:../reference/page.adoc[Target]\n"
     assert_check.call nil
     write.call 'getting-started/page.adoc', "= Start\n\nxref:../reference/missing.adoc#gone[Target]\n"
-    output = assert_check.call 'missing.adoc'
+    output = assert_check.call "missing or unreadable file: #{File.join File.realpath(root), 'reference/missing.adoc'}"
     raise output unless output.include?('page.adoc:3:')
     write.call 'getting-started/page.adoc', "= Start\n\nxref:../reference/page.adoc#generated[Target]\n"
     File.write File.join(root, 'partials/nested/anchors.adoc'), "== Renamed\n"
@@ -98,9 +99,9 @@ def check_xrefs_test
     assert_check.call '#missing'
     write.call 'getting-started/page.adoc', "= Start\n\nxref:../reference/page.adoc#custom-automatic-section[Target]\n"
     File.delete File.join(root, 'reference/page.adoc')
-    assert_check.call 'page.adoc'
+    assert_check.call "missing or unreadable file: #{File.join File.realpath(root), 'reference/page.adoc'}"
     FileUtils.mkdir_p File.join(root, 'reference/page.adoc')
-    assert_check.call 'page.adoc'
+    assert_check.call "missing or unreadable file: #{File.join File.realpath(root), 'reference/page.adoc'}"
     status, output = CheckXrefs.run [File.join(root, 'absent')]
     raise output unless status == 2
     count += 1
@@ -108,7 +109,11 @@ def check_xrefs_test
     unreadable = File.join root, 'getting-started/unreadable.adoc'
     begin
       File.chmod 0, unreadable
-      assert_check.call 'unreadable.adoc' unless File.readable? unreadable
+      if File.readable? unreadable
+        skipped << 'unreadable file (chmod does not restrict reads)'
+      else
+        assert_check.call "missing or unreadable file: #{File.realpath unreadable}"
+      end
     ensure
       File.chmod 0600, unreadable
     end
@@ -116,7 +121,11 @@ def check_xrefs_test
     FileUtils.mkdir_p directory
     begin
       File.chmod 0, directory
-      assert_check.call 'unreadable-directory', ['getting-started/*.adoc'], 2 unless File.readable? directory
+      if File.readable? directory
+        skipped << 'unreadable directory (chmod does not restrict reads)'
+      else
+        assert_check.call 'unreadable-directory', ['getting-started/*.adoc'], 2
+      end
     ensure
       File.chmod 0700, directory
     end
@@ -137,14 +146,15 @@ def check_xrefs_test
     File.symlink File.join(root, 'absent'), File.join(root, 'getting-started/broken.adoc')
     assert_check.call 'broken.adoc'
   end
-  "#{count} xref regression checks passed"
+  "#{count} xref regression checks passed#{skipped.empty? ? '' : "; skipped: #{skipped.join(', ')}"}"
 end
 
 # Targets must have the anchors of the published page, not staging/aggregate input.
 def check_xrefs_publication_test
   failures = []
   count = 0
-  Dir.mktmpdir('xref-publication-') do |root|
+  Dir.mktmpdir('xref-publication-') do |temporary|
+    root = File.join temporary, 'sources'
     write = lambda do |name, text|
       path = File.join root, name
       FileUtils.mkdir_p File.dirname(path)
@@ -175,6 +185,30 @@ def check_xrefs_publication_test
     failures << "expected missing index chapter diagnostic, got #{status}: #{report}" unless
         status == 1 && report.include?('index.adoc:3:') && report.include?('missing.adoc')
     count += 1
+    # Include forms that Antora leaves inline contribute anchors to the index.
+    write.call 'guide/index.adoc', "= Guide\n\ninclude::chapter.adoc[]\n"
+    write.call 'start/page.adoc', "= Start\n\nxref:../guide/index.adoc#chapter-id[Chapter]\n"
+    assert_result.call 0, 'Checked 1 file xrefs'
+    # Index loading must use UTF-8 regardless of the runtime's default encoding.
+    write.call 'guide/index.adoc', "= Guide\n:authors: Nemanja Lukić\n\ninclude::./chapter.adoc[]\n"
+    previous = Encoding.default_external
+    begin
+      Encoding.default_external = Encoding::US_ASCII
+      status, report = CheckXrefs.run [root, 'guide/index.adoc']
+    ensure
+      Encoding.default_external = previous
+    end
+    failures << "expected a non-ASCII index to load, got #{status}: #{report}" unless
+        status == 0 && report.include?('Checked 1 file xrefs')
+    count += 1
+    # Existing files outside the published source tree cannot satisfy an xref.
+    File.write File.join(temporary, 'outside.adoc'), "[#outside]\n== Outside\n"
+    write.call 'start/page.adoc', "= Start\n\nxref:../../outside.adoc#outside[Outside]\n"
+    assert_result.call 1, "outside the source root: #{File.join File.realpath(temporary), 'outside.adoc'}"
+    FileUtils.mkdir_p File.join(temporary, 'sources-sibling')
+    File.write File.join(temporary, 'sources-sibling/page.adoc'), "= Sibling\n"
+    write.call 'start/page.adoc', "= Start\n\nxref:../../sources-sibling/page.adoc[Sibling]\n"
+    assert_result.call 1, 'outside the source root'
   end
   raise failures.join("\n") unless failures.empty?
   "#{count} publication checks passed"

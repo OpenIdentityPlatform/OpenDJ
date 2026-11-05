@@ -92,7 +92,7 @@ module CheckXrefs
           attributes: { 'relfilesuffix' => '.adoc' } }
       if File.basename(path) == 'index.adoc'
         # AntoraMojo publishes guide indexes as chapter links, not an aggregate.
-        source = File.read(path).gsub 'include::./', '* xref:'
+        source = File.read(path, mode: 'rb:utf-8').gsub 'include::./', '* xref:'
         options[:attributes].merge! 'docfile' => path, 'docdir' => File.dirname(path),
             'docname' => 'index', 'docfilesuffix' => '.adoc'
         document = Asciidoctor.load source, options
@@ -135,7 +135,8 @@ module CheckXrefs
             prefix = "#{source}#{line ? ':' + line.to_s : ''}: xref:#{reference}"
             begin
               target = File.expand_path path, File.dirname(page)
-              if target.start_with?(@root + '/') && UNPUBLISHED.include?(target.delete_prefix(@root + '/').split('/').first)
+              raise IOError, "outside the source root: #{target}" unless target.start_with?(@root + '/')
+              if UNPUBLISHED.include?(target.delete_prefix(@root + '/').split('/').first)
                 raise IOError, "not a published page: #{target}"
               end
               ids, = load_page target

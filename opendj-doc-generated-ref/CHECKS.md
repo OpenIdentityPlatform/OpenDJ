@@ -49,9 +49,12 @@ The checker discovers every `.adoc` page, including Getting Started, Release Not
 and How-To when present. `partials`, `attachments`, `images` and the `man-pages` staging directory are not
 independent guide pages; their content is checked in the context of the pages that include it.
 A file xref into one of these staging directories fails: the target is not a
-published page. Guide `index.adoc` pages are checked as Antora publishes them,
-with chapter includes replaced by links. A fragment on an index target must
-therefore belong to the index itself, rather than an included chapter.
+published page. File xref targets outside the supplied source root also fail,
+even when those files exist locally. Guide `index.adoc` pages are read as UTF-8
+and checked as Antora publishes them, with `include::./<chapter>.adoc[]` lines
+replaced by links. Other include forms stay inline, and their anchors belong
+to the index. A fragment on an index target must belong to that published index,
+rather than a chapter linked by the rewrite.
 Do not run against `src/main/asciidoc`: generated partials are required inputs.
 
 For a subset, invoke the same script with the module's dependency classpath:
@@ -87,8 +90,10 @@ JRuby. It exercises valid references and failures after deleting targets or
 renaming generated anchors, nested includes, automatic IDs, quoted patterns and
 missing inputs. It also pins staging targets and discovery exclusions, published
 index anchors, WARN diagnostics, external URLs and directory symlinks. Separate
-JVM processes verify the actual CLI exit statuses 0, 1 and 2. To run these tests
-without regenerating the documentation:
+JVM processes verify the actual CLI exit statuses 0, 1 and 2 and their diagnostic
+streams (stdout on success, stderr on failure). When `chmod` cannot restrict
+reads, the regression summary names the skipped unreadable-file and
+unreadable-directory checks. To run these tests without regenerating the documentation:
 
 ```sh
 mvn compiler:testCompile surefire:test
