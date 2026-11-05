@@ -3599,6 +3599,12 @@ public abstract class ReplicationDomain
     return tmp == null || tmp.isShutdownInitiated();
   }
 
+  /** Returns whether the calling thread is still the registered listener for this session. */
+  protected final boolean isCurrentListenerThread()
+  {
+    return Thread.currentThread() == listenerThread;
+  }
+
   /**
    * Returns the generation of the session of this domain: bumped by
    * {@link #disableService()} and {@link #enableService()} under

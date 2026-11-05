@@ -1147,7 +1147,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      */
     pendingChanges = new PendingChanges(getGenerator(), this,
         new ShutdownSyncAnnouncer(dsrsShutdownSync, getBaseDN()));
-    remotePendingChanges = new RemotePendingChanges(getServerState());
+    remotePendingChanges = new RemotePendingChanges(getServerState(), getServerId());
 
     // listen for changes on the configuration
     configuration.addChangeListener(this);
@@ -2986,9 +2986,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * Marks the specified message as the one currently processed by a replay thread.
    *
    * @param msg the message being processed
-   * @return {@code false} if the change is not pending anymore, which happens when the
-   *         session was restarted after a failed replay while this message was waiting
-   *         in the replay queue: it is sent again, so this copy must not be replayed
+   * @return {@code false} if the change is already committed, the domain has forgotten
+   *         it, the delivery was cancelled, or a retry has replaced this stale delivery
    */
   boolean markInProgress(LDAPUpdateMsg msg)
   {
@@ -4842,13 +4841,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * Asks for a session restart the way a replay thread on its way out does, without
    * running it.
    * <p>
-   * Only there for the tests, which have no other way to leave a request standing at a
-   * time of their choosing without a change released for it: the one a replay thread makes
-   * on a domain whose session has no owner is made and run in one go, and one made under
-   * an owner stands for a change which is listed, and which the owner forgets or the
-   * checkpointer has delivered again.
+   * Also used when a queue hand-off fails: the listener or replay thread must not
+   * synchronously restart the session from its failure cleanup.
    */
-  @VisibleForTesting
   public void requestSessionRestart()
   {
     sessionRestarts.request(SessionRestart.NOW);
@@ -5831,6 +5826,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     state.clearInMemory();
     state.loadState(strict);
     bringAStateWithNoChangeOfThisReplicaUpToTheData(strict);
+    remotePendingChanges.resetReplayState();
     getGenerator().adjust(state.getMaxCSN(getServerId()));
     forgetTheLocalChangesTheDataLacks(strict);
 
@@ -8189,24 +8185,30 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     {
       LDAPUpdateMsg msg = (LDAPUpdateMsg) updateMsg;
 
-      // Put the UpdateMsg in the RemotePendingChanges list.
-      if (!remotePendingChanges.putRemoteUpdate(msg))
+      final UpdateToReplay updateToReplay = new UpdateToReplay(msg, this);
+      final RemotePendingChanges.Admission admission = remotePendingChanges.putRemoteUpdate(updateToReplay);
+      if (admission == RemotePendingChanges.Admission.QUEUED_DUPLICATE)
+      {
+        // The queued copy completes the current session's delivery after replay, including
+        // its error. An immediate completion here would grant extra credit and an early ack.
+        incProcessedUpdates();
+        return false;
+      }
+      if (admission == RemotePendingChanges.Admission.DUPLICATE)
       {
         /*
-         * A replay thread already owns this change, so this delivery is a duplicate:
-         * ignore it. This happens when there are uncommitted changes in the queue and
-         * session failover occurs causing a recovery of all changes since the current
-         * committed server state. See OPENDJ-1115.
+         * This change is already applied, owned by a replay thread, or committed
+         * behind another pending change. Session failover can deliver any of these again
+         * (OPENDJ-1115 and issue #1269).
          *
-         * The copy which is already listed owns the change: it is the one which records
-         * it in the ServerState once it really has been replayed. Report this delivery
+         * The accepted copy is the one which records the change in the ServerState once
+         * it really has been replayed, if it has not already done so. Report this delivery
          * as done - the window and the ack are per delivery - but as handled
          * asynchronously, so that the listener does not push the CSN to the ServerState
          * over a change which is still being replayed or is failing (issue #889).
          *
-         * A change whose replay failed is not owned by anyone anymore, so this is not the
-         * path it takes: putRemoteUpdate() takes this delivery over from the one which
-         * failed and has it replayed again.
+         * A released change has neither an owner nor a queued delivery, so this is not
+         * the path it takes: putRemoteUpdate() accepts its next delivery for replay.
          */
         if (logger.isTraceEnabled())
         {
@@ -8220,22 +8222,45 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
 
       // Put update message into the replay queue
       // (block until some place in the queue is available)
-      final UpdateToReplay updateToReplay = new UpdateToReplay(msg, this);
-      while (!isListenerShuttingDown())
+      boolean queued = false;
+      boolean handoffFailed = true;
+      try
       {
-        // loop until we can offer to the queue or shutdown was initiated
-        try
+        while (!isListenerShuttingDown())
         {
-          if (updateToReplayQueue.offer(updateToReplay, 1, TimeUnit.SECONDS))
+          // loop until we can offer to the queue or shutdown was initiated
+          try
           {
-            // successful offer to the queue, let's exit the loop
-            break;
+            if (updateToReplayQueue.offer(updateToReplay, 1, TimeUnit.SECONDS))
+            {
+              queued = true;
+              synchronized (updateToReplayQueue)
+              {
+                updateToReplayQueue.notifyAll();
+              }
+              break;
+            }
+          }
+          catch (InterruptedException e)
+          {
+            // Thread interrupted: check for shutdown.
+            Thread.currentThread().interrupt();
           }
         }
-        catch (InterruptedException e)
+        handoffFailed = false;
+      }
+      finally
+      {
+        if (!queued)
         {
-          // Thread interrupted: check for shutdown.
-          Thread.currentThread().interrupt();
+          // Cancel before comparing listener identity. If join completes, the next session
+          // starts after this cancellation and can redeliver without an extra restart. If
+          // join was interrupted, a newer session may already have refused the delivery.
+          updateToReplay.cancel(false);
+          if (handoffFailed || !isCurrentListenerThread())
+          {
+            requestSessionRestart();
+          }
         }
       }
 

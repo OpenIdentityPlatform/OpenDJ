@@ -38,9 +38,20 @@ class PendingChange implements Comparable<PendingChange>
    */
   private volatile UpdateMsg msg;
   /**
+   * A remote delivery has been accepted and is waiting to be claimed from the replay
+   * queue. It has no owner yet, but replacing it would move it behind newer changes.
+   * Local pending changes do not use this flag.
+   */
+  @GuardedBy("RemotePendingChanges.pendingChangesLock")
+  private boolean queuedForReplay = true;
+  @GuardedBy("RemotePendingChanges.pendingChangesLock")
+  private boolean replayStarted;
+  @GuardedBy("RemotePendingChanges.pendingChangesLock")
+  private UpdateToReplay delivery;
+  /**
    * The replay thread which owns this change: it is being replayed, or it waits for the
-   * change it depends on. A remote change which no thread owns is one whose replay
-   * failed and which the replication server is expected to deliver again.
+   * change it depends on. A remote change which no thread owns is either queued for
+   * replay or was released and may be taken over by another delivery.
    * <p>
    * The owner is kept rather than the bare fact that there is one, so that a change is
    * given back by the thread it was handed to and by nobody else: a release which arrives
@@ -137,6 +148,43 @@ class PendingChange implements Comparable<PendingChange>
   public void setMsg(LDAPUpdateMsg msg)
   {
     this.msg = msg;
+    queuedForReplay = true;
+  }
+
+  /**
+   * Returns whether a remote delivery is waiting to be claimed from the replay queue.
+   *
+   * @return {@code true} if the accepted delivery has not been dequeued or cancelled
+   */
+  public boolean isQueuedForReplay()
+  {
+    return queuedForReplay && !isDeliveryCancelled();
+  }
+
+  /** Installs a retry without changing this change's ordering or failure history. */
+  void setDelivery(UpdateToReplay delivery)
+  {
+    setMsg(delivery.getUpdateMessage());
+    this.delivery = delivery;
+  }
+
+  /** A failed queue hand-off can be cancelled without acquiring the pending lock. */
+  boolean isDeliveryCancelled()
+  {
+    return delivery != null && delivery.isCancelled();
+  }
+
+  /** Marks a remote delivery as dequeued while its replay claim is being established. */
+  public void markDequeued()
+  {
+    queuedForReplay = false;
+    replayStarted = true;
+  }
+
+  /** Keeps the in-progress monitor stable while a failed replay waits in the retry queue. */
+  boolean hasStartedReplay()
+  {
+    return replayStarted;
   }
 
   /**
