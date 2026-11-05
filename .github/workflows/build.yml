@@ -1136,10 +1136,10 @@ jobs:
       fail-fast: false
       matrix:
         topology: [rs534, combined]
-        # none: the base run; restart-ds: a directory server restarts during the load;
+        # none: the base run; restart-ds and kill-ds: a directory server restarts or crashes;
         # kill-rs and restart-rs: one RS is killed or gracefully restarted per fresh topology
         # while every DS writes. Only rs534 has replication servers apart from directory servers.
-        disturbance: [none, restart-ds, kill-rs, restart-rs]
+        disturbance: [none, restart-ds, kill-ds, kill-rs, restart-rs]
         exclude:
           - topology: combined
             disturbance: kill-rs
@@ -1158,6 +1158,7 @@ jobs:
         run: |
           .github/scripts/replication/selftest-replication-errors.sh
           .github/scripts/replication/selftest-disturb-restart-ds.sh
+          .github/scripts/replication/selftest-disturb-kill-ds.sh
           .github/scripts/replication/selftest-disturb-rs.sh
           .github/scripts/replication/selftest-summary.sh
       - name: Download the image

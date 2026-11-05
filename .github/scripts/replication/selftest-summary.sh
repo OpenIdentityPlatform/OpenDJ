@@ -46,11 +46,14 @@ for DISTURBANCE in restart-rs kill-rs; do
   echo "400000 445000 r0 $how" >"$OUT/disturbances.txt"
   check "$DISTURBANCE completed" "| disturbance | $how of r0 300 s into the load, serving again 45 s later |"
 done
-DISTURBANCE=restart-ds
-. "$HERE/disturb-restart-ds.sh"
-rm "$OUT/disturbances.txt"
-check "directory restart not completed" "| disturbance | restart-ds scheduled at 300 s into the load, not completed: 0 of 1 steps completed |"
-echo '400000 435000 d1 restart' >"$OUT/disturbances.txt"
-check "directory restart completed" "| disturbance | restart of d1 300 s into the load, serving again 35 s later |"
+for DISTURBANCE in restart-ds kill-ds; do
+  . "$HERE/disturb-$DISTURBANCE.sh"
+  rm "$OUT/disturbances.txt"
+  check "$DISTURBANCE not completed" "| disturbance | $DISTURBANCE scheduled at 300 s into the load, not completed: 0 of 1 steps completed |"
+  how=restart
+  [ "$DISTURBANCE" != kill-ds ] || how=kill
+  echo "400000 435000 d1 $how" >"$OUT/disturbances.txt"
+  check "$DISTURBANCE completed" "| disturbance | $how of d1 300 s into the load, serving again 35 s later |"
+done
 echo "summary: $((checks - failed)) checks passed, $failed failed"
 [ "$failed" -eq 0 ]

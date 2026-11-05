@@ -60,6 +60,9 @@ CORE178='[t] category=CORE severity=ERROR msgID=178 msg=not a replication error'
 E180='[t] category=SYNC severity=ERROR msgID=180 msg=Directory server DS(13411) encountered an error while receiving changes for domain "dc=example,dc=com" from replication server RS(23837) at cv-r0:8989. The connection will be closed, and this directory server will now try to connect to another replication server'
 E181='[t] category=SYNC severity=ERROR msgID=181 msg=The connection from this replication server RS(31531) to replication server RS(23837) at cv-r0:8989 for domain "dc=example,dc=com" has failed'
 E284="[t] category=SYNC severity=ERROR msgID=284 msg=Log file '/opt/opendj/data/changelogDb/2.dom/13411.server/head.log' was successfully recovered by removing a partially written record"
+E211='[t] category=SYNC severity=ERROR msgID=211 msg=The connection from this replication server RS(31531) to directory server DS(24329) at cv-d1:8989 for domain "dc=example,dc=com" has failed'
+E66='[t] category=SYNC severity=ERROR msgID=66 msg=monitor reply failed'
+E108='[t] category=SYNC severity=ERROR msgID=108 msg=monitor request failed'
 E18='[t] category=SYNC severity=ERROR msgID=18 msg=an id that starts the first one a window lists'
 E80='[t] category=SYNC severity=ERROR msgID=80 msg=an id that ends the first one a window lists'
 E106KILL='[t] category=SYNC severity=ERROR msgID=106 msg=an id a window lists, 181, in the message'
@@ -130,6 +133,15 @@ case_ another-in-a-kill-window   1 0 "$KILL" "$E106" ']'
 case_ listed-id-not-sync-error   2 0 "$KILL" "$WBAD181" "$WBADCORE181" ']'
 case_ kill-window-then-another   1 2 "$KILL" "$E180" ']' "$N62" '[' "$E181" "$E145" ']'
 case_ another-then-kill-window   0 2 '[' ']' "$N62" "$KILL" "$E181" "$E145" ']'
+
+# DS crash allowances do not leak into graceful restarts, later records, or RS-only kills.
+case_ ds-kill-disconnect         0 1 '[ 211' "$E211" ']'
+case_ ds-kill-without-rs         2 0 '[ 211' "$E180" "$E284" ']'
+case_ combined-kill              0 4 '[ 180 181 211 284' "$E180" "$E181" "$E211" "$E284" ']'
+case_ ds-disconnect-graceful     1 0 '[' "$E211" ']'
+case_ ds-disconnect-rs-kill      1 0 "$KILL" "$E211" ']'
+case_ ds-disconnect-before-after 2 1 "$E211" '[ 211' "$E211" ']' "$E211"
+case_ monitors-in-combined-kill  2 0 '[ 180 181 211 284' "$E66" "$E108" ']'
 
 # A log that cannot be read stops window_open, which would otherwise open a window from its first
 # line. In the background: errexit is off in a subshell on the left of ||, and on in a job
