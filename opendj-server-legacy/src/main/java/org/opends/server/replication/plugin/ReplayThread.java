@@ -74,6 +74,10 @@ public class ReplayThread extends DirectoryThread
   public void shutdown()
   {
     shutdown.set(true);
+    synchronized (updateToReplayQueue)
+    {
+      updateToReplayQueue.notifyAll();
+    }
   }
 
   /**
@@ -143,29 +147,53 @@ public class ReplayThread extends DirectoryThread
         {
           LDAPReplicationDomain domain;
           LDAPUpdateMsg updateMsg;
+          UpdateToReplay delivery = null;
           try
           {
-            if (shutdown.get())
+            synchronized (updateToReplayQueue)
             {
-              break;
+              if (shutdown.get())
+              {
+                break;
+              }
+              if (updateToReplayQueue.isEmpty())
+              {
+                updateToReplayQueue.wait(1000L);
+              }
+              if (shutdown.get())
+              {
+                break;
+              }
+              // Retain the head before removing it. LinkedBlockingQueue.poll() can throw
+              // OOME after unlinking it (signalNotFull takes another lock on JDK 11/17).
+              // Every consumer holds this monitor, so peek and poll refer to the same item.
+              delivery = updateToReplayQueue.peek();
+              if (delivery == null)
+              {
+                continue;
+              }
+              updateToReplayQueue.poll();
+              updateMsg = delivery.getUpdateMessage();
+              domain = delivery.getReplicationDomain();
+              if (!domain.markInProgress(updateMsg))
+              {
+                /*
+                 * This delivery was cancelled, replaced, committed or forgotten. The
+                 * domain counted the stale copy; only its accepted retry may replay it.
+                 */
+                continue;
+              }
             }
-            UpdateToReplay updateToreplay = updateToReplayQueue.poll(1L, TimeUnit.SECONDS);
-            if (updateToreplay == null)
+          }
+          catch (Throwable t)
+          {
+            if (delivery != null)
             {
-              continue;
+              // No pending-changes lock is needed: the failed claim may itself have
+              // run out of memory while trying to acquire that lock.
+              delivery.cancel();
             }
-            // Find replication domain for that update message and mark it as "in progress"
-            updateMsg = updateToreplay.getUpdateMessage();
-            domain = updateToreplay.getReplicationDomain();
-            if (!domain.markInProgress(updateMsg))
-            {
-              /*
-               * The domain restarted its session after a failed replay while this
-               * message was waiting here, so it does not know about this change
-               * anymore: the replication server sends it again over the new session.
-               */
-              continue;
-            }
+            throw t;
           }
           finally
           {

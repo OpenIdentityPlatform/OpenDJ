@@ -74,10 +74,10 @@ final class RemotePendingChanges
   @GuardedBy("dependentChangesLock")
   private final SortedSet<PendingChange> dependentChanges = new TreeSet<>();
   /**
-   * {@code activeAndDependentChanges} also contains changes discovered to be dependent
-   * on currently in progress changes.
+   * Uncommitted changes, registered before enqueue. A queued change whose hand-off
+   * fails must remain a predecessor: otherwise its DELETE can run before its ADD retry.
    */
-  private final ConcurrentSkipListSet<PendingChange> activeAndDependentChanges = new ConcurrentSkipListSet<>();
+  private final ConcurrentSkipListSet<PendingChange> replayDependencies = new ConcurrentSkipListSet<>();
 
   /**
    * The change each replay thread is replaying right now, read by the give-back on the way
@@ -106,7 +106,7 @@ final class RemotePendingChanges
    * races nothing for it. {@link #clear()} is the one writer of every entry, and it holds
    * both locks.
    */
-  private final ConcurrentMap<Thread, CSN> changeBeingReplayed = new ConcurrentHashMap<>();
+  private final ConcurrentMap<Thread, CSN> changeBeingReplayed;
 
   private final ReentrantReadWriteLock pendingChangesLock = new ReentrantReadWriteLock(true);
   private final ReentrantReadWriteLock.ReadLock pendingChangesReadLock = pendingChangesLock.readLock();
@@ -115,6 +115,16 @@ final class RemotePendingChanges
 
   /** The ServerState that will be updated when LDAPUpdateMsg are fully replayed. */
   private final ServerState state;
+  private final int localServerId;
+  /** Own-origin replay progress; local publication must not cover restore catch-up. */
+  @GuardedBy("pendingChangesLock")
+  private CSN localReplayCSN;
+
+  /** Whether a delivery needs replay or how its duplicate should be completed. */
+  enum Admission
+  {
+    ACCEPTED, QUEUED_DUPLICATE, DUPLICATE
+  }
 
   /**
    * How many of the changes listed here have a replay failure recorded against them.
@@ -137,7 +147,35 @@ final class RemotePendingChanges
    */
   public RemotePendingChanges(ServerState state)
   {
+    this(state, -1);
+  }
+
+  RemotePendingChanges(ServerState state, int localServerId)
+  {
+    this(state, localServerId, new ConcurrentHashMap<Thread, CSN>());
+  }
+
+  RemotePendingChanges(ServerState state, int localServerId,
+      ConcurrentMap<Thread, CSN> changeBeingReplayed)
+  {
     this.state = state;
+    this.localServerId = localServerId;
+    this.changeBeingReplayed = changeBeingReplayed;
+    resetReplayState();
+  }
+
+  /** Reloads the own-origin watermark only when the backend state is loaded. */
+  void resetReplayState()
+  {
+    pendingChangesWriteLock.lock();
+    try
+    {
+      localReplayCSN = state.getCSN(localServerId);
+    }
+    finally
+    {
+      pendingChangesWriteLock.unlock();
+    }
   }
 
   /**
@@ -169,7 +207,23 @@ final class RemotePendingChanges
    */
   public int changesInProgressSize()
   {
-    return activeAndDependentChanges.size();
+    pendingChangesReadLock.lock();
+    try
+    {
+      int count = 0;
+      for (PendingChange change : replayDependencies)
+      {
+        if (change.hasStartedReplay())
+        {
+          count++;
+        }
+      }
+      return count;
+    }
+    finally
+    {
+      pendingChangesReadLock.unlock();
+    }
   }
 
   /**
@@ -195,7 +249,9 @@ final class RemotePendingChanges
    * to the pendingList.
    * <p>
    * Changes covered by the applied ServerState are rejected even after they have left
-   * the pending list. A listed change is also left alone while its delivery is queued,
+   * the pending list. For this replica's own origin, only the state loaded from the backend
+   * and subsequent replays count: a newer local publication does not prove that an older
+   * change sent back after restore is in the data. A listed change is also left alone while its delivery is queued,
    * owned by a replay thread, or committed and waiting for earlier changes. Replacing a
    * queued delivery would move it behind newer changes: a DELETE could then be replayed
    * before its ADD, leaving the entry present once the ADD is replayed (issue #1269).
@@ -215,50 +271,56 @@ final class RemotePendingChanges
    */
   public boolean putRemoteUpdate(LDAPUpdateMsg update)
   {
+    return putRemoteUpdate(new UpdateToReplay(update, null)) == Admission.ACCEPTED;
+  }
+
+  Admission putRemoteUpdate(UpdateToReplay delivery)
+  {
+    final LDAPUpdateMsg update = delivery.getUpdateMessage();
     pendingChangesWriteLock.lock();
     try
     {
       final CSN csn = update.getCSN();
-      if (state.cover(csn))
+      if (csn.getServerId() == localServerId
+          ? localReplayCSN != null && localReplayCSN.compareTo(csn) >= 0 : state.cover(csn))
       {
-        return false;
+        return Admission.DUPLICATE;
       }
       final PendingChange listed = pendingChanges.get(csn);
       if (listed == null)
       {
-        pendingChanges.put(csn, new PendingChange(csn, null, update));
-        return true;
+        final PendingChange change = new PendingChange(csn, null, update);
+        change.setDelivery(delivery);
+        pendingChanges.put(csn, change);
+        try
+        {
+          replayDependencies.add(change);
+        }
+        catch (RuntimeException | Error e)
+        {
+          // No other admission sees this partial registration while the write lock is held.
+          pendingChanges.remove(csn);
+          replayDependencies.remove(change);
+          delivery.cancel();
+          throw e;
+        }
+        return Admission.ACCEPTED;
       }
-      if (listed.isCommitted() || listed.isOwned() || listed.isQueuedForReplay())
+      if (listed.isCommitted() || listed.isOwned())
       {
-        return false;
+        return Admission.DUPLICATE;
       }
-      listed.setMsg(update);
-      return true;
-    }
-    finally
-    {
-      pendingChangesWriteLock.unlock();
-    }
-  }
-
-  /**
-   * Releases an accepted delivery which could not be put in the replay queue.
-   * The change remains a barrier to state advancement, but may be delivered again.
-   *
-   * @param msg the delivery whose enqueue was abandoned
-   */
-  void cancelQueuedUpdate(LDAPUpdateMsg msg)
-  {
-    pendingChangesWriteLock.lock();
-    try
-    {
-      final PendingChange change = pendingChanges.get(msg.getCSN());
-      if (change != null && !change.isCommitted() && !change.isOwned()
-          && change.getLDAPUpdateMsg() == msg)
+      if (listed.isQueuedForReplay())
       {
-        change.markDequeued();
+        // Keep the queue position, but complete for the latest delivery's assured mode.
+        final LDAPUpdateMsg accepted = listed.getLDAPUpdateMsg();
+        accepted.setAssured(update.isAssured());
+        accepted.setAssuredMode(update.getAssuredMode());
+        accepted.setSafeDataLevel(update.getSafeDataLevel());
+        return Admission.QUEUED_DUPLICATE;
       }
+      listed.setDelivery(delivery);
+      return Admission.ACCEPTED;
     }
     finally
     {
@@ -302,7 +364,7 @@ final class RemotePendingChanges
       curChange.setCommitted(true);
       curChange.setOwner(null);
       changeBeingReplayed.remove(Thread.currentThread(), csn);
-      activeAndDependentChanges.remove(curChange);
+      replayDependencies.remove(curChange);
 
       final Iterator<PendingChange> it = pendingChanges.values().iterator();
       while (it.hasNext())
@@ -315,6 +377,10 @@ final class RemotePendingChanges
         if (pendingChange.getMsg().contributesToDomainState())
         {
           state.update(pendingChange.getCSN());
+          if (pendingChange.getCSN().getServerId() == localServerId)
+          {
+            localReplayCSN = pendingChange.getCSN();
+          }
         }
         if (pendingChange.getReplayFailures() > 0)
         {
@@ -528,7 +594,7 @@ final class RemotePendingChanges
     {
       pendingChanges.clear();
       dependentChanges.clear();
-      activeAndDependentChanges.clear();
+      replayDependencies.clear();
       changeBeingReplayed.clear();
       failingChanges = 0;
     }
@@ -545,7 +611,7 @@ final class RemotePendingChanges
    * @param msg
    *          the message whose change is being replayed
    * @return {@code false} if the change is already committed, the domain has forgotten
-   *         it, or this is a stale delivery which a retry has replaced
+   *         it, the delivery was cancelled, or this is a stale delivery which a retry has replaced
    */
   public boolean markInProgress(LDAPUpdateMsg msg)
   {
@@ -553,7 +619,8 @@ final class RemotePendingChanges
     try
     {
       final PendingChange change = pendingChanges.get(msg.getCSN());
-      if (change == null || change.isCommitted() || change.getLDAPUpdateMsg() != msg)
+      if (change == null || change.isCommitted() || change.isDeliveryCancelled()
+          || change.getLDAPUpdateMsg() != msg)
       {
         return false;
       }
@@ -561,13 +628,10 @@ final class RemotePendingChanges
       // an owner, a later delivery must be able to take it over.
       change.markDequeued();
       /*
-       * Listed as being replayed before it is owned, and not the other way round: the
-       * caller enters the replay - where the give-back on the way out lives - once this
-       * returns, so nothing which allocates must run between the owner being stamped and
-       * that. A change listed here without an owner is the state a failed replay leaves
-       * behind, and the dependency checks which read this set do not read the owner.
+       * The dependency was registered before enqueue, so a failed claim still holds back
+       * its successors. Allocate the thread index before stamping the owner: the caller
+       * reaches replay's give-back only once this method returns.
        */
-      activeAndDependentChanges.add(change);
       changeBeingReplayed.put(Thread.currentThread(), change.getCSN());
       change.setOwner(Thread.currentThread());
       return true;
@@ -859,7 +923,7 @@ final class RemotePendingChanges
 
     boolean hasDependencies = false;
     final DN targetDN = op.getEntryDN();
-    for (PendingChange pendingChange : activeAndDependentChanges)
+    for (PendingChange pendingChange : replayDependencies)
     {
       if (pendingChange.getCSN().isNewerThanOrEqualTo(csn))
       {
@@ -933,7 +997,7 @@ final class RemotePendingChanges
 
     boolean hasDependencies = false;
     final DN targetDN = change.getLDAPUpdateMsg().getDN();
-    for (PendingChange pendingChange : activeAndDependentChanges)
+    for (PendingChange pendingChange : replayDependencies)
     {
       if (pendingChange.getCSN().isNewerThanOrEqualTo(csn))
       {
@@ -1000,7 +1064,7 @@ final class RemotePendingChanges
 
     boolean hasDependencies = false;
     final DN targetDN = change.getLDAPUpdateMsg().getDN();
-    for (PendingChange pendingChange : activeAndDependentChanges)
+    for (PendingChange pendingChange : replayDependencies)
     {
       if (pendingChange.getCSN().isNewerThanOrEqualTo(csn))
       {
@@ -1075,7 +1139,7 @@ final class RemotePendingChanges
 
     boolean hasDependencies = false;
     final DN targetDN = op.getEntryDN();
-    for (PendingChange pendingChange : activeAndDependentChanges)
+    for (PendingChange pendingChange : replayDependencies)
     {
       if (pendingChange.getCSN().isNewerThanOrEqualTo(csn))
       {

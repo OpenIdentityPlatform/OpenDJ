@@ -44,6 +44,10 @@ class PendingChange implements Comparable<PendingChange>
    */
   @GuardedBy("RemotePendingChanges.pendingChangesLock")
   private boolean queuedForReplay = true;
+  @GuardedBy("RemotePendingChanges.pendingChangesLock")
+  private boolean replayStarted;
+  @GuardedBy("RemotePendingChanges.pendingChangesLock")
+  private UpdateToReplay delivery;
   /**
    * The replay thread which owns this change: it is being replayed, or it waits for the
    * change it depends on. A remote change which no thread owns is either queued for
@@ -154,13 +158,33 @@ class PendingChange implements Comparable<PendingChange>
    */
   public boolean isQueuedForReplay()
   {
-    return queuedForReplay;
+    return queuedForReplay && !isDeliveryCancelled();
   }
 
-  /** Marks a remote delivery as dequeued, or cancelled before it could be enqueued. */
+  /** Installs a retry without changing this change's ordering or failure history. */
+  void setDelivery(UpdateToReplay delivery)
+  {
+    setMsg(delivery.getUpdateMessage());
+    this.delivery = delivery;
+  }
+
+  /** A failed queue hand-off can be cancelled without acquiring the pending lock. */
+  boolean isDeliveryCancelled()
+  {
+    return delivery != null && delivery.isCancelled();
+  }
+
+  /** Marks a remote delivery as dequeued while its replay claim is being established. */
   public void markDequeued()
   {
     queuedForReplay = false;
+    replayStarted = true;
+  }
+
+  /** Keeps the in-progress monitor stable while a failed replay waits in the retry queue. */
+  boolean hasStartedReplay()
+  {
+    return replayStarted;
   }
 
   /**

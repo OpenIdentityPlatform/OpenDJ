@@ -13,21 +13,22 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 
 /**
- * This is a bag class to hold an update to replay in the queue of updates to
- * be replayed by the replay threads.
- * It associates an update message to replay with the matching
- * ReplicationDomain.
+ * A delivery in the shared replay queue, associating an update with its domain.
+ * Cancellation belongs to this delivery, so an enqueue or claim failure can release
+ * it without acquiring the pending-changes lock or cancelling a newer retry.
  */
 public class UpdateToReplay
 {
-  private LDAPUpdateMsg updateMessage;
-  private LDAPReplicationDomain replicationDomain;
+  private final LDAPUpdateMsg updateMessage;
+  private final LDAPReplicationDomain replicationDomain;
+  private volatile boolean cancelled;
 
   /**
    * Construct the object associating the update message with the replication
@@ -41,6 +42,24 @@ public class UpdateToReplay
   {
     this.updateMessage = updateMessage;
     this.replicationDomain = replicationDomain;
+  }
+
+  /**
+   * Releases a failed hand-off without a lock or allocation, even on an OOME road.
+   * A stale cancellation affects only this delivery, never the retry which replaced it.
+   */
+  void cancel()
+  {
+    cancelled = true;
+    if (replicationDomain != null)
+    {
+      replicationDomain.requestSessionRestart();
+    }
+  }
+
+  boolean isCancelled()
+  {
+    return cancelled;
   }
 
   /**

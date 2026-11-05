@@ -1147,7 +1147,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      */
     pendingChanges = new PendingChanges(getGenerator(), this,
         new ShutdownSyncAnnouncer(dsrsShutdownSync, getBaseDN()));
-    remotePendingChanges = new RemotePendingChanges(getServerState());
+    remotePendingChanges = new RemotePendingChanges(getServerState(), getServerId());
 
     // listen for changes on the configuration
     configuration.addChangeListener(this);
@@ -2987,7 +2987,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    *
    * @param msg the message being processed
    * @return {@code false} if the change is already committed, the domain has forgotten
-   *         it, or a retry has replaced this stale delivery
+   *         it, the delivery was cancelled, or a retry has replaced this stale delivery
    */
   boolean markInProgress(LDAPUpdateMsg msg)
   {
@@ -4841,13 +4841,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * Asks for a session restart the way a replay thread on its way out does, without
    * running it.
    * <p>
-   * Only there for the tests, which have no other way to leave a request standing at a
-   * time of their choosing without a change released for it: the one a replay thread makes
-   * on a domain whose session has no owner is made and run in one go, and one made under
-   * an owner stands for a change which is listed, and which the owner forgets or the
-   * checkpointer has delivered again.
+   * Also used when a queue hand-off fails: the listener or replay thread must not
+   * synchronously restart the session from its failure cleanup.
    */
-  @VisibleForTesting
   public void requestSessionRestart()
   {
     sessionRestarts.request(SessionRestart.NOW);
@@ -5830,6 +5826,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     state.clearInMemory();
     state.loadState(strict);
     bringAStateWithNoChangeOfThisReplicaUpToTheData(strict);
+    remotePendingChanges.resetReplayState();
     getGenerator().adjust(state.getMaxCSN(getServerId()));
     forgetTheLocalChangesTheDataLacks(strict);
 
@@ -8188,11 +8185,19 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     {
       LDAPUpdateMsg msg = (LDAPUpdateMsg) updateMsg;
 
-      // Put the UpdateMsg in the RemotePendingChanges list.
-      if (!remotePendingChanges.putRemoteUpdate(msg))
+      final UpdateToReplay updateToReplay = new UpdateToReplay(msg, this);
+      final RemotePendingChanges.Admission admission = remotePendingChanges.putRemoteUpdate(updateToReplay);
+      if (admission == RemotePendingChanges.Admission.QUEUED_DUPLICATE)
+      {
+        // The queued copy completes the current session's delivery after replay, including
+        // its error. An immediate completion here would grant extra credit and an early ack.
+        incProcessedUpdates();
+        return false;
+      }
+      if (admission == RemotePendingChanges.Admission.DUPLICATE)
       {
         /*
-         * This change is already applied, queued, owned by a replay thread, or committed
+         * This change is already applied, owned by a replay thread, or committed
          * behind another pending change. Session failover can deliver any of these again
          * (OPENDJ-1115 and issue #1269).
          *
@@ -8220,7 +8225,6 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       boolean queued = false;
       try
       {
-        final UpdateToReplay updateToReplay = new UpdateToReplay(msg, this);
         while (!isListenerShuttingDown())
         {
           // loop until we can offer to the queue or shutdown was initiated
@@ -8229,6 +8233,10 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
             if (updateToReplayQueue.offer(updateToReplay, 1, TimeUnit.SECONDS))
             {
               queued = true;
+              synchronized (updateToReplayQueue)
+              {
+                updateToReplayQueue.notifyAll();
+              }
               break;
             }
           }
@@ -8243,8 +8251,9 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       {
         if (!queued)
         {
-          // No replay thread can finish this delivery; let the next session retry it.
-          remotePendingChanges.cancelQueuedUpdate(msg);
+          // A newer session may already have refused this delivery as queued. Release it
+          // without taking a lock, then leave a fresh restart request for the checkpointer.
+          updateToReplay.cancel();
         }
       }
 
