@@ -21,16 +21,19 @@ Copyright 2026 3A Systems, LLC.
 [#how-to-cassandra-backend]
 == Store Directory Data in Cassandra
 
-This recipe preserves the Cassandra backend setup from the wiki's task collection. It requires a reachable Cassandra cluster and a data center name matching that cluster's configuration. Prepare a fresh OpenDJ installation without a base DN, using only the `./setup` command in xref:./jdbc-backend.adoc[the JDBC setup procedure]. Do not run its `create-backend` command: the Cassandra backend below will use the same `userRoot` name. Configure the driver before running setup.
+This recipe preserves the Cassandra backend setup from the wiki's task collection. It requires a reachable Cassandra cluster and a data center name matching that cluster's configuration. Prepare a fresh OpenDJ installation from the full server ZIP (not the slim ZIP, which omits the Cassandra driver), without a base DN, using only the `./setup` command in xref:./jdbc-backend.adoc[the JDBC setup procedure]. Do not run its `create-backend` command: the Cassandra backend below will use the same `userRoot` name.
 
-For a local Cassandra node on port 9042 in data center `datacenter1`:
+Setup starts the server without `OPENDJ_JAVA_ARGS`. After setup finishes, append the driver settings to the existing `start-ds.java-args` value in `config/java.properties` and restart the server before creating the backend. For a local Cassandra node on port 9042 in data center `datacenter1`:
 
 [source,bash]
 ----
-export OPENDJ_JAVA_ARGS="${OPENDJ_JAVA_ARGS:-} -Ddatastax-java-driver.basic.contact-points.0=localhost:9042 -Ddatastax-java-driver.basic.load-balancing-policy.local-datacenter=datacenter1"
+unset OPENDJ_JAVA_ARGS OPENDS_JAVA_ARGS
+sed -i.bak 's/^start-ds\.java-args=.*/& -Ddatastax-java-driver.basic.contact-points.0=localhost:9042 -Ddatastax-java-driver.basic.load-balancing-policy.local-datacenter=datacenter1/' config/java.properties
+bin/stop-ds
+bin/start-ds
 ----
 
-Keep these settings in the server's startup environment. Configure authentication and TLS in the driver for a secured cluster. Create the backend with keyspace name `ldap_example_com`:
+The start scripts ignore the Java arguments in `config/java.properties` while `OPENDJ_JAVA_ARGS` is set; the legacy `OPENDS_JAVA_ARGS` variable can also override them. Leave both variables unset in shells and services that start the server. Configure authentication and TLS in the driver for a secured cluster. Create the backend with keyspace name `ldap_example_com`:
 
 [source,bash]
 ----

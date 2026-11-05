@@ -167,5 +167,5 @@ The installation and its database remain on disk. To use it again, run `./bin/st
 * xref:../admin-guide/chap-privileges-acis.adoc[Configuring Privileges and Access Control] explains how to give application accounts the access they need.
 * xref:../admin-guide/chap-backup-restore.adoc[Backing Up and Restoring Data] and xref:../admin-guide/chap-monitoring.adoc[Monitoring] cover routine operations.
 * xref:../admin-guide/chap-replication.adoc[Managing Data Replication] covers multiple servers.
-* xref:../how-to/tasks.adoc[How-To Task Directory] links deployment and integration recipes.
+* xref:../how-to/tasks.adoc[Find a Procedure] links deployment and integration recipes.
 * xref:../release-notes/release-5.2.0.adoc[OpenDJ 5.2.0 Release Notes] describes this release and links the complete change list.

@@ -206,7 +206,7 @@ index 9db58cd..03019aa 100644
 \ No newline at end of file
 +Please submit documentation changes to the [OpenDJ repository](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-doc-generated-ref/src/main/asciidoc).
 diff --git a/How-To.md b/How-To.md
-index faa10f3..83a28ba 100644
+index faa10f3..33a1d4c 100644
 --- a/How-To.md
 +++ b/How-To.md
 @@ -1,129 +1,97 @@
@@ -423,7 +423,7 @@ index faa10f3..83a28ba 100644
 +
 +## Use Self Signed Certificate
 +
-+See [the maintained procedure](https://doc.openidentityplatform.org/opendj/admin-guide/chap-connection-handlers#setup-server-cert).
++See [the maintained procedure](https://doc.openidentityplatform.org/opendj/admin-guide/chap-connection-handlers#setup-server-cert). For the Docker image, pass a PKCS#12 file with `OPENDJ_SSL_OPTIONS`; see [the Docker image README](https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/opendj-packages/opendj-docker/README.md).
 +
 +## Store LDAP catalog data in CASSANDRA noSQL cluster
 +

@@ -37,39 +37,7 @@ In an existing Spring Boot Maven application, add:
 </dependency>
 ----
 
-Use a JDK supported by your Spring Boot version and at least Java 11 for OpenDJ. These are Java module exports, not Java 8 compatibility options. Add them to the JVM running the application and to the test JVM:
-
-[source,xml]
-----
-<properties>
-    <opendj.jvm.args>
-        --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED
-        --add-exports java.base/sun.security.x509=ALL-UNNAMED
-    </opendj.jvm.args>
-</properties>
-----
-
-Merge the following configuration into the existing plugins, preserving any other JVM arguments:
-
-[source,xml]
-----
-<plugin>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-maven-plugin</artifactId>
-    <configuration>
-        <jvmArguments>${opendj.jvm.args}</jvmArguments>
-    </configuration>
-</plugin>
-<plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-surefire-plugin</artifactId>
-    <configuration>
-        <argLine>${opendj.jvm.args}</argLine>
-    </configuration>
-</plugin>
-----
-
-These plugin settings do not affect `java -jar` or an IDE launch; supply the same exports there.
+Use a JDK supported by your Spring Boot version and at least Java 11 for OpenDJ.
 
 === Configure the Bean and Import Data
 
