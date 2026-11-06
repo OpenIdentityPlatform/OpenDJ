@@ -14,8 +14,16 @@ information: "Portions copyright [year] [name of copyright owner]".
 Copyright 2026 3A Systems, LLC.
 ////
 
+:table-caption!:
+
+ifndef::env-site[]
 [#getting-started-overview]
+endif::[]
 == Directory Concepts
+
+ifdef::env-site[]
+anchor:getting-started-overview[]
+endif::[]
 
 OpenDJ stores directory entries and makes them available to applications through LDAP. A directory is commonly used to hold users, groups and application configuration. Applications bind to the server to authenticate, then search or update entries according to their access rights.
 

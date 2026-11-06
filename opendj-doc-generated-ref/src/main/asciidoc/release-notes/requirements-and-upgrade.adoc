@@ -14,8 +14,16 @@ information: "Portions copyright [year] [name of copyright owner]".
 Copyright 2026 3A Systems, LLC.
 ////
 
+:table-caption!:
+
+ifndef::env-site[]
 [#release-requirements]
+endif::[]
 == Requirements and Upgrade Considerations
+
+ifdef::env-site[]
+anchor:release-requirements[]
+endif::[]
 
 === Java and Installation Environment
 

@@ -14,10 +14,17 @@ information: "Portions copyright [year] [name of copyright owner]".
 Copyright 2026 3A Systems, LLC.
 ////
 
+:table-caption!:
 :opendj-example-version: 5.2.0
 
+ifndef::env-site[]
 [#getting-started-first-directory]
+endif::[]
 == Your First Directory
+
+ifdef::env-site[]
+anchor:getting-started-first-directory[]
+endif::[]
 
 This exercise uses the published OpenDJ {opendj-example-version} ZIP distribution on Linux or macOS with Bash. It creates a new evaluation instance, uses a self-signed certificate for LDAPS, and leaves existing installations alone. For Windows, native packages or Docker, use the xref:../install-guide/chap-install.adoc[Installation Guide].
 

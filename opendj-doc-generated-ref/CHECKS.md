@@ -98,3 +98,30 @@ unreadable-directory checks. To run these tests without regenerating the documen
 ```sh
 mvn compiler:testCompile surefire:test
 ```
+
+The `man-pages` profile also runs `AntoraPageTitlesIT` during `verify`, after
+Antora conversion. It parses the headers of the four Release Notes and Getting
+Started chapter pages and checks their expected document titles, then renders
+their bodies with Antora's `env-site` attribute to check existing fragment IDs.
+A section heading alone must fail: Antora needs a document header
+to populate default xref labels, navigation labels and browser titles. The tests
+also parse both preprocessed books to preserve their chapter titles, IDs and levels
+for PDF generation. Missing generated inputs fail rather than skipping the check.
+
+After preprocessing and Antora conversion, rerun this check from this module:
+
+```sh
+mvn -Pman-pages compiler:testCompile surefire:test@test-antora-page-titles
+```
+
+Chapter sources keep `==` headings for the combined books. With doc-maven-plugin
+3.2.2, keep `:table-caption!:` before each chapter heading: the Antora converter
+uses this existing attribute as the insertion point for `:leveloffset: -1`,
+which promotes the chapter heading to a standalone page title only in its output.
+Do not put the level offset directly in the book sources.
+
+The chapter ID stays on the heading outside `env-site`. On the site, it is emitted
+as a separate inline anchor after the page title: Antora's default UI does not
+render the document ID as an HTML anchor. Keep both forms so incoming fragments
+work in HTML and the combined books retain their chapter IDs. The inline anchor
+must have its own paragraph so it does not replace the next section's automatic ID.
