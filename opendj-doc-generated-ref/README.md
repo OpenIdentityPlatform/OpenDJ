@@ -26,7 +26,7 @@ Use `xref:../guide/chapter.adoc#anchor[Title]` for cross-guide links and `xref:.
 
 `getting-started` contains the introductory concepts and a runnable first-directory exercise. Keep its download pinned to a published release, even when this repository builds a SNAPSHOT. Re-run the exercise when changing its version or commands.
 
-`release-notes` contains version-specific summaries and installation/upgrade considerations. Verify release facts against the tagged source and the GitHub release record. Link to the complete changelog and security advisories instead of copying their full contents. Add a chapter and update the book includes when documenting a new release; do not silently relabel an older release's notes.
+`release-notes` contains version-specific summaries and installation/upgrade considerations. Verify release facts against the tagged source and the GitHub release record. Keep `release-history.adoc` as a dated snapshot of the full published GitHub release descriptions, in reverse publication order. Preserve their text, contributor credits and links when converting Markdown to AsciiDoc; use GitHub publication dates in UTC. Refresh the snapshot and its retrieval date when adding a release. Keep links to the original release records, complete comparisons and security advisories. Add a chapter and update the book includes when documenting a new release; do not silently relabel an older release's notes.
 
 Both books follow the same Maven, Antora and PDF pipeline as How-To. Their site PDF filenames are `Getting_Started.pdf` and `Release_Notes.pdf`. Register their navigation before the Installation Guide. The historical DocBook sources are maintained separately and are not inputs to these new guides.
 
