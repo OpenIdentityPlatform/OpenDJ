@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -66,6 +67,7 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.Modification;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TestTimer;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -162,6 +164,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
   /** How often the domains of {@link #theGracePeriodIsSharedByAllTheDomainsOfOneShutdown()}
    * announce themselves offline again while the shutdown is waiting for them. */
   private static final long REANNOUNCE_INTERVAL = 200;
+  private final List<Thread> brokerReaders = new ArrayList<>();
 
   @Test
   public void shutdownWaitsForTheReplicaOfflineMsgToBeForwarded() throws Exception
@@ -253,6 +256,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       replicationServer =
           newReplicationServer(shutdownSync, "shutdownSyncDeliveryDb", 8226, replicationPort);
       broker = openReplicationSession(baseDN, LOCAL_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
+      startBrokerReader(broker);
       peer = FakePeerReplicationServer.connected(
           replicationPort, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID);
 
@@ -271,6 +275,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
 
       final long startTime = System.nanoTime();
       publisher.start();
+      peer.respondToStop();
       replicationServer.shutdown();
       final long elapsed = elapsedMillis(startTime);
 
@@ -337,6 +342,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
           "shutdownSyncPeerVersion" + peerVersion + "Db", PEER_VERSION_RS_ID + peerVersion,
           replicationPort);
       broker = openReplicationSession(baseDN, LOCAL_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
+      startBrokerReader(broker);
       peer = FakePeerReplicationServer.connected(
           replicationPort, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID, PEER_WINDOW, peerVersion);
 
@@ -486,6 +492,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       replicationServer =
           newReplicationServer(shutdownSync, "shutdownSyncHandshakeDb", 8234, replicationPort);
       broker = openReplicationSession(baseDN, LOCAL_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
+      startBrokerReader(broker);
       connectedPeer = FakePeerReplicationServer.connected(
           replicationPort, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID);
       final ReplicationServerDomain domain =
@@ -515,6 +522,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       final long startTime = System.nanoTime();
       shutdownSync.replicaOfflineMsgSent(baseDN, unreachableCSN);
 
+      connectedPeer.respondToStop();
       shutdown = newShutdownThread(replicationServer);
       shutdown.start();
       assertThat(shutdownIsWaiting.await(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS))
@@ -522,6 +530,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
 
       handshakingPeer.completeHandshake();
       final Future<ReplicaOfflineMsg> received = handshakingPeer.receive(ReplicaOfflineMsg.class);
+      handshakingPeer.respondToStop();
       waitForConnectedReplicationServer(domain, HANDSHAKING_RS_ID);
 
       final CSN offlineCSN = newOfflineCSN();
@@ -659,6 +668,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
           newReplicationServer(shutdownSync, "shutdownSyncBusySessionDb", 8238, replicationPort);
       broker =
           openReplicationSession(baseDN, LOCAL_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
+      startBrokerReader(broker);
 
       final ConnectedSessions connection =
           connectSessionPair(listen, getReplSessionSecurity(), SMALL_SOCKET_BUFFER_SIZE);
@@ -689,6 +699,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       final List<Integer> forwardedBeforeThePeerRead = new ArrayList<>(shutdownSync.forwardedBy());
 
       final Future<ReplicaOfflineMsg> received = peer.receive(ReplicaOfflineMsg.class);
+      peer.respondToStop();
       final ReplicaOfflineMsg forwarded = received.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
       final long elapsed = shutdown.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
 
@@ -775,6 +786,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
                 + "the wait asserted below cannot be told apart from a slow delivery")
             .isLessThan(DSRSShutdownSync.REPLICA_OFFLINE_GRACE_PERIOD / 2);
 
+        startBrokerReader(broker);
         replicationServer.shutdown();
         final long elapsed = elapsedMillis(startTime);
 
@@ -814,6 +826,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
           newReplicationServer(shutdownSync, "shutdownSyncEveryPeerDb", 8229, replicationPort);
       broker =
           openReplicationSession(baseDN, LOCAL_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
+      startBrokerReader(broker);
       peer = FakePeerReplicationServer.connected(
           replicationPort, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID, PEER_WINDOW);
       heldBackPeer = FakePeerReplicationServer.connected(
@@ -848,6 +861,8 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
 
       final long startTime = System.nanoTime();
       windowOpener.start();
+      peer.respondToStop();
+      heldBackPeer.respondToStop();
       replicationServer.shutdown();
       final long elapsed = elapsedMillis(startTime);
 
@@ -911,6 +926,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
           newReplicationServer(shutdownSync, "shutdownSyncDroppedMsgDb", 8230, replicationPort);
       broker =
           openReplicationSession(baseDN, LOCAL_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
+      startBrokerReader(broker);
       peer = FakePeerReplicationServer.connected(
           replicationPort, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID, HELD_BACK_PEER_WINDOW);
 
@@ -951,6 +967,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
               + "peer it was queued for");
 
       final long startTime = System.nanoTime();
+      peer.respondToStop();
       replicationServer.shutdown();
       final long elapsed = elapsedMillis(startTime);
 
@@ -988,6 +1005,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
           shutdownSync, "shutdownSyncLegacyProtocolDb", 8239, replicationPort);
       broker =
           openReplicationSession(baseDN, LOCAL_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
+      startBrokerReader(broker);
       peer = FakePeerReplicationServer.connected(replicationPort, LEGACY_RS_ID, baseDN, EMPTY_DN_GENID,
           PEER_WINDOW, ProtocolVersion.REPLICATION_PROTOCOL_V7);
 
@@ -1003,6 +1021,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
           "the writer let the shutdown wait for a peer whose protocol cannot carry the message");
 
       final long startTime = System.nanoTime();
+      peer.respondToStop();
       replicationServer.shutdown();
       final long elapsed = elapsedMillis(startTime);
 
@@ -1051,6 +1070,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
           shutdownSync, "shutdownSyncAbortedHandshakeDb", 8231, replicationPort);
       broker =
           openReplicationSession(baseDN, LOCAL_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
+      startBrokerReader(broker);
       peer = FakePeerReplicationServer.connected(
           replicationPort, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID);
 
@@ -1082,6 +1102,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
         shutdownSync.awaitDispatch();
 
         final long startTime = System.nanoTime();
+        peer.respondToStop();
         replicationServer.shutdown();
         final long elapsed = elapsedMillis(startTime);
 
@@ -1128,6 +1149,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
           shutdownSync, "shutdownSyncDisconnectedPeerDb", 8232, replicationPort);
       broker =
           openReplicationSession(baseDN, LOCAL_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
+      startBrokerReader(broker);
       peer = FakePeerReplicationServer.connected(
           replicationPort, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID, PEER_WINDOW);
       heldBackPeer = FakePeerReplicationServer.connected(
@@ -1157,6 +1179,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       heldBackPeer.close();
 
       final long startTime = System.nanoTime();
+      peer.respondToStop();
       replicationServer.shutdown();
       final long elapsed = elapsedMillis(startTime);
 
@@ -1202,6 +1225,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
           shutdownSync, "shutdownSyncOtherGenerationIdDb", 8233, replicationPort);
       broker =
           openReplicationSession(baseDN, LOCAL_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
+      startBrokerReader(broker);
       peer = FakePeerReplicationServer.connected(
           replicationPort, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID);
 
@@ -1216,6 +1240,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       shutdownSync.awaitDispatch();
 
       final long startTime = System.nanoTime();
+      peer.respondToStop();
       replicationServer.shutdown();
       final long elapsed = elapsedMillis(startTime);
 
@@ -1374,6 +1399,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       replicationServer =
           newReplicationServer(shutdownSync, "shutdownSyncDataServerDb", 8225, replicationPort);
       broker = openReplicationSession(baseDN, REMOTE_DS_ID, 100, replicationPort, 5000, EMPTY_DN_GENID);
+      startBrokerReader(broker);
       // the writer this test is about exists only once the handshake of the directory server is
       // over, and the shutdown below would otherwise be free to abort that handshake instead
       waitForConnectedDirectoryServer(replicationServer.getReplicationServerDomain(baseDN, true));
@@ -1480,6 +1506,41 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       joinQuietly(reAnnouncer);
       removeQuietly(replicationServer);
     }
+  }
+
+  /** A running DS keeps receiving so its broker can answer the RS StopMsg. */
+  private void startBrokerReader(final ReplicationBroker broker)
+  {
+    final Thread reader = new Thread(() -> {
+      while (true)
+      {
+        try
+        {
+          if (broker.receive() == null)
+          {
+            return;
+          }
+        }
+        catch (SocketTimeoutException e)
+        {
+          // A scenario may deliberately spend the offline grace period without any traffic.
+        }
+      }
+    }, "ReplicationServerShutdownSyncTest broker reader");
+    reader.setDaemon(true);
+    brokerReaders.add(reader);
+    reader.start();
+  }
+
+  @AfterMethod(alwaysRun = true)
+  public void joinBrokerReaders()
+  {
+    // Every scenario stops its broker in finally, releasing receive or reconnect above.
+    for (Thread reader : brokerReaders)
+    {
+      joinQuietly(reader);
+    }
+    brokerReaders.clear();
   }
 
   private ReplicationServer newReplicationServer(DSRSShutdownSync shutdownSync, String dbDirName,
@@ -2388,6 +2449,10 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
             while (true)
             {
               final ReplicationMsg msg = session.receive();
+              if (msg instanceof StopMsg)
+              {
+                session.close();
+              }
               if (msgClass.isInstance(msg))
               {
                 return msgClass.cast(msg);
@@ -2403,6 +2468,12 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
           }
         }
       });
+    }
+
+    /** Answer StopMsg after any marker receive already queued by the scenario has finished. */
+    void respondToStop()
+    {
+      receive(StopMsg.class);
     }
 
     /** Gives the replication server credit to publish again, as a peer which keeps up does. */

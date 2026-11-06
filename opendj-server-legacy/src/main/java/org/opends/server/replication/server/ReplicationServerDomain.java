@@ -1183,23 +1183,35 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     if (!sHandler.engageShutdown())
       // Only do this once (prevent other thread to enter here again)
     {
+      boolean interrupted = false;
       try
       {
         if (!shutdown)
         {
-          try
-          {
-            // Acquire lock on domain (see more details in comment of start()
-            // method of ServerHandler)
-            lock();
-          }
-          catch (InterruptedException ex)
-          {
-            // We can't deal with this here, so re-interrupt thread so that it is
-            // caught during subsequent IO.
-            Thread.currentThread().interrupt();
-            return;
-          }
+          // Registration precedes finalizeStart under this lock. Let that handshake install
+          // its threads and monitor before shutdown, then release the lock for the reader.
+          lock.lock();
+          release();
+        }
+        // The reader may need the domain lock for messages preceding the peer's StopMsg.
+        // Leave the stopping handler registered until it has finished reading, preventing
+        // a replacement connection from overtaking those in-flight changes.
+        try
+        {
+          sHandler.shutdown();
+        }
+        catch (Exception e)
+        {
+          logger.error(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
+        }
+        // Finish metadata cleanup without losing the interrupt preserved by close, even if
+        // an existing shutdown helper consumes it while joining its monitoring thread.
+        interrupted = Thread.interrupted();
+        if (!shutdown)
+        {
+          // Shutdown may preserve an interrupt. Cleanup owns a one-shot flag and must still
+          // remove this closed handler; an interruptible acquisition would leave it registered.
+          lock.lock();
         }
 
         try
@@ -1220,7 +1232,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           // can have the server id of a replication server (issue #1207)
           final boolean isDataServer = !sHandler.isReplicationServer();
           final Map<Integer, ? extends ServerHandler> connectedServers = isDataServer ? connectedDSs : connectedRSs;
-          if (connectedServers.containsKey(sHandler.getServerId()))
+          if (connectedServers.get(sHandler.getServerId()) == sHandler)
           {
             unregisterServerHandler(sHandler, shutdown, isDataServer);
           }
@@ -1240,8 +1252,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       finally
       {
         /*
-         * On every exit of this block, including the interrupted lock acquisition above and an
-         * unregistration which threw: the flag engageShutdown() has just set is one-shot, so no
+         * On every exit of this block, including an unregistration which threw: the flag
+         * engageShutdown() has just set is one-shot, so no
          * later stopServer() will run for this handler and nothing else would strike it off.
          * Every caller closed the session before getting here or is stopping the handler on
          * purpose, so this peer can no longer be told anything whatever this method managed to
@@ -1250,6 +1262,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         if (sHandler.isReplicationServer())
         {
           noLongerAwaitTheForwardOf(sHandler);
+        }
+        if (interrupted)
+        {
+          Thread.currentThread().interrupt();
         }
       }
     }
@@ -1270,7 +1286,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       boolean isDirectoryServer)
   {
     unregisterServerHandler(sHandler);
-    sHandler.shutdown();
 
     resetGenerationIdIfPossible();
     if (!shutdown)
@@ -1300,11 +1315,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     if (sHandler.isReplicationServer())
     {
-      connectedRSs.remove(sHandler.getServerId());
+      connectedRSs.remove(sHandler.getServerId(), sHandler);
     }
     else
     {
-      connectedDSs.remove(sHandler.getServerId());
+      connectedDSs.remove(sHandler.getServerId(), sHandler);
     }
   }
 
@@ -2262,6 +2277,12 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     try
     {
+      // A stopping handler stays registered while its reader completes the stop exchange.
+      // Its status is no longer meaningful, and it must receive no new status requests.
+      if (dsHandler.shuttingDown())
+      {
+        return false;
+      }
       ServerStatus newStatus = ServerStatus.INVALID_STATUS;
       ServerStatus oldStatus = dsHandler.getStatus();
       try
@@ -2270,8 +2291,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
       catch (IOException e)
       {
-        logger.error(ERR_EXCEPTION_CHANGING_STATUS_FROM_STATUS_ANALYZER,
-            baseDN, dsHandler.getServerId(), e.getMessage());
+        if (!dsHandler.shuttingDown())
+        {
+          logger.error(ERR_EXCEPTION_CHANGING_STATUS_FROM_STATUS_ANALYZER,
+              baseDN, dsHandler.getServerId(), e.getMessage());
+        }
       }
 
       if (newStatus == ServerStatus.INVALID_STATUS || newStatus == oldStatus)

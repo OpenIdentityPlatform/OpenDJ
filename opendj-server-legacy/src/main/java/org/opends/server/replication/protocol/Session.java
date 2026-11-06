@@ -28,8 +28,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -66,6 +69,21 @@ public final class Session extends DirectoryThread implements Closeable
    */
   private static final long DRAIN_BUDGET_MS = 5000;
 
+  /** Bounds the whole stop exchange, including a publisher blocked in a socket write. */
+  private static final long CLOSE_BUDGET_MS = 5000;
+  private static final ScheduledThreadPoolExecutor CLOSE_TIMER = newCloseTimer();
+
+  private static ScheduledThreadPoolExecutor newCloseTimer()
+  {
+    final ScheduledThreadPoolExecutor timer = new ScheduledThreadPoolExecutor(1, task -> {
+      final Thread thread = new DirectoryThread(task, "Replication session close watchdog");
+      thread.setDaemon(true);
+      return thread;
+    });
+    timer.setRemoveOnCancelPolicy(true);
+    return timer;
+  }
+
   private final Socket plainSocket;
   private final SSLSocket secureSocket;
   private final InputStream plainInput;
@@ -88,6 +106,11 @@ public final class Session extends DirectoryThread implements Closeable
   private final Object stateLock = new Object();
   private volatile boolean closeInitiated;
   private Throwable sessionError;
+
+  /** The established RS reader, and its receipt of StopMsg, guarded by stateLock. */
+  private Thread readerThread;
+  private boolean stopReceived;
+  private boolean closeFinished;
 
   /**
    * Publish guarded by publishLock: use a full lock here so that we can
@@ -191,6 +214,11 @@ public final class Session extends DirectoryThread implements Closeable
    * callback runs here once it is written. See {@link #sendWhatThePublisherLeftQueued()}. What the
    * close gives up on is not written, and the callbacks of those messages never run - see
    * {@link #publish(ReplicationMsg, Runnable)}.
+   * <p>
+   * An established RS with a registered reader leaves that reader consuming incoming changes
+   * until it receives the peer's StopMsg. The entire close then has a five-second deadline,
+   * including the publisher join and writes; expiry aborts the session. A failed session,
+   * a handshake with no reader, and a pre-V4 peer do not wait for this exchange.
    */
   @Override
   public void close()
@@ -209,14 +237,18 @@ public final class Session extends DirectoryThread implements Closeable
   {
     Throwable localSessionError;
     final boolean closing;
+    final boolean coordinatedClose;
 
     synchronized (stateLock)
     {
       closing = closeInitiated;
       localSessionError = sessionError;
       closeInitiated = true;
+      coordinatedClose = localSessionError == null
+          && protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4
+          && readerThread != null && readerThread.isAlive();
     }
-    if (abort)
+    if (abort || localSessionError != null)
     {
       StaticUtils.close(plainSocket, secureSocket);
     }
@@ -225,11 +257,55 @@ public final class Session extends DirectoryThread implements Closeable
       return;
     }
 
+    // A timeout checked only between messages cannot release a blocked join or socket write.
+    // The watchdog closes the sockets without acquiring the output lock, as abort() does.
+    final ScheduledFuture<?> watchdog = coordinatedClose
+        ? CLOSE_TIMER.schedule(this::closeAfterDeadline, CLOSE_BUDGET_MS, TimeUnit.MILLISECONDS) : null;
+    try
+    {
+      finishClose(coordinatedClose);
+    }
+    finally
+    {
+      synchronized (stateLock)
+      {
+        closeFinished = true;
+      }
+      if (watchdog != null)
+      {
+        watchdog.cancel(false);
+      }
+      StaticUtils.close(plainSocket, secureSocket);
+    }
+  }
+
+  private void closeAfterDeadline()
+  {
+    synchronized (stateLock)
+    {
+      if (closeFinished)
+      {
+        return;
+      }
+    }
+    // Report before releasing the owner, so completion of close includes its diagnostic.
+    logger.warn(LocalizableMessage.raw("The replication session %s stop exchange did not complete "
+        + "within %d ms; the sockets were closed as a failed session", getName(), CLOSE_BUDGET_MS));
+    // closeInitiated is already set: abort closes the sockets and returns without joining
+    // the publisher or acquiring publishLock on the timer thread.
+    abort(new SocketTimeoutException("The stop exchange did not complete within "
+        + CLOSE_BUDGET_MS + " ms"));
+  }
+
+  private void finishClose(final boolean coordinatedClose)
+  {
+    Throwable localSessionError;
     try {
       interrupt();
       join();
     }
     catch (InterruptedException e) {
+      setSessionError(e);
       Thread.currentThread().interrupt();
     }
 
@@ -283,7 +359,6 @@ public final class Session extends DirectoryThread implements Closeable
       {
         reportQueueNotSent(notSent, "the session had already failed: " + localSessionError);
       }
-      StaticUtils.close(plainSocket, secureSocket);
       return;
     }
 
@@ -295,9 +370,9 @@ public final class Session extends DirectoryThread implements Closeable
      * This thread is not the only one which can write the socket here - a ServerWriter or a
      * HeartbeatThread outlives this close. It is this thread, not run(), which takes the session
      * off the queueing branch of publish(), and it does so under publishLock and keeps the lock
-     * across the queue and the StopMsg: until then a publish() concurrent with the close takes
-     * the queueing branch, and from then on it takes the synchronous branch and waits for the
-     * lock. Either way nothing newer is written between two of the drained messages - see
+     * across the queue and the StopMsg. A publish concurrent with close either queued before
+     * close began or is refused, including one waiting for the synchronous output lock.
+     * Nothing newer is written between two of the drained messages or after StopMsg - see
      * sendWhatThePublisherLeftQueued() below.
      */
     publishLock.lock();
@@ -321,7 +396,9 @@ public final class Session extends DirectoryThread implements Closeable
       {
         try
         {
-          publish(new StopMsg());
+          // Ordinary publish calls refuse messages once close has begun. Only this owner
+          // writes the final frame, under the same lock as the queue it has just drained.
+          send(new StopMsg().getBytes(protocolVersion));
         }
         catch (final IOException ignored)
         {
@@ -334,7 +411,42 @@ public final class Session extends DirectoryThread implements Closeable
       publishLock.unlock();
     }
 
-    StaticUtils.close(plainSocket, secureSocket);
+    if (coordinatedClose)
+    {
+      synchronized (stateLock)
+      {
+        // A reader handling the peer's StopMsg closes from its own finally block. It must
+        // answer that stop and return, rather than wait for itself to read another message.
+        while (readerThread != Thread.currentThread() && !stopReceived && sessionError == null)
+        {
+          try
+          {
+            stateLock.wait();
+          }
+          catch (InterruptedException e)
+          {
+            setSessionError(e);
+            Thread.currentThread().interrupt();
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Registers the thread which processes incoming messages on an established RS session.
+   * Its normal receive loop consumes in-flight updates and the peer's StopMsg while another
+   * thread closes the session. Handshake sessions have no such reader and do not wait.
+   *
+   * @param reader the thread installed before the established session is exposed to shutdown
+   */
+  public void registerReader(Thread reader)
+  {
+    synchronized (stateLock)
+    {
+      readerThread = reader;
+    }
   }
 
   /**
@@ -392,15 +504,13 @@ public final class Session extends DirectoryThread implements Closeable
    * which is reading pays none of it; a peer which answers with a reset pays one failed write. It
    * is checked between messages, so a single write which blocks past the budget still runs to
    * completion - for a peer which has stopped reading, or which vanished without a reset, that is
-   * for as long as TCP keeps the connection alive: bounding it needs a non-blocking socket, which
-   * this session is not. The budget is per close, and a shutdown closes its sessions one after
+   * for as long as TCP keeps the connection alive unless the close watchdog aborts it.
+   * Established RS sessions have that watchdog; handshakes without a reader do not. The budget
+   * is per close, and a shutdown closes its sessions one after
    * another - ReplicationServerDomain.stopAllServers() stops each handler in turn on one thread -
    * so a domain with several peers which are alive and not reading pays it once per such peer.
-   * On the road which does not shut the whole server down the wait is paid under the lock of the
-   * replication domain - ReplicationServerDomain.stopServer() holds it across the handler
-   * shutdown which closes this session - where a handshake meanwhile waiting on that lock times
-   * out and the broker retries. What is given up on is reported rather than dropped in silence,
-   * that being the part of this which cost the most to diagnose.
+   * The domain lock is released during the exchange so the reader can process incoming control
+   * messages before StopMsg. What is given up on is reported rather than dropped in silence.
    */
   private void sendWhatThePublisherLeftQueued()
   {
@@ -622,9 +732,31 @@ public final class Session extends DirectoryThread implements Closeable
       }
       return false;
     }
-    send(buffer);
-    written(whenWritten);
-    return true;
+    publishLock.lock();
+    try
+    {
+      if (closeInitiated)
+      {
+        synchronized (stateLock)
+        {
+          // The reader can still give window credit or answer probes while it consumes
+          // in-flight updates. Refuse those replies without throwing out of its loop:
+          // it must keep reading through the peer's StopMsg, with no writes after ours.
+          if (!closeFinished && readerThread == Thread.currentThread())
+          {
+            return false;
+          }
+        }
+        throw new SocketException("The replication session is closing");
+      }
+      send(buffer);
+      written(whenWritten);
+      return true;
+    }
+    finally
+    {
+      publishLock.unlock();
+    }
   }
 
   /** Runs what was to run once a message is written; a callback which fails takes nothing down. */
@@ -772,7 +904,16 @@ public final class Session extends DirectoryThread implements Closeable
          * processing a message even a time consuming one.
          */
         lastReceiveTime = 0;
-        return ReplicationMsg.generateMsg(buffer, protocolVersion);
+        final ReplicationMsg msg = ReplicationMsg.generateMsg(buffer, protocolVersion);
+        if (msg instanceof StopMsg)
+        {
+          synchronized (stateLock)
+          {
+            stopReceived = true;
+            stateLock.notifyAll();
+          }
+        }
+        return msg;
       }
       catch (final OutOfMemoryError e)
       {
@@ -874,6 +1015,7 @@ public final class Session extends DirectoryThread implements Closeable
       {
         sessionError = e;
       }
+      stateLock.notifyAll();
     }
   }
 

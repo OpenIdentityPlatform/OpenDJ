@@ -61,6 +61,7 @@ public class ServerReader extends DirectoryThread
         + session.getReadableRemoteAddress());
     this.session = session;
     this.handler = handler;
+    session.registerReader(this);
   }
 
   /**

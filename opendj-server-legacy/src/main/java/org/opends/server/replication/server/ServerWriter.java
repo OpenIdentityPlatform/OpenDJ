@@ -156,9 +156,9 @@ public class ServerWriter extends DirectoryThread
        *
        * And a session closed on this side is the only one this writer meets a failing write on
        * while the session runs the publisher thread ServerHandler starts: publish() then queues, a
-       * write of that thread which fails never comes back here, and publish() writes the socket
-       * itself once a close has taken the session off the queueing branch. So what is reported
-       * below is a write on a session whose publisher thread is not running. Reported here, a peer
+       * write of that thread which fails never comes back here. Once close takes the session off
+       * the queueing branch, publish() refuses the writer with SocketException before writing,
+       * keeping StopMsg the final frame. The guard below excludes that refusal too. Reported here, a peer
        * leaving in order under load - a directory server stopped or moving to another replication
        * server, a replication server stopped - read as a badly disconnected one whenever this
        * writer had an update for it at that moment, and the end of the stream of a peer which went
