@@ -24,10 +24,11 @@ disturb() {
   local from served
   echo "    [$SECONDS s] killing $DISTURBED"
   # A killed DS leaves a broken DS connection (211). A combined server also breaks DS-to-RS
-  # (180) and RS-to-RS (181) connections and can recover a torn changelog record (284).
+  # (180) and RS-to-RS (181) connections and can recover a torn changelog record (284). Peers
+  # resolving it as an RS can log ERROR 51 while its container's name is unavailable.
   # Allow these only during the crash/recovery window; 66/108 and data/gap checks stay strict.
   case " $RS_NODES " in
-    *" $DISTURBED "*) window_open 180 181 211 284 ;;
+    *" $DISTURBED "*) window_open "dns:$DISTURBED" 180 181 211 284 ;;
     *) window_open 211 ;;
   esac
   from=$(date +%s)

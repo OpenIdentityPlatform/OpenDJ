@@ -19,7 +19,8 @@
 . "$HERE/rs-disturbance.sh"
 
 # An orderly stop ends connections with StopMsg. Unexpected disconnects and recovery of a
-# torn changelog record remain errors; only the existing handshake allowances apply.
+# torn changelog record remain errors. Docker can briefly stop resolving the container's name
+# between its exit and start even after an orderly stop; allow ERROR 51 only for that RS.
 disturb() {
-  down_and_up restart
+  down_and_up restart "dns:$DISTURBED"
 }

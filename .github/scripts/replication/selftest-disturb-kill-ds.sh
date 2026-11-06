@@ -32,7 +32,7 @@ for TOPOLOGY in rs534 combined; do
   if [ "$TOPOLOGY" = rs534 ]; then
     DS_NODES="d0 d1 d2 d3" RS_NODES="r0 r1" extras="211" target=d1
   else
-    DS_NODES="c0 c1 c2 c3" RS_NODES="$DS_NODES" extras="180 181 211 284" target=c1
+    DS_NODES="c0 c1 c2 c3" RS_NODES="$DS_NODES" extras="dns:c1 180 181 211 284" target=c1
   fi
   [ -f "$HERE/disturb-kill-ds.sh" ] || { echo "::error::kill-ds is not implemented"; exit 1; }
   . "$HERE/disturb-kill-ds.sh"

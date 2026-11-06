@@ -17,9 +17,9 @@
 
 # A self-test of the errors log check of the replication convergence run (#1208), with no
 # topology: which records replication_errors takes for errors and which ones a disturbance
-# window expects, the failed handshakes and the msgIDs it was opened with. A green row does not
-# show it - nothing a disturbance expects is logged outside its window there, and the base rows
-# have no window - so docker-convergence runs this first.
+# window expects: failed handshakes and the msgIDs or dns:<hostname> tokens it was opened with.
+# A green row does not show it - nothing a disturbance expects is logged outside its window
+# there, and the base rows have no window - so docker-convergence runs this first.
 # docker is a stub that reads a local errors log: mark_logs, window_open and window_close count
 # its lines, since_mark reads it, as they do in a container.
 #
@@ -73,10 +73,10 @@ WBADCORE181=${WBADCORE/msgID=1/msgID=181}
 KILL='[ dns:cv-r0 180 181 284'
 
 passed=0 failed=0
-# case <name> <errors> <expected> <record, [, [ <msgID>... or ]>...: the errors log holds two
-# errors before mark_logs, which are not the run's, then the records given; [ opens a window, with
-# the msgIDs that follow it, and ] closes it. The number of records replication_errors prints, and
-# of those it sends to logs/n0.expected
+# case <name> <errors> <expected> <record, [, [ <msgID>|dns:<hostname>... or ]>...: the errors log
+# holds two errors before mark_logs, which are not the run's, then the records given; [ opens a
+# window with the msgIDs or DNS tokens that follow it, and ] closes it. Count replication_errors
+# output records and those it sends to logs/n0.expected.
 case_() {
   local name=$1 want_errors=$2 want_expected=$3 record errors expected
   shift 3
@@ -135,14 +135,16 @@ case_ listed-id-not-sync-error   2 0 "$KILL" "$WBAD181" "$WBADCORE181" ']'
 case_ kill-window-then-another   1 2 "$KILL" "$E180" ']' "$N62" '[' "$E181" "$E145" ']'
 case_ another-then-kill-window   0 2 '[' ']' "$N62" "$KILL" "$E181" "$E145" ']'
 
-# DNS failures of only the killed RS are expected, and only in its own window.
+# DNS failures of only the named RS are expected, and only in its own window.
 # Removing the host, message, ID or window checks must expose a failure here.
 case_ killed-rs-dns              0 1 "$KILL" "$E51" ']'
 case_ dns-before-after-window    2 1 "$E51" "$KILL" "$E51" ']' "$E51"
 case_ dns-without-window         1 0 "$E51"
-case_ dns-graceful-restart       1 0 '[' "$E51" ']'
+case_ dns-window-without-token   1 0 '[' "$E51" ']'
 case_ dns-ds-crash               1 0 '[ 211' "$E51" ']'
-case_ dns-combined-crash         1 0 '[ 180 181 211 284' "$E51" ']'
+case_ dns-combined-without-token 1 0 '[ 180 181 211 284' "$E51" ']'
+case_ dns-combined-host          0 1 '[ dns:cv-c1 180 181 211 284' "${E51/cv-r0/cv-c1}" ']'
+case_ dns-restarted-rs           0 1 '[ dns:cv-r0' "$E51" ']'
 case_ dns-other-host             1 0 "$KILL" "${E51/cv-r0/cv-r1}" ']'
 case_ dns-host-prefix            1 0 "$KILL" "${E51/cv-r0/cv-r}" ']'
 case_ dns-host-suffix            1 0 "$KILL" "${E51/cv-r0/cv-r01}" ']'
@@ -158,11 +160,12 @@ case_ monitors-in-rs-kill        2 0 "$KILL" "$E66" "$E108" ']'
 # DS crash allowances do not leak into graceful restarts, later records, or RS-only kills.
 case_ ds-kill-disconnect         0 1 '[ 211' "$E211" ']'
 case_ ds-kill-without-rs         2 0 '[ 211' "$E180" "$E284" ']'
-case_ combined-kill              0 4 '[ 180 181 211 284' "$E180" "$E181" "$E211" "$E284" ']'
+case_ combined-kill              0 4 '[ dns:cv-c1 180 181 211 284' "$E180" "$E181" "$E211" "$E284" ']'
 case_ ds-disconnect-graceful     1 0 '[' "$E211" ']'
+case_ rs-restart-strict          6 0 '[ dns:cv-r0' "$E180" "$E181" "$E211" "$E284" "$E66" "$E108" ']'
 case_ ds-disconnect-rs-kill      1 0 "$KILL" "$E211" ']'
 case_ ds-disconnect-before-after 2 1 "$E211" '[ 211' "$E211" ']' "$E211"
-case_ monitors-in-combined-kill  2 0 '[ 180 181 211 284' "$E66" "$E108" ']'
+case_ monitors-in-combined-kill  2 0 '[ dns:cv-c1 180 181 211 284' "$E66" "$E108" ']'
 
 # A log that cannot be read stops window_open, which would otherwise open a window from its first
 # line. In the background: errexit is off in a subshell on the left of ||, and on in a job

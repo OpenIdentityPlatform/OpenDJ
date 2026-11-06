@@ -197,10 +197,10 @@ window_close() {
 # connection of the restarted one. A window opened with msgIDs expects the SYNC errors of those
 # msgIDs as well. A dns:<hostname> token expects only ERROR 51's exact resolution-failure
 # message for that hostname, not other DNS errors inside the window. This covers the stopped
-# RS container's name temporarily disappearing during kill-rs, without accepting DNS failures
-# during graceful restarts or for other hosts. The other allowances cover what one disturbance
-# leaves behind besides the handshakes, such as the
-# connections a killed replication server breaks (disturb-kill-rs.sh), which a window of
+# RS container's name temporarily disappearing during kill-rs, restart-rs or a combined
+# kill-ds. DS-only crashes and restart-ds pass no DNS token, and other hosts remain errors.
+# The other allowances cover what one disturbance leaves behind besides the handshakes, such
+# as the connections a killed replication server breaks (disturb-kill-rs.sh), which a window of
 # another one does not expect. Those go to logs/<node>.expected; outside a window, and anything
 # else inside one, they are errors. A window expects them on any server, not only on the
 # connections of the disturbed one: 178 and 179 name the servers by id alone, and a server has

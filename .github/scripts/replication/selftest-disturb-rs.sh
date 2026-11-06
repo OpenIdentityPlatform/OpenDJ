@@ -143,5 +143,5 @@ variant() (
 )
 
 # Separate processes keep sourced entry points and fixture overrides from leaking.
-variant restart-rs restart 35 ' docker restart -t 120 r0' ''
+variant restart-rs restart 35 ' docker restart -t 120 r0' ' dns:r0'
 variant kill-rs kill 45 ' docker kill r0 docker wait r0 docker start r0' ' dns:r0 180 181 284'
