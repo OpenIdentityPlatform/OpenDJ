@@ -29,7 +29,7 @@ rs_serves_since() { # <rs> <seconds>
   started_since $1 $2 && [ "$(rs_peers $1)" -eq $(($(echo $RS_NODES | wc -w) - 1)) ]
 }
 
-# <kill|restart> [<msgID>...]: open the expected-error window, recover the one RS, and retain
+# <kill|restart> [<msgID>|dns:<hostname>...]: open the expected-error window, recover the RS, and retain
 # its actual downtime. A kill needs docker wait before start; a graceful restart gets 120 s
 # to stop. The window includes 10 s after startup/peer connections for pending handshakes.
 # DS load balancing may move connections later or not at all, so it does not end the window.

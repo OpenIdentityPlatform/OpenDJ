@@ -63,13 +63,14 @@ E284="[t] category=SYNC severity=ERROR msgID=284 msg=Log file '/opt/opendj/data/
 E211='[t] category=SYNC severity=ERROR msgID=211 msg=The connection from this replication server RS(31531) to directory server DS(24329) at cv-d1:8989 for domain "dc=example,dc=com" has failed'
 E66='[t] category=SYNC severity=ERROR msgID=66 msg=monitor reply failed'
 E108='[t] category=SYNC severity=ERROR msgID=108 msg=monitor request failed'
+E51='[05/Nov/2026:19:18:17 +0000] category=SYNC severity=ERROR msgID=51 msg=The hostname cv-r0 could not be resolved as an IP address'
 E18='[t] category=SYNC severity=ERROR msgID=18 msg=an id that starts the first one a window lists'
 E80='[t] category=SYNC severity=ERROR msgID=80 msg=an id that ends the first one a window lists'
 E106KILL='[t] category=SYNC severity=ERROR msgID=106 msg=an id a window lists, 181, in the message'
 # records the check reads for their certificate alert, under an id a window lists
 WBAD181=${WBAD/msgID=119/msgID=181}
 WBADCORE181=${WBADCORE/msgID=1/msgID=181}
-KILL='[ 180 181 284'
+KILL='[ dns:cv-r0 180 181 284'
 
 passed=0 failed=0
 # case <name> <errors> <expected> <record, [, [ <msgID>... or ]>...: the errors log holds two
@@ -133,6 +134,26 @@ case_ another-in-a-kill-window   1 0 "$KILL" "$E106" ']'
 case_ listed-id-not-sync-error   2 0 "$KILL" "$WBAD181" "$WBADCORE181" ']'
 case_ kill-window-then-another   1 2 "$KILL" "$E180" ']' "$N62" '[' "$E181" "$E145" ']'
 case_ another-then-kill-window   0 2 '[' ']' "$N62" "$KILL" "$E181" "$E145" ']'
+
+# DNS failures of only the killed RS are expected, and only in its own window.
+# Removing the host, message, ID or window checks must expose a failure here.
+case_ killed-rs-dns              0 1 "$KILL" "$E51" ']'
+case_ dns-before-after-window    2 1 "$E51" "$KILL" "$E51" ']' "$E51"
+case_ dns-without-window         1 0 "$E51"
+case_ dns-graceful-restart       1 0 '[' "$E51" ']'
+case_ dns-ds-crash               1 0 '[ 211' "$E51" ']'
+case_ dns-combined-crash         1 0 '[ 180 181 211 284' "$E51" ']'
+case_ dns-other-host             1 0 "$KILL" "${E51/cv-r0/cv-r1}" ']'
+case_ dns-host-prefix            1 0 "$KILL" "${E51/cv-r0/cv-r}" ']'
+case_ dns-host-suffix            1 0 "$KILL" "${E51/cv-r0/cv-r01}" ']'
+case_ dns-other-id               1 0 "$KILL" "${E51/msgID=51/msgID=151}" ']'
+case_ dns-other-message          1 0 "$KILL" "${E51/msg=The hostname/msg=Unexpected hostname}" ']'
+case_ dns-message-suffix         1 0 "$KILL" "$E51 extra" ']'
+case_ dns-embedded-message       1 0 "$KILL" "${E51/msg=The hostname/msg=Unexpected DNS failure msg=The hostname}" ']'
+case_ dns-next-window            1 1 "$KILL" "$E51" ']' '[' "$E51" ']'
+case_ dns-window-hosts           2 2 "$KILL" "$E51" "${E51/cv-r0/cv-r1}" ']' \
+                                   '[ dns:cv-r1' "$E51" "${E51/cv-r0/cv-r1}" ']'
+case_ monitors-in-rs-kill        2 0 "$KILL" "$E66" "$E108" ']'
 
 # DS crash allowances do not leak into graceful restarts, later records, or RS-only kills.
 case_ ds-kill-disconnect         0 1 '[ 211' "$E211" ']'

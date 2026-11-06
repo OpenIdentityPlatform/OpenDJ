@@ -162,9 +162,10 @@ since_mark() { # <node>
 
 # A disturbance window over the errors log of every server (#1208): window_open before the
 # disturbance, with the msgIDs of the errors it expects besides the failed handshakes,
+# or dns:<hostname> for ERROR 51 naming exactly that temporarily unavailable host,
 # window_close once the disturbed server serves again, a line "<lines before> <lines after>
-# [<msgID>...]" in logs/<node>.windows
-window_open() { # [<msgID>...]
+# [<msgID>|dns:<hostname>...]" in logs/<node>.windows
+window_open() { # [<msgID>|dns:<hostname>...]
   local n lines
   for n in $ALL_NODES; do
     # an assignment, so that a log that cannot be read stops the run here as well
@@ -194,7 +195,11 @@ window_close() {
 # logged 311 with SocketTimeoutException when the restarted server logged 119 with "Remote host
 # terminated the handshake"; in run 40463887505 a replication server logged 145 on the
 # connection of the restarted one. A window opened with msgIDs expects the SYNC errors of those
-# msgIDs as well: what one disturbance leaves behind besides the handshakes, such as the
+# msgIDs as well. A dns:<hostname> token expects only ERROR 51's exact resolution-failure
+# message for that hostname, not other DNS errors inside the window. This covers the stopped
+# RS container's name temporarily disappearing during kill-rs, without accepting DNS failures
+# during graceful restarts or for other hosts. The other allowances cover what one disturbance
+# leaves behind besides the handshakes, such as the
 # connections a killed replication server breaks (disturb-kill-rs.sh), which a window of
 # another one does not expect. Those go to logs/<node>.expected; outside a window, and anything
 # else inside one, they are errors. A window expects them on any server, not only on the
@@ -225,8 +230,17 @@ replication_errors() { # <node>
         sub(/.*msgID=/, "", id)
         sub(/ $/, "", id)
       }
+      dns = ""
+      if (id == "51") {
+        message = substr($0, index($0, " msg=") + 5)
+        if (message ~ /^The hostname [^ ]+ could not be resolved as an IP address$/) {
+          split(message, parts, " ")
+          dns = " dns:" parts[3] " "
+        }
+      }
       for (i = 1; i <= n; i++)
-        if (line > from[i] + 0 && line <= to[i] + 0 && (handshake || index(ids[i], " " id " "))) {
+        if (line > from[i] + 0 && line <= to[i] + 0 \
+            && (handshake || index(ids[i], " " id " ") || (dns != "" && index(ids[i], dns)))) {
           print >expected
           next
         }

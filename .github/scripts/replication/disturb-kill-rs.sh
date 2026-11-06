@@ -19,8 +19,10 @@
 . "$HERE/rs-disturbance.sh"
 
 # A kill leaves DS disconnects (180), RS disconnects (181), and possibly recovery of an
-# incomplete changelog record (284). These SYNC errors are expected only inside its window;
-# monitor-send errors 66/108 and all other unexpected errors remain failures.
+# incomplete changelog record (284). The stopped container's name may also stop resolving
+# (51, observed in CI run 42046591833); expect that message only for this RS's exact hostname.
+# These SYNC errors are expected only inside its window; monitor-send errors 66/108 and all
+# other unexpected errors remain failures.
 disturb() {
-  down_and_up kill 180 181 284
+  down_and_up kill "dns:$DISTURBED" 180 181 284
 }
