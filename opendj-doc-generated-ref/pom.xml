@@ -415,6 +415,29 @@
             	</activation>
             <build><finalName>${project.groupId}.${project.artifactId}</finalName>
                 <plugins>
+                    <!-- These tests consume the Antora pages generated during package. -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>test-antora-page-titles</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <includes>
+                                        <include>**/AntoraPageTitlesIT.java</include>
+                                    </includes>
+                                    <failIfNoTests>true</failIfNoTests>
+                                    <systemPropertyVariables>
+                                        <docBuildDirectory>${project.build.directory}/asciidoc</docBuildDirectory>
+                                    </systemPropertyVariables>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
                     <plugin>
                         <groupId>org.openidentityplatform.opendj</groupId>
                         <artifactId>opendj-doc-maven-plugin</artifactId>

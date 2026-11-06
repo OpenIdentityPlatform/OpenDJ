@@ -14,8 +14,16 @@ information: "Portions copyright [year] [name of copyright owner]".
 Copyright 2026 3A Systems, LLC.
 ////
 
+:table-caption!:
+
+ifndef::env-site[]
 [#release-5-2-0]
+endif::[]
 == OpenDJ 5.2.0
+
+ifdef::env-site[]
+anchor:release-5-2-0[]
+endif::[]
 
 OpenDJ 5.2.0 was published on 21 October 2026. These notes describe that released version. Documentation built from a development branch can also describe changes intended for a later release; a `SNAPSHOT` build is not a published release.
 
