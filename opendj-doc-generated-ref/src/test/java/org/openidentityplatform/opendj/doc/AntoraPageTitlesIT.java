@@ -55,16 +55,21 @@ public class AntoraPageTitlesIT extends ForgeRockTestCase {
     @DataProvider
     public Object[][] pages() {
         return new Object[][] {
-            { "release-notes", "release-5.2.0", "OpenDJ 5.2.0", "release-5-2-0" },
+            { "release-notes", "release-5.2.0", "OpenDJ 5.2.0",
+              new String[] { "release-5-2-0", "_selected_changes", "_distributions" } },
             { "release-notes", "requirements-and-upgrade", "Requirements and Upgrade Considerations",
-              "release-requirements" },
-            { "getting-started", "overview", "Directory Concepts", "getting-started-overview" },
-            { "getting-started", "first-steps", "Your First Directory", "getting-started-first-directory" }
+              new String[] { "release-requirements", "_java_and_installation_environment", "_plan_an_upgrade",
+                             "_compatibility_checks", "_known_issues_and_help" } },
+            { "getting-started", "overview", "Directory Concepts", new String[] { "getting-started-overview" } },
+            { "getting-started", "first-steps", "Your First Directory",
+              new String[] { "getting-started-first-directory", "_prepare_the_environment",
+                             "_set_up_and_start_the_server", "_add_a_person", "_search_and_change_the_entry",
+                             "_restart_and_remove_the_sample_data", "_next_steps" } }
         };
     }
 
     @Test(dataProvider = "pages")
-    public void generatedPageHasDocumentTitle(String guide, String page, String title, String id) {
+    public void generatedPageHasDocumentTitle(String guide, String page, String title, String[] fragments) {
         final File input = new File(buildDirectory, "antora/modules/" + guide + "/pages/" + page + ".adoc");
         assertThat(input).isFile();
         // Antora extracts metadata from the header. A full parse can fall back to a section
@@ -73,11 +78,16 @@ public class AntoraPageTitlesIT extends ForgeRockTestCase {
                 Options.builder().safe(SafeMode.SAFE).attributes(Map.of("env-site", ""))
                         .parseHeaderOnly(true).build());
         assertThat(document.getDoctitle()).as("document title of %s", input).isEqualTo(title);
+        // Without a header, Asciidoctor can still return the title attribute, which Antora ignores.
+        assertThat(document.hasAttribute("title"))
+                .as("%s must have a document header rather than a :title: attribute", input).isFalse();
         final String html = asciidoctor.convertFile(input,
                 Options.builder().safe(SafeMode.SAFE).attributes(Map.of("env-site", ""))
                         .standalone(false).toFile(false).build());
-        assertThat(html).as("existing fragment in the rendered body of %s", input)
-                .contains("id=\"" + id + "\"");
+        for (final String fragment : fragments) {
+            assertThat(html).as("published fragment %s in the rendered body of %s", fragment, input)
+                    .contains("id=\"" + fragment + "\"");
+        }
     }
 
     @DataProvider

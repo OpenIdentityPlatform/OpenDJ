@@ -102,7 +102,10 @@ mvn compiler:testCompile surefire:test
 The `man-pages` profile also runs `AntoraPageTitlesIT` during `verify`, after
 Antora conversion. It parses the headers of the four Release Notes and Getting
 Started chapter pages and checks their expected document titles, then renders
-their bodies with Antora's `env-site` attribute to check existing fragment IDs.
+their bodies with Antora's `env-site` attribute to check all 16 published chapter
+and subsection fragment IDs. A `:title:` attribute must not substitute for a document
+header: Asciidoctor can return that attribute as the title even without a header,
+but Antora does not use it.
 A section heading alone must fail: Antora needs a document header
 to populate default xref labels, navigation labels and browser titles. The tests
 also parse both preprocessed books to preserve their chapter titles, IDs and levels
@@ -123,5 +126,9 @@ Do not put the level offset directly in the book sources.
 The chapter ID stays on the heading outside `env-site`. On the site, it is emitted
 as a separate inline anchor after the page title: Antora's default UI does not
 render the document ID as an HTML anchor. Keep both forms so incoming fragments
-work in HTML and the combined books retain their chapter IDs. The inline anchor
-must have its own paragraph so it does not replace the next section's automatic ID.
+work in HTML and the combined books retain their chapter IDs. Keep a blank line
+after the anchor's `endif::[]`: Asciidoctor does not end a paragraph at a section
+title, so a heading directly below the anchor joins its paragraph and disappears
+together with its fragment ID. Do not turn the anchor into a block anchor (`[[id]]`
+or `[#id]`) either: a block anchor attaches to the next block and replaces that
+section's automatic ID.
