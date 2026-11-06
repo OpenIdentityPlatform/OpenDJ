@@ -18,9 +18,10 @@
 # throughout this run. A separate kill-rs run exercises crash recovery on a fresh topology.
 . "$HERE/rs-disturbance.sh"
 
-# An orderly stop ends connections with StopMsg. Unexpected disconnects and recovery of a
-# torn changelog record remain errors. Docker can briefly stop resolving the container's name
-# between its exit and start even after an orderly stop; allow ERROR 51 only for that RS.
+# A graceful RS restart under load can still leave DS receive failures (180), as in run
+# 42190249091. Expect those only inside this restart window; RS disconnects (181) and torn
+# changelog recovery (284) remain errors. Docker can briefly stop resolving the container's
+# name between its exit and start even after an orderly stop; allow ERROR 51 only for that RS.
 disturb() {
-  down_and_up restart "dns:$DISTURBED"
+  down_and_up restart "dns:$DISTURBED" 180
 }

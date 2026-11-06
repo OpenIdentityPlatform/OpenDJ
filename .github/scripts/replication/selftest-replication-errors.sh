@@ -56,7 +56,7 @@ E45='[t] category=SYNC severity=ERROR msgID=45 msg=an id that ends like one a wi
 E106ID='[t] category=SYNC severity=ERROR msgID=106 msg=Replication server 32179 lost its connection'
 N62='[t] category=SYNC severity=NOTICE msgID=62 msg=Directory server DS(1) has connected'
 CORE178='[t] category=CORE severity=ERROR msgID=178 msg=not a replication error'
-# what a kill of a replication server leaves behind (disturb-kill-rs.sh), and ids like theirs
+# What an RS disturbance can leave behind, and ids like its allowances.
 E180='[t] category=SYNC severity=ERROR msgID=180 msg=Directory server DS(13411) encountered an error while receiving changes for domain "dc=example,dc=com" from replication server RS(23837) at cv-r0:8989. The connection will be closed, and this directory server will now try to connect to another replication server'
 E181='[t] category=SYNC severity=ERROR msgID=181 msg=The connection from this replication server RS(31531) to replication server RS(23837) at cv-r0:8989 for domain "dc=example,dc=com" has failed'
 E284="[t] category=SYNC severity=ERROR msgID=284 msg=Log file '/opt/opendj/data/changelogDb/2.dom/13411.server/head.log' was successfully recovered by removing a partially written record"
@@ -71,6 +71,14 @@ E106KILL='[t] category=SYNC severity=ERROR msgID=106 msg=an id a window lists, 1
 WBAD181=${WBAD/msgID=119/msgID=181}
 WBADCORE181=${WBADCORE/msgID=1/msgID=181}
 KILL='[ dns:cv-r0 180 181 284'
+# Read the restart allowances from its entry point so the filter cases also detect a missing
+# or widened production allowance. Only the Docker lifecycle is replaced here.
+RESTART=$(
+  RS_ONLY='cv-r0 cv-r1' RS_NODES='cv-r0 cv-r1'
+  . "$HERE/disturb-restart-rs.sh"
+  down_and_up() { shift; printf '[ %s' "$*"; }
+  disturb
+)
 
 passed=0 failed=0
 # case <name> <errors> <expected> <record, [, [ <msgID>|dns:<hostname>... or ]>...: the errors log
@@ -144,7 +152,7 @@ case_ dns-window-without-token   1 0 '[' "$E51" ']'
 case_ dns-ds-crash               1 0 '[ 211' "$E51" ']'
 case_ dns-combined-without-token 1 0 '[ 180 181 211 284' "$E51" ']'
 case_ dns-combined-host          0 1 '[ dns:cv-c1 180 181 211 284' "${E51/cv-r0/cv-c1}" ']'
-case_ dns-restarted-rs           0 1 '[ dns:cv-r0' "$E51" ']'
+case_ dns-restarted-rs           0 1 "$RESTART" "$E51" ']'
 case_ dns-other-host             1 0 "$KILL" "${E51/cv-r0/cv-r1}" ']'
 case_ dns-host-prefix            1 0 "$KILL" "${E51/cv-r0/cv-r}" ']'
 case_ dns-host-suffix            1 0 "$KILL" "${E51/cv-r0/cv-r01}" ']'
@@ -162,7 +170,10 @@ case_ ds-kill-disconnect         0 1 '[ 211' "$E211" ']'
 case_ ds-kill-without-rs         2 0 '[ 211' "$E180" "$E284" ']'
 case_ combined-kill              0 4 '[ dns:cv-c1 180 181 211 284' "$E180" "$E181" "$E211" "$E284" ']'
 case_ ds-disconnect-graceful     1 0 '[' "$E211" ']'
-case_ rs-restart-strict          6 0 '[ dns:cv-r0' "$E180" "$E181" "$E211" "$E284" "$E66" "$E108" ']'
+case_ 180-in-rs-restart          0 1 "$RESTART" "$E180" ']'
+case_ 180-before-after-restart   2 1 "$E180" "$RESTART" "$E180" ']' "$E180"
+case_ 180-in-ds-restart          1 0 '[' "$E180" ']'
+case_ rs-restart-strict          5 0 "$RESTART" "$E181" "$E211" "$E284" "$E66" "$E108" ']'
 case_ ds-disconnect-rs-kill      1 0 "$KILL" "$E211" ']'
 case_ ds-disconnect-before-after 2 1 "$E211" '[ 211' "$E211" ']' "$E211"
 case_ monitors-in-combined-kill  2 0 '[ dns:cv-c1 180 181 211 284' "$E66" "$E108" ']'
