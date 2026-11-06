@@ -62,12 +62,6 @@ Source: [OpenDJ wiki](https://github.com/OpenIdentityPlatform/OpenDJ/wiki), revi
 | Debug instance | how-to/debug-instance.adoc |
 | Jira integration | Existing link to Atlassian's instructions, retained in how-to/tasks.adoc |
 
-The staged wiki changes are provided in [`wiki-how-to-migration.patch`](wiki-how-to-migration.patch). Apply the patch to a checkout of the wiki only after the publication checks below pass.
+The wiki migration from [#1268](https://github.com/OpenIdentityPlatform/OpenDJ/pull/1268) was applied in [wiki commit `80e637c`](https://github.com/OpenIdentityPlatform/OpenDJ/wiki/_history/80e637cc8b073857e2c8be1d31e830c139edf6d4). The former tutorials now contain relocation notices, and the How To collection links to the maintained procedures.
 
-## Publication order
-
-1. Merge and deploy the OpenDJ documentation sources, then register the new navigation and PDF link in the site repository once the generated modules are available. Preview both changes together before publication.
-2. Verify all destinations above, the How-To menu, PDF download and search results on the published site.
-3. Replace the eight former tutorial bodies with short relocation notices, and the How To collection with a link directory. Keep their filenames so existing wiki URLs remain useful. Keep How To Guides as a link to the new guide.
-
-Prepare wiki notices locally, but do not publish them before their destinations exist. The wiki history retains the original text. Do not maintain or synchronize a second full copy of the articles.
+Keep the existing wiki filenames so incoming URLs remain useful. The wiki history retains the original text. Do not maintain or synchronize a second full copy of the articles.
