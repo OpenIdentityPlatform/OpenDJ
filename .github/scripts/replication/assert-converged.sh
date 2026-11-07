@@ -143,9 +143,15 @@ unindexed_searches() { # <node>
 # replication errors of their own while the servers come up one after the other, and only what
 # follows is the run's. A log that cannot be read fails the run: a cat that fails in a pipe
 # would count 0 lines and exit 0, and window_open would take that for a window from the first
-# line, while a redirect that fails ends sh with 2
+# line, while a redirect that fails ends sh with 2. A replacement RS retains its previous log
+# as a prefix on the host so that marks and windows cover both volumes.
 errors_lines() { # <node>
-  docker exec $1 sh -c 'wc -l </opt/opendj/data/logs/errors'
+  local current previous=0
+  current=$(docker exec "$1" sh -c 'wc -l </opt/opendj/data/logs/errors') || return 1
+  if [ -f "$OUT/logs/$1.previous" ]; then
+    previous=$(wc -l <"$OUT/logs/$1.previous") || return 1
+  fi
+  echo $((previous + current))
 }
 
 mark_logs() {
@@ -157,14 +163,20 @@ mark_logs() {
 }
 
 since_mark() { # <node>
-  docker exec $1 tail -n +$(($(cat "$OUT/logs/$1.mark") + 1)) /opt/opendj/data/logs/errors
+  local first=$(($(cat "$OUT/logs/$1.mark") + 1))
+  if [ -f "$OUT/logs/$1.previous" ]; then
+    { cat "$OUT/logs/$1.previous" || exit 1; docker exec "$1" tail -n +1 /opt/opendj/data/logs/errors; } | tail -n +"$first"
+  else
+    docker exec "$1" tail -n +"$first" /opt/opendj/data/logs/errors
+  fi
 }
 
 # A disturbance window over the errors log of every server (#1208): window_open before the
 # disturbance, with the msgIDs of the errors it expects besides the failed handshakes,
-# or dns:<hostname> for ERROR 51 naming exactly that temporarily unavailable host,
-# window_close once the disturbed server serves again, a line "<lines before> <lines after>
-# [<msgID>|dns:<hostname>...]" in logs/<node>.windows
+# dns:<hostname> for ERROR 51 naming exactly that temporarily unavailable host, or
+# cert:<DS>:<RS> for that DS's transient bad-certificate handshake with the rebuilt RS, or
+# cert-peer:<RS>:<DS IP> for the corresponding RS-side warning after the DS restarts.
+# window_close records "<lines before> <lines after> [<allowance>...]" in logs/<node>.windows.
 window_open() { # [<msgID>|dns:<hostname>...]
   local n lines
   for n in $ALL_NODES; do
@@ -198,8 +210,8 @@ window_close() {
 # msgIDs as well. A dns:<hostname> token expects only ERROR 51's exact resolution-failure
 # message for that hostname, not other DNS errors inside the window. This covers the stopped
 # RS container's name temporarily disappearing during kill-rs, restart-rs or a combined
-# kill-ds or restart-ds. DS-only crashes and restarts pass no DNS token, and other hosts remain
-# errors.
+# kill-ds or restart-ds. The certificate allowance is limited to the named DS and rebuilt RS;
+# its later forced connection to that RS must succeed. Other hosts and DS remain errors.
 # The other allowances cover what one disturbance leaves behind besides the handshakes, such
 # as the connections a killed replication server breaks (disturb-kill-rs.sh), which a window of
 # another one does not expect. Those go to logs/<node>.expected; outside a window, and anything
@@ -211,7 +223,7 @@ replication_errors() { # <node>
   local windows=
   [ ! -f "$OUT/logs/$1.windows" ] || windows=$(tr '\n' ';' <"$OUT/logs/$1.windows")
   since_mark $1 | awk -v first=$(($(cat "$OUT/logs/$1.mark") + 1)) -v windows="$windows" \
-                      -v expected="$OUT/logs/$1.expected" '
+                      -v expected="$OUT/logs/$1.expected" -v node="$1" '
     BEGIN {
       n = split(windows, w, ";")
       for (i = 1; i <= n; i++) {
@@ -239,12 +251,32 @@ replication_errors() { # <node>
           dns = " dns:" parts[3] " "
         }
       }
-      for (i = 1; i <= n; i++)
+      for (i = 1; i <= n; i++) {
+        cert = 0
+        if (/category=SYNC severity=WARNING msgID=119 / && /SSLHandshakeException/ && /bad_certificate/) {
+          count = split(ids[i], tokens, " ")
+          for (j = 1; j <= count; j++) {
+            if (split(tokens[j], part, ":") == 3 && part[1] == "cert" && part[2] == node \
+                && index($0, " connecting to replication server " part[3] ":8989 for domain ")) cert = 1
+          }
+        }
+        if (/category=SYNC severity=WARNING msgID=105 / && /The error was: (\(bad_certificate\) )?Received fatal alert: bad_certificate$/) {
+          count = split(ids[i], tokens, " ")
+          for (j = 1; j <= count; j++) {
+            if (split(tokens[j], part, ":") != 3 || part[1] != "cert-peer" || part[2] != node) continue
+            if (split($0, sides, " from ") != 2 || split(sides[2], ends, " to local address ") != 2) continue
+            if (split(ends[1], remote, ":") != 2 || remote[2] !~ /^[0-9]+$/) continue
+            suffix = "/" part[3]
+            if (length(remote[1]) >= length(suffix) \
+                && substr(remote[1], length(remote[1]) - length(suffix) + 1) == suffix) cert = 1
+          }
+        }
         if (line > from[i] + 0 && line <= to[i] + 0 \
-            && (handshake || index(ids[i], " " id " ") || (dns != "" && index(ids[i], dns)))) {
+            && (handshake || cert || index(ids[i], " " id " ") || (dns != "" && index(ids[i], dns)))) {
           print >expected
           next
         }
+      }
       print
     }'
 }
