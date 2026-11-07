@@ -93,7 +93,7 @@ Published: 2026-10-21 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 * ++[#++815++]++ Wait for the topology to settle before asserting RS side DS counts by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/822
 * ++[#++828++]++ Fix infinite loop picking the errors-encountered LDIF file name by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/839
 * ++[#++821++]++ Unregister the handler when a handshake aborts after registration by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/838
-* Fix CodeQL note-severity alerts: missing https://github.com/Override[@Override] annotations by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/837
+* Fix CodeQL note-severity alerts: missing @Override annotations by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/837
 * Fix CodeQL note-severity alerts: dead parameters of private methods by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/834
 * Fix CodeQL note-severity alerts: deprecated JDK calls and inefficient expressions by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/823
 * Fix CodeQL note-severity alerts: calls to the deprecated Entry compatibility methods by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/826
@@ -105,7 +105,7 @@ Published: 2026-10-21 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 * Fix CodeQL note-severity alerts: ignored error status of file and stream calls by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/814
 * Fix CodeQL note-severity alerts: uncaught NumberFormatException in the examples by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/831
 * ++[#++825++]++ Cap the batchRequest count per SOAP body and the request body size in the DSML gateway by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/835
-* Fix CodeQL note-severity alerts: stale https://github.com/param[@param] tags by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/842
+* Fix CodeQL note-severity alerts: stale @param tags by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/842
 * Fix CodeQL note-severity alerts: nested classes which never use the enclosing instance by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/846
 * Fix CodeQL note-severity alerts: Thread.run() calls and getters leaking internal state by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/847
 * ++[#++824++]++ Answer each batchRequest of a SOAP body with its own batchResponse by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/836
@@ -737,7 +737,7 @@ Published: 2024-10-17 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 * Docs in asciidoc & deploy antora docs after build by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/408
 * ++[#++402++]++ Change default SSL HandshakeTimeout -1 -++>++ 10s (see ++#++146) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/411
 * ++[#++401++]++ Change "Object class violation (65)" -++>++ "Naming violation (64)" LDAP result code for DIT Structure Rule violation by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/410
-* ++[#++394++]++ FIX dsconfig --help- by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/406
+* ++[#++394++]++ FIX dsconfig --help-<subcommand> by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/406
 * ++[#++400++]++ Reduce character escaping in example, add note by https://github.com/JesseCoretta[@JesseCoretta] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/413
 * Added missing documentation attachments by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/414
 * Generate man pages in the AsciiDoc format by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/418
@@ -1079,235 +1079,235 @@ Published: 2022-04-22 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 
 Published: 2021-06-21 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.11[Original release notes and downloads].
 
-8aac222...ab5cb61
+8aac222\...ab5cb61
 
 [#history-4-4-10]
 === OpenDJ 4.4.10
 
 Published: 2021-02-08 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.10[Original release notes and downloads].
 
-4bb00de00acc126edf569b058019636c3e9a2fe5...5918ac90920e140a5cdd693728c7a8ab1392e866
+4bb00de00acc126edf569b058019636c3e9a2fe5\...5918ac90920e140a5cdd693728c7a8ab1392e866
 
 [#history-4-4-9]
 === OpenDJ 4.4.9
 
 Published: 2020-12-30 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.9[Original release notes and downloads].
 
-70a23bc...9a7f513
+70a23bc\...9a7f513
 
 [#history-4-4-8]
 === OpenDJ 4.4.8
 
 Published: 2020-11-10 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.8[Original release notes and downloads].
 
-bd1ac34...70a23bc
+bd1ac34\...70a23bc
 
 [#history-4-4-7]
 === OpenDJ 4.4.7
 
 Published: 2020-09-09 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.7[Original release notes and downloads].
 
-8411956...bd1ac34
+8411956\...bd1ac34
 
 [#history-4-4-6]
 === OpenDJ 4.4.6
 
 Published: 2020-06-11 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.6[Original release notes and downloads].
 
-0916bac...8411956
+0916bac\...8411956
 
 [#history-4-4-5]
 === OpenDJ 4.4.5
 
 Published: 2020-03-10 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.5[Original release notes and downloads].
 
-00c8d42...0916bac
+00c8d42\...0916bac
 
 [#history-4-4-4]
 === OpenDJ 4.4.4
 
 Published: 2020-02-21 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.4[Original release notes and downloads].
 
-compare 93e2ea0...00c8d42
+compare 93e2ea0\...00c8d42
 
 [#history-4-4-3]
 === OpenDJ 4.4.3
 
 Published: 2019-07-29 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.3[Original release notes and downloads].
 
-compare: cb421e386051d5d7b9b9d4155f979f23a3bb70eb...93e2ea029d18a6ca81d837c43228f274d4f0ce61
+compare: cb421e386051d5d7b9b9d4155f979f23a3bb70eb\...93e2ea029d18a6ca81d837c43228f274d4f0ce61
 
 [#history-4-4-2]
 === OpenDJ 4.4.2
 
 Published: 2019-04-29 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.2[Original release notes and downloads].
 
-compare: fa7d144b1123d58bc24fa59ccb68acf7c37e00b7...cb421e386051d5d7b9b9d4155f979f23a3bb70eb
+compare: fa7d144b1123d58bc24fa59ccb68acf7c37e00b7\...cb421e386051d5d7b9b9d4155f979f23a3bb70eb
 
 [#history-4-4-1]
 === OpenDJ 4.4.1
 
 Published: 2019-03-10 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.1[Original release notes and downloads].
 
-compare: 9b5a2867776ba4c5e1d5ed871937557f0154ad30...fa7d144b1123d58bc24fa59ccb68acf7c37e00b7
+compare: 9b5a2867776ba4c5e1d5ed871937557f0154ad30\...fa7d144b1123d58bc24fa59ccb68acf7c37e00b7
 
 [#history-4-3-5]
 === OpenDJ 4.3.5
 
 Published: 2019-03-04 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.5[Original release notes and downloads].
 
-compare: 9a957ec6139ff3ab62490c4480b48e90322bd104...ef6330cd477fdf2ddd8a0a3a115226aeb7230cbd
+compare: 9a957ec6139ff3ab62490c4480b48e90322bd104\...ef6330cd477fdf2ddd8a0a3a115226aeb7230cbd
 
 [#history-4-3-4]
 === OpenDJ 4.3.4
 
 Published: 2019-02-17 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.4[Original release notes and downloads].
 
-compare: 81d03a4f69ddefa02d2fe9a87565b1d127753c14...9a957ec6139ff3ab62490c4480b48e90322bd104
+compare: 81d03a4f69ddefa02d2fe9a87565b1d127753c14\...9a957ec6139ff3ab62490c4480b48e90322bd104
 
 [#history-4-3-3]
 === OpenDJ 4.3.3
 
 Published: 2019-02-08 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.3[Original release notes and downloads].
 
-compare: 7c12598c79a20ad207906b8a988819267f5caa40...81d03a4f69ddefa02d2fe9a87565b1d127753c14
+compare: 7c12598c79a20ad207906b8a988819267f5caa40\...81d03a4f69ddefa02d2fe9a87565b1d127753c14
 
 [#history-4-3-2]
 === OpenDJ 4.3.2
 
 Published: 2019-01-29 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.2[Original release notes and downloads].
 
-compare: fb933c66527ddaafc0e78da9d454228af7b1d4dd...7c12598c79a20ad207906b8a988819267f5caa40
+compare: fb933c66527ddaafc0e78da9d454228af7b1d4dd\...7c12598c79a20ad207906b8a988819267f5caa40
 
 [#history-4-3-1]
 === OpenDJ 4.3.1
 
 Published: 2018-12-10 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.1[Original release notes and downloads].
 
-compare: 8899b0c955f5827cf1b83152cd40c44d9487c8a8...fb933c66527ddaafc0e78da9d454228af7b1d4dd
+compare: 8899b0c955f5827cf1b83152cd40c44d9487c8a8\...fb933c66527ddaafc0e78da9d454228af7b1d4dd
 
 [#history-4-2-5]
 === OpenDJ 4.2.5
 
 Published: 2018-10-26 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.5[Original release notes and downloads].
 
-compare: 1b0914bf8436f7d8a391b5a36078edd356cb4ace...63d3280b3ed35a3823f25669946ae7c5e63d5360
+compare: 1b0914bf8436f7d8a391b5a36078edd356cb4ace\...63d3280b3ed35a3823f25669946ae7c5e63d5360
 
 [#history-4-2-4]
 === OpenDJ 4.2.4
 
 Published: 2018-10-18 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.4[Original release notes and downloads].
 
-compare: d03807f7a4ff00e7cf5eae12324a1afdd410ce14...1b0914bf8436f7d8a391b5a36078edd356cb4ace
+compare: d03807f7a4ff00e7cf5eae12324a1afdd410ce14\...1b0914bf8436f7d8a391b5a36078edd356cb4ace
 
 [#history-4-2-3]
 === OpenDJ 4.2.3
 
 Published: 2018-10-17 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.3[Original release notes and downloads].
 
-compare: 363d6ebe9dd41402ee9290d8c226ab837076ecbc...d03807f7a4ff00e7cf5eae12324a1afdd410ce14
+compare: 363d6ebe9dd41402ee9290d8c226ab837076ecbc\...d03807f7a4ff00e7cf5eae12324a1afdd410ce14
 
 [#history-4-2-2]
 === OpenDJ 4.2.2
 
 Published: 2018-10-08 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.2[Original release notes and downloads].
 
-compare: 3aceb19e4cf775fce39af5e587b8f38238401c67...363d6ebe9dd41402ee9290d8c226ab837076ecbc
+compare: 3aceb19e4cf775fce39af5e587b8f38238401c67\...363d6ebe9dd41402ee9290d8c226ab837076ecbc
 
 [#history-4-2-1]
 === OpenDJ 4.2.1
 
 Published: 2018-10-05 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.1[Original release notes and downloads].
 
-compare: 680b98e3c04d49408caf052c5913586964ba73cd...3aceb19e4cf775fce39af5e587b8f38238401c67
+compare: 680b98e3c04d49408caf052c5913586964ba73cd\...3aceb19e4cf775fce39af5e587b8f38238401c67
 
 [#history-4-1-10]
 === OpenDJ 4.1.10
 
 Published: 2018-05-30 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.10[Original release notes and downloads].
 
-compare: fec67fa7927fa3d0f3e69ad389d7dd7134446230...ca621ffe4f925c4ed265ea3528121b4cf7b0e316
+compare: fec67fa7927fa3d0f3e69ad389d7dd7134446230\...ca621ffe4f925c4ed265ea3528121b4cf7b0e316
 
 [#history-4-1-9]
 === OpenDJ 4.1.9
 
 Published: 2018-05-25 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.9[Original release notes and downloads].
 
-compare: 54cbf76b695fa155a58f6d84fcd0c805d849d699...fec67fa7927fa3d0f3e69ad389d7dd7134446230
+compare: 54cbf76b695fa155a58f6d84fcd0c805d849d699\...fec67fa7927fa3d0f3e69ad389d7dd7134446230
 
 [#history-4-1-8]
 === OpenDJ 4.1.8
 
 Published: 2018-05-12 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.8[Original release notes and downloads].
 
-compare: ae0ceac5f6630792beb1f38513a0fabb6cc3d14d...54cbf76b695fa155a58f6d84fcd0c805d849d699
+compare: ae0ceac5f6630792beb1f38513a0fabb6cc3d14d\...54cbf76b695fa155a58f6d84fcd0c805d849d699
 
 [#history-4-1-7]
 === OpenDJ 4.1.7
 
 Published: 2018-05-01 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.7[Original release notes and downloads].
 
-compare: a1811887fba597e0e6fc977c0d38ab371a404d67...ae0ceac5f6630792beb1f38513a0fabb6cc3d14d
+compare: a1811887fba597e0e6fc977c0d38ab371a404d67\...ae0ceac5f6630792beb1f38513a0fabb6cc3d14d
 
 [#history-4-1-6]
 === OpenDJ 4.1.6
 
 Published: 2018-04-10 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.6[Original release notes and downloads].
 
-compare: 48b098f623e17371b951d5268d4e8c15a7fc486b...a1811887fba597e0e6fc977c0d38ab371a404d67
+compare: 48b098f623e17371b951d5268d4e8c15a7fc486b\...a1811887fba597e0e6fc977c0d38ab371a404d67
 
 [#history-4-1-5]
 === OpenDJ 4.1.5
 
 Published: 2018-03-06 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.5[Original release notes and downloads].
 
-compare: fd41fa682efe32c9722e39c55ffd691d79b2e9dd...48b098f623e17371b951d5268d4e8c15a7fc486b
+compare: fd41fa682efe32c9722e39c55ffd691d79b2e9dd\...48b098f623e17371b951d5268d4e8c15a7fc486b
 
 [#history-4-1-4]
 === OpenDJ 4.1.4
 
 Published: 2018-03-03 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.4[Original release notes and downloads].
 
-compare: a3dc05fa0852ddb2dc348a2dfb58ad480c32643d...fd41fa682efe32c9722e39c55ffd691d79b2e9dd
+compare: a3dc05fa0852ddb2dc348a2dfb58ad480c32643d\...fd41fa682efe32c9722e39c55ffd691d79b2e9dd
 
 [#history-4-1-3]
 === OpenDJ 4.1.3
 
 Published: 2018-02-28 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.3[Original release notes and downloads].
 
-compare: 5c3e59895964bf50a1592ad37d604a0ea0228b5b...a3dc05fa0852ddb2dc348a2dfb58ad480c32643d
+compare: 5c3e59895964bf50a1592ad37d604a0ea0228b5b\...a3dc05fa0852ddb2dc348a2dfb58ad480c32643d
 
 [#history-4-1-2]
 === OpenDJ 4.1.2
 
 Published: 2018-02-28 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.2[Original release notes and downloads].
 
-compare: 3768a8dfc51b092fdcaa74929293cfd49e766403...5c3e59895964bf50a1592ad37d604a0ea0228b5b
+compare: 3768a8dfc51b092fdcaa74929293cfd49e766403\...5c3e59895964bf50a1592ad37d604a0ea0228b5b
 
 [#history-4-1-1]
 === OpenDJ 4.1.1
 
 Published: 2018-02-23 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.1[Original release notes and downloads].
 
-compare: 69fa20bc7d1780076bbd6a8eefc5d457fd2c9d4e...3768a8dfc51b092fdcaa74929293cfd49e766403
+compare: 69fa20bc7d1780076bbd6a8eefc5d457fd2c9d4e\...3768a8dfc51b092fdcaa74929293cfd49e766403
 
 [#history-4-0-3]
 === OpenDJ 4.0.3
 
 Published: 2018-02-20 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.0.3[Original release notes and downloads].
 
-compare: 6c5dc296ca164f611ee1b9e6d859e98740cfd1e4...69fa20bc7d1780076bbd6a8eefc5d457fd2c9d4e
+compare: 6c5dc296ca164f611ee1b9e6d859e98740cfd1e4\...69fa20bc7d1780076bbd6a8eefc5d457fd2c9d4e
 
 [#history-4-0-2]
 === OpenDJ 4.0.2
 
 Published: 2018-02-16 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.0.2[Original release notes and downloads].
 
-compare: ae848be258db66917554b6f2c24d03d7e207980f...6c5dc296ca164f611ee1b9e6d859e98740cfd1e4
+compare: ae848be258db66917554b6f2c24d03d7e207980f\...6c5dc296ca164f611ee1b9e6d859e98740cfd1e4
 
 [#history-4-0-1]
 === OpenDJ 4.0.1
 
 Published: 2018-02-16 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.0.1[Original release notes and downloads].
 
-compare: b769b7ec8c3e7d7a6d89bb76b53db4735141781c...ae848be258db66917554b6f2c24d03d7e207980f
+compare: b769b7ec8c3e7d7a6d89bb76b53db4735141781c\...ae848be258db66917554b6f2c24d03d7e207980f

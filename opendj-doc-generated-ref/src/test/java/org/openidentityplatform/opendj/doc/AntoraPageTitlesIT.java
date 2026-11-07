@@ -57,6 +57,8 @@ public class AntoraPageTitlesIT extends ForgeRockTestCase {
         return new Object[][] {
             { "release-notes", "release-5.2.0", "OpenDJ 5.2.0",
               new String[] { "release-5-2-0", "_selected_changes", "_distributions" } },
+            { "release-notes", "release-history", "Release History",
+              new String[] { "release-history", "history-5-2-0" } },
             { "release-notes", "requirements-and-upgrade", "Requirements and Upgrade Considerations",
               new String[] { "release-requirements", "_java_and_installation_environment", "_plan_an_upgrade",
                              "_compatibility_checks", "_known_issues_and_help" } },
@@ -93,8 +95,9 @@ public class AntoraPageTitlesIT extends ForgeRockTestCase {
     @DataProvider
     public Object[][] books() {
         return new Object[][] {
-            { "release-notes", new String[] { "OpenDJ 5.2.0", "Requirements and Upgrade Considerations" },
-              new String[] { "release-5-2-0", "release-requirements" } },
+            { "release-notes",
+              new String[] { "OpenDJ 5.2.0", "Requirements and Upgrade Considerations", "Release History" },
+              new String[] { "release-5-2-0", "release-requirements", "release-history" } },
             { "getting-started", new String[] { "Directory Concepts", "Your First Directory" },
               new String[] { "getting-started-overview", "getting-started-first-directory" } }
         };
