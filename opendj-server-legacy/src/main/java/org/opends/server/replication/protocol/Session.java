@@ -110,6 +110,7 @@ public final class Session extends DirectoryThread implements Closeable
   /** The established RS reader, and its receipt of StopMsg, guarded by stateLock. */
   private Thread readerThread;
   private boolean stopReceived;
+  private boolean readerClosed;
   private boolean closeFinished;
 
   /**
@@ -219,6 +220,8 @@ public final class Session extends DirectoryThread implements Closeable
    * until it receives the peer's StopMsg. The entire close then has a five-second deadline,
    * including the publisher join and writes; expiry aborts the session. A failed session,
    * a handshake with no reader, and a pre-V4 peer do not wait for this exchange.
+   * The budget applies to each session: a sequential shutdown of N unresponsive peers
+   * may therefore spend N times five seconds completing their stop exchanges.
    */
   @Override
   public void close()
@@ -241,6 +244,13 @@ public final class Session extends DirectoryThread implements Closeable
 
     synchronized (stateLock)
     {
+      if (readerThread == Thread.currentThread())
+      {
+        // The registered reader closes on every exit, including a handler-processing failure.
+        // Nothing can receive the peer's StopMsg after it leaves.
+        readerClosed = true;
+        stateLock.notifyAll();
+      }
       closing = closeInitiated;
       localSessionError = sessionError;
       closeInitiated = true;
@@ -287,25 +297,43 @@ public final class Session extends DirectoryThread implements Closeable
       {
         return;
       }
+      // Select timeout against completion under the same lock. A timer already running when
+      // cancel(false) returns must not turn a completed exchange into a failed session.
+      logger.warn(LocalizableMessage.raw("The replication session %s stop exchange did not complete "
+          + "within %d ms; the sockets are being closed as a failed session", getName(), CLOSE_BUDGET_MS));
+      setSessionError(new SocketTimeoutException("The stop exchange did not complete within "
+          + CLOSE_BUDGET_MS + " ms"));
     }
-    // Report before releasing the owner, so completion of close includes its diagnostic.
-    logger.warn(LocalizableMessage.raw("The replication session %s stop exchange did not complete "
-        + "within %d ms; the sockets were closed as a failed session", getName(), CLOSE_BUDGET_MS));
     // closeInitiated is already set: abort closes the sockets and returns without joining
     // the publisher or acquiring publishLock on the timer thread.
-    abort(new SocketTimeoutException("The stop exchange did not complete within "
-        + CLOSE_BUDGET_MS + " ms"));
+    close(true);
   }
 
   private void finishClose(final boolean coordinatedClose)
   {
     Throwable localSessionError;
-    try {
-      interrupt();
-      join();
+    boolean interrupted = false;
+    interrupt();
+    // The publisher may have taken a message off the queue without acquiring the output lock
+    // yet. It must finish before the drain, even if this caller was interrupted. Socket writes
+    // are bounded by the watchdog. A publisher closing after its own failure must not join itself.
+    if (Thread.currentThread() != this)
+    {
+      while (true)
+      {
+        try
+        {
+          join();
+          break;
+        }
+        catch (InterruptedException e)
+        {
+          interrupted = true;
+        }
+      }
     }
-    catch (InterruptedException e) {
-      setSessionError(e);
+    if (interrupted)
+    {
       Thread.currentThread().interrupt();
     }
 
@@ -417,7 +445,7 @@ public final class Session extends DirectoryThread implements Closeable
       {
         // A reader handling the peer's StopMsg closes from its own finally block. It must
         // answer that stop and return, rather than wait for itself to read another message.
-        while (readerThread != Thread.currentThread() && !stopReceived && sessionError == null)
+        while (!readerClosed && !stopReceived && sessionError == null)
         {
           try
           {
@@ -691,12 +719,12 @@ public final class Session extends DirectoryThread implements Closeable
    *          The message to be sent.
    * @param whenWritten
    *          What to run once the message has been written, or null.
-   * @return whether the message was written or queued to be written; false when it was neither,
-   *         because it has no encoding for the protocol version of the peer or because the
-   *         session is being closed - the callback then never runs. A message queued after a
+   * @return whether the message was written or queued to be written; false when it has no encoding,
+   *         or is refused during close on the queueing path or by the registered reader.
+   *         The callback then never runs. A message queued after a
    *         close drained the queue is taken back, and counts as neither.
    * @throws IOException
-   *           If an IO error occurred.
+   *           If an IO error occurred, or a synchronous publication is attempted after close began.
    */
   public boolean publish(final ReplicationMsg msg, final Runnable whenWritten) throws IOException
   {

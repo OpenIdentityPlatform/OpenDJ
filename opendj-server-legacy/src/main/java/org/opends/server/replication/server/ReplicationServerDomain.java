@@ -1149,11 +1149,18 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public boolean isAlreadyConnectedToDS(DataServerHandler dsHandler)
   {
-    if (connectedDSs.containsKey(dsHandler.getServerId()))
+    final DataServerHandler existing = connectedDSs.get(dsHandler.getServerId());
+    if (existing != null)
     {
+      // Keep the registration reserved until teardown finishes, but an expected reconnect
+      // during that teardown is not evidence of two live servers sharing an id.
+      if (existing.shuttingDown())
+      {
+        return true;
+      }
       // looks like two connected LDAP servers have the same serverId
       logger.error(ERR_DUPLICATE_SERVER_ID, localReplicationServer.getMonitorInstanceName(),
-          connectedDSs.get(dsHandler.getServerId()), dsHandler, dsHandler.getServerId());
+          existing, dsHandler, dsHandler.getServerId());
       return true;
     }
     return false;
@@ -1758,11 +1765,23 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     for (ServerHandler targetHandler : servers)
     {
+      if (msg.getDestination() == RoutableMsg.ALL_SERVERS
+          && (targetHandler.shuttingDown() || targetHandler.session.closeInitiated()))
+      {
+        continue;
+      }
       try
       {
         targetHandler.send(msg);
       } catch (IOException ioe)
       {
+        // A stopping handler remains registered while its reader drains. It is no longer a
+        // broadcast destination, even if shutdown began after the routing snapshot was taken.
+        if (msg.getDestination() == RoutableMsg.ALL_SERVERS
+            && (targetHandler.shuttingDown() || targetHandler.session.closeInitiated()))
+        {
+          continue;
+        }
         /*
          * An error happened trying to send a routable message to its
          * destination server.
@@ -2134,6 +2153,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       // then forwards the reset message to the remote replication servers
       for (ServerHandler rsHandler : connectedRSs.values())
       {
+        if (rsHandler.shuttingDown() || rsHandler.session.closeInitiated())
+        {
+          continue;
+        }
         try
         {
           // After we'll have sent the message , the remote RS will adopt
@@ -2145,7 +2168,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           }
         } catch (IOException e)
         {
-          logger.error(ERR_EXCEPTION_FORWARDING_RESET_GEN_ID, baseDN, e.getMessage());
+          if (!rsHandler.shuttingDown() && !rsHandler.session.closeInitiated())
+          {
+            logger.error(ERR_EXCEPTION_FORWARDING_RESET_GEN_ID, baseDN, e.getMessage());
+          }
         }
       }
 
@@ -2153,13 +2179,20 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       // reference generation id
       for (DataServerHandler dsHandler : connectedDSs.values())
       {
+        if (dsHandler.shuttingDown() || dsHandler.session.closeInitiated())
+        {
+          continue;
+        }
         try
         {
           dsHandler.changeStatusForResetGenId(newGenId);
         } catch (IOException e)
         {
-          logger.error(ERR_EXCEPTION_CHANGING_STATUS_AFTER_RESET_GEN_ID, baseDN,
-              dsHandler.getServerId(), e.getMessage());
+          if (!dsHandler.shuttingDown() && !dsHandler.session.closeInitiated())
+          {
+            logger.error(ERR_EXCEPTION_CHANGING_STATUS_AFTER_RESET_GEN_ID, baseDN,
+                dsHandler.getServerId(), e.getMessage());
+          }
         }
       }
 

@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.opends.messages.ReplicationMessages.ERR_DS_BADLY_DISCONNECTED;
@@ -32,7 +34,9 @@ import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -44,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.TestCaseUtils;
@@ -51,11 +56,16 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
+import org.opends.server.replication.common.StatusMachineEvent;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.EntryMsg;
 import org.opends.server.replication.protocol.HeartbeatMsg;
+import org.opends.server.replication.protocol.ErrorMsg;
+import org.opends.server.replication.protocol.InitializeRequestMsg;
+import org.opends.server.replication.protocol.RoutableMsg;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
+import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.ResetGenerationIdMsg;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.StopMsg;
@@ -166,10 +176,10 @@ public class ServerSessionCloseTest extends ReplicationTestCase
     }
   }
 
-  @Test(timeOut = 30000)
-  public void aSilentPeerCannotHoldClosePastItsDeadline() throws Exception
+  @Test(dataProvider = "encryption", timeOut = 30000)
+  public void aSilentPeerCannotHoldClosePastItsDeadline(boolean encrypted) throws Exception
   {
-    try (Pair pair = new Pair(false))
+    try (Pair pair = new Pair(encrypted))
     {
       pair.startReader(update -> { });
       final List<String> logged = errorLogRecordsOf(() -> {
@@ -187,10 +197,10 @@ public class ServerSessionCloseTest extends ReplicationTestCase
     }
   }
 
-  @Test(timeOut = 30000)
-  public void theDeadlineAlsoEndsAPublisherBlockedBeforeStopMsg() throws Exception
+  @Test(dataProvider = "encryption", timeOut = 30000)
+  public void theDeadlineAlsoEndsAPublisherBlockedBeforeStopMsg(boolean encrypted) throws Exception
   {
-    try (Pair pair = new Pair(false))
+    try (Pair pair = new Pair(encrypted))
     {
       pair.startReader(update -> { });
       final CountDownLatch written = new CountDownLatch(1);
@@ -211,10 +221,10 @@ public class ServerSessionCloseTest extends ReplicationTestCase
     }
   }
 
-  @Test(timeOut = 30000)
-  public void theDeadlineAlsoEndsAWriterHoldingTheSynchronousOutputLock() throws Exception
+  @Test(dataProvider = "encryption", timeOut = 30000)
+  public void theDeadlineAlsoEndsAWriterHoldingTheSynchronousOutputLock(boolean encrypted) throws Exception
   {
-    try (Pair pair = new Pair(false))
+    try (Pair pair = new Pair(encrypted))
     {
       pair.startReader(update -> { });
       // A publisher interrupted outside close leaves later publishes on the synchronous path.
@@ -438,8 +448,7 @@ public class ServerSessionCloseTest extends ReplicationTestCase
         assertThat(System.nanoTime() < deadline).as("the RS did not receive its first update").isTrue();
         Thread.sleep(10);
       }
-      final DataServerHandler handler = domain.getConnectedDSs().get(9302);
-      assertThat(handler).isNotNull();
+      final DataServerHandler handler = registeredSpy(domain);
       stopping = executor.submit(() -> {
         owner.set(Thread.currentThread());
         domain.stopServer(handler, false);
@@ -458,6 +467,7 @@ public class ServerSessionCloseTest extends ReplicationTestCase
           status.setAccessible(true);
           status.set(handler, DEGRADED_STATUS);
           domain.checkDSDegradedStatus();
+          verify(handler, never()).changeStatus(any(StatusMachineEvent.class));
           assertThat(handler.getStatus()).isEqualTo(DEGRADED_STATUS);
         }
         finally
@@ -490,9 +500,16 @@ public class ServerSessionCloseTest extends ReplicationTestCase
     }
   }
 
-  @Test(timeOut = 30000)
-  public void anInterruptedShutdownStillUnregistersItsClosedHandler() throws Exception
+  @DataProvider(name = "interruptTiming")
+  public Object[][] interruptTiming()
   {
+    return new Object[][] { { false }, { true } };
+  }
+
+  @Test(dataProvider = "interruptTiming", timeOut = 30000)
+  public void anInterruptedShutdownStillUnregistersItsClosedHandler(boolean interruptBeforeJoin) throws Exception
+  {
+    final CountDownLatch releaseWriter = new CountDownLatch(1);
     ReplicationServer rs = null;
     ReplicationBroker broker = null;
     try
@@ -515,11 +532,43 @@ public class ServerSessionCloseTest extends ReplicationTestCase
       {
         domain.release();
       }
+      // Keep one join target alive so an interrupt before shutdown cannot disappear in a scheduling race.
+      final ServerWriter writer = new ServerWriter(original.session, original, domain, null) {
+        @Override
+        public void run()
+        {
+          try
+          {
+            releaseWriter.await();
+          }
+          catch (InterruptedException e)
+          {
+            Thread.currentThread().interrupt();
+          }
+        }
+      };
+      writer.setDaemon(true);
+      writer.start();
+      final Field writerField = ServerHandler.class.getDeclaredField("writer");
+      writerField.setAccessible(true);
+      writerField.set(handler, writer);
       doAnswer(invocation -> {
         // Fail the real transport so shutdown does not need a listener in this metadata test.
         original.session.abort(new IOException("the test ends the peer transport"));
+        original.shutdown();
+        if (interruptBeforeJoin)
+        {
+          Thread.currentThread().interrupt();
+        }
+        else
+        {
+          releaseWriter.countDown();
+        }
         invocation.callRealMethod();
-        Thread.currentThread().interrupt();
+        if (!interruptBeforeJoin)
+        {
+          Thread.currentThread().interrupt();
+        }
         return null;
       }).when(handler).shutdown();
       domain.stopServer(handler, false);
@@ -528,6 +577,7 @@ public class ServerSessionCloseTest extends ReplicationTestCase
     }
     finally
     {
+      releaseWriter.countDown();
       Thread.interrupted();
       stop(broker);
       remove(rs);
@@ -657,6 +707,389 @@ public class ServerSessionCloseTest extends ReplicationTestCase
     }
   }
 
+  @Test(dataProvider = "encryption", timeOut = 30000)
+  public void aReaderExitingDuringCloseReleasesTheWaitingCloser(boolean encrypted) throws Exception
+  {
+    try (Pair pair = new Pair(encrypted))
+    {
+      pair.startReader(update -> { throw new IOException("the test stops incoming processing"); });
+      final Future<?> close = pair.executor.submit(pair.server::close);
+      assertThat(pair.peer.receive()).isInstanceOf(StopMsg.class);
+      pair.peer.publish(change(new CSNGenerator(9302, 0)));
+      pair.awaitReader();
+      close.get(2000, TimeUnit.MILLISECONDS);
+    }
+  }
+
+  @Test(dataProvider = "encryption", timeOut = 30000)
+  public void anAlreadyInterruptedCloserStillSendsStopMsg(boolean encrypted) throws Exception
+  {
+    final CountDownLatch releasePublisher = new CountDownLatch(1);
+    try (Pair pair = new Pair(encrypted))
+    {
+      pair.startReader(update -> { });
+      final CountDownLatch inCallback = new CountDownLatch(1);
+      pair.server.publish(new HeartbeatMsg(), () -> {
+        inCallback.countDown();
+        // Hold the publisher at its last callback to model descheduling just before close joins it.
+        boolean released = false;
+        while (!released)
+        {
+          try
+          {
+            released = releasePublisher.await(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+          }
+          catch (InterruptedException ignored) { }
+        }
+      });
+      assertThat(pair.peer.receive()).isInstanceOf(HeartbeatMsg.class);
+      assertThat(inCallback.await(TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+      final Future<Boolean> close = pair.executor.submit(() -> {
+        Thread.currentThread().interrupt();
+        pair.server.close();
+        return Thread.currentThread().isInterrupted();
+      });
+      // Let the publisher finish before asking close to emit the final frame.
+      releasePublisher.countDown();
+      assertThat(pair.peer.receive()).isInstanceOf(StopMsg.class);
+      assertThat(close.get(2000, TimeUnit.MILLISECONDS)).as("close lost the pending interrupt").isTrue();
+      pair.server.join(2000);
+      pair.awaitReader();
+    }
+    finally
+    {
+      releasePublisher.countDown();
+    }
+  }
+
+
+  @Test(dataProvider = "encryption", timeOut = 30000)
+  public void anInterruptedCloserWaitsForAMessageAlreadyTakenByThePublisher(boolean encrypted) throws Exception
+  {
+    final CountDownLatch resumePublisher = new CountDownLatch(1);
+    try (Pair pair = new Pair(encrypted))
+    {
+      pair.startReader(update -> { });
+      final CountDownLatch beforeWrite = new CountDownLatch(1);
+      final ReentrantLock outputLock = new ReentrantLock() {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public void lock()
+        {
+          if (Thread.currentThread() == pair.server)
+          {
+            beforeWrite.countDown();
+            awaitUninterruptibly(resumePublisher);
+          }
+          super.lock();
+        }
+      };
+      final Field lock = Session.class.getDeclaredField("publishLock");
+      lock.setAccessible(true);
+      lock.set(pair.server, outputLock);
+      pair.server.publish(new HeartbeatMsg());
+      assertThat(beforeWrite.await(TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+      final Future<Boolean> close = pair.executor.submit(() -> {
+        Thread.currentThread().interrupt();
+        pair.server.close();
+        return Thread.currentThread().isInterrupted();
+      });
+      final Future<ReplicationMsg> received = pair.executor.submit(pair.peer::receive);
+      try
+      {
+        assertThatThrownBy(() -> received.get(200, TimeUnit.MILLISECONDS))
+            .as("close sent StopMsg before the publisher's already-dequeued message")
+            .isInstanceOf(TimeoutException.class);
+      }
+      finally
+      {
+        resumePublisher.countDown();
+      }
+      assertThat(received.get(2000, TimeUnit.MILLISECONDS)).isInstanceOf(HeartbeatMsg.class);
+      assertThat(pair.peer.receive()).isInstanceOf(StopMsg.class);
+      assertThat(close.get(2000, TimeUnit.MILLISECONDS)).as("close lost the pending interrupt").isTrue();
+      pair.awaitReader();
+    }
+    finally
+    {
+      resumePublisher.countDown();
+    }
+  }
+
+  private static void awaitUninterruptibly(CountDownLatch latch)
+  {
+    boolean interrupted = false;
+    try
+    {
+      while (true)
+      {
+        try
+        {
+          latch.await();
+          return;
+        }
+        catch (InterruptedException e)
+        {
+          interrupted = true;
+        }
+      }
+    }
+    finally
+    {
+      if (interrupted)
+      {
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
+
+  @DataProvider(name = "closingControlMessage")
+  public Object[][] closingControlMessage()
+  {
+    return new Object[][] { { "broadcast" }, { "reset-ds" }, { "reset-rs" } };
+  }
+
+  @Test(dataProvider = "closingControlMessage", timeOut = 30000)
+  @SuppressWarnings("unchecked")
+  public void aControlMessageToAClosingHandlerIsNotAnError(String message) throws Exception
+  {
+    withClosingHandler((domain, handler) -> {
+      final DataServerHandler sender = mock(DataServerHandler.class);
+      when(sender.isDataServer()).thenReturn(true);
+      final ReplicationServerHandler rs = mock(ReplicationServerHandler.class);
+      when(rs.getServerId()).thenReturn(9401);
+      final Field rsSession = ServerHandler.class.getDeclaredField("session");
+      rsSession.setAccessible(true);
+      rsSession.set(rs, handler.session);
+      doAnswer(invocation -> {
+        handler.session.publish((ReplicationMsg) invocation.getArguments()[0]);
+        return null;
+      }).when(rs).send(any(ReplicationMsg.class));
+      final Field peersField = ReplicationServerDomain.class.getDeclaredField("connectedRSs");
+      peersField.setAccessible(true);
+      final Map<Integer, ReplicationServerHandler> peers =
+          (Map<Integer, ReplicationServerHandler>) peersField.get(domain);
+      if (message.equals("reset-rs"))
+      {
+        peers.put(9401, rs);
+      }
+      try
+      {
+        final List<String> logged = errorLogRecordsOf(() -> {
+          if (message.equals("broadcast"))
+          {
+            domain.process(new InitializeRequestMsg(domain.getBaseDN(), 9400, RoutableMsg.ALL_SERVERS, 0), sender);
+          }
+          else
+          {
+            domain.resetGenerationId(sender, new ResetGenerationIdMsg(-1));
+          }
+          return null;
+        });
+        assertThat(logged).filteredOn(line -> line.contains("category=SYNC severity=ERROR")).isEmpty();
+        verify(sender, never()).send(any(ErrorMsg.class));
+        if (message.equals("broadcast"))
+        {
+          verify(handler, never()).send(any(InitializeRequestMsg.class));
+        }
+        else
+        {
+          verify(handler, never()).changeStatusForResetGenId(-1);
+          verify(rs, never()).send(any(ResetGenerationIdMsg.class));
+        }
+      }
+      finally
+      {
+        peers.remove(9401, rs);
+      }
+    });
+  }
+
+  @Test(timeOut = 30000)
+  public void aReconnectWaitingForAClosingHandlerIsNotADuplicateIdError() throws Exception
+  {
+    withClosingHandler((domain, handler) -> {
+      final DataServerHandler reconnecting = mock(DataServerHandler.class);
+      when(reconnecting.getServerId()).thenReturn(9302);
+      final List<String> logged = errorLogRecordsOf(() -> {
+        assertThat(domain.isAlreadyConnectedToDS(reconnecting)).isTrue();
+        assertThat(domain.getConnectedDSs().get(9302)).isSameAs(handler);
+        return null;
+      });
+      assertThat(logged).filteredOn(line -> line.contains("category=SYNC severity=ERROR")).isEmpty();
+    });
+  }
+
+  @Test(timeOut = 30000)
+  public void aStoppingHandlerCannotUnregisterItsReplacement() throws Exception
+  {
+    final AtomicReference<DataServerHandler> replacement = new AtomicReference<>();
+    final Map<Integer, DataServerHandler> afterClose = withClosingHandler((domain, handler) -> {
+      final DataServerHandler next = new DataServerHandler(handler.session, 100, handler.replicationServer, 100);
+      next.serverId = 9302;
+      next.setBaseDNAndDomain(domain.getBaseDN(), true);
+      replacement.set(next);
+      // The handshake normally reserves this id. Exercise identity-checked removal even if
+      // another registration path replaces the entry before the old teardown finishes.
+      domain.lock();
+      try
+      {
+        domain.register(next);
+      }
+      finally
+      {
+        domain.release();
+      }
+    });
+    assertThat(afterClose.get(9302)).isSameAs(replacement.get());
+  }
+
+  @DataProvider(name = "transportBacklog")
+  public Object[][] transportBacklog()
+  {
+    return new Object[][] {
+      { false, false, false }, { false, false, true },
+      { false, true, false }, { false, true, true },
+      { true, false, false }, { true, false, true },
+      { true, true, false }, { true, true, true }
+    };
+  }
+
+  @Test(dataProvider = "transportBacklog", timeOut = 30000)
+  public void stopMsgReachesThePeerDespiteUnreadData(boolean encrypted, boolean incoming, boolean outgoing)
+      throws Exception
+  {
+    final CountDownLatch readIncoming = new CountDownLatch(1);
+    try (Pair pair = new Pair(encrypted))
+    {
+      final CountDownLatch readerStarted = new CountDownLatch(1);
+      final ServerReader reader = new ServerReader(pair.server,
+          pair.handler(pair.server, update -> { }, new CountDownLatch(0))) {
+        @Override
+        public void run()
+        {
+          readerStarted.countDown();
+          try
+          {
+            readIncoming.await();
+          }
+          catch (InterruptedException e)
+          {
+            Thread.currentThread().interrupt();
+            return;
+          }
+          super.run();
+        }
+      };
+      reader.setDaemon(true);
+      pair.readers.add(reader);
+      reader.start();
+      assertThat(readerStarted.await(TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+      if (incoming)
+      {
+        pair.peer.publish(new EntryMsg(9302, 9301, new byte[8192], 1));
+        awaitIncomingBytes(pair.serverSocket);
+      }
+      if (outgoing)
+      {
+        pair.server.publish(new EntryMsg(9301, 9302, new byte[128 * 1024], 1));
+        awaitIncomingBytes(pair.peerSocket);
+      }
+      final Future<?> close = pair.executor.submit(pair.server::close);
+      if (outgoing)
+      {
+        assertThat(pair.peer.receive()).isInstanceOf(EntryMsg.class);
+      }
+      assertThat(pair.peer.receive()).isInstanceOf(StopMsg.class);
+      readIncoming.countDown();
+      pair.peer.close();
+      close.get(2000, TimeUnit.MILLISECONDS);
+      pair.awaitReader();
+    }
+    finally
+    {
+      readIncoming.countDown();
+    }
+  }
+
+  private static void awaitIncomingBytes(Socket socket) throws Exception
+  {
+    final long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(TIMEOUT_MS);
+    while (socket.getInputStream().available() == 0)
+    {
+      assertThat(System.nanoTime() < deadline).as("the outgoing write did not reach its peer").isTrue();
+      Thread.sleep(10);
+    }
+  }
+
+  private interface ClosingHandlerAction
+  {
+    void run(ReplicationServerDomain domain, DataServerHandler handler) throws Exception;
+  }
+
+  private static DataServerHandler registeredSpy(ReplicationServerDomain domain) throws Exception
+  {
+    final DataServerHandler original = domain.getConnectedDSs().get(9302);
+    assertThat(original).isNotNull();
+    final DataServerHandler handler = spy(original);
+    // Reader and writer were started against the original. A spy copies primitive lifecycle
+    // flags, so closing only the spy would leave the real writer active.
+    doAnswer(invocation -> {
+      original.shutdown();
+      invocation.callRealMethod();
+      return null;
+    }).when(handler).shutdown();
+    domain.lock();
+    try
+    {
+      domain.register(handler);
+    }
+    finally
+    {
+      domain.release();
+    }
+    return handler;
+  }
+
+  private Map<Integer, DataServerHandler> withClosingHandler(ClosingHandlerAction action) throws Exception
+  {
+    final ExecutorService executor = Executors.newSingleThreadExecutor();
+    ReplicationServer rs = null;
+    ReplicationBroker broker = null;
+    Future<?> stopping = null;
+    try
+    {
+      final int port = TestCaseUtils.findFreePort();
+      rs = new ReplicationServer(new ReplServerFakeConfiguration(
+          port, "gracefulStopControlDb", 0, 9301, 0, 100, new TreeSet<String>()));
+      broker = openReplicationSession(DN.valueOf(TEST_ROOT_DN_STRING), 9302, 100, port, 0, EMPTY_DN_GENID);
+      final Session peer = sessionOf(broker);
+      peer.setSoTimeout(TIMEOUT_MS);
+      final ReplicationServerDomain domain = rs.getReplicationServerDomain(DN.valueOf(TEST_ROOT_DN_STRING));
+      final DataServerHandler handler = registeredSpy(domain);
+      stopping = executor.submit(() -> domain.stopServer(handler, false));
+      while (!(peer.receive() instanceof StopMsg))
+      {
+        // Consume frames preceding the close.
+      }
+      action.run(domain, handler);
+      peer.close();
+      stopping.get(2000, TimeUnit.MILLISECONDS);
+      return new HashMap<>(domain.getConnectedDSs());
+    }
+    finally
+    {
+      stop(broker);
+      executor.shutdownNow();
+      if (stopping != null)
+      {
+        stopping.get(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      }
+      remove(rs);
+    }
+  }
+
   private static DeleteMsg change(CSNGenerator csns) throws Exception
   {
     return new DeleteMsg(DN.valueOf("uid=in-flight," + TEST_ROOT_DN_STRING), csns.newCSN(),
@@ -679,6 +1112,7 @@ public class ServerSessionCloseTest extends ReplicationTestCase
     private Session peer;
     private final List<ServerReader> readers = new CopyOnWriteArrayList<>();
     private Socket peerSocket;
+    private Socket serverSocket;
 
     private Pair(boolean encrypted) throws Exception
     {
@@ -690,7 +1124,7 @@ public class ServerSessionCloseTest extends ReplicationTestCase
       final ReplSessionSecurity security = getReplSessionSecurity();
       peerSocket = new Socket();
       peerSocket.setReceiveBufferSize(8192);
-      Socket serverSocket = null;
+      serverSocket = null;
       boolean connected = false;
       try (ServerSocket listen = TestCaseUtils.bindFreePort())
       {

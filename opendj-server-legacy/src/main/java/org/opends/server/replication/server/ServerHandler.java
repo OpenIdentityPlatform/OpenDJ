@@ -1000,6 +1000,7 @@ public abstract class ServerHandler extends MessageHandler
     } catch (InterruptedException e)
     {
       // don't try anymore to join and return.
+      Thread.currentThread().interrupt();
     }
     if (logger.isTraceEnabled())
     {
