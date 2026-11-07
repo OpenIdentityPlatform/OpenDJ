@@ -16,6 +16,14 @@ Copyright 2026 3A Systems, LLC.
 
 :table-caption!:
 
+// PDF fallback fonts have the heart glyph, but not its emoji presentation selector.
+ifdef::backend-pdf[]
+:release-heart: ❤
+endif::[]
+ifndef::backend-pdf[]
+:release-heart: ❤️
+endif::[]
+
 ifndef::env-site[]
 [#release-history]
 endif::[]
@@ -36,30 +44,30 @@ Published: 2026-10-21 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 
 ==== What's Changed
 
-* CVE-2026-102648 DSMLv2 gateway: incomplete internal-address check allows SSRF when anyURI dereferencing is enabled, thanks https://github.com/tonghuaroot[@tonghuaroot], https://github.com/maximthomas[@maximthomas] ❤️
-* GHSA-jr68-5c58-j463 DSMLv2 gateway changes XML data binding of other applications in the same JVM, thanks https://github.com/leanworld7-netizen[@leanworld7-netizen], https://github.com/maximthomas[@maximthomas] ❤️
-* GHSA-c5gp-3768-jc59 OAuth2 file token authorization lets an unauthenticated client select files outside the token directory, thanks https://github.com/manus-pi[@manus-pi], https://github.com/Kr1shna4garwal[@Kr1shna4garwal], https://github.com/maximthomas[@maximthomas] ❤️
-* GHSA-7778-jm7p-68g5 LDAP listener lets unauthenticated clients hold connections until the server stops accepting new ones, thanks https://github.com/Kr1shna4garwal[@Kr1shna4garwal], https://github.com/maximthomas[@maximthomas] ❤️
-* GHSA-6f6q-q9gw-4jr4 Sort and VLV controls let authenticated users learn password hashes and other attributes hidden by access control, thanks https://github.com/daveaitel-openai[@daveaitel-openai], https://github.com/maximthomas[@maximthomas] ❤️
-* ++[#++747++]++ fix flaky MS SQL MERGE upsert PRIMARY KEY violation with WITH (HOLDLOCK) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/750
-* ++[#++748++]++ stabilize flaky GrizzlyLDAPConnectionFactoryTestCase.testResourceManagement by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/749
-* ++[#++746++]++ remove stale opendj-server-legacy jar during upgrade by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/751
+* CVE-2026-102648 DSMLv2 gateway: incomplete internal-address check allows SSRF when anyURI dereferencing is enabled, thanks https://github.com/tonghuaroot[@tonghuaroot], https://github.com/maximthomas[@maximthomas] {release-heart}
+* GHSA-jr68-5c58-j463 DSMLv2 gateway changes XML data binding of other applications in the same JVM, thanks https://github.com/leanworld7-netizen[@leanworld7-netizen], https://github.com/maximthomas[@maximthomas] {release-heart}
+* GHSA-c5gp-3768-jc59 OAuth2 file token authorization lets an unauthenticated client select files outside the token directory, thanks https://github.com/manus-pi[@manus-pi], https://github.com/Kr1shna4garwal[@Kr1shna4garwal], https://github.com/maximthomas[@maximthomas] {release-heart}
+* GHSA-7778-jm7p-68g5 LDAP listener lets unauthenticated clients hold connections until the server stops accepting new ones, thanks https://github.com/Kr1shna4garwal[@Kr1shna4garwal], https://github.com/maximthomas[@maximthomas] {release-heart}
+* GHSA-6f6q-q9gw-4jr4 Sort and VLV controls let authenticated users learn password hashes and other attributes hidden by access control, thanks https://github.com/daveaitel-openai[@daveaitel-openai], https://github.com/maximthomas[@maximthomas] {release-heart}
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/747[#747]] fix flaky MS SQL MERGE upsert PRIMARY KEY violation with WITH (HOLDLOCK) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/750
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/748[#748]] stabilize flaky GrizzlyLDAPConnectionFactoryTestCase.testResourceManagement by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/749
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/746[#746]] remove stale opendj-server-legacy jar during upgrade by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/751
 * Bump ch.qos.logback to 1.5.38 by https://github.com/prthakre[@prthakre] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/752
 * Bump org.bouncycastle by https://github.com/prthakre[@prthakre] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/754
-* ++[#++755++]++ wait for the LDAP listener after in-process server (re)start by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/756
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/755[#755]] wait for the LDAP listener after in-process server (re)start by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/756
 * Fix java/insecure-randomness CodeQL alerts by using SecureRandom by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/758
 * Fix all cpp/ CodeQL code-scanning alerts in Windows build-tools by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/757
 * Fix java/implicit-cast-in-compound-assignment CodeQL alerts by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/759
 * Fix java/regex-injection CodeQL alert in TargAttrFilters by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/760
 * Fix remaining cpp/ CodeQL code-scanning alerts in Windows build-tools by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/762
-* ++[#++766++]++ Fix flaky GrizzlyLDAPListenerTestCase load-balancer tests by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/767
-* ++[#++770++]++ Fix flaky PostConnectedDisconnectTest by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/771
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/766[#766]] Fix flaky GrizzlyLDAPListenerTestCase load-balancer tests by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/767
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/770[#770]] Fix flaky PostConnectedDisconnectTest by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/771
 * Fix java/zipslip CodeQL alerts by validating archive entry paths by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/761
 * Fix java/local-temp-file-or-directory-information-disclosure CodeQL alerts by using NIO temp file APIs by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/763
 * Fix java/redos CodeQL alert in LDIFChangeRecordReader by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/764
 * Fix java/tainted-arithmetic CodeQL alerts by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/765
-* ++[#++768++]++ Fix winlauncher.exe stop reporting success without stopping the server by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/772
-* ++[#++769++]++ Report stop progress to the SCM and never leave the service STOP++_++PENDING by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/773
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/768[#768]] Fix winlauncher.exe stop reporting success without stopping the server by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/772
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/769[#769]] Report stop progress to the SCM and never leave the service STOP++_++PENDING by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/773
 * CVE-2026-54291 PostgreSQL JDBC Driver: Silent channel-binding authentication downgrade via unsupported certificate algorithms by link:https://github.com/dependabot[@dependabot&#91;bot&#93;] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/774
 * Fix java/maven/non-https-url CodeQL alert by dropping the unused Oracle HTTP repository by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/775
 * Fix java/comparison-with-wider-type CodeQL alert in SNMPMonitor.pow by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/777
@@ -79,44 +87,44 @@ Published: 2026-10-21 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 * Fix CodeQL warning-severity alerts: missed wakeups, resource leaks, escaping threads by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/790
 * Add explicit default clauses to switches flagged by java/missing-case-in-switch by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/791
 * Fix CodeQL warning-severity alerts: dead checks, boxed locals and three null dereferences by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/793
-* ++[#++792++]++ Fail fast when the replication server cannot bind its listen port by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/795
-* ++[#++794++]++ Wait for the listen port to be open before returning from connection handler start by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/796
-* ++[#++797++]++ Retry the deletion of the embedded server temporary directory on close() by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/798
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/792[#792]] Fail fast when the replication server cannot bind its listen port by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/795
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/794[#794]] Wait for the listen port to be open before returning from connection handler start by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/796
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/797[#797]] Retry the deletion of the embedded server temporary directory on close() by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/798
 * Fix CodeQL warning-severity alerts: process stream ownership and two leaks by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/799
-* ++[#++800++]++ Allocate the replication test listen ports per invocation by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/803
-* ++[#++801++]++ Drop the rerunFailingTestsCount setting that never applied to TestNG by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/804
-* ++[#++808++]++ fix MS SQL MERGE upsert conversion deadlock with WITH (HOLDLOCK, UPDLOCK) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/810
-* ++[#++807++]++ Do not drop persistent search notifications through search-phase dedup by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/812
-* ++[#++809++]++ Fix DSML gateway NPE on abandonRequest and on missing Content-Type by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/811
-* ++[#++802++]++ Fail fast when the replication server cannot read its changelog by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/805
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/800[#800]] Allocate the replication test listen ports per invocation by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/803
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/801[#801]] Drop the rerunFailingTestsCount setting that never applied to TestNG by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/804
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/808[#808]] fix MS SQL MERGE upsert conversion deadlock with WITH (HOLDLOCK, UPDLOCK) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/810
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/807[#807]] Do not drop persistent search notifications through search-phase dedup by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/812
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/809[#809]] Fix DSML gateway NPE on abandonRequest and on missing Content-Type by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/811
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/802[#802]] Fail fast when the replication server cannot read its changelog by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/805
 * Fix CodeQL note-severity alerts: array logging and uncaught NumberFormatException by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/817
-* ++[#++815++]++ Wait for the topology to settle before asserting RS side DS counts by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/822
-* ++[#++828++]++ Fix infinite loop picking the errors-encountered LDIF file name by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/839
-* ++[#++821++]++ Unregister the handler when a handshake aborts after registration by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/838
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/815[#815]] Wait for the topology to settle before asserting RS side DS counts by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/822
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/828[#828]] Fix infinite loop picking the errors-encountered LDIF file name by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/839
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/821[#821]] Unregister the handler when a handshake aborts after registration by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/838
 * Fix CodeQL note-severity alerts: missing @Override annotations by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/837
 * Fix CodeQL note-severity alerts: dead parameters of private methods by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/834
 * Fix CodeQL note-severity alerts: deprecated JDK calls and inefficient expressions by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/823
 * Fix CodeQL note-severity alerts: calls to the deprecated Entry compatibility methods by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/826
-* ++[#++816++]++ Unmap only the locked domainMap in FileChangelogDB.removeDomain() by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/827
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/816[#816]] Unmap only the locked domainMap in FileChangelogDB.removeDomain() by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/827
 * Fix CodeQL note-severity alerts: uncaught NumberFormatException in the tools, the GUI and SNMP by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/829
 * Remove the stale migration deprecations of ObjectClass and AttributeDescription by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/832
-* ++[#++819++]++ Release the log when a changelog DB constructor cannot read its limits by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/833
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/819[#819]] Release the log when a changelog DB constructor cannot read its limits by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/833
 * Fix CodeQL note-severity alerts: confusing overloads with subtype parameters by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/840
 * Fix CodeQL note-severity alerts: ignored error status of file and stream calls by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/814
 * Fix CodeQL note-severity alerts: uncaught NumberFormatException in the examples by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/831
-* ++[#++825++]++ Cap the batchRequest count per SOAP body and the request body size in the DSML gateway by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/835
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/825[#825]] Cap the batchRequest count per SOAP body and the request body size in the DSML gateway by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/835
 * Fix CodeQL note-severity alerts: stale @param tags by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/842
 * Fix CodeQL note-severity alerts: nested classes which never use the enclosing instance by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/846
 * Fix CodeQL note-severity alerts: Thread.run() calls and getters leaking internal state by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/847
-* ++[#++824++]++ Answer each batchRequest of a SOAP body with its own batchResponse by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/836
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/824[#824]] Answer each batchRequest of a SOAP body with its own batchResponse by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/836
 * Fix CodeQL note-severity alerts: shadowed locals, and the array cases of the debug formatter by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/848
 * Fix CodeQL note-severity alerts: confusable class and method names, and an unused verifier by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/849
 * Fix CodeQL note-severity alerts: the leftovers of the already-fixed rules by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/850
-* ++[#++813++]++ Refuse to create a replica DB once the changelog shutdown has started by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/820
-* ++[#++841++]++ Fix flaky InitOnLineTest: notify the requester when a remotely requested export cannot start by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/845
-* ++[#++818++]++ Drop the empty domain map a replica DB creation leaves behind when it bails out by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/830
-* ++[#++843++]++ Cap the number of operations accepted per batchRequest in the DSML gateway by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/844
-* ++[#++851++]++ Add upgrade task for RFC 5805 transaction extended operation handlers by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/852
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/813[#813]] Refuse to create a replica DB once the changelog shutdown has started by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/820
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/841[#841]] Fix flaky InitOnLineTest: notify the requester when a remotely requested export cannot start by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/845
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/818[#818]] Drop the empty domain map a replica DB creation leaves behind when it bails out by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/830
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/843[#843]] Cap the number of operations accepted per batchRequest in the DSML gateway by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/844
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/851[#851]] Add upgrade task for RFC 5805 transaction extended operation handlers by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/852
 * Disable duplicate JSON access logger in the default configuration by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/668
 * Generate entryUUID from a per-thread SecureRandom by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/683
 * Avoid global write lock on every delete in GroupManager by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/682
@@ -132,193 +140,193 @@ Published: 2026-10-21 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 * Remove per-attribute read lock from CompressedSchema decode path by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/670
 * CVE-2025-59250 false positive: bump mssql-jdbc to 13.4.0.jre11 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/856
 * Add Trivy vulnerability scanning for Docker images by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/854
-* ++[#++857++]++ Iterate a snapshot of the connection set in AuthenticatedUsers.doPostResponse(modify) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/858
-* ++[#++861++]++ Fail fast when the CI Test replication step hangs by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/862
-* ++[#++860++]++ Serve JDBC cursor repositioning from the fetched buffer and grow batches adaptively by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/863
-* ++[#++861++]++ Fail fast when a total update request gets no answer by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/864
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/857[#857]] Iterate a snapshot of the connection set in AuthenticatedUsers.doPostResponse(modify) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/858
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/861[#861]] Fail fast when the CI Test replication step hangs by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/862
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/860[#860]] Serve JDBC cursor repositioning from the fetched buffer and grow batches adaptively by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/863
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/861[#861]] Fail fast when a total update request gets no answer by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/864
 * Serve Cassandra cursor repositioning with CQL slice queries instead of a no-op iterator restart by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/865
-* ++[#++868++]++ Release the import/export context before notifying the initialize task by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/869
-* ++[#++870++]++ Stop replaying a rolled back read in the PersistIt backend by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/871
-* ++[#++885++]++ Ask the catalog for the table of a tree by name by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/886
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/868[#868]] Release the import/export context before notifying the initialize task by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/869
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/870[#870]] Stop replaying a rolled back read in the PersistIt backend by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/871
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/885[#885]] Ask the catalog for the table of a tree by name by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/886
 * Stamp JDBC backend tables with their tree name and refresh optimizer statistics after import by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/866
 * Seek the primary key in the SQL Server upsert and retry a transaction conflict by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/867
 * Report the OpenDJ container healthy only once its bootstrap has succeeded by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/898
 * Wait for the renamed entry before reading the naming conflict monitor by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/895
 * Let one package-info stand per package, and aggregate Javadoc before the merge by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/899
-* ++[#++872++]++ Bound the connect of the JDBC pool and report a connect it cannot make by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/876
-* ++[#++874++]++ Grant the offline tools a read-only JDBC transaction instead of refusing it by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/880
-* ++[#++879++]++ Skip the validation of a pooled JDBC connection returned a moment ago by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/883
-* ++[#++890++]++ Persist a compressed schema token before handing it out, and report the ones with no definition by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/894
-* ++[#++873++]++ Give each backend its own compressed schema trees by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/881
-* ++[#++905++]++ Warn when a replication handshake fails and document CA-signed certificates by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/906
-* ++[#++877++]++ Bound a statement of the JDBC backend by the class of the work it belongs to by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/882
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/872[#872]] Bound the connect of the JDBC pool and report a connect it cannot make by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/876
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/874[#874]] Grant the offline tools a read-only JDBC transaction instead of refusing it by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/880
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/879[#879]] Skip the validation of a pooled JDBC connection returned a moment ago by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/883
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/890[#890]] Persist a compressed schema token before handing it out, and report the ones with no definition by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/894
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/873[#873]] Give each backend its own compressed schema trees by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/881
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/905[#905]] Warn when a replication handshake fails and document CA-signed certificates by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/906
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/877[#877]] Bound a statement of the JDBC backend by the class of the work it belongs to by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/882
 * Modernize Debian and RPM packaging (systemd, dedicated user, CI tests) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/663
-* ++[#++878++]++ Bound the JDBC connection pool and expire its connections one by one by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/884
-* ++[#++897++]++ Skip a compressed schema definition stored under a key no encode hands out by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/920
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/878[#878]] Bound the JDBC connection pool and expire its connections one by one by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/884
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/897[#897]] Skip a compressed schema definition stored under a key no encode hands out by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/920
 * Modernize the Windows MSI: WiX v5, x64, upgrade from 5.1.x by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/701
-* ++[#++900++]++ Time the ReplicaOfflineMsg grace period per replica, and spend it where the message can still be forwarded by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/919
-* ++[#++889++]++ Keep a change the replay could not apply out of the ServerState by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/892
-* ++[#++910++]++ Test that a ModifyDN conflict is still solved while server-error-result-code is one of the conflict codes by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/938
-* ++[#++888++]++ Name the trees of a JDBC backend from a catalog in the database by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/893
-* ++[#++909++]++ Cover the change a stopped replay thread hands back to the replication server by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/941
-* ++[#++939++]++ Pin isServerFailure() directly, so the conflict result codes are guarded by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/960
-* ++[#++918++]++ Record a ReplicaOfflineMsg as sent only when it really was published by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/946
-* ++[#++921++]++ Bound the transaction replay of PDBStorage.write() by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/937
-* ++[#++907++]++ Change the base DNs of a pluggable backend outside the write the storage replays by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/914
-* ++[#++885++]++ Give a connection of the JDBC pool a read bound of its own, and take it off for a statement that carries none by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/934
-* ++[#++924++]++ Clear the disabled flag before a domain enables its session by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/971
-* ++[#++903++]++ Grant the first replay of a conflict, and bound the rest by its class by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/904
-* ++[#++917++]++ Wait for every peer replication server to forward the ReplicaOfflineMsg by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/947
-* ++[#++891++]++ Give the trees of an import connections of their own by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/940
-* ++[#++901++]++ Make the replay retry budget of a replication domain configurable by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/944
-* ++[#++908++]++ Wait for the changes being applied before a domain going down saves its ServerState by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/945
-* ++[#++916++]++ Keep an update that lands during a ServerState save out of the saved flag by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/948
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/900[#900]] Time the ReplicaOfflineMsg grace period per replica, and spend it where the message can still be forwarded by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/919
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/889[#889]] Keep a change the replay could not apply out of the ServerState by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/892
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/910[#910]] Test that a ModifyDN conflict is still solved while server-error-result-code is one of the conflict codes by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/938
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/888[#888]] Name the trees of a JDBC backend from a catalog in the database by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/893
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/909[#909]] Cover the change a stopped replay thread hands back to the replication server by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/941
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/939[#939]] Pin isServerFailure() directly, so the conflict result codes are guarded by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/960
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/918[#918]] Record a ReplicaOfflineMsg as sent only when it really was published by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/946
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/921[#921]] Bound the transaction replay of PDBStorage.write() by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/937
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/907[#907]] Change the base DNs of a pluggable backend outside the write the storage replays by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/914
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/885[#885]] Give a connection of the JDBC pool a read bound of its own, and take it off for a statement that carries none by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/934
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/924[#924]] Clear the disabled flag before a domain enables its session by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/971
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/903[#903]] Grant the first replay of a conflict, and bound the rest by its class by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/904
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/917[#917]] Wait for every peer replication server to forward the ReplicaOfflineMsg by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/947
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/891[#891]] Give the trees of an import connections of their own by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/940
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/901[#901]] Make the replay retry budget of a replication domain configurable by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/944
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/908[#908]] Wait for the changes being applied before a domain going down saves its ServerState by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/945
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/916[#916]] Keep an update that lands during a ServerState save out of the saved flag by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/948
 * Budget the Windows leg's runtime in wait-msi-artifact, not the queue it sits in by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/989
-* ++[#++955++]++ Answer a ModifyDN whose entry is gone before the new superior is looked up by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/965
-* ++[#++885++]++ Bound the wait of a JDBC DDL for a lock another session holds by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/936
-* ++[#++911++]++ Report the replication connections which used to be dropped in silence by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/935
-* ++[#++943++]++ Refuse a domain configuration before it is written, not after it is live by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/959
-* ++[#++966++]++ Tell the import and restore task listeners the task is over on every path by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/969
-* ++[#++951++]++ Keep the persisted position when a domain drops its in-memory ServerState by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/970
-* ++[#++967++]++ Keep the bookkeeping of a domain whose base entry is missing out of its configuration entry by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/972
-* ++[#++928++]++ Compare the permissive-modify DN with the entry DN the operation reports by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/973
-* ++[#++927++]++ Report a ds-sync-conflict marker AddMsg could not encode by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/975
-* ++[#++949++]++ Report a ReplicaOfflineMsg the broker refused as not sent by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/976
-* ++[#++922++]++ Give a change back when the replay which owns it is unwound by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/958
-* ++[#++963++]++ Read the changelog again for a following replica the domain is ahead of by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/964
-* ++[#++926++]++ Restart the session of a replication domain in one place, under the lock and the generation by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/974
-* ++[#++956++]++ Tell a failed entryUUID search apart from an entry which is not there by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/968
-* ++[#++952++]++ Keep a failed state write from killing the checkpointer and hanging the shutdown by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/977
-* ++[#++1031++]++ Keep the replication test's admin and replication ports out of the ephemeral range by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1033
-* ++[#++1046++]++ Read the latest release with the workflow token, and fail the step when it comes back empty by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1047
-* ++[#++913++]++ Declare the crypto manager's SSL properties as requiring a server restart by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/979
-* ++[#++950++]++ Announce a ReplicaOfflineMsg before it is published, not after it may have been forwarded by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/978
-* ++[#++953++]++ Refuse a server-error-result-code which does not report a failure by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/980
-* ++[#++912++]++ Provision the ads-truststore from an existing key store at setup time by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/984
-* ++[#++925++]++ Keep asking for a session restart until it has run by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/981
-* ++[#++983++]++ Interrupt the listen thread after the ReplicaOfflineMsgs are forwarded by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/987
-* ++[#++995++]++ Classify the failure of a task on the message that reports it by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/996
-* ++[#++942++]++ Warn once per interval that a change is being retried, not once per delivery by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/982
-* ++[#++986++]++ Give back the changes a replay thread the pool stopped had parked by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/988
-* ++[#++991++]++ Decide and report an index configuration change outside the write which is replayed by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/997
-* ++[#++993++]++ Register an entry container's configuration listeners only once it has opened by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/999
-* ++[#++1036++]++ Assert that a parked change is handed out, not which thread hands it out by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1037
-* ++[#++962++]++ Flag an admin action when a bounded storage write gives up on a configuration change by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/994
-* ++[#++990++]++ Drop what a previous index left behind instead of adopting it when an index is added by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/998
-* ++[#++885++]++ Bound the create of the tree catalog, and say when an engine has no bound to give by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1003
-* ++[#++961++]++ Walk every link of a failure where the verdict decides something by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1004
-* ++[#++963++]++ Dump the state of the replication servers when a test fails by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1015
-* ++[#++1012++]++ Pin the commit of the post-import statistics refresh, and say why it is there by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1016
-* ++[#++992++]++ Apply the confidentiality of a backend index to the running backend by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1000
-* ++[#++902++]++ Name the table to the index guard of the JDBC backend the way the database stores it by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1001
-* ++[#++896++]++ Pin the replay of RootContainer.open, and the give-back of an open which is not replayed by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1002
-* ++[#++933++]++ Read a catalog table another session created while this one was creating it by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1005
-* ++[#++932++]++ Hand the bounds of a catalog connect in, so its cases stop setting them for the whole jvm by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1006
-* ++[#++930++]++ Build the names a JDBC backend gives its own trees once, from the id it was created with by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1007
-* ++[#++931++]++ Bound and escape the values a clear's report reads out of the database by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1008
-* ++[#++1011++]++ Wait out the connection limit an account is given of its own by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1018
-* ++[#++1023++]++ Delete every objectClass value a modification asks for by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1024
-* ++[#++1025++]++ Stop a restore which cannot lock its backend instead of completing it by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1027
-* ++[#++1026++]++ Close the import config on every path an import task can end on by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1028
-* ++[#++1029++]++ Send a directory server only the updates it gives send-window credit for by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1034
-* ++[#++1040++]++ Leave the session to a total update when a configuration change asks for a restart by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1042
-* ++[#++1038++]++ Pin the session lock and generation of ++#++974, and the restart a configuration change does run by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1043
-* ++[#++1039++]++ Report a total update whose session stops before the DoneMsg as a failed import by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1044
-* ++[#++929++]++ Establish a catalog connection the way the pool establishes its own by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1009
-* ++[#++915++]++ Bound the wait of a write transaction for a row lock another session holds by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1010
-* ++[#++1014++]++ Report a ReplicaOfflineMsg as forwarded only to a peer which can decode it by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1019
-* ++[#++1021++]++ Reset the objectClass attribute of an entry when its object classes change by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1022
-* ++[#++1017++]++ Recognise a replication server by the address it names, not by the one its session came from by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1020
-* ++[#++1059++]++ Give no key up on import or rebuild under an index-entry-limit of 0 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1060
-* ++[#++1064++]++ Replay a JE transaction ended by a lock conflict instead of giving it up at once by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1065
-* ++[#++1067++]++ Ask the memory quota whether an explicit db-cache-size fits instead of taking it by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1070
-* ++[#++1071++]++ Wrap the sources of the large values PDBStorageTest writes, so that four copies of a 63 MB value are not live at once by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1072
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/955[#955]] Answer a ModifyDN whose entry is gone before the new superior is looked up by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/965
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/885[#885]] Bound the wait of a JDBC DDL for a lock another session holds by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/936
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/911[#911]] Report the replication connections which used to be dropped in silence by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/935
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/943[#943]] Refuse a domain configuration before it is written, not after it is live by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/959
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/966[#966]] Tell the import and restore task listeners the task is over on every path by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/969
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/951[#951]] Keep the persisted position when a domain drops its in-memory ServerState by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/970
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/967[#967]] Keep the bookkeeping of a domain whose base entry is missing out of its configuration entry by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/972
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/928[#928]] Compare the permissive-modify DN with the entry DN the operation reports by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/973
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/927[#927]] Report a ds-sync-conflict marker AddMsg could not encode by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/975
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/949[#949]] Report a ReplicaOfflineMsg the broker refused as not sent by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/976
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/922[#922]] Give a change back when the replay which owns it is unwound by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/958
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/963[#963]] Read the changelog again for a following replica the domain is ahead of by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/964
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/926[#926]] Restart the session of a replication domain in one place, under the lock and the generation by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/974
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/956[#956]] Tell a failed entryUUID search apart from an entry which is not there by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/968
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/952[#952]] Keep a failed state write from killing the checkpointer and hanging the shutdown by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/977
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1031[#1031]] Keep the replication test's admin and replication ports out of the ephemeral range by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1033
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1046[#1046]] Read the latest release with the workflow token, and fail the step when it comes back empty by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1047
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/913[#913]] Declare the crypto manager's SSL properties as requiring a server restart by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/979
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/950[#950]] Announce a ReplicaOfflineMsg before it is published, not after it may have been forwarded by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/978
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/953[#953]] Refuse a server-error-result-code which does not report a failure by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/980
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/912[#912]] Provision the ads-truststore from an existing key store at setup time by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/984
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/925[#925]] Keep asking for a session restart until it has run by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/981
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/983[#983]] Interrupt the listen thread after the ReplicaOfflineMsgs are forwarded by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/987
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/995[#995]] Classify the failure of a task on the message that reports it by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/996
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/942[#942]] Warn once per interval that a change is being retried, not once per delivery by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/982
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/986[#986]] Give back the changes a replay thread the pool stopped had parked by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/988
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/991[#991]] Decide and report an index configuration change outside the write which is replayed by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/997
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/993[#993]] Register an entry container's configuration listeners only once it has opened by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/999
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1036[#1036]] Assert that a parked change is handed out, not which thread hands it out by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1037
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/962[#962]] Flag an admin action when a bounded storage write gives up on a configuration change by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/994
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/990[#990]] Drop what a previous index left behind instead of adopting it when an index is added by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/998
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/885[#885]] Bound the create of the tree catalog, and say when an engine has no bound to give by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1003
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/961[#961]] Walk every link of a failure where the verdict decides something by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1004
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/963[#963]] Dump the state of the replication servers when a test fails by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1015
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1012[#1012]] Pin the commit of the post-import statistics refresh, and say why it is there by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1016
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/992[#992]] Apply the confidentiality of a backend index to the running backend by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1000
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/902[#902]] Name the table to the index guard of the JDBC backend the way the database stores it by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1001
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/896[#896]] Pin the replay of RootContainer.open, and the give-back of an open which is not replayed by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1002
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/933[#933]] Read a catalog table another session created while this one was creating it by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1005
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/932[#932]] Hand the bounds of a catalog connect in, so its cases stop setting them for the whole jvm by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1006
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/930[#930]] Build the names a JDBC backend gives its own trees once, from the id it was created with by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1007
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/931[#931]] Bound and escape the values a clear's report reads out of the database by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1008
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1011[#1011]] Wait out the connection limit an account is given of its own by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1018
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1023[#1023]] Delete every objectClass value a modification asks for by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1024
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1025[#1025]] Stop a restore which cannot lock its backend instead of completing it by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1027
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1026[#1026]] Close the import config on every path an import task can end on by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1028
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1029[#1029]] Send a directory server only the updates it gives send-window credit for by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1034
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1040[#1040]] Leave the session to a total update when a configuration change asks for a restart by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1042
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1038[#1038]] Pin the session lock and generation of link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/974[#974], and the restart a configuration change does run by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1043
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1039[#1039]] Report a total update whose session stops before the DoneMsg as a failed import by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1044
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/929[#929]] Establish a catalog connection the way the pool establishes its own by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1009
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/915[#915]] Bound the wait of a write transaction for a row lock another session holds by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1010
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1014[#1014]] Report a ReplicaOfflineMsg as forwarded only to a peer which can decode it by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1019
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1021[#1021]] Reset the objectClass attribute of an entry when its object classes change by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1022
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1017[#1017]] Recognise a replication server by the address it names, not by the one its session came from by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1020
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1059[#1059]] Give no key up on import or rebuild under an index-entry-limit of 0 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1060
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1064[#1064]] Replay a JE transaction ended by a lock conflict instead of giving it up at once by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1065
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1067[#1067]] Ask the memory quota whether an explicit db-cache-size fits instead of taking it by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1070
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1071[#1071]] Wrap the sources of the large values PDBStorageTest writes, so that four copies of a 63 MB value are not live at once by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1072
 * Add dependabot config and pin GitHub Actions to a commit SHA by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1073
-* ++[#++1030++]++ Keep the setup log out of the way of start-ds, and say when it is gone by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1032
-* ++[#++1041++]++ Claim the import context for the length of a session restart, and refuse the total update which lands across it by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1045
-* ++[#++1048++]++ Hold the session restart a released change asks for while a total update runs by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1049
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1030[#1030]] Keep the setup log out of the way of start-ds, and say when it is gone by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1032
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1041[#1041]] Claim the import context for the length of a session restart, and refuse the total update which lands across it by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1045
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1048[#1048]] Hold the session restart a released change asks for while a total update runs by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1049
 * Bump the github-actions group with 9 updates by link:https://github.com/dependabot[@dependabot&#91;bot&#93;] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1083
 * Send what a replication session's publisher left queued when it is closed by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1035
-* ++[#++1051++]++ Replicate a change made under the Relax Rules control like any other by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1053
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1051[#1051]] Replicate a change made under the Relax Rules control like any other by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1053
 * Keep PKCS5S2 usable on a FIPS-restricted JCE, and name the key wrapping property when the runtime has no RSA-OAEP by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1058
-* ++[#++1061++]++ Ask for the session restart under an owner as well, and leave it to the state checkpointer by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1062
-* ++[#++1076++]++ Walk every link of a connect failure where the verdict decides the retry by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1077
-* ++[#++1078++]++ Stop the MakeLDIF generator when a template import ends before its reader by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1082
-* ++[#++1063++]++ Give back what the open reserved rather than what the configuration says by then, and ask for a restart when the cache size changes by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1066
-* ++[#++1050++]++ Document the replication repair control, and test that a repaired modify stays on its replica by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1052
-* ++[#++1055++]++ Report a ReplicaOfflineMsg forwarded once it is written to the peer, not once it is queued by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1057
-* ++[#++1088++]++ Let the Docker image start under an arbitrary uid in group 0 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1091
-* ++[#++1068++]++ Apply what a running backend takes of a configuration change, and ask for a restart for what it does not by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1069
-* ++[#++1084++]++ Keep the root password out of the log and off the command line when a Docker container joins replication by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1094
-* ++[#++1096++]++ Copy a value into Persistit once rather than twice, and write the large values of PDBStorageTest through a small buffer pool by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1097
-* ++[#++1080++]++ Give back the send-window permit of an update the writer drops, and count only what it sends by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1106
-* ++[#++1085++]++ Stop the server cleanly on SIGTERM in a container that bootstrapped its instance by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1098
-* ++[#++1093++]++ Hand the root password to the Docker bootstrap tools in a file by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1099
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1061[#1061]] Ask for the session restart under an owner as well, and leave it to the state checkpointer by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1062
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1076[#1076]] Walk every link of a connect failure where the verdict decides the retry by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1077
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1078[#1078]] Stop the MakeLDIF generator when a template import ends before its reader by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1082
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1063[#1063]] Give back what the open reserved rather than what the configuration says by then, and ask for a restart when the cache size changes by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1066
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1050[#1050]] Document the replication repair control, and test that a repaired modify stays on its replica by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1052
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1055[#1055]] Report a ReplicaOfflineMsg forwarded once it is written to the peer, not once it is queued by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1057
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1088[#1088]] Let the Docker image start under an arbitrary uid in group 0 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1091
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1068[#1068]] Apply what a running backend takes of a configuration change, and ask for a restart for what it does not by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1069
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1084[#1084]] Keep the root password out of the log and off the command line when a Docker container joins replication by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1094
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1096[#1096]] Copy a value into Persistit once rather than twice, and write the large values of PDBStorageTest through a small buffer pool by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1097
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1080[#1080]] Give back the send-window permit of an update the writer drops, and count only what it sends by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1106
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1085[#1085]] Stop the server cleanly on SIGTERM in a container that bootstrapped its instance by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1098
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1093[#1093]] Hand the root password to the Docker bootstrap tools in a file by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1099
 * Refresh the Windows launchers only when their code changes, not their toolchain stamp by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1103
-* ++[#++1081++]++ Wrap with a 2048-bit key in the key wrapping check, and report a provider refusing with an Error by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1104
-* ++[#++1075++]++ Test the JDBC guards against a neighbouring MySQL database and Oracle schema by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1108
-* ++[#++1074++]++ Keep what says the connection is gone through the redaction of a connect failure by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1107
-* ++[#++1095++]++ Load a file based key store or trust store again when the file changes by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1101
-* ++[#++1092++]++ Probe the Docker container's health without binding as the root user by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1102
-* ++[#++1109++]++ Keep a connection handler listening when a change to it is rejected by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1110
-* ++[#++1111++]++ Refuse an HTTPS configuration without a key the handler can present, and leave a running HTTP handler as it is when one is applied by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1114
-* ++[#++1087++]++ Copy the secret volume on every start of the Docker image by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1100
-* ++[#++1112++]++ Listen on the configured listen-address in the HTTP connection handler and the JMX RMI connector by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1113
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1081[#1081]] Wrap with a 2048-bit key in the key wrapping check, and report a provider refusing with an Error by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1104
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1075[#1075]] Test the JDBC guards against a neighbouring MySQL database and Oracle schema by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1108
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1074[#1074]] Keep what says the connection is gone through the redaction of a connect failure by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1107
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1095[#1095]] Load a file based key store or trust store again when the file changes by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1101
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1092[#1092]] Probe the Docker container's health without binding as the root user by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1102
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1109[#1109]] Keep a connection handler listening when a change to it is rejected by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1110
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1111[#1111]] Refuse an HTTPS configuration without a key the handler can present, and leave a running HTTP handler as it is when one is applied by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1114
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1087[#1087]] Copy the secret volume on every start of the Docker image by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1100
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1112[#1112]] Listen on the configured listen-address in the HTTP connection handler and the JMX RMI connector by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1113
 * Update org.openidentityplatform.commons to 3.2.0 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/853
-* ++[#++1117++]++ Correct the default class of the governing-structure-rule virtual attribute, and check every default class exists by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1122
-* ++[#++1116++]++ Default the java-class of a new LDAP connection handler to LDAPConnectionHandler2 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1124
-* ++[#++1118++]++ Register the shipped Referential Integrity plugin for the pre-operation types check-references needs, and refuse check-references without them by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1123
-* ++[#++1133++]++ Describe upgrade --force as performing the confirmed tasks, and say it does not accept the license by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1137
-* ++[#++1119++]++ Serve each LDAP connection handler with a transport of its own, built from its configuration by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1125
-* ++[#++1120++]++ Apply a change to plugin-type on an enabled plugin without disabling and enabling it again by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1127
-* ++[#++1131++]++ Escape the option placeholders of the generated reference, so AsciiDoc no longer reads them as missing attributes by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1142
-* ++[#++1134++]++ Give a VLV row of backendstat show-index-status its Confidential cell, so that its record count lands under Record Count by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1139
-* ++[#++1136++]++ Remove the unused DocBook xinclude supplements from the server tool messages by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1141
-* ++[#++1135++]++ Head the last near-limit column of backendstat show-index-status 80%, the threshold it counts from by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1138
-* ++[#++1129++]++ Point the guides' Javadoc links at the published apidocs, and resolve ++{++opendj-version} in the uninstall and monitoring pages by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1140
-* ++[#++1128++]++ Replace the DocBook xinclude and olink leftovers of the generated reference with AsciiDoc by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1132
-* ++[#++1144++]++ Widen the ephemeral port range before the benchmark runs by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1145
-* ++[#++1143++]++ Do not report a Notice of Disconnection that cannot reach an already-closed client as an unhandled error by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1146
-* ++[#++1150++]++ Read the benchmark JTL with a CSV parser, so that an error whose message holds a comma reaches the step log by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1151
-* ++[#++1149++]++ Replay a rolled back PDB transaction until its conflict clears, bounded only by an optional db-txn-retry-time-limit by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1152
-* ++[#++1147++]++ Fail the doc build when a page leaves an AsciiDoc attribute unresolved by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1148
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1117[#1117]] Correct the default class of the governing-structure-rule virtual attribute, and check every default class exists by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1122
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1116[#1116]] Default the java-class of a new LDAP connection handler to LDAPConnectionHandler2 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1124
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1118[#1118]] Register the shipped Referential Integrity plugin for the pre-operation types check-references needs, and refuse check-references without them by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1123
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1133[#1133]] Describe upgrade --force as performing the confirmed tasks, and say it does not accept the license by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1137
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1119[#1119]] Serve each LDAP connection handler with a transport of its own, built from its configuration by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1125
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1120[#1120]] Apply a change to plugin-type on an enabled plugin without disabling and enabling it again by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1127
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1131[#1131]] Escape the option placeholders of the generated reference, so AsciiDoc no longer reads them as missing attributes by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1142
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1134[#1134]] Give a VLV row of backendstat show-index-status its Confidential cell, so that its record count lands under Record Count by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1139
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1136[#1136]] Remove the unused DocBook xinclude supplements from the server tool messages by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1141
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1135[#1135]] Head the last near-limit column of backendstat show-index-status 80%, the threshold it counts from by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1138
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1129[#1129]] Point the guides' Javadoc links at the published apidocs, and resolve ++{++opendj-version} in the uninstall and monitoring pages by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1140
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1128[#1128]] Replace the DocBook xinclude and olink leftovers of the generated reference with AsciiDoc by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1132
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1144[#1144]] Widen the ephemeral port range before the benchmark runs by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1145
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1143[#1143]] Do not report a Notice of Disconnection that cannot reach an already-closed client as an unhandled error by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1146
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1150[#1150]] Read the benchmark JTL with a CSV parser, so that an error whose message holds a comma reaches the step log by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1151
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1149[#1149]] Replay a rolled back PDB transaction until its conflict clears, bounded only by an optional db-txn-retry-time-limit by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1152
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1147[#1147]] Fail the doc build when a page leaves an AsciiDoc attribute unresolved by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1148
 * Bump the github-actions group with 3 updates by link:https://github.com/dependabot[@dependabot&#91;bot&#93;] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1170
-* ++[#++1154++]++ Find the OpenIDM certificate by comparing names, not their string forms by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1162
-* ++[#++1156++]++ Keep colons inside the -J/--control value, and report an unreadable control value file instead of failing with a NullPointerException by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1163
-* ++[#++1157++]++ Quote BASE++_++DN when the Docker bootstrap creates the userRoot backend by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1164
-* ++[#++1155++]++ Make the rest2ldap bind templates and HTTP Basic credentials work as documented by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1165
-* ++[#++1158++]++ Split a check-references-filter-criteria value at its first colon, so the filter can contain one by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1167
-* ++[#++1161++]++ Keep bc-fips from seeding its DRBG from RDSEED in the test JVMs by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1168
-* ++[#++1160++]++ Report what start-ds printed when the server fails to start, and dump the quicksetup test instance's logs on a failed build by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1169
-* ++[#++1173++]++ Check the references of every managed attribute type of an add and every modification of a modify, not only the first by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1175
-* ++[#++1086++]++ Join replication in the background on every start of the Docker image by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1115
-* ++[#++1159++]++ Keep administrator-typed DNs intact in dsconfig batch lines, tools.properties and the SDK LDAPUrl by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1166
-* ++[#++1172++]++ Refuse a second check-references-filter-criteria value for an attribute type, and enforce all the filters of a configuration that already has one by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1174
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1154[#1154]] Find the OpenIDM certificate by comparing names, not their string forms by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1162
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1156[#1156]] Keep colons inside the -J/--control value, and report an unreadable control value file instead of failing with a NullPointerException by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1163
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1157[#1157]] Quote BASE++_++DN when the Docker bootstrap creates the userRoot backend by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1164
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1155[#1155]] Make the rest2ldap bind templates and HTTP Basic credentials work as documented by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1165
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1158[#1158]] Split a check-references-filter-criteria value at its first colon, so the filter can contain one by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1167
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1161[#1161]] Keep bc-fips from seeding its DRBG from RDSEED in the test JVMs by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1168
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1160[#1160]] Report what start-ds printed when the server fails to start, and dump the quicksetup test instance's logs on a failed build by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1169
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1173[#1173]] Check the references of every managed attribute type of an add and every modification of a modify, not only the first by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1175
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1086[#1086]] Join replication in the background on every start of the Docker image by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1115
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1159[#1159]] Keep administrator-typed DNs intact in dsconfig batch lines, tools.properties and the SDK LDAPUrl by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1166
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1172[#1172]] Refuse a second check-references-filter-criteria value for an attribute type, and enforce all the filters of a configuration that already has one by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1174
 * Bump FreeMarker to 2.3.35 and fix the loadObjectClassesToMaps javadoc by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1176
-* ++[#++1153++]++ Parse the whole DN string, and build or split DN strings through DN instead of string operations by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1171
-* ++[#++1180++]++ Report the fail-over failure of the Grizzly proxy listener tests instead of timing out by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1181
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1153[#1153]] Parse the whole DN string, and build or split DN strings through DN instead of string operations by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1171
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1180[#1180]] Report the fail-over failure of the Grizzly proxy listener tests instead of timing out by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1181
 * Describe running, upgrading and removing the Docker image in the Installation Guide by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1179
 * Update Java version from 26 to 27 in build.yml by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1186
 * Fix Maven Central release: pin Maven 3.9.16, bump central-publishing to 0.11.0 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1187
-* ++[#++1178++]++ Give the background join of the Docker image a server role, keep a failed bootstrap or upgrade unhealthy, and test the upgrade from a released image by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1184
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1178[#1178]] Give the background join of the Docker image a server role, keep a failed bootstrap or upgrade unhealthy, and test the upgrade from a released image by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1184
 * Update commons.version to 3.2.1 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1177
 * Apply Ubuntu security updates when building the Docker image by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1191
-* ++[#++1188++]++ Serialize and replace atomically the writes of the ads-truststore, and report a certificate it cannot take or drop by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1189
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1188[#1188]] Serialize and replace atomically the writes of the ads-truststore, and report a certificate it cannot take or drop by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1189
 * Wait for the background join to end before looking for the root password it leaves by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1193
-* ++[#++1198++]++ Take the own state of a replication server again after each answer of its peers when it gathers the monitoring data by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1205
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1198[#1198]] Take the own state of a replication server again after each answer of its peers when it gathers the monitoring data by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1205
 * Bump the github-actions group with 5 updates by link:https://github.com/dependabot[@dependabot&#91;bot&#93;] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1212
-* ++[#++1216++]++ Keep the decoding error of the client filter when no LDAP connection is attached by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1217
-* ++[#++1213++]++ Try another free port when the offline connect of the proxy tests connects the client to itself by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1214
-* ++[#++1090++]++ Check replication convergence under load next to the Docker tests, and run the Docker tests of both images after their builds by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1192
-* ++[#++1195++]++ Publish every change done while a recovery runs, and end the recovery only once they are out by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1204
-* ++[#++1207++]++ Route total updates to a replica that has the server ID of a replication server, report such a replica, and draw the IDs of new replication servers and domains from one set by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1211
-* ++[#++1206++]++ Take a late handler of a replication server back to its queue only once its consumer has every change the queue lacks by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1219
-* ++[#++1215++]++ Check a replication server the topology already has against the configured ones again, from the URL it is known with or the one it now comes with by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1218
-* ++[#++1056++]++ Add the RSASVE/KDF-SHA256/AESKWP key wrapping transformation for runtimes without RSA-OAEP by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1194
-* ++[#++1202++]++ ++[#++1209++]++ ++[#++1222++]++ Give the replication server a bounded time to give credit and to read once the broker is being stopped, and write nothing after a message given up by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1210
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1216[#1216]] Keep the decoding error of the client filter when no LDAP connection is attached by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1217
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1213[#1213]] Try another free port when the offline connect of the proxy tests connects the client to itself by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1214
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1090[#1090]] Check replication convergence under load next to the Docker tests, and run the Docker tests of both images after their builds by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1192
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1195[#1195]] Publish every change done while a recovery runs, and end the recovery only once they are out by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1204
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1207[#1207]] Route total updates to a replica that has the server ID of a replication server, report such a replica, and draw the IDs of new replication servers and domains from one set by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1211
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1206[#1206]] Take a late handler of a replication server back to its queue only once its consumer has every change the queue lacks by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1219
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1215[#1215]] Check a replication server the topology already has against the configured ones again, from the URL it is known with or the one it now comes with by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1218
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1056[#1056]] Add the RSASVE/KDF-SHA256/AESKWP key wrapping transformation for runtimes without RSA-OAEP by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1194
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1202[#1202]] [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1209[#1209]] [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1222[#1222]] Give the replication server a bounded time to give credit and to read once the broker is being stopped, and write nothing after a message given up by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1210
 * Use commons 3.2.2 to pick up BouncyCastle 1.86 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1190
 * Refuse the local changes in HistoricalCsnOrderingTest only once the missing change publisher of the recovery before has left by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1226
-* ++[#++1227++]++ Keep the record a changelog cursor read in advance when the head log file it is positioned in is rotated by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1228
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/1227[#1227]] Keep the record a changelog cursor read in advance when the head log file it is positioned in is rotated by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/1228
 
 *Full Changelog*: https://github.com/OpenIdentityPlatform/OpenDJ/compare/5.1.2\...5.2.0
 
@@ -335,7 +343,7 @@ endif::[]
 
 ==== Sponsors
 
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website. https://opencollective.com/OpenDJ/tiers[Become a sponsor ❤️]
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. https://opencollective.com/OpenDJ/tiers[Become a sponsor {release-heart}]
 
 ifdef::backend-html5[]
 https://opencollective.com/OpenDJ/tiers[image:https://opencollective.com/OpenDJ/sponsors.svg?width=890[Sponsors]]
@@ -352,11 +360,11 @@ Published: 2026-07-17 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 ==== What's Changed
 
 * Add an OpenDJ vs OpenLDAP LDAP benchmark GitHub Action by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/654
-* CVE-2026-62366 OpenDJ Unauthenticated stack exhaustion when decoding an LDAP search filter (DoS) thanks https://github.com/Pig-Tail[@Pig-Tail] ❤️
-* CVE-2026-62373 OpenDJ JMX MBean-argument deserialization without a serial filter thanks https://github.com/Pig-Tail[@Pig-Tail] https://github.com/tonghuaroot[@tonghuaroot] https://github.com/wodzen[@wodzen] ❤️
-* CVE-2026-62375 OpenDJ Unbounded VLV offset array allocation leading to memory-exhaustion DoS thanks https://github.com/Pig-Tail[@Pig-Tail] ❤️
-* GHSA-68r5-9hpg-7qw9 OpenDJ unauthenticated SSRF, local file read and unbounded-read DoS in the DSMLv2 gateway thanks https://github.com/manus-use[@manus-use] ❤️
-* GHSA-p279-2cqp-84jg SASL PLAIN authzid bypassing the proxy ACI scope check thanks https://github.com/hypnguyen1209[@hypnguyen1209] ❤️
+* CVE-2026-62366 OpenDJ Unauthenticated stack exhaustion when decoding an LDAP search filter (DoS) thanks https://github.com/Pig-Tail[@Pig-Tail] {release-heart}
+* CVE-2026-62373 OpenDJ JMX MBean-argument deserialization without a serial filter thanks https://github.com/Pig-Tail[@Pig-Tail] https://github.com/tonghuaroot[@tonghuaroot] https://github.com/wodzen[@wodzen] {release-heart}
+* CVE-2026-62375 OpenDJ Unbounded VLV offset array allocation leading to memory-exhaustion DoS thanks https://github.com/Pig-Tail[@Pig-Tail] {release-heart}
+* GHSA-68r5-9hpg-7qw9 OpenDJ unauthenticated SSRF, local file read and unbounded-read DoS in the DSMLv2 gateway thanks https://github.com/manus-use[@manus-use] {release-heart}
+* GHSA-p279-2cqp-84jg SASL PLAIN authzid bypassing the proxy ACI scope check thanks https://github.com/hypnguyen1209[@hypnguyen1209] {release-heart}
 * CI: full Java matrix on ubuntu only; macOS/Windows build with Java 11 and 26 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/704
 * Modernizes the OpenDJ Docker images and broadens their multi-architecture build matrix. by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/655
 * Benchmark the built Docker image against the released one by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/656
@@ -369,15 +377,15 @@ Published: 2026-07-17 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 * Fix duplicate SNMP connection handler entries in packaged config.ldif by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/659
 * Fix duplicate opendj-server-legacy classes in distribution lib/ by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/661
 * Add CI install-test for the Windows MSI {plus} document MSI install/upgrade/uninstall by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/664
-* ++[#++665++]++ Fix StackOverflowError while parsing long ACI with repetitive targets by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/666 thanks https://github.com/myandrews[@myandrews] ❤️
-* ++[#++693++]++ Fix Windows scripts for install paths with spaces and parentheses by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/671
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/665[#665]] Fix StackOverflowError while parsing long ACI with repetitive targets by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/666 thanks https://github.com/myandrews[@myandrews] {release-heart}
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/693[#693]] Fix Windows scripts for install paths with spaces and parentheses by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/671
 * Fix two broken AciTests cases and enable the suite in the default build by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/675
-* ++[#++673++]++ Fix ArrayIndexOutOfBoundsException on truncated percent-encoding in LDAP URLs by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/676 thanks https://github.com/myandrews[@myandrews] ❤️
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/673[#673]] Fix ArrayIndexOutOfBoundsException on truncated percent-encoding in LDAP URLs by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/676 thanks https://github.com/myandrews[@myandrews] {release-heart}
 * Declare the deb/rpm runtime dependencies (java, which, chkconfig) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/677
-* ++[#++697++]++ Fix global idle-time-limit having no effect on client connections by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/684
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/697[#697]] Fix global idle-time-limit having no effect on client connections by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/684
 * Fix embedded server rebuildIndex failing with Connect Error by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/685
 * Fix and enable broken tests from the slow group by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/686
-* ++[#++696++]++ Fix embedded server setup failing with "Time service not started" by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/687
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/696[#696]] Fix embedded server setup failing with "Time service not started" by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/687
 * Revive the quicksetup test suite by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/694
 * Fix and enable the replication StressTest by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/698
 * Remove the unfixable testStateMachineFull and fix the dead replay pool by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/700
@@ -386,33 +394,33 @@ Published: 2026-07-17 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 * Include ++*++TestSuite classes in the failsafe run by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/703
 * Enable the SNMP tests in the default build by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/705
 * Fix and enable the AlternateRootDN ACI test by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/706
-* ++[#++709++]++ Enable disabled and invisible tests across the sibling modules by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/707
-* ++[#++712++]++ Fix StringIndexOutOfBoundsException on blank bind rule in ACI by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/715 thanks https://github.com/myandrews[@myandrews] ❤️
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/709[#709]] Enable disabled and invisible tests across the sibling modules by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/707
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/712[#712]] Fix StringIndexOutOfBoundsException on blank bind rule in ACI by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/715 thanks https://github.com/myandrews[@myandrews] {release-heart}
 * CVE-2026-9828 QOS.CH Sarl logback logback-core has a deserialization of untrusted data vulnerability by link:https://github.com/dependabot[@dependabot&#91;bot&#93;] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/717
 * ci: add "Benchmark PDB vs JE" step to build-docker by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/718
 * Add concurrency groups to GitHub Actions workflows by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/721
-* ++[#++695++]++ Fix race in TraditionalWorkQueue.isIdle() by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/688
-* ++[#++690++]++ Fix finalizeWorkQueue never cancelling queued operations by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/691
-* ++[#++692++]++ Restore partial import semantics for include/exclude branches by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/689
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/695[#695]] Fix race in TraditionalWorkQueue.isIdle() by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/688
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/690[#690]] Fix finalizeWorkQueue never cancelling queued operations by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/691
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/692[#692]] Restore partial import semantics for include/exclude branches by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/689
 * Restrict Unix integration-test steps to Linux only by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/723
 * ci: add CodeQL code scanning workflow by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/722
-* ++[#++719++]++ Fix NullPointerException decoding an ACI bind rule with a missing and/or operand by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/720 https://github.com/myandrews[@myandrews] ❤️
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/719[#719]] Fix NullPointerException decoding an ACI bind rule with a missing and/or operand by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/720 https://github.com/myandrews[@myandrews] {release-heart}
 * CVE-2026-10532 Logback vulnerable to Object Injection through HardenedObjectInputStream modules by link:https://github.com/dependabot[@dependabot&#91;bot&#93;] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/724
-* ++[#++728++]++ Reject TCP self-connects in replication connect paths by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/729
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/728[#728]] Reject TCP self-connects in replication connect paths by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/729
 * Fix flaky BindOperationTestCase subtree auth-info tests by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/727
-* ++[#++730++]++ Fix import/export context leak on failed initializeRemote validation by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/731
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/730[#730]] Fix import/export context leak on failed initializeRemote validation by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/731
 * Fix intermittent GenerationIdTest.testMultiRS by re-advertising genId on change by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/725
-* ++[#++710++]++ Fix replication catch-up re-sending updates with the original assured flag by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/714
-* ++[#++726++]++ Reject malformed bracketed IPv6 hosts in HostPort by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/732 thanks https://github.com/myandrews[@myandrews] ❤️
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/710[#710]] Fix replication catch-up re-sending updates with the original assured flag by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/714
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/726[#726]] Reject malformed bracketed IPv6 hosts in HostPort by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/732 thanks https://github.com/myandrews[@myandrews] {release-heart}
 * Enable Javadoc doclint (all,-missing) and fail on warnings by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/734
-* ++[#++735++]++ Do not roll back a concurrently adopted generation ID on aborted handshake by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/736
-* ++[#++737++]++ Fix cn=changelog search failing when aliases are dereferenced by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/740
-* ++[#++738++]++ Fix dereferencing an alias that points into another backend by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/741
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/735[#735]] Do not roll back a concurrently adopted generation ID on aborted handshake by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/736
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/737[#737]] Fix cn=changelog search failing when aliases are dereferenced by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/740
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/738[#738]] Fix dereferencing an alias that points into another backend by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/741
 * Harden opendj-docker apt step: force IPv4 {plus} retries by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/743
-* ++[#++739++]++ Fix alias dereferencing dropping entries and accumulating DNs by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/742
-* ++[#++744++]++ Fix flaky ChangelogBackendTestCase: keep generated CSN batches monotonic by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/745
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/739[#739]] Fix alias dereferencing dropping entries and accumulating DNs by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/742
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/744[#744]] Fix flaky ChangelogBackendTestCase: keep generated CSN batches monotonic by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/745
 * Bump org.openidentityplatform.commons to 3.1.2 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/733
-* ++[#++708++]++ Fix OutOfMemory during replication initialize with JDBC backend by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/711 thanks https://github.com/ldap4life[@ldap4life] ❤️
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/708[#708]] Fix OutOfMemory during replication initialize with JDBC backend by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/711 thanks https://github.com/ldap4life[@ldap4life] {release-heart}
 
 *Full Changelog*: https://github.com/OpenIdentityPlatform/OpenDJ/compare/5.1.1\...5.1.2
 
@@ -429,7 +437,7 @@ endif::[]
 
 ==== Sponsors
 
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website. https://opencollective.com/OpenDJ/tiers[Become a sponsor ❤️]
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. https://opencollective.com/OpenDJ/tiers[Become a sponsor {release-heart}]
 
 ifdef::backend-html5[]
 https://opencollective.com/OpenDJ/tiers[image:https://opencollective.com/OpenDJ/sponsors.svg?width=890[Sponsors]]
@@ -445,9 +453,9 @@ Published: 2026-06-11 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 
 ==== What's Changed
 
-* CVE-2026-46495 OpenDJ Unauthenticated RCE via Java Deserialization in JMX RMI thanks https://github.com/wodzen[@wodzen] ❤️
+* CVE-2026-46495 OpenDJ Unauthenticated RCE via Java Deserialization in JMX RMI thanks https://github.com/wodzen[@wodzen] {release-heart}
 * CVE-2026-42198 pgjdbc: Unbounded PBKDF2 iterations in SCRAM authentication allows CPU exhaustion DoS by link:https://github.com/dependabot[@dependabot&#91;bot&#93;] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/641
-* ++[#++648++]++ slow `DN.valueOf` / `AVA` normalization for nested DN-syntax values by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/649 thanks https://github.com/anvo1115[@anvo1115] ❤️
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/648[#648]] slow `DN.valueOf` / `AVA` normalization for nested DN-syntax values by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/649 thanks https://github.com/anvo1115[@anvo1115] {release-heart}
 * chore: bump Bouncy Castle FIPS deps to latest 2.1.x patch releases by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/637
 * Fix grizzly log level is always FINE by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/639
 * Fix shell script issues in opendj-docker/run.sh by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/640
@@ -467,11 +475,11 @@ Published: 2026-04-15 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 
 ==== What's Changed
 
-* ++[#++72++]++ Fix infinite loop in `doStopApplication()` on Windows service stop by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/610
-* ++[#++259++]++ fix: retry loop for Windows Service start race condition (issue ++#++259) by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/609
-* ++[#++566++]++ Fix AttributeValuePasswordValidator: inverted substring logic and missing reversed-password substring check by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/599
-* ++[#++579++]++ Fix ReferentialIntegrityPlugin silently bypassing check-references on modify operations by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/600
-* ++[#++601++]++ Fix server crash when File-Based Debug Logger is enabled by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/602
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/72[#72]] Fix infinite loop in `doStopApplication()` on Windows service stop by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/610
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/259[#259]] fix: retry loop for Windows Service start race condition (issue link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/259[#259]) by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/609
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/566[#566]] Fix AttributeValuePasswordValidator: inverted substring logic and missing reversed-password substring check by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/599
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/579[#579]] Fix ReferentialIntegrityPlugin silently bypassing check-references on modify operations by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/600
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/601[#601]] Fix server crash when File-Based Debug Logger is enabled by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/602
 * Update build.yml add JDK 26 support by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/598
 * Docs: set neutral version for the docs by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/603
 * ci: add Windows service start/stop test to CI workflow by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/606
@@ -485,7 +493,7 @@ Published: 2026-04-15 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 * chore: bump GitHub Actions to latest major versions by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/620
 * Fix snapshot version format by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/624
 * Fix intermittent GenerationIdTest.testMultiRS race condition on RS-to-RS topology by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/622
-* ++[++OpenIdentityPlatform/OpenAM++#++980++]++ OpenDJ slim maven artifact by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/625
+* [link:https://github.com/OpenIdentityPlatform/OpenAM/issues/980[OpenIdentityPlatform/OpenAM#980]] OpenDJ slim maven artifact by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/625
 * Upgrade local Docker registry from `registry:2` to `registry:3` in CI by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/628
 * status CLI: allow --hostname, --port, and --trustAll arguments by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/631
 * Fix status CLI to accept --hostname, --port, and --trustAll arguments, and add them to all status command invocations in build.yml by https://github.com/Copilot[@Copilot] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/630
@@ -502,8 +510,8 @@ Published: 2026-03-23 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 ==== What's Changed
 
 * CVE-2025-24970 SslHandler doesn't correctly validate packets which can lead to native crash when using native SSLEngine by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/588
-* CVE‐2025‐12194 While the situation with the JVM garbage collector overrun for Java 17 and Java 21 greatly improved with the changes in 2.1.1, we’ve still had some reports that can only be related to the use of the disposal daemon by https://github.com/prthakre[@prthakre] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/593
-* ++[#++590++]++ Fallback to $HOME/tmp dir as a temp if instance root is mounted as noexec by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/591
+* CVE-2025-12194 While the situation with the JVM garbage collector overrun for Java 17 and Java 21 greatly improved with the changes in 2.1.1, we’ve still had some reports that can only be related to the use of the disposal daemon by https://github.com/prthakre[@prthakre] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/593
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/590[#590]] Fallback to $HOME/tmp dir as a temp if instance root is mounted as noexec by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/591
 * Bump logback to 1.5.32 by https://github.com/prthakre[@prthakre] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/595
 * Migrate to caffeine 3 by https://github.com/prthakre[@prthakre] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/594
 * Update commons.version from 3.0.2 to 3.0.4 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/597
@@ -532,9 +540,9 @@ Published: 2025-11-25 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 
 ==== What's Changed
 
-* ++[#++575++]++ FIX unable to install: UnsatisfiedLinkError: /tmp/bc-fips by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/576 thanks https://github.com/muralicbe1983[@muralicbe1983]
-* ++[#++577++]++ Windows upgrading with Upgrade.bat: an error with "" unexpected by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/578 thanks https://github.com/marcdegasperi[@marcdegasperi]
-* ++[#++573++]++ Added the SAMPLE++_++DATA Docker environment variable to generate sample data during setup. by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/574
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/575[#575]] FIX unable to install: UnsatisfiedLinkError: /tmp/bc-fips by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/576 thanks https://github.com/muralicbe1983[@muralicbe1983]
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/577[#577]] Windows upgrading with Upgrade.bat: an error with "" unexpected by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/578 thanks https://github.com/marcdegasperi[@marcdegasperi]
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/573[#573]] Added the SAMPLE++_++DATA Docker environment variable to generate sample data during setup. by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/574
 
 *Full Changelog*: https://github.com/OpenIdentityPlatform/OpenDJ/compare/5.0.1\...5.0.2
 
@@ -555,7 +563,7 @@ Published: 2025-11-08 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 * Update OpenDMK external library to fix SNMP monitoring by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/572
 * Build & deploy: add branch sustaining/4.10.x by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/556
 * Make GrizzlyLDAPListener close in a synchronous fasion to prevent test race conditions by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/557
-* ++[#++141++]++ Test large replication pending changes by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/561
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/141[#141]] Test large replication pending changes by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/561
 * FIX bindFreePort Bind Unable to bind to a free port by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/559
 * Fix unavailable monitoring attributes over JMX by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/558
 * Bump org.openidentityplatform.commons to 3.0.1 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/571
@@ -571,9 +579,9 @@ Published: 2025-09-04 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 ==== What's Changed
 
 * CVE-2025-9092 CVE-2025-9340 CVE-2025-9341 Uncontrolled Resource Consumption vulnerability by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/546
-* ++[#++545++]++ Add GroupManager writeLock performance by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/551
-* ++[#++540++]++ Fix OnDiskMergeImporter::PhaseOneWriteableTransaction: update over put (referral attr) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/541
-* ++[#++544++]++ Add requires-admin-action component-restart for max-request-size by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/552
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/545[#545]] Add GroupManager writeLock performance by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/551
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/540[#540]] Fix OnDiskMergeImporter::PhaseOneWriteableTransaction: update over put (referral attr) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/541
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/544[#544]] Add requires-admin-action component-restart for max-request-size by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/552
 * Update Java minimum version number in the setup UI by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/542
 * Update README.md: add backers and sponsors by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/543
 * ISSUE++_++TEMPLATE: add "Vote to raise the priority" by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/547
@@ -588,8 +596,8 @@ Published: 2025-08-05 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 
 ==== What's Changed
 
-* ++[#++529++]++ FIX jdbc connection deadlock by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/533
-* ++[#++530++]++ Fixed error when creating a backend for BASE++_++DN with OU in Docker by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/531
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/529[#529]] FIX jdbc connection deadlock by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/533
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/530[#530]] Fixed error when creating a backend for BASE++_++DN with OU in Docker by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/531
 * Docker: Fix issues with quoting params by https://github.com/prthakre[@prthakre] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/537
 
 *Full Changelog*: https://github.com/OpenIdentityPlatform/OpenDJ/compare/4.10.0\...4.10.1
@@ -601,7 +609,7 @@ Published: 2025-07-15 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 
 ==== What's Changed
 
-* ++[#++462++]++ RFC5805 Lightweight Directory Access Protocol (LDAP) Transactions by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/469
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/462[#462]] RFC5805 Lightweight Directory Access Protocol (LDAP) Transactions by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/469
 * CVE-2025-49146 pgjdbc Client Allows Fallback to Insecure Authentication Despite channelBinding=require Configuration by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/522
 * Bump io.reactivex.rxjava to 3.x by https://github.com/prthakre[@prthakre] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/504
 * Bump various dependencies by https://github.com/prthakre[@prthakre] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/508
@@ -630,13 +638,13 @@ Published: 2025-04-23 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 * Fix docker env variables {plus} add VERSION autodetect by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/493
 * Set isRunning later (EmbeddedServer check) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/494
 * Bump org.openidentityplatform.commons to 2.2.4 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/495
-* ++[#++498++]++ FIX warning output from export-ldif: "grep: warning: stray ++\++ before -" by https://github.com/pzygielo[@pzygielo] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/499
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/498[#498]] FIX warning output from export-ldif: "grep: warning: stray ++\++ before -" by https://github.com/pzygielo[@pzygielo] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/499
 * move Java args to java.properties, upgrade docker alpine by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/502
-* ++[#++497++]++ Set the same indexes for a new backend as for the initial backend by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/501
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/497[#497]] Set the same indexes for a new backend as for the initial backend by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/501
 * Add support Java SE 24 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/500
 * Bump test containers & cassandra driver by https://github.com/prthakre[@prthakre] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/506
-* ++[#++496++]++ FIX MySQL truncate PK default to 64 len by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/509
-* ++[#++496++]++ FIX JDBC storage update concurrency by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/512
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/496[#496]] FIX MySQL truncate PK default to 64 len by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/509
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/496[#496]] FIX JDBC storage update concurrency by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/512
 * FIX Replication IT tests unstable result by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/514
 
 ==== New Contributors
@@ -654,8 +662,8 @@ Published: 2025-03-05 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 ==== What's Changed
 
 * CVE-2025-27497 Fix Denial of Service (Dos) using alias loop (thanks https://github.com/hannes96[@hannes96])
-* ++[#++477++]++ Change permission config.ldif.startok to owner by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/479 (thanks https://github.com/kranskydog[@kranskydog])
-* ++[#++208++]++ FIX The definition for the attribute type declared that it should use the syntax which is not defined in the schema by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/483
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/477[#477]] Change permission config.ldif.startok to owner by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/479 (thanks https://github.com/kranskydog[@kranskydog])
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/208[#208]] FIX The definition for the attribute type declared that it should use the syntax which is not defined in the schema by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/483
 * Documentation update by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/480
 * Docs: Generate and publish javadoc by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/482
 
@@ -668,12 +676,12 @@ Published: 2025-02-04 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 
 ==== What's Changed
 
-* ++[#++465++]++ Fix custom library loading when put to the lib directory by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/467
-* ++[#++463++]++ Disable warning message on downstream closed by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/468
-* ++[#++471++]++ Fix table name truncate: make jdbc table 63 charter by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/473
-* ++[#++466++]++ JDBC: added tests for Oracle, MySQL, MSSQL by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/472
-* ++[#++466++]++ FIX compatibility jdbc backend: Postgres, Oracle, MySQL, MSSQL by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/474
-* ++[#++471++]++ PluggableBackendImplTestCase: add duplicate mail test by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/475
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/465[#465]] Fix custom library loading when put to the lib directory by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/467
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/463[#463]] Disable warning message on downstream closed by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/468
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/471[#471]] Fix table name truncate: make jdbc table 63 charter by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/473
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/466[#466]] JDBC: added tests for Oracle, MySQL, MSSQL by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/472
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/466[#466]] FIX compatibility jdbc backend: Postgres, Oracle, MySQL, MSSQL by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/474
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/471[#471]] PluggableBackendImplTestCase: add duplicate mail test by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/475
 * IT ReplicationDomainTest upper waitEndExport timeout by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/476
 * Update year in generated documentation templates by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/464
 * Update documentation issues and update links by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/470
@@ -687,7 +695,7 @@ Published: 2025-01-20 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 
 ==== What's Changed
 
-* ++[#++460++]++ Clear unused path info after backupConfig (memory pleasure) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/461
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/460[#460]] Clear unused path info after backupConfig (memory pleasure) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/461
 * jdbc: make connection short-lived by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/459
 * Replace import-ldif with ldapmodify in Postgres IT test by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/457
 
@@ -714,7 +722,7 @@ Published: 2024-11-12 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 
 ==== What's Changed
 
-* ++[#++438++]++ FIX import-ldif --offline "import has been aborted because the entry does not have a parent entry" by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/444
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/438[#438]] FIX import-ldif --offline "import has been aborted because the entry does not have a parent entry" by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/444
 * 00-core.ldif: X.501, cl. 14.2.2: 2.5.15.16 subentryNameForm OC subentry MUST cn by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/448 thanks https://github.com/JesseCoretta[@JesseCoretta]
 * FIX makeldif -c suffix=dc=example: Unable to parse a constant argument expecting name=value by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/443
 * Bump commons.version 2.2.3 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/450
@@ -731,14 +739,14 @@ Published: 2024-10-17 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 
 ==== What's Changed
 
-* ++[#++393++]++ FIX DIT SUP delimiter by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/395
-* ++[#++392++]++ FIX RootDSE Entry allow user objectClass by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/396
-* Addresses ++#++397, ++#++398, ++#++399, ++#++404 by https://github.com/JesseCoretta[@JesseCoretta] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/405
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/393[#393]] FIX DIT SUP delimiter by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/395
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/392[#392]] FIX RootDSE Entry allow user objectClass by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/396
+* Addresses link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/397[#397], link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/398[#398], link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/399[#399], link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/404[#404] by https://github.com/JesseCoretta[@JesseCoretta] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/405
 * Docs in asciidoc & deploy antora docs after build by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/408
-* ++[#++402++]++ Change default SSL HandshakeTimeout -1 -++>++ 10s (see ++#++146) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/411
-* ++[#++401++]++ Change "Object class violation (65)" -++>++ "Naming violation (64)" LDAP result code for DIT Structure Rule violation by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/410
-* ++[#++394++]++ FIX dsconfig --help-<subcommand> by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/406
-* ++[#++400++]++ Reduce character escaping in example, add note by https://github.com/JesseCoretta[@JesseCoretta] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/413
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/402[#402]] Change default SSL HandshakeTimeout -1 -++>++ 10s (see link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/146[#146]) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/411
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/401[#401]] Change "Object class violation (65)" -++>++ "Naming violation (64)" LDAP result code for DIT Structure Rule violation by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/410
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/394[#394]] FIX dsconfig --help-<subcommand> by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/406
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/400[#400]] Reduce character escaping in example, add note by https://github.com/JesseCoretta[@JesseCoretta] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/413
 * Added missing documentation attachments by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/414
 * Generate man pages in the AsciiDoc format by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/418
 * Reduce character escaping in example, add note by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/419
@@ -746,13 +754,13 @@ Published: 2024-10-17 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 * Add JDK 23 build support by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/421
 * Bump org.openidentityplatform.commons 2.2.2 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/417
 * Docker: Use tail instead of sleep to allow the container to be stopped with SIGTERM by https://github.com/PyRowMan[@PyRowMan] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/427
-* ++[#++423++]++ Eliminate asciidoctor warning messages when generating documentation by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/429
-* ++[#++426++]++ ADD maven.compiler.release=8 for cross compile compatibility by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/430
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/423[#423]] Eliminate asciidoctor warning messages when generating documentation by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/429
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/426[#426]] ADD maven.compiler.release=8 for cross compile compatibility by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/430
 * Remove legacy files by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/433
-* ++[#++90, ++#++432++]++ FIX delete entries in overlapping backends by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/434
-* ++[#++425++]++ Add option -Dorg.openidentityplatform.opendj.ERR++_++ENTRY++_++SCHEMA++_++VIOLATES++_++PARENT++_++DSR for force control "Entry is invalid according to the server schema because there is no DIT structure rule that applies to that entry, but there is a DIT structure rule for the parent entry". Default: warning level by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/435
-* ++[#++425++]++ Workaround: Entry is invalid according to the server schema because there is no DIT structure rule that applies to that entry, but there is a DIT structure rule for the parent entry by https://github.com/JesseCoretta[@JesseCoretta] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/422
-* ++[#++431++]++ Update importldiff --offline and --clearBacked flags descriptions by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/437
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/90[#90], link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/432[#432]] FIX delete entries in overlapping backends by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/434
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/425[#425]] Add option -Dorg.openidentityplatform.opendj.ERR++_++ENTRY++_++SCHEMA++_++VIOLATES++_++PARENT++_++DSR for force control "Entry is invalid according to the server schema because there is no DIT structure rule that applies to that entry, but there is a DIT structure rule for the parent entry". Default: warning level by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/435
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/425[#425]] Workaround: Entry is invalid according to the server schema because there is no DIT structure rule that applies to that entry, but there is a DIT structure rule for the parent entry by https://github.com/JesseCoretta[@JesseCoretta] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/422
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/431[#431]] Update importldiff --offline and --clearBacked flags descriptions by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/437
 
 ==== New Contributors
 
@@ -770,10 +778,10 @@ Published: 2024-09-09 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 
 * Switch docker to last LTS JRE 21 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/378
 * Add JDK 22 support by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/377
-* ++[#++376++]++ JMX fix docs with "Allow insecure authentication" by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/380
-* ++[#++376++]++ FIX SNMP monitoring config by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/381
-* ++[#++383++]++ FIX docs: import-ldif and export-ldif binaries should be shown using the --offline option by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/385
-* ++[#++384++]++ FIX Control Panel: empty help URL values by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/386
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/376[#376]] JMX fix docs with "Allow insecure authentication" by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/380
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/376[#376]] FIX SNMP monitoring config by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/381
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/383[#383]] FIX docs: import-ldif and export-ldif binaries should be shown using the --offline option by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/385
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/384[#384]] FIX Control Panel: empty help URL values by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/386
 * https://github.com/OpenIdentityPlatform/OpenDJ/discussions/387 FIX do not check DIT structure parent/child on same ObjectClass by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/390 (thanks for the research https://github.com/JesseCoretta[@JesseCoretta])
 * Bump org.openidentityplatform.commons 2.2.0 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/391
 
@@ -786,13 +794,13 @@ Published: 2024-08-08 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 
 ==== What's Changed
 
-* ++[#++204++]++ ADD LDAP https://tools.ietf.org/html/draft-zeilenga-ldap-relax-03[Relax Rules Control] by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/362
-* ++[#++287++]++ ADD https://docs.oracle.com/cd/E21043_01/oid.1111/e10029/oid_alias_entries.htm[alias dereferencing] for search requests by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/369
-* ++[#++187++]++ FIX https://datatracker.ietf.org/doc/html/rfc3671[RFC3671]: collective attribute values should be merged. Virtuals with other virtuals and real values. by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/365
-* ++[#++84++]++ FIX incorrect entry-Based ACIs is defined with only "deny" permission without "allow" by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/372
-* ++[#++250++]++ Add Overlapping Backend TestSuite by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/373
-* ++[#++294++]++ Dont send client notification on IOException by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/374
-* ++[#++368++]++ CASSANDRA ADD property -Dkeyspace=ldap++_++opendj by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/370
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/204[#204]] ADD LDAP https://tools.ietf.org/html/draft-zeilenga-ldap-relax-03[Relax Rules Control] by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/362
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/287[#287]] ADD https://docs.oracle.com/cd/E21043_01/oid.1111/e10029/oid_alias_entries.htm[alias dereferencing] for search requests by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/369
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/187[#187]] FIX https://datatracker.ietf.org/doc/html/rfc3671[RFC3671]: collective attribute values should be merged. Virtuals with other virtuals and real values. by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/365
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/84[#84]] FIX incorrect entry-Based ACIs is defined with only "deny" permission without "allow" by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/372
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/250[#250]] Add Overlapping Backend TestSuite by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/373
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/294[#294]] Dont send client notification on IOException by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/374
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/368[#368]] CASSANDRA ADD property -Dkeyspace=ldap++_++opendj by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/370
 * Bump commons.version 2.1.6 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/375
 * Publish docs to https://doc.openidentityplatform.org by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/366
 * Fix documentation version by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/371
@@ -809,10 +817,10 @@ Published: 2024-07-16 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 * compress webhelp, xhtml and html docs after build by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/348
 * add missing docs by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/350
 * Update README.md by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/352
-* ++[#++354++]++ FIX "OpenDJ fails to upgrade from version 3-++>++4: An error occurred while attempting to perform index rebuild: Unable to decode the provided object class set because it used an undefined token" by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/356
-* ++[#++167++]++ FIX control-panel ResetUserPasswordTask unpredictable result (wait async result) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/357
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/354[#354]] FIX "OpenDJ fails to upgrade from version 3-++>++4: An error occurred while attempting to perform index rebuild: Unable to decode the provided object class set because it used an undefined token" by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/356
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/167[#167]] FIX control-panel ResetUserPasswordTask unpredictable result (wait async result) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/357
 * Add rest operations modifyPassword, resetPassword to docs from https://github.com/OpenIdentityPlatform/OpenDJ/discussions/355 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/358
-* ++[#++148,++#++261,++#++282++]++ FIX control-panel schema errors in remote mode by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/359
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/148[#148],link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/261[#261],link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/282[#282]] FIX control-panel schema errors in remote mode by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/359
 
 *Full Changelog*: https://github.com/OpenIdentityPlatform/OpenDJ/compare/4.6.4\...4.6.5
 
@@ -849,8 +857,8 @@ Published: 2024-05-07 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 * Update Docker jre 17-++>++19 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/324
 * org.openidentityplatform.commons 2.1.3-SNAPSHOT by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/326
 * FIX OpenIDM compatibility by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/330
-* ++[#++329++]++ make posixGroup AUXILIARY by default by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/332
-* ++[#++331++]++ Allow downgrade version without upgrade task by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/333
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/329[#329]] make posixGroup AUXILIARY by default by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/332
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/331[#331]] Allow downgrade version without upgrade task by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/333
 * Bump org.openidentityplatform.commons 2.1.3 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/334
 * Add Build test on MacOS M1 arm64 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/335
 * Restore macos-latest build strategy by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/336
@@ -867,7 +875,7 @@ Published: 2024-01-17 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 * FIX CLIENT++_++SIDE++_++NO++_++RESULTS++_++RETURNED in hasNext() by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/315
 * update org.openidentityplatform.commons to 2.1.2-SNAPSHOT by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/316
 * FIX performance java.util.TimeZone.getTimeZone(TimeZone.java:516) is synchronized by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/318
-* ++[#++317++]++ sendUnsolicitedNotification can fail on client disconnect with OnErrorNotImplementedException by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/320
+* [link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/317[#317]] sendUnsolicitedNotification can fail on client disconnect with OnErrorNotImplementedException by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/320
 * org.openidentityplatform.commons 2.1.2 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/321
 
 *Full Changelog*: https://github.com/OpenIdentityPlatform/OpenDJ/compare/4.6.1\...4.6.2
@@ -899,8 +907,8 @@ Published: 2023-09-22 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 ==== What's Changed
 
 * Generate SHA256WithRSA certificate as default by https://github.com/FireBurn[@FireBurn] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/297
-* convert JMX metrics to appropriate type ++#++293 by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/300
-* Fix attribute value. bean should return native object ++#++293 by https://github.com/yurem[@yurem] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/301
+* convert JMX metrics to appropriate type link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/293[#293] by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/300
+* Fix attribute value. bean should return native object link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/293[#293] by https://github.com/yurem[@yurem] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/301
 * Remove TLSv1 as default protocol FIX https://github.com/OpenIdentityPlatform/OpenDJ/issues/298 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/303
 * nexus-staging-maven-plugin 1.6.13 {plus} disable auto release by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/305
 
@@ -976,7 +984,7 @@ Published: 2022-08-02 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 ==== What's Changed
 
 * update commons version to 2.0.16-SNAPSHOT by https://github.com/maximthomas[@maximthomas] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/238
-* 'find' command is missing in the 4.5.0 docker image ++#++242 by https://github.com/samene[@samene] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/243
+* 'find' command is missing in the 4.5.0 docker image link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/242[#242] by https://github.com/samene[@samene] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/243
 * FIX wine32 install (from ppa:ondrej/php so that we will be able to install wine32:i386 without conflicts) by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/245
 * Don't clone buffer in ldap codec by https://github.com/yurem[@yurem] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/248
 * Add BCFKS FIPS key store type support by https://github.com/yurem[@yurem] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/247
@@ -1014,7 +1022,7 @@ Published: 2022-06-01 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 * Add support jdk '16','17','18' by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/232
 * support AD attributes userAccountControl, msDS-UserAccountDisabled and pwdLastSet by https://github.com/Dieken[@Dieken] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/233
 * Test {plus} Run on jdk15{plus} by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/234
-* FIX OpenDJ is not logging errors to logfile ++#++128 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/235
+* FIX OpenDJ is not logging errors to logfile link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/128[#128] by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/235
 * FIX Windows install to path with spaces https://github.com/OpenIdentityPlatform/OpenDJ/issues/199 by https://github.com/vharseko[@vharseko] in https://github.com/OpenIdentityPlatform/OpenDJ/pull/236
 
 ==== New Contributors
@@ -1079,235 +1087,235 @@ Published: 2022-04-22 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ
 
 Published: 2021-06-21 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.11[Original release notes and downloads].
 
-8aac222\...ab5cb61
+https://github.com/OpenIdentityPlatform/OpenDJ/compare/8aac222\...ab5cb61[8aac222\...ab5cb61]
 
 [#history-4-4-10]
 === OpenDJ 4.4.10
 
 Published: 2021-02-08 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.10[Original release notes and downloads].
 
-4bb00de00acc126edf569b058019636c3e9a2fe5\...5918ac90920e140a5cdd693728c7a8ab1392e866
+https://github.com/OpenIdentityPlatform/OpenDJ/compare/4bb00de00acc126edf569b058019636c3e9a2fe5\...5918ac90920e140a5cdd693728c7a8ab1392e866[4bb00de00acc126edf569b058019636c3e9a2fe5\...5918ac90920e140a5cdd693728c7a8ab1392e866]
 
 [#history-4-4-9]
 === OpenDJ 4.4.9
 
 Published: 2020-12-30 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.9[Original release notes and downloads].
 
-70a23bc\...9a7f513
+https://github.com/OpenIdentityPlatform/OpenDJ/compare/70a23bc\...9a7f513[70a23bc\...9a7f513]
 
 [#history-4-4-8]
 === OpenDJ 4.4.8
 
 Published: 2020-11-10 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.8[Original release notes and downloads].
 
-bd1ac34\...70a23bc
+https://github.com/OpenIdentityPlatform/OpenDJ/compare/bd1ac34\...70a23bc[bd1ac34\...70a23bc]
 
 [#history-4-4-7]
 === OpenDJ 4.4.7
 
 Published: 2020-09-09 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.7[Original release notes and downloads].
 
-8411956\...bd1ac34
+https://github.com/OpenIdentityPlatform/OpenDJ/compare/8411956\...bd1ac34[8411956\...bd1ac34]
 
 [#history-4-4-6]
 === OpenDJ 4.4.6
 
 Published: 2020-06-11 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.6[Original release notes and downloads].
 
-0916bac\...8411956
+https://github.com/OpenIdentityPlatform/OpenDJ/compare/0916bac\...8411956[0916bac\...8411956]
 
 [#history-4-4-5]
 === OpenDJ 4.4.5
 
 Published: 2020-03-10 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.5[Original release notes and downloads].
 
-00c8d42\...0916bac
+https://github.com/OpenIdentityPlatform/OpenDJ/compare/00c8d42\...0916bac[00c8d42\...0916bac]
 
 [#history-4-4-4]
 === OpenDJ 4.4.4
 
 Published: 2020-02-21 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.4[Original release notes and downloads].
 
-compare 93e2ea0\...00c8d42
+compare https://github.com/OpenIdentityPlatform/OpenDJ/compare/93e2ea0\...00c8d42[93e2ea0\...00c8d42]
 
 [#history-4-4-3]
 === OpenDJ 4.4.3
 
 Published: 2019-07-29 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.3[Original release notes and downloads].
 
-compare: cb421e386051d5d7b9b9d4155f979f23a3bb70eb\...93e2ea029d18a6ca81d837c43228f274d4f0ce61
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/cb421e386051d5d7b9b9d4155f979f23a3bb70eb\...93e2ea029d18a6ca81d837c43228f274d4f0ce61[cb421e386051d5d7b9b9d4155f979f23a3bb70eb\...93e2ea029d18a6ca81d837c43228f274d4f0ce61]
 
 [#history-4-4-2]
 === OpenDJ 4.4.2
 
 Published: 2019-04-29 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.2[Original release notes and downloads].
 
-compare: fa7d144b1123d58bc24fa59ccb68acf7c37e00b7\...cb421e386051d5d7b9b9d4155f979f23a3bb70eb
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/fa7d144b1123d58bc24fa59ccb68acf7c37e00b7\...cb421e386051d5d7b9b9d4155f979f23a3bb70eb[fa7d144b1123d58bc24fa59ccb68acf7c37e00b7\...cb421e386051d5d7b9b9d4155f979f23a3bb70eb]
 
 [#history-4-4-1]
 === OpenDJ 4.4.1
 
 Published: 2019-03-10 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.4.1[Original release notes and downloads].
 
-compare: 9b5a2867776ba4c5e1d5ed871937557f0154ad30\...fa7d144b1123d58bc24fa59ccb68acf7c37e00b7
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/9b5a2867776ba4c5e1d5ed871937557f0154ad30\...fa7d144b1123d58bc24fa59ccb68acf7c37e00b7[9b5a2867776ba4c5e1d5ed871937557f0154ad30\...fa7d144b1123d58bc24fa59ccb68acf7c37e00b7]
 
 [#history-4-3-5]
 === OpenDJ 4.3.5
 
 Published: 2019-03-04 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.5[Original release notes and downloads].
 
-compare: 9a957ec6139ff3ab62490c4480b48e90322bd104\...ef6330cd477fdf2ddd8a0a3a115226aeb7230cbd
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/9a957ec6139ff3ab62490c4480b48e90322bd104\...ef6330cd477fdf2ddd8a0a3a115226aeb7230cbd[9a957ec6139ff3ab62490c4480b48e90322bd104\...ef6330cd477fdf2ddd8a0a3a115226aeb7230cbd]
 
 [#history-4-3-4]
 === OpenDJ 4.3.4
 
 Published: 2019-02-17 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.4[Original release notes and downloads].
 
-compare: 81d03a4f69ddefa02d2fe9a87565b1d127753c14\...9a957ec6139ff3ab62490c4480b48e90322bd104
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/81d03a4f69ddefa02d2fe9a87565b1d127753c14\...9a957ec6139ff3ab62490c4480b48e90322bd104[81d03a4f69ddefa02d2fe9a87565b1d127753c14\...9a957ec6139ff3ab62490c4480b48e90322bd104]
 
 [#history-4-3-3]
 === OpenDJ 4.3.3
 
 Published: 2019-02-08 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.3[Original release notes and downloads].
 
-compare: 7c12598c79a20ad207906b8a988819267f5caa40\...81d03a4f69ddefa02d2fe9a87565b1d127753c14
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/7c12598c79a20ad207906b8a988819267f5caa40\...81d03a4f69ddefa02d2fe9a87565b1d127753c14[7c12598c79a20ad207906b8a988819267f5caa40\...81d03a4f69ddefa02d2fe9a87565b1d127753c14]
 
 [#history-4-3-2]
 === OpenDJ 4.3.2
 
 Published: 2019-01-29 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.2[Original release notes and downloads].
 
-compare: fb933c66527ddaafc0e78da9d454228af7b1d4dd\...7c12598c79a20ad207906b8a988819267f5caa40
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/fb933c66527ddaafc0e78da9d454228af7b1d4dd\...7c12598c79a20ad207906b8a988819267f5caa40[fb933c66527ddaafc0e78da9d454228af7b1d4dd\...7c12598c79a20ad207906b8a988819267f5caa40]
 
 [#history-4-3-1]
 === OpenDJ 4.3.1
 
 Published: 2018-12-10 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.3.1[Original release notes and downloads].
 
-compare: 8899b0c955f5827cf1b83152cd40c44d9487c8a8\...fb933c66527ddaafc0e78da9d454228af7b1d4dd
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/8899b0c955f5827cf1b83152cd40c44d9487c8a8\...fb933c66527ddaafc0e78da9d454228af7b1d4dd[8899b0c955f5827cf1b83152cd40c44d9487c8a8\...fb933c66527ddaafc0e78da9d454228af7b1d4dd]
 
 [#history-4-2-5]
 === OpenDJ 4.2.5
 
 Published: 2018-10-26 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.5[Original release notes and downloads].
 
-compare: 1b0914bf8436f7d8a391b5a36078edd356cb4ace\...63d3280b3ed35a3823f25669946ae7c5e63d5360
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/1b0914bf8436f7d8a391b5a36078edd356cb4ace\...63d3280b3ed35a3823f25669946ae7c5e63d5360[1b0914bf8436f7d8a391b5a36078edd356cb4ace\...63d3280b3ed35a3823f25669946ae7c5e63d5360]
 
 [#history-4-2-4]
 === OpenDJ 4.2.4
 
 Published: 2018-10-18 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.4[Original release notes and downloads].
 
-compare: d03807f7a4ff00e7cf5eae12324a1afdd410ce14\...1b0914bf8436f7d8a391b5a36078edd356cb4ace
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/d03807f7a4ff00e7cf5eae12324a1afdd410ce14\...1b0914bf8436f7d8a391b5a36078edd356cb4ace[d03807f7a4ff00e7cf5eae12324a1afdd410ce14\...1b0914bf8436f7d8a391b5a36078edd356cb4ace]
 
 [#history-4-2-3]
 === OpenDJ 4.2.3
 
 Published: 2018-10-17 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.3[Original release notes and downloads].
 
-compare: 363d6ebe9dd41402ee9290d8c226ab837076ecbc\...d03807f7a4ff00e7cf5eae12324a1afdd410ce14
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/363d6ebe9dd41402ee9290d8c226ab837076ecbc\...d03807f7a4ff00e7cf5eae12324a1afdd410ce14[363d6ebe9dd41402ee9290d8c226ab837076ecbc\...d03807f7a4ff00e7cf5eae12324a1afdd410ce14]
 
 [#history-4-2-2]
 === OpenDJ 4.2.2
 
 Published: 2018-10-08 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.2[Original release notes and downloads].
 
-compare: 3aceb19e4cf775fce39af5e587b8f38238401c67\...363d6ebe9dd41402ee9290d8c226ab837076ecbc
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/3aceb19e4cf775fce39af5e587b8f38238401c67\...363d6ebe9dd41402ee9290d8c226ab837076ecbc[3aceb19e4cf775fce39af5e587b8f38238401c67\...363d6ebe9dd41402ee9290d8c226ab837076ecbc]
 
 [#history-4-2-1]
 === OpenDJ 4.2.1
 
 Published: 2018-10-05 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.2.1[Original release notes and downloads].
 
-compare: 680b98e3c04d49408caf052c5913586964ba73cd\...3aceb19e4cf775fce39af5e587b8f38238401c67
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/680b98e3c04d49408caf052c5913586964ba73cd\...3aceb19e4cf775fce39af5e587b8f38238401c67[680b98e3c04d49408caf052c5913586964ba73cd\...3aceb19e4cf775fce39af5e587b8f38238401c67]
 
 [#history-4-1-10]
 === OpenDJ 4.1.10
 
 Published: 2018-05-30 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.10[Original release notes and downloads].
 
-compare: fec67fa7927fa3d0f3e69ad389d7dd7134446230\...ca621ffe4f925c4ed265ea3528121b4cf7b0e316
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/fec67fa7927fa3d0f3e69ad389d7dd7134446230\...ca621ffe4f925c4ed265ea3528121b4cf7b0e316[fec67fa7927fa3d0f3e69ad389d7dd7134446230\...ca621ffe4f925c4ed265ea3528121b4cf7b0e316]
 
 [#history-4-1-9]
 === OpenDJ 4.1.9
 
 Published: 2018-05-25 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.9[Original release notes and downloads].
 
-compare: 54cbf76b695fa155a58f6d84fcd0c805d849d699\...fec67fa7927fa3d0f3e69ad389d7dd7134446230
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/54cbf76b695fa155a58f6d84fcd0c805d849d699\...fec67fa7927fa3d0f3e69ad389d7dd7134446230[54cbf76b695fa155a58f6d84fcd0c805d849d699\...fec67fa7927fa3d0f3e69ad389d7dd7134446230]
 
 [#history-4-1-8]
 === OpenDJ 4.1.8
 
 Published: 2018-05-12 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.8[Original release notes and downloads].
 
-compare: ae0ceac5f6630792beb1f38513a0fabb6cc3d14d\...54cbf76b695fa155a58f6d84fcd0c805d849d699
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/ae0ceac5f6630792beb1f38513a0fabb6cc3d14d\...54cbf76b695fa155a58f6d84fcd0c805d849d699[ae0ceac5f6630792beb1f38513a0fabb6cc3d14d\...54cbf76b695fa155a58f6d84fcd0c805d849d699]
 
 [#history-4-1-7]
 === OpenDJ 4.1.7
 
 Published: 2018-05-01 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.7[Original release notes and downloads].
 
-compare: a1811887fba597e0e6fc977c0d38ab371a404d67\...ae0ceac5f6630792beb1f38513a0fabb6cc3d14d
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/a1811887fba597e0e6fc977c0d38ab371a404d67\...ae0ceac5f6630792beb1f38513a0fabb6cc3d14d[a1811887fba597e0e6fc977c0d38ab371a404d67\...ae0ceac5f6630792beb1f38513a0fabb6cc3d14d]
 
 [#history-4-1-6]
 === OpenDJ 4.1.6
 
 Published: 2018-04-10 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.6[Original release notes and downloads].
 
-compare: 48b098f623e17371b951d5268d4e8c15a7fc486b\...a1811887fba597e0e6fc977c0d38ab371a404d67
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/48b098f623e17371b951d5268d4e8c15a7fc486b\...a1811887fba597e0e6fc977c0d38ab371a404d67[48b098f623e17371b951d5268d4e8c15a7fc486b\...a1811887fba597e0e6fc977c0d38ab371a404d67]
 
 [#history-4-1-5]
 === OpenDJ 4.1.5
 
 Published: 2018-03-06 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.5[Original release notes and downloads].
 
-compare: fd41fa682efe32c9722e39c55ffd691d79b2e9dd\...48b098f623e17371b951d5268d4e8c15a7fc486b
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/fd41fa682efe32c9722e39c55ffd691d79b2e9dd\...48b098f623e17371b951d5268d4e8c15a7fc486b[fd41fa682efe32c9722e39c55ffd691d79b2e9dd\...48b098f623e17371b951d5268d4e8c15a7fc486b]
 
 [#history-4-1-4]
 === OpenDJ 4.1.4
 
 Published: 2018-03-03 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.4[Original release notes and downloads].
 
-compare: a3dc05fa0852ddb2dc348a2dfb58ad480c32643d\...fd41fa682efe32c9722e39c55ffd691d79b2e9dd
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/a3dc05fa0852ddb2dc348a2dfb58ad480c32643d\...fd41fa682efe32c9722e39c55ffd691d79b2e9dd[a3dc05fa0852ddb2dc348a2dfb58ad480c32643d\...fd41fa682efe32c9722e39c55ffd691d79b2e9dd]
 
 [#history-4-1-3]
 === OpenDJ 4.1.3
 
 Published: 2018-02-28 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.3[Original release notes and downloads].
 
-compare: 5c3e59895964bf50a1592ad37d604a0ea0228b5b\...a3dc05fa0852ddb2dc348a2dfb58ad480c32643d
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/5c3e59895964bf50a1592ad37d604a0ea0228b5b\...a3dc05fa0852ddb2dc348a2dfb58ad480c32643d[5c3e59895964bf50a1592ad37d604a0ea0228b5b\...a3dc05fa0852ddb2dc348a2dfb58ad480c32643d]
 
 [#history-4-1-2]
 === OpenDJ 4.1.2
 
 Published: 2018-02-28 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.2[Original release notes and downloads].
 
-compare: 3768a8dfc51b092fdcaa74929293cfd49e766403\...5c3e59895964bf50a1592ad37d604a0ea0228b5b
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/3768a8dfc51b092fdcaa74929293cfd49e766403\...5c3e59895964bf50a1592ad37d604a0ea0228b5b[3768a8dfc51b092fdcaa74929293cfd49e766403\...5c3e59895964bf50a1592ad37d604a0ea0228b5b]
 
 [#history-4-1-1]
 === OpenDJ 4.1.1
 
 Published: 2018-02-23 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.1.1[Original release notes and downloads].
 
-compare: 69fa20bc7d1780076bbd6a8eefc5d457fd2c9d4e\...3768a8dfc51b092fdcaa74929293cfd49e766403
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/69fa20bc7d1780076bbd6a8eefc5d457fd2c9d4e\...3768a8dfc51b092fdcaa74929293cfd49e766403[69fa20bc7d1780076bbd6a8eefc5d457fd2c9d4e\...3768a8dfc51b092fdcaa74929293cfd49e766403]
 
 [#history-4-0-3]
 === OpenDJ 4.0.3
 
 Published: 2018-02-20 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.0.3[Original release notes and downloads].
 
-compare: 6c5dc296ca164f611ee1b9e6d859e98740cfd1e4\...69fa20bc7d1780076bbd6a8eefc5d457fd2c9d4e
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/6c5dc296ca164f611ee1b9e6d859e98740cfd1e4\...69fa20bc7d1780076bbd6a8eefc5d457fd2c9d4e[6c5dc296ca164f611ee1b9e6d859e98740cfd1e4\...69fa20bc7d1780076bbd6a8eefc5d457fd2c9d4e]
 
 [#history-4-0-2]
 === OpenDJ 4.0.2
 
 Published: 2018-02-16 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.0.2[Original release notes and downloads].
 
-compare: ae848be258db66917554b6f2c24d03d7e207980f\...6c5dc296ca164f611ee1b9e6d859e98740cfd1e4
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/ae848be258db66917554b6f2c24d03d7e207980f\...6c5dc296ca164f611ee1b9e6d859e98740cfd1e4[ae848be258db66917554b6f2c24d03d7e207980f\...6c5dc296ca164f611ee1b9e6d859e98740cfd1e4]
 
 [#history-4-0-1]
 === OpenDJ 4.0.1
 
 Published: 2018-02-16 (UTC). link:https://github.com/OpenIdentityPlatform/OpenDJ/releases/tag/4.0.1[Original release notes and downloads].
 
-compare: b769b7ec8c3e7d7a6d89bb76b53db4735141781c\...ae848be258db66917554b6f2c24d03d7e207980f
+compare: https://github.com/OpenIdentityPlatform/OpenDJ/compare/b769b7ec8c3e7d7a6d89bb76b53db4735141781c\...ae848be258db66917554b6f2c24d03d7e207980f[b769b7ec8c3e7d7a6d89bb76b53db4735141781c\...ae848be258db66917554b6f2c24d03d7e207980f]

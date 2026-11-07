@@ -28,6 +28,12 @@ Use `xref:../guide/chapter.adoc#anchor[Title]` for cross-guide links and `xref:.
 
 `release-notes` contains version-specific summaries and installation/upgrade considerations. Verify release facts against the tagged source and the GitHub release record. Keep `release-history.adoc` as a dated snapshot of the full published GitHub release descriptions, in reverse publication order. Preserve their text, contributor credits and links when converting Markdown to AsciiDoc; use GitHub publication dates in UTC. Refresh the snapshot and its retrieval date when adding a release. Keep links to the original release records, complete comparisons and security advisories. Add a chapter and update the book includes when documenting a new release; do not silently relabel an older release's notes.
 
+Use the release Markdown as the text source. Keep Java tokens such as `@Override` and `@param` literal, retain command placeholders such as `--help-<subcommand>`, and escape three-dot commit ranges so Asciidoctor does not replace them with an ellipsis. Turn issue references and commit ranges into links to this repository's issues and comparisons, preserving their displayed text and surrounding punctuation. Honor explicit repository qualifiers, such as `OpenIdentityPlatform/OpenAM#980`, instead of linking them to OpenDJ. Normalize hyphens in CVE identifiers to ASCII `-` so they remain searchable and copyable.
+
+Only the explicit `history-X-Y-Z` release anchors are stable. Link to those anchors, rather than generated subsection IDs such as `_whats_changed_2`, which shift when a new release is prepended.
+
+The Release Notes book uses Asciidoctor PDF's bundled `default-with-font-fallbacks` theme for supporter emoji. The `release-heart` attribute preserves the original emoji presentation selector in HTML and omits that invisible selector in PDF, where the bundled fonts do not support it.
+
 Both books follow the same Maven, Antora and PDF pipeline as How-To. Their site PDF filenames are `Getting_Started.pdf` and `Release_Notes.pdf`. Register their navigation before the Installation Guide. The historical DocBook sources are maintained separately and are not inputs to these new guides.
 
 ## Wiki migration inventory

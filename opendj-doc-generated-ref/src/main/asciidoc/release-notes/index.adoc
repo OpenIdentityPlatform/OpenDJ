@@ -16,6 +16,7 @@ Copyright 2026 3A Systems, LLC.
 
 = Release Notes
 :doctype: book
+:pdf-theme: default-with-font-fallbacks
 :toc:
 :copyright: Copyright 2026 3A Systems, LLC.
 :imagesdir: ../
