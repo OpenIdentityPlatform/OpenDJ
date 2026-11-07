@@ -22,6 +22,7 @@
 # runs restarts with it.
 
 DISTURBED=$(echo $DS_NODES | cut -d' ' -f2)
+DISTURB_STEPS=1
 
 # docker restart sends SIGTERM and kills the server once its timeout is over: 10 s by default,
 # less than a server under load may need to stop, and a killed server is another disturbance.
@@ -30,11 +31,17 @@ DISTURBED=$(echo $DS_NODES | cut -d' ' -f2)
 # its start fails on a loaded runner are expected there (replication_errors). The window closes
 # 10 s after the server serves again: a handshake its start began can still fail then, and a
 # peer logs 145 only once its wait for the domain lock, of up to 8 s, is over
-# (ServerHandler.lockDomainWithTimeout). A handshake that fails later is an error again
+# (ServerHandler.lockDomainWithTimeout). A handshake that fails later is an error again.
+# A combined server also restarts its RS, whose hostname can temporarily stop resolving.
+# Expect ERROR 51 only for that exact hostname inside this window; a DS-only restart receives
+# no DNS allowance, and disconnect, recovery and monitor errors remain failures.
 disturb() {
   local from served
   echo "    [$SECONDS s] restarting $DISTURBED"
-  window_open
+  case " $RS_NODES " in
+    *" $DISTURBED "*) window_open "dns:$DISTURBED" ;;
+    *) window_open ;;
+  esac
   from=$(date +%s)
   docker restart -t 120 $DISTURBED >/dev/null
   wait_until $DISTURB_TIMEOUT "$DISTURBED serves again" started_since $DISTURBED $from

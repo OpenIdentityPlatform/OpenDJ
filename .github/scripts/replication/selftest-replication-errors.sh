@@ -17,8 +17,9 @@
 
 # A self-test of the errors log check of the replication convergence run (#1208), with no
 # topology: which records replication_errors takes for errors and which ones a disturbance
-# window expects. A green row does not show it - nothing a disturbance expects is logged outside
-# its window there, and the base rows have no window - so docker-convergence runs this first.
+# window expects: failed handshakes and the msgIDs or dns:<hostname> tokens it was opened with.
+# A green row does not show it - nothing a disturbance expects is logged outside its window
+# there, and the base rows have no window - so docker-convergence runs this first.
 # docker is a stub that reads a local errors log: mark_logs, window_open and window_close count
 # its lines, since_mark reads it, as they do in a container.
 #
@@ -55,11 +56,51 @@ E45='[t] category=SYNC severity=ERROR msgID=45 msg=an id that ends like one a wi
 E106ID='[t] category=SYNC severity=ERROR msgID=106 msg=Replication server 32179 lost its connection'
 N62='[t] category=SYNC severity=NOTICE msgID=62 msg=Directory server DS(1) has connected'
 CORE178='[t] category=CORE severity=ERROR msgID=178 msg=not a replication error'
+# What an RS disturbance can leave behind, and ids like its allowances.
+E180='[t] category=SYNC severity=ERROR msgID=180 msg=Directory server DS(13411) encountered an error while receiving changes for domain "dc=example,dc=com" from replication server RS(23837) at cv-r0:8989. The connection will be closed, and this directory server will now try to connect to another replication server'
+E181='[t] category=SYNC severity=ERROR msgID=181 msg=The connection from this replication server RS(31531) to replication server RS(23837) at cv-r0:8989 for domain "dc=example,dc=com" has failed'
+E284="[t] category=SYNC severity=ERROR msgID=284 msg=Log file '/opt/opendj/data/changelogDb/2.dom/13411.server/head.log' was successfully recovered by removing a partially written record"
+E211='[t] category=SYNC severity=ERROR msgID=211 msg=The connection from this replication server RS(31531) to directory server DS(24329) at cv-d1:8989 for domain "dc=example,dc=com" has failed'
+E66='[t] category=SYNC severity=ERROR msgID=66 msg=monitor reply failed'
+E108='[t] category=SYNC severity=ERROR msgID=108 msg=monitor request failed'
+E51='[05/Nov/2026:19:18:17 +0000] category=SYNC severity=ERROR msgID=51 msg=The hostname cv-r0 could not be resolved as an IP address'
+E18='[t] category=SYNC severity=ERROR msgID=18 msg=an id that starts the first one a window lists'
+E80='[t] category=SYNC severity=ERROR msgID=80 msg=an id that ends the first one a window lists'
+E106KILL='[t] category=SYNC severity=ERROR msgID=106 msg=an id a window lists, 181, in the message'
+# records the check reads for their certificate alert, under an id a window lists
+WBAD181=${WBAD/msgID=119/msgID=181}
+WBADCORE181=${WBADCORE/msgID=1/msgID=181}
+KILL='[ dns:cv-r0 180 181 284'
+# Read the restart allowances from its entry point so the filter cases also detect a missing
+# or widened production allowance. Only the Docker lifecycle is replaced here.
+RESTART=$(
+  RS_ONLY='cv-r0 cv-r1' RS_NODES='cv-r0 cv-r1'
+  . "$HERE/disturb-restart-rs.sh"
+  down_and_up() { shift; printf '[ %s' "$*"; }
+  disturb
+)
+# Run the DS entry point too: the combined restart receives a DNS token, while a DS-only
+# restart does not. Keep the production window arguments and replace only the lifecycle.
+ds_restart_window() (
+  DS_NODES=$1 RS_NODES=$2 DISTURB_TIMEOUT=900
+  . "$HERE/disturb-restart-ds.sh"
+  window_open() { printf '[%s' "${*:+ $*}" >"$OUT/ds-restart-window"; }
+  window_close() { :; }
+  docker() { :; }
+  wait_until() { :; }
+  sleep() { :; }
+  date() { echo 100; }
+  disturb >/dev/null
+  cat "$OUT/ds-restart-window"
+)
+RESTART_DS=$(ds_restart_window 'cv-d0 cv-d1' 'cv-r0 cv-r1')
+RESTART_COMBINED=$(ds_restart_window 'cv-c0 cv-c1 cv-c2 cv-c3' 'cv-c0 cv-c1 cv-c2 cv-c3')
 
 passed=0 failed=0
-# case <name> <errors> <expected> <record, [ or ]>...: the errors log holds two errors before
-# mark_logs, which are not the run's, then the records given; [ opens a window and ] closes it.
-# The number of records replication_errors prints, and of those it sends to logs/n0.expected
+# case <name> <errors> <expected> <record, [, [ <msgID>|dns:<hostname>... or ]>...: the errors log
+# holds two errors before mark_logs, which are not the run's, then the records given; [ opens a
+# window with the msgIDs or DNS tokens that follow it, and ] closes it. Count replication_errors
+# output records and those it sends to logs/n0.expected.
 case_() {
   local name=$1 want_errors=$2 want_expected=$3 record errors expected
   shift 3
@@ -69,6 +110,7 @@ case_() {
   for record; do
     case $record in
       '[') window_open ;;
+      '[ '*) window_open ${record#\[ } ;;
       ']') window_close ;;
       *) echo "$record" >>"$LOG" ;;
     esac
@@ -103,6 +145,73 @@ case_ after-a-window             1 1 '[' "$N62" "$E178" ']' "$E178"
 case_ two-windows                0 2 '[' "$E178" ']' "$N62" '[' "$E179" ']'
 case_ between-two-windows        1 2 '[' "$E178" ']' "$E179" '[' "$E178" ']'
 case_ mixed                      2 2 '[' "$E178" "$E106" "$W119" "$WBAD" "$N62" ']'
+case_ 180-in-a-kill-window       0 1 "$KILL" "$E180" ']'
+case_ 181-in-a-kill-window       0 1 "$KILL" "$E181" ']'
+case_ 284-in-a-kill-window       0 1 "$KILL" "$E284" ']'
+case_ handshakes-in-kill-window  0 2 "$KILL" "$E178" "$W119" ']'
+case_ 181-in-another-window      1 0 '[' "$E181" ']'
+case_ 181-outside-a-window       1 0     "$E181"
+case_ 181-after-a-kill-window    1 1 "$KILL" "$E284" ']' "$E181"
+case_ ids-like-listed-ones       2 0 "$KILL" "$E18" "$E80" ']'
+case_ listed-id-in-the-message   1 0 "$KILL" "$E106KILL" ']'
+case_ another-in-a-kill-window   1 0 "$KILL" "$E106" ']'
+case_ listed-id-not-sync-error   2 0 "$KILL" "$WBAD181" "$WBADCORE181" ']'
+case_ kill-window-then-another   1 2 "$KILL" "$E180" ']' "$N62" '[' "$E181" "$E145" ']'
+case_ another-then-kill-window   0 2 '[' ']' "$N62" "$KILL" "$E181" "$E145" ']'
+
+# DNS failures of only the named RS are expected, and only in its own window.
+# Removing the host, message, ID or window checks must expose a failure here.
+case_ killed-rs-dns              0 1 "$KILL" "$E51" ']'
+case_ dns-before-after-window    2 1 "$E51" "$KILL" "$E51" ']' "$E51"
+case_ dns-without-window         1 0 "$E51"
+case_ dns-window-without-token   1 0 '[' "$E51" ']'
+case_ dns-ds-crash               1 0 '[ 211' "$E51" ']'
+case_ dns-combined-without-token 1 0 '[ 180 181 211 284' "$E51" ']'
+case_ dns-combined-host          0 1 '[ dns:cv-c1 180 181 211 284' "${E51/cv-r0/cv-c1}" ']'
+case_ dns-restarted-rs           0 1 "$RESTART" "$E51" ']'
+case_ dns-combined-ds-restart    0 1 "$RESTART_COMBINED" "${E51/cv-r0/cv-c1}" ']'
+case_ dns-ds-only-restart        1 0 "$RESTART_DS" "${E51/cv-r0/cv-d1}" ']'
+case_ dns-other-host-ds-restart  1 0 "$RESTART_COMBINED" "${E51/cv-r0/cv-c2}" ']'
+case_ dns-before-after-ds-restart 2 1 "${E51/cv-r0/cv-c1}" "$RESTART_COMBINED" \
+                                   "${E51/cv-r0/cv-c1}" ']' "${E51/cv-r0/cv-c1}"
+case_ dns-other-host             1 0 "$KILL" "${E51/cv-r0/cv-r1}" ']'
+case_ dns-host-prefix            1 0 "$KILL" "${E51/cv-r0/cv-r}" ']'
+case_ dns-host-suffix            1 0 "$KILL" "${E51/cv-r0/cv-r01}" ']'
+case_ dns-other-id               1 0 "$KILL" "${E51/msgID=51/msgID=151}" ']'
+case_ dns-other-message          1 0 "$KILL" "${E51/msg=The hostname/msg=Unexpected hostname}" ']'
+case_ dns-message-suffix         1 0 "$KILL" "$E51 extra" ']'
+case_ dns-embedded-message       1 0 "$KILL" "${E51/msg=The hostname/msg=Unexpected DNS failure msg=The hostname}" ']'
+case_ dns-next-window            1 1 "$KILL" "$E51" ']' '[' "$E51" ']'
+case_ dns-window-hosts           2 2 "$KILL" "$E51" "${E51/cv-r0/cv-r1}" ']' \
+                                   '[ dns:cv-r1' "$E51" "${E51/cv-r0/cv-r1}" ']'
+case_ monitors-in-rs-kill        2 0 "$KILL" "$E66" "$E108" ']'
+
+# DS crash allowances do not leak into graceful restarts, later records, or RS-only kills.
+case_ ds-kill-disconnect         0 1 '[ 211' "$E211" ']'
+case_ ds-kill-without-rs         2 0 '[ 211' "$E180" "$E284" ']'
+case_ combined-kill              0 4 '[ dns:cv-c1 180 181 211 284' "$E180" "$E181" "$E211" "$E284" ']'
+case_ ds-disconnect-graceful     1 0 '[' "$E211" ']'
+case_ 180-in-rs-restart          0 1 "$RESTART" "$E180" ']'
+case_ 180-before-after-restart   2 1 "$E180" "$RESTART" "$E180" ']' "$E180"
+case_ 180-in-ds-restart          1 0 "$RESTART_DS" "$E180" ']'
+case_ combined-ds-restart-strict 6 0 "$RESTART_COMBINED" "$E180" "$E181" "$E211" "$E284" "$E66" "$E108" ']'
+case_ rs-restart-strict          5 0 "$RESTART" "$E181" "$E211" "$E284" "$E66" "$E108" ']'
+case_ ds-disconnect-rs-kill      1 0 "$KILL" "$E211" ']'
+case_ ds-disconnect-before-after 2 1 "$E211" '[ 211' "$E211" ']' "$E211"
+case_ monitors-in-combined-kill  2 0 '[ dns:cv-c1 180 181 211 284' "$E66" "$E108" ']'
+
+# A log that cannot be read stops window_open, which would otherwise open a window from its first
+# line. In the background: errexit is off in a subshell on the left of ||, and on in a job
+code=0
+rm -f "$LOG"
+(window_open 180 181 284) 2>/dev/null &
+wait $! || code=$?
+if [ "$code" -ne 0 ]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1))
+  echo "::error::window_open went on over an errors log that cannot be read"
+fi
 
 echo "replication_errors: $passed cases passed, $failed failed"
 [ "$failed" -eq 0 ]

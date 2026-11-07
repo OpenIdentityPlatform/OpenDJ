@@ -19,7 +19,8 @@
 
 TOPOLOGY=${TOPOLOGY:-rs534}
 # what disturbs the topology during the load (#1208): none, or the <name> of a disturb-<name>.sh
-# next to this script, which names the DISTURBED server and defines disturb, run during the load,
+# next to this script, which names the DISTURBED servers - one directory server, or replication
+# servers - the number of steps in DISTURB_STEPS, and defines disturb, run during the load,
 # and settle, run after it
 DISTURBANCE=${DISTURBANCE:-none}
 # seconds of load. A disturbed run takes the load of its CI rows: a restarted server served
