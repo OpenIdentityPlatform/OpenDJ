@@ -200,6 +200,23 @@ case_ ds-disconnect-rs-kill      1 0 "$KILL" "$E211" ']'
 case_ ds-disconnect-before-after 2 1 "$E211" '[ 211' "$E211" ']' "$E211"
 case_ monitors-in-combined-kill  2 0 '[ dns:cv-c1 180 181 211 284' "$E66" "$E108" ']'
 
+# Only the restarted DS may temporarily reject the new RS certificate during its window.
+WBAD_RS='[t] category=SYNC severity=WARNING msgID=119 msg=Directory server DS(1) encountered an unexpected error while connecting to replication server cv-r1:8989 for domain "dc=example,dc=com": SSLHandshakeException((bad_certificate) PKIX path validation failed)'
+case_ new-cert-exact            0 1 '[ cert:n0:cv-r1' "$WBAD_RS" ']'
+case_ new-cert-wrong-rs         1 0 '[ cert:n0:cv-r0' "$WBAD_RS" ']'
+case_ new-cert-wrong-ds         1 0 '[ cert:n1:cv-r1' "$WBAD_RS" ']'
+case_ new-cert-outside          2 1 "$WBAD_RS" '[ cert:n0:cv-r1' "$WBAD_RS" ']' "$WBAD_RS"
+case_ new-cert-unknown          1 0 '[ cert:n0:cv-r1' "${WBAD_RS/bad_certificate/other_error}" ']'
+case_ new-cert-other-category   1 0 '[ cert:n0:cv-r1' "${WBAD_RS/category=SYNC/category=CORE}" ']'
+# The RS also reports the rejected handshake, identifying the remote DS by IP and port.
+WBAD_PEER='[t] category=SYNC severity=WARNING msgID=105 msg=Replication server accepted a connection from /172.18.0.9:43210 to local address /172.18.0.2:8989 but the SSL handshake failed. The error was: Received fatal alert: bad_certificate'
+case_ new-cert-rs-side          0 1 '[ cert-peer:n0:172.18.0.9' "$WBAD_PEER" ']'
+case_ new-cert-rs-jdk-prefix    0 1 '[ cert-peer:n0:172.18.0.9' "${WBAD_PEER/The error was: Received/The error was: (bad_certificate) Received}" ']'
+case_ new-cert-rs-other-ip      1 0 '[ cert-peer:n0:172.18.0.8' "$WBAD_PEER" ']'
+case_ new-cert-rs-other-node    1 0 '[ cert-peer:n1:172.18.0.9' "$WBAD_PEER" ']'
+case_ new-cert-rs-outside       1 0 "$WBAD_PEER" '[ cert-peer:n0:172.18.0.9' ']'
+case_ new-cert-rs-other-fault   1 0 '[ cert-peer:n0:172.18.0.9' "${WBAD_PEER/Received fatal alert: bad_certificate/unexpected bad_certificate}" ']'
+
 # A log that cannot be read stops window_open, which would otherwise open a window from its first
 # line. In the background: errexit is off in a subshell on the left of ||, and on in a job
 code=0
@@ -211,6 +228,27 @@ if [ "$code" -ne 0 ]; then
 else
   failed=$((failed + 1))
   echo "::error::window_open went on over an errors log that cannot be read"
+fi
+
+# A replaced server has a new errors file. Preserve the old file as a prefix so marks and
+# window boundaries cover records on both volumes without accepting errors outside the window.
+rm -rf "$OUT/logs"
+printf '%s\n' "$E178" "$E106" >"$LOG"
+mark_logs
+printf '%s\n' "$E106" >>"$LOG"
+window_open 180
+printf '%s\n' "$E180" >>"$LOG"
+cp "$LOG" "$OUT/logs/n0.previous"
+printf '%s\n' "$E180" >"$LOG"
+window_close
+printf '%s\n' "$E106" >>"$LOG"
+errors=$(replication_errors n0 | grep -c . || true)
+expected=$(grep -c . "$OUT/logs/n0.expected" || true)
+if [ "$errors" = 2 ] && [ "$expected" = 2 ]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1))
+  echo "::error::replacement logs: $errors errors and $expected expected, wanted 2 each"
 fi
 
 echo "replication_errors: $passed cases passed, $failed failed"
