@@ -57,6 +57,8 @@ public class AntoraPageTitlesIT extends ForgeRockTestCase {
         return new Object[][] {
             { "release-notes", "release-5.2.0", "OpenDJ 5.2.0",
               new String[] { "release-5-2-0", "_selected_changes", "_distributions" } },
+            { "release-notes", "release-history", "Release History",
+              new String[] { "release-history", "history-5-2-0" } },
             { "release-notes", "requirements-and-upgrade", "Requirements and Upgrade Considerations",
               new String[] { "release-requirements", "_java_and_installation_environment", "_plan_an_upgrade",
                              "_compatibility_checks", "_known_issues_and_help" } },
@@ -90,11 +92,56 @@ public class AntoraPageTitlesIT extends ForgeRockTestCase {
         }
     }
 
+    @Test
+    public void releaseHistoryKeepsPublishedText() {
+        final String html = renderReleaseHistory();
+        assertThat(html).contains("8aac222...ab5cb61", "missing @Override annotations", "stale @param tags",
+                "--help-&lt;subcommand&gt;", "Become a backer 🙏", "Become a sponsor ❤️", "PKCS#1 v1.5")
+                .doesNotContain("href=\"https://github.com/Override\"", "href=\"https://github.com/param\"",
+                        "href=\"https://github.com/OpenIdentityPlatform/OpenDJ/issues/1\"");
+    }
+
+    @Test
+    public void releaseHistoryLinksIssuesAndCommitRanges() {
+        final String html = renderReleaseHistory();
+        assertThat(html).contains(
+                "[<a href=\"https://github.com/OpenIdentityPlatform/OpenDJ/issues/747\">#747</a>]",
+                "[<a href=\"https://github.com/OpenIdentityPlatform/OpenAM/issues/980\">"
+                        + "OpenIdentityPlatform/OpenAM#980</a>]",
+                "Addresses <a href=\"https://github.com/OpenIdentityPlatform/OpenDJ/issues/397\">#397</a>",
+                "[<a href=\"https://github.com/OpenIdentityPlatform/OpenDJ/issues/90\">#90</a>, "
+                        + "<a href=\"https://github.com/OpenIdentityPlatform/OpenDJ/issues/432\">#432</a>]",
+                "[<a href=\"https://github.com/OpenIdentityPlatform/OpenDJ/issues/148\">#148</a>,"
+                        + "<a href=\"https://github.com/OpenIdentityPlatform/OpenDJ/issues/261\">#261</a>,"
+                        + "<a href=\"https://github.com/OpenIdentityPlatform/OpenDJ/issues/282\">#282</a>]",
+                "<a href=\"https://github.com/OpenIdentityPlatform/OpenDJ/compare/8aac222...ab5cb61\">"
+                        + "8aac222...ab5cb61</a>",
+                "compare <a href=\"https://github.com/OpenIdentityPlatform/OpenDJ/compare/93e2ea0...00c8d42\">"
+                        + "93e2ea0...00c8d42</a>",
+                "compare: <a href=\"https://github.com/OpenIdentityPlatform/OpenDJ/compare/"
+                        + "b769b7ec8c3e7d7a6d89bb76b53db4735141781c...ae848be258db66917554b6f2c24d03d7e207980f\">"
+                        + "b769b7ec8c3e7d7a6d89bb76b53db4735141781c...ae848be258db66917554b6f2c24d03d7e207980f</a>");
+    }
+
+    @Test
+    public void releaseHistoryUsesSearchableCveIdentifiers() {
+        assertThat(renderReleaseHistory()).contains("CVE-2025-12194").doesNotContain("CVE\u20102025\u201012194");
+    }
+
+    private String renderReleaseHistory() {
+        final File input = new File(buildDirectory, "antora/modules/release-notes/pages/release-history.adoc");
+        assertThat(input).isFile();
+        return asciidoctor.convertFile(input,
+                Options.builder().safe(SafeMode.SAFE).attributes(Map.of("env-site", ""))
+                        .standalone(false).toFile(false).build());
+    }
+
     @DataProvider
     public Object[][] books() {
         return new Object[][] {
-            { "release-notes", new String[] { "OpenDJ 5.2.0", "Requirements and Upgrade Considerations" },
-              new String[] { "release-5-2-0", "release-requirements" } },
+            { "release-notes",
+              new String[] { "OpenDJ 5.2.0", "Requirements and Upgrade Considerations", "Release History" },
+              new String[] { "release-5-2-0", "release-requirements", "release-history" } },
             { "getting-started", new String[] { "Directory Concepts", "Your First Directory" },
               new String[] { "getting-started-overview", "getting-started-first-directory" } }
         };

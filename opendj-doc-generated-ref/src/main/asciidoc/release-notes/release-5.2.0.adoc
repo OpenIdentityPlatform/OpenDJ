@@ -39,7 +39,7 @@ The release includes the following changes, among others:
 * Docker improvements for arbitrary user IDs in group 0, secret handling, health checks, background replication joining and upgrades from a released image.
 * REST to LDAP fixes for HTTP Basic credentials and bind templates, and reloading file-based key stores and trust stores when their files change.
 
-This is a summary, not a second copy of the full change list. Use the release record to identify individual fixes and their pull requests.
+See xref:./release-history.adoc#history-5-2-0[the full 5.2.0 release notes] for individual fixes and their pull requests.
 
 === Distributions
 
