@@ -1145,14 +1145,17 @@ jobs:
       matrix:
         topology: [rs534, combined]
         # none: the base run; restart-ds and kill-ds: a directory server restarts or crashes;
-        # kill-rs and restart-rs: one RS is killed or gracefully restarted per fresh topology
-        # while every DS writes. Only rs534 has replication servers apart from directory servers.
-        disturbance: [none, restart-ds, kill-ds, kill-rs, restart-rs]
+        # kill-rs and restart-rs: one RS is killed or gracefully restarted per fresh topology;
+        # empty-rs rebuilds an RS while one DS is down, then tests failover to each RS.
+        # Only rs534 has replication servers apart from directory servers.
+        disturbance: [none, restart-ds, kill-ds, kill-rs, restart-rs, empty-rs]
         exclude:
           - topology: combined
             disturbance: kill-rs
           - topology: combined
             disturbance: restart-rs
+          - topology: combined
+            disturbance: empty-rs
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -1168,6 +1171,8 @@ jobs:
           .github/scripts/replication/selftest-disturb-restart-ds.sh
           .github/scripts/replication/selftest-disturb-kill-ds.sh
           .github/scripts/replication/selftest-disturb-rs.sh
+          .github/scripts/replication/selftest-disturb-empty-rs.sh
+          python3 .github/scripts/replication/selftest-changelog-checkpoint.py
           .github/scripts/replication/selftest-summary.sh
       - name: Download the image
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2

@@ -33,6 +33,7 @@ command -v python3 >/dev/null || { echo "run.sh needs python3" >&2; exit 2; }
 . "$HERE/load.sh"
 . "$HERE/assert-converged.sh"
 . "$HERE/collect.sh"
+after_convergence() { :; }
 if [ "$DISTURBANCE" != none ]; then
   [ -f "$HERE/disturb-$DISTURBANCE.sh" ] \
     || { echo "unknown DISTURBANCE $DISTURBANCE: none, or the <name> of a disturb-<name>.sh in $HERE" >&2; exit 2; }
@@ -88,6 +89,7 @@ load_end=$SECONDS
 [ "$DISTURBANCE" = none ] || settle
 wait_converged $load_end
 echo "converged in $CONVERGED_IN s"
+after_convergence
 LOAD_END_MS=$(($(date +%s) * 1000))
 
 if [ "$INJECT_DIVERGENCE" = 1 ]; then

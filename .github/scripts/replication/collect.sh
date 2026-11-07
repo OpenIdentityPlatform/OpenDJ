@@ -73,6 +73,17 @@ summarize() { # <result>
       fi
     fi
     echo "| converged | ${CONVERGED_IN:--} s after the load |"
+    if [ "$DISTURBANCE" = empty-rs ] && [ -n "${CONVERGED_IN:-}" ]; then
+      if [ -s "$OUT/failover.txt" ]; then
+        awk '{ printf "| failover | stopped %s; all directory servers connected to %s after %d s |\n", $1, $2, $3 }' "$OUT/failover.txt"
+        completed=$(( $(wc -l <"$OUT/failover.txt") ))
+      else
+        completed=0
+      fi
+      if [ "$completed" -lt 2 ]; then
+        echo "| failover | incomplete: $completed of 2 replication servers checked |"
+      fi
+    fi
     if [ -s "$OUT/samples.txt" ]; then
       awk '{ t[$1] = 1 } END { for (s in t) { n++; if (!min || s < min) min = s; if (s > max) max = s }
              printf "| samples of the monitor | %d, one every %d s |\n", n, (n > 1 ? (max - min) / (n - 1) : 0) }' "$OUT/samples.txt"
