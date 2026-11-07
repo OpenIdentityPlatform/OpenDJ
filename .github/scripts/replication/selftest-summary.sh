@@ -55,5 +55,15 @@ for DISTURBANCE in restart-ds kill-ds; do
   echo "400000 435000 d1 $how" >"$OUT/disturbances.txt"
   check "$DISTURBANCE completed" "| disturbance | $how of d1 300 s into the load, serving again 35 s later |"
 done
+# The post-load failover must remain visible even if only one RS was checked.
+DISTURBANCE=empty-rs DISTURB_STEPS=1 CONVERGED_IN=10
+printf 'r0 r1 450\n' >"$OUT/failover.txt"
+summarize failed
+checks=$((checks + 1))
+if ! grep -Fx '| failover | stopped r0; all directory servers connected to r1 after 450 s |' "$OUT/summary.md" >/dev/null \
+   || ! grep -Fx '| failover | incomplete: 1 of 2 replication servers checked |' "$OUT/summary.md" >/dev/null; then
+  echo '::error::partial failover is absent from the summary'
+  failed=$((failed + 1))
+fi
 echo "summary: $((checks - failed)) checks passed, $failed failed"
 [ "$failed" -eq 0 ]
