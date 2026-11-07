@@ -124,17 +124,30 @@ assert_changelogs() {
 INDEXED_FILTERS="(sn=AddRate) (sn=Diverged)"
 
 # The searches of INDEXED_FILTERS a directory server ran without an index, or that its access
-# log does not hold, as errors. Every access log file is read: the load rotates them
+# log does not hold, as errors. Read rotated logs in chronological order, then the active log:
+# connection and operation numbers can be reused after a server restart.
 unindexed_searches() { # <node>
-  docker exec $1 sh -c 'grep -h " SEARCH " /opt/opendj/data/logs/access*; [ $? -le 1 ]' \
+  docker exec $1 sh -c 'for file in /opt/opendj/data/logs/access.[0-9]* /opt/opendj/data/logs/access; do
+    [ -f "$file" ] || continue
+    grep -h " SEARCH " "$file"; status=$?
+    [ "$status" -le 1 ] || exit "$status"
+  done' \
     | awk -v node=$1 -v base="$BASE_DN" -v filters="$INDEXED_FILTERS" '
       BEGIN { n = split(filters, f, " ") }
-      $3 == "SEARCH" && $4 == "REQ" && index($0, " base=\"" base "\" scope=sub ") {
-        for (i = 1; i <= n; i++) if (index($0, " filter=\"" f[i] "\" ")) req[$5 " " $6] = f[i]
+      $3 == "SEARCH" && $4 == "REQ" {
+        key = $5 " " $6
+        delete req[key]
+        if (index($0, " base=\"" base "\" scope=sub "))
+          for (i = 1; i <= n; i++) if (index($0, " filter=\"" f[i] "\" ")) {
+            req[key] = f[i]; seen[f[i]] = 1
+          }
       }
-      $3 == "SEARCH" && $4 == "RES" && / unindexed( |$)/ { unindexed[$5 " " $6] = 1 }
+      $3 == "SEARCH" && $4 == "RES" {
+        key = $5 " " $6
+        if (key in req && / unindexed( |$)/) printf "::error::%s ran %s without an index\n", node, req[key]
+        delete req[key]
+      }
       END {
-        for (k in req) { seen[req[k]] = 1; if (k in unindexed) printf "::error::%s ran %s without an index\n", node, req[k] }
         for (i = 1; i <= n; i++) if (!(f[i] in seen)) printf "::error::the access log of %s holds no search of %s\n", node, f[i]
       }'
 }
