@@ -1168,6 +1168,7 @@ jobs:
         shell: bash
         run: |
           .github/scripts/replication/selftest-replication-errors.sh
+          .github/scripts/replication/selftest-unindexed-searches.sh
           .github/scripts/replication/selftest-disturb-restart-ds.sh
           .github/scripts/replication/selftest-disturb-kill-ds.sh
           .github/scripts/replication/selftest-disturb-rs.sh
