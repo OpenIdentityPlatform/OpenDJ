@@ -198,7 +198,8 @@ window_close() {
 # msgIDs as well. A dns:<hostname> token expects only ERROR 51's exact resolution-failure
 # message for that hostname, not other DNS errors inside the window. This covers the stopped
 # RS container's name temporarily disappearing during kill-rs, restart-rs or a combined
-# kill-ds. DS-only crashes and restart-ds pass no DNS token, and other hosts remain errors.
+# kill-ds or restart-ds. DS-only crashes and restarts pass no DNS token, and other hosts remain
+# errors.
 # The other allowances cover what one disturbance leaves behind besides the handshakes, such
 # as the connections a killed replication server breaks (disturb-kill-rs.sh), which a window of
 # another one does not expect. Those go to logs/<node>.expected; outside a window, and anything

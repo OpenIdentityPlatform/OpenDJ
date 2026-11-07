@@ -79,6 +79,22 @@ RESTART=$(
   down_and_up() { shift; printf '[ %s' "$*"; }
   disturb
 )
+# Run the DS entry point too: the combined restart receives a DNS token, while a DS-only
+# restart does not. Keep the production window arguments and replace only the lifecycle.
+ds_restart_window() (
+  DS_NODES=$1 RS_NODES=$2 DISTURB_TIMEOUT=900
+  . "$HERE/disturb-restart-ds.sh"
+  window_open() { printf '[%s' "${*:+ $*}" >"$OUT/ds-restart-window"; }
+  window_close() { :; }
+  docker() { :; }
+  wait_until() { :; }
+  sleep() { :; }
+  date() { echo 100; }
+  disturb >/dev/null
+  cat "$OUT/ds-restart-window"
+)
+RESTART_DS=$(ds_restart_window 'cv-d0 cv-d1' 'cv-r0 cv-r1')
+RESTART_COMBINED=$(ds_restart_window 'cv-c0 cv-c1 cv-c2 cv-c3' 'cv-c0 cv-c1 cv-c2 cv-c3')
 
 passed=0 failed=0
 # case <name> <errors> <expected> <record, [, [ <msgID>|dns:<hostname>... or ]>...: the errors log
@@ -153,6 +169,11 @@ case_ dns-ds-crash               1 0 '[ 211' "$E51" ']'
 case_ dns-combined-without-token 1 0 '[ 180 181 211 284' "$E51" ']'
 case_ dns-combined-host          0 1 '[ dns:cv-c1 180 181 211 284' "${E51/cv-r0/cv-c1}" ']'
 case_ dns-restarted-rs           0 1 "$RESTART" "$E51" ']'
+case_ dns-combined-ds-restart    0 1 "$RESTART_COMBINED" "${E51/cv-r0/cv-c1}" ']'
+case_ dns-ds-only-restart        1 0 "$RESTART_DS" "${E51/cv-r0/cv-d1}" ']'
+case_ dns-other-host-ds-restart  1 0 "$RESTART_COMBINED" "${E51/cv-r0/cv-c2}" ']'
+case_ dns-before-after-ds-restart 2 1 "${E51/cv-r0/cv-c1}" "$RESTART_COMBINED" \
+                                   "${E51/cv-r0/cv-c1}" ']' "${E51/cv-r0/cv-c1}"
 case_ dns-other-host             1 0 "$KILL" "${E51/cv-r0/cv-r1}" ']'
 case_ dns-host-prefix            1 0 "$KILL" "${E51/cv-r0/cv-r}" ']'
 case_ dns-host-suffix            1 0 "$KILL" "${E51/cv-r0/cv-r01}" ']'
@@ -172,7 +193,8 @@ case_ combined-kill              0 4 '[ dns:cv-c1 180 181 211 284' "$E180" "$E18
 case_ ds-disconnect-graceful     1 0 '[' "$E211" ']'
 case_ 180-in-rs-restart          0 1 "$RESTART" "$E180" ']'
 case_ 180-before-after-restart   2 1 "$E180" "$RESTART" "$E180" ']' "$E180"
-case_ 180-in-ds-restart          1 0 '[' "$E180" ']'
+case_ 180-in-ds-restart          1 0 "$RESTART_DS" "$E180" ']'
+case_ combined-ds-restart-strict 6 0 "$RESTART_COMBINED" "$E180" "$E181" "$E211" "$E284" "$E66" "$E108" ']'
 case_ rs-restart-strict          5 0 "$RESTART" "$E181" "$E211" "$E284" "$E66" "$E108" ']'
 case_ ds-disconnect-rs-kill      1 0 "$KILL" "$E211" ']'
 case_ ds-disconnect-before-after 2 1 "$E211" '[ 211' "$E211" ']' "$E211"
