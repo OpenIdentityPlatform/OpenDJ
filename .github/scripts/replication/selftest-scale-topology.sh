@@ -29,4 +29,16 @@ check rs534 empty-rs 2 6
 check rs534 none 2 6
 check combined scale-kept 4 4
 check combined scale-empty 4 4
+# Scale begins after 120 s of a 900 s load; unrelated rows and explicit settings retain theirs.
+for disturbance in scale-rs-kept scale-rs-empty scale-kept scale-empty; do
+  ( unset DISTURB_AT DURATION; TOPOLOGY=combined DISTURBANCE=$disturbance
+    . "$HERE/lib.sh"
+    [ "$DURATION" -eq 900 ] && [ "$DISTURB_AT" -eq 120 ] ) || exit 1
+done
+( unset DISTURB_AT DURATION; TOPOLOGY=rs534 DISTURBANCE=empty-rs
+  . "$HERE/lib.sh"
+  [ "$DISTURB_AT" -eq 300 ] ) || exit 1
+( TOPOLOGY=combined DISTURBANCE=scale-kept DISTURB_AT=77 DURATION=900
+  . "$HERE/lib.sh"
+  [ "$DISTURB_AT" -eq 77 ] ) || exit 1
 echo 'scale topology cases passed'

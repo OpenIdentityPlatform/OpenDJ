@@ -147,4 +147,24 @@ if (mkdir -p "$OUT/early/load"; OUT="$OUT/early"; DS_NODES=d0; DURATION=1; DISTU
   echo 'early disturbance failure was accepted' >&2; exit 1
 fi
 [ -e "$OUT/early/killed" ] || { echo 'watchdog stopped before its worker' >&2; exit 1; }
+# A Docker error must not look like a completed bootstrap.
+(
+  . "$HERE/lib.sh"
+  docker() { return "$DOCKER_RESULT"; }
+  DOCKER_RESULT=124
+  if bootstrap_ended example; then echo 'docker timeout accepted as a completed join' >&2; exit 1; fi
+  DOCKER_RESULT=1
+  if bootstrap_ended example; then echo 'running join accepted as complete' >&2; exit 1; fi
+  DOCKER_RESULT=0
+  bootstrap_ended example || { echo 'completed join rejected' >&2; exit 1; }
+)
+# Checkpoint queries have an in-container timeout; normal admin searches remain unchanged.
+(
+  . "$HERE/lib.sh"
+  docker() { printf '%s\n' "$*" >"$OUT/admin-command"; }
+  ADMIN_SEARCH_TIMEOUT=45 admin_search node cn=monitor sub '(objectClass=*)' 1.1
+  grep -F 'exec node /usr/bin/timeout 45 /opt/opendj/bin/ldapsearch' "$OUT/admin-command" >/dev/null || { echo 'checkpoint query timeout missing' >&2; exit 1; }
+  admin_search node cn=monitor sub '(objectClass=*)' 1.1
+  grep -F 'exec node /opt/opendj/bin/ldapsearch' "$OUT/admin-command" >/dev/null || { echo 'ordinary search changed' >&2; exit 1; }
+)
 echo 'rolling load pause, resume and deadline passed'
