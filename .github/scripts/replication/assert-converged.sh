@@ -160,6 +160,12 @@ unindexed_searches() { # <node>
 # as a prefix on the host so that marks and windows cover both volumes.
 errors_lines() { # <node>
   local current previous=0
+  # A scale-in captures the stopped node before removing its container. Its log cannot
+  # change until it starts again, but the other nodes still open and close windows.
+  if [ -f "$OUT/logs/$1.offline" ]; then
+    cat "$OUT/logs/$1.offline"
+    return
+  fi
   current=$(docker exec "$1" sh -c 'wc -l </opt/opendj/data/logs/errors') || return 1
   if [ -f "$OUT/logs/$1.previous" ]; then
     previous=$(wc -l <"$OUT/logs/$1.previous") || return 1
@@ -194,18 +200,38 @@ window_open() { # [<msgID>|dns:<hostname>...]
   local n lines
   for n in $ALL_NODES; do
     # an assignment, so that a log that cannot be read stops the run here as well
-    lines=$(errors_lines $n)
-    echo "$lines${*:+ $*}" >"$OUT/logs/$n.window"
+    lines=$(errors_lines $n) || return 1
+    echo "$lines${*:+ $*}" >"$OUT/logs/$n.window" || return 1
   done
 }
 
 window_close() {
   local n lines before ids
   for n in $ALL_NODES; do
-    lines=$(errors_lines $n)
-    read -r before ids <"$OUT/logs/$n.window"
-    echo "$before $lines${ids:+ $ids}" >>"$OUT/logs/$n.windows"
-    rm "$OUT/logs/$n.window"
+    lines=$(errors_lines $n) || return 1
+    read -r before ids <"$OUT/logs/$n.window" || return 1
+    echo "$before $lines${ids:+ $ids}" >>"$OUT/logs/$n.windows" || return 1
+    rm "$OUT/logs/$n.window" || return 1
+  done
+}
+
+# A server removed during a scale-in has no Docker DNS name between individual rolling
+# windows. Allow only that hostname for this whole interval, not other handshake failures.
+dns_window_open() { # <hostname>
+  local n lines
+  for n in $ALL_NODES; do
+    lines=$(errors_lines "$n") || return 1
+    printf '%s %s\n' "$lines" "$1" >"$OUT/logs/$n.dns-window" || return 1
+  done
+}
+
+dns_window_close() {
+  local n lines before host
+  for n in $ALL_NODES; do
+    lines=$(errors_lines "$n") || return 1
+    read -r before host <"$OUT/logs/$n.dns-window" || return 1
+    printf '%s %s dns-only dns:%s\n' "$before" "$lines" "$host" >>"$OUT/logs/$n.windows" || return 1
+    rm "$OUT/logs/$n.dns-window" || return 1
   done
 }
 
@@ -285,7 +311,7 @@ replication_errors() { # <node>
           }
         }
         if (line > from[i] + 0 && line <= to[i] + 0 \
-            && (handshake || cert || index(ids[i], " " id " ") || (dns != "" && index(ids[i], dns)))) {
+            && ((handshake && !index(ids[i], " dns-only ")) || cert || index(ids[i], " " id " ") || (dns != "" && index(ids[i], dns)))) {
           print >expected
           next
         }
