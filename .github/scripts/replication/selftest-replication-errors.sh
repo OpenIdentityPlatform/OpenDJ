@@ -217,6 +217,25 @@ case_ new-cert-rs-other-node    1 0 '[ cert-peer:n1:172.18.0.9' "$WBAD_PEER" ']'
 case_ new-cert-rs-outside       1 0 "$WBAD_PEER" '[ cert-peer:n0:172.18.0.9' ']'
 case_ new-cert-rs-other-fault   1 0 '[ cert-peer:n0:172.18.0.9' "${WBAD_PEER/Received fatal alert: bad_certificate/unexpected bad_certificate}" ']'
 
+# A long DNS-only window must not also hide the normally expected handshake errors.
+case_ dns-only-name           0 1 '[ dns-only dns:cv-r0' "$E51" ']'
+case_ dns-only-handshake      1 0 '[ dns-only dns:cv-r0' "$E178" ']'
+
+# Real long DNS window overlapping no ordinary restart window.
+rm -rf "$OUT/logs"
+printf '%s\n' "$E106" >"$LOG"
+mark_logs
+dns_window_open cv-r0
+printf '%s\n' "$E51" "$E178" >>"$LOG"
+dns_window_close
+errors=$(replication_errors n0 | grep -c . || true)
+expected=$(grep -c . "$OUT/logs/n0.expected" || true)
+if [ "$errors" = 1 ] && [ "$expected" = 1 ]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1)); echo '::error::DNS-only window accepted unrelated handshake or missed DNS error'
+fi
+
 # A log that cannot be read stops window_open, which would otherwise open a window from its first
 # line. In the background: errexit is off in a subshell on the left of ||, and on in a job
 code=0
@@ -228,6 +247,20 @@ if [ "$code" -ne 0 ]; then
 else
   failed=$((failed + 1))
   echo "::error::window_open went on over an errors log that cannot be read"
+fi
+
+# The same failure must be fatal when the caller handles the return code itself: Bash
+# disables errexit throughout a function called from an if/|| condition.
+if window_open 180 >/dev/null 2>&1; then
+  failed=$((failed + 1)); echo '::error::conditional window_open accepted an unreadable log'
+else
+  passed=$((passed + 1))
+fi
+printf '0 180\n' >"$OUT/logs/n0.window"
+if window_close >/dev/null 2>&1; then
+  failed=$((failed + 1)); echo '::error::conditional window_close accepted an unreadable log'
+else
+  passed=$((passed + 1))
 fi
 
 # A replaced server has a new errors file. Preserve the old file as a prefix so marks and
@@ -249,6 +282,22 @@ if [ "$errors" = 2 ] && [ "$expected" = 2 ]; then
 else
   failed=$((failed + 1))
   echo "::error::replacement logs: $errors errors and $expected expected, wanted 2 each"
+fi
+
+# While a scaled-down container is absent, its captured line count keeps later windows
+# aligned; a different unreadable node still fails.
+printf '7\n' >"$OUT/logs/n0.offline"
+rm -f "$LOG"
+if [ "$(errors_lines n0 2>/dev/null || :)" = 7 ]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1)); echo '::error::offline node lost its captured line count'
+fi
+rm "$OUT/logs/n0.offline"
+if errors_lines n0 >/dev/null 2>&1; then
+  failed=$((failed + 1)); echo '::error::unreadable online log was accepted'
+else
+  passed=$((passed + 1))
 fi
 
 echo "replication_errors: $passed cases passed, $failed failed"

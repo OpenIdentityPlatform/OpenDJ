@@ -25,8 +25,20 @@
 start_client() {
   local name=$1 tool=$2
   shift 2
-  docker run -d --name "$name" --network $NETWORK -e OPENDJ_JAVA_ARGS="$CLIENT_JAVA_ARGS" \
-    -v "$OUT/load:/load:ro" --entrypoint /opt/opendj/bin/$tool "$IMAGE" "$@" >/dev/null
+  if [ -n "${ROLLING_END_MS:-}" ]; then
+    # The container enforces the absolute deadline as well as the host watchdog: it
+    # cannot start a late operation if Docker finishes creating it after the watchdog scan.
+    docker run -d --name "$name" --network "$NETWORK" -e OPENDJ_JAVA_ARGS="$CLIENT_JAVA_ARGS" \
+      -v "$OUT/load:/load:ro" --entrypoint /bin/sh "$IMAGE" -c '
+        deadline=$1; tool=$2; shift 2
+        left=$((deadline - $(date +%s)))
+        [ "$left" -gt 0 ] || exit 1
+        exec /usr/bin/timeout "$left" "/opt/opendj/bin/$tool" "$@"
+      ' sh "$((ROLLING_END_MS / 1000))" "$tool" "$@" >/dev/null
+  else
+    docker run -d --name "$name" --network $NETWORK -e OPENDJ_JAVA_ARGS="$CLIENT_JAVA_ARGS" \
+      -v "$OUT/load:/load:ro" --entrypoint /opt/opendj/bin/$tool "$IMAGE" "$@" >/dev/null
+  fi
 }
 
 CLIENTS=
@@ -45,6 +57,7 @@ STAT_INTERVAL=10
 start_clients() { # <node> <segment> <seconds>
   local n=$1 name=$1 c
   [ "$2" -eq 1 ] || name=$1-$2
+  [ ! -e "$OUT/load/deadline" ] || return 1
   # entries of its own on each server, so that the adds and deletes of two servers never meet
   # on one DN: a naming conflict is not what this load is after
   cat >"$OUT/load/addrate-$name.template" <<TEMPLATE
@@ -76,12 +89,20 @@ TEMPLATE
     --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --maxDuration "$3" \
     --statInterval $STAT_INTERVAL --numConnections 8 --numThreads 1 --scriptFriendly --targetThroughput "$LOAD_MOD_RATE" \
     --targetDN "uid=user.%d,ou=People,$BASE_DN" --argument "rand(0,$((SAMPLE_DATA - 1)))" \
-    --argument "randstr(16)" "description:$name-%2\$s"
+    --argument "randstr(16)" "description:$name-%2\$s" || return 1
+  if [ -e "$OUT/load/deadline" ]; then
+    docker kill "load-mod-$name" >/dev/null 2>&1 || true
+    return 1
+  fi
   # adds, and deletes of the oldest once 100 of them are there: a slow runner gets to the deletes as well
   start_client load-add-$name addrate --hostname $n --port 1389 --connectTimeout 120000 --noRebind \
     --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --maxDuration "$3" \
     --statInterval $STAT_INTERVAL --numConnections 8 --numThreads 1 --scriptFriendly --targetThroughput "$LOAD_ADD_RATE" \
-    --deleteMode fifo --deleteSizeThreshold 100 "/load/addrate-$name.template"
+    --deleteMode fifo --deleteSizeThreshold 100 "/load/addrate-$name.template" || return 1
+  if [ -e "$OUT/load/deadline" ]; then
+    docker kill "load-mod-$name" "load-add-$name" >/dev/null 2>&1 || true
+    return 1
+  fi
   # check_client reads how long each client was to run
   for c in load-mod-$name load-add-$name; do
     echo "$3" >"$OUT/load/$c.seconds"
