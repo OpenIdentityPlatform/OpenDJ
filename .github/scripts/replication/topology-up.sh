@@ -20,9 +20,12 @@
 
 start_server() { # <name> <role> [<docker run option>...]
   local name=$1 role=$2
+  local -a monitor_port=()
   shift 2
+  # Scale checkpoints use a lightweight host client; the admin listener remains loopback-only.
+  case ${DISTURBANCE:-none} in scale-*) monitor_port=(-p 127.0.0.1::4444) ;; esac
   docker volume create "vol-$name" >/dev/null
-  docker run -d --network $NETWORK --name "$name" --hostname "$name" \
+  docker run -d --network $NETWORK --name "$name" --hostname "$name" "${monitor_port[@]}" \
     -v "vol-$name:/opt/opendj/data" \
     -e ROOT_PASSWORD="$ROOT_PASSWORD" -e ADD_BASE_ENTRY="--addBaseEntry" \
     -e OPENDJ_JAVA_ARGS="$SERVER_JAVA_ARGS" \
