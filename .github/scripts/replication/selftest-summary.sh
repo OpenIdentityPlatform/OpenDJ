@@ -65,5 +65,17 @@ if ! grep -Fx '| failover | stopped r0; all directory servers connected to r1 af
   echo '::error::partial failover is absent from the summary'
   failed=$((failed + 1))
 fi
+# The measured backlog belongs in the CI summary, not only the uploaded artifact.
+DISTURBANCE=scale-rs-empty DISTURB_STEPS=1
+printf '400000 900000 r1 scale-empty\n' >"$OUT/disturbances.txt"
+check 'scale completed' '| disturbance | scale-empty of r1 300 s into the load, completed 500 s later |'
+mkdir -p "$OUT/scale-checkpoint"
+echo '50001 changes while the server was absent' >"$OUT/scale-checkpoint/backlog.txt"
+summarize passed
+checks=$((checks + 1))
+if ! grep -Fx '| scale backlog | 50001 changes while the server was absent |' "$OUT/summary.md" >/dev/null; then
+  echo '::error::scale backlog is absent from the summary'; failed=$((failed + 1))
+fi
+
 echo "summary: $((checks - failed)) checks passed, $failed failed"
 [ "$failed" -eq 0 ]

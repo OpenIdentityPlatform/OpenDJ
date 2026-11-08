@@ -35,11 +35,21 @@ command -v python3 >/dev/null || { echo "run.sh needs python3" >&2; exit 2; }
 . "$HERE/collect.sh"
 after_convergence() { :; }
 if [ "$DISTURBANCE" != none ]; then
-  [ -f "$HERE/disturb-$DISTURBANCE.sh" ] \
-    || { echo "unknown DISTURBANCE $DISTURBANCE: none, or the <name> of a disturb-<name>.sh in $HERE" >&2; exit 2; }
   [ "$DISTURB_AT" -gt 0 ] && [ "$DISTURB_AT" -lt "$DURATION" ] \
     || { echo "DISTURB_AT=$DISTURB_AT is not within the load of $DURATION s" >&2; exit 2; }
-  . "$HERE/disturb-$DISTURBANCE.sh"
+  case $DISTURBANCE in
+    scale-kept|scale-empty|scale-rs-kept|scale-rs-empty)
+      SCALE_VOLUME=${DISTURBANCE##*-}
+      . "$HERE/scale-membership.sh"
+      . "$HERE/rolling-load.sh"
+      . "$HERE/disturb-scale.sh"
+      ;;
+    *)
+      [ -f "$HERE/disturb-$DISTURBANCE.sh" ] \
+        || { echo "unknown DISTURBANCE $DISTURBANCE: none, or the <name> of a disturb-<name>.sh in $HERE" >&2; exit 2; }
+      . "$HERE/disturb-$DISTURBANCE.sh"
+      ;;
+  esac
 fi
 
 # the files of an earlier run would mix into this one's: the samples are appended to, and the
@@ -78,8 +88,14 @@ record_server_ids
 phase "load ($DURATION s${DISTURBED:+, $DISTURBANCE of $DISTURBED at $DISTURB_AT s})"
 # the changes of the load: assert_changelogs looks for gaps among the changes made in between
 LOAD_START_MS=$(($(date +%s) * 1000))
+case $DISTURBANCE in
+  scale-kept|scale-empty|scale-rs-kept|scale-rs-empty) prepare_rolling_deadline ;;
+esac
 sampler_start
-run_load
+case $DISTURBANCE in
+  scale-kept|scale-empty|scale-rs-kept|scale-rs-empty) rolling_run_load ;;
+  *) run_load ;;
+esac
 sampler_stop
 
 phase "converge"

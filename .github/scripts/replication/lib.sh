@@ -89,6 +89,14 @@ case $TOPOLOGY in
     exit 2
     ;;
 esac
+# A scale-in removes one RS and then rolls every survivor. Two remaining RS are needed
+# so writes can continue when either one is restarted; the other rs534 rows keep two.
+case "$TOPOLOGY:$DISTURBANCE" in
+  rs534:scale-rs-kept|rs534:scale-rs-empty)
+    RS_ONLY="cv-r0 cv-r1 cv-r2"
+    RS_NODES=$RS_ONLY
+    ;;
+esac
 ALL_NODES=$(echo $DS_NODES $RS_ONLY)
 PEERS=$(echo $ALL_NODES | tr ' ' ',')
 
@@ -132,7 +140,7 @@ wait_until() { # <seconds> <what> <command> [<argument>...]
   local deadline=$((SECONDS + $1)) what=$2 start=$SECONDS
   shift 2
   until "$@"; do
-    [ "$SECONDS" -lt "$deadline" ] || fail "timed out waiting until $what"
+    [ "$SECONDS" -lt "$deadline" ] || { fail "timed out waiting until $what"; return 1; }
     sleep 2
   done
   [ $((SECONDS - start)) -lt 20 ] || echo "    [$((SECONDS - start)) s] until $what"

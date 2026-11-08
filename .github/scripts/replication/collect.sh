@@ -31,6 +31,19 @@ record_server_ids() {
     || fail "the server id of a directory server is missing, see server-ids.txt"
 }
 
+# A combined server on a fresh volume can return with a new replica id. Preserve both
+# identities, since each can have made changes during the load and must be checked.
+record_rejoined_id() { # <directory server>
+  local node=$1 result ids id owner
+  result=$(admin_search "$node" "$MONITOR_DOMAIN" one '(objectClass=*)' 1.1) || return 1
+  ids=$(printf '%s\n' "$result" | sed -n 's/^dn: cn=Directory server DS(\([0-9]*\)).*/\1/p')
+  [ "$(printf '%s\n' "$ids" | awk 'NF { n++ } END { print n+0 }')" -eq 1 ] || return 1
+  id=$ids
+  owner=$(awk -v id="$id" '$1 == id { print $2 }' "$OUT/server-ids.txt") || return 1
+  [ -z "$owner" ] || [ "$owner" = "$node" ] || return 1
+  [ "$owner" = "$node" ] || printf '%s %s\n' "$id" "$node" >>"$OUT/server-ids.txt"
+}
+
 # Every server's container log, logs/, config/ and changelogDb, packed into state.tgz; docker cp
 # reads a stopped or killed container as well. Nothing here may fail the run a second time
 collect() {
@@ -59,8 +72,9 @@ summarize() { # <result>
     echo "| seeded users | $SAMPLE_DATA |"
     if [ -s "$OUT/disturbances.txt" ]; then
       completed=$(wc -l <"$OUT/disturbances.txt")
-      awk -v start="${LOAD_START_MS:-0}" '{ printf "| disturbance | %s of %s %d s into the load, serving again %d s later |\n",
-                                            $4, $3, ($1 - start) / 1000, ($2 - $1) / 1000 }' "$OUT/disturbances.txt"
+      awk -v start="${LOAD_START_MS:-0}" '{ action = ($4 ~ /^scale-/ ? "completed" : "serving again")
+                                            printf "| disturbance | %s of %s %d s into the load, %s %d s later |\n",
+                                              $4, $3, ($1 - start) / 1000, action, ($2 - $1) / 1000 }' "$OUT/disturbances.txt"
     fi
     if [ "$DISTURBANCE" != none ] && [ -z "${LOAD_START_MS:-}" ]; then
       # run.sh sets LOAD_START_MS as the load starts
@@ -71,6 +85,10 @@ summarize() { # <result>
       else
         echo "| disturbance | $DISTURBANCE not completed: $((completed)) of $DISTURB_STEPS steps completed |"
       fi
+    fi
+    if [ -f "$OUT/scale-checkpoint/backlog.txt" ]; then
+      awk '/^[0-9]+ changes while the server was absent$/ { printf "| scale backlog | %s |\n", $0 }' \
+        "$OUT/scale-checkpoint/backlog.txt"
     fi
     echo "| converged | ${CONVERGED_IN:--} s after the load |"
     if [ "$DISTURBANCE" = empty-rs ] && [ -n "${CONVERGED_IN:-}" ]; then
