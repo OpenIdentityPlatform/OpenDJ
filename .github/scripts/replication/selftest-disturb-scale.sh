@@ -49,7 +49,8 @@ run_case() (
     esac
   }
   start_server() { record "start $1 $2 $PEERS"; }
-  admin_search() { record "search $1"; echo 'baseline'; }
+  admin_search() { echo 'scale checkpoint must not start an admin-search JVM' >&2; return 1; }
+  scale_monitor_search() { record "search $1"; echo 'baseline'; }
   window_open() { record "window $*"; }; window_close() { :; }
   window_open_key() { record "key-open $1"; shift; record "window $*"; }
   window_close_key() { record "window-close $1"; }
@@ -64,8 +65,9 @@ run_case() (
     record "wait ${*:3}"
     [ "${FAIL_CHECKPOINT:-0}" != 1 ] || [ "${3:-}" != scale_caught_up ] || return 1
     [ "${FAIL_JOIN:-0}" != 1 ] || [ "${3:-}" != bootstrap_ended ] || return 1
-    [ "${FAIL_RS:-0}" != 1 ] || [ "${3:-}" != runs_replication_server ] || return 1
-    [ "${FAIL_PAIR_PROBE:-0}" != 1 ] || [ "${3:-}" != scale_probe ] || return 1
+    [ "${FAIL_RS:-0}" != 1 ] || [ "${3:-} ${4:-} ${5:-}" != 'scale_caught_up r1 r0' ] || return 1
+    [ "${FAIL_PAIR_PROBE:-0}" != 1 ] || { [ "${3:-}" != scale_probe ] && [ "${3:-}" != scale_probe_batch ]; } || return 1
+    [ "${FAIL_ACTIVE:-0}" != 1 ] || [ "${3:-}" != rolling_clients_running ] || return 1
     if [ "${3:-}" = record_rejoined_id ]; then record_rejoined_id "$4"; fi
     return 0
   }
@@ -92,7 +94,12 @@ run_case() (
   if [ "$topology" = rs534 ]; then
     # Do not stop either DS of a pair without a responding replication server.
     if (FAIL_RS=1; disturb) >/dev/null 2>&1; then echo 'unavailable RS accepted' >&2; exit 1; fi
-    if grep -E '^docker stop .* d[01]$' "$OUT/calls" >/dev/null; then echo 'pair stopped without an RS' >&2; exit 1; fi
+    if grep -E '^docker stop .* (d[01]|r0)$' "$OUT/calls" >/dev/null; then echo 'group stopped without an RS' >&2; exit 1; fi
+    : >"$OUT/calls"
+    rm -f "$OUT/logs/$target.offline" "$OUT/logs/$target.previous"
+    # A failed RS stop cannot be followed by any restart in the affected group.
+    if (FAIL_STOP=r0; disturb) >/dev/null 2>&1; then echo 'failed RS stop accepted' >&2; exit 1; fi
+    if grep -E '^start (d[01]|r0) ' "$OUT/calls" >/dev/null; then echo 'group restarted after failed RS stop' >&2; exit 1; fi
     : >"$OUT/calls"
     rm -f "$OUT/logs/$target.offline" "$OUT/logs/$target.previous"
     # A failed surviving-DS write cannot be followed by a pair restart.
@@ -100,6 +107,14 @@ run_case() (
     if grep -E '^start d[01] ' "$OUT/calls" >/dev/null; then echo 'pair restarted after failed write' >&2; exit 1; fi
     : >"$OUT/calls"
     rm -f "$OUT/logs/$target.offline" "$OUT/logs/$target.previous"
+  fi
+  if [ "$topology" = combined ]; then
+    # Do not remove the node if the observer has no running load clients.
+    if (FAIL_ACTIVE=1; disturb) >/dev/null 2>&1; then echo 'inactive observer accepted' >&2; exit 1; fi
+    if grep '^docker stop' "$OUT/calls" >/dev/null; then echo 'stopped node without an active writer' >&2; exit 1; fi
+    grep -Fx 'resume d1' "$OUT/calls" >/dev/null || { echo 'first held writer not resumed on failure' >&2; exit 1; }
+    grep -Fx 'resume d2' "$OUT/calls" >/dev/null || { echo 'second held writer not resumed on failure' >&2; exit 1; }
+    : >"$OUT/calls"
   fi
   # A failed join must prevent membership assertions and backlog creation.
   if (FAIL_JOIN=1; disturb) >/dev/null 2>&1; then
@@ -130,14 +145,16 @@ run_case() (
       END { if (down) exit 1 }
     ' "$OUT/calls" || { echo 'more than one combined survivor stopped at a time' >&2; exit 1; }
   else
-    # Both directory servers of a pair stop before either restarts; no RS is stopped in that interval.
+    # The first pair and one RS overlap; the other RS must remain up until the first serves.
     awk '
       $1 == "docker" && $2 == "stop" && $NF == "d0" && !first {first=NR}
-      $1 == "docker" && $2 == "stop" && $NF == "d1" && first && !second {second=NR}
+      $1 == "docker" && $2 == "stop" && $NF == "d1" && !second {second=NR}
+      $1 == "docker" && $2 == "stop" && $NF == "r0" && !rs {rs=NR; rsdown=1}
+      $1 == "wait" && $2 == "started_since" && $3 == "r0" {rsdown=0}
+      $1 == "docker" && $2 == "stop" && $NF == "r1" && rsdown {exit 1}
       $1 == "start" && $2 == "d0" && first && !started {started=NR}
-      $1 == "docker" && $2 == "stop" && $NF ~ /^r/ && first && !started {exit 1}
-      END {if (!first || !second || !started || !(first < second && second < started)) exit 1}
-    ' "$OUT/calls" || { echo 'directory pair did not overlap safely' >&2; exit 1; }
+      END {if (!first || !second || !rs || !started || !(first < started && second < started && rs < started)) exit 1}
+    ' "$OUT/calls" || { echo 'DS and RS transitions did not overlap safely' >&2; exit 1; }
     grep -Fx 'request-pause d0' "$OUT/calls" >/dev/null || { echo 'first pair pause not requested' >&2; exit 1; }
     grep -Fx 'request-pause d1' "$OUT/calls" >/dev/null || { echo 'second pair pause not requested' >&2; exit 1; }
     awk '
@@ -146,15 +163,20 @@ run_case() (
       $0 == "pause d0" && !c {c=NR}
       END {if (!a || !b || !c || !(a < c && b < c)) exit 1}
     ' "$OUT/calls" || { echo 'pair pauses were not requested together' >&2; exit 1; }
-    grep -Fx 'wait scale_probe d2 d0 down' "$OUT/calls" >/dev/null || { echo 'first pair write used no surviving DS' >&2; exit 1; }
-    grep -Fx 'wait scale_probe d2 d1 down' "$OUT/calls" >/dev/null || { echo 'second pair write used no surviving DS' >&2; exit 1; }
+    grep -Fx 'wait scale_probe_batch d2 down d0 d1 r0' "$OUT/calls" >/dev/null || { echo 'group write used no surviving DS' >&2; exit 1; }
+    awk '
+      $0 == "key-open down-r0" && !opened {opened=NR}
+      $0 == "wait scale_caught_up r1 r0" && !checked {checked=NR}
+      $0 == "docker stop -t 120 d0" && !stopped {stopped=NR}
+      END {if (!opened || !checked || !stopped || !(opened < checked && checked < stopped)) exit 1}
+    ' "$OUT/calls" || { echo 'RS checkpoint was not taken after preparing log windows' >&2; exit 1; }
     awk '
       $0 == "key-open down-d0" && !a {a=NR}
       $0 == "key-open down-d1" && !b {b=NR}
       $1 == "docker" && $2 == "stop" && $NF == "d0" && !c {c=NR}
       $1 == "docker" && $2 == "stop" && $NF == "d1" && !d {d=NR}
-      $0 == "wait scale_probe d2 d0 down" && !p {p=NR}
-      END {if (!a || !b || !c || !d || !p || !(a < c && b < c && c < d && d < p)) exit 1}
+      $0 == "wait scale_probe_batch d2 down d0 d1 r0" && !p {p=NR}
+      END {if (!a || !b || !c || !d || !p || !(a < c && b < c && c < p && d < p)) exit 1}
     ' "$OUT/calls" || { echo 'pair windows or write probe occurred in the wrong order' >&2; exit 1; }
   fi
   expected_windows=4
@@ -195,11 +217,28 @@ run_case() (
     grep -Fx "window dns:$target dns:d0" "$OUT/calls" >/dev/null || { echo 'rolling combined node lacks its DNS allowance' >&2; exit 1; }
     grep -Fx "pause $target" "$OUT/calls" >/dev/null
     grep -Fx "resume $target" "$OUT/calls" >/dev/null
+    grep -Fx 'wait rolling_clients_running d0' "$OUT/calls" >/dev/null || { echo 'checkpoint writer was not checked' >&2; exit 1; }
+    grep -Fx 'wait scale_probe d0 d3 checkpoint-down' "$OUT/calls" >/dev/null || { echo 'checkpoint write was not confirmed' >&2; exit 1; }
+    awk '
+      $0 == "request-pause d1" && !a {a=NR}
+      $0 == "request-pause d2" && !b {b=NR}
+      $0 == "docker stop -t 120 d3" && !c {c=NR}
+      $0 == "resume d1" && !d {d=NR}
+      $0 == "resume d2" && !e {e=NR}
+      END {if (!a || !b || !c || !d || !e || !(a < c && b < c && c < d && c < e)) exit 1}
+    ' "$OUT/calls" || { echo 'other writers were not held until the node stopped' >&2; exit 1; }
+    awk '
+      $1 == "start" && $2 == "d3" && !returned {returned=NR}
+      returned && $0 == "request-pause d3" && !held {held=NR}
+      held && $0 == "docker stop -t 120 d0" && !stopped {stopped=NR}
+      stopped && $0 == "resume d3" && !released {released=NR}
+      END {if (!returned || !held || !stopped || !released || !(returned < held && held < stopped && stopped < released)) exit 1}
+    ' "$OUT/calls" || { echo 'returned writer was not held during scale-out checkpoint' >&2; exit 1; }
   fi
   [ ! -e "$OUT/logs/$target.offline" ]
   # A failed observer query identifies the node and status in the checkpoint diagnostic.
   (
-    admin_search() { [ "$1" != observer ] || return 124; echo baseline; }
+    scale_monitor_search() { [ "$1" != observer ] || return 124; echo baseline; }
     scale_checkpoint_init observer departing
     if scale_caught_up observer departing; then echo 'failed checkpoint query accepted' >&2; exit 1; fi
     grep -F 'observer' "$OUT/scale-checkpoint/check.txt" >/dev/null || { echo 'checkpoint diagnostic omitted observer' >&2; exit 1; }
@@ -211,10 +250,32 @@ run_case() (
   scale_probe d0 d1 down || { echo 'confirmed probe was rejected' >&2; exit 1; }
   grep -Fx 'dn: uid=scale-down-d1,ou=People,dc=example,dc=com' "$OUT/probe.ldif" >/dev/null
   if (FAIL_PROBE=1; scale_probe d0 d1 up); then echo 'failed LDAP write accepted' >&2; exit 1; fi
+  if [ "$topology" = rs534 ]; then
+    scale_probe_batch d2 down d0 d1 r0 || { echo 'confirmed batch probe was rejected' >&2; exit 1; }
+    [ "$(grep -c '^dn: uid=scale-down-' "$OUT/probe.ldif")" -eq 3 ] || { echo 'batch lacks a write per stopped node' >&2; exit 1; }
+    grep -Fx 'dn: uid=scale-down-r0,ou=People,dc=example,dc=com' "$OUT/probe.ldif" >/dev/null || { echo 'batch lacks the RS write' >&2; exit 1; }
+    if (FAIL_PROBE=1; scale_probe_batch d2 up d0 d1 r0); then echo 'failed batch accepted' >&2; exit 1; fi
+  fi
 )
 for topology in rs534 combined; do
   for mode in kept empty; do run_case "$topology" "$mode"; done
 done
+# The fast monitor connects only to a numeric port published on IPv4 loopback.
+(
+  OUT="$OUT/loopback"; mkdir -p "$OUT/scale-checkpoint"
+  TOPOLOGY=combined SCALE_VOLUME=kept DS_NODES='d0 d1 d2' RS_NODES=$DS_NODES RS_ONLY=
+  ALL_NODES=$DS_NODES PEERS=d0,d1,d2 ROOT_PASSWORD=secret ROLLING_END_MS=2000000000000
+  . "$HERE/disturb-scale.sh"
+  docker() { [ "$1" = port ] || return 1; printf '%s\n' "$MAPPING"; }
+  python3() { printf '%s\n' "$*" >"$OUT/arguments"; cat >/dev/null; printf 'snapshot\n'; }
+  MAPPING='127.0.0.1:12345'
+  [ "$(scale_monitor_search d0)" = snapshot ] || { echo 'loopback monitor rejected' >&2; exit 1; }
+  grep -F '12345 2000000000000' "$OUT/arguments" >/dev/null || { echo 'port or deadline not passed' >&2; exit 1; }
+  if grep -F 'secret' "$OUT/arguments" >/dev/null; then echo 'password appeared in process arguments' >&2; exit 1; fi
+  for MAPPING in '0.0.0.0:12345' '127.0.0.1:not-a-port' '127.0.0.1:12345 extra'; do
+    if scale_monitor_search d0 >/dev/null 2>&1; then echo "unsafe port mapping accepted: $MAPPING" >&2; exit 1; fi
+  done
+)
 # Repeated comparisons must use one immutable reference, and retain every result.
 (
   OUT="$OUT/checkpoint-history"; mkdir -p "$OUT/scale-checkpoint"
@@ -223,7 +284,7 @@ done
   DISTURB_TIMEOUT=900 ROLLING_END=$((SECONDS + 900))
   . "$HERE/disturb-scale.sh"
   echo '1 d0' >"$OUT/server-ids.txt"
-  admin_search() {
+  scale_monitor_search() {
     echo "$1" >>"$OUT/queries"
     local csn=000001a1a1e836e400010000000a
     if [ "$1" = observer ] && [ ! -f "$OUT/first-observer" ]; then
@@ -239,10 +300,13 @@ done
   grep -F 'needs' "$SCALE_CHECKPOINT_DIR/attempt-0001.compare" >/dev/null || { echo 'first comparison was not retained' >&2; exit 1; }
   [ -f "$SCALE_CHECKPOINT_DIR/attempt-0002.compare" ] || { echo 'second comparison was not retained' >&2; exit 1; }
   [ "$(grep -c 'observer' "$SCALE_CHECKPOINT_DIR/history.txt")" -ge 2 ] || { echo 'query history missing' >&2; exit 1; }
-  admin_search() { echo '/usr/bin/timeout: sending signal TERM to command ldapsearch' >&2; return 124; }
+  scale_monitor_search() { echo 'timeout=query' >&2; return 124; }
   if scale_caught_up observer departing; then echo 'timed-out query accepted' >&2; exit 1; fi
   grep -F 'timeout=query' "$SCALE_CHECKPOINT_DIR/history.txt" >/dev/null || { echo 'query timeout not distinguished' >&2; exit 1; }
-  admin_search() { return 124; }
+  scale_monitor_search() { echo 'timeout=load' >&2; return 124; }
+  if scale_caught_up observer departing; then echo 'reported load deadline accepted' >&2; exit 1; fi
+  grep -F 'timeout=load' "$SCALE_CHECKPOINT_DIR/history.txt" >/dev/null || { echo 'reported load deadline not distinguished' >&2; exit 1; }
+  scale_monitor_search() { return 124; }
   ROLLING_END=$SECONDS
   if scale_caught_up observer departing; then echo 'load deadline accepted' >&2; exit 1; fi
   grep -F 'timeout=load' "$SCALE_CHECKPOINT_DIR/history.txt" >/dev/null || { echo 'load deadline not distinguished' >&2; exit 1; }
@@ -255,7 +319,7 @@ done
   DISTURB_TIMEOUT=900 ROLLING_END=$((SECONDS + 900))
   . "$HERE/disturb-scale.sh"
   echo '1 d0' >"$OUT/server-ids.txt"
-  admin_search() {
+  scale_monitor_search() {
     local csn=000001a1a1e836e400010000000a
     if [ "$1" = departing ]; then
       if [ -f "$OUT/reference-read" ]; then csn=000001a1a1e836e400010000000b; else touch "$OUT/reference-read"; fi
@@ -270,13 +334,30 @@ done
   touch "$OUT/observer-caught-up"
   scale_caught_up observer departing || { echo 'fresh checkpoint rejected' >&2; exit 1; }
   # If the first two searches already match, the reference is fresh and must not be queried twice.
-  admin_search() {
+  scale_monitor_search() {
     echo "$1" >>"$OUT/fast-queries"
     printf 'dn: cn=one,cn=monitor\ndomain-name: %s\nreplicationServer-database: 1\nlast-change: 000001a1a1e836e400010000000b\n\n' "$BASE_DN"
   }
   scale_checkpoint_init observer departing
   scale_caught_up observer departing || { echo 'fresh fast checkpoint rejected' >&2; exit 1; }
   [ "$(wc -l <"$OUT/fast-queries")" -eq 2 ] || { echo 'fresh checkpoint made redundant searches' >&2; exit 1; }
+)
+# All group stops start before any returns, and any failed stop fails the group.
+(
+  OUT="$OUT/parallel-stops"; mkdir -p "$OUT"
+  TOPOLOGY=rs534 SCALE_VOLUME=kept DS_NODES='d0 d1 d2' RS_ONLY='r0 r1 r2' RS_NODES=$RS_ONLY
+  ALL_NODES="$DS_NODES $RS_ONLY" PEERS=d0,d1,d2,r0,r1,r2
+  . "$HERE/disturb-scale.sh"
+  docker() {
+    printf '%s\n' "$4" >>"$OUT/started"
+    local end=$((SECONDS + 5))
+    while [ "$(wc -l <"$OUT/started")" -lt 3 ]; do [ "$SECONDS" -lt "$end" ] || return 1; sleep 0.05; done
+    [ "$4" != "${FAIL_NODE:-}" ]
+  }
+  scale_stop_group d0 d1 r0 || { echo 'group stops were not concurrent' >&2; exit 1; }
+  : >"$OUT/started"
+  if (FAIL_NODE=d1; scale_stop_group d0 d1 r0); then echo 'failed group stop was accepted' >&2; exit 1; fi
+  [ "$(wc -l <"$OUT/started")" -eq 3 ] || { echo 'failed stop abandoned another operation' >&2; exit 1; }
 )
 # Exercise the real fill pipeline: all 50,001 records reach one client, and a failed
 # client must not produce a successful backlog report.

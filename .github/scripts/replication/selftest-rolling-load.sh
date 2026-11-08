@@ -79,6 +79,16 @@ touch "$OUT/load/stop"
 wait "$a"
 wait "$b"
 [ "$(grep -c '^checked ' "$OUT/events")" -eq "$((2 * $(grep -c '^start ' "$OUT/events")))" ] || { echo 'not all clients checked' >&2; exit 1; }
+# A checkpoint writer must have two running load clients, not just a stale marker.
+(
+  mkdir -p "$OUT/active/load"; OUT="$OUT/active"
+  docker() { [ "$1" = inspect ] || return 1; [ "$4" != "${STOPPED_CLIENT:-}" ] && echo true || echo false; }
+  if rolling_clients_running d0; then echo 'missing load clients were accepted' >&2; exit 1; fi
+  printf 'load-mod-d0 load-add-d0\n' >"$OUT/load/d0.active"
+  rolling_clients_running d0 || { echo 'running load clients rejected' >&2; exit 1; }
+  STOPPED_CLIENT=load-add-d0
+  if rolling_clients_running d0; then echo 'stopped load client was accepted' >&2; exit 1; fi
+)
 # The last client must leave time for JVM startup and teardown before the deadline.
 (
   mkdir -p "$OUT/final/load"; OUT="$OUT/final"; ROLLING_END=$((SECONDS + 80)); unset ROLLING_END_MS
@@ -182,14 +192,5 @@ fi
   if bootstrap_ended example; then echo 'running join accepted as complete' >&2; exit 1; fi
   DOCKER_RESULT=0
   bootstrap_ended example || { echo 'completed join rejected' >&2; exit 1; }
-)
-# Checkpoint queries have an in-container timeout; normal admin searches remain unchanged.
-(
-  . "$HERE/lib.sh"
-  docker() { printf '%s\n' "$*" >"$OUT/admin-command"; }
-  ADMIN_SEARCH_TIMEOUT=45 admin_search node cn=monitor sub '(objectClass=*)' 1.1
-  grep -F 'exec node /usr/bin/timeout --verbose 45 /opt/opendj/bin/ldapsearch' "$OUT/admin-command" >/dev/null || { echo 'checkpoint query timeout missing' >&2; exit 1; }
-  admin_search node cn=monitor sub '(objectClass=*)' 1.1
-  grep -F 'exec node /opt/opendj/bin/ldapsearch' "$OUT/admin-command" >/dev/null || { echo 'ordinary search changed' >&2; exit 1; }
 )
 echo 'rolling load pause, resume and deadline passed'

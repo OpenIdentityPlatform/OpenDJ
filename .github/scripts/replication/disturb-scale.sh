@@ -38,14 +38,23 @@ scale_checkpoint_init() { # <survivor> <departing>
   mkdir -p "$SCALE_CHECKPOINT_DIR"
 }
 
+# The administration port is published on loopback for scale rows. A native client
+# avoids starting another JVM for every checkpoint and binds only to that loopback port.
+scale_monitor_search() { # <node>
+  local mapping port
+  mapping=$(docker port "$1" 4444/tcp) || return 1
+  case $mapping in 127.0.0.1:*) port=${mapping#127.0.0.1:} ;; *) echo 'admin port is not loopback-only' >&2; return 1 ;; esac
+  case $port in ''|*[!0-9]*) echo 'invalid admin port' >&2; return 1 ;; esac
+  printf '%s' "$ROOT_PASSWORD" | python3 -I "$HERE/scale-monitor.py" "$port" "$ROLLING_END_MS"
+}
+
 scale_checkpoint_query() { # <node> <output> <error> <role>
   local node=$1 output=$2 errors=$3 role=$4 rc=0 start=$SECONDS remaining=$((ROLLING_END - SECONDS)) now timeout=none
   now=$(date +%s) || return 1
-  ADMIN_SEARCH_TIMEOUT=45 admin_search "$node" cn=monitor sub '(replicationServer-database=*)' \
-    replicationServer-database domain-name last-change >"$output" 2>"$errors" || rc=$?
+  scale_monitor_search "$node" >"$output" 2>"$errors" || rc=$?
   if [ "$rc" -eq 124 ]; then
-    if grep -F 'timeout: sending signal ' "$errors" >/dev/null; then timeout=query
-    elif [ "$SECONDS" -ge "$ROLLING_END" ]; then timeout=load
+    if grep -F 'timeout=query' "$errors" >/dev/null; then timeout=query
+    elif grep -F 'timeout=load' "$errors" >/dev/null || [ "$SECONDS" -ge "$ROLLING_END" ]; then timeout=load
     else timeout=unknown
     fi
   fi
@@ -119,8 +128,7 @@ backlog_ldif() { # <uid> <base DN> <first> <last>
 
 scale_fence() { # <surviving RS>
   local node=$1 dir="$OUT/scale-checkpoint"
-  admin_search "$node" cn=monitor sub '(replicationServer-database=*)' \
-    replicationServer-database domain-name last-change >"$dir/fence-$node.ldif" 2>"$dir/fence-$node.txt" || return 1
+  scale_monitor_search "$node" >"$dir/fence-$node.ldif" 2>"$dir/fence-$node.txt" || return 1
   python3 -I "$HERE/scale-fence.py" "$BASE_DN" "$dir/writer.ldif" "$dir/fence-$node.ldif" \
     >"$dir/fence-$node.txt" 2>&1
 }
@@ -192,16 +200,55 @@ scale_wait() { # <what> <predicate> [<argument>...]
 # A successful, unique LDAP add while a node is down proves a write really happened in
 # that interval; the final offline comparison proves it reached every replica.
 scale_probe() { # <writer DS> <rolling node> <down|up>
-  local writer=$1 node=$2 direction=$3 uid="scale-$3-$2"
-  printf 'dn: uid=%s,ou=People,%s\nobjectClass: top\nobjectClass: person\nobjectClass: organizationalPerson\nobjectClass: inetOrgPerson\nuid: %s\ncn: Scale Probe\nsn: ScaleProbe\n\n' \
-    "$uid" "$BASE_DN" "$uid" \
-    | docker exec -i "$writer" /bin/sh -c '
+  scale_probe_batch "$1" "$3" "$2"
+}
+
+# One LDAP session confirms a distinct write for each node while the whole group is down.
+scale_probe_batch() { # <writer DS> <down|up> <rolling node>...
+  local writer=$1 direction=$2 node uid name
+  shift 2
+  [ "$#" -gt 0 ] || return 1
+  name=$1
+  [ "$#" -eq 1 ] || name="batch-$name"
+  {
+    for node in "$@"; do
+      uid="scale-$direction-$node"
+      printf 'dn: uid=%s,ou=People,%s\nobjectClass: top\nobjectClass: person\nobjectClass: organizationalPerson\nobjectClass: inetOrgPerson\nuid: %s\ncn: Scale Probe\nsn: ScaleProbe\n\n' \
+        "$uid" "$BASE_DN" "$uid"
+    done
+  } | docker exec -i "$writer" /bin/sh -c '
         deadline=$1; password=$2
         left=$((deadline - $(date +%s)))
         [ "$left" -gt 0 ] || exit 1
         exec /usr/bin/timeout "$left" /opt/opendj/bin/ldapmodify --noPropertiesFile --hostname localhost --port 1636 \
           --bindDN "cn=Directory Manager" --bindPassword "$password" --useSsl --trustAll --defaultAdd
-      ' sh "$((ROLLING_END_MS / 1000))" "$ROOT_PASSWORD" >"$OUT/scale-progress/$direction-$node.txt" 2>&1
+      ' sh "$((ROLLING_END_MS / 1000))" "$ROOT_PASSWORD" >"$OUT/scale-progress/$direction-$name.txt" 2>&1
+}
+
+# During a combined-node checkpoint, pause other load writers while keeping the
+# observer's clients running. This makes their high-water marks finite while an actual
+# write still succeeds. Held writers remain paused until the departing node is stopped.
+scale_hold_writers() { # <observer DS> <departing DS> <down|up>
+  local observer=$1 departing=$2 direction=$3 node
+  SCALE_HELD_WRITERS=
+  for node in $DS_NODES; do
+    [ "$node" != "$observer" ] && [ "$node" != "$departing" ] || continue
+    # The removed node is absent during scale-in, but is a writer again during scale-out.
+    [ "$direction" != down ] || [ "$node" != "$REMOVED" ] || continue
+    rolling_request_pause "$node" || return 1
+    SCALE_HELD_WRITERS="$SCALE_HELD_WRITERS $node"
+  done
+  for node in $SCALE_HELD_WRITERS; do rolling_pause "$node" || return 1; done
+  scale_wait "$observer has active load clients" rolling_clients_running "$observer" || return 1
+  mkdir -p "$OUT/scale-progress" || return 1
+  scale_wait "$observer accepts a checkpoint write" scale_probe "$observer" "$departing" "checkpoint-$direction" || return 1
+}
+
+scale_release_writers() {
+  local node failed=
+  for node in ${SCALE_HELD_WRITERS:-}; do rolling_resume "$node" || failed=1; done
+  SCALE_HELD_WRITERS=
+  [ -z "$failed" ]
 }
 
 scale_roll() { # <node> <peer list>
@@ -220,15 +267,20 @@ scale_roll() { # <node> <peer list>
   [ "$TOPOLOGY" != combined ] || role=combined
   case " $RS_ONLY " in *" $node "*) role=replication ;; esac
   if is_directory_node "$node"; then rolling_pause "$node" || return 1; fi
+  SCALE_HELD_WRITERS=
+  if [ "$TOPOLOGY" = combined ]; then
+    scale_hold_writers "$observer" "$node" "$direction" || { scale_release_writers || :; return 1; }
+  fi
   case " $RS_NODES " in
-    *" $node "*) scale_checkpoint_wait "$observer reaches a checkpoint of $node" "$observer" "$node" || return 1 ;;
+    *" $node "*) scale_checkpoint_wait "$observer reaches a checkpoint of $node" "$observer" "$node" || { scale_release_writers || :; return 1; } ;;
   esac
   case " $RS_NODES " in
-    *" $node "*) window_open_key "$direction-$node" "dns:$REMOVED" "dns:$node" || return 1 ;;
-    *) window_open_key "$direction-$node" "dns:$REMOVED" || return 1 ;;
+    *" $node "*) window_open_key "$direction-$node" "dns:$REMOVED" "dns:$node" || { scale_release_writers || :; return 1; } ;;
+    *) window_open_key "$direction-$node" "dns:$REMOVED" || { scale_release_writers || :; return 1; } ;;
   esac
-  from=$(date +%s) || return 1
-  docker stop -t 120 "$node" >/dev/null || return 1
+  from=$(date +%s) || { scale_release_writers || :; return 1; }
+  docker stop -t 120 "$node" >/dev/null || { scale_release_writers || :; return 1; }
+  scale_release_writers || return 1
   mkdir -p "$OUT/scale-progress" || return 1
   scale_wait "another replica writes while $node is stopped" scale_probe "$writer" "$node" "$direction" || return 1
   docker rm "$node" >/dev/null || return 1
@@ -237,10 +289,24 @@ scale_roll() { # <node> <peer list>
   if is_directory_node "$node"; then rolling_resume "$node" || return 1; fi
 }
 
-# A pair of directory-only servers may be recreated together: two other DS and the
-# surviving RS remain available. Open both log windows before either container stops.
-scale_roll_pair() { # <directory node> <directory node> <peer list>
-  local first=$1 second=$2 peers=$3 direction=up node candidate writer= rs= from
+# Launch every stop before waiting: slow graceful shutdowns share the same window.
+# Wait for all jobs even after a failure so none survives a failed transition.
+scale_stop_group() { # <node>...
+  local node pid failed=
+  local -a pids=()
+  for node in "$@"; do
+    ( trap - ERR; docker stop -t 120 "$node" >/dev/null ) &
+    pids+=("$!")
+  done
+  for pid in "${pids[@]}"; do wait "$pid" || failed=1; done
+  [ -z "$failed" ]
+}
+
+# In the separate topology, roll two directory servers together with one RS. The
+# other RS and a directory writer remain available; its checkpoint must cover the RS
+# before stopping, and a single LDAP batch confirms one write per stopped node.
+scale_roll_pair() { # <directory node> <directory node> <peer list> <RS>
+  local first=$1 second=$2 peers=$3 rolling_rs=$4 direction=up node candidate writer= observer= from
   [ "$TOPOLOGY" = rs534 ] || return 1
   [ "$peers" != "$SHORT_PEERS" ] || direction=down
   for candidate in $DS_NODES; do
@@ -248,46 +314,55 @@ scale_roll_pair() { # <directory node> <directory node> <peer list>
     writer=$candidate; break
   done
   for candidate in $RS_NODES; do
-    [ "$candidate" != "$REMOVED" ] || continue
-    rs=$candidate; break
+    [ "$candidate" != "$REMOVED" ] && [ "$candidate" != "$rolling_rs" ] || continue
+    observer=$candidate; break
   done
-  [ -n "$writer" ] && [ -n "$rs" ] || { fail 'directory pair has no surviving writer or replication server'; return 1; }
-  scale_wait "$rs remains available" runs_replication_server "$rs" || return 1
+  [ -n "$writer" ] && [ -n "$observer" ] || { fail 'rolling group has no surviving writer or replication server'; return 1; }
   for node in "$first" "$second"; do rolling_request_pause "$node" || return 1; done
   for node in "$first" "$second"; do rolling_pause "$node" || return 1; done
   for node in "$first" "$second"; do window_open_key "$direction-$node" "dns:$REMOVED" || return 1; done
+  window_open_key "$direction-$rolling_rs" "dns:$REMOVED" "dns:$rolling_rs" || return 1
+  # Capture the checkpoint after opening all windows, immediately before the stops.
+  scale_checkpoint_wait "$observer reaches a checkpoint of $rolling_rs" "$observer" "$rolling_rs" || return 1
   from=$(date +%s) || return 1
-  for node in "$first" "$second"; do docker stop -t 120 "$node" >/dev/null || return 1; done
+  scale_stop_group "$first" "$second" "$rolling_rs" || return 1
   mkdir -p "$OUT/scale-progress" || return 1
-  for node in "$first" "$second"; do
-    scale_wait "another replica writes while $node is stopped" scale_probe "$writer" "$node" "$direction" || return 1
-  done
-  for node in "$first" "$second"; do docker rm "$node" >/dev/null || return 1; done
+  scale_wait "another replica writes while the group is stopped" scale_probe_batch "$writer" "$direction" "$first" "$second" "$rolling_rs" || return 1
+  for node in "$first" "$second" "$rolling_rs"; do docker rm "$node" >/dev/null || return 1; done
+  PEERS="$peers" start_server "$rolling_rs" replication || return 1
   for node in "$first" "$second"; do PEERS="$peers" start_server "$node" directory || return 1; done
+  scale_wait "$rolling_rs serves again" started_since "$rolling_rs" "$from" || return 1
   for node in "$first" "$second"; do
     scale_wait "$node serves again" started_since "$node" "$from" || return 1
     rolling_resume "$node" || return 1
   done
 }
 
-# Combined and RS-only servers stop one at a time. Directory-only servers in the
-# separate topology roll in pairs, and all background joins complete before membership checks.
+# Combined nodes stop one at a time. The separate topology overlaps the roll of
+# directory pairs and one RS, never stopping both surviving replication servers.
 scale_roll_batch() { # <peer list> <down|up>
-  local peers=$1 direction=$2 node pending=
-  for node in $SURVIVORS; do
-    if [ "$TOPOLOGY" = rs534 ] && is_directory_node "$node"; then
-      if [ -n "$pending" ]; then
-        scale_roll_pair "$pending" "$node" "$peers" || return 1
-        pending=
+  local peers=$1 direction=$2 node index=0 next_rs=0
+  local -a directories=() replication=()
+  if [ "$TOPOLOGY" = rs534 ]; then
+    for node in $SURVIVORS; do
+      if is_directory_node "$node"; then directories+=("$node"); else replication+=("$node"); fi
+    done
+    while [ "$index" -lt "${#directories[@]}" ]; do
+      if [ $((index + 1)) -lt "${#directories[@]}" ] && [ "$next_rs" -lt "${#replication[@]}" ]; then
+        scale_roll_pair "${directories[$index]}" "${directories[$((index + 1))]}" "$peers" "${replication[$next_rs]}" || return 1
+        index=$((index + 2)); next_rs=$((next_rs + 1))
       else
-        pending=$node
+        scale_roll "${directories[$index]}" "$peers" || return 1
+        index=$((index + 1))
       fi
-    else
-      if [ -n "$pending" ]; then scale_roll "$pending" "$peers" || return 1; pending=; fi
-      scale_roll "$node" "$peers" || return 1
-    fi
-  done
-  [ -z "$pending" ] || scale_roll "$pending" "$peers" || return 1
+    done
+    while [ "$next_rs" -lt "${#replication[@]}" ]; do
+      scale_roll "${replication[$next_rs]}" "$peers" || return 1
+      next_rs=$((next_rs + 1))
+    done
+  else
+    for node in $SURVIVORS; do scale_roll "$node" "$peers" || return 1; done
+  fi
   for node in $SURVIVORS; do
     scale_wait "the join of $node ends" bootstrap_ended "$node" || return 1
   done
@@ -301,15 +376,19 @@ disturb() {
   local -a return_window=("dns:$REMOVED" 180)
   from=$(date +%s) || return 1
   if is_directory_node "$REMOVED"; then rolling_pause "$REMOVED" || return 1; fi
-  scale_checkpoint_wait "$SURVIVING_RS reaches the departing RS checkpoint" "$SURVIVING_RS" "$REMOVED" || return 1
-  dns_window_open "$REMOVED" || return 1
-  window_open "dns:$REMOVED" 180 || return 1
-  docker stop -t 120 "$REMOVED" >/dev/null || return 1
+  SCALE_HELD_WRITERS=
+  if [ "$TOPOLOGY" = combined ]; then
+    scale_hold_writers "$SURVIVING_RS" "$REMOVED" down || { scale_release_writers || :; return 1; }
+  fi
+  scale_checkpoint_wait "$SURVIVING_RS reaches the departing RS checkpoint" "$SURVIVING_RS" "$REMOVED" || { scale_release_writers || :; return 1; }
+  dns_window_open "$REMOVED" || { scale_release_writers || :; return 1; }
+  window_open "dns:$REMOVED" 180 || { scale_release_writers || :; return 1; }
+  docker stop -t 120 "$REMOVED" >/dev/null || { scale_release_writers || :; return 1; }
+  scale_release_writers || return 1
   ABSENCE_START=$(date +%s) || return 1
   printf '%s\n' "$ABSENCE_START" >"$OUT/scale-checkpoint/absence-start.txt" || return 1
   # Only changes after the stop returned count toward the backlog while it was absent.
-  admin_search "$SURVIVING_RS" cn=monitor sub '(replicationServer-database=*)' \
-    replicationServer-database domain-name last-change >"$OUT/scale-checkpoint/absent-start.ldif" || return 1
+  scale_monitor_search "$SURVIVING_RS" >"$OUT/scale-checkpoint/absent-start.ldif" || return 1
   # Save a stopped container's complete errors log for window boundaries while it is absent.
   docker cp "$REMOVED:/opt/opendj/data/logs/errors" "$OUT/logs/$REMOVED.offline-log" || return 1
   wc -l <"$OUT/logs/$REMOVED.offline-log" >"$OUT/logs/$REMOVED.offline" || return 1

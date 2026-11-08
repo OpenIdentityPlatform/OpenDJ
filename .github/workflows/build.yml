@@ -1189,6 +1189,7 @@ jobs:
           .github/scripts/replication/selftest-rolling-load.sh
           .github/scripts/replication/selftest-wait.sh
           python3 .github/scripts/replication/selftest-changelog-checkpoint.py
+          python3 .github/scripts/replication/selftest-scale-monitor.py
           python3 .github/scripts/replication/selftest-scale-fence.py
           python3 .github/scripts/replication/selftest-scale-coverage.py
           python3 .github/scripts/replication/selftest-scale-deadline.py
@@ -1206,7 +1207,7 @@ jobs:
         env:
           TOPOLOGY: ${{ matrix.topology }}
           DISTURBANCE: ${{ matrix.disturbance }}
-          # Every row runs 900 s of load; disturbed rows act a third of the way in.
+          # Every row runs 900 s of load; each disturbance uses its default start time.
           DURATION: "900"
           # the replicas fall behind during the load and catch up after it: 900 s at 325 and 65
           # a second converged in 396 s (run 38944365728), 1800 s at 423 and 85 in 2489 s (run
