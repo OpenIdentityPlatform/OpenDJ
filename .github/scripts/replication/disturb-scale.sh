@@ -33,12 +33,18 @@ SURVIVING_RS=${RS_NODES%% *}
 # it. Writers remain active, so the sample is not a final checkpoint; the later data and
 # changelog checks still have to find a change lost between the sample and the stop.
 scale_caught_up() { # <survivor RS> <departing RS>
-  local survivor=$1 departing=$2 dir="$OUT/scale-checkpoint"
+  local survivor=$1 departing=$2 dir="$OUT/scale-checkpoint" rc
   mkdir -p "$dir" || return 1
-  admin_search "$departing" cn=monitor sub '(replicationServer-database=*)' \
-    replicationServer-database domain-name last-change >"$dir/$departing.ldif" 2>"$dir/check.txt" || return 1
-  admin_search "$survivor" cn=monitor sub '(replicationServer-database=*)' \
-    replicationServer-database domain-name last-change >"$dir/$survivor.ldif" 2>>"$dir/check.txt" || return 1
+  if ADMIN_SEARCH_TIMEOUT=45 admin_search "$departing" cn=monitor sub '(replicationServer-database=*)' \
+    replicationServer-database domain-name last-change >"$dir/$departing.ldif" 2>"$dir/check.txt"; then :
+  else
+    rc=$?; printf 'checkpoint query of %s failed (exit %s)\n' "$departing" "$rc" >>"$dir/check.txt"; return 1
+  fi
+  if ADMIN_SEARCH_TIMEOUT=45 admin_search "$survivor" cn=monitor sub '(replicationServer-database=*)' \
+    replicationServer-database domain-name last-change >"$dir/$survivor.ldif" 2>>"$dir/check.txt"; then :
+  else
+    rc=$?; printf 'checkpoint query of %s failed (exit %s)\n' "$survivor" "$rc" >>"$dir/check.txt"; return 1
+  fi
   python3 -I "$HERE/changelog-checkpoint.py" "$BASE_DN" "$OUT/server-ids.txt" \
     "$dir/$departing.ldif" "$dir/$survivor.ldif" >"$dir/check.txt" 2>&1
 }
@@ -162,8 +168,8 @@ scale_roll() { # <node> <peer list>
     *" $node "*) scale_wait "$observer reaches a checkpoint of $node" scale_caught_up "$observer" "$node" || return 1 ;;
   esac
   case " $RS_NODES " in
-    *" $node "*) window_open "dns:$REMOVED" "dns:$node" || return 1 ;;
-    *) window_open "dns:$REMOVED" || return 1 ;;
+    *" $node "*) window_open_key "$direction-$node" "dns:$REMOVED" "dns:$node" || return 1 ;;
+    *) window_open_key "$direction-$node" "dns:$REMOVED" || return 1 ;;
   esac
   from=$(date +%s) || return 1
   docker stop -t 120 "$node" >/dev/null || return 1
@@ -172,11 +178,20 @@ scale_roll() { # <node> <peer list>
   docker rm "$node" >/dev/null || return 1
   PEERS="$peers" start_server "$node" "$role" || return 1
   scale_wait "$node serves again" started_since "$node" "$from" || return 1
-  scale_wait "the join of $node ends" bootstrap_ended "$node" || return 1
-  # A handshake begun before the join ended may log its timeout up to eight seconds later.
-  sleep 10
-  window_close || return 1
   if is_directory_node "$node"; then rolling_resume "$node" || return 1; fi
+}
+
+# Each node is serving before the next is stopped, but the bootstrap joins overlap.
+# The membership checks must not start until every join in this batch has finished.
+scale_roll_batch() { # <peer list> <down|up>
+  local peers=$1 direction=$2 node
+  for node in $SURVIVORS; do scale_roll "$node" "$peers" || return 1; done
+  for node in $SURVIVORS; do
+    scale_wait "the join of $node ends" bootstrap_ended "$node" || return 1
+  done
+  # A handshake begun before any join ended may log its timeout up to eight seconds later.
+  sleep 10
+  for node in $SURVIVORS; do window_close_key "$direction-$node" || return 1; done
 }
 
 disturb() {
@@ -200,7 +215,7 @@ disturb() {
   docker rm "$REMOVED" >/dev/null || return 1
   sleep 10
   window_close || return 1
-  for node in $SURVIVORS; do scale_roll "$node" "$SHORT_PEERS" || return 1; done
+  scale_roll_batch "$SHORT_PEERS" down || return 1
   for node in $SURVIVORS; do scale_wait "$REMOVED leaves $node" peer_removed "$node" "$REMOVED" || return 1; done
   scale_backlog || return 1
   # A join repairs only peers that are registered while it runs. Bring the removed node
@@ -230,7 +245,7 @@ disturb() {
     scale_wait "the replica id of $REMOVED appears" record_rejoined_id "$REMOVED" || return 1
     rolling_resume "$REMOVED" || return 1
   fi
-  for node in $SURVIVORS; do scale_roll "$node" "$FULL_PEERS" || return 1; done
+  scale_roll_batch "$FULL_PEERS" up || return 1
   for node in $SURVIVORS; do scale_wait "$REMOVED returns to $node" peer_present "$node" "$REMOVED" || return 1; done
   end=$(date +%s) || return 1
   echo "$((from * 1000)) $((end * 1000)) $REMOVED scale-$SCALE_VOLUME" >>"$OUT/disturbances.txt" || return 1

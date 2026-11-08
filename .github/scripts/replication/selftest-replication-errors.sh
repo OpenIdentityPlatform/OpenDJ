@@ -300,5 +300,39 @@ else
   passed=$((passed + 1))
 fi
 
+# Overlapping transitions retain separate bounds and exact hostname allowances.
+rm -rf "$OUT/logs"
+printf '%s\n' "$N62" >"$LOG"
+mark_logs
+window_open_key first dns:first
+printf '%s\n' "$E178" >>"$LOG"
+window_open_key second dns:second
+printf '%s\n' "$E180" >>"$LOG"
+window_close_key first
+printf '%s\n' "$E179" >>"$LOG"
+window_close_key second
+printf '%s\n' "$E178" >>"$LOG"
+errors=$(replication_errors n0 | grep -c . || true)
+expected=$(grep -c . "$OUT/logs/n0.expected" || true)
+[ "$errors" = 2 ] && [ "$expected" = 2 ] || { echo "overlapping windows misclassified records: $errors/$expected" >&2; exit 1; }
+[ ! -e "$OUT/logs/n0.window-first" ] && [ ! -e "$OUT/logs/n0.window-second" ] || { echo 'overlapping window left open' >&2; exit 1; }
+
+# DNS allowances stay scoped to their own overlapping node windows.
+rm -rf "$OUT/logs"
+printf '%s\n' "$N62" >"$LOG"
+mark_logs
+E51R1=${E51//cv-r0/cv-r1}
+window_open_key first dns:cv-r0
+printf '%s\n' "$E51" >>"$LOG"
+window_open_key second dns:cv-r1
+printf '%s\n' "$E51R1" >>"$LOG"
+window_close_key first
+printf '%s\n' "$E51" "$E51R1" >>"$LOG"
+window_close_key second
+printf '%s\n' "$E51R1" >>"$LOG"
+errors=$(replication_errors n0 | grep -c . || true)
+expected=$(grep -c . "$OUT/logs/n0.expected" || true)
+[ "$errors" = 2 ] && [ "$expected" = 3 ] || { echo "overlapping DNS windows misclassified records: $errors/$expected" >&2; exit 1; }
+
 echo "replication_errors: $passed cases passed, $failed failed"
 [ "$failed" -eq 0 ]

@@ -49,7 +49,10 @@ QUIESCE_TIMEOUT=${QUIESCE_TIMEOUT:-900}
 # 1: write to one replica only, which the run must report (a self-test of its checks)
 INJECT_DIVERGENCE=${INJECT_DIVERGENCE:-0}
 # seconds into the load at which the disturbance starts
-DISTURB_AT=${DISTURB_AT:-$((DURATION / 3))}
+case $DISTURBANCE in
+  scale-*) DISTURB_AT=${DISTURB_AT:-$((DURATION * 2 / 15))} ;;
+  *) DISTURB_AT=${DISTURB_AT:-$((DURATION / 3))} ;;
+esac
 # seconds a disturbed server is given to serve again, and its join to end after the load
 DISTURB_TIMEOUT=${DISTURB_TIMEOUT:-900}
 # where the summary, the samples, the exports, the differences and a failed run's state go: a
@@ -164,7 +167,9 @@ started_since() { # <container> <seconds>
 # (repair_replication_servers in join.sh). Ended once no bootstrap script runs any more, as
 # docker-test-replication.sh waits for it
 bootstrap_ended() { # <container>
-  ! docker exec "$1" sh -c "grep -qs -e 'bootstrap/[j]oin\.sh' -e 'bootstrap/[r]eplicate\.sh' /proc/[0-9]*/cmdline"
+  # Invert grep inside the container, not docker itself: a Docker failure or deadline
+  # must never be mistaken for the absence of a bootstrap process.
+  docker exec "$1" sh -c "grep -qs -e 'bootstrap/[j]oin\.sh' -e 'bootstrap/[r]eplicate\.sh' /proc/[0-9]*/cmdline; rc=\$?; [ \$rc -eq 1 ]"
 }
 
 ldaps_search() { # <container> <base DN> <scope> <filter> [<attribute>...]
@@ -179,7 +184,9 @@ ldaps_search() { # <container> <base DN> <scope> <filter> [<attribute>...]
 admin_search() { # <container> <base DN> <scope> <filter> [<attribute>...]
   local container=$1 base=$2 scope=$3 filter=$4
   shift 4
-  docker exec "$container" /opt/opendj/bin/ldapsearch --noPropertiesFile --hostname localhost --port 4444 \
+  local -a deadline=()
+  [ -z "${ADMIN_SEARCH_TIMEOUT:-}" ] || deadline=(/usr/bin/timeout "$ADMIN_SEARCH_TIMEOUT")
+  docker exec "$container" "${deadline[@]}" /opt/opendj/bin/ldapsearch --noPropertiesFile --hostname localhost --port 4444 \
     --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" \
     --baseDN "$base" --searchScope "$scope" "$filter" "$@"
 }

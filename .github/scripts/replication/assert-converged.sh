@@ -196,22 +196,31 @@ since_mark() { # <node>
 # cert:<DS>:<RS> for that DS's transient bad-certificate handshake with the rebuilt RS, or
 # cert-peer:<RS>:<DS IP> for the corresponding RS-side warning after the DS restarts.
 # window_close records "<lines before> <lines after> [<allowance>...]" in logs/<node>.windows.
-window_open() { # [<msgID>|dns:<hostname>...]
-  local n lines
+window_open() { window_open_key '' "$@"; }
+window_close() { window_close_key ''; }
+
+# Separate keys permit overlapping joins while retaining the exact window for each node.
+window_open_key() { # <key> [<msgID>|dns:<hostname>...]
+  local key=$1 n lines file
+  shift
+  case $key in *[!a-zA-Z0-9_-]*) return 1 ;; esac
   for n in $ALL_NODES; do
-    # an assignment, so that a log that cannot be read stops the run here as well
-    lines=$(errors_lines $n) || return 1
-    echo "$lines${*:+ $*}" >"$OUT/logs/$n.window" || return 1
+    file="$OUT/logs/$n.window${key:+-$key}"
+    [ ! -e "$file" ] || return 1
+    lines=$(errors_lines "$n") || return 1
+    echo "$lines${*:+ $*}" >"$file" || return 1
   done
 }
 
-window_close() {
-  local n lines before ids
+window_close_key() { # <key>
+  local key=$1 n lines before ids file
+  case $key in *[!a-zA-Z0-9_-]*) return 1 ;; esac
   for n in $ALL_NODES; do
-    lines=$(errors_lines $n) || return 1
-    read -r before ids <"$OUT/logs/$n.window" || return 1
+    file="$OUT/logs/$n.window${key:+-$key}"
+    lines=$(errors_lines "$n") || return 1
+    read -r before ids <"$file" || return 1
     echo "$before $lines${ids:+ $ids}" >>"$OUT/logs/$n.windows" || return 1
-    rm "$OUT/logs/$n.window" || return 1
+    rm "$file" || return 1
   done
 }
 
