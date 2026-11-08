@@ -16,12 +16,14 @@ Copyright 2026 3A Systems, LLC.
 
 = Release Notes
 :doctype: book
+:pdf-theme: default-with-font-fallbacks
 :toc:
 :copyright: Copyright 2026 3A Systems, LLC.
 :imagesdir: ../
 
 [abstract]
-Release information for Open Identity Platform OpenDJ, including requirements, selected changes and upgrade considerations. Consult the linked release records for the complete change history.
+Release information for Open Identity Platform OpenDJ, including requirements, selected changes, upgrade considerations and the full history of published GitHub release notes.
 
 include::./release-5.2.0.adoc[]
 include::./requirements-and-upgrade.adoc[]
+include::./release-history.adoc[]
