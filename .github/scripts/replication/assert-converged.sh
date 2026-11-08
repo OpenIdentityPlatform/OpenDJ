@@ -122,6 +122,12 @@ assert_changelogs() {
 # (objectClass=inetOrgPerson) over the seeded users did - so unindexed_searches checks that
 # each search went through the index
 INDEXED_FILTERS="(sn=AddRate) (sn=Diverged)"
+case ${DISTURBANCE:-none} in
+  scale-*)
+    INDEXED_FILTERS="(sn=Diverged)"
+    for n in $DS_NODES; do INDEXED_FILTERS="$INDEXED_FILTERS (sn=AddRate-$n)"; done
+    ;;
+esac
 
 # The searches of INDEXED_FILTERS a directory server ran without an index, or that its access
 # log does not hold, as errors. Read rotated logs in chronological order, then the active log:

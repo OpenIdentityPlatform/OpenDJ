@@ -93,9 +93,34 @@ wait "$b"
   wait_until() { [ "$1" -le 3 ] && [ "$1" -gt 0 ]; }
   rolling_pause deadline-node || { echo 'pause exceeded the load deadline' >&2; exit 1; }
 )
+# Forty-second segments must preserve indexed searches for every per-DS AddRate shard.
+(
+  . "$HERE/load.sh"
+  OUT="$OUT/shards"; mkdir -p "$OUT/load"
+  BASE_DN=dc=example,dc=com SAMPLE_DATA=100 LOAD_MOD_RATE=10 LOAD_ADD_RATE=1 ROOT_PASSWORD=x
+  DISTURBANCE=scale-rs-kept
+  start_client() { printf '%s\n' "$*" >>"$OUT/commands"; }
+  start_clients d0 1 40
+  start_clients d1 2 40
+  grep -E '^load-add-d0 addrate .* --noPurge ' "$OUT/commands" >/dev/null || { echo 'scale addrate still purges at the end of each segment' >&2; exit 1; }
+  grep -Fx 'sn: AddRate-d0' "$OUT/load/addrate-d0.template" >/dev/null || { echo 'd0 AddRate index shard missing' >&2; exit 1; }
+  grep -Fx 'sn: AddRate-d1' "$OUT/load/addrate-d1-2.template" >/dev/null || { echo 'd1 AddRate index shard missing' >&2; exit 1; }
+  DS_NODES='d0 d1 d2 d3'; . "$HERE/assert-converged.sh"
+  for n in $DS_NODES; do case " $INDEXED_FILTERS " in *" (sn=AddRate-$n) "*) : ;; *) echo "index shard $n is not checked" >&2; exit 1 ;; esac; done
+  ROLLING_SEGMENT=40 DURATION=900
+  rolling_index_budget || { echo 'safe per-DS segment budget rejected' >&2; exit 1; }
+  ROLLING_SEGMENT=20
+  if rolling_index_budget; then echo 'unsafe per-DS index budget accepted' >&2; exit 1; fi
+  DISTURBANCE=restart-ds
+  start_clients d2 1 40
+  grep -Fx 'sn: AddRate' "$OUT/load/addrate-d2.template" >/dev/null || { echo 'ordinary AddRate surname changed' >&2; exit 1; }
+  if grep -E '^load-add-d2 addrate .* --noPurge ' "$OUT/commands" >/dev/null; then echo 'ordinary AddRate purge changed' >&2; exit 1; fi
+  . "$HERE/assert-converged.sh"
+  [ "$INDEXED_FILTERS" = '(sn=AddRate) (sn=Diverged)' ] || { echo 'ordinary index filters changed' >&2; exit 1; }
+)
 # Too many segments leave enough AddRate entries to exceed the sn index limit.
 if (mkdir -p "$OUT/index-limit/load"; OUT="$OUT/index-limit"; DS_NODES='d0 d1 d2 d3'
-    ROLLING_SEGMENT=60; DURATION=900; DISTURB_AT=1; STAT_INTERVAL=0
+    ROLLING_SEGMENT=20; DURATION=900; DISTURB_AT=1; STAT_INTERVAL=0
     rolling_worker() { :; }; disturb() { :; }; sleep() { :; }
     rolling_run_load) >/dev/null 2>&1; then
   echo 'rolling load accepted enough retained entries to exceed the sn index limit' >&2; exit 1
@@ -163,7 +188,7 @@ fi
   . "$HERE/lib.sh"
   docker() { printf '%s\n' "$*" >"$OUT/admin-command"; }
   ADMIN_SEARCH_TIMEOUT=45 admin_search node cn=monitor sub '(objectClass=*)' 1.1
-  grep -F 'exec node /usr/bin/timeout 45 /opt/opendj/bin/ldapsearch' "$OUT/admin-command" >/dev/null || { echo 'checkpoint query timeout missing' >&2; exit 1; }
+  grep -F 'exec node /usr/bin/timeout --verbose 45 /opt/opendj/bin/ldapsearch' "$OUT/admin-command" >/dev/null || { echo 'checkpoint query timeout missing' >&2; exit 1; }
   admin_search node cn=monitor sub '(objectClass=*)' 1.1
   grep -F 'exec node /opt/opendj/bin/ldapsearch' "$OUT/admin-command" >/dev/null || { echo 'ordinary search changed' >&2; exit 1; }
 )

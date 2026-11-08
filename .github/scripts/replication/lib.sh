@@ -185,7 +185,7 @@ admin_search() { # <container> <base DN> <scope> <filter> [<attribute>...]
   local container=$1 base=$2 scope=$3 filter=$4
   shift 4
   local -a deadline=()
-  [ -z "${ADMIN_SEARCH_TIMEOUT:-}" ] || deadline=(/usr/bin/timeout "$ADMIN_SEARCH_TIMEOUT")
+  [ -z "${ADMIN_SEARCH_TIMEOUT:-}" ] || deadline=(/usr/bin/timeout --verbose "$ADMIN_SEARCH_TIMEOUT")
   docker exec "$container" "${deadline[@]}" /opt/opendj/bin/ldapsearch --noPropertiesFile --hostname localhost --port 4444 \
     --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" \
     --baseDN "$base" --searchScope "$scope" "$filter" "$@"
