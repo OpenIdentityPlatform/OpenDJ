@@ -51,6 +51,8 @@ run_case() (
   start_server() { record "start $1 $2 $PEERS"; }
   admin_search() { record "search $1"; echo 'baseline'; }
   window_open() { record "window $*"; }; window_close() { :; }
+  window_open_key() { shift; record "window $*"; }
+  window_close_key() { record "window-close $1"; }
   dns_window_open() { record "dns-open $*"; }; dns_window_close() { record dns-close; }
   errors_lines() { echo 10; }
   rolling_pause() { record "pause $1"; }
@@ -60,6 +62,7 @@ run_case() (
   wait_until() {
     record "wait ${*:3}"
     [ "${FAIL_CHECKPOINT:-0}" != 1 ] || [ "${3:-}" != scale_caught_up ] || return 1
+    [ "${FAIL_JOIN:-0}" != 1 ] || [ "${3:-}" != bootstrap_ended ] || return 1
     if [ "${3:-}" = record_rejoined_id ]; then record_rejoined_id "$4"; fi
     return 0
   }
@@ -83,8 +86,34 @@ run_case() (
   fi
   : >"$OUT/calls"
   rm -f "$OUT/logs/$target.offline" "$OUT/logs/$target.previous"
+  # A failed join must prevent membership assertions and backlog creation.
+  if (FAIL_JOIN=1; disturb) >/dev/null 2>&1; then
+    echo 'failed join was accepted' >&2; exit 1
+  fi
+  if grep -E '^wait peer_removed |^fill ' "$OUT/calls" >/dev/null; then
+    echo 'proceeded after a failed join' >&2; exit 1
+  fi
+  : >"$OUT/calls"
+  rm -f "$OUT/logs/$target.offline" "$OUT/logs/$target.previous"
   disturb
-  expected_windows=$((2 + 2 * ($(echo "$ALL_NODES" | wc -w) - 1)))
+  # Every survivor is serving before the batch waits for the first background join.
+  awk -v full="$FULL_PEERS" -v short="$SHORT_PEERS" -v target="$target" '
+    $1 == "start" && $2 != target && $4 == short { short_started++ }
+    $1 == "start" && $2 != target && $4 == full { full_started++ }
+    $1 == "wait" && $2 == "bootstrap_ended" && $3 != target {
+      if (!returned && short_started != expected) exit 1
+      if (returned && full_started != expected) exit 1
+    }
+    $1 == "start" && $2 == target { returned = 1 }
+    END { if (short_started != expected || full_started != expected) exit 1 }
+  ' expected="$(($(echo "$ALL_NODES" | wc -w) - 1))" "$OUT/calls" || { echo 'join blocked a later survivor start' >&2; exit 1; }
+  # No second survivor stops before the previous one has started and serves.
+  awk -v target="$target" '
+    $1 == "docker" && $2 == "stop" && $NF != target { if (down) exit 1; down=$NF }
+    $1 == "wait" && $2 == "started_since" && $3 == down { down="" }
+    END { if (down) exit 1 }
+  ' "$OUT/calls" || { echo 'more than one survivor stopped at a time' >&2; exit 1; }
+  expected_windows=4
   [ "$(grep -c '^sleep 10$' "$OUT/calls")" -eq "$expected_windows" ] || { echo 'missing handshake grace after a transition' >&2; exit 1; }
   expected_checkpoints=$((1 + 2 * ($(echo "$RS_NODES" | wc -w) - 1)))
   [ "$(grep -c '^wait scale_caught_up ' "$OUT/calls")" -eq "$expected_checkpoints" ] || { echo 'a rolling RS lacked a checkpoint' >&2; exit 1; }
@@ -105,6 +134,8 @@ run_case() (
   [ "$(grep -c '^wait peer_present ' "$OUT/calls")" -eq "$(($(echo "$ALL_NODES" | wc -w) - 1))" ] || { echo 'return not checked on every survivor' >&2; exit 1; }
   for n in $ALL_NODES; do
     [ "$n" = "$target" ] && continue
+    grep -Fx "window-close down-$n" "$OUT/calls" >/dev/null || { echo "down window for $n left open" >&2; exit 1; }
+    grep -Fx "window-close up-$n" "$OUT/calls" >/dev/null || { echo "up window for $n left open" >&2; exit 1; }
     [ "$(grep -c "^start $n " "$OUT/calls")" -eq 2 ] || { echo "$n was not rolled twice" >&2; exit 1; }
   done
   if [ "$mode" = empty ]; then
@@ -122,6 +153,13 @@ run_case() (
     grep -Fx "resume $target" "$OUT/calls" >/dev/null
   fi
   [ ! -e "$OUT/logs/$target.offline" ]
+  # A failed observer query identifies the node and status in the checkpoint diagnostic.
+  (
+    admin_search() { [ "$1" != observer ] || return 124; echo baseline; }
+    if scale_caught_up observer departing; then echo 'failed checkpoint query accepted' >&2; exit 1; fi
+    grep -F 'observer' "$OUT/scale-checkpoint/check.txt" >/dev/null || { echo 'checkpoint diagnostic omitted observer' >&2; exit 1; }
+    grep -F '124' "$OUT/scale-checkpoint/check.txt" >/dev/null || { echo 'checkpoint diagnostic omitted failure status' >&2; exit 1; }
+  )
   backlog_ldif "scale-backlog-$target" "$BASE_DN" 1 3 >"$OUT/fill.ldif"
   [ "$(grep -c '^changetype: modify$' "$OUT/fill.ldif")" -eq 3 ] || { echo 'wrong number of fill writes' >&2; exit 1; }
   grep -Fx 'description: scale-3' "$OUT/fill.ldif" >/dev/null || { echo 'fill values are not distinct' >&2; exit 1; }
