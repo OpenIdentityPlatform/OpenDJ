@@ -23,11 +23,10 @@ docker() {
   fi
 }
 
-# Each DS gets naturally ending segments. A rolling replacement waits for its two clients
-# to finish their current segment before stopping it; other DS keep taking writes. At 900 s,
-# 100 s segments leave at most nine groups of about 100 AddRate entries per DS: four DS
-# stay below the 4000-entry limit of the sn index checked by assert_online.
-ROLLING_SEGMENT=${ROLLING_SEGMENT:-100}
+# Each DS gets naturally ending segments. A rolling replacement waits for both clients
+# before stopping it; other DS keep writing. Per-DS surnames keep each indexed AddRate
+# shard below the index entry limit even with shorter segments.
+ROLLING_SEGMENT=${ROLLING_SEGMENT:-40}
 # Docker's finish time includes JVM startup and connection setup, unlike --maxDuration.
 # A successful run cannot claim the requested duration if a client exited after it.
 finished_before_deadline() { # <Docker UTC timestamp> <deadline in epoch milliseconds>
@@ -98,6 +97,7 @@ rolling_worker() { # <directory server>
   done
 }
 rolling_parked() { [ -e "$OUT/load/$1.parked" ]; }
+rolling_request_pause() { touch "$OUT/load/$1.pause"; }
 rolling_pause() { # <directory server>
   local timeout=${DISTURB_TIMEOUT:-900} left
   if [ -n "${ROLLING_END:-}" ]; then
@@ -105,7 +105,7 @@ rolling_pause() { # <directory server>
     [ "$left" -gt 0 ] || return 1
     [ "$left" -ge "$timeout" ] || timeout=$left
   fi
-  touch "$OUT/load/$1.pause" || return 1
+  rolling_request_pause "$1" || return 1
   wait_until "$timeout" "$1 clients finish" rolling_parked "$1"
 }
 rolling_resume() { rm -f "$OUT/load/$1.pause"; }
@@ -143,14 +143,18 @@ prepare_rolling_deadline() {
 
 # Used in place of run_load for a rolling scale change. The deadline covers the complete
 # disturbance: a late return is a failed run, even if the topology later converges.
-rolling_run_load() {
-  local n pid watchdog pids= failed= left segments servers
-  [ "$ROLLING_SEGMENT" -gt 0 ] || { fail "ROLLING_SEGMENT must be positive"; return 1; }
+rolling_index_budget() {
+  local segments
+  [ "$ROLLING_SEGMENT" -gt 0 ] || return 1
   segments=$(((DURATION + ROLLING_SEGMENT - 1) / ROLLING_SEGMENT))
-  servers=$(echo "$DS_NODES" | wc -w)
-  # Each addrate segment leaves at most about 101 entries, and sn=AddRate must stay
-  # below the default index entry limit. Reject settings that make the check unindexed.
-  [ $((segments * servers * 101)) -lt 4000 ] || { fail "rolling segments exceed the sn index entry limit"; return 1; }
+  # The FIFO threshold is 100; allow for concurrent in-flight adds on eight
+  # connections. Each DS uses its own indexed surname.
+  [ $((segments * 160)) -lt 4000 ]
+}
+
+rolling_run_load() {
+  local n pid watchdog pids= failed= left
+  rolling_index_budget || { fail "rolling segments exceed the sn index entry limit"; return 1; }
   mkdir -p "$OUT/load" || return 1
   [ -n "${ROLLING_END_MS:-}" ] || prepare_rolling_deadline
   left=$((ROLLING_END - SECONDS))

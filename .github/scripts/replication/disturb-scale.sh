@@ -29,24 +29,80 @@ SHORT_PEERS=$(echo "$SURVIVORS" | xargs | tr ' ' ',')
 FULL_PEERS=$PEERS
 SURVIVING_RS=${RS_NODES%% *}
 
-# Check that a survivor has reached the departing RS's sampled positions before stopping
-# it. Writers remain active, so the sample is not a final checkpoint; the later data and
-# changelog checks still have to find a change lost between the sample and the stop.
+# Freeze the departing RS's positions while waiting for catch-up. Once reached, take a
+# fresh sample and verify it before stopping the RS; a stale snapshot must not authorize it.
+scale_checkpoint_init() { # <survivor> <departing>
+  SCALE_CHECKPOINT_NUMBER=$(( ${SCALE_CHECKPOINT_NUMBER:-0} + 1 ))
+  SCALE_CHECKPOINT_DIR="$OUT/scale-checkpoint/$(printf '%03d' "$SCALE_CHECKPOINT_NUMBER")-$1-$2"
+  SCALE_CHECKPOINT_ATTEMPT=0
+  mkdir -p "$SCALE_CHECKPOINT_DIR"
+}
+
+scale_checkpoint_query() { # <node> <output> <error> <role>
+  local node=$1 output=$2 errors=$3 role=$4 rc=0 start=$SECONDS remaining=$((ROLLING_END - SECONDS)) now timeout=none
+  now=$(date +%s) || return 1
+  ADMIN_SEARCH_TIMEOUT=45 admin_search "$node" cn=monitor sub '(replicationServer-database=*)' \
+    replicationServer-database domain-name last-change >"$output" 2>"$errors" || rc=$?
+  if [ "$rc" -eq 124 ]; then
+    if grep -F 'timeout: sending signal ' "$errors" >/dev/null; then timeout=query
+    elif [ "$SECONDS" -ge "$ROLLING_END" ]; then timeout=load
+    else timeout=unknown
+    fi
+  fi
+  printf 'attempt=%s role=%s node=%s started=%s elapsed=%s remaining-start=%s remaining-end=%s exit=%s timeout=%s\n' \
+    "$SCALE_CHECKPOINT_ATTEMPT" "$role" "$node" "$now" "$((SECONDS - start))" "$remaining" "$((ROLLING_END - SECONDS))" "$rc" "$timeout" \
+    >>"$SCALE_CHECKPOINT_DIR/history.txt" || return 1
+  return "$rc"
+}
+
 scale_caught_up() { # <survivor RS> <departing RS>
-  local survivor=$1 departing=$2 dir="$OUT/scale-checkpoint" rc
-  mkdir -p "$dir" || return 1
-  if ADMIN_SEARCH_TIMEOUT=45 admin_search "$departing" cn=monitor sub '(replicationServer-database=*)' \
-    replicationServer-database domain-name last-change >"$dir/$departing.ldif" 2>"$dir/check.txt"; then :
-  else
-    rc=$?; printf 'checkpoint query of %s failed (exit %s)\n' "$departing" "$rc" >>"$dir/check.txt"; return 1
+  local survivor=$1 departing=$2 dir="$SCALE_CHECKPOINT_DIR" prefix rc reference_new=0
+  SCALE_CHECKPOINT_ATTEMPT=$((SCALE_CHECKPOINT_ATTEMPT + 1))
+  prefix="$dir/attempt-$(printf '%04d' "$SCALE_CHECKPOINT_ATTEMPT")"
+  if [ ! -f "$dir/reference.ldif" ]; then
+    if scale_checkpoint_query "$departing" "$prefix.reference.ldif" "$prefix.reference.err" reference; then
+      cp "$prefix.reference.ldif" "$dir/reference.ldif" || return 1
+      reference_new=1
+    else
+      rc=$?; printf 'checkpoint query of %s failed (exit %s)\n' "$departing" "$rc" >"$OUT/scale-checkpoint/check.txt"; return 1
+    fi
   fi
-  if ADMIN_SEARCH_TIMEOUT=45 admin_search "$survivor" cn=monitor sub '(replicationServer-database=*)' \
-    replicationServer-database domain-name last-change >"$dir/$survivor.ldif" 2>>"$dir/check.txt"; then :
+  if scale_checkpoint_query "$survivor" "$prefix.observer.ldif" "$prefix.observer.err" observer; then :
   else
-    rc=$?; printf 'checkpoint query of %s failed (exit %s)\n' "$survivor" "$rc" >>"$dir/check.txt"; return 1
+    rc=$?; printf 'checkpoint query of %s failed (exit %s)\n' "$survivor" "$rc" >"$OUT/scale-checkpoint/check.txt"; return 1
   fi
+  rc=0
   python3 -I "$HERE/changelog-checkpoint.py" "$BASE_DN" "$OUT/server-ids.txt" \
-    "$dir/$departing.ldif" "$dir/$survivor.ldif" >"$dir/check.txt" 2>&1
+    "$dir/reference.ldif" "$prefix.observer.ldif" >"$prefix.compare" 2>&1 || rc=$?
+  printf 'attempt=%s comparison-exit=%s\n' "$SCALE_CHECKPOINT_ATTEMPT" "$rc" >>"$dir/history.txt" || return 1
+  cp "$prefix.compare" "$OUT/scale-checkpoint/check.txt" || return 1
+  [ "$rc" -eq 0 ] || return "$rc"
+  # The first successful comparison already sampled the departing node immediately
+  # before the observer. Only a reference retained across retries needs refreshing.
+  [ "$reference_new" -eq 0 ] || return 0
+  # A writer may have advanced while the frozen reference was catching up. Re-sample
+  # the departing node, then the survivor, before accepting this checkpoint.
+  if scale_checkpoint_query "$departing" "$prefix.fresh-reference.ldif" "$prefix.fresh-reference.err" fresh-reference; then :
+  else
+    rc=$?; printf 'checkpoint query of %s failed (exit %s)\n' "$departing" "$rc" >"$OUT/scale-checkpoint/check.txt"; return 1
+  fi
+  if scale_checkpoint_query "$survivor" "$prefix.fresh-observer.ldif" "$prefix.fresh-observer.err" fresh-observer; then :
+  else
+    rc=$?; printf 'checkpoint query of %s failed (exit %s)\n' "$survivor" "$rc" >"$OUT/scale-checkpoint/check.txt"; return 1
+  fi
+  rc=0
+  python3 -I "$HERE/changelog-checkpoint.py" "$BASE_DN" "$OUT/server-ids.txt" \
+    "$prefix.fresh-reference.ldif" "$prefix.fresh-observer.ldif" >"$prefix.fresh-compare" 2>&1 || rc=$?
+  printf 'attempt=%s fresh-comparison-exit=%s\n' "$SCALE_CHECKPOINT_ATTEMPT" "$rc" >>"$dir/history.txt" || return 1
+  cp "$prefix.fresh-compare" "$OUT/scale-checkpoint/check.txt" || return 1
+  [ "$rc" -gt 1 ] || cp "$prefix.fresh-reference.ldif" "$dir/reference.ldif" || return 1
+  return "$rc"
+}
+
+scale_checkpoint_wait() { # <description> <survivor> <departing>
+  local what=$1 survivor=$2 departing=$3
+  scale_checkpoint_init "$survivor" "$departing" || return 1
+  scale_wait "$what" scale_caught_up "$survivor" "$departing"
 }
 
 # A dedicated LDAP client applies 50,001 distinct modifications after the stop. The tool
@@ -165,7 +221,7 @@ scale_roll() { # <node> <peer list>
   case " $RS_ONLY " in *" $node "*) role=replication ;; esac
   if is_directory_node "$node"; then rolling_pause "$node" || return 1; fi
   case " $RS_NODES " in
-    *" $node "*) scale_wait "$observer reaches a checkpoint of $node" scale_caught_up "$observer" "$node" || return 1 ;;
+    *" $node "*) scale_checkpoint_wait "$observer reaches a checkpoint of $node" "$observer" "$node" || return 1 ;;
   esac
   case " $RS_NODES " in
     *" $node "*) window_open_key "$direction-$node" "dns:$REMOVED" "dns:$node" || return 1 ;;
@@ -181,11 +237,57 @@ scale_roll() { # <node> <peer list>
   if is_directory_node "$node"; then rolling_resume "$node" || return 1; fi
 }
 
-# Each node is serving before the next is stopped, but the bootstrap joins overlap.
-# The membership checks must not start until every join in this batch has finished.
+# A pair of directory-only servers may be recreated together: two other DS and the
+# surviving RS remain available. Open both log windows before either container stops.
+scale_roll_pair() { # <directory node> <directory node> <peer list>
+  local first=$1 second=$2 peers=$3 direction=up node candidate writer= rs= from
+  [ "$TOPOLOGY" = rs534 ] || return 1
+  [ "$peers" != "$SHORT_PEERS" ] || direction=down
+  for candidate in $DS_NODES; do
+    [ "$candidate" != "$REMOVED" ] && [ "$candidate" != "$first" ] && [ "$candidate" != "$second" ] || continue
+    writer=$candidate; break
+  done
+  for candidate in $RS_NODES; do
+    [ "$candidate" != "$REMOVED" ] || continue
+    rs=$candidate; break
+  done
+  [ -n "$writer" ] && [ -n "$rs" ] || { fail 'directory pair has no surviving writer or replication server'; return 1; }
+  scale_wait "$rs remains available" runs_replication_server "$rs" || return 1
+  for node in "$first" "$second"; do rolling_request_pause "$node" || return 1; done
+  for node in "$first" "$second"; do rolling_pause "$node" || return 1; done
+  for node in "$first" "$second"; do window_open_key "$direction-$node" "dns:$REMOVED" || return 1; done
+  from=$(date +%s) || return 1
+  for node in "$first" "$second"; do docker stop -t 120 "$node" >/dev/null || return 1; done
+  mkdir -p "$OUT/scale-progress" || return 1
+  for node in "$first" "$second"; do
+    scale_wait "another replica writes while $node is stopped" scale_probe "$writer" "$node" "$direction" || return 1
+  done
+  for node in "$first" "$second"; do docker rm "$node" >/dev/null || return 1; done
+  for node in "$first" "$second"; do PEERS="$peers" start_server "$node" directory || return 1; done
+  for node in "$first" "$second"; do
+    scale_wait "$node serves again" started_since "$node" "$from" || return 1
+    rolling_resume "$node" || return 1
+  done
+}
+
+# Combined and RS-only servers stop one at a time. Directory-only servers in the
+# separate topology roll in pairs, and all background joins complete before membership checks.
 scale_roll_batch() { # <peer list> <down|up>
-  local peers=$1 direction=$2 node
-  for node in $SURVIVORS; do scale_roll "$node" "$peers" || return 1; done
+  local peers=$1 direction=$2 node pending=
+  for node in $SURVIVORS; do
+    if [ "$TOPOLOGY" = rs534 ] && is_directory_node "$node"; then
+      if [ -n "$pending" ]; then
+        scale_roll_pair "$pending" "$node" "$peers" || return 1
+        pending=
+      else
+        pending=$node
+      fi
+    else
+      if [ -n "$pending" ]; then scale_roll "$pending" "$peers" || return 1; pending=; fi
+      scale_roll "$node" "$peers" || return 1
+    fi
+  done
+  [ -z "$pending" ] || scale_roll "$pending" "$peers" || return 1
   for node in $SURVIVORS; do
     scale_wait "the join of $node ends" bootstrap_ended "$node" || return 1
   done
@@ -199,7 +301,7 @@ disturb() {
   local -a return_window=("dns:$REMOVED" 180)
   from=$(date +%s) || return 1
   if is_directory_node "$REMOVED"; then rolling_pause "$REMOVED" || return 1; fi
-  scale_wait "$SURVIVING_RS reaches the departing RS checkpoint" scale_caught_up "$SURVIVING_RS" "$REMOVED" || return 1
+  scale_checkpoint_wait "$SURVIVING_RS reaches the departing RS checkpoint" "$SURVIVING_RS" "$REMOVED" || return 1
   dns_window_open "$REMOVED" || return 1
   window_open "dns:$REMOVED" 180 || return 1
   docker stop -t 120 "$REMOVED" >/dev/null || return 1

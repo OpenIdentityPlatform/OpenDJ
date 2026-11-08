@@ -55,7 +55,13 @@ STAT_INTERVAL=10
 # start at once next to the servers, and a runner that is short of CPU for a while accepts
 # their connections late
 start_clients() { # <node> <segment> <seconds>
-  local n=$1 name=$1 c
+  local n=$1 name=$1 c surname=AddRate
+  local -a addrate_options=()
+  case ${DISTURBANCE:-none} in
+    # Purging a segment at shutdown can take longer than the segment itself.
+    # FIFO deletes during the load remain enabled, and each DS has an indexed shard.
+    scale-*) surname="AddRate-$n"; addrate_options=(--noPurge) ;;
+  esac
   [ "$2" -eq 1 ] || name=$1-$2
   [ ! -e "$OUT/load/deadline" ] || return 1
   # entries of its own on each server, so that the adds and deletes of two servers never meet
@@ -74,7 +80,7 @@ objectClass: organizationalPerson
 objectClass: inetOrgPerson
 uid: addrate-$name.<sequential:0>
 cn: AddRate {uid}
-sn: AddRate
+sn: $surname
 userPassword: password
 TEMPLATE
   chmod 644 "$OUT/load/addrate-$name.template"
@@ -98,7 +104,7 @@ TEMPLATE
   start_client load-add-$name addrate --hostname $n --port 1389 --connectTimeout 120000 --noRebind \
     --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --maxDuration "$3" \
     --statInterval $STAT_INTERVAL --numConnections 8 --numThreads 1 --scriptFriendly --targetThroughput "$LOAD_ADD_RATE" \
-    --deleteMode fifo --deleteSizeThreshold 100 "/load/addrate-$name.template" || return 1
+    --deleteMode fifo --deleteSizeThreshold 100 "${addrate_options[@]}" "/load/addrate-$name.template" || return 1
   if [ -e "$OUT/load/deadline" ]; then
     docker kill "load-mod-$name" "load-add-$name" >/dev/null 2>&1 || true
     return 1
