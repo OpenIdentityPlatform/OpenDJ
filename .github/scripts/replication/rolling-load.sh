@@ -96,6 +96,19 @@ rolling_worker() { # <directory server>
     segment=$((segment + 1))
   done
 }
+# A marker is written before Docker starts the clients; require both containers to be
+# running before relying on this DS as the sole load writer during a checkpoint.
+rolling_clients_running() { # <directory server>
+  local node=$1 mod add extra client state
+  [ ! -e "$OUT/load/$node.pause" ] && [ -f "$OUT/load/$node.active" ] || return 1
+  read -r mod add extra <"$OUT/load/$node.active" || return 1
+  case $mod in "load-mod-$node"|"load-mod-$node-"*) ;; *) return 1 ;; esac
+  [ -z "$extra" ] && [ "$add" = "load-add-${mod#load-mod-}" ] || return 1
+  for client in "$mod" "$add"; do
+    state=$(docker inspect -f '{{.State.Running}}' "$client") || return 1
+    [ "$state" = true ] || return 1
+  done
+}
 rolling_parked() { [ -e "$OUT/load/$1.parked" ]; }
 rolling_request_pause() { touch "$OUT/load/$1.pause"; }
 rolling_pause() { # <directory server>

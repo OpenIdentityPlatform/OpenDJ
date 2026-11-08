@@ -41,4 +41,15 @@ done
 ( TOPOLOGY=combined DISTURBANCE=scale-kept DISTURB_AT=77 DURATION=900
   . "$HERE/lib.sh"
   [ "$DISTURB_AT" -eq 77 ] ) || exit 1
+# Only scale rows publish the admin port, and only on loopback for the native monitor.
+(
+  OUT=$(mktemp -d); trap 'rm -rf "$OUT"' EXIT
+  . "$HERE/topology-up.sh"
+  docker() { printf '%s\n' "$*" >>"$OUT/calls"; }
+  NETWORK=test ROOT_PASSWORD=password SERVER_JAVA_ARGS=-Xmx1g IMAGE=test PEERS=d0,d1
+  DISTURBANCE=scale-kept; start_server d0 combined
+  grep -F -- '-p 127.0.0.1::4444' "$OUT/calls" >/dev/null || { echo 'scale admin port is not loopback-published' >&2; exit 1; }
+  : >"$OUT/calls"; DISTURBANCE=restart-ds; start_server d0 combined
+  if grep -F -- '-p 127.0.0.1::4444' "$OUT/calls" >/dev/null; then echo 'ordinary topology published an admin port' >&2; exit 1; fi
+)
 echo 'scale topology cases passed'
