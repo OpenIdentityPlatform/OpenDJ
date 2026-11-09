@@ -251,6 +251,18 @@ scale_release_writers() {
   [ -z "$failed" ]
 }
 
+# A restart removes the old container and with it its bootstrap timings. Keep the
+# Docker timestamp on each line so events from different processes can be correlated.
+scale_capture_bootstrap() { # <node> <generation>
+  mkdir -p "$OUT/bootstrap" || return 0
+  docker logs --timestamps "$1" >"$OUT/bootstrap/$2-$1.log" 2>&1 || :
+}
+
+collect_scale_bootstrap() {
+  local node
+  for node in $ALL_NODES; do scale_capture_bootstrap "$node" final; done
+}
+
 scale_roll() { # <node> <peer list>
   local node=$1 peers=$2 role=directory from observer= writer= candidate direction=up
   [ "$peers" != "$SHORT_PEERS" ] || direction=down
@@ -283,6 +295,7 @@ scale_roll() { # <node> <peer list>
   scale_release_writers || return 1
   mkdir -p "$OUT/scale-progress" || return 1
   scale_wait "another replica writes while $node is stopped" scale_probe "$writer" "$node" "$direction" || return 1
+  scale_capture_bootstrap "$node" "$direction"
   docker rm "$node" >/dev/null || return 1
   PEERS="$peers" start_server "$node" "$role" || return 1
   scale_wait "$node serves again" started_since "$node" "$from" || return 1
@@ -328,6 +341,7 @@ scale_roll_pair() { # <directory node> <directory node> <peer list> <RS>
   scale_stop_group "$first" "$second" "$rolling_rs" || return 1
   mkdir -p "$OUT/scale-progress" || return 1
   scale_wait "another replica writes while the group is stopped" scale_probe_batch "$writer" "$direction" "$first" "$second" "$rolling_rs" || return 1
+  for node in "$first" "$second" "$rolling_rs"; do scale_capture_bootstrap "$node" "$direction"; done
   for node in "$first" "$second" "$rolling_rs"; do docker rm "$node" >/dev/null || return 1; done
   PEERS="$peers" start_server "$rolling_rs" replication || return 1
   for node in "$first" "$second"; do PEERS="$peers" start_server "$node" directory || return 1; done
@@ -393,6 +407,7 @@ disturb() {
   docker cp "$REMOVED:/opt/opendj/data/logs/errors" "$OUT/logs/$REMOVED.offline-log" || return 1
   wc -l <"$OUT/logs/$REMOVED.offline-log" >"$OUT/logs/$REMOVED.offline" || return 1
   docker logs "$REMOVED" >"$OUT/logs/$REMOVED.previous-container" 2>&1 || return 1
+  scale_capture_bootstrap "$REMOVED" removed
   docker rm "$REMOVED" >/dev/null || return 1
   sleep 10
   window_close || return 1

@@ -89,6 +89,8 @@
 
 cd /opt/opendj || exit 1
 export PATH=/opt/opendj/bin:$PATH
+. /opt/opendj/bootstrap/join-timing.sh
+join_timing_init
 
 BASE_DN=${BASE_DN:-"dc=example,dc=com"}
 ROOT_USER_DN=${ROOT_USER_DN:-"cn=Directory Manager"}
@@ -254,14 +256,14 @@ in_peers() {
 search() {
   local host=$1
   shift
-  ldapsearch --noPropertiesFile --hostname "$host" --port "$ADMIN_PORT" --useSsl --trustAll \
+  join_timed "ldapsearch:$host" ldapsearch --noPropertiesFile --hostname "$host" --port "$ADMIN_PORT" --useSsl --trustAll \
     --bindDN "$ROOT_USER_DN" --bindPasswordFile "$PASSWORD_FILE" "$@" 2>/dev/null
 }
 
 ldapmodify_on() { # <host> [<option>...]
   local host=$1
   shift
-  ldapmodify --noPropertiesFile --hostname "$host" --port "$ADMIN_PORT" --useSsl --trustAll \
+  join_timed "ldapmodify:$host" ldapmodify --noPropertiesFile --hostname "$host" --port "$ADMIN_PORT" --useSsl --trustAll \
     --bindDN "$ROOT_USER_DN" --bindPasswordFile "$PASSWORD_FILE" "$@" 2>/dev/null
 }
 
@@ -270,7 +272,7 @@ ldapmodify_local() {
 }
 
 dsconfig_local() {
-  dsconfig "$@" --hostname localhost --port "$ADMIN_PORT" --bindDN "$ROOT_USER_DN" \
+  join_timed "dsconfig:$1" dsconfig "$@" --hostname localhost --port "$ADMIN_PORT" --bindDN "$ROOT_USER_DN" \
     --bindPasswordFile "$PASSWORD_FILE" --trustAll --no-prompt
 }
 
@@ -955,7 +957,7 @@ leave_rejoin() {
 }
 
 joined() {
-  cleanup_departed
+  join_timed cleanup_departed cleanup_departed
   leave_rejoin || exit 1
   # a replication server published itself rejoining until now, on the ready road too
   if [ "$ROLE" = replication ] && ! publish_state ready; then
@@ -964,7 +966,7 @@ joined() {
   fi
   touch "$BOOTSTRAP_COMPLETE"
   echo "join: this server is a member of the replication topology, the health check may probe it"
-  repair_replication_servers
+  join_timed repair_replication_servers repair_replication_servers
 }
 
 # the peers learn that this server holds the data before anything else changes: a seed whose
@@ -1119,9 +1121,9 @@ if [ ! -f "$INITIALIZE_PENDING" ]; then
     publish_state ready
   fi
   for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
-    if ! reset_if_unregistered rejoining; then
+    if ! join_timed reset_if_unregistered reset_if_unregistered rejoining; then
       : # the next round tries the reset again
-    elif is_member; then
+    elif join_timed is_member is_member; then
       echo "join: already a member of the replication topology"
       joined
       exit
@@ -1185,9 +1187,9 @@ member=no
 for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
   member=no
   reset_due=no
-  if ! reset_if_unregistered pending; then
+  if ! join_timed reset_if_unregistered reset_if_unregistered pending; then
     reset_due=yes
-  elif is_member; then
+  elif join_timed is_member is_member; then
     member=yes
   fi
   if [ "$member" = no ] && [ "$reset_due" = no ]; then
