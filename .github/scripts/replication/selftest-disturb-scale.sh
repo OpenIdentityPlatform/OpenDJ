@@ -126,6 +126,14 @@ run_case() (
   : >"$OUT/calls"
   rm -f "$OUT/logs/$target.offline" "$OUT/logs/$target.previous"
   disturb
+  # A recreated container loses its log: retain both rolling generations as well as
+  # the final logs that a successful run will otherwise remove during cleanup.
+  for n in $SURVIVORS; do
+    [ -s "$OUT/bootstrap/down-$n.log" ] && [ -s "$OUT/bootstrap/up-$n.log" ] || { echo "missing saved bootstrap logs for $n" >&2; exit 1; }
+  done
+  [ -s "$OUT/bootstrap/removed-$target.log" ] || { echo 'missing removed node bootstrap log' >&2; exit 1; }
+  collect_scale_bootstrap
+  for n in $ALL_NODES; do [ -s "$OUT/bootstrap/final-$n.log" ] || { echo "missing final bootstrap log for $n" >&2; exit 1; }; done
   # Every survivor is serving before the batch waits for the first background join.
   awk -v full="$FULL_PEERS" -v short="$SHORT_PEERS" -v target="$target" '
     $1 == "start" && $2 != target && $4 == short { short_started++ }

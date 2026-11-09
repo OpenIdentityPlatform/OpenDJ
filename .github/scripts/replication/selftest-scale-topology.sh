@@ -29,11 +29,11 @@ check rs534 empty-rs 2 6
 check rs534 none 2 6
 check combined scale-kept 4 4
 check combined scale-empty 4 4
-# Scale begins after 120 s of a 900 s load; unrelated rows and explicit settings retain theirs.
+# Scale begins after 120 s of a 1200 s load; unrelated rows and explicit settings retain theirs.
 for disturbance in scale-rs-kept scale-rs-empty scale-kept scale-empty; do
   ( unset DISTURB_AT DURATION; TOPOLOGY=combined DISTURBANCE=$disturbance
     . "$HERE/lib.sh"
-    [ "$DURATION" -eq 900 ] && [ "$DISTURB_AT" -eq 120 ] ) || exit 1
+    [ "$DURATION" -eq 1200 ] && [ "$DISTURB_AT" -eq 120 ] ) || exit 1
 done
 ( unset DISTURB_AT DURATION; TOPOLOGY=rs534 DISTURBANCE=empty-rs
   . "$HERE/lib.sh"
@@ -49,7 +49,9 @@ done
   NETWORK=test ROOT_PASSWORD=password SERVER_JAVA_ARGS=-Xmx1g IMAGE=test PEERS=d0,d1
   DISTURBANCE=scale-kept; start_server d0 combined
   grep -F -- '-p 127.0.0.1::4444' "$OUT/calls" >/dev/null || { echo 'scale admin port is not loopback-published' >&2; exit 1; }
+  grep -F -- '-e JOIN_TIMING=1' "$OUT/calls" >/dev/null || { echo 'scale bootstrap timing is not enabled' >&2; exit 1; }
   : >"$OUT/calls"; DISTURBANCE=restart-ds; start_server d0 combined
   if grep -F -- '-p 127.0.0.1::4444' "$OUT/calls" >/dev/null; then echo 'ordinary topology published an admin port' >&2; exit 1; fi
+  if grep -F -- 'JOIN_TIMING=' "$OUT/calls" >/dev/null; then echo 'ordinary topology enabled bootstrap timing' >&2; exit 1; fi
 )
 echo 'scale topology cases passed'
