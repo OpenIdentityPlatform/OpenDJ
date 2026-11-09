@@ -1188,6 +1188,7 @@ jobs:
           .github/scripts/replication/selftest-scale-ids.sh
           .github/scripts/replication/selftest-scale-topology.sh
           bash .github/scripts/replication/selftest-join-timing.sh
+          bash .github/scripts/replication/selftest-join-batch.sh
           .github/scripts/replication/selftest-rolling-load.sh
           .github/scripts/replication/selftest-wait.sh
           python3 .github/scripts/replication/selftest-changelog-checkpoint.py
