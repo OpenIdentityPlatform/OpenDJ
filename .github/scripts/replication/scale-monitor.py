@@ -14,9 +14,9 @@
 #
 # Copyright 2026 3A Systems, LLC.
 
-"""Read the changelog monitors over loopback LDAPS without starting a client JVM.
+"""Read changelog monitors and check membership over loopback LDAPS without a client JVM.
 
-This implements only LDAPv3 simple bind and a subtree search with a presence filter.
+This implements LDAPv3 simple bind and the searches needed for the scale checks.
 A non-success result, referral, malformed response or timeout never yields a snapshot.
 The caller supplies a loopback-only published administration port and an absolute deadline;
 the bind password is read from standard input, not from the command line.
@@ -179,9 +179,85 @@ def search(sock, password, deadline, present=b'replicationServer-database',
             raise LdapError('unexpected LDAP search response')
 
 
+def entry_attributes(value):
+    parts = list(fields(value))
+    if len(parts) != 2 or parts[0][0] != 0x04 or parts[1][0] != 0x30:
+        raise LdapError('invalid LDAP search entry')
+    parts[0][1].decode('utf-8')
+    attributes = {}
+    for tag, attribute in fields(parts[1][1]):
+        items = list(fields(attribute))
+        if tag != 0x30 or len(items) != 2 or items[0][0] != 0x04 or items[1][0] != 0x31:
+            raise LdapError('invalid LDAP attribute')
+        name = items[0][1].decode('ascii').lower()
+        if not re.fullmatch(r'[a-z0-9;-]+', name) or name in attributes:
+            raise LdapError('invalid or duplicate LDAP attribute')
+        values = []
+        for value_tag, content in fields(items[1][1]):
+            if value_tag != 0x04:
+                raise LdapError('invalid LDAP attribute value')
+            values.append(content.decode('utf-8'))
+        attributes[name] = values
+    return attributes
+
+
+def membership_search(sock, deadline, message_id, base, scope, ldap_filter, attribute):
+    query = (tlv(0x04, base) + tlv(0x0a, bytes([scope])) + tlv(0x0a, b'\x00') +
+             tlv(0x02, b'\x00') + tlv(0x02, b'\x00') + tlv(0x01, b'\x00') +
+             ldap_filter + tlv(0x30, tlv(0x04, attribute)))
+    transmit(sock, tlv(0x30, tlv(0x02, bytes([message_id])) + tlv(0x63, query)), deadline)
+    entries, size = [], 0
+    while True:
+        tag, value = message(sock, message_id, deadline)
+        if tag == 0x64:
+            size += len(value)
+            if size > MAX_SNAPSHOT:
+                raise LdapError('LDAP snapshot exceeds size limit')
+            entries.append(entry_attributes(value))
+        elif tag == 0x65:
+            require_success(value)
+            if time.monotonic() >= deadline:
+                raise TimeoutError('LDAP response completed after the deadline')
+            return entries
+        else:
+            raise LdapError('unexpected LDAP search response')
+
+
+def membership_matches(registry, config, peer, wanted):
+    if wanted not in ('present', 'absent') or not registry or not config:
+        return False
+    peer = peer.lower()
+    def matches(host):
+        host = host.lower()
+        return host == peer or host.split('.')[0] == peer
+    hosts = [host for entry in registry for host in entry.get('hostname', [])]
+    if not hosts or any(not host for host in hosts):
+        return False
+    found = any(matches(host) for host in hosts)
+    lists = [any(matches(re.sub(r':[0-9]+$', '', host))
+                 for host in entry.get('ds-cfg-replication-server', [])) for entry in config]
+    return (found and all(lists)) if wanted == 'present' else (not found and not any(lists))
+
+
+def membership(sock, password, deadline, peer, wanted):
+    bind = tlv(0x02, b'\x03') + tlv(0x04, b'cn=Directory Manager') + tlv(0x80, password)
+    transmit(sock, tlv(0x30, tlv(0x02, b'\x01') + tlv(0x60, bind)), deadline)
+    tag, result = message(sock, 1, deadline)
+    if tag != 0x61:
+        raise LdapError('expected LDAP bind response')
+    require_success(result)
+    registry = membership_search(sock, deadline, 2, b'cn=Servers,cn=admin data', 1,
+                                 tlv(0x87, b'objectClass'), b'hostname')
+    equal = lambda value: tlv(0xa3, tlv(0x04, b'objectClass') + tlv(0x04, value))
+    ldap_filter = tlv(0xa1, equal(b'ds-cfg-replication-server') + equal(b'ds-cfg-replication-domain'))
+    config = membership_search(sock, deadline, 3, b'cn=config', 2, ldap_filter,
+                               b'ds-cfg-replication-server')
+    return membership_matches(registry, config, peer, wanted)
+
+
 def main(argv):
-    if len(argv) != 3:
-        print('usage: scale-monitor.py <loopback port> <load deadline in milliseconds>', file=sys.stderr)
+    if len(argv) not in (3, 6) or (len(argv) == 6 and (argv[3] != 'membership' or argv[5] not in ('present', 'absent'))):
+        print('usage: scale-monitor.py <loopback port> <load deadline in milliseconds> [membership <peer> <present|absent>]', file=sys.stderr)
         return 2
     try:
         port, load_deadline = int(argv[1]), int(argv[2]) / 1000
@@ -199,11 +275,13 @@ def main(argv):
         context.verify_mode = ssl.CERT_NONE  # Same trust policy as the existing --trustAll search.
         with socket.create_connection(('127.0.0.1', port), timeout=remaining) as raw:
             with context.wrap_socket(raw, server_hostname='localhost') as connection:
-                output = search(connection, password, deadline)
+                output = search(connection, password, deadline) if len(argv) == 3 else None
+                matched = membership(connection, password, deadline, argv[4], argv[5]) if len(argv) == 6 else True
         if time.monotonic() >= deadline or time.time() >= load_deadline:
             raise TimeoutError('LDAP response completed after the deadline')
-        sys.stdout.write(output)
-        return 0
+        if output is not None:
+            sys.stdout.write(output)
+        return 0 if matched else 1
     except (TimeoutError, socket.timeout):
         print('timeout=' + ('load' if time.time() >= load_deadline else 'query'), file=sys.stderr)
         return 124

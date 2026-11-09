@@ -50,6 +50,12 @@ def entry():
     return wrap(0x04, b'cn=example,cn=monitor') + wrap(0x30, b''.join(attrs))
 
 
+def member_entry(dn, attributes):
+    attrs = [wrap(0x30, wrap(0x04, name) + wrap(0x31, b''.join(wrap(0x04, v) for v in values)))
+             for name, values in attributes.items()]
+    return wrap(0x04, dn) + wrap(0x30, b''.join(attrs))
+
+
 class MonitorTest(unittest.TestCase):
     def exchange(self, responses, timeout=3):
         client, server = socket.socketpair()
@@ -161,6 +167,63 @@ class MonitorTest(unittest.TestCase):
                 monitor.read_frame(client, time.monotonic() + 0.05)
         finally:
             client.close(); server.close()
+
+    def membership_exchange(self, registry, config, last_result=0):
+        client, server = socket.socketpair()
+        requests, errors = [], []
+        def respond():
+            try:
+                for message_id, entries in [(1, None), (2, registry), (3, config)]:
+                    requests.append(monitor.read_frame(server, time.monotonic() + 3))
+                    if entries is None:
+                        server.sendall(msg(1, 0x61, ldap_result(0)))
+                    else:
+                        for value in entries:
+                            server.sendall(msg(message_id, 0x64, value))
+                        server.sendall(msg(message_id, 0x65, ldap_result(last_result if message_id == 3 else 0)))
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+            except Exception as error:
+                errors.append(error)
+            finally:
+                server.close()
+        thread = threading.Thread(target=respond); thread.start()
+        try:
+            result = monitor.membership(client, b'password', time.monotonic() + 3, 'cv-r1', 'absent')
+            return result, requests
+        finally:
+            client.close(); thread.join(4)
+            if errors: raise errors[0]
+
+    def test_membership_uses_one_bind_and_two_complete_searches(self):
+        registry = [member_entry(b'cn=d0,cn=Servers,cn=admin data', {b'hostname': [b'cv-d0.example']})]
+        config = [member_entry(b'cn=domain,cn=config', {b'ds-cfg-replication-server': [b'cv-r10.example:8989']})]
+        result, requests = self.membership_exchange(registry, config)
+        self.assertTrue(result)
+        self.assertEqual(len(requests), 3)
+        self.assertIn(b'cn=Servers,cn=admin data', requests[1])
+        self.assertIn(b'cn=config', requests[2])
+
+    def test_membership_rejects_a_partial_second_search(self):
+        registry = [member_entry(b'cn=d0', {b'hostname': [b'cv-d0']})]
+        config = [member_entry(b'cn=domain', {})]
+        with self.assertRaises(monitor.LdapError):
+            self.membership_exchange(registry, config, last_result=3)
+
+    def test_membership_semantics_for_all_lists(self):
+        good_registry = [{'hostname': ['CV-R1.example']}]
+        good_config = [{'ds-cfg-replication-server': ['cv-r1.example:8989']}]
+        self.assertTrue(monitor.membership_matches(good_registry, good_config, 'cv-r1', 'present'))
+        self.assertFalse(monitor.membership_matches(good_registry, good_config + [{}], 'cv-r1', 'present'))
+        self.assertFalse(monitor.membership_matches(good_registry, good_config, 'cv-r1', 'absent'))
+        self.assertFalse(monitor.membership_matches([], good_config, 'cv-r1', 'absent'))
+        self.assertFalse(monitor.membership_matches([{}], good_config, 'cv-r1', 'absent'))
+        self.assertFalse(monitor.membership_matches([{'hostname': ['']}], [{}], 'cv-r1', 'absent'))
+        self.assertFalse(monitor.membership_matches(good_registry, [], 'cv-r1', 'present'))
+        self.assertTrue(monitor.membership_matches([{'hostname': ['cv-d0']}], [{}], 'cv-r1', 'absent'))
+        self.assertFalse(monitor.membership_matches([{'hostname': ['cv-r0']}], good_config, 'cv-r1', 'present'))
+        self.assertFalse(monitor.membership_matches(good_registry, [{'ds-cfg-replication-server': ['cv-r0:8989']}], 'cv-r1', 'present'))
+        self.assertFalse(monitor.membership_matches([{'hostname': ['cv-d0']}], good_config, 'cv-r1', 'absent'))
 
 
 if __name__ == '__main__':

@@ -16,51 +16,20 @@
 
 set -eu -o pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
-if [ ! -f "$HERE/scale-membership.sh" ]; then
-  echo 'scale membership checks are missing' >&2
-  exit 1
-fi
+OUT=$(mktemp -d); trap 'rm -rf "$OUT"' EXIT
 . "$HERE/scale-membership.sh"
-
-admin_search() {
-  case "$2" in
-    'cn=Servers,cn=admin data') printf '%s\n' "$REGISTRY" ;;
-    cn=config) printf '%s\n' "$CONFIG" ;;
-    *) return 1 ;;
-  esac
-  [ "${SEARCH_FAIL:-0}" = 0 ]
-}
-REGISTRY=$'dn: cn=one,cn=Servers,cn=admin data\nhostname: cv-d0.convergence\n'
-CONFIG=$'dn: cn=domain,cn=config\nds-cfg-replication-server: cv-r0.convergence:8989\n'
-peer_removed survivor cv-r1 || { echo 'complete snapshots with no departed peer must pass' >&2; exit 1; }
-REGISTRY+=$'dn: cn=two,cn=Servers,cn=admin data\nhostname: CV-R1.convergence\n'
-if peer_removed survivor cv-r1; then echo 'registered peer passed' >&2; exit 1; fi
-REGISTRY=$'dn: cn=one,cn=Servers,cn=admin data\nhostname: cv-d0.convergence\n'
-CONFIG+=$'ds-cfg-replication-server: cv-r1.convergence:8989\n'
-if peer_removed survivor cv-r1; then echo 'peer in a replication list passed' >&2; exit 1; fi
-CONFIG=$'dn: cn=domain,cn=config\nds-cfg-replication-server: cv-r10.convergence:8989\n'
-peer_removed survivor cv-r1 || { echo 'a distinct hostname was treated as the removed peer' >&2; exit 1; }
-CONFIG='dn: cn=server,cn=config'
-peer_removed survivor cv-r1 || { echo 'an empty replication list is valid for the only remaining RS' >&2; exit 1; }
-CONFIG=
-if peer_removed survivor cv-r1; then echo 'empty configuration passed' >&2; exit 1; fi
-CONFIG=$'dn: cn=domain,cn=config\nds-cfg-replication-server: cv-r0.convergence:8989\n'
-REGISTRY=
-if peer_removed survivor cv-r1; then echo 'empty registry passed' >&2; exit 1; fi
-REGISTRY=$'dn: cn=one,cn=Servers,cn=admin data\nhostname: cv-d0.convergence\n'
-SEARCH_FAIL=1
-if peer_removed survivor cv-r1; then echo 'failed search passed' >&2; exit 1; fi
-# Scale-out must restore both the registration and the local RS list.
-SEARCH_FAIL=0
-REGISTRY=$'dn: cn=one,cn=Servers,cn=admin data\nhostname: cv-r1.convergence\n'
-CONFIG=$'dn: cn=domain,cn=config\nds-cfg-replication-server: CV-R1.convergence:8989\n'
-peer_present survivor cv-r1 || { echo 'returned peer was not recognized' >&2; exit 1; }
-CONFIG+=$'dn: cn=another,cn=config\nds-cfg-replication-server: cv-r0.convergence:8989\n'
-if peer_present survivor cv-r1; then echo 'a list without the peer was accepted' >&2; exit 1; fi
-CONFIG=$'dn: cn=domain,cn=config\nds-cfg-replication-server: CV-R1.convergence:8989\n'
-REGISTRY=$'dn: cn=one,cn=Servers,cn=admin data\nhostname: cv-r0.convergence\n'
-if peer_present survivor cv-r1; then echo 'missing registration was accepted' >&2; exit 1; fi
-REGISTRY=$'dn: cn=one,cn=Servers,cn=admin data\nhostname: cv-r1.convergence\n'
-CONFIG=$'dn: cn=domain,cn=config\nds-cfg-replication-server: cv-r0.convergence:8989\n'
-if peer_present survivor cv-r1; then echo 'missing RS list value was accepted' >&2; exit 1; fi
-echo 'scale membership checks passed'
+ROOT_PASSWORD=secret ROLLING_END_MS=2000000000000
+TEST_MAPPING=127.0.0.1:14444
+docker() { [ "$1" = port ] || return 1; printf '%s\n' "$TEST_MAPPING"; }
+python3() { printf '%s\n' "$*" >"$OUT/args"; cat >"$OUT/password"; return "${RESULT:-0}"; }
+peer_removed survivor cv-r1 || { echo 'absent membership rejected' >&2; exit 1; }
+[ "$(cat "$OUT/password")" = secret ] || { echo 'password did not arrive on stdin' >&2; exit 1; }
+grep -F '14444 2000000000000 membership cv-r1 absent' "$OUT/args" >/dev/null || { echo 'membership request has wrong arguments' >&2; exit 1; }
+peer_present survivor cv-r1 || exit 1
+grep -F 'membership cv-r1 present' "$OUT/args" >/dev/null || exit 1
+RESULT=1
+if peer_present survivor cv-r1; then echo 'failed membership search passed' >&2; exit 1; fi
+rm -f "$OUT/args"; TEST_MAPPING=0.0.0.0:14444
+if peer_removed survivor cv-r1; then echo 'non-loopback admin port accepted' >&2; exit 1; fi
+[ ! -e "$OUT/args" ] || { echo 'query sent to non-loopback port' >&2; exit 1; }
+echo 'scale membership wiring passed'

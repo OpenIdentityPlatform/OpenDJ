@@ -90,6 +90,7 @@
 cd /opt/opendj || exit 1
 export PATH=/opt/opendj/bin:$PATH
 . /opt/opendj/bootstrap/join-timing.sh
+. /opt/opendj/bootstrap/join-batch.sh
 join_timing_init
 
 BASE_DN=${BASE_DN:-"dc=example,dc=com"}
@@ -823,6 +824,7 @@ release_writes() {
 # MASTER_SERVER to REPLICATION_PEERS would otherwise throw the live master out.
 cleanup_departed() {
   local dn host kind cn value
+  local -a changes=()
   [ "$PEERS_ARE_EXPLICIT" = yes ] || return 0
   registrations | while IFS=$'\t' read -r dn host; do
     [ -z "$host" ] && continue
@@ -832,15 +834,16 @@ cleanup_departed() {
       unregister "$dn" || echo "join: could not remove $dn (already removed by another survivor?)"
     fi
   done
-  replication_server_lists | while IFS=$'\t' read -r kind cn value; do
+  while IFS=$'\t' read -r kind cn value; do
     [ -z "$value" ] && continue
     host=${value%:*}
     is_address "$host" && continue
     if ! in_peers "$host" && ! is_self "$host"; then
       echo "join: removing departed replication server $value from the $kind list of $cn"
-      change_replication_servers "$kind" "$cn" --remove "$value" || true
+      changes+=("$kind" "$cn" --remove "$value")
     fi
-  done
+  done < <(replication_server_lists)
+  join_batch_changes "${changes[@]}"
 }
 
 # Adds every listed peer that is registered in the topology to each replication server list
@@ -856,6 +859,7 @@ cleanup_departed() {
 # start.
 repair_replication_servers() {
   local i peer waiting hosts host lists kind cn value found config servers=
+  local -a changes=()
   [ "$PEERS_ARE_EXPLICIT" = yes ] || return 0
   for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
     waiting=
@@ -900,10 +904,11 @@ repair_replication_servers() {
     for host in $servers; do
       if ! list_holds "$host" "$kind" "$cn" "$lists"; then
         echo "join: adding replication server $host:$REPLICATION_PORT to the $kind list of $cn"
-        change_replication_servers "$kind" "$cn" --add "$host:$REPLICATION_PORT" || true
+        changes+=("$kind" "$cn" --add "$host:$REPLICATION_PORT")
       fi
     done
   done <<<"$lists"
+  join_batch_changes "${changes[@]}"
 }
 
 # whether the list of that kind and cn holds the host, in replication_server_lists output
