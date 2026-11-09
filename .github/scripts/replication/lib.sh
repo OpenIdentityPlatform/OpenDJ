@@ -25,11 +25,11 @@ TOPOLOGY=${TOPOLOGY:-rs534}
 DISTURBANCE=${DISTURBANCE:-none}
 # seconds of load. A disturbed run takes the load of its CI rows: a restarted server served
 # again 131 to 225 s after the restart there, and the load has to go on after that
-if [ "$DISTURBANCE" = none ]; then
-  DURATION=${DURATION:-120}
-else
-  DURATION=${DURATION:-900}
-fi
+case $DISTURBANCE in
+  none) DURATION=${DURATION:-120} ;;
+  scale-*) DURATION=${DURATION:-1200} ;;
+  *) DURATION=${DURATION:-900} ;;
+esac
 # the most modifications, and adds or deletes, per second the load sends to each directory
 # server; a runner that cannot keep up sends fewer, which the summary shows
 LOAD_MOD_RATE=${LOAD_MOD_RATE:-423}
@@ -50,7 +50,13 @@ QUIESCE_TIMEOUT=${QUIESCE_TIMEOUT:-900}
 INJECT_DIVERGENCE=${INJECT_DIVERGENCE:-0}
 # seconds into the load at which the disturbance starts
 case $DISTURBANCE in
-  scale-*) DISTURB_AT=${DISTURB_AT:-$((DURATION * 2 / 15))} ;;
+  scale-*)
+    # Keep the 120-second warmup when extending the scale load; shorter custom loads
+    # still start the disturbance proportionally earlier.
+    scale_start=$((DURATION * 2 / 15))
+    [ "$scale_start" -le 120 ] || scale_start=120
+    DISTURB_AT=${DISTURB_AT:-$scale_start}
+    ;;
   *) DISTURB_AT=${DISTURB_AT:-$((DURATION / 3))} ;;
 esac
 # seconds a disturbed server is given to serve again, and its join to end after the load
