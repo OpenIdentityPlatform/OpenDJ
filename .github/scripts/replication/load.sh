@@ -59,8 +59,8 @@ start_clients() { # <node> <segment> <seconds>
   local -a addrate_options=()
   case ${DISTURBANCE:-none} in
     # Purging a segment at shutdown can take longer than the segment itself.
-    # FIFO deletes during the load remain enabled, and each DS has an indexed shard.
-    scale-*) surname="AddRate-$n"; addrate_options=(--noPurge) ;;
+    # FIFO deletes remain enabled; cycle each DS across three indexed shards.
+    scale-*) surname="AddRate-$n-$((($2 - 1) % 3 + 1))"; addrate_options=(--noPurge) ;;
   esac
   [ "$2" -eq 1 ] || name=$1-$2
   [ ! -e "$OUT/load/deadline" ] || return 1
