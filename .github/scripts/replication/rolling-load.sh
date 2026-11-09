@@ -26,8 +26,12 @@ docker() {
 # Each DS gets naturally ending segments. A rolling replacement waits for both clients
 # before stopping it; other DS keep writing. Per-DS surnames keep each indexed AddRate
 # shard below the index entry limit even with shorter segments.
-# Keep retained entries below the index limit when the load lasts 1200 seconds.
-ROLLING_SEGMENT=${ROLLING_SEGMENT:-$(( ${DURATION:-900} > 960 ? 50 : 40 ))}
+# At most 24 segments leave fewer than 4000 retained entries per indexed surname.
+# The 40-second minimum avoids unnecessary client starts on shorter loads.
+if [ -z "${ROLLING_SEGMENT:-}" ]; then
+  ROLLING_SEGMENT=$(( (${DURATION:-900} + 23) / 24 ))
+  [ "$ROLLING_SEGMENT" -ge 40 ] || ROLLING_SEGMENT=40
+fi
 # Docker's finish time includes JVM startup and connection setup, unlike --maxDuration.
 # A successful run cannot claim the requested duration if a client exited after it.
 finished_before_deadline() { # <Docker UTC timestamp> <deadline in epoch milliseconds>

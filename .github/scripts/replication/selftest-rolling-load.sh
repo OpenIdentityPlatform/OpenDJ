@@ -32,6 +32,16 @@ fi
   [ "$ROLLING_SEGMENT" -eq 50 ] && rolling_index_budget || { echo '1200-second load exceeds the index budget' >&2; exit 1; }
 )
 
+# A one-hour load must fit the same per-DS index budget, without changing explicit overrides.
+(
+  DURATION=3600; unset ROLLING_SEGMENT
+  . "$HERE/rolling-load.sh"
+  [ "$ROLLING_SEGMENT" -eq 150 ] && rolling_index_budget || { echo 'one-hour load exceeds the index budget' >&2; exit 1; }
+  ROLLING_SEGMENT=50; . "$HERE/rolling-load.sh"
+  [ "$ROLLING_SEGMENT" -eq 50 ] || { echo 'explicit segment override changed' >&2; exit 1; }
+  if rolling_index_budget; then echo 'unsafe one-hour index budget accepted' >&2; exit 1; fi
+)
+
 # The sampler runs in a subshell: it must inherit the deadline before it is started.
 (
   DURATION=60; unset ROLLING_END ROLLING_END_MS SCALE_DEADLINE_ACTIVE
