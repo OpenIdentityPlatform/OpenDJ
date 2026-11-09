@@ -13,6 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2016 ForgeRock AS.
+  Portions Copyright 2025-2026 3A Systems, LLC.
   ! -->
 <adm:managed-object name="replication-service-discovery-mechanism"
                     plural-name="replication-service-discovery-mechanisms"
@@ -29,28 +30,25 @@
     The <adm:user-friendly-name/> specifies the replication servers
     whose configuration is periodically read to discover available replicas.
   </adm:description>
-  <adm:property-override name="java-class" advanced="true">
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-replication-service-discovery-mechanism</ldap:name>
+      <ldap:superior>ds-cfg-service-discovery-mechanism</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
-          org.opends.server.backends.proxy.ReplicationServiceDiscoveryMechanism
+          org.opends.server.discovery.ReplicationServiceDiscoveryMechanism
         </adm:value>
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-  <adm:profile name="ldap">
-    <ldap:object-class>
-      <ldap:name>ds-cfg-replication-server-discovery-mechanism</ldap:name>
-      <ldap:superior>ds-cfg-service-discovery-mechanism</ldap:superior>
-    </ldap:object-class>
-  </adm:profile>
   <adm:property name="primary-group-id">
     <adm:synopsis>
       Replication domain group ID of preferred directory server replicas.
     </adm:synopsis>
-    <adm:syntax>
-      <adm:integer />
-    </adm:syntax>
     <adm:description>
       Directory server replicas with this replication domain group ID
       will be preferred over other directory server replicas.
@@ -64,6 +62,9 @@
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer />
+    </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-primary-group-id</ldap:name>
@@ -90,60 +91,5 @@
         <ldap:name>ds-cfg-replication-server</ldap:name>
       </ldap:attribute>
     </adm:profile>
-  </adm:property>
-  <adm:property name="bind-dn" mandatory="true">
-    <adm:synopsis>
-      The bind DN for periodically reading replication server configurations
-    </adm:synopsis>
-    <adm:description>
-      The bind DN must be present on all replication servers and directory servers,
-      it must be able to read the server configuration.
-    </adm:description>
-    <adm:syntax>
-      <adm:dn/>
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-bind-dn</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-  <adm:property name="bind-password" mandatory="true">
-    <adm:synopsis>
-      The bind password for periodically reading replication server configurations
-    </adm:synopsis>
-    <adm:description>
-      The bind password must be the same on all replication and directory servers
-    </adm:description>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-bind-password</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-    <adm:syntax>
-      <adm:password/>
-    </adm:syntax>
-  </adm:property>
-  <adm:property name="discovery-interval">
-    <adm:synopsis>
-      Interval between two replication server configuration discovery queries.
-    </adm:synopsis>
-    <adm:description>
-      Specifies how frequently to query a replication server configuration
-      in order to discover information about available directory server replicas.
-    </adm:description>
-    <adm:syntax>
-      <adm:duration base-unit="s" lower-limit="1s"/>
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-discovery-interval</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>60s</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
   </adm:property>
 </adm:managed-object>

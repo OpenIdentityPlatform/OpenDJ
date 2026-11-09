@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2025-2026 3A Systems, LLC.
  */
 package org.opends.server.discovery;
 
@@ -20,7 +21,10 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.ServiceDiscoveryMechanismCfg;
 import org.opends.server.core.ServerContext;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -30,14 +34,18 @@ import java.util.Set;
  *
  * @param <C> the configuration for the Service Discovery
  */
-public interface ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechanismCfg>
-{
+public abstract class ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechanismCfg>
+        implements Closeable,AutoCloseable {
+
+   public C cfg;
   /**
    * Returns the name of the mechanism.
    *
    * @return the name of the mechanism
    */
-  String getName();
+  String getName(){
+    return cfg.name();
+  }
 
   /**
    * Returns whether the provided configuration is correct for the mechanism.
@@ -49,8 +57,9 @@ public interface ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechanismCf
    * @param serverContext the server context of this Directory Server instance
    * @return if the provided configuration is correct for the mechanism.
    */
-  boolean isConfigurationAcceptable(C configuration,
-      List<LocalizableMessage> unacceptableReasons, ServerContext serverContext);
+  boolean isConfigurationAcceptable(C configuration, List<LocalizableMessage> unacceptableReasons, ServerContext serverContext){
+    return true;
+  }
 
   /**
    * Initializes the mechanism with the provided configuration.
@@ -58,12 +67,16 @@ public interface ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechanismCf
    * @param configuration the configuration for initialization
    * @param serverContext the server context for this Directory Server instance
    */
-  void initializeMechanism(C configuration, ServerContext serverContext);
+  void initializeMechanism(C configuration, ServerContext serverContext){
+    this.cfg=configuration;
+  }
 
   /**
    * Frees any resources in use, mechanism will not be used anymore afterwards.
    */
-  void finalizeMechanism();
+  void finalizeMechanism(){
+
+  }
 
   /**
    * Registers a listener to be notified when changes in the service occur.
@@ -71,26 +84,33 @@ public interface ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechanismCf
    * @param listener the listener to register for notifications
    * @return true if registration was successful
    */
-  boolean registerChangeListener(ServiceDiscoveryChangeListener listener);
+  boolean registerChangeListener(ServiceDiscoveryChangeListener listener){
+    return true;
+  }
 
   /**
    * De-registers a listener from notifications on service changes.
    *
    * @param listener the listener to de-register
    */
-  void deregisterChangeListener(ServiceDiscoveryChangeListener listener);
+  void deregisterChangeListener(ServiceDiscoveryChangeListener listener){
 
+  }
+
+    Partition partition=new Partition(null, Collections.emptyList(),Collections.emptyList());
   /**
    * Returns the partitions.
    * <p>
-   * Each {@link Partition} will only contain servers that are known to expose the provided list of
-   * base DNs. An empty list of base DNs will result in all partitions and all servers being
-   * returned. In other words, an empty list of base DNs implies that all servers contain exactly
-   * the same base DNs.
+   * {@link Partition} will only contain servers that are known to expose
    *
-   * @param baseDNs
-   *          the baseDNs for which to retrieve the partitions
    * @return the partitions that can serve the provided base DNs
    */
-  Set<Partition> getPartitions(Collection<DN> baseDNs);
+  public Partition getPartition() {
+      return partition;
+  };
+
+  @Override
+  public void close() throws IOException {
+
+  }
 }

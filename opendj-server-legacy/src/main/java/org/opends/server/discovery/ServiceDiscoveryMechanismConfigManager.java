@@ -88,7 +88,7 @@ public class ServiceDiscoveryMechanismConfigManager implements
     }
   }
 
-  ServiceDiscoveryMechanism<?> getMechanism(String name)
+  public ServiceDiscoveryMechanism<?> getMechanism(String name)
   {
     return serviceDiscoveryMechanisms.get(name);
   }

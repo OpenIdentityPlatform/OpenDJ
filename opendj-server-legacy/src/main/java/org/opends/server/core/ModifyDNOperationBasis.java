@@ -42,7 +42,7 @@ import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperat
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
+import static org.opends.server.api.Backend.*;
 
 /**
  * This class defines an operation that may be used to alter the DN of an entry
