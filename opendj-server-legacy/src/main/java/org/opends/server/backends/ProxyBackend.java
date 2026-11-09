@@ -20,7 +20,10 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.controls.GenericControl;
 import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
@@ -35,11 +38,13 @@ import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.*;
 import org.opends.server.discovery.Partition;
 import org.opends.server.discovery.ServiceDiscoveryMechanism;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.StreamSupport;
 
@@ -47,6 +52,8 @@ import static org.forgerock.opendj.ldap.LDAPConnectionFactory.AUTHN_BIND_REQUEST
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.HEARTBEAT_ENABLED;
 import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
 import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.util.ServerConstants.OID_PROXIED_AUTH_V1;
+import static org.opends.server.util.ServerConstants.OID_PROXIED_AUTH_V2;
 
 public class ProxyBackend extends Backend<ProxyBackendCfg> implements ConfigurationChangeListener<ProxyBackendCfg> {
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -99,25 +106,33 @@ public class ProxyBackend extends Backend<ProxyBackendCfg> implements Configurat
             }
         }
 
-        final List<ConnectionFactory> failoverBind = new LinkedList<>();
-        if (!primaryBind.isEmpty()){
-            failoverBind.add(Connections.newAffinityRequestLoadBalancer(primaryBind,Options.defaultOptions()));
-        }
-        if (!secondaryBind.isEmpty()){
-            failoverBind.add(Connections.newAffinityRequestLoadBalancer(secondaryBind,Options.defaultOptions()));
-        }
-        bindFactory=Connections.newLeastRequestsLoadBalancer(failoverBind,Options.defaultOptions());
-
-        final List<ConnectionFactory> failover = new LinkedList<>();
-        if (!primary.isEmpty()){
-            failover.add(Connections.newAffinityRequestLoadBalancer(primary,Options.defaultOptions()));
-        }
-        if (!secondary.isEmpty()){
-            failover.add(Connections.newAffinityRequestLoadBalancer(secondary,Options.defaultOptions()));
-        }
-        factory=Connections.newLeastRequestsLoadBalancer(failover,Options.defaultOptions());
+        bindFactory = prioritizedAffinity(primaryBind, secondaryBind);
+        factory = prioritizedAffinity(primary, secondary);
 
         return new ConfigChangeResult();
+    }
+
+    private static ConnectionFactory prioritizedAffinity(List<ConnectionFactory> primary,
+                                                         List<ConnectionFactory> secondary) {
+        if (primary.isEmpty() || secondary.isEmpty()) {
+            return Connections.newAffinityRequestLoadBalancer(primary.isEmpty() ? secondary : primary,
+                    Options.defaultOptions());
+        }
+
+        final ConnectionFactory secondaryAffinity =
+                Connections.newAffinityRequestLoadBalancer(secondary, Options.defaultOptions());
+        final List<ConnectionFactory> routes = new ArrayList<>(primary.size());
+        for (int start = 0; start < primary.size(); start++) {
+            final List<ConnectionFactory> candidates = new ArrayList<>(primary.size() + 1);
+            for (int offset = 0; offset < primary.size(); offset++) {
+                candidates.add(primary.get((start + offset) % primary.size()));
+            }
+            // The request-level secondary balancer must be last: it returns a
+            // virtual connection before checking whether a server is reachable.
+            candidates.add(secondaryAffinity);
+            routes.add(Connections.newFailoverLoadBalancer(candidates, Options.defaultOptions()));
+        }
+        return Connections.newAffinityRequestLoadBalancer(routes, Options.defaultOptions());
     }
 
     @Override
@@ -181,11 +196,76 @@ public class ProxyBackend extends Backend<ProxyBackendCfg> implements Configurat
         return false;
     }
 
+    private List<org.forgerock.opendj.ldap.controls.Control> convertRequestControls(Operation operation)
+            throws DirectoryException {
+        final List<org.forgerock.opendj.ldap.controls.Control> controls = new ArrayList<>();
+        for (org.opends.server.types.Control control : operation.getRequestControls()) {
+            // Never let a client override the identity used by this proxy's service account.
+            if (OID_PROXIED_AUTH_V1.equals(control.getOID()) || OID_PROXIED_AUTH_V2.equals(control.getOID())) {
+                throw new DirectoryException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+                        LocalizableMessage.raw("Client-supplied proxy authorization controls are not supported"));
+            }
+            try {
+                final ByteStringBuilder encoded = new ByteStringBuilder();
+                control.write(ASN1.getWriter(encoded));
+                final ASN1Reader reader = ASN1.getReader(encoded.toByteString().toByteArray());
+                reader.readStartSequence();
+                reader.readOctetString(); // OID: use the value from the original control below.
+                if (reader.hasNextElement() && reader.peekType() == ASN1.UNIVERSAL_BOOLEAN_TYPE) {
+                    reader.readBoolean();
+                }
+                final ByteString value = reader.hasNextElement() ? reader.readOctetString() : null;
+                reader.readEndSequence();
+                controls.add(GenericControl.newControl(control.getOID(), control.isCritical(), value));
+            } catch (IOException e) {
+                throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                        LocalizableMessage.raw("Could not encode an LDAP request control"), e);
+            }
+        }
+        return controls;
+    }
+
+    private void addRequestControls(Request request, List<org.forgerock.opendj.ldap.controls.Control> controls) {
+        for (org.forgerock.opendj.ldap.controls.Control control : controls) {
+            request.addControl(control);
+        }
+    }
+
+    private List<org.opends.server.types.Control> convertResponseControls(
+            List<org.forgerock.opendj.ldap.controls.Control> controls) {
+        final List<org.opends.server.types.Control> converted = new ArrayList<>(controls.size());
+        for (org.forgerock.opendj.ldap.controls.Control control : controls) {
+            converted.add(new LDAPControl(control.getOID(), control.isCritical(),
+                    control.hasValue() ? control.getValue() : null));
+        }
+        return converted;
+    }
+
+    private void addResponseControls(Operation operation, Result result) {
+        for (org.opends.server.types.Control control : convertResponseControls(result.getControls())) {
+            operation.addResponseControl(control);
+        }
+    }
+
     private void addProxiedAuthControl(Operation operation,final Request request) {
-        request.addControl(ProxiedAuthV2RequestControl.newControl("dn:"+Objects.requireNonNull(operation.getClientConnection().getAuthenticationInfo().getAuthorizationDN()).toString()));
+        final DN authorizationDN = operation.getClientConnection().getAuthenticationInfo().getAuthorizationDN();
+        final String authorizationID = authorizationDN == null || authorizationDN.isRootDN()
+                ? "dn:"
+                : "dn:" + authorizationDN;
+        request.addControl(ProxiedAuthV2RequestControl.newControl(authorizationID));
     }
     @Override
     public void execute(Operation operation) throws CanceledOperationException {
+        if (operation.getOperationType() == OperationType.BIND) {
+            operation.getClientConnection().setAuthenticationInfo(AuthenticationInfo.anonymous());
+        }
+        final List<org.forgerock.opendj.ldap.controls.Control> controls;
+        try {
+            controls = convertRequestControls(operation);
+        } catch (DirectoryException e) {
+            operation.setResponseData(e);
+            return;
+        }
         switch (operation.getOperationType()) {
             case BIND: {
                 final BindOperation request = (BindOperation) operation;
@@ -193,14 +273,17 @@ public class ProxyBackend extends Backend<ProxyBackendCfg> implements Configurat
                     // TODO: SASL authentication not implemented.
                     request.setResponseData(new DirectoryException(ResultCode.PROTOCOL_ERROR, LocalizableMessage.raw("non-SIMPLE authentication not supported: " + request.getAuthenticationType())));
                 } else {
-                    operation.getClientConnection().setAuthenticationInfo(AuthenticationInfo.anonymous());
+                    final SimpleBindRequest bindRequest = newSimpleBindRequest(
+                            request.getBindDN().toString(), request.getSimplePassword().toCharArray());
+                    addRequestControls(bindRequest, controls);
                     Result result;
                     try (Connection connection = bindFactory.getConnection()) {
-                        result = connection.bind(request.getBindDN().toString(), request.getSimplePassword().toCharArray());
+                        result = connection.bind(bindRequest);
                     } catch (LdapException e) {
                         result =e.getResult();
                     }
                     request.setResultCode(result.getResultCode());
+                    addResponseControls(operation, result);
                     request.setAuthFailureReason(LocalizableMessage.raw(result.getDiagnosticMessage()));
                     if (result.getResultCode().equals(ResultCode.SUCCESS)) {
                         operation.getClientConnection().setAuthenticationInfo(AuthenticationInfo.internal(new Entry(request.getBindDN(),null,null,null)));
@@ -218,6 +301,8 @@ public class ProxyBackend extends Backend<ProxyBackendCfg> implements Configurat
                                 request.getOperationalAttributes()
                         ).toLDIFString().split(System.lineSeparator())
                 );
+                addRequestControls(addRequest, controls);
+                addProxiedAuthControl(operation,addRequest);
                 Result result;
                 try (Connection connection = factory.getConnection()) {
                     result = connection.add(addRequest);
@@ -225,11 +310,14 @@ public class ProxyBackend extends Backend<ProxyBackendCfg> implements Configurat
                     result =e.getResult();
                 }
                 request.setResultCode(result.getResultCode());
+                addResponseControls(operation, result);
                 break;
             }
             case MODIFY: {
                 final ModifyOperation request = (ModifyOperation) operation;
                 ModifyRequest modifyRequest=Requests.newModifyRequest(request.getEntryDN());
+                addRequestControls(modifyRequest, controls);
+                addProxiedAuthControl(operation,modifyRequest);
                 for(Modification  modify: request.getModifications()){
                     modifyRequest=modifyRequest.addModification(
                             modify.getModificationType(),
@@ -244,11 +332,16 @@ public class ProxyBackend extends Backend<ProxyBackendCfg> implements Configurat
                     result =e.getResult();
                 }
                 request.setResultCode(result.getResultCode());
+                addResponseControls(operation, result);
                 break;
             }
             case MODIFY_DN:{
                 final ModifyDNOperation request = (ModifyDNOperation) operation;
-                final ModifyDNRequest modifyDNRequest=Requests.newModifyDNRequest(request.getEntryDN(),request.getNewRDN());
+                final ModifyDNRequest modifyDNRequest=Requests.newModifyDNRequest(request.getEntryDN(),request.getNewRDN())
+                        .setNewSuperior(request.getNewSuperior())
+                        .setDeleteOldRDN(request.deleteOldRDN());
+                addRequestControls(modifyDNRequest, controls);
+                addProxiedAuthControl(operation,modifyDNRequest);
                 Result result;
                 try (Connection connection = factory.getConnection()) {
                     result = connection.modifyDN(modifyDNRequest);
@@ -256,11 +349,14 @@ public class ProxyBackend extends Backend<ProxyBackendCfg> implements Configurat
                     result =e.getResult();
                 }
                 request.setResultCode(result.getResultCode());
+                addResponseControls(operation, result);
                 break;
             }
             case COMPARE:{
                 final CompareOperation request = (CompareOperation) operation;
                 final CompareRequest compareRequest=Requests.newCompareRequest(request.getEntryDN(),request.getAttributeDescription(),request.getAssertionValue());
+                addRequestControls(compareRequest, controls);
+                addProxiedAuthControl(operation,compareRequest);
                 Result result;
                 try (Connection connection = factory.getConnection()) {
                     result = connection.compare(compareRequest);
@@ -268,11 +364,14 @@ public class ProxyBackend extends Backend<ProxyBackendCfg> implements Configurat
                     result =e.getResult();
                 }
                 request.setResultCode(result.getResultCode());
+                addResponseControls(operation, result);
                 break;
             }
             case DELETE:{
                 final DeleteOperation request = (DeleteOperation) operation;
                 final DeleteRequest deleteRequest=Requests.newDeleteRequest(request.getEntryDN());
+                addRequestControls(deleteRequest, controls);
+                addProxiedAuthControl(operation,deleteRequest);
                 Result result;
                 try (Connection connection = factory.getConnection()) {
                     result = connection.delete(deleteRequest);
@@ -280,19 +379,23 @@ public class ProxyBackend extends Backend<ProxyBackendCfg> implements Configurat
                     result =e.getResult();
                 }
                 request.setResultCode(result.getResultCode());
+                addResponseControls(operation, result);
                 break;
             }
             case EXTENDED:{
                 final ExtendedOperation request = (ExtendedOperation) operation;
                 final ExtendedRequest extendedRequest=Requests.newGenericExtendedRequest(request.getRequestOID(),request.getRequestValue());
+                addRequestControls(extendedRequest, controls);
                 addProxiedAuthControl(operation,extendedRequest);
                 ExtendedResult result;
                 try (Connection connection = factory.getConnection()) {
                     result = connection.extendedRequest(extendedRequest);
                     request.setResultCode(result.getResultCode());
                     request.setResponseValue(result.getValue());
+                    addResponseControls(operation, result);
                 } catch (LdapException e) {
                     request.setResultCode(e.getResult().getResultCode());
+                    addResponseControls(operation, e.getResult());
                 }
                 break;
             }
@@ -303,7 +406,12 @@ public class ProxyBackend extends Backend<ProxyBackendCfg> implements Configurat
                         request.getScope(),
                         request.getFilter().toString(),
                         (String[])request.getAttributes().toArray(new String[0])
-                );
+                ).setDereferenceAliasesPolicy(request.getDerefPolicy())
+                 .setSizeLimit(request.getSizeLimit())
+                 .setTimeLimit(request.getTimeLimit())
+                 .setTypesOnly(request.getTypesOnly());
+                addRequestControls(searchRequest, controls);
+                addProxiedAuthControl(operation,searchRequest);
                 try (Connection connection = factory.getConnection()) {
                     try (ConnectionEntryReader entryReader = connection.search(searchRequest)){
                         while (entryReader.hasNext())
@@ -311,25 +419,33 @@ public class ProxyBackend extends Backend<ProxyBackendCfg> implements Configurat
                             if (entryReader.isEntry()) {
                                 final SearchResultEntry sr = entryReader.readEntry();
                                 final Map<AttributeType,List<Attribute>> userAttributes=new HashMap<>();
+                                final Map<AttributeType,List<Attribute>> operationalAttributes=new HashMap<>();
                                 for (org.forgerock.opendj.ldap.Attribute attr : sr.getAllAttributes()){
-                                    final List<Attribute> values=new ArrayList<>(attr.size());
+                                    final AttributeBuilder attrBuilder=new AttributeBuilder(attr.getAttributeDescription());
                                     for (final ByteString value: attr) {
-                                        final AttributeBuilder attrBuilder=new AttributeBuilder(attr.getAttributeDescription());
                                         attrBuilder.add(value);
-                                        values.add(attrBuilder.toAttribute());
                                     }
-                                    userAttributes.put(attr.getAttributeDescription().getAttributeType(), values);
+                                    final AttributeType type = attr.getAttributeDescription().getAttributeType();
+                                    final Map<AttributeType,List<Attribute>> attributes =
+                                            type.isOperational() ? operationalAttributes : userAttributes;
+                                    attributes.computeIfAbsent(type, ignored -> new ArrayList<>()).add(attrBuilder.toAttribute());
                                 }
-                                request.sendSearchEntry(new org.opends.server.types.SearchResultEntry(new Entry(sr.getName(),null,userAttributes,null)));
+                                request.sendSearchEntry(new org.opends.server.types.SearchResultEntry(
+                                        new Entry(sr.getName(),null,userAttributes,operationalAttributes),
+                                        convertResponseControls(sr.getControls())));
                             }else{
                                 final SearchResultReference sr=entryReader.readReference();
-                                request.sendSearchReference(new org.opends.server.types.SearchResultReference(sr.getURIs()));
+                                request.sendSearchReference(new org.opends.server.types.SearchResultReference(
+                                        sr.getURIs(), convertResponseControls(sr.getControls())));
                             }
                         }
-                        request.setResultCode(entryReader.readResult().getResultCode());
+                        final Result result = entryReader.readResult();
+                        request.setResultCode(result.getResultCode());
+                        addResponseControls(operation, result);
                     }
                 } catch (LdapException e) {
                    request.setResultCode(e.getResult().getResultCode());
+                   addResponseControls(operation, e.getResult());
                 } catch (SearchResultReferenceIOException | DirectoryException e) {
                     throw new RuntimeException(e);
                 }

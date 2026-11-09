@@ -492,7 +492,7 @@ public final class AuthenticationInfo
   }
 
   public static AuthenticationInfo anonymous() {
-    return new AuthenticationInfo((Entry)null,(Entry)null, (AuthenticationType)null, (String)null);
+    return new AuthenticationInfo();
   }
 
   public static AuthenticationInfo internal(Entry authenticationEntry) {
