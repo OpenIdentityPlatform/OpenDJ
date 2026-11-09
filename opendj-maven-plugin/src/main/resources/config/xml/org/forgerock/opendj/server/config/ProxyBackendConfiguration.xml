@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+  Copyright 2025-2026 3A Systems, LLC.
+  ! -->
+<adm:managed-object name="proxy-backend" plural-name="proxy-backends"
+                    extends="backend" package="org.forgerock.opendj.server.config"
+                    xmlns:adm="http://opendj.forgerock.org/admin"
+                    xmlns:ldap="http://opendj.forgerock.org/admin-ldap"
+                    xmlns:cli="http://opendj.forgerock.org/admin-cli">
+  <adm:synopsis>
+    A Proxy Backend forwards LDAP requests to other servers.
+  </adm:synopsis>
+  <adm:description>
+    A Proxy Backend uses the proxied authorization control to forward LDAP requests on behalf of the proxy users.
+    As a consequence, the remote servers must support the proxied authorization control and the proxy user must have appropriate privileges and permissions allowing them to use the control.
+  </adm:description>
+  <adm:tag name="database" />
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-proxy-backend</ldap:name>
+      <ldap:superior>ds-cfg-backend</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:property-override name="java-class" mandatory="true">
+    <adm:synopsis>
+      Specifies the fully-qualified name of the Java class that provides the
+      backend implementation.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.backends.ProxyBackend
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:java-class>
+        <adm:instance-of>org.opends.server.backends.ProxyBackend</adm:instance-of>
+      </adm:java-class>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-java-class</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-override>
+
+  <!--adm:property name="hash-function" mandatory="false" advanced="true">
+    <adm:synopsis>
+      Specifies the hash function which will be used for data distribution.
+    </adm:synopsis>
+    <adm:description>
+      This setting only applies to data distribution. Once this server is deployed, this setting must not be modified.
+      Doing so could result in data loss. The hash function is used by the router to map incoming requests to a target server based on the request’s target DN.
+      The role of the hash function is to ensure that the flow of incoming requests is evenly distributed on the set of servers.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>murmur3</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="md5">
+          <adm:synopsis>
+            Use the MD5 hash algorithm. This hash function does not distribute data evenly and should not be used in new deployments.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="murmur3">
+          <adm:synopsis>
+            Use the Murmur3 hash algorithm. This hash function distributes data more evenly than MD5 and should be used in new deployments.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-hash-function</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
+
+  <!--adm:property name="availability-check-interval" mandatory="false" advanced="false">
+    <adm:synopsis>
+      Specifies the interval which the Proxy Backend will use to send the availability check request to decide if a server is available.
+    </adm:synopsis>
+    <adm:description>
+      The Proxy Backend sends an availability check request to the servers every specified interval to be informed on the availability of the server.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>5s</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration lower-limit="10ms" base-unit="ms">
+      </adm:duration>
+    </adm:syntax>
+    <adm:requires-admin-action>
+      <adm:none/>
+    </adm:requires-admin-action>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-availability-check-interval</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
+
+  <!--adm:property name="availability-check-search-request-base-dn" mandatory="false" advanced="false">
+    <adm:synopsis>
+      Specifies the name of an entry of the application data that will be targeted by availability check requests to detect whether a remote server is available and handling requests against application data.
+    </adm:synopsis>
+    <adm:description>
+      By default availability check requests will attempt to read the remote server’s root DSE, but the search request can target any other entry of the application data accessible by anonymous bind.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:undefined/>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:requires-admin-action>
+      <adm:none/>
+    </adm:requires-admin-action>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-availability-check-search-request-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
+
+  <!--adm:property name="availability-check-search-request-filter" mandatory="false" advanced="false">
+    <adm:synopsis>
+      Specifies the search filter of the availability check requests.
+    </adm:synopsis>
+    <adm:description>
+      By default availability check requests use the LDAP absolute true search filter which evaluates to always true. Specifying a filter requiring evaluation, will make the availability check fail if the evaluation returns zero entries and have the Proxy Backend mark the server as not available.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>(&amp;)</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:requires-admin-action>
+      <adm:none/>
+    </adm:requires-admin-action>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-availability-check-search-request-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
+
+  <!--adm:property name="availability-check-timeout" mandatory="false" advanced="false">
+    <adm:synopsis>
+      Specifies the availability check request timeout that the Proxy Backend will use to decide if a server is available.
+    </adm:synopsis>
+    <adm:description>
+      If an availability check response is not received within the timeout, the Proxy Backend considers the server as not available to process user requests.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>3s</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration lower-limit="10ms" base-unit="ms">
+      </adm:duration>
+    </adm:syntax>
+    <adm:requires-admin-action>
+      <adm:none/>
+    </adm:requires-admin-action>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-availability-check-timeout</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
+
+  <!--adm:property name="connection-pool-idle-timeout" mandatory="false" advanced="false">
+    <adm:synopsis>
+      The time out period after which unused non-core connections will be closed and removed from the connection pool.
+    </adm:synopsis>
+    <adm:description>
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>60s</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration lower-limit="1ms" base-unit="ms">
+      </adm:duration>
+    </adm:syntax>
+    <adm:requires-admin-action>
+      <adm:none/>
+    </adm:requires-admin-action>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-connection-pool-idle-timeout</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
+
+  <!--adm:property name="connection-pool-max-size" mandatory="false" advanced="false">
+    <adm:synopsis>
+      Maximum size of the connection pool for each remote server
+    </adm:synopsis>
+    <adm:description>
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>1024</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0" allow-unlimited="true"/>
+    </adm:syntax>
+    <adm:requires-admin-action>
+      <adm:none/>
+    </adm:requires-admin-action>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-connection-pool-max-size</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
+
+  <!--adm:property name="connection-pool-min-size" mandatory="false" advanced="false">
+    <adm:synopsis>
+      Minimum size of the connection pool for each remote server
+    </adm:synopsis>
+    <adm:description>
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>4</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0" allow-unlimited="true"/>
+    </adm:syntax>
+    <adm:requires-admin-action>
+      <adm:none/>
+    </adm:requires-admin-action>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-connection-pool-min-size</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
+
+  <!--adm:property name="connection-timeout" mandatory="false" advanced="false">
+    <adm:synopsis>
+      Specifies the timeout used when connecting to servers, performing SSL negotiation, and for individual search and bind requests.
+    </adm:synopsis>
+    <adm:description>
+      If the timeout expires then the current operation will be aborted and retried against another LDAP server if one is available.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>10s</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration lower-limit="10ms" base-unit="ms">
+      </adm:duration>
+    </adm:syntax>
+    <adm:requires-admin-action>
+      <adm:none/>
+    </adm:requires-admin-action>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-connection-timeout</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
+
+
+  <!--adm:property name="keep-alive-interval" mandatory="false" advanced="false">
+    <adm:synopsis>
+      Specifies the keep-alive interval that the Proxy Backend will use for connections with the remote servers.
+    </adm:synopsis>
+    <adm:description>
+      The Proxy Backend sends a keep-alive request to the servers every specified interval to prevent the connection from appearing idle and being forcefully closed.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>300s</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration lower-limit="1000ms" base-unit="ms">
+      </adm:duration>
+    </adm:syntax>
+    <adm:requires-admin-action>
+      <adm:none/>
+    </adm:requires-admin-action>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-keep-alive-interval</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
+
+  <!--adm:property name="keep-alive-search-request-base-dn" mandatory="false" advanced="false">
+    <adm:synopsis>
+      Specifies the name of the entry that will be targeted by keep-alive requests.
+    </adm:synopsis>
+    <adm:description>
+      By default keep-alive requests will attempt to read the remote server’s root DSE, but the search request can target any other entry accessible by anonymous bind.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:undefined/>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:requires-admin-action>
+      <adm:none/>
+    </adm:requires-admin-action>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-keep-alive-search-request-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
+
+  <!--adm:property name="keep-alive-search-request-filter" mandatory="false" advanced="false">
+    <adm:synopsis>
+      Specifies the search filter of the keep-alive requests.
+    </adm:synopsis>
+    <adm:description>
+      By default keep-alive requests use the LDAP absolute true search filter, which evaluates to always true. Specifying a filter requiring evaluation, will make the keep-alive fail if the evaluation returns zero entries.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>(&amp;)</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:requires-admin-action>
+      <adm:none/>
+    </adm:requires-admin-action>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-keep-alive-search-request-filter</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
+
+  <!--adm:property name="keep-alive-timeout" mandatory="false" advanced="false">
+    <adm:synopsis>
+      Specifies the keep-alive request timeout that the Proxy Backend will use for connections with the remote servers.
+    </adm:synopsis>
+    <adm:description>
+      If a keep-alive answer is not received within the timeout, the Proxy Backend closes the unresponsive connection and connects to another server.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>3s</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration lower-limit="10ms" base-unit="ms"/>
+    </adm:syntax>
+    <adm:requires-admin-action>
+      <adm:none/>
+    </adm:requires-admin-action>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-keep-alive-timeout</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
+
+  <!--adm:property name="partition-base-dn" mandatory="false" advanced="false" multi-valued="true">
+    <adm:synopsis>
+      Specifies the base DN(s) which is used for affinity load-balancing and data distribution
+    </adm:synopsis>
+    <adm:description>
+      Within a single shard, "affinity" load-balancing uses this setting to provide consistency for add/delete operations targeting entries within the same sub-tree.
+      Entries immediately subordinate to the partition base DNs will be considered to be the root of a sub-tree whose entries belong to the same shard.
+      For example, a partition base DN of "ou=people,dc=example,dc=com" would mean that "uid=bjensen,ou=people,dc=example,dc=com"
+      and "deviceid=12345,uid=bjensen,ou=people,dc=example,dc=com" both belong to the same shard,
+      and all operations targeting them would be routed to the same remote server.
+      When applied to data distribution across multiple shards, this setting consistently routes operations targeting an entry below the partition DN to the same shard. Requests targeting the partition DN or above are routed to any shard.
+      Search requests are routed to all shards unless their scope is under the partition DN.
+      For example, if the partition base DN is set to "ou=people,dc=example,dc=com", a search with base DN "uid=bjensen,ou=people,dc=example,dc=com" or "deviceid=12345,uid=bjensen,ou=people,dc=example,dc=com" is always routed to the same shard.
+      A search with base DN "ou=people,dc=example,dc=com" is routed to all shards.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:undefined/>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:dn/>
+    </adm:syntax>
+    <adm:requires-admin-action>
+      <adm:none/>
+    </adm:requires-admin-action>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-partition-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
+
+  <adm:property name="route-all" mandatory="true" advanced="false">
+    <adm:synopsis>
+      Route requests to all discovered public naming contexts.
+    </adm:synopsis>
+    <adm:description>
+      When the "route-all" property is set to "true" then the "base-dn" property is ignored.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean/>
+    </adm:syntax>
+    <adm:requires-admin-action>
+      <adm:none/>
+    </adm:requires-admin-action>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-proxy-route-all</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="shard" mandatory="true" advanced="false" multi-valued="false">
+    <adm:synopsis>
+      Specifies one shards which will be used for distributing data and requests.
+    </adm:synopsis>
+    <!--adm:description>
+      When multiple shards are configured, this setting consistently routes write requests for the same target entry below the partition DN to the same shard.
+      Requests targeting an entry under the partition DN are always routed to a single shard.
+      Requests targeting the partition DN or above are routed to any shard.
+      Search requests are routed to all shards unless their scope is under the partition DN.
+      For example, a search with base DN "uid=bjensen,ou=people,dc=example,dc=com" or "deviceid=12345,uid=bjensen,ou=people,dc=example,dc=com"
+      is always routed to the same shard. A search with base DN "ou=people,dc=example,dc=com" is routed to all shards.
+    </adm:description-->
+    <adm:default-behavior>
+      <adm:undefined/>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:aggregation relation-name="service-discovery-mechanism" parent-path="/" >
+      </adm:aggregation>
+    </adm:syntax>
+    <adm:requires-admin-action>
+      <adm:none/>
+    </adm:requires-admin-action>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-shard</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+</adm:managed-object>

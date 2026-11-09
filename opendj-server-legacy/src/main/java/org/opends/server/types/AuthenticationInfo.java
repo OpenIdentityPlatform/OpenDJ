@@ -13,11 +13,15 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.types;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.util.Reject;
+
+import java.util.Objects;
 
 import static org.forgerock.util.Reject.*;
 
@@ -190,6 +194,20 @@ public final class AuthenticationInfo
     this.mustChangePassword = false;
     this.simpleBindDN       = null;
     this.authenticationType = AuthenticationType.SASL;
+    this.saslMechanism      = saslMechanism;
+  }
+
+  private AuthenticationInfo(Entry authenticationEntry, Entry authorizationEntry,AuthenticationType authenticationType, String saslMechanism) {
+    //ifNull(authenticationEntry, saslMechanism);
+
+    this.authenticationEntry = authenticationEntry;
+    this.authorizationEntry  = authorizationEntry;
+    //this.isRoot              = isRoot;
+
+    this.isAuthenticated    = true;
+    this.mustChangePassword = false;
+    this.simpleBindDN       = null;
+    this.authenticationType = authenticationType;
     this.saslMechanism      = saslMechanism;
   }
 
@@ -471,5 +489,25 @@ public final class AuthenticationInfo
     authInfo.saslMechanism       = saslMechanism;
 
     return authInfo;
+  }
+
+  public static AuthenticationInfo anonymous() {
+    return new AuthenticationInfo((Entry)null,(Entry)null, (AuthenticationType)null, (String)null);
+  }
+
+  public static AuthenticationInfo internal(Entry authenticationEntry) {
+    return new AuthenticationInfo(authenticationEntry,authenticationEntry, AuthenticationType.INTERNAL, (String)null);
+  }
+
+  public static AuthenticationInfo simple(Entry authenticationEntry) {
+    return new AuthenticationInfo((Entry) Objects.requireNonNull(authenticationEntry),authenticationEntry, AuthenticationType.SIMPLE, (String)null);
+  }
+
+  public static AuthenticationInfo sasl(Entry authenticationEntry, String saslMechanism) {
+    return new AuthenticationInfo((Entry)Objects.requireNonNull(authenticationEntry),authenticationEntry, AuthenticationType.SASL, (String)Objects.requireNonNull(saslMechanism));
+  }
+
+  public static AuthenticationInfo sasl(Entry authenticationEntry, Entry authorizationEntry, String saslMechanism) {
+    return new AuthenticationInfo((Entry)Objects.requireNonNull(authenticationEntry), authorizationEntry, AuthenticationType.SASL, (String)Objects.requireNonNull(saslMechanism));
   }
 }

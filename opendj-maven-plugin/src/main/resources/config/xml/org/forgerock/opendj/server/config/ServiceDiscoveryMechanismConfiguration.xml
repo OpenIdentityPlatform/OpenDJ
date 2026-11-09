@@ -13,6 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2016 ForgeRock AS.
+  Portions Copyright 2025-2026 3A Systems, LLC.
   ! -->
 <adm:managed-object name="service-discovery-mechanism" plural-name="service-discovery-mechanisms"
                     package="org.forgerock.opendj.server.config"
@@ -22,23 +23,29 @@
   <adm:synopsis>
      A <adm:user-friendly-name/> identifies a set of LDAP servers for load balancing
   </adm:synopsis>
+  <adm:tag name="service-discovery"/>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-service-discovery-mechanism</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property name="java-class" mandatory="true">
+  <adm:property name="java-class" mandatory="true" advanced="true">
     <adm:synopsis>
-      Specifies the fully-qualified name of the Java class that provides the <adm:user-friendly-name />
-      implementation.
+      Specifies the fully-qualified name of the Java class that provides the
+      backend implementation.
     </adm:synopsis>
     <adm:requires-admin-action>
-      <adm:component-restart/>
+      <adm:component-restart />
     </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>org.opends.server.discovery.ServiceDiscoveryMechanism</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
     <adm:syntax>
       <adm:java-class>
-        <adm:instance-of>org.opends.server.backends.proxy.ServiceDiscoveryMechanism</adm:instance-of>
+        <adm:instance-of>org.opends.server.discovery.ServiceDiscoveryMechanism</adm:instance-of>
       </adm:java-class>
     </adm:syntax>
     <adm:profile name="ldap">
@@ -47,9 +54,8 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:tag name="service-discovery"/>
   <adm:property-reference name="use-ssl"/>
-  <adm:property name="use-start-tls">
+  <!--adm:property name="use-start-tls">
     <adm:synopsis>
       Indicates whether the <adm:user-friendly-name/> should use Start TLS.
     </adm:synopsis>
@@ -72,9 +78,9 @@
         <ldap:name>ds-cfg-use-start-tls</ldap:name>
       </ldap:attribute>
     </adm:profile>
-  </adm:property>
-  <adm:property-reference name="ssl-cert-nickname"/>
-  <adm:property name="key-manager-provider">
+  </adm:property-->
+  <!--adm:property-reference name="ssl-cert-nickname"/-->
+  <!--adm:property name="key-manager-provider">
     <adm:synopsis>
       Specifies the name of the key manager that should be used with this <adm:user-friendly-name/>.
     </adm:synopsis>
@@ -111,8 +117,8 @@
         <ldap:name>ds-cfg-key-manager-provider</ldap:name>
       </ldap:attribute>
     </adm:profile>
-  </adm:property>
-  <adm:property name="trust-manager-provider">
+  </adm:property-->
+  <!--adm:property name="trust-manager-provider">
     <adm:synopsis>
       Specifies the name of the trust manager that should be used with
       the <adm:user-friendly-name/>.
@@ -155,5 +161,146 @@
         <ldap:name>ds-cfg-trust-manager-provider</ldap:name>
       </ldap:attribute>
     </adm:profile>
+  </adm:property-->
+  <!--adm:property name="discovery-interval">
+    <adm:synopsis>
+      Interval between two server configuration discovery executions.
+    </adm:synopsis>
+    <adm:description>
+      Specifies how frequently to read the configuration of the servers
+      in order to discover their new information.
+    </adm:description>
+    <adm:syntax>
+      <adm:duration base-unit="s" lower-limit="1s"/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-discovery-interval</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>60s</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-->
+  <adm:property name="bind-dn" mandatory="true">
+    <adm:synopsis>
+      The bind DN for periodically reading replication server configurations
+    </adm:synopsis>
+    <adm:description>
+      The bind DN must be present on all replication servers and directory servers,
+      it must be able to read the server configuration.
+    </adm:description>
+    <adm:syntax>
+      <adm:dn/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-bind-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
   </adm:property>
+  <adm:property name="bind-password" mandatory="true">
+    <adm:synopsis>
+      The bind password for periodically reading replication server configurations
+    </adm:synopsis>
+    <adm:description>
+      The bind password must be the same on all replication and directory servers
+    </adm:description>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-bind-password</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+    <adm:syntax>
+      <adm:password/>
+    </adm:syntax>
+  </adm:property>
+  <!--adm:property name="ssl-protocol" multi-valued="true">
+    <adm:synopsis>
+      Specifies the names of the SSL protocols that are allowed for
+      use in SSL or StartTLS communication.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property take effect immediately but only
+          impact new SSL/TLS-based sessions created after the
+          change.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Uses the default set of SSL protocols provided by the server's
+          JVM.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-ssl-protocol</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
+  <!--adm:property name="ssl-cipher-suite" multi-valued="true">
+    <adm:synopsis>
+      Specifies the names of the SSL cipher suites that are allowed
+      for use in SSL or StartTLS communication.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property take effect immediately but will
+          only impact new SSL/TLS-based sessions created after the
+          change.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Uses the default set of SSL cipher suites provided by the
+          server's JVM.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-ssl-cipher-suite</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
+  <!--adm:property name="use-sasl-external" mandatory="false" advanced="false">
+    <adm:synopsis>
+      Indicates whether the Proxy Backend should use certificate based authentication when communicating with backend servers.
+    </adm:synopsis>
+    <adm:description>
+      If enabled, the Proxy Backend will use mutual TLS when connecting to backend servers. Once the TLS handshake has completed, a SASL/External LDAP bind request will be sent in order to associate the TLS client certificate with an LDAP account on the remote backend server. A key manager provider containing the client certificate must be configured in order to use this feature.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:component-restart/>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-use-sasl-external</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property-->
 </adm:managed-object>

@@ -13,9 +13,8 @@
  *
  * Copyright 2008-2011 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2024-2026 3A Systems,LLC.
- * Portions Copyright 2026 3A Systems, LLC.
- */
+ * Portions Copyright 2024-2026 3A Systems, LLC.
+*/
 package org.opends.server.workflowelement.localbackend;
 
 import java.math.BigInteger;
@@ -90,7 +89,8 @@ import static org.opends.server.types.AbstractOperation.*;
 import static org.opends.server.types.AccountStatusNotificationType.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
+import static org.opends.server.api.Backend.*;
+import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.findMatchedDN;
 
 /** This class defines an operation used to modify an entry in a local backend of the Directory Server. */
 public class LocalBackendModifyOperation

@@ -39,7 +39,7 @@ import org.opends.server.types.HostPort;
  * consistent hashing.
  * </dl>
  *
- * @see ServiceDiscoveryMechanism#getPartitions(Collection)
+ * @see ServiceDiscoveryMechanism#getPartition()
  */
 public final class Partition
 {
@@ -61,7 +61,7 @@ public final class Partition
     {
       Reject.ifNull(hostPort);
       this.hostPort = hostPort;
-      this.options = Options.unmodifiableCopyOf(options);
+      this.options = options;
     }
 
     @Override
