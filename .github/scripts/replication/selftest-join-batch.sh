@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions copyright [year] [name of copyright owner]".
+#
+# Copyright 2026 3A Systems, LLC.
+
+set -e -o pipefail
+HERE=$(cd "$(dirname "$0")" && pwd)
+HELPER="$HERE/../../../opendj-packages/opendj-docker/bootstrap/join-batch.sh"
+[ -f "$HELPER" ] || { echo 'missing join batch helper' >&2; exit 1; }
+OUT=$(mktemp -d); trap 'rm -rf "$OUT"' EXIT
+. "$HELPER"
+dsconfig_local() { [ "$1" = --batch ] || return 1; cat >"$OUT/batch"; return "${BATCH_RESULT:-0}"; }
+change_replication_servers() { printf '%s\n' "$*" >>"$OUT/individual"; [ "${INDIVIDUAL_FAIL:-}" != "$2" ]; }
+join_batch_changes domain 'cn=a b' --remove "rs'o:8989" server ignored --remove rs2:8989
+[ ! -e "$OUT/individual" ] || { echo 'successful batch fell back to individual commands' >&2; exit 1; }
+python3 - "$OUT/batch" <<'PY'
+import pathlib,shlex,sys
+lines=[line for line in pathlib.Path(sys.argv[1]).read_text().splitlines() if line.strip()]
+a,b=map(shlex.split,lines)
+assert a==['set-replication-domain-prop','--provider-name','Multimaster Synchronization','--domain-name','cn=a b','--remove',"replication-server:rs'o:8989"],a
+assert b==['set-replication-server-prop','--provider-name','Multimaster Synchronization','--remove','replication-server:rs2:8989'],b
+PY
+BATCH_RESULT=1 INDIVIDUAL_FAIL='cn=a b'
+join_batch_changes domain 'cn=a b' --remove rs1:8989 domain cn=other --remove rs2:8989
+[ "$(wc -l <"$OUT/individual" | tr -d ' ')" = 2 ] || { echo 'batch failure did not attempt every individual command' >&2; exit 1; }
+grep -F 'domain cn=other --remove rs2:8989' "$OUT/individual" >/dev/null || exit 1
+rm -f "$OUT/batch" "$OUT/individual"
+BATCH_RESULT=0 INDIVIDUAL_FAIL=
+join_batch_changes domain $'unsafe\nname' --remove rs1:8989 server ignored --remove rs2:8989
+[ ! -e "$OUT/batch" ] || { echo 'newline allowed in batch command' >&2; exit 1; }
+grep -F 'server ignored --remove rs2:8989' "$OUT/individual" >/dev/null || exit 1
+# Exercise the production cleanup function, including collecting multiple removals.
+sed -n '/^cleanup_departed() {/,/^}/p' "$HERE/../../../opendj-packages/opendj-docker/bootstrap/join.sh" >"$OUT/cleanup.sh"
+. "$OUT/cleanup.sh"
+PEERS_ARE_EXPLICIT=yes
+registrations() { :; }
+replication_server_lists() { printf 'domain\tcn=one\trs1:8989\nserver\tprovider\trs1:8989\n'; }
+is_address() { return 1; }; in_peers() { return 1; }; is_self() { return 1; }
+rm -f "$OUT/batch" "$OUT/individual"
+cleanup_departed >/dev/null
+[ "$(grep -c '^set-replication-' "$OUT/batch")" -eq 2 ] || { echo 'cleanup did not batch both removals' >&2; exit 1; }
+[ ! -e "$OUT/individual" ] || { echo 'cleanup used separate commands after batch success' >&2; exit 1; }
+# Exercise the production repair function, including collecting additions for distinct lists.
+sed -n '/^repair_replication_servers() {/,/^}/p' "$HERE/../../../opendj-packages/opendj-docker/bootstrap/join.sh" >"$OUT/repair.sh"
+. "$OUT/repair.sh"
+PEERS=(rs1); REPLICATION_RETRY_COUNT=1 REPLICATION_RETRY_INTERVAL=0 REPLICATION_PORT=8989
+registered_hosts() { echo rs1; }
+replication_server_lists() { printf 'domain\tcn=one\nserver\tprovider\n'; }
+in_peers() { return 0; }; names_match() { [ "$1" = "$2" ]; }; lower() { printf '%s' "$1"; }
+lacked_by_a_list() { return 0; }; list_holds() { return 1; }; replication_config() { echo server; }
+rm -f "$OUT/batch" "$OUT/individual"
+repair_replication_servers >/dev/null
+[ "$(grep -c '^set-replication-' "$OUT/batch")" -eq 2 ] || { echo 'repair did not batch both additions' >&2; exit 1; }
+[ ! -e "$OUT/individual" ] || { echo 'repair used separate commands after batch success' >&2; exit 1; }
+echo 'join batch quoting and failure fallback passed'

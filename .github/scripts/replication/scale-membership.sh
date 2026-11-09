@@ -13,36 +13,14 @@
 #
 # Copyright 2026 3A Systems, LLC.
 
-# Check the registry and local replication-server lists. A failed or empty search is not
-# proof of either presence or absence.
+# Check both complete snapshots over one authenticated LDAPS connection. A failed or
+# incomplete search must not count as proof of either presence or absence.
 peer_membership() { # <survivor> <peer host> <present|absent>
-  local registry config
-  registry=$(admin_search "$1" 'cn=Servers,cn=admin data' one '(objectClass=*)' hostname) || return 1
-  config=$(admin_search "$1" cn=config sub \
-    '(|(objectClass=ds-cfg-replication-server)(objectClass=ds-cfg-replication-domain))' \
-    ds-cfg-replication-server) || return 1
-  printf '%s\n' "$registry" | awk -v peer="$2" -v wanted="$3" '
-    BEGIN { peer = tolower(peer) }
-    tolower($1) == "dn:" { entries++ }
-    tolower($1) == "hostname:" {
-      names++; host = tolower($2); split(host, parts, ".")
-      if (host == peer || parts[1] == peer) found = 1
-    }
-    END { exit !(entries && names && (wanted == "present" ? found : !found)) }' || return 1
-  printf '%s\n' "$config" | awk -v peer="$2" -v wanted="$3" '
-    BEGIN { peer = tolower(peer) }
-    tolower($1) == "dn:" {
-      if (entries && !found) missing++
-      entries++; found = 0
-    }
-    tolower($1) == "ds-cfg-replication-server:" {
-      host = tolower($2); sub(/:[0-9]+$/, "", host); split(host, parts, ".")
-      if (host == peer || parts[1] == peer) { found = 1; any = 1 }
-    }
-    END {
-      if (entries && !found) missing++
-      exit !(entries && (wanted == "present" ? !missing : !any))
-    }'
+  local mapping port
+  mapping=$(docker port "$1" 4444/tcp) || return 1
+  case $mapping in 127.0.0.1:*) port=${mapping#127.0.0.1:} ;; *) echo 'admin port is not loopback-only' >&2; return 1 ;; esac
+  case $port in ''|*[!0-9]*) echo 'invalid admin port' >&2; return 1 ;; esac
+  printf '%s' "$ROOT_PASSWORD" | python3 -I "$HERE/scale-monitor.py" "$port" "$ROLLING_END_MS" membership "$2" "$3"
 }
 
 peer_removed() { peer_membership "$1" "$2" absent; }
