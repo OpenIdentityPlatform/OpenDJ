@@ -24,14 +24,9 @@ docker() {
 }
 
 # Each DS gets naturally ending segments. A rolling replacement waits for both clients
-# before stopping it; other DS keep writing. Per-DS surnames keep each indexed AddRate
-# shard below the index entry limit even with shorter segments.
-# At most 24 segments leave fewer than 4000 retained entries per indexed surname.
-# The 40-second minimum avoids unnecessary client starts on shorter loads.
-if [ -z "${ROLLING_SEGMENT:-}" ]; then
-  ROLLING_SEGMENT=$(( (${DURATION:-900} + 23) / 24 ))
-  [ "$ROLLING_SEGMENT" -ge 40 ] || ROLLING_SEGMENT=40
-fi
+# before stopping it; other DS keep writing. Three surnames per DS keep each indexed
+# shard below the entry limit while allowing short segments for an hour-long load.
+ROLLING_SEGMENT=${ROLLING_SEGMENT:-50}
 # Docker's finish time includes JVM startup and connection setup, unlike --maxDuration.
 # A successful run cannot claim the requested duration if a client exited after it.
 finished_before_deadline() { # <Docker UTC timestamp> <deadline in epoch milliseconds>
@@ -162,12 +157,13 @@ prepare_rolling_deadline() {
 # Used in place of run_load for a rolling scale change. The deadline covers the complete
 # disturbance: a late return is a failed run, even if the topology later converges.
 rolling_index_budget() {
-  local segments
+  local segments per_shard
   [ "$ROLLING_SEGMENT" -gt 0 ] || return 1
   segments=$(((DURATION + ROLLING_SEGMENT - 1) / ROLLING_SEGMENT))
+  per_shard=$(((segments + 2) / 3))
   # The FIFO threshold is 100; allow for concurrent in-flight adds on eight
-  # connections. Each DS uses its own indexed surname.
-  [ $((segments * 160)) -lt 4000 ]
+  # connections. Each DS cycles through three indexed surnames.
+  [ $((per_shard * 160)) -lt 4000 ]
 }
 
 rolling_run_load() {

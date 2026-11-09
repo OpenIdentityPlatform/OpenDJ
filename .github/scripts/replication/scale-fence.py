@@ -78,7 +78,7 @@ def main(argv):
         if current is None or checkpoint.position(current) < checkpoint.position(wanted):
             print('DS(%s): needs %s, RS has %s' % (server_id, wanted, current or 'no position'))
             return 1
-        print('DS(%s): RS reached %s' % (server_id, wanted))
+        print('DS(%s): needs %s, RS has %s (reached)' % (server_id, wanted, current))
         return 0
     except (OSError, ValueError) as error:
         print('cannot read fence: %s' % error, file=sys.stderr)

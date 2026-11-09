@@ -127,10 +127,31 @@ backlog_ldif() { # <uid> <base DN> <first> <last>
 }
 
 scale_fence() { # <surviving RS>
-  local node=$1 dir="$OUT/scale-checkpoint"
-  scale_monitor_search "$node" >"$dir/fence-$node.ldif" 2>"$dir/fence-$node.txt" || return 1
-  python3 -I "$HERE/scale-fence.py" "$BASE_DN" "$dir/writer.ldif" "$dir/fence-$node.ldif" \
-    >"$dir/fence-$node.txt" 2>&1
+  local node=$1 dir="$OUT/scale-checkpoint" history prefix started start=$SECONDS query_rc=0 compare_rc=not-run line file
+  SCALE_FENCE_ATTEMPT=$(( ${SCALE_FENCE_ATTEMPT:-0} + 1 ))
+  history="$dir/fence-$node/history.txt"
+  mkdir -p "$dir/fence-$node" || return 1
+  prefix="$dir/fence-$node/attempt-$(printf '%04d' "$SCALE_FENCE_ATTEMPT")"
+  started=$(date +%s) || return 1
+  printf 'attempt=%s phase=start started=%s remaining=%s\n' "$SCALE_FENCE_ATTEMPT" "$started" "$((ROLLING_END - SECONDS))" >>"$history" || return 1
+  scale_monitor_search "$node" >"$prefix.ldif" 2>"$prefix.query.txt" || query_rc=$?
+  if [ "$query_rc" -eq 0 ]; then
+    compare_rc=0
+    python3 -I "$HERE/scale-fence.py" "$BASE_DN" "$dir/writer.ldif" "$prefix.ldif" >"$prefix.compare.txt" 2>&1 || compare_rc=$?
+    cp "$prefix.ldif" "$dir/fence-$node.ldif" || return 1
+    cp "$prefix.compare.txt" "$dir/fence-$node.txt" || return 1
+  else
+    cp "$prefix.query.txt" "$dir/fence-$node.txt" || return 1
+  fi
+  printf 'attempt=%s phase=end elapsed=%s remaining=%s query_exit=%s compare_exit=%s\n' \
+    "$SCALE_FENCE_ATTEMPT" "$((SECONDS - start))" "$((ROLLING_END - SECONDS))" "$query_rc" "$compare_rc" >>"$history" || return 1
+  for file in "$prefix.query.txt" "$prefix.compare.txt"; do
+    [ -f "$file" ] || continue
+    while IFS= read -r line || [ -n "$line" ]; do
+      printf 'attempt=%s detail=%s\n' "$SCALE_FENCE_ATTEMPT" "$line" >>"$history" || return 1
+    done <"$file"
+  done
+  [ "$query_rc" -eq 0 ] && [ "$compare_rc" = 0 ]
 }
 
 # Copying an online changelog can catch a partially written block: a failed parse or an
@@ -182,7 +203,8 @@ scale_backlog() {
     >"$OUT/scale-checkpoint/writer.ldif" || return 1
   for node in $RS_NODES; do
     [ "$node" != "$REMOVED" ] || continue
-    scale_wait "$node reaches the final fill CSN" scale_fence "$node" || return 1
+    SCALE_FENCE_ATTEMPT=0
+    scale_wait_fence "$node reaches the final fill CSN" scale_fence "$node" || return 1
     scale_wait "$node holds the complete fill" scale_coverage "$node" || return 1
   done
   printf '%s changes while the server was absent\n' "$count" >"$OUT/scale-checkpoint/backlog.txt"
@@ -193,6 +215,14 @@ scale_wait() { # <what> <predicate> [<argument>...]
   local remaining=$((ROLLING_END - SECONDS))
   [ "$remaining" -gt 0 ] || { fail "scale change exceeded the load"; return 1; }
   [ "$remaining" -le "$DISTURB_TIMEOUT" ] || remaining=$DISTURB_TIMEOUT
+  wait_until "$remaining" "$@" || return 1
+  [ "$SECONDS" -lt "$ROLLING_END" ] || { fail "scale change exceeded the load"; return 1; }
+}
+
+# Fence catch-up may use all remaining load time; other individual waits stay bounded.
+scale_wait_fence() { # <what> <predicate> [<argument>...]
+  local remaining=$((ROLLING_END - SECONDS))
+  [ "$remaining" -gt 0 ] || { fail "scale change exceeded the load"; return 1; }
   wait_until "$remaining" "$@" || return 1
   [ "$SECONDS" -lt "$ROLLING_END" ] || { fail "scale change exceeded the load"; return 1; }
 }

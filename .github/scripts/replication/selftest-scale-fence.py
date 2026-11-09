@@ -45,9 +45,11 @@ class FenceTest(unittest.TestCase):
                                'replicationServer-database: 1\nlast-change: 0000000000000001000100000009\n')
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(fence.main(['fence', 'dc=example,dc=com', str(writer), str(current)]), 1)
-            current.write_text(current.read_text().replace('00000009', '0000000a'))
-            with contextlib.redirect_stdout(io.StringIO()):
+            current.write_text(current.read_text().replace('00000009', '0000000b'))
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
                 self.assertEqual(fence.main(['fence', 'dc=example,dc=com', str(writer), str(current)]), 0)
+            self.assertIn('needs 000000000000000100010000000a, RS has 000000000000000100010000000b', output.getvalue())
             writer.write_text('dn: cn=writer\ndescription: scale-50001\n'
                               'ds-sync-hist: description:000000000000000100010000000a:repl:wrong-value\n')
             with contextlib.redirect_stderr(io.StringIO()):

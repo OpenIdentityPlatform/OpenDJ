@@ -125,7 +125,9 @@ INDEXED_FILTERS="(sn=AddRate) (sn=Diverged)"
 case ${DISTURBANCE:-none} in
   scale-*)
     INDEXED_FILTERS="(sn=Diverged)"
-    for n in $DS_NODES; do INDEXED_FILTERS="$INDEXED_FILTERS (sn=AddRate-$n)"; done
+    for n in $DS_NODES; do
+      for shard in 1 2 3; do INDEXED_FILTERS="$INDEXED_FILTERS (sn=AddRate-$n-$shard)"; done
+    done
     ;;
 esac
 

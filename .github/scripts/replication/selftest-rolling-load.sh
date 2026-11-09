@@ -32,13 +32,13 @@ fi
   [ "$ROLLING_SEGMENT" -eq 50 ] && rolling_index_budget || { echo '1200-second load exceeds the index budget' >&2; exit 1; }
 )
 
-# A one-hour load must fit the same per-DS index budget, without changing explicit overrides.
+# Three shards permit 50-second segments for a one-hour load.
 (
   DURATION=3600; unset ROLLING_SEGMENT
   . "$HERE/rolling-load.sh"
-  [ "$ROLLING_SEGMENT" -eq 150 ] && rolling_index_budget || { echo 'one-hour load exceeds the index budget' >&2; exit 1; }
-  ROLLING_SEGMENT=50; . "$HERE/rolling-load.sh"
-  [ "$ROLLING_SEGMENT" -eq 50 ] || { echo 'explicit segment override changed' >&2; exit 1; }
+  [ "$ROLLING_SEGMENT" -eq 50 ] && rolling_index_budget || { echo 'one-hour load exceeds the index budget' >&2; exit 1; }
+  ROLLING_SEGMENT=20; . "$HERE/rolling-load.sh"
+  [ "$ROLLING_SEGMENT" -eq 20 ] || { echo 'explicit segment override changed' >&2; exit 1; }
   if rolling_index_budget; then echo 'unsafe one-hour index budget accepted' >&2; exit 1; fi
 )
 
@@ -128,15 +128,21 @@ wait "$b"
   DISTURBANCE=scale-rs-kept
   start_client() { printf '%s\n' "$*" >>"$OUT/commands"; }
   start_clients d0 1 40
+  start_clients d0 2 40
+  start_clients d0 3 40
+  start_clients d0 4 40
   start_clients d1 2 40
   grep -E '^load-add-d0 addrate .* --noPurge ' "$OUT/commands" >/dev/null || { echo 'scale addrate still purges at the end of each segment' >&2; exit 1; }
-  grep -Fx 'sn: AddRate-d0' "$OUT/load/addrate-d0.template" >/dev/null || { echo 'd0 AddRate index shard missing' >&2; exit 1; }
-  grep -Fx 'sn: AddRate-d1' "$OUT/load/addrate-d1-2.template" >/dev/null || { echo 'd1 AddRate index shard missing' >&2; exit 1; }
+  grep -Fx 'sn: AddRate-d0-1' "$OUT/load/addrate-d0.template" >/dev/null || exit 1
+  grep -Fx 'sn: AddRate-d0-2' "$OUT/load/addrate-d0-2.template" >/dev/null || exit 1
+  grep -Fx 'sn: AddRate-d0-3' "$OUT/load/addrate-d0-3.template" >/dev/null || exit 1
+  grep -Fx 'sn: AddRate-d0-1' "$OUT/load/addrate-d0-4.template" >/dev/null || exit 1
+  grep -Fx 'sn: AddRate-d1-2' "$OUT/load/addrate-d1-2.template" >/dev/null || exit 1
   DS_NODES='d0 d1 d2 d3'; . "$HERE/assert-converged.sh"
-  for n in $DS_NODES; do case " $INDEXED_FILTERS " in *" (sn=AddRate-$n) "*) : ;; *) echo "index shard $n is not checked" >&2; exit 1 ;; esac; done
+  for n in $DS_NODES; do for shard in 1 2 3; do case " $INDEXED_FILTERS " in *" (sn=AddRate-$n-$shard) "*) : ;; *) echo "index shard $n-$shard is not checked" >&2; exit 1 ;; esac; done; done
   ROLLING_SEGMENT=40 DURATION=900
   rolling_index_budget || { echo 'safe per-DS segment budget rejected' >&2; exit 1; }
-  ROLLING_SEGMENT=20
+  ROLLING_SEGMENT=20 DURATION=3600
   if rolling_index_budget; then echo 'unsafe per-DS index budget accepted' >&2; exit 1; fi
   DISTURBANCE=restart-ds
   start_clients d2 1 40
@@ -147,7 +153,7 @@ wait "$b"
 )
 # Too many segments leave enough AddRate entries to exceed the sn index limit.
 if (mkdir -p "$OUT/index-limit/load"; OUT="$OUT/index-limit"; DS_NODES='d0 d1 d2 d3'
-    ROLLING_SEGMENT=20; DURATION=900; DISTURB_AT=1; STAT_INTERVAL=0
+    ROLLING_SEGMENT=20; DURATION=3600; DISTURB_AT=1; STAT_INTERVAL=0
     rolling_worker() { :; }; disturb() { :; }; sleep() { :; }
     rolling_run_load) >/dev/null 2>&1; then
   echo 'rolling load accepted enough retained entries to exceed the sn index limit' >&2; exit 1
