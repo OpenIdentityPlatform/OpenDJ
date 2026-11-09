@@ -377,6 +377,7 @@ done
   DISTURB_TIMEOUT=900 ROLLING_END=$((SECONDS + 900)) ROLLING_END_MS=2000000000000
   . "$HERE/disturb-scale.sh"
   scale_wait() { shift; "$@"; }
+  scale_wait_fence() { shift; "$@"; }
   admin_search() { echo writer; }
   ldaps_search() { printf '%s\n' "$2" >"$OUT/writer-dn"; echo writer; }
   scale_fence() { [ "${FAIL_FENCE:-0}" = 0 ]; }
@@ -401,5 +402,48 @@ done
   [ ! -e "$OUT/scale-checkpoint/backlog.txt" ] || { echo 'lagging RS wrote a success report' >&2; exit 1; }
   if (FAIL_COVERAGE=1; scale_backlog); then echo 'incomplete RS changelog was accepted' >&2; exit 1; fi
   [ ! -e "$OUT/scale-checkpoint/backlog.txt" ] || { echo 'missing changes wrote a success report' >&2; exit 1; }
+)
+# The fence receives the remaining load time; other waits retain their individual cap.
+(
+  OUT="$OUT/fence-wait"; mkdir -p "$OUT"
+  TOPOLOGY=combined SCALE_VOLUME=kept DS_NODES='d0 d1 d2' RS_NODES=$DS_NODES RS_ONLY=
+  ALL_NODES=$DS_NODES PEERS=d0,d1,d2 DISTURB_TIMEOUT=900 ROLLING_END=$((SECONDS + 1800))
+  . "$HERE/disturb-scale.sh"
+  wait_until() { printf '%s\n' "$1" >"$OUT/timeout"; }
+  scale_wait_fence 'fence' true
+  [ "$(cat "$OUT/timeout")" -gt 900 ] || { echo 'fence still capped at 900 seconds' >&2; exit 1; }
+  scale_wait 'other wait' true
+  [ "$(cat "$OUT/timeout")" -eq 900 ] || { echo 'unrelated wait cap changed' >&2; exit 1; }
+  fail() { return 1; }
+  ROLLING_END=$SECONDS
+  if scale_wait_fence 'expired fence' true; then echo 'expired fence was accepted' >&2; exit 1; fi
+)
+# Each fence attempt retains its query and comparison, including failures and both CSNs.
+(
+  OUT="$OUT/fence-history"; mkdir -p "$OUT/scale-checkpoint"
+  TOPOLOGY=combined SCALE_VOLUME=kept DS_NODES='d0 d1 d2' RS_NODES=$DS_NODES RS_ONLY=
+  ALL_NODES=$DS_NODES PEERS=d0,d1,d2 BASE_DN=dc=example,dc=com ROLLING_END=$((SECONDS + 1800))
+  . "$HERE/disturb-scale.sh"
+  cat >"$OUT/scale-checkpoint/writer.ldif" <<'LDIF'
+dn: cn=writer
+description: scale-50001
+ds-sync-hist: description:000000000000000100010000000a:repl:scale-50001
+LDIF
+  scale_monitor_search() {
+    if [ "${QUERY_FAIL:-0}" = 1 ]; then echo 'timeout=query' >&2; return 124; fi
+    printf 'dn: cn=changelog\ndomain-name: dc=example,dc=com\nreplicationServer-database: 1\nlast-change: %s\n' "$CURRENT"
+  }
+  CURRENT=0000000000000001000100000009
+  if scale_fence d1; then echo 'lagging fence passed' >&2; exit 1; fi
+  CURRENT=000000000000000100010000000a
+  scale_fence d1 || { echo 'caught-up fence failed' >&2; exit 1; }
+  if (QUERY_FAIL=1; scale_fence d1); then echo 'failed query passed' >&2; exit 1; fi
+  history="$OUT/scale-checkpoint/fence-d1/history.txt"
+  grep -F '0000000000000001000100000009' "$history" >/dev/null || { echo 'lagging CSN missing from history' >&2; exit 1; }
+  grep -F '000000000000000100010000000a' "$history" >/dev/null || { echo 'target CSN missing from history' >&2; exit 1; }
+  grep -F 'timeout=query' "$history" >/dev/null || { echo 'query error missing from history' >&2; exit 1; }
+  [ "$(grep -c 'phase=start' "$history")" -eq 3 ] && [ "$(grep -c 'phase=end' "$history")" -eq 3 ] || { echo 'fence attempt history is incomplete' >&2; exit 1; }
+  grep -F 'query_exit=124 compare_exit=not-run' "$history" >/dev/null || { echo 'fence failure status missing' >&2; exit 1; }
+  [ -s "$OUT/scale-checkpoint/fence-d1/attempt-0001.ldif" ] && [ -s "$OUT/scale-checkpoint/fence-d1/attempt-0002.ldif" ] || { echo 'fence snapshots overwritten' >&2; exit 1; }
 )
 echo 'scale lifecycle cases passed'
