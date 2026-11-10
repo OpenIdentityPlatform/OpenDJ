@@ -29,11 +29,11 @@ check rs534 empty-rs 2 6
 check rs534 none 2 6
 check combined scale-kept 4 4
 check combined scale-empty 4 4
-# Scale uses a 1200 s load and reduced rates; other rows and explicit settings retain theirs.
+# Scale uses a 2100 s load and reduced rates; other rows and explicit settings retain theirs.
 for disturbance in scale-rs-kept scale-rs-empty scale-kept scale-empty; do
   ( unset DISTURB_AT DURATION LOAD_MOD_RATE LOAD_ADD_RATE; TOPOLOGY=combined DISTURBANCE=$disturbance
     . "$HERE/lib.sh"
-    [ "$DURATION" -eq 1200 ] && [ "$DISTURB_AT" -eq 120 ] && [ "$LOAD_MOD_RATE" -eq 100 ] && [ "$LOAD_ADD_RATE" -eq 20 ] ) || exit 1
+    [ "$DURATION" -eq 2100 ] && [ "$DISTURB_AT" -eq 120 ] && [ "$LOAD_MOD_RATE" -eq 100 ] && [ "$LOAD_ADD_RATE" -eq 20 ] ) || exit 1
 done
 ( unset DISTURB_AT DURATION LOAD_MOD_RATE LOAD_ADD_RATE; TOPOLOGY=rs534 DISTURBANCE=empty-rs
   . "$HERE/lib.sh"

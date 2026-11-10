@@ -27,7 +27,7 @@ DISTURBANCE=${DISTURBANCE:-none}
 # again 131 to 225 s after the restart there, and the load has to go on after that
 case $DISTURBANCE in
   none) DURATION=${DURATION:-120} ;;
-  scale-*) DURATION=${DURATION:-1200} ;;
+  scale-*) DURATION=${DURATION:-2100} ;;
   *) DURATION=${DURATION:-900} ;;
 esac
 # the most modifications, and adds or deletes, per second the load sends to each directory

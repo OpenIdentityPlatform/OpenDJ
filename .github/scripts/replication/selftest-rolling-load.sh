@@ -25,11 +25,11 @@ if [ ! -f "$HERE/rolling-load.sh" ]; then
 fi
 . "$HERE/rolling-load.sh"
 
-# A 1200-second load must fit the per-DS index budget with the default segment size.
+# A 2100-second load must fit the per-DS index budget with the default segment size.
 (
-  DURATION=1200; unset ROLLING_SEGMENT
+  DURATION=2100; unset ROLLING_SEGMENT
   . "$HERE/rolling-load.sh"
-  [ "$ROLLING_SEGMENT" -eq 50 ] && rolling_index_budget || { echo '1200-second load exceeds the index budget' >&2; exit 1; }
+  [ "$ROLLING_SEGMENT" -eq 50 ] && rolling_index_budget || { echo '2100-second load exceeds the index budget' >&2; exit 1; }
 )
 
 # Three shards permit 50-second segments for a one-hour load.
