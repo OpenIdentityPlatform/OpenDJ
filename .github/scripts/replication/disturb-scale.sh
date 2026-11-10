@@ -211,11 +211,19 @@ scale_backlog() {
 }
 
 is_directory_node() { case " $DS_NODES " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
+# Record successful and failed waits, including short ones, for the CI time budget.
+scale_timed_wait() { # <seconds> <what> <predicate> [<argument>...]
+  local start=$SECONDS what=$2 rc=0
+  wait_until "$@" || rc=$?
+  printf '%s\t%s\t%s\n' "$((SECONDS - start))" "$rc" "$what" >>"$OUT/scale-timings.tsv" || return 1
+  return "$rc"
+}
+
 scale_wait() { # <what> <predicate> [<argument>...]
   local remaining=$((ROLLING_END - SECONDS))
   [ "$remaining" -gt 0 ] || { fail "scale change exceeded the load"; return 1; }
   [ "$remaining" -le "$DISTURB_TIMEOUT" ] || remaining=$DISTURB_TIMEOUT
-  wait_until "$remaining" "$@" || return 1
+  scale_timed_wait "$remaining" "$@" || return 1
   [ "$SECONDS" -lt "$ROLLING_END" ] || { fail "scale change exceeded the load"; return 1; }
 }
 
@@ -223,7 +231,7 @@ scale_wait() { # <what> <predicate> [<argument>...]
 scale_wait_fence() { # <what> <predicate> [<argument>...]
   local remaining=$((ROLLING_END - SECONDS))
   [ "$remaining" -gt 0 ] || { fail "scale change exceeded the load"; return 1; }
-  wait_until "$remaining" "$@" || return 1
+  scale_timed_wait "$remaining" "$@" || return 1
   [ "$SECONDS" -lt "$ROLLING_END" ] || { fail "scale change exceeded the load"; return 1; }
 }
 

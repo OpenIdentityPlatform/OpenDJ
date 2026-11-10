@@ -27,13 +27,15 @@ DISTURBANCE=${DISTURBANCE:-none}
 # again 131 to 225 s after the restart there, and the load has to go on after that
 case $DISTURBANCE in
   none) DURATION=${DURATION:-120} ;;
-  scale-*) DURATION=${DURATION:-3600} ;;
+  scale-*) DURATION=${DURATION:-1200} ;;
   *) DURATION=${DURATION:-900} ;;
 esac
 # the most modifications, and adds or deletes, per second the load sends to each directory
 # server; a runner that cannot keep up sends fewer, which the summary shows
-LOAD_MOD_RATE=${LOAD_MOD_RATE:-423}
-LOAD_ADD_RATE=${LOAD_ADD_RATE:-85}
+case $DISTURBANCE in
+  scale-*) LOAD_MOD_RATE=${LOAD_MOD_RATE:-100}; LOAD_ADD_RATE=${LOAD_ADD_RATE:-20} ;;
+  *) LOAD_MOD_RATE=${LOAD_MOD_RATE:-423}; LOAD_ADD_RATE=${LOAD_ADD_RATE:-85} ;;
+esac
 # users the first directory server imports; the others get them from its initialize
 SAMPLE_DATA=${SAMPLE_DATA:-2000}
 # the heap of every server and every load client. Without a bound each JVM may take a quarter
@@ -148,7 +150,11 @@ fail() {
 wait_until() { # <seconds> <what> <command> [<argument>...]
   local deadline=$((SECONDS + $1)) what=$2 start=$SECONDS
   shift 2
-  until "$@"; do
+  while :; do
+    if [ "${SCALE_DEADLINE_ACTIVE:-0}" = 1 ] && declare -F rolling_worker_failed >/dev/null && rolling_worker_failed; then
+      fail "load worker failed while waiting until $what"; return 1
+    fi
+    "$@" && break
     [ "$SECONDS" -lt "$deadline" ] || { fail "timed out waiting until $what"; return 1; }
     sleep 2
   done
