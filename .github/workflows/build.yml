@@ -1138,8 +1138,8 @@ jobs:
     # a red row turns the Build run red, and deploy.yml then skips the snapshot deploy and the
     # publishing of the docs of a push to master
     runs-on: 'ubuntu-latest'
-    # Cap each scale job at 30 minutes, including setup and artifact upload.
-    timeout-minutes: ${{ startsWith(matrix.disturbance, 'scale-') && 30 || 360 }}
+    # Cap each scale job at 60 minutes, including setup and artifact upload.
+    timeout-minutes: ${{ startsWith(matrix.disturbance, 'scale-') && 60 || 360 }}
     permissions:
       contents: read
     strategy:
@@ -1208,13 +1208,13 @@ jobs:
         shell: bash
         run: docker load -i "$RUNNER_TEMP/image/image.tar"
       - name: Convergence run (${{ matrix.topology }}, ${{ matrix.disturbance }})
-        timeout-minutes: ${{ startsWith(matrix.disturbance, 'scale-') && 28 || 360 }}
+        timeout-minutes: ${{ startsWith(matrix.disturbance, 'scale-') && 55 || 360 }}
         shell: bash
         env:
           TOPOLOGY: ${{ matrix.topology }}
           DISTURBANCE: ${{ matrix.disturbance }}
-          # Scale rows target 20 minutes of load at the lower scale-specific rates.
-          DURATION: "${{ startsWith(matrix.disturbance, 'scale-') && '1200' || '900' }}"
+          # Scale rows target 35 minutes of load at the lower scale-specific rates.
+          DURATION: "${{ startsWith(matrix.disturbance, 'scale-') && '2100' || '900' }}"
           # the replicas fall behind during the load and catch up after it: 900 s at 325 and 65
           # a second converged in 396 s (run 38944365728), 1800 s at 423 and 85 in 2489 s (run
           # 39043600905), the backlog growing faster than the load above the replay capacity; a
