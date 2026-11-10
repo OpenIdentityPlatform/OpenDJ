@@ -1780,6 +1780,8 @@ jobs:
           # The pre-upgrade data must still be served
           & "$root\bat\ldapsearch.bat" --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
           if ($LASTEXITCODE -ne 0) { throw "ldapsearch after upgrade failed: $LASTEXITCODE" }
+          & "$root\bat\dsconfig.bat" list-backends --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPassword password --trustAll --no-prompt
+          if ($LASTEXITCODE -ne 0) { throw "dsconfig after upgrade failed: $LASTEXITCODE" }
           net stop "OpenDJ Server"
           if ($LASTEXITCODE -ne 0) { throw "net stop (upgraded) failed: $LASTEXITCODE" }
       - name: Repair must leave the service registration alone
