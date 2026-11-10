@@ -46,8 +46,23 @@ except ValueError:
 PYTIME
 }
 
+# Keep recent LDAP rejections and replication warnings close to a failed client.
+# The complete logs are still collected by the failed-run handler.
+rolling_collect_error_context() { # <directory server>
+  docker exec "$1" /bin/sh -c '
+    logs=/opt/opendj/data/logs
+    echo "Recent nonzero LDAP results:"
+    tail -n 5000 "$logs"/access* 2>/dev/null | grep -E "(MODIFY|ADD|DELETE) RES .*result=[1-9][0-9]*" | tail -n 30 || :
+    echo "Recent replication warnings and errors:"
+    tail -n 500 "$logs/errors" 2>/dev/null | grep -E "category=SYNC severity=(WARNING|ERROR)" | tail -n 30 || :
+  ' >"$OUT/load/$1.recent-errors.log" 2>&1 || :
+  echo "::group::Recent server errors for $1"
+  cat "$OUT/load/$1.recent-errors.log" || :
+  echo "::endgroup::"
+}
+
 rolling_worker() { # <directory server>
-  local n=$1 segment=1 name c length remaining finished
+  local n=$1 segment=1 name c length remaining finished failed
   # The parent reports this worker's failure; do not run run.sh's collection trap here.
   trap - ERR
   while [ ! -e "$OUT/load/stop" ]; do
@@ -61,7 +76,7 @@ rolling_worker() { # <directory server>
     if [ -n "${ROLLING_END:-}" ]; then
       # --maxDuration starts only after the JVM and its connections are ready. Leave
       # a small launch/teardown allowance; FinishedAt still enforces the hard deadline.
-      remaining=$((ROLLING_END - SECONDS - 10))
+      remaining=$((ROLLING_END - SECONDS - 40))
       [ "$remaining" -ge $((3 * STAT_INTERVAL)) ] || break
       [ "$length" -le "$remaining" ] || length=$remaining
     fi
@@ -76,22 +91,24 @@ rolling_worker() { # <directory server>
       rolling_kill_active "$n"
       return 1
     fi
+    failed=
     for c in "load-mod-$name" "load-add-$name"; do
-      docker wait "$c" >/dev/null || return 1
+      docker wait "$c" >/dev/null || { echo "::error::docker wait failed for $c" >&2; return 1; }
       if [ -n "${ROLLING_END_MS:-}" ]; then
-        finished=$(docker inspect -f '{{.State.FinishedAt}}' "$c") || return 1
+        finished=$(docker inspect -f '{{.State.FinishedAt}}' "$c") || { echo "::error::cannot inspect finish time for $c" >&2; return 1; }
         printf '%s\n' "$finished" >"$OUT/load/$c.finished" || return 1
       fi
-      docker logs "$c" >"$OUT/load/$c.csv" 2>&1 || return 1
-      docker inspect -f '{{.State.ExitCode}} {{.State.OOMKilled}}' "$c" >"$OUT/load/$c.exit" || return 1
-      docker rm "$c" >/dev/null || return 1
+      docker logs "$c" >"$OUT/load/$c.csv" 2>&1 || { echo "::error::cannot collect logs for $c" >&2; return 1; }
+      docker inspect -f '{{.State.ExitCode}} {{.State.OOMKilled}}' "$c" >"$OUT/load/$c.exit" || { echo "::error::cannot inspect exit state for $c" >&2; return 1; }
+      docker rm "$c" >/dev/null || { echo "::error::cannot remove client $c" >&2; return 1; }
       if [ -n "${ROLLING_END_MS:-}" ]; then
         finished_before_deadline "$finished" "$ROLLING_END_MS" || {
-          echo "::error::$c finished after the load deadline ($finished)" >&2; return 1;
+          echo "::error::$c finished after the load deadline ($finished)" >&2; failed=1; touch "$OUT/load/$n.failed" || return 1;
         }
       fi
-      check_client "$c" || return 1
+      check_client "$c" || { failed=1; touch "$OUT/load/$n.failed" || return 1; }
     done
+    if [ -n "$failed" ]; then rolling_collect_error_context "$n"; return 1; fi
     rm "$OUT/load/$n.active" || return 1
     segment=$((segment + 1))
   done
@@ -109,7 +126,12 @@ rolling_clients_running() { # <directory server>
     [ "$state" = true ] || return 1
   done
 }
-rolling_parked() { [ -e "$OUT/load/$1.parked" ]; }
+rolling_worker_failed() {
+  local marker
+  for marker in "$OUT"/load/*.failed; do [ ! -e "$marker" ] || return 0; done
+  return 1
+}
+rolling_parked() { [ -e "$OUT/load/$1.parked" ] || [ -e "$OUT/load/$1.done" ] || rolling_worker_failed; }
 rolling_request_pause() { touch "$OUT/load/$1.pause"; }
 rolling_pause() { # <directory server>
   local timeout=${DISTURB_TIMEOUT:-900} left
@@ -119,7 +141,11 @@ rolling_pause() { # <directory server>
     [ "$left" -ge "$timeout" ] || timeout=$left
   fi
   rolling_request_pause "$1" || return 1
-  wait_until "$timeout" "$1 clients finish" rolling_parked "$1"
+  wait_until "$timeout" "$1 clients finish" rolling_parked "$1" || return 1
+  if rolling_worker_failed || [ -e "$OUT/load/$1.done" ]; then
+    echo "::error::load worker $1 failed or stopped before it could pause" >&2
+    return 1
+  fi
 }
 rolling_resume() { rm -f "$OUT/load/$1.pause"; }
 
@@ -176,7 +202,7 @@ rolling_run_load() {
   ( trap - ERR; rolling_deadline "$left" ) &
   watchdog=$!
   for n in $DS_NODES; do
-    ( rolling_worker "$n" ) &
+    ( if rolling_worker "$n"; then touch "$OUT/load/$n.done"; else touch "$OUT/load/$n.failed"; exit 1; fi ) &
     pids="$pids $!"
   done
   left=$((DISTURB_AT - (SECONDS - (ROLLING_END - DURATION))))

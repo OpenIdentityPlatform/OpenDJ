@@ -29,18 +29,18 @@ check rs534 empty-rs 2 6
 check rs534 none 2 6
 check combined scale-kept 4 4
 check combined scale-empty 4 4
-# Scale begins after 120 s of a 3600 s load; unrelated rows and explicit settings retain theirs.
+# Scale uses a 1200 s load and reduced rates; other rows and explicit settings retain theirs.
 for disturbance in scale-rs-kept scale-rs-empty scale-kept scale-empty; do
-  ( unset DISTURB_AT DURATION; TOPOLOGY=combined DISTURBANCE=$disturbance
+  ( unset DISTURB_AT DURATION LOAD_MOD_RATE LOAD_ADD_RATE; TOPOLOGY=combined DISTURBANCE=$disturbance
     . "$HERE/lib.sh"
-    [ "$DURATION" -eq 3600 ] && [ "$DISTURB_AT" -eq 120 ] ) || exit 1
+    [ "$DURATION" -eq 1200 ] && [ "$DISTURB_AT" -eq 120 ] && [ "$LOAD_MOD_RATE" -eq 100 ] && [ "$LOAD_ADD_RATE" -eq 20 ] ) || exit 1
 done
-( unset DISTURB_AT DURATION; TOPOLOGY=rs534 DISTURBANCE=empty-rs
+( unset DISTURB_AT DURATION LOAD_MOD_RATE LOAD_ADD_RATE; TOPOLOGY=rs534 DISTURBANCE=empty-rs
   . "$HERE/lib.sh"
-  [ "$DISTURB_AT" -eq 300 ] ) || exit 1
-( TOPOLOGY=combined DISTURBANCE=scale-kept DISTURB_AT=77 DURATION=900
+  [ "$DISTURB_AT" -eq 300 ] && [ "$LOAD_MOD_RATE" -eq 423 ] && [ "$LOAD_ADD_RATE" -eq 85 ] ) || exit 1
+( TOPOLOGY=combined DISTURBANCE=scale-kept DISTURB_AT=77 DURATION=900 LOAD_MOD_RATE=42 LOAD_ADD_RATE=7
   . "$HERE/lib.sh"
-  [ "$DISTURB_AT" -eq 77 ] ) || exit 1
+  [ "$DISTURB_AT" -eq 77 ] && [ "$LOAD_MOD_RATE" -eq 42 ] && [ "$LOAD_ADD_RATE" -eq 7 ] ) || exit 1
 # Only scale rows publish the admin port, and only on loopback for the native monitor.
 (
   OUT=$(mktemp -d); trap 'rm -rf "$OUT"' EXIT

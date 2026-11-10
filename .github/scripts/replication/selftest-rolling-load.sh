@@ -96,6 +96,33 @@ touch "$OUT/load/stop"
 wait "$a"
 wait "$b"
 [ "$(grep -c '^checked ' "$OUT/events")" -eq "$((2 * $(grep -c '^start ' "$OUT/events")))" ] || { echo 'not all clients checked' >&2; exit 1; }
+# A failed worker must wake a pause immediately instead of consuming the disturbance timeout.
+(
+  mkdir -p "$OUT/failed-pause/load"; OUT="$OUT/failed-pause"; DISTURB_TIMEOUT=1; unset ROLLING_END
+  touch "$OUT/load/d0.failed"
+  start=$SECONDS
+  if rolling_pause d0 2>"$OUT/error"; then echo 'failed worker accepted as parked' >&2; exit 1; fi
+  grep -F "worker d0 failed" "$OUT/error" >/dev/null || { echo 'pause did not report the worker failure' >&2; exit 1; }
+)
+# Even if the first client failed, collect and check the second before exiting.
+(
+  mkdir -p "$OUT/failed-pair/load"; OUT="$OUT/failed-pair"; unset ROLLING_END ROLLING_END_MS
+  start_clients() { :; }
+  docker() { case $1 in wait|rm) : ;; logs) echo csv ;; inspect) echo '0 false' ;; exec) echo 'LDAP result=53 fixture' ;; *) return 1 ;; esac; }
+  check_client() {
+    echo "$1" >>"$OUT/checked"
+    if [ "$1" = load-add-d0 ]; then
+      [ -e "$OUT/load/d0.failed" ] || { echo 'worker failure not signalled before collecting pair' >&2; return 1; }
+      return 0
+    fi
+    return 1
+  }
+  if rolling_worker d0; then echo 'client failure was accepted' >&2; exit 1; fi
+  grep -Fx load-add-d0 "$OUT/checked" >/dev/null || { echo 'paired client was not checked' >&2; exit 1; }
+  [ -f "$OUT/load/load-add-d0.csv" ] || { echo 'paired client output was not collected' >&2; exit 1; }
+  [ -e "$OUT/load/d0.failed" ] || { echo 'worker failure was not signalled' >&2; exit 1; }
+  grep -F 'LDAP result=53 fixture' "$OUT/load/d0.recent-errors.log" >/dev/null || { echo 'directory server errors were not collected' >&2; exit 1; }
+)
 # A checkpoint writer must have two running load clients, not just a stale marker.
 (
   mkdir -p "$OUT/active/load"; OUT="$OUT/active"
@@ -106,13 +133,25 @@ wait "$b"
   STOPPED_CLIENT=load-add-d0
   if rolling_clients_running d0; then echo 'stopped load client was accepted' >&2; exit 1; fi
 )
+# Scale load must produce a meaningful fraction of both requested rates.
+(
+  . "$HERE/load.sh"
+  mkdir -p "$OUT/min-rate/load"; OUT="$OUT/min-rate"
+  DISTURBANCE=scale-kept LOAD_MOD_RATE=100 LOAD_ADD_RATE=20 STAT_INTERVAL=10
+  echo '0 false' >"$OUT/load/load-mod-d0.exit"; echo 30 >"$OUT/load/load-mod-d0.seconds"
+  printf 'Time (seconds),Recent throughput (ops/second),Errors/second\n10,1,0\n20,1,0\n30,1,0\n' >"$OUT/load/load-mod-d0.csv"
+  if check_client load-mod-d0 >/dev/null 2>&1; then echo 'almost idle scale writer accepted' >&2; exit 1; fi
+  sed 's/,1,0$/,10,0/' "$OUT/load/load-mod-d0.csv" >"$OUT/rate.csv"
+  cp "$OUT/rate.csv" "$OUT/load/load-mod-d0.csv"
+  check_client load-mod-d0 >/dev/null || { echo 'minimum scale rate rejected' >&2; exit 1; }
+)
 # The last client must leave time for JVM startup and teardown before the deadline.
 (
   mkdir -p "$OUT/final/load"; OUT="$OUT/final"; ROLLING_END=$((SECONDS + 80)); unset ROLLING_END_MS
   ROLLING_SEGMENT=120; STAT_INTERVAL=10
   start_clients() { echo "$3" >"$OUT/length"; touch "$OUT/load/stop"; }
   rolling_worker d0
-  [ "$(cat "$OUT/length")" -le 70 ] || { echo 'last segment used the full remaining wall time' >&2; exit 1; }
+  [ "$(cat "$OUT/length")" -le 40 ] || { echo 'last segment left less than 40 seconds for startup and teardown' >&2; exit 1; }
 )
 # Pausing a node cannot wait beyond the overall load deadline.
 (
@@ -205,6 +244,15 @@ if (mkdir -p "$OUT/early/load"; OUT="$OUT/early"; DS_NODES=d0; DURATION=1; DISTU
   echo 'early disturbance failure was accepted' >&2; exit 1
 fi
 [ -e "$OUT/early/killed" ] || { echo 'watchdog stopped before its worker' >&2; exit 1; }
+# A worker failure also aborts a pending checkpoint, without waiting for its timeout.
+(
+  . "$HERE/lib.sh"
+  mkdir -p "$OUT/failed-checkpoint/load"; OUT="$OUT/failed-checkpoint"; SCALE_DEADLINE_ACTIVE=1
+  touch "$OUT/load/d0.failed"
+  if wait_until 2 'checkpoint' false >"$OUT/result" 2>&1; then echo 'failed worker accepted during checkpoint' >&2; exit 1; fi
+  grep -F 'load worker failed' "$OUT/result" >/dev/null || { echo 'checkpoint hid worker failure' >&2; exit 1; }
+  if wait_until 2 'ready checkpoint' true >"$OUT/result" 2>&1; then echo 'ready checkpoint hid failed worker' >&2; exit 1; fi
+)
 # A Docker error must not look like a completed bootstrap.
 (
   . "$HERE/lib.sh"
