@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.ldap;
@@ -146,7 +147,8 @@ public interface LDAPClientContext {
      *            Must be {@code true} if the TLS filter has to be installed as a consequence of a StartTLS request
      *            performed by a client. When {@code true} the TLS filter will be installed atomically after the first
      *            message sent to prevent race-condition.
-     * @return {@code true} if the TLS filter has been enabled, {@code false} if it was already enabled.
+     * @return {@code true} if the TLS filter has been enabled, or {@code false} if it was already enabled, an upgrade
+     *         is pending, or the connection is closed.
      * @throws NullPointerException
      *             if sslEngine is null
      */

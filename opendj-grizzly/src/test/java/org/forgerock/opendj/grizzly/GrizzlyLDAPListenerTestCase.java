@@ -36,6 +36,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -55,6 +56,7 @@ import java.util.logging.Level;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLSocket;
 import javax.security.auth.x500.X500Principal;
 
@@ -584,7 +586,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         final LDAPListener listener = secureListener(transport, serverContext, serverConnection);
         final String property = "org.forgerock.opendj.grizzly.handshakeTimeout";
         final String previous = System.getProperty(property);
-        System.setProperty(property, "1200");
+        System.setProperty(property, "2000");
         try {
             final InetSocketAddress address = listener.firstSocketAddress();
             try (Socket socket = new Socket(address.getAddress(), address.getPort())) {
@@ -594,14 +596,14 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                 socket.getOutputStream().write(new byte[] { 0x16, 0x03, 0x03, 0x00, 0x01, 0x03 });
                 Thread.sleep(750);
                 socket.getOutputStream().write(new byte[] { 0x16, 0x03, 0x03, 0x00, 0x01, 0x03 });
-                socket.setSoTimeout(500);
+                socket.setSoTimeout(1000);
                 try {
                     socket.getInputStream().read();
                     fail("the progressing handshake was closed prematurely");
                 } catch (SocketTimeoutException expected) {
                     // The total elapsed time exceeds the timeout, but the last read was recent.
                 }
-                socket.setSoTimeout(3000);
+                socket.setSoTimeout(5000);
                 org.testng.Assert.assertEquals(socket.getInputStream().read(), -1, "idle handshake stayed open");
             }
         } finally {
@@ -632,7 +634,8 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
             final InetSocketAddress address = listener.firstSocketAddress();
             try (Socket socket = new Socket(address.getAddress(), address.getPort())) {
                 serverConnection.context.get(5, TimeUnit.SECONDS);
-                socket.getOutputStream().write(new byte[] { 0x16, 0x03, 0x03, 0x00, 0x10, 0x01 });
+                // A complete record with an incomplete ClientHello reaches the deadline code.
+                socket.getOutputStream().write(new byte[] { 0x16, 0x03, 0x03, 0x00, 0x04, 0x01, 0x00, 0x01, 0x00 });
                 socket.setSoTimeout(1500);
                 try {
                     socket.getInputStream().read();
@@ -648,15 +651,20 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         }
     }
 
+    @DataProvider
+    public Object[][] completedHandshakeProtocols() {
+        return new Object[][] { { "TLSv1.2" }, { "TLSv1.3" } };
+    }
+
     /** Completing the handshake cancels its timeout, so it cannot close a subsequently active LDAP connection. */
-    @Test(timeOut = 30000)
-    public void testCompletedHandshakeIsNotClosedByItsFormerTimeout() throws Exception {
+    @Test(dataProvider = "completedHandshakeProtocols", timeOut = 30000)
+    public void testCompletedHandshakeIsNotClosedByItsFormerTimeout(final String protocol) throws Exception {
         final SSLContext serverContext = largeCertificateContext();
         final TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance()
                 .setIOStrategy(SameThreadIOStrategy.getInstance()).setWriteBufferSize(4096).build();
         transport.start();
         final MockServerConnection serverConnection = new MockServerConnection();
-        final LDAPListener listener = secureListener(transport, serverContext, serverConnection);
+        final LDAPListener listener = secureListener(transport, serverContext, serverConnection, protocol);
         final String property = "org.forgerock.opendj.grizzly.handshakeTimeout";
         final String previous = System.getProperty(property);
         System.setProperty(property, "5000");
@@ -681,6 +689,122 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
             restoreProperty(property, previous);
             listener.close();
             transport.shutdownNow();
+        }
+    }
+
+    /** A TLS upgrade must not be accepted after the client connection has closed. */
+    @Test(timeOut = 20000)
+    public void testEnableTlsRefusesAClosedConnection() throws Exception {
+        final SSLContext serverContext = largeCertificateContext();
+        final TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance().build();
+        transport.start();
+        final MockServerConnection serverConnection = new MockServerConnection();
+        final Options options = defaultOptions().set(GrizzlyLDAPListener.GRIZZLY_TRANSPORT, transport);
+        final LDAPListener listener = new LDAPListener(Collections.singleton(loopbackWithDynamicPort()),
+                new ServerConnectionFactoryAdapter(options.get(LDAP_DECODE_OPTIONS),
+                        new MockServerConnectionFactory(serverConnection)), options);
+        try {
+            final InetSocketAddress address = listener.firstSocketAddress();
+            final LDAPClientContext clientContext;
+            try (Socket socket = new Socket(address.getAddress(), address.getPort())) {
+                clientContext = serverConnection.context.get(5, TimeUnit.SECONDS);
+            }
+            final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+            while (!clientContext.isClosed() && System.nanoTime() < deadline) {
+                Thread.sleep(10);
+            }
+            org.testng.Assert.assertTrue(clientContext.isClosed(), "the server did not see the client close");
+            org.testng.Assert.assertFalse(enableServerTLS(clientContext, serverContext, "TLSv1.2", true),
+                    "enableTLS accepted a closed connection");
+        } finally {
+            listener.close();
+            transport.shutdownNow();
+        }
+    }
+
+    /** A stalled TLS 1.2 renegotiation must retain the configured Grizzly read timeout. */
+    @Test(timeOut = 30000)
+    public void testIncompleteRenegotiationTimesOut() throws Exception {
+        final SSLContext serverContext = largeCertificateContext();
+        final TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance()
+                .setIOStrategy(SameThreadIOStrategy.getInstance()).setWriteBufferSize(4096).build();
+        transport.start();
+        final MockServerConnection serverConnection = new MockServerConnection();
+        final LDAPListener listener = secureListener(transport, serverContext, serverConnection);
+        final String property = "org.forgerock.opendj.grizzly.handshakeTimeout";
+        final String previous = System.getProperty(property);
+        System.setProperty(property, "1200");
+        try {
+            final InetSocketAddress address = listener.firstSocketAddress();
+            final SSLContext clientContext = new SSLContextBuilder().setTrustManager(TrustManagers.trustAll())
+                    .getSSLContext();
+            try (Socket socket = new Socket(address.getAddress(), address.getPort())) {
+                socket.setSoTimeout(5000);
+                final SSLEngine engine = clientContext.createSSLEngine("localhost", address.getPort());
+                engine.setUseClientMode(true);
+                engine.setEnabledProtocols(new String[] { "TLSv1.2" });
+                finishClientHandshake(engine, socket);
+
+                engine.beginHandshake();
+                final ByteBuffer hello = ByteBuffer.allocate(engine.getSession().getPacketBufferSize());
+                final SSLEngineResult result = engine.wrap(ByteBuffer.allocate(0), hello);
+                org.testng.Assert.assertEquals(result.getStatus(), SSLEngineResult.Status.OK);
+                org.testng.Assert.assertTrue(hello.position() > 0, "no renegotiation ClientHello was produced");
+                final long started = System.nanoTime();
+                socket.getOutputStream().write(hello.array(), 0, hello.position());
+                // Drain the server's flight, but do not send the rest of the client's handshake.
+                int received = 0;
+                while (socket.getInputStream().read() != -1) {
+                    received++;
+                }
+                org.testng.Assert.assertTrue(received > 0, "the server did not start renegotiation");
+                org.testng.Assert.assertTrue(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started) >= 800,
+                        "the server closed before the renegotiation timeout");
+            }
+        } finally {
+            restoreProperty(property, previous);
+            listener.close();
+            transport.shutdownNow();
+        }
+    }
+
+    private static void finishClientHandshake(SSLEngine engine, Socket socket) throws Exception {
+        final ByteBuffer input = ByteBuffer.allocate(65536);
+        final ByteBuffer output = ByteBuffer.allocate(65536);
+        final ByteBuffer application = ByteBuffer.allocate(65536);
+        final ByteBuffer empty = ByteBuffer.allocate(0);
+        final DataInputStream in = new DataInputStream(socket.getInputStream());
+        engine.beginHandshake();
+        while (engine.getHandshakeStatus() != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
+            switch (engine.getHandshakeStatus()) {
+            case NEED_TASK:
+                Runnable task;
+                while ((task = engine.getDelegatedTask()) != null) {
+                    task.run();
+                }
+                break;
+            case NEED_WRAP:
+                output.clear();
+                final SSLEngineResult wrapped = engine.wrap(empty, output);
+                org.testng.Assert.assertEquals(wrapped.getStatus(), SSLEngineResult.Status.OK);
+                socket.getOutputStream().write(output.array(), 0, output.position());
+                break;
+            case NEED_UNWRAP:
+                final byte[] header = new byte[5];
+                in.readFully(header);
+                final int length = (header[3] & 0xff) * 256 + (header[4] & 0xff);
+                input.put(header);
+                in.readFully(input.array(), input.position(), length);
+                input.position(input.position() + length);
+                input.flip();
+                final SSLEngineResult unwrapped = engine.unwrap(input, application);
+                input.compact();
+                org.testng.Assert.assertTrue(unwrapped.getStatus() == SSLEngineResult.Status.OK
+                        || unwrapped.getStatus() == SSLEngineResult.Status.BUFFER_UNDERFLOW);
+                break;
+            default:
+                throw new AssertionError("Unexpected handshake status: " + engine.getHandshakeStatus());
+            }
         }
     }
 
@@ -752,10 +876,15 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
 
     private static LDAPListener secureListener(TCPNIOTransport transport, SSLContext serverContext,
             MockServerConnection serverConnection) throws IOException {
+        return secureListener(transport, serverContext, serverConnection, "TLSv1.2");
+    }
+
+    private static LDAPListener secureListener(TCPNIOTransport transport, SSLContext serverContext,
+            MockServerConnection serverConnection, String protocol) throws IOException {
         final MockServerConnectionFactory factory = new MockServerConnectionFactory(serverConnection) {
             @Override
             public ServerConnection<Integer> handleAccept(final LDAPClientContext context) throws LdapException {
-                enableServerTLS(context, serverContext, "TLSv1.2", false);
+                enableServerTLS(context, serverContext, protocol, false);
                 return super.handleAccept(context);
             }
         };

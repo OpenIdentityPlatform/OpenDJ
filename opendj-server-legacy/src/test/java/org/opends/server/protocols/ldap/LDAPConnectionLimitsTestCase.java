@@ -48,6 +48,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.ldap.DN;
@@ -512,6 +513,53 @@ public class LDAPConnectionLimitsTestCase extends DirectoryServerTestCase
     }
   }
 
+  /** A refused TLS upgrade must not claim that TLS is already enabled on a closed connection. */
+  @Test
+  public void closedConnectionHasAnAccurateStartTlsRefusal() throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final LDAPConnectionHandler2 handler = start(configuration(port, true));
+    try
+    {
+      final LDAPClientConnection2 connection;
+      try (Socket client = new Socket("127.0.0.1", port))
+      {
+        awaitClientConnections(handler, 1);
+        connection = (LDAPClientConnection2) handler.getClientConnections().iterator().next();
+      }
+      awaitClientConnections(handler, 0);
+      final LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
+      assertFalse(connection.prepareTLS(reason));
+      assertTrue(reason.toString().contains("closed"), reason.toString());
+    }
+    finally
+    {
+      stop(handler);
+    }
+  }
+
+  /** A second StartTLS attempt while the first upgrade is pending is also reported accurately. */
+  @Test
+  public void pendingUpgradeHasAnAccurateStartTlsRefusal() throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final LDAPConnectionHandler2 handler = start(configuration(port, true));
+    try (Socket client = new Socket("127.0.0.1", port))
+    {
+      awaitClientConnections(handler, 1);
+      final LDAPClientConnection2 connection =
+          (LDAPClientConnection2) handler.getClientConnections().iterator().next();
+      assertTrue(connection.prepareTLS(new LocalizableMessageBuilder()));
+      final LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
+      assertFalse(connection.prepareTLS(reason));
+      assertTrue(reason.toString().contains("pending"), reason.toString());
+    }
+    finally
+    {
+      stop(handler);
+    }
+  }
+
   /** Connections are counted whatever the limit, so a limit set on a running handler covers those already open. */
   @Test
   public void limitPerAddressSetAtRuntimeCoversTheOpenConnections() throws Exception
@@ -870,6 +918,12 @@ public class LDAPConnectionLimitsTestCase extends DirectoryServerTestCase
 
   private static LDAPConnectionHandlerCfg configuration(int port, String... limits) throws Exception
   {
+    return configuration(port, false, limits);
+  }
+
+  private static LDAPConnectionHandlerCfg configuration(int port, boolean allowStartTls, String... limits)
+      throws Exception
+  {
     final List<String> lines = new ArrayList<>();
     lines.add("dn: cn=Limits Test Handler,cn=Connection Handlers,cn=config");
     lines.add("objectClass: top");
@@ -882,7 +936,11 @@ public class LDAPConnectionLimitsTestCase extends DirectoryServerTestCase
     lines.add("ds-cfg-listen-port: " + port);
     lines.add("ds-cfg-keep-stats: false");
     lines.add("ds-cfg-use-ssl: false");
-    lines.add("ds-cfg-allow-start-tls: false");
+    lines.add("ds-cfg-allow-start-tls: " + allowStartTls);
+    if (allowStartTls)
+    {
+      lines.add("ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config");
+    }
     lines.add("ds-cfg-allow-ldap-v2: false");
     lines.add("ds-cfg-send-rejection-notice: true");
     for (String limit : limits)
