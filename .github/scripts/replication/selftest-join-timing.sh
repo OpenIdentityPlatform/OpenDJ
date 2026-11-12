@@ -40,4 +40,31 @@ trap 'rm -rf "$OUT"' EXIT
   [ "$(join_timed disabled printf '%s' result)" = result ]
   [ ! -s "$OUT/disabled" ]
 )
+# Starting a join needs the real config search to succeed; a separate root-DSE
+# search adds a JVM but provides no readiness guarantee beyond that search.
+sed -n '/^echo "join: waiting for the server on the administration connector"/,/^done$/p' \
+  "$HERE/../../../opendj-packages/opendj-docker/bootstrap/join.sh" >"$OUT/wait-config.sh"
+(
+  calls="$OUT/config-calls"; sleeps="$OUT/config-sleeps"; extra="$OUT/extra-root-search"
+  server_up() { echo called >>"$extra"; return 0; }
+  replication_config() {
+    echo called >>"$calls"
+    [ "$(wc -l <"$calls" | tr -d ' ')" -gt "${FAIL_SEARCHES:-0}" ] || return 1
+    printf 'server\ndomain\n'
+  }
+  sleep() { echo sleep >>"$sleeps"; }
+  FAIL_SEARCHES=0
+  . "$OUT/wait-config.sh" >/dev/null
+  [ "$own_config" = $'server\ndomain' ] || { echo 'join lost its initial configuration' >&2; exit 1; }
+  [ "$(wc -l <"$calls" | tr -d ' ')" = 1 ] || { echo 'join repeated an already successful config search' >&2; exit 1; }
+  [ ! -e "$extra" ] || { echo 'join made an extra readiness search' >&2; exit 1; }
+  rm -f "$calls" "$sleeps" "$extra"
+  FAIL_SEARCHES=2
+  . "$OUT/wait-config.sh" >/dev/null
+  [ "$(wc -l <"$calls" | tr -d ' ')" = 3 ] && [ "$(wc -l <"$sleeps" | tr -d ' ')" = 2 ] || { echo 'join did not retry a failed config search' >&2; exit 1; }
+  rm -f "$calls" "$sleeps" "$extra"
+  FAIL_SEARCHES=150
+  if ( . "$OUT/wait-config.sh" ) >/dev/null 2>&1; then echo 'join accepted unavailable configuration' >&2; exit 1; fi
+  [ "$(wc -l <"$calls" | tr -d ' ')" = 150 ] || { echo 'join changed the retry bound' >&2; exit 1; }
+)
 echo 'join timing preserves input, output and exit status'

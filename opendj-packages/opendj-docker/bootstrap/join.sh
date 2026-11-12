@@ -289,10 +289,6 @@ bounded() {
   fi
 }
 
-server_up() {
-  search localhost --baseDN "" --searchScope base "(objectClass=*)" 1.1 >/dev/null
-}
-
 # the state goes with the role of this server, after it: a peer reads the first word as the
 # state, which a join of an image before roles reads alone
 publish_state() {
@@ -1004,7 +1000,7 @@ give_up() {
 
 echo "join: waiting for the server on the administration connector"
 for i in $(seq 1 150); do
-  server_up && own_config=$(replication_config localhost) && break
+  own_config=$(replication_config localhost) && break
   if [ "$i" -eq 150 ]; then
     echo "join: the server did not come up, or does not take ROOT_PASSWORD any more, giving up"
     exit 1
