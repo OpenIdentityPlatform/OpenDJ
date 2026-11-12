@@ -31,10 +31,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLSession;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslServer;
@@ -65,6 +68,7 @@ import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.PromiseImpl;
 import org.forgerock.util.promise.ResultHandler;
 import org.forgerock.util.promise.RuntimeExceptionHandler;
+import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.filterchain.BaseFilter;
@@ -73,6 +77,7 @@ import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
+import org.glassfish.grizzly.ssl.SSLBaseFilter.HandshakeListener;
 import org.glassfish.grizzly.ssl.SSLContextConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 import org.glassfish.grizzly.ssl.SSLUtils;
@@ -123,6 +128,21 @@ public final class LDAPServerFilter extends BaseFilter {
     };
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+    /** One daemon timer for handshakes on all listeners; completed connections leave its queue immediately. */
+    private static final ScheduledThreadPoolExecutor HANDSHAKE_TIMER = newHandshakeTimer();
+
+    private static ScheduledThreadPoolExecutor newHandshakeTimer() {
+        final ScheduledThreadPoolExecutor timer = new ScheduledThreadPoolExecutor(1, task -> {
+            final Thread thread = new Thread(task, "OpenDJ LDAP TLS handshake timer");
+            thread.setDaemon(true);
+            return thread;
+        });
+        timer.setRemoveOnCancelPolicy(true);
+        timer.setKeepAliveTime(30, TimeUnit.SECONDS);
+        timer.allowCoreThreadTimeOut(true);
+        return timer;
+    }
 
     private final int maxConcurrentRequests;
     private final Options connectionOptions;
@@ -312,6 +332,10 @@ public final class LDAPServerFilter extends BaseFilter {
 
         private final Connection<?> connection;
         private volatile boolean isClosed;
+        /** Guarded by this context, including the race between handshake completion and expiry. */
+        private ScheduledFuture<?> handshakeDeadline;
+        private long handshakeDeadlineGeneration;
+        private boolean initialHandshakePending;
         private final List<LDAPClientContextEventListener> connectionEventListeners = new LinkedList<>();
         private GrizzlyBackpressureSubscription downstream;
 
@@ -339,6 +363,7 @@ public final class LDAPServerFilter extends BaseFilter {
         @Override
         public NextAction handleClose(final FilterChainContext ctx) {
             isClosed = true;
+            cancelHandshakeDeadline();
             // downstream can be null if the connection is closed before handleAccept() completion.
             final GrizzlyBackpressureSubscription immutableRef = downstream;
             if (immutableRef != null) {
@@ -386,7 +411,7 @@ public final class LDAPServerFilter extends BaseFilter {
         public boolean enableTLS(final SSLEngine sslEngine, final boolean startTls) {
             Reject.ifNull(sslEngine, "sslEngine must not be null");
             synchronized (this) {
-                if (filterExists(SSLFilter.class)) {
+                if (!connection.isOpen() || filterExists(SSLFilter.class) || filterExists(StartTLSFilter.class)) {
                     return false;
                 }
                 SSLUtils.setSSLEngine(connection, sslEngine);
@@ -399,10 +424,94 @@ public final class LDAPServerFilter extends BaseFilter {
                 	System.setProperty(SSLContextConfigurator.TRUST_STORE_FILE, "NONE");
                 }
 
-                SSLFilter sslFilter = new SSLFilter();
-                sslFilter.setHandshakeTimeout(getLongProperty("org.forgerock.opendj.grizzly.handshakeTimeout", 10000), TimeUnit.MILLISECONDS);
-                installFilter(startTls ? new StartTLSFilter(sslFilter) : sslFilter);
+                // Grizzly otherwise sees this externally supplied engine as NOT_HANDSHAKING on the first read,
+                // starts it implicitly while unwrapping, and enters its blocking re-handshake path. A partial write
+                // can then wait for the selector thread that is itself blocked in that handshake.
+                final long timeout = getLongProperty("org.forgerock.opendj.grizzly.handshakeTimeout", 10000);
+                initialHandshakePending = true;
+                final SSLFilter sslFilter = new SSLFilter() {
+                    private boolean firstRead = true;
+                    private boolean receivedFirstRecord;
+
+                    @Override
+                    public NextAction handleRead(final FilterChainContext ctx) throws IOException {
+                        if (firstRead) {
+                            firstRead = false;
+                            if (sslEngine.getHandshakeStatus() == HandshakeStatus.NOT_HANDSHAKING) {
+                                sslEngine.beginHandshake();
+                            }
+                        }
+                        if (timeout > 0) {
+                            if (!receivedFirstRecord) {
+                                final Buffer input = ctx.getMessage();
+                                final int packetSize = SSLUtils.getSSLPacketSize(input);
+                                receivedFirstRecord = packetSize > 0 && input.remaining() >= packetSize;
+                            }
+                            if (receivedFirstRecord) {
+                                renewHandshakeDeadline(timeout);
+                            }
+                        }
+                        return super.handleRead(ctx);
+                    }
+                };
+                // A negative Grizzly timeout selects non-blocking handshake processing. Preserve its configured
+                // read timeout separately, starting when the first complete TLS record arrives and renewing on reads.
+                sslFilter.setHandshakeTimeout(-1, TimeUnit.MILLISECONDS);
+                sslFilter.addHandshakeListener(new HandshakeListener() {
+                    @Override
+                    public void onStart(Connection<?> ignored) {
+                        // The externally supplied engine is started on the first read.
+                    }
+
+                    @Override
+                    public void onComplete(Connection<?> ignored) {
+                        cancelHandshakeDeadline();
+                        // Grizzly also uses this timeout for later re-handshakes. They still take its blocking
+                        // path, so restore their read timeout once the initial, asynchronous handshake is done.
+                        sslFilter.setHandshakeTimeout(timeout, TimeUnit.MILLISECONDS);
+                    }
+
+                    @Override
+                    public void onFailure(Connection<?> ignored, Throwable error) {
+                        cancelHandshakeDeadline();
+                    }
+                });
+                try {
+                    installFilter(startTls ? new StartTLSFilter(sslFilter) : sslFilter);
+                } catch (RuntimeException | Error e) {
+                    cancelHandshakeDeadline();
+                    throw e;
+                }
                 return true;
+            }
+        }
+
+        private synchronized void renewHandshakeDeadline(final long timeout) {
+            if (!initialHandshakePending) {
+                return;
+            }
+            if (handshakeDeadline != null) {
+                handshakeDeadline.cancel(false);
+            }
+            final long generation = ++handshakeDeadlineGeneration;
+            handshakeDeadline = HANDSHAKE_TIMER.schedule(() -> {
+                synchronized (ClientConnectionImpl.this) {
+                    if (!initialHandshakePending || generation != handshakeDeadlineGeneration) {
+                        return;
+                    }
+                    initialHandshakePending = false;
+                    handshakeDeadline = null;
+                }
+                connection.terminateSilently();
+            }, timeout, TimeUnit.MILLISECONDS);
+        }
+
+        private synchronized void cancelHandshakeDeadline() {
+            initialHandshakePending = false;
+            handshakeDeadlineGeneration++;
+            if (handshakeDeadline != null) {
+                handshakeDeadline.cancel(false);
+                handshakeDeadline = null;
             }
         }
 

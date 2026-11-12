@@ -13,7 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2017-2026 3A Systems, LLC
+ * Portions Copyright 2017-2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -28,18 +28,42 @@ import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.forgerock.util.Options.defaultOptions;
 import static org.mockito.Mockito.mock;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSocket;
+import javax.security.auth.x500.X500Principal;
+
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.ConnectionFactory;
@@ -55,9 +79,11 @@ import org.forgerock.opendj.ldap.ProviderNotFoundException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SdkTestCase;
 import org.forgerock.opendj.ldap.SearchResultHandler;
+import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.ServerConnection;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.forgerock.opendj.ldap.TestCaseUtils;
+import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -77,8 +103,10 @@ import org.forgerock.util.Options;
 import org.forgerock.util.promise.PromiseImpl;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
+import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.forgerock.reactive.ServerConnectionFactoryAdapter;
@@ -372,6 +400,412 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         } finally {
             transport.shutdownNow();
         }
+    }
+
+    @DataProvider
+    public Object[][] tlsProtocols() {
+        return new Object[][] { { "TLSv1.2", false, 180 }, { "TLSv1.3", false, 180 },
+                { "TLSv1.2", true, 180 }, { "TLSv1.3", true, 180 },
+                { "TLSv1.2", false, 600 }, { "TLSv1.3", true, 600 } };
+    }
+
+    /** A TLS flight larger than the configured write buffer must reach the client before it waits for a reply. */
+    @Test(dataProvider = "tlsProtocols", timeOut = 20000)
+    public void testLargeCertificateHandshakeWithSmallWriteBuffer(final String protocol, final boolean startTls,
+            final int nameCount) throws Exception {
+        final SSLContext serverSSLContext = largeCertificateContext(nameCount);
+        final TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance()
+                .setIOStrategy(SameThreadIOStrategy.getInstance()).setWriteBufferSize(4096).build();
+        transport.start();
+        try {
+            final MockServerConnection serverConnection = new MockServerConnection() {
+                @Override
+                public <R extends ExtendedResult> void handleExtendedRequest(final Integer requestContext,
+                        final ExtendedRequest<R> request, final IntermediateResponseHandler intermediateResponseHandler,
+                        final LdapResultHandler<R> resultHandler) {
+                    try {
+                        enableServerTLS(context.get(10, TimeUnit.SECONDS), serverSSLContext, protocol, true);
+                        resultHandler.handleResult(request.getResultDecoder().newExtendedErrorResult(
+                                ResultCode.SUCCESS, "", ""));
+                    } catch (Exception e) {
+                        resultHandler.handleException(newLdapException(ResultCode.OTHER, e.getMessage(), e));
+                    }
+                }
+            };
+            final MockServerConnectionFactory serverFactory = new MockServerConnectionFactory(serverConnection) {
+                @Override
+                public ServerConnection<Integer> handleAccept(final LDAPClientContext context) throws LdapException {
+                    if (!startTls) {
+                        enableServerTLS(context, serverSSLContext, protocol, false);
+                    }
+                    return super.handleAccept(context);
+                }
+            };
+            final Options options = defaultOptions().set(GrizzlyLDAPListener.GRIZZLY_TRANSPORT, transport);
+            final LDAPListener listener = new LDAPListener(Collections.singleton(loopbackWithDynamicPort()),
+                    new ServerConnectionFactoryAdapter(options.get(LDAP_DECODE_OPTIONS), serverFactory), options);
+            try {
+                final InetSocketAddress address = listener.firstSocketAddress();
+                final SSLContext clientContext = new SSLContextBuilder().setTrustManager(TrustManagers.trustAll())
+                        .getSSLContext();
+                try (Socket plain = new Socket(address.getAddress(), address.getPort())) {
+                    plain.setSoTimeout(7000);
+                    if (startTls) {
+                        startTLS(plain, (byte) 1);
+                    }
+                    try (SSLSocket socket = (SSLSocket) clientContext.getSocketFactory().createSocket(
+                            plain, "localhost", address.getPort(), false)) {
+                        socket.setEnabledProtocols(new String[] { protocol });
+                        socket.setSoTimeout(7000);
+                        socket.startHandshake();
+                        bindAnonymously(socket);
+                    }
+                }
+            } finally {
+                listener.close();
+            }
+        } finally {
+            transport.shutdownNow();
+        }
+    }
+
+    private static boolean enableServerTLS(LDAPClientContext context, SSLContext sslContext, String protocol,
+            boolean startTls) {
+        final SSLEngine engine = sslContext.createSSLEngine();
+        engine.setUseClientMode(false);
+        engine.setEnabledProtocols(new String[] { protocol });
+        return context.enableTLS(engine, startTls);
+    }
+
+    /** The asynchronous handshake must not leave a client which sends only part of its ClientHello connected. */
+    @Test(timeOut = 20000)
+    public void testIncompleteHandshakeIsClosedAfterTheConfiguredTimeout() throws Exception {
+        final SSLContext serverContext = largeCertificateContext();
+        final TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance()
+                .setIOStrategy(SameThreadIOStrategy.getInstance()).setWriteBufferSize(4096).build();
+        transport.start();
+        final MockServerConnection serverConnection = new MockServerConnection();
+        final LDAPListener listener = secureListener(transport, serverContext, serverConnection);
+        final String property = "org.forgerock.opendj.grizzly.handshakeTimeout";
+        final String previous = System.getProperty(property);
+        System.setProperty(property, "1200");
+        try {
+            final InetSocketAddress address = listener.firstSocketAddress();
+            final long connected = System.nanoTime();
+            try (Socket socket = new Socket(address.getAddress(), address.getPort())) {
+                serverConnection.context.get(5, TimeUnit.SECONDS);
+                // A complete TLS record containing an incomplete ClientHello.
+                socket.getOutputStream().write(new byte[] { 0x16, 0x03, 0x03, 0x00, 0x04, 0x01, 0x00, 0x01, 0x00 });
+                socket.setSoTimeout(5000);
+                org.testng.Assert.assertEquals(socket.getInputStream().read(), -1, "incomplete handshake stayed open");
+                org.testng.Assert.assertTrue(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - connected) >= 800,
+                        "the handshake was closed before its timeout");
+            }
+        } finally {
+            restoreProperty(property, previous);
+            listener.close();
+            transport.shutdownNow();
+        }
+    }
+
+    /** The timeout must not start before the first complete TLS record is received. */
+    @Test(timeOut = 20000)
+    public void testDelayedClientHelloCanCompleteHandshake() throws Exception {
+        final SSLContext serverContext = largeCertificateContext();
+        final TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance()
+                .setIOStrategy(SameThreadIOStrategy.getInstance()).setWriteBufferSize(4096).build();
+        transport.start();
+        final MockServerConnection serverConnection = new MockServerConnection();
+        final LDAPListener listener = secureListener(transport, serverContext, serverConnection);
+        final String property = "org.forgerock.opendj.grizzly.handshakeTimeout";
+        final String previous = System.getProperty(property);
+        System.setProperty(property, "1200");
+        try {
+            final InetSocketAddress address = listener.firstSocketAddress();
+            try (Socket plain = new Socket(address.getAddress(), address.getPort())) {
+                serverConnection.context.get(5, TimeUnit.SECONDS);
+                Thread.sleep(2000);
+                final SSLContext client = new SSLContextBuilder().setTrustManager(TrustManagers.trustAll())
+                        .getSSLContext();
+                try (SSLSocket socket = (SSLSocket) client.getSocketFactory().createSocket(
+                        plain, address.getHostString(), address.getPort(), true)) {
+                    socket.setSoTimeout(5000);
+                    socket.startHandshake();
+                    bindAnonymously(socket);
+                }
+            }
+        } finally {
+            restoreProperty(property, previous);
+            listener.close();
+            transport.shutdownNow();
+        }
+    }
+
+    /** A partially received first record does not start Grizzly's handshake read timeout. */
+    @Test(timeOut = 20000)
+    public void testPartialFirstRecordDoesNotStartHandshakeTimeout() throws Exception {
+        final SSLContext serverContext = largeCertificateContext();
+        final TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance()
+                .setIOStrategy(SameThreadIOStrategy.getInstance()).setWriteBufferSize(4096).build();
+        transport.start();
+        final MockServerConnection serverConnection = new MockServerConnection();
+        final LDAPListener listener = secureListener(transport, serverContext, serverConnection);
+        final String property = "org.forgerock.opendj.grizzly.handshakeTimeout";
+        final String previous = System.getProperty(property);
+        System.setProperty(property, "1200");
+        try {
+            final InetSocketAddress address = listener.firstSocketAddress();
+            try (Socket socket = new Socket(address.getAddress(), address.getPort())) {
+                serverConnection.context.get(5, TimeUnit.SECONDS);
+                socket.getOutputStream().write(new byte[] { 0x16, 0x03, 0x03, 0x00, 0x04, 0x01 });
+                Thread.sleep(2000);
+                socket.getOutputStream().write(new byte[] { 0x00, 0x01, 0x00 });
+                socket.setSoTimeout(5000);
+                final long lastWrite = System.nanoTime();
+                org.testng.Assert.assertEquals(socket.getInputStream().read(), -1, "idle handshake stayed open");
+                org.testng.Assert.assertTrue(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - lastWrite) >= 800,
+                        "the timeout started before the first complete TLS record");
+            }
+        } finally {
+            restoreProperty(property, previous);
+            listener.close();
+            transport.shutdownNow();
+        }
+    }
+
+    /** Progress on a fragmented handshake renews the timeout for the next read. */
+    @Test(timeOut = 20000)
+    public void testHandshakeTimeoutIsRenewedByIncomingRecords() throws Exception {
+        final SSLContext serverContext = largeCertificateContext();
+        final TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance()
+                .setIOStrategy(SameThreadIOStrategy.getInstance()).setWriteBufferSize(4096).build();
+        transport.start();
+        final MockServerConnection serverConnection = new MockServerConnection();
+        final LDAPListener listener = secureListener(transport, serverContext, serverConnection);
+        final String property = "org.forgerock.opendj.grizzly.handshakeTimeout";
+        final String previous = System.getProperty(property);
+        System.setProperty(property, "1200");
+        try {
+            final InetSocketAddress address = listener.firstSocketAddress();
+            try (Socket socket = new Socket(address.getAddress(), address.getPort())) {
+                serverConnection.context.get(5, TimeUnit.SECONDS);
+                socket.getOutputStream().write(new byte[] { 0x16, 0x03, 0x03, 0x00, 0x04, 0x01, 0x00, 0x01, 0x00 });
+                Thread.sleep(750);
+                socket.getOutputStream().write(new byte[] { 0x16, 0x03, 0x03, 0x00, 0x01, 0x03 });
+                Thread.sleep(750);
+                socket.getOutputStream().write(new byte[] { 0x16, 0x03, 0x03, 0x00, 0x01, 0x03 });
+                socket.setSoTimeout(500);
+                try {
+                    socket.getInputStream().read();
+                    fail("the progressing handshake was closed prematurely");
+                } catch (SocketTimeoutException expected) {
+                    // The total elapsed time exceeds the timeout, but the last read was recent.
+                }
+                socket.setSoTimeout(3000);
+                org.testng.Assert.assertEquals(socket.getInputStream().read(), -1, "idle handshake stayed open");
+            }
+        } finally {
+            restoreProperty(property, previous);
+            listener.close();
+            transport.shutdownNow();
+        }
+    }
+
+    @DataProvider
+    public Object[][] disabledHandshakeTimeouts() {
+        return new Object[][] { { "0" }, { "-1" } };
+    }
+
+    /** Grizzly's zero and negative timeout values leave a pending handshake without a deadline. */
+    @Test(dataProvider = "disabledHandshakeTimeouts", timeOut = 20000)
+    public void testDisabledHandshakeTimeoutKeepsAnIncompleteHandshake(final String timeout) throws Exception {
+        final SSLContext serverContext = largeCertificateContext();
+        final TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance()
+                .setIOStrategy(SameThreadIOStrategy.getInstance()).setWriteBufferSize(4096).build();
+        transport.start();
+        final MockServerConnection serverConnection = new MockServerConnection();
+        final LDAPListener listener = secureListener(transport, serverContext, serverConnection);
+        final String property = "org.forgerock.opendj.grizzly.handshakeTimeout";
+        final String previous = System.getProperty(property);
+        System.setProperty(property, timeout);
+        try {
+            final InetSocketAddress address = listener.firstSocketAddress();
+            try (Socket socket = new Socket(address.getAddress(), address.getPort())) {
+                serverConnection.context.get(5, TimeUnit.SECONDS);
+                socket.getOutputStream().write(new byte[] { 0x16, 0x03, 0x03, 0x00, 0x10, 0x01 });
+                socket.setSoTimeout(1500);
+                try {
+                    socket.getInputStream().read();
+                    fail("the incomplete handshake closed with timeout " + timeout);
+                } catch (SocketTimeoutException expected) {
+                    // The connection is still open.
+                }
+            }
+        } finally {
+            restoreProperty(property, previous);
+            listener.close();
+            transport.shutdownNow();
+        }
+    }
+
+    /** Completing the handshake cancels its timeout, so it cannot close a subsequently active LDAP connection. */
+    @Test(timeOut = 30000)
+    public void testCompletedHandshakeIsNotClosedByItsFormerTimeout() throws Exception {
+        final SSLContext serverContext = largeCertificateContext();
+        final TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance()
+                .setIOStrategy(SameThreadIOStrategy.getInstance()).setWriteBufferSize(4096).build();
+        transport.start();
+        final MockServerConnection serverConnection = new MockServerConnection();
+        final LDAPListener listener = secureListener(transport, serverContext, serverConnection);
+        final String property = "org.forgerock.opendj.grizzly.handshakeTimeout";
+        final String previous = System.getProperty(property);
+        System.setProperty(property, "5000");
+        try {
+            final InetSocketAddress address = listener.firstSocketAddress();
+            final SSLContext clientContext = new SSLContextBuilder().setTrustManager(TrustManagers.trustAll())
+                    .getSSLContext();
+            try (SSLSocket socket = (SSLSocket) clientContext.getSocketFactory().createSocket(
+                    address.getAddress(), address.getPort())) {
+                socket.setSoTimeout(8000);
+                socket.startHandshake();
+                socket.setSoTimeout(6000);
+                try {
+                    socket.getInputStream().read();
+                    fail("the completed connection was closed by the handshake timeout");
+                } catch (SocketTimeoutException expected) {
+                    // The connection remained open past the deadline without any LDAP traffic.
+                }
+                bindAnonymously(socket);
+            }
+        } finally {
+            restoreProperty(property, previous);
+            listener.close();
+            transport.shutdownNow();
+        }
+    }
+
+    /** StartTLS after an LDAP request still needs a timeout once the TLS handshake has started. */
+    @Test(timeOut = 20000)
+    public void testStartTlsHandshakeTimesOutAfterAnEarlierLdapRequest() throws Exception {
+        final SSLContext serverContext = largeCertificateContext();
+        final TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance()
+                .setIOStrategy(SameThreadIOStrategy.getInstance()).setWriteBufferSize(4096).build();
+        transport.start();
+        final MockServerConnection serverConnection = new MockServerConnection() {
+            @Override
+            public <R extends ExtendedResult> void handleExtendedRequest(final Integer requestContext,
+                    final ExtendedRequest<R> request, final IntermediateResponseHandler intermediateResponseHandler,
+                    final LdapResultHandler<R> resultHandler) {
+                try {
+                    final LDAPClientContext clientContext = context.get(5, TimeUnit.SECONDS);
+                    org.testng.Assert.assertTrue(enableServerTLS(clientContext, serverContext, "TLSv1.2", true));
+                    org.testng.Assert.assertFalse(enableServerTLS(clientContext, serverContext, "TLSv1.2", true),
+                            "a second StartTLS was accepted while the first was pending");
+                    resultHandler.handleResult(request.getResultDecoder().newExtendedErrorResult(
+                            ResultCode.SUCCESS, "", ""));
+                } catch (Exception e) {
+                    resultHandler.handleException(newLdapException(ResultCode.OTHER, e.getMessage(), e));
+                }
+            }
+        };
+        final Options options = defaultOptions().set(GrizzlyLDAPListener.GRIZZLY_TRANSPORT, transport);
+        final LDAPListener listener = new LDAPListener(Collections.singleton(loopbackWithDynamicPort()),
+                new ServerConnectionFactoryAdapter(options.get(LDAP_DECODE_OPTIONS),
+                        new MockServerConnectionFactory(serverConnection)), options);
+        final String property = "org.forgerock.opendj.grizzly.handshakeTimeout";
+        final String previous = System.getProperty(property);
+        System.setProperty(property, "1200");
+        try {
+            final InetSocketAddress address = listener.firstSocketAddress();
+            try (Socket socket = new Socket(address.getAddress(), address.getPort())) {
+                socket.setSoTimeout(5000);
+                bindAnonymously(socket);
+                startTLS(socket, (byte) 2);
+                socket.getOutputStream().write(new byte[] { 0x16, 0x03, 0x03, 0x00, 0x04, 0x01, 0x00, 0x01, 0x00 });
+                org.testng.Assert.assertEquals(socket.getInputStream().read(), -1, "StartTLS handshake stayed open");
+            }
+        } finally {
+            restoreProperty(property, previous);
+            listener.close();
+            transport.shutdownNow();
+        }
+    }
+
+    private static void bindAnonymously(Socket socket) throws IOException {
+        socket.getOutputStream().write(new byte[] {
+                0x30, 0x0c, 0x02, 0x01, 0x01, 0x60, 0x07, 0x02, 0x01, 0x03, 0x04, 0x00, (byte) 0x80, 0x00 });
+        final byte[] response = new byte[14];
+        new DataInputStream(socket.getInputStream()).readFully(response);
+        org.testng.Assert.assertEquals(response, new byte[] {
+                0x30, 0x0c, 0x02, 0x01, 0x01, 0x61, 0x07, 0x0a, 0x01, 0x00, 0x04, 0x00, 0x04, 0x00 });
+    }
+
+    private static void startTLS(Socket socket, byte messageId) throws IOException {
+        socket.getOutputStream().write(new byte[] {
+                0x30, 0x1d, 0x02, 0x01, messageId, 0x77, 0x18, (byte) 0x80, 0x16 });
+        socket.getOutputStream().write("1.3.6.1.4.1.1466.20037".getBytes(StandardCharsets.US_ASCII));
+        final byte[] response = new byte[14];
+        new DataInputStream(socket.getInputStream()).readFully(response);
+        org.testng.Assert.assertEquals(response, new byte[] {
+                0x30, 0x0c, 0x02, 0x01, messageId, 0x78, 0x07, 0x0a, 0x01, 0x00, 0x04, 0x00, 0x04, 0x00 });
+    }
+
+    private static LDAPListener secureListener(TCPNIOTransport transport, SSLContext serverContext,
+            MockServerConnection serverConnection) throws IOException {
+        final MockServerConnectionFactory factory = new MockServerConnectionFactory(serverConnection) {
+            @Override
+            public ServerConnection<Integer> handleAccept(final LDAPClientContext context) throws LdapException {
+                enableServerTLS(context, serverContext, "TLSv1.2", false);
+                return super.handleAccept(context);
+            }
+        };
+        final Options options = defaultOptions().set(GrizzlyLDAPListener.GRIZZLY_TRANSPORT, transport);
+        return new LDAPListener(Collections.singleton(loopbackWithDynamicPort()),
+                new ServerConnectionFactoryAdapter(options.get(LDAP_DECODE_OPTIONS), factory), options);
+    }
+
+    private static void restoreProperty(String name, String value) {
+        if (value == null) {
+            System.clearProperty(name);
+        } else {
+            System.setProperty(name, value);
+        }
+    }
+
+    private static SSLContext largeCertificateContext() throws Exception {
+        return largeCertificateContext(180);
+    }
+
+    private static SSLContext largeCertificateContext(int nameCount) throws Exception {
+        final KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(2048);
+        final KeyPair pair = generator.generateKeyPair();
+        final X500Principal subject = new X500Principal("CN=localhost");
+        final Instant now = Instant.now();
+        final JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(subject, BigInteger.ONE,
+                Date.from(now.minus(1, ChronoUnit.DAYS)), Date.from(now.plus(1, ChronoUnit.DAYS)), subject,
+                pair.getPublic());
+        final GeneralName[] names = new GeneralName[nameCount];
+        for (int i = 0; i < names.length; i++) {
+            names[i] = new GeneralName(GeneralName.dNSName, String.format("host-%03d.diagnostic-1287.example.test", i));
+        }
+        builder.addExtension(Extension.subjectAlternativeName, false, new GeneralNames(names));
+        final X509Certificate certificate = new JcaX509CertificateConverter().getCertificate(
+                builder.build(new JcaContentSignerBuilder("SHA256withRSA").build(pair.getPrivate())));
+        org.testng.Assert.assertTrue(certificate.getEncoded().length > 6144, "certificate is too small for this test");
+        if (nameCount >= 600) {
+            org.testng.Assert.assertTrue(certificate.getEncoded().length > 16384,
+                    "certificate does not exceed one TLS record");
+        }
+        final KeyStore keyStore = KeyStore.getInstance("JKS");
+        keyStore.load(null, null);
+        final char[] password = "test-password".toCharArray();
+        keyStore.setKeyEntry("server", pair.getPrivate(), password, new X509Certificate[] { certificate });
+        final KeyManagerFactory factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        factory.init(keyStore, password);
+        final SSLContext context = SSLContext.getInstance("TLS");
+        context.init(factory.getKeyManagers(), null, null);
+        return context;
     }
 
     /**
