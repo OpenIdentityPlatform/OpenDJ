@@ -85,7 +85,8 @@ done
 mark_logs
 record_server_ids
 
-phase "load ($DURATION s${DISTURBED:+, $DISTURBANCE of $DISTURBED at $DISTURB_AT s})"
+case $DISTURBANCE in scale-*) load_limit='up to ' ;; *) load_limit= ;; esac
+phase "load (${load_limit}$DURATION s${DISTURBED:+, $DISTURBANCE of $DISTURBED at $DISTURB_AT s})"
 # the changes of the load: assert_changelogs looks for gaps among the changes made in between
 LOAD_START_MS=$(($(date +%s) * 1000))
 case $DISTURBANCE in
