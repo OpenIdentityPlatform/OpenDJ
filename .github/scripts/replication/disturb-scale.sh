@@ -296,6 +296,18 @@ scale_capture_bootstrap() { # <node> <generation>
   docker logs --timestamps "$1" >"$OUT/bootstrap/$2-$1.log" 2>&1 || :
 }
 
+# Save the stopped RS before its container or volume is replaced, so an eventual
+# gap can be compared with its pre-restart changelog in the uploaded artifact.
+scale_capture_changelog() { # <node> <generation>
+  local node=$1 generation=$2 start=$SECONDS
+  local snapshot="$OUT/scale-checkpoint/$generation-$node-changelog.tar"
+  docker cp "$node:/opt/opendj/data/changelogDb" - >"$snapshot.partial" || {
+    fail "cannot save the $generation changelog of $node"; return 1;
+  }
+  mv "$snapshot.partial" "$snapshot" || return 1
+  printf '%s\t0\t%s\n' "$((SECONDS - start))" "save $generation changelog of $node" >>"$OUT/scale-timings.tsv" || return 1
+}
+
 collect_scale_bootstrap() {
   local node
   for node in $ALL_NODES; do scale_capture_bootstrap "$node" final; done
@@ -377,6 +389,9 @@ scale_roll_pair() { # <directory node> <directory node> <peer list> <RS>
   scale_checkpoint_wait "$observer reaches a checkpoint of $rolling_rs" "$observer" "$rolling_rs" || return 1
   from=$(date +%s) || return 1
   scale_stop_group "$first" "$second" "$rolling_rs" || return 1
+  if [ "$SCALE_VOLUME" = empty ] && [ "$direction" = down ]; then
+    scale_capture_changelog "$rolling_rs" down || return 1
+  fi
   mkdir -p "$OUT/scale-progress" || return 1
   scale_wait "another replica writes while the group is stopped" scale_probe_batch "$writer" "$direction" "$first" "$second" "$rolling_rs" || return 1
   for node in "$first" "$second" "$rolling_rs"; do scale_capture_bootstrap "$node" "$direction"; done
@@ -446,6 +461,11 @@ disturb() {
   wc -l <"$OUT/logs/$REMOVED.offline-log" >"$OUT/logs/$REMOVED.offline" || return 1
   docker logs "$REMOVED" >"$OUT/logs/$REMOVED.previous-container" 2>&1 || return 1
   scale_capture_bootstrap "$REMOVED" removed
+  # The empty-volume case destroys this RS's original changelog. Preserve it so a
+  # gap after failover can be traced back to the departing RS or a surviving peer.
+  if [ "$TOPOLOGY" = rs534 ] && [ "$SCALE_VOLUME" = empty ]; then
+    scale_capture_changelog "$REMOVED" removed || return 1
+  fi
   docker rm "$REMOVED" >/dev/null || return 1
   sleep 10
   window_close || return 1
