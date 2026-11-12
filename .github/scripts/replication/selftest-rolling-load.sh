@@ -145,6 +145,40 @@ wait "$b"
   cp "$OUT/rate.csv" "$OUT/load/load-mod-d0.csv"
   check_client load-mod-d0 >/dev/null || { echo 'minimum scale rate rejected' >&2; exit 1; }
 )
+# A final 18 ms statistics row has its real duration, not the weight of a 10 s interval.
+(
+  . "$HERE/load.sh"
+  mkdir -p "$OUT/weighted-rate/load"; OUT="$OUT/weighted-rate"
+  DISTURBANCE=scale-rs-empty LOAD_MOD_RATE=100 LOAD_ADD_RATE=20 STAT_INTERVAL=10
+  echo '0 false' >"$OUT/load/load-add-d3.exit"; echo 50 >"$OUT/load/load-add-d3.seconds"
+  cat >"$OUT/load/load-add-d3.csv" <<'CSV'
+Time (seconds),Recent throughput (ops/second),Errors/second
+10.002,1.1,0
+20.001,2.2,0
+30.001,2.7,0
+40.001,2.4,0
+50.001,2.6,0
+50.019,0.0,0
+CSV
+  check_client load-add-d3 >/dev/null || { echo 'short final interval reduced the true average' >&2; exit 1; }
+  sed 's/50.019,0.0,0/50.019,0.0,1/' "$OUT/load/load-add-d3.csv" >"$OUT/with-error.csv"
+  cp "$OUT/with-error.csv" "$OUT/load/load-add-d3.csv"
+  if check_client load-add-d3 >/dev/null 2>&1; then echo 'an error in the short interval was ignored' >&2; exit 1; fi
+  sed 's/50.019,0.0,1/50.001,0.0,0/' "$OUT/with-error.csv" >"$OUT/load/load-add-d3.csv"
+  check_client load-add-d3 >/dev/null || { echo 'zero-length final interval was rejected' >&2; exit 1; }
+  sed 's/50.019,0.0,1/49.999,0.0,0/' "$OUT/with-error.csv" >"$OUT/load/load-add-d3.csv"
+  if check_client load-add-d3 >/dev/null 2>&1; then echo 'a decreasing interval time was accepted' >&2; exit 1; fi
+  cat >"$OUT/load/load-add-d3.csv" <<'CSV'
+Time (seconds),Recent throughput (ops/second),Errors/second
+10,1.0,0
+20,1.0,0
+30,1.0,0
+40,1.0,0
+50,1.0,0
+50.018,100.0,0
+CSV
+  if check_client load-add-d3 >/dev/null 2>&1; then echo 'short final spike hid a low average' >&2; exit 1; fi
+)
 # The last client must leave time for JVM startup and teardown before the deadline.
 (
   mkdir -p "$OUT/final/load"; OUT="$OUT/final"; ROLLING_END=$((SECONDS + 80)); unset ROLLING_END_MS

@@ -167,7 +167,9 @@ run_load() {
 # prints the error to its error output, which goes to the same file. So the client has to have
 # done work, every interval of its CSV output has to report no errors (the "Errors/second"
 # column), the output has to cover the seconds the client was to run - a line every
-# STAT_INTERVAL seconds, of which the last may be missing - and hold nothing but the CSV
+# STAT_INTERVAL seconds, of which the last may be missing - and hold nothing but the CSV.
+# Scale rows also require a minimum time-weighted throughput; the last CSV interval can
+# be much shorter than STAT_INTERVAL or have the same timestamp as the preceding row.
 check_client() { # <client>
   local minimum_rate=0
   case ${DISTURBANCE:-none}:$1 in
@@ -176,12 +178,20 @@ check_client() { # <client>
   esac
   awk -F, -v c=$1 -v minimum_rate="$minimum_rate" -v exit_state="$(cat "$OUT/load/$1.exit")" -v want=$(($(cat "$OUT/load/$1.seconds") / STAT_INTERVAL - 1)) '
     /^Time \(seconds\)/ { for (i = 1; i <= NF; i++) { if ($i == "Recent throughput (ops/second)") t = i; if ($i == "Errors/second") e = i }; next }
-    t && $1 ~ /^[0-9.]+$/ { rows++; ops += $t; errors += $e; last = $0; next }
+    t && $1 ~ /^[0-9.]+$/ {
+      rows++; ops += $t; errors += $e; last = $0
+      elapsed = $1 + 0; duration = elapsed - previous
+      if (duration < 0) bad_time = 1
+      else if (duration > 0) { weighted_ops += $t * duration; observed += duration }
+      previous = elapsed
+      next
+    }
     NF { other++ }
     END {
       if (!rows || ops == 0) { printf "::error::%s did no work (exit code and OOM kill: %s)\n", c, exit_state; exit 1 }
       if (errors > 0) { printf "::error::%s got errors back\n", c; exit 1 }
-      if (ops / rows < minimum_rate) { printf "::error::%s averaged %.1f ops/s, below minimum %d ops/s\n", c, ops / rows, minimum_rate; exit 1 }
+      if (minimum_rate && (bad_time || observed <= 0)) { printf "::error::%s has invalid interval times\n", c; exit 1 }
+      if (minimum_rate && weighted_ops / observed < minimum_rate) { printf "::error::%s averaged %.1f ops/s, below minimum %d ops/s\n", c, weighted_ops / observed, minimum_rate; exit 1 }
       if (exit_state != "0 false") { printf "::error::%s ended with exit code and OOM kill %s\n", c, exit_state; exit 1 }
       if (other) { printf "::error::%s printed %d lines besides its CSV output, see load/%s.csv\n", c, other, c; exit 1 }
       if (rows < want) { printf "::error::%s stopped after %d of %d intervals\n", c, rows, want; exit 1 }
