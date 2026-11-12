@@ -42,7 +42,15 @@ run_case() (
     record "docker $*"
     if [ "$1" = stop ] && [ "${*: -1}" = "${FAIL_STOP:-}" ]; then return 1; fi
     case $1 in
-      cp) printf 'old log\n' >"$3" ;;
+      cp)
+        if [ "$3" = - ]; then
+          [ "${FAIL_CHANGELOG_COPY:-0}" = 0 ] || return 1
+          [ "$2" != "${FAIL_CHANGELOG_SOURCE:-none}:/opt/opendj/data/changelogDb" ] || return 1
+          printf 'old changelog\n'
+        else
+          printf 'old log\n' >"$3"
+        fi
+        ;;
       logs) echo 'old container log' ;;
       inspect) echo 172.18.0.9 ;;
       exec) cat >"$OUT/probe.ldif"; [ "${FAIL_PROBE:-0}" = 0 ] ;;
@@ -91,6 +99,24 @@ run_case() (
   fi
   : >"$OUT/calls"
   rm -f "$OUT/logs/$target.offline" "$OUT/logs/$target.previous"
+  if [ "$topology" = rs534 ] && [ "$mode" = empty ]; then
+    if (FAIL_CHANGELOG_COPY=1; disturb) >/dev/null 2>&1; then
+      echo 'failed original changelog snapshot was accepted' >&2; exit 1
+    fi
+    if grep -Fx 'docker rm r2' "$OUT/calls" >/dev/null; then
+      echo 'removed RS container after its changelog snapshot failed' >&2; exit 1
+    fi
+    : >"$OUT/calls"
+    rm -f "$OUT/logs/$target.offline" "$OUT/logs/$target.previous"
+    if (FAIL_CHANGELOG_SOURCE=r1; disturb) >/dev/null 2>&1; then
+      echo 'failed survivor changelog snapshot was accepted' >&2; exit 1
+    fi
+    if grep -Fx 'docker rm r1' "$OUT/calls" >/dev/null; then
+      echo 'removed surviving RS container after its changelog snapshot failed' >&2; exit 1
+    fi
+    : >"$OUT/calls"
+    rm -f "$OUT/logs/$target.offline" "$OUT/logs/$target.previous"
+  fi
   if [ "$topology" = rs534 ]; then
     # Do not stop either DS of a pair without a responding replication server.
     if (FAIL_RS=1; disturb) >/dev/null 2>&1; then echo 'unavailable RS accepted' >&2; exit 1; fi
@@ -134,6 +160,24 @@ run_case() (
   [ -s "$OUT/bootstrap/removed-$target.log" ] || { echo 'missing removed node bootstrap log' >&2; exit 1; }
   collect_scale_bootstrap
   for n in $ALL_NODES; do [ -s "$OUT/bootstrap/final-$n.log" ] || { echo "missing final bootstrap log for $n" >&2; exit 1; }; done
+  if [ "$topology" = rs534 ] && [ "$mode" = empty ]; then
+    [ -s "$OUT/scale-checkpoint/removed-r2-changelog.tar" ] || { echo 'missing original removed RS changelog' >&2; exit 1; }
+    awk '
+      $0 == "docker stop -t 120 r2" { stopped=NR }
+      $0 == "docker cp r2:/opt/opendj/data/changelogDb -" { saved=NR }
+      $0 == "docker rm r2" { removed=NR }
+      END { if (!stopped || !saved || !removed || !(stopped < saved && saved < removed)) exit 1 }
+    ' "$OUT/calls" || { echo 'removed RS changelog was not saved before container removal' >&2; exit 1; }
+    for n in r0 r1; do
+      [ -s "$OUT/scale-checkpoint/down-$n-changelog.tar" ] || { echo "missing $n changelog before restart" >&2; exit 1; }
+      awk -v n="$n" '
+        $0 == "docker stop -t 120 " n && !stopped { stopped=NR }
+        $0 == "docker cp " n ":/opt/opendj/data/changelogDb -" && !saved { saved=NR }
+        $0 == "docker rm " n && !removed { removed=NR }
+        END { if (!stopped || !saved || !removed || !(stopped < saved && saved < removed)) exit 1 }
+      ' "$OUT/calls" || { echo "$n changelog was not saved before restart" >&2; exit 1; }
+    done
+  fi
   # Every survivor is serving before the batch waits for the first background join.
   awk -v full="$FULL_PEERS" -v short="$SHORT_PEERS" -v target="$target" '
     $1 == "start" && $2 != target && $4 == short { short_started++ }

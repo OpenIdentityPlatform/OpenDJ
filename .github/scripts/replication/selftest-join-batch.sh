@@ -54,7 +54,7 @@ cleanup_departed >/dev/null
 sed -n '/^repair_replication_servers() {/,/^}/p' "$HERE/../../../opendj-packages/opendj-docker/bootstrap/join.sh" >"$OUT/repair.sh"
 . "$OUT/repair.sh"
 PEERS=(rs1); REPLICATION_RETRY_COUNT=1 REPLICATION_RETRY_INTERVAL=0 REPLICATION_PORT=8989
-registered_hosts() { echo rs1; }
+registered_hosts() { echo query >>"$OUT/host-queries"; echo rs1; }
 replication_server_lists() { printf 'domain\tcn=one\nserver\tprovider\n'; }
 in_peers() { return 0; }; names_match() { [ "$1" = "$2" ]; }; lower() { printf '%s' "$1"; }
 lacked_by_a_list() { return 0; }; list_holds() { return 1; }; replication_config() { echo server; }
@@ -62,4 +62,17 @@ rm -f "$OUT/batch" "$OUT/individual"
 repair_replication_servers >/dev/null
 [ "$(grep -c '^set-replication-' "$OUT/batch")" -eq 2 ] || { echo 'repair did not batch both additions' >&2; exit 1; }
 [ ! -e "$OUT/individual" ] || { echo 'repair used separate commands after batch success' >&2; exit 1; }
+[ "$(wc -l <"$OUT/host-queries" | tr -d ' ')" = 1 ] || { echo 'repair repeated a successful registration search' >&2; exit 1; }
+# If retries expire with a peer still missing, refresh once: it may register just
+# after the last wait, and its replication-server list entry must not be missed.
+rm -f "$OUT/host-queries" "$OUT/batch" "$OUT/individual"
+PEERS=(rs1 rs2)
+registered_hosts() {
+  echo query >>"$OUT/host-queries"
+  echo rs1
+  [ "$(wc -l <"$OUT/host-queries" | tr -d ' ')" -lt 2 ] || echo rs2
+}
+repair_replication_servers >/dev/null
+[ "$(wc -l <"$OUT/host-queries" | tr -d ' ')" = 2 ] || { echo 'repair did not refresh after the last wait' >&2; exit 1; }
+grep -F 'replication-server:rs2:8989' "$OUT/batch" >/dev/null || { echo 'repair missed a peer registered after the last wait' >&2; exit 1; }
 echo 'join batch quoting and failure fallback passed'
