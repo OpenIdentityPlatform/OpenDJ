@@ -66,6 +66,10 @@ jobs:
       if: runner.os == 'macOS' && matrix.java == '11'
       shell: bash
       run: /bin/ksh .github/scripts/test-script-util.sh
+    - name: Check shell utility with dash
+      if: runner.os == 'Linux' && matrix.java == '11'
+      shell: bash
+      run: dash .github/scripts/test-script-util.sh
     - name: Java ${{ matrix.Java }} (${{ matrix.os }})
       uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
       with:

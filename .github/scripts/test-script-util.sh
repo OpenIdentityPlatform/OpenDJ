@@ -48,12 +48,35 @@ test -z "$OPENDJ_JAVA_ARGS"
 test "$res:$DIR_TO_TEST:$TMP_FILE:$remove_dir" = "caller:$test_dir/caller:$test_dir/caller-file:caller"
 test -z "$(ls -A "$OPENDJ_TMP_DIR")"
 
+# Prevent the probe file in the temporary directory from becoming executable,
+# while allowing the real probe to make and execute its file in HOME.
+chmod() {
+  case $2 in
+    "$OPENDJ_TMP_DIR"/*) ;;
+    *) command chmod "$@" ;;
+  esac
+}
+set_bc_dir >"$test_dir/output" 2>&1
+unset -f chmod
+test "$OPENDJ_JAVA_ARGS" = " -Dorg.bouncycastle.native.loader.install_dir=$HOME"
+test -z "$(ls -A "$OPENDJ_TMP_DIR")"
+test -z "$(ls -A "$HOME")"
+OPENDJ_JAVA_ARGS=
+
+# A directory created by the real probe must be removed afterwards.
+check_noexec "$test_dir/missing"
+test ! -e "$test_dir/missing"
+
 # Simulate a noexec mount: the production selection logic still runs, while
 # the probe returns the result of attempting to execute from each directory.
 check_noexec() { [ "$1" = "$HOME" ]; }
 set_bc_dir >"$test_dir/output" 2>&1
 test "$OPENDJ_JAVA_ARGS" = " -Dorg.bouncycastle.native.loader.install_dir=$HOME"
-grep -F 'WARNING:' "$test_dir/output" >/dev/null
+grep -F "WARNING: $OPENDJ_TMP_DIR is mounted as noexec" "$test_dir/output" >/dev/null
+if grep -F 'the OpenDJ installation could cause errors' "$test_dir/output" >/dev/null; then
+  cat "$test_dir/output" >&2
+  exit 1
+fi
 
 # An explicit BC installation directory must be preserved without probing.
 OPENDJ_JAVA_ARGS='-Dorg.bouncycastle.native.loader.install_dir=/chosen'
