@@ -217,29 +217,54 @@ fi
   grep -F -- '--entrypoint /bin/sh' "$OUT/command" >/dev/null || { echo 'missing in-container deadline guard' >&2; exit 1; }
   grep -F '/usr/bin/timeout' "$OUT/command" >/dev/null || { echo 'missing in-container cutoff' >&2; exit 1; }
 )
-# A slow disturbance must fail when it outlasts the load, and all workers must be stopped.
-if (mkdir -p "$OUT/slow/load"; OUT="$OUT/slow"; DS_NODES=d0; DURATION=1; DISTURB_AT=0
+# Drive the real watchdog with events instead of racing a one-second wall clock.
+# It may fire only once the worker has published both active clients and the
+# disturbance has released it. A separate bound prevents a broken test hanging.
+test_deadline_sleep() {
+  local limit=$((SECONDS + 10))
+  [ "$1" -gt 0 ] && [ "$1" -le 60 ] || return 1
+  while [ ! -s "$OUT/load/d0.active" ] || [ ! -e "$OUT/release-watchdog" ]; do
+    [ "$SECONDS" -lt "$limit" ] || return 1
+    command sleep 0.01
+  done
+}
+# A disturbance that outlasts the load must fail and both clients must be killed.
+if (mkdir -p "$OUT/slow/load"; OUT="$OUT/slow"; DS_NODES=d0; DURATION=60; DISTURB_AT=0
+    sleep() { test_deadline_sleep "$@"; }
     rolling_worker() {
       echo 'load-mod-d0 load-add-d0' >"$OUT/load/d0.active"
-      while [ ! -e "$OUT/load/stop" ]; do sleep 0.1; done
+      while [ ! -e "$OUT/load/stop" ]; do command sleep 0.01; done
     }
     docker() {
       case $1 in inspect) echo true ;; kill) echo "$2" >>"$OUT/killed" ;; *) return 1 ;; esac
     }
-    disturb() { sleep 2; }
+    disturb() {
+      local limit=$((SECONDS + 10))
+      touch "$OUT/release-watchdog"
+      while [ ! -f "$OUT/killed" ] || [ "$(wc -l <"$OUT/killed")" -lt 2 ]; do
+        [ "$SECONDS" -lt "$limit" ] || return 1
+        command sleep 0.01
+      done
+      SECONDS=$ROLLING_END
+    }
     rolling_run_load) 2>"$OUT/slow-error"; then
   echo 'disturbance outlasted the load but passed' >&2; exit 1
 fi
 [ -e "$OUT/slow/load/stop" ] || { echo 'workers were not stopped after a slow disturbance' >&2; exit 1; }
 [ "$(wc -l <"$OUT/slow/killed")" -eq 2 ] || { echo 'active clients were not stopped at deadline' >&2; exit 1; }
-# On an early scenario failure the watchdog must remain until a blocked worker exits.
-if (mkdir -p "$OUT/early/load"; OUT="$OUT/early"; DS_NODES=d0; DURATION=1; DISTURB_AT=0
+# An early scenario failure must keep the watchdog alive until a blocked worker exits.
+if (mkdir -p "$OUT/early/load"; OUT="$OUT/early"; DS_NODES=d0; DURATION=60; DISTURB_AT=0
+    sleep() { test_deadline_sleep "$@"; }
     rolling_worker() {
+      local limit=$((SECONDS + 10))
       echo 'load-mod-d0 load-add-d0' >"$OUT/load/d0.active"
-      while [ ! -e "$OUT/killed" ]; do sleep 0.1; done
+      while [ ! -e "$OUT/killed" ]; do
+        [ "$SECONDS" -lt "$limit" ] || return 1
+        command sleep 0.01
+      done
     }
     docker() { case $1 in inspect) echo true ;; kill) touch "$OUT/killed" ;; *) return 1 ;; esac; }
-    disturb() { sleep 0.1; return 1; }
+    disturb() { touch "$OUT/release-watchdog"; return 1; }
     rolling_run_load) 2>"$OUT/early-error"; then
   echo 'early disturbance failure was accepted' >&2; exit 1
 fi

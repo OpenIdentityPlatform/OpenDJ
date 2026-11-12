@@ -878,7 +878,9 @@ repair_replication_servers() {
     echo "join: waiting for$waiting to register in the topology before the replication server lists are checked"
     sleep "$REPLICATION_RETRY_INTERVAL"
   done
-  hosts=$(registered_hosts)
+  # A successful round already contains every configured peer. Reuse it; if
+  # the retries expired with peers still missing, refresh once for a late join.
+  [ -z "$waiting" ] || hosts=$(registered_hosts)
   lists=$(replication_server_lists)
   # a here-string of nothing still reads as one empty line
   [ -n "$lists" ] || return 0
