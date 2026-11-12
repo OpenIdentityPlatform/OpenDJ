@@ -429,6 +429,12 @@ role_arguments() { # <1|2> <role>
 
 is_member() {
   local host
+  # reset_if_unregistered just verified both the local configuration and
+  # registration. Consume that result once; subsequent checks must read afresh.
+  if [ "${RESET_MEMBER_CONFIRMED:-no}" = yes ]; then
+    RESET_MEMBER_CONFIRMED=no
+    return 0
+  fi
   holds_own_part || return 1
   for host in $(registered_hosts); do
     is_self "$host" && return 0
@@ -1099,6 +1105,7 @@ may_seed() {
 # an enable registers nobody before it.
 reset_if_unregistered() { # <the state to publish meanwhile>
   local rc=0
+  RESET_MEMBER_CONFIRMED=no
   holds_own_part || return 0
   if ! registered_with_peers; then
     reset_replication "$1" "the peers no longer register this server"
@@ -1107,6 +1114,8 @@ reset_if_unregistered() { # <the state to publish meanwhile>
   registered_here || rc=$?
   if [ "$rc" -eq 1 ]; then
     reset_replication "$1" "the peers register this server but its own cn=admin data does not"
+  elif [ "$rc" -eq 0 ]; then
+    RESET_MEMBER_CONFIRMED=yes
   fi
 }
 

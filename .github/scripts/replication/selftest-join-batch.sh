@@ -75,4 +75,27 @@ registered_hosts() {
 repair_replication_servers >/dev/null
 [ "$(wc -l <"$OUT/host-queries" | tr -d ' ')" = 2 ] || { echo 'repair did not refresh after the last wait' >&2; exit 1; }
 grep -F 'replication-server:rs2:8989' "$OUT/batch" >/dev/null || { echo 'repair missed a peer registered after the last wait' >&2; exit 1; }
+# A successful reset check already established both parts of membership. Reuse it
+# once, but never reuse a failed, unknown, or reset result on the next check.
+sed -n '/^reset_if_unregistered() {/,/^}/p' "$HERE/../../../opendj-packages/opendj-docker/bootstrap/join.sh" >"$OUT/reset.sh"
+sed -n '/^is_member() {/,/^}/p' "$HERE/../../../opendj-packages/opendj-docker/bootstrap/join.sh" >"$OUT/member.sh"
+. "$OUT/reset.sh"; . "$OUT/member.sh"
+holds_own_part() { echo own >>"$OUT/member-queries"; return "${OWN_RESULT:-0}"; }
+registered_with_peers() { return "${PEERS_RESULT:-0}"; }
+registered_here() { echo here >>"$OUT/member-queries"; return "${HERE_RESULT:-0}"; }
+registered_hosts() { echo hosts >>"$OUT/member-queries"; echo self; }
+is_self() { [ "$1" = self ]; }
+reset_replication() { echo reset >>"$OUT/member-queries"; }
+reset_if_unregistered pending
+is_member || { echo 'confirmed membership rejected' >&2; exit 1; }
+[ "$(wc -l <"$OUT/member-queries" | tr -d ' ')" = 2 ] || { echo 'confirmed membership was queried twice' >&2; exit 1; }
+is_member || { echo 'one-use membership was not refreshed' >&2; exit 1; }
+grep -Fx hosts "$OUT/member-queries" >/dev/null || { echo 'membership cache was used more than once' >&2; exit 1; }
+HERE_RESULT=2
+reset_if_unregistered pending
+is_member || { echo 'unknown local registration was not rechecked' >&2; exit 1; }
+HERE_RESULT=1
+reset_if_unregistered pending
+[ "$(tail -1 "$OUT/member-queries")" = reset ] || { echo 'missing registration did not trigger reset' >&2; exit 1; }
+is_member || { echo 'membership after reset was not rechecked' >&2; exit 1; }
 echo 'join batch quoting and failure fallback passed'

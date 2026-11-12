@@ -53,7 +53,11 @@ run_case() (
         ;;
       logs) echo 'old container log' ;;
       inspect) echo 172.18.0.9 ;;
-      exec) cat >"$OUT/probe.ldif"; [ "${FAIL_PROBE:-0}" = 0 ] ;;
+      exec)
+        if [ "${3:-}" = sh ]; then
+          [ "${FAIL_OFFLINE_SNAPSHOT:-0}" = 0 ] || return 1
+          printf 'domains.state\n1: dc=example,dc=com\n1.dom/1.server/offline.state 0000000000000001000100000001\n'
+        else cat >"$OUT/probe.ldif"; [ "${FAIL_PROBE:-0}" = 0 ]; fi ;;
     esac
   }
   start_server() { record "start $1 $2 $PEERS"; }
@@ -116,6 +120,14 @@ run_case() (
     fi
     : >"$OUT/calls"
     rm -f "$OUT/logs/$target.offline" "$OUT/logs/$target.previous"
+    if (FAIL_OFFLINE_SNAPSHOT=1; disturb) >/dev/null 2>&1; then
+      echo 'failed offline-state snapshot was accepted' >&2; exit 1
+    fi
+    if grep '^fill ' "$OUT/calls" >/dev/null; then
+      echo 'continued after a failed offline-state snapshot' >&2; exit 1
+    fi
+    : >"$OUT/calls"
+    rm -f "$OUT/logs/$target.offline" "$OUT/logs/$target.previous"
   fi
   if [ "$topology" = rs534 ]; then
     # Do not stop either DS of a pair without a responding replication server.
@@ -161,6 +173,12 @@ run_case() (
   collect_scale_bootstrap
   for n in $ALL_NODES; do [ -s "$OUT/bootstrap/final-$n.log" ] || { echo "missing final bootstrap log for $n" >&2; exit 1; }; done
   if [ "$topology" = rs534 ] && [ "$mode" = empty ]; then
+    for phase in down return up; do
+      for n in r0 r1; do
+        [ -s "$OUT/scale-checkpoint/offline-$phase-$n.txt" ] || { echo "missing $phase offline state of $n" >&2; exit 1; }
+      done
+    done
+    [ -s "$OUT/scale-checkpoint/offline-return-r2.txt" ] || { echo 'missing return offline state of r2' >&2; exit 1; }
     [ -s "$OUT/scale-checkpoint/removed-r2-changelog.tar" ] || { echo 'missing original removed RS changelog' >&2; exit 1; }
     awk '
       $0 == "docker stop -t 120 r2" { stopped=NR }

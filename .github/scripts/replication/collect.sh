@@ -68,7 +68,10 @@ summarize() { # <result>
     echo "| | |"
     echo "|---|---|"
     echo "| servers | $ALL_NODES |"
-    echo "| load | $DURATION s on each directory server, at most $LOAD_MOD_RATE modifications and $LOAD_ADD_RATE adds or deletes a second |"
+    case $DISTURBANCE in
+      scale-*) echo "| load | ${ROLLING_ELAPSED:--} s elapsed (limit $DURATION s), at most $LOAD_MOD_RATE modifications and $LOAD_ADD_RATE adds or deletes a second per directory server |" ;;
+      *) echo "| load | $DURATION s on each directory server, at most $LOAD_MOD_RATE modifications and $LOAD_ADD_RATE adds or deletes a second |" ;;
+    esac
     echo "| seeded users | $SAMPLE_DATA |"
     if [ -s "$OUT/disturbances.txt" ]; then
       completed=$(wc -l <"$OUT/disturbances.txt")

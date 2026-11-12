@@ -16,20 +16,18 @@
 """Finds the changes a replication server's changelog lacks (#1090, #1195).
 
 A directory server numbers the changes it makes one after the other: CSNGenerator.newCSN()
-adds one to the sequence number of the CSN for every change, whatever its time. So the
-changes of one replica in a changelog have no gap in their sequence numbers unless a change
-was never published - an operation that failed after it had its CSN, or one that was lost on
-its way to the replication servers. During the load of the convergence run no operation fails
-(load.sh checks that), so a gap there is a lost change: a change the data of the other
-replicas misses, while their ServerState and missing-changes say nothing, since both only
-know the newest CSN.
+adds one to the sequence number of the CSN for every change, whatever its time. A gap can
+indicate an unpublished or lost change, but does not prove data loss: an offline message also
+consumes a sequence number, and a replica recovering an empty RS from historical information
+can reconstruct only changes whose values have not since been replaced. The convergence run
+checks every RS so gaps can be investigated alongside replica data and logs.
 
 Usage: changelog-gaps.py <base DN> <from ms> <to ms> [<changelogDb directory>]
 
 Without a directory it reads the changelogDb as a tar stream on its standard input, as
 "docker cp <container>:/opt/opendj/data/changelogDb -" writes it. It reports, for every
 replica of the domain of <base DN>, the changes whose CSN time is between <from ms> and
-<to ms>, and the sequence numbers missing between them. Exit code 1: a change is missing;
+<to ms>, and the sequence numbers missing between them. Exit code 1: a sequence number is missing;
 2: the changelog cannot be read (no such domain, or it is encrypted).
 
 What it cannot tell. A change lost at either end of a replica's changes in the window - its
@@ -37,13 +35,13 @@ last ones, or its first ones when no earlier change of the replica is in the cha
 no gap between two changes that are there; the data of the other replicas shows such a change
 unless a later change of another server overwrites it.
 
-A restart leaves no gap of its own. A directory server that stops numbers its ReplicaOfflineMsg
+A server restart need not leave a gap. A directory server that stops numbers its ReplicaOfflineMsg
 like a change, and no log file holds the message - only the offline.state of the replica, the
 newest one. But the message does not enter the ServerState of the replica
 (ReplicaOfflineMsg.contributesToDomainState()), from whose newest change of its own the server
 numbers again once it starts (CSNGenerator), so its first change after the restart takes the
 sequence number of the message again, at a later time: the changes of the restarted server had
-no gap in run 39834888428 (#1208). A gap around a restart is a lost change, the kind #1195 lost.
+no gap in run 39834888428 (#1208). A service restart within a server process can behave differently.
 
 The file format is the one of FileReplicaDB: every log file is cut into blocks of 256 bytes,
 and every block after the first starts with a 4-byte offset (BlockLogWriter); in between, a
