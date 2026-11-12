@@ -62,7 +62,7 @@ rolling_collect_error_context() { # <directory server>
 }
 
 rolling_worker() { # <directory server>
-  local n=$1 segment=1 name c length remaining finished failed
+  local n=$1 segment=1 name c length remaining finished failed post_segment
   # The parent reports this worker's failure; do not run run.sh's collection trap here.
   trap - ERR
   while [ ! -e "$OUT/load/stop" ]; do
@@ -82,6 +82,8 @@ rolling_worker() { # <directory server>
     fi
     name=$n
     [ "$segment" -eq 1 ] || name=$n-$segment
+    post_segment=
+    [ ! -e "$OUT/load/post-start" ] || post_segment=1
     printf 'load-mod-%s load-add-%s\n' "$name" "$name" >"$OUT/load/$n.active" || return 1
     if ! start_clients "$n" "$segment" "$length"; then
       [ ! -e "$OUT/load/deadline" ] || rolling_kill_active "$n"
@@ -109,6 +111,7 @@ rolling_worker() { # <directory server>
       check_client "$c" || { failed=1; touch "$OUT/load/$n.failed" || return 1; }
     done
     if [ -n "$failed" ]; then rolling_collect_error_context "$n"; return 1; fi
+    [ -z "$post_segment" ] || touch "$OUT/load/$n.post-verified" || return 1
     rm "$OUT/load/$n.active" || return 1
     segment=$((segment + 1))
   done
@@ -180,6 +183,22 @@ prepare_rolling_deadline() {
   SCALE_DEADLINE_ACTIVE=1
 }
 
+# Every writer must complete and pass both clients of a segment launched after
+# scale-out. A worker that ended earlier must wake the wait and fail it.
+rolling_post_segments_complete() {
+  local n
+  [ ! -e "$OUT/load/deadline" ] || return 1
+  for n in $DS_NODES; do
+    [ ! -e "$OUT/load/$n.done" ] && [ ! -e "$OUT/load/$n.failed" ] || return 1
+    [ -e "$OUT/load/$n.post-verified" ] || return 1
+  done
+}
+rolling_post_segments_ready() {
+  local n
+  for n in $DS_NODES; do [ ! -e "$OUT/load/$n.done" ] || return 0; done
+  rolling_post_segments_complete
+}
+
 # Used in place of run_load for a rolling scale change. The deadline covers the complete
 # disturbance: a late return is a failed run, even if the topology later converges.
 rolling_index_budget() {
@@ -208,10 +227,16 @@ rolling_run_load() {
   left=$((DISTURB_AT - (SECONDS - (ROLLING_END - DURATION))))
   [ "$left" -le 0 ] || sleep "$left"
   disturb || failed=1
-  left=$((ROLLING_END - SECONDS))
-  if [ "$left" -lt $((3 * STAT_INTERVAL)) ] || [ "$left" -le 0 ]; then
-    echo "::error::scale change left too little of the $DURATION s load to write after it" >&2
-    failed=1
+  if [ -z "$failed" ]; then
+    touch "$OUT/load/post-start" || failed=1
+    left=$((ROLLING_END - SECONDS))
+    if [ "$left" -le 0 ] || ! wait_until "$left" 'post-scale segments finish on every writer' rolling_post_segments_ready; then
+      echo "::error::scale change left too little of the $DURATION s limit for verified writes after it" >&2
+      failed=1
+    elif ! rolling_post_segments_complete; then
+      echo '::error::a load worker stopped before all post-scale segments were verified' >&2
+      failed=1
+    fi
   fi
   if [ -n "$failed" ]; then
     # Workers stop after their current segment. Keep the deadline guard alive while
@@ -221,11 +246,14 @@ rolling_run_load() {
     kill "$watchdog" 2>/dev/null || true
     wait "$watchdog" 2>/dev/null || true
   else
-    wait "$watchdog" 2>/dev/null || failed=1
     touch "$OUT/load/stop" || failed=1
     for pid in $pids; do wait "$pid" || failed=1; done
+    kill "$watchdog" 2>/dev/null || true
+    wait "$watchdog" 2>/dev/null || true
   fi
   [ ! -e "$OUT/load/cutoff" ] || failed=1
+  [ ! -e "$OUT/load/deadline" ] || failed=1
   SCALE_DEADLINE_ACTIVE=0
+  ROLLING_ELAPSED=$((SECONDS - (ROLLING_END - DURATION)))
   [ -z "$failed" ] || fail "the rolling load or scale change failed"
 }

@@ -25,11 +25,71 @@ if [ ! -f "$HERE/rolling-load.sh" ]; then
 fi
 . "$HERE/rolling-load.sh"
 
-# A 2100-second load must fit the per-DS index budget with the default segment size.
+# Only a segment started after scale-out and checked successfully proves that the
+# corresponding replica continued to take writes after the topology changed.
+for scenario in before after failed; do
+  (
+    OUT="$OUT/post-$scenario"; mkdir -p "$OUT/load"
+    unset ROLLING_END ROLLING_END_MS
+    [ "$scenario" != after ] || touch "$OUT/load/post-start"
+    [ "$scenario" != failed ] || touch "$OUT/load/post-start"
+    start_clients() { [ "$scenario" != before ] || touch "$OUT/load/post-start"; touch "$OUT/load/stop"; }
+    docker() { case $1 in wait|rm) : ;; logs) echo csv ;; inspect) echo '0 false' ;; exec) : ;; *) return 1 ;; esac; }
+    check_client() { [ "$scenario" != failed ]; }
+    if rolling_worker d0; then [ "$scenario" != failed ]; else [ "$scenario" = failed ]; fi
+    if [ "$scenario" = after ]; then
+      [ -e "$OUT/load/d0.post-verified" ] || { echo 'post-scale segment was not recorded' >&2; exit 1; }
+    else
+      [ ! -e "$OUT/load/d0.post-verified" ] || { echo 'pre-scale or failed segment counted as post-scale' >&2; exit 1; }
+    fi
+  )
+done
 (
-  DURATION=2100; unset ROLLING_SEGMENT
+  OUT="$OUT/post-completion"; mkdir -p "$OUT/load"; DS_NODES='d0 d1'
+  touch "$OUT/load/d0.post-verified"
+  if rolling_post_segments_complete; then echo 'missing post-scale writer accepted' >&2; exit 1; fi
+  touch "$OUT/load/d1.post-verified"
+  rolling_post_segments_complete || { echo 'verified post-scale writers rejected' >&2; exit 1; }
+  touch "$OUT/load/deadline"
+  if rolling_post_segments_complete; then echo 'post-scale completion after deadline accepted' >&2; exit 1; fi
+  rm "$OUT/load/deadline"
+  touch "$OUT/load/d0.done"
+  if rolling_post_segments_complete; then echo 'stopped post-scale worker accepted' >&2; exit 1; fi
+)
+# The load ends after every post-scale segment, without waiting for the hard limit.
+(
+  OUT="$OUT/post-lifecycle"; mkdir -p "$OUT/load"; DS_NODES='d0 d1'
+  DURATION=60 DISTURB_AT=0 STAT_INTERVAL=0
+  fail() { echo "$*" >&2; return 1; }
+  wait_until() { local end=$((SECONDS + $1)); shift 2; until "$@"; do [ "$SECONDS" -lt "$end" ] || return 1; command sleep 0.01; done; }
+  rolling_worker() {
+    while [ ! -e "$OUT/load/post-start" ]; do command sleep 0.01; done
+    touch "$OUT/load/$1.post-verified"
+    while [ ! -e "$OUT/load/stop" ]; do command sleep 0.01; done
+  }
+  disturb() { :; }
+  rolling_run_load
+  [ ! -e "$OUT/load/deadline" ] || { echo 'successful load waited for its deadline' >&2; exit 1; }
+  [ -e "$OUT/load/d0.post-verified" ] && [ -e "$OUT/load/d1.post-verified" ] || exit 1
+)
+# A worker which exits before its post-scale segment aborts the run.
+if (
+  OUT="$OUT/post-stopped"; mkdir -p "$OUT/load"; DS_NODES=d0
+  DURATION=60 DISTURB_AT=0 STAT_INTERVAL=0
+  fail() { return 1; }
+  wait_until() { local end=$((SECONDS + $1)); shift 2; until "$@"; do [ "$SECONDS" -lt "$end" ] || return 1; command sleep 0.01; done; }
+  rolling_worker() { :; }
+  disturb() { command sleep 0.1; }
+  rolling_run_load
+) >/dev/null 2>&1; then
+  echo 'a stopped worker passed the post-scale check' >&2; exit 1
+fi
+
+# The scale deadline must fit the per-DS index budget with the default segment size.
+(
+  DURATION=2700; unset ROLLING_SEGMENT
   . "$HERE/rolling-load.sh"
-  [ "$ROLLING_SEGMENT" -eq 50 ] && rolling_index_budget || { echo '2100-second load exceeds the index budget' >&2; exit 1; }
+  [ "$ROLLING_SEGMENT" -eq 50 ] && rolling_index_budget || { echo '2700-second load exceeds the index budget' >&2; exit 1; }
 )
 
 # Three shards permit 50-second segments for a one-hour load.

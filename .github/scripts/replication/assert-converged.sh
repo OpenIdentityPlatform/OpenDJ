@@ -81,13 +81,13 @@ assert_offline() {
       || { echo "::error::$n holds other data than $first, see diff/$n.ldif"; failed=1; }
   done
   assert_changelogs || failed=1
-  [ -z "$failed" ] || fail "the replicas do not hold the same data"
+  [ -z "$failed" ] || fail "the offline checks failed"
 }
 
 # The changes of every replica in the changelog of every replication server, one after the
-# other: a gap in the sequence numbers of a replica's changes during the load is a change that
-# reached no replication server. The data shows it only while no later change of the same
-# attribute overwrites it, and missing-changes never (#1195). docker cp streams the changelog
+# other: a gap in the sequence numbers may indicate a lost change, an offline message, or
+# history that cannot be reconstructed on an empty RS. Missing-changes alone cannot prove
+# which happened (#1195). docker cp streams the changelog
 # out of the stopped container; changelog-gaps.py reads it
 assert_changelogs() {
   local n id code failed=
@@ -101,7 +101,7 @@ assert_changelogs() {
              { print }' "$OUT/server-ids.txt" - >"$OUT/changelog/$n.txt" || code=$?
     case $code in
       0) ;;
-      1) echo "::error::changes of the load are missing from the changelog of $n, see changelog/$n.txt"; failed=1 ;;
+      1) echo "::error::sequence numbers of the load are missing from the changelog of $n, see changelog/$n.txt"; failed=1 ;;
       *) echo "::error::the changelog of $n could not be read, see changelog/$n.txt"; failed=1; continue ;;
     esac
     # every directory server made changes in the load: a changelog whose records the script
