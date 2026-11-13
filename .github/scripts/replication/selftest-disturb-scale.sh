@@ -172,6 +172,13 @@ run_case() (
   [ -s "$OUT/bootstrap/removed-$target.log" ] || { echo 'missing removed node bootstrap log' >&2; exit 1; }
   collect_scale_bootstrap
   for n in $ALL_NODES; do [ -s "$OUT/bootstrap/final-$n.log" ] || { echo "missing final bootstrap log for $n" >&2; exit 1; }; done
+  for phase in down return up; do
+    for n in $RS_NODES; do
+      [ "$phase" != down ] || [ "$n" != "$target" ] || continue
+      [ -s "$OUT/scale-checkpoint/offline-$phase-$n.txt" ] || { echo "missing $phase offline state of $n" >&2; exit 1; }
+      grep -q '^capture-start-ms [0-9]' "$OUT/scale-checkpoint/offline-$phase-$n.txt" || { echo 'missing snapshot capture time' >&2; exit 1; }
+    done
+  done
   if [ "$topology" = rs534 ] && [ "$mode" = empty ]; then
     for phase in down return up; do
       for n in r0 r1; do

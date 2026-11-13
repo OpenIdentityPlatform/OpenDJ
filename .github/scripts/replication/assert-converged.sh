@@ -91,11 +91,15 @@ assert_offline() {
 # out of the stopped container; changelog-gaps.py reads it
 assert_changelogs() {
   local n id code failed=
+  local -a evidence=()
+  case ${DISTURBANCE:-none} in
+    scale-*) evidence=(--offline-snapshots "$OUT/scale-checkpoint") ;;
+  esac
   mkdir -p "$OUT/changelog"
   for n in $RS_NODES; do
     code=0
     docker cp "$n:/opt/opendj/data/changelogDb" - \
-      | python3 -I "$HERE/changelog-gaps.py" "$BASE_DN" "$LOAD_START_MS" "$LOAD_END_MS" \
+      | python3 -I "$HERE/changelog-gaps.py" "$BASE_DN" "$LOAD_START_MS" "$LOAD_END_MS" "${evidence[@]}" \
       | awk 'FILENAME == ARGV[1] { name[$1] = $2; next }
              $1 == "replica" { id = $2; sub(/:$/, "", id); if (id in name) $2 = id " (" name[id] "):" }
              { print }' "$OUT/server-ids.txt" - >"$OUT/changelog/$n.txt" || code=$?
