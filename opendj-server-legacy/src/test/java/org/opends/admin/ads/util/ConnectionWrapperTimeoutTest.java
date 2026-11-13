@@ -17,20 +17,66 @@ package org.opends.admin.ads.util;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.lang.reflect.Field;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
+import com.forgerock.opendj.util.ReferenceCountedObject;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.types.HostPort;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
+import static com.forgerock.opendj.util.StaticUtils.DEFAULT_SCHEDULER;
 
 @Test(sequential = true)
 public class ConnectionWrapperTimeoutTest extends DirectoryServerTestCase {
+    @Test(timeOut = 10000)
+    public void releasesFactoryResourcesWhenConnectionFails() throws Exception {
+        final ReferenceCountedObject<?>.Reference anchor = DEFAULT_SCHEDULER.acquire();
+        try (ServerSocket listener = new ServerSocket(0)) {
+            final int baseline = schedulerReferences();
+            final Thread server = new Thread(() -> {
+                try (Socket ignored = listener.accept()) {
+                    // Closing without an LDAP response makes the initial bind fail.
+                } catch (Exception ignored) {
+                    // The listener is closed during cleanup.
+                }
+            }, "failed-ldap-bind-test");
+            server.start();
+            try {
+                new ConnectionWrapper(new HostPort("localhost", listener.getLocalPort()),
+                        PreferredConnection.Type.LDAP, DN.valueOf("cn=admin"), "password", 1000, null);
+                fail("The initial bind must fail");
+            } catch (LdapException expected) {
+                server.join(1000);
+                final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+                while (schedulerReferences() != baseline && System.nanoTime() < deadline) {
+                    Thread.yield();
+                }
+                assertEquals(schedulerReferences(), baseline, "The failed factory must release its scheduler reference");
+            } finally {
+                server.join(1000);
+            }
+        } finally {
+            anchor.release();
+        }
+    }
+
+    private static int schedulerReferences() throws Exception {
+        final Field lockField = ReferenceCountedObject.class.getDeclaredField("lock");
+        final Field countField = ReferenceCountedObject.class.getDeclaredField("refCount");
+        lockField.setAccessible(true);
+        countField.setAccessible(true);
+        synchronized (lockField.get(DEFAULT_SCHEDULER)) {
+            return countField.getInt(DEFAULT_SCHEDULER);
+        }
+    }
+
     @Test(timeOut = 10000)
     public void timesOutWhenServerAcceptsConnectionButDoesNotAnswerBind() throws Exception {
         final CountDownLatch release = new CountDownLatch(1);

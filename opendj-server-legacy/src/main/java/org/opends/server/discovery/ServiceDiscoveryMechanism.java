@@ -45,7 +45,7 @@ public abstract class ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechan
    *
    * @return the name of the mechanism
    */
-  String getName(){
+  public String getName(){
     return cfg.name();
   }
 
@@ -59,7 +59,7 @@ public abstract class ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechan
    * @param serverContext the server context of this Directory Server instance
    * @return if the provided configuration is correct for the mechanism.
    */
-  boolean isConfigurationAcceptable(C configuration, List<LocalizableMessage> unacceptableReasons, ServerContext serverContext){
+  public boolean isConfigurationAcceptable(C configuration, List<LocalizableMessage> unacceptableReasons, ServerContext serverContext){
     return true;
   }
 
@@ -69,14 +69,14 @@ public abstract class ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechan
    * @param configuration the configuration for initialization
    * @param serverContext the server context for this Directory Server instance
    */
-  void initializeMechanism(C configuration, ServerContext serverContext){
+  public void initializeMechanism(C configuration, ServerContext serverContext){
     this.cfg=configuration;
   }
 
   /**
    * Frees any resources in use, mechanism will not be used anymore afterwards.
    */
-  void finalizeMechanism(){
+  public void finalizeMechanism(){
 
   }
 

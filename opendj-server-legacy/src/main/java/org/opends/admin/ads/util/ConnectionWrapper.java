@@ -151,7 +151,22 @@ public class ConnectionWrapper implements Closeable
       options.set(REQUEST_TIMEOUT, duration(requestTimeout, TimeUnit.MILLISECONDS));
     }
     connectionFactory = new LDAPConnectionFactory(hostPort.getHost(), hostPort.getPort(), options);
-    connection = connectionFactory.getConnection();
+    try
+    {
+      connection = connectionFactory.getConnection();
+    }
+    catch (LdapException | RuntimeException e)
+    {
+      try
+      {
+        connectionFactory.close();
+      }
+      catch (RuntimeException closeException)
+      {
+        e.addSuppressed(closeException);
+      }
+      throw e;
+    }
   }
 
   private static Options toOptions(Type connectionType, DN bindDn, String bindPwd, long connectTimeout,

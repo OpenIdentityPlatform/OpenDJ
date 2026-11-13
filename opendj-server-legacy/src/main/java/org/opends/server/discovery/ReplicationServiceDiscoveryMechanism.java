@@ -91,7 +91,7 @@ public class ReplicationServiceDiscoveryMechanism extends ServiceDiscoveryMechan
     }
 
     @Override
-    synchronized void initializeMechanism(ReplicationServiceDiscoveryMechanismCfg configuration, ServerContext context) {
+    public synchronized void initializeMechanism(ReplicationServiceDiscoveryMechanismCfg configuration, ServerContext context) {
         super.initializeMechanism(configuration, context);
         this.context = context;
         configuration.addReplicationChangeListener(this);
@@ -99,7 +99,7 @@ public class ReplicationServiceDiscoveryMechanism extends ServiceDiscoveryMechan
     }
 
     @Override
-    synchronized void finalizeMechanism() {
+    public synchronized void finalizeMechanism() {
         if (executor != null) {
             executor.shutdownNow();
             executor = null;
@@ -128,7 +128,7 @@ public class ReplicationServiceDiscoveryMechanism extends ServiceDiscoveryMechan
     }
 
     @Override
-    boolean isConfigurationAcceptable(ReplicationServiceDiscoveryMechanismCfg configuration,
+    public boolean isConfigurationAcceptable(ReplicationServiceDiscoveryMechanismCfg configuration,
                                       List<LocalizableMessage> reasons, ServerContext context) {
         if (configuration.getBindDN() == null || configuration.getBindDN().isRootDN()
                 || configuration.getBindPassword() == null || configuration.getBindPassword().isEmpty()) {
