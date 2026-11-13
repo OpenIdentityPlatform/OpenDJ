@@ -1194,6 +1194,7 @@ jobs:
           .github/scripts/replication/selftest-rolling-load.sh
           .github/scripts/replication/selftest-wait.sh
           python3 .github/scripts/replication/selftest-changelog-checkpoint.py
+          python3 .github/scripts/replication/selftest-changelog-gaps.py
           python3 .github/scripts/replication/selftest-scale-monitor.py
           python3 .github/scripts/replication/selftest-scale-fence.py
           python3 .github/scripts/replication/selftest-scale-coverage.py
