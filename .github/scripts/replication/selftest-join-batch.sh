@@ -98,4 +98,30 @@ HERE_RESULT=1
 reset_if_unregistered pending
 [ "$(tail -1 "$OUT/member-queries")" = reset ] || { echo 'missing registration did not trigger reset' >&2; exit 1; }
 is_member || { echo 'membership after reset was not rechecked' >&2; exit 1; }
+# The local membership search already read the registrations. When it confirms
+# membership and is consumed by is_member, cleanup can use that snapshot once.
+sed -n '/^registered_here() {/,/^}/p' "$HERE/../../../opendj-packages/opendj-docker/bootstrap/join.sh" >"$OUT/here.sh"
+. "$OUT/here.sh"
+search() {
+  echo search >>"$OUT/registration-queries"
+  printf 'dn: cn=self,cn=Servers,cn=admin data\nhostname: self\n\ndn: cn=gone,cn=Servers,cn=admin data\nhostname: gone\n'
+  return "${SEARCH_RESULT:-0}"
+}
+unregister() { printf '%s\n' "$1" >>"$OUT/unregistered"; }
+replication_server_lists() { :; }
+registrations() { echo fallback >>"$OUT/registration-queries"; printf 'cn=other,cn=Servers,cn=admin data\tother\n'; }
+in_peers() { return 1; }; is_address() { return 1; }
+HERE_RESULT=0
+reset_if_unregistered pending
+is_member
+cleanup_departed >/dev/null
+grep -Fx 'cn=gone,cn=Servers,cn=admin data' "$OUT/unregistered" >/dev/null || { echo 'cached cleanup missed a departed server' >&2; exit 1; }
+[ "$(wc -l <"$OUT/registration-queries" | tr -d ' ')" = 1 ] || { echo 'cleanup repeated the successful membership search' >&2; exit 1; }
+cleanup_departed >/dev/null
+grep -Fx fallback "$OUT/registration-queries" >/dev/null || { echo 'cleanup reused a snapshot twice' >&2; exit 1; }
+rm -f "$OUT/registration-queries" "$OUT/unregistered"
+SEARCH_RESULT=2
+reset_if_unregistered pending
+cleanup_departed >/dev/null
+grep -Fx fallback "$OUT/registration-queries" >/dev/null || { echo 'cleanup used a failed membership search' >&2; exit 1; }
 echo 'join batch quoting and failure fallback passed'

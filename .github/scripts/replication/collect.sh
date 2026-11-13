@@ -18,6 +18,59 @@
 # every run, and the state of every server of a failed one - what #534 could not get from its
 # reporter.
 
+# Trace files are unique to a server process. Copy the departing combined server before its
+# empty-volume replacement, and every directory server after the final stop. A missing file or
+# unsuccessful copy is an error; the validator also checks every expected process generation.
+capture_csn_trace() { # <directory server>
+  [ "${CSN_TRACE:-0}" = 1 ] || return 0
+  mkdir -p "$OUT/csn-traces/$1" || return 1
+  docker cp "$1:/opt/opendj/data/csn-trace/." "$OUT/csn-traces/$1/" || return 1
+}
+
+expect_csn_trace_restart() { # <directory server whose container is restarted>
+  local token next file
+  [ "${CSN_TRACE:-0}" = 1 ] || return 0
+  token=$(cat "$OUT/csn-trace-tokens/$1") || return 1
+  next=$(python3 -c 'import uuid; print(uuid.uuid4().hex)') || return 1
+  file="$OUT/csn-trace-tokens/$1.restart"
+  printf '%s\n' "$next" >"$file" || return 1
+  # docker cp creates a root-owned file; the unprivileged server must read it.
+  chmod 644 "$file" || return 1
+  docker cp "$file" "$1:/opt/opendj/data/csn-trace-token-$token" || return 1
+  printf '%s %s\n' "$1" "$next" >>"$OUT/csn-trace-expected.txt"
+}
+
+check_csn_traces() {
+  local node failed=
+  [ "${CSN_TRACE:-0}" = 1 ] || return 0
+  for node in $DS_NODES; do
+    capture_csn_trace "$node" || failed=1
+  done
+  python3 -I "$HERE/csn-trace.py" "$OUT/csn-traces" "$OUT/csn-trace-expected.txt" \
+    >"$OUT/csn-trace-validation.txt" 2>&1 || failed=1
+  [ -z "$failed" ] || { echo '::error::CSN trace is incomplete; see csn-trace-validation.txt'; return 1; }
+}
+
+# Look up the first gaps reported for each replica on each RS. This is evidence only:
+# local allocations include operations which may have failed and never committed.
+diagnose_csn_gaps() {
+  local pair
+  local -a pairs=()
+  [ "${CSN_TRACE:-0}" = 1 ] || return 0
+  grep -Fx 'CSN allocation traces complete; local allocations may be uncommitted' \
+    "$OUT/csn-trace-validation.txt" >/dev/null 2>&1 || return 0
+  [ -d "$OUT/changelog" ] || return 0
+  compgen -G "$OUT/changelog/*.txt" >/dev/null || return 0
+  while IFS= read -r pair; do [ -z "$pair" ] || pairs+=("$pair"); done < <(
+    awk '/^replica [0-9]+:/ { id=$2; sub(/:$/, "", id) }
+         /^  missing [0-9]+,/ { seq=$2; sub(/,$/, "", seq); if (id != "") print id ":" seq }' \
+      "$OUT"/changelog/*.txt | sort -u
+  )
+  [ "${#pairs[@]}" -gt 0 ] || return 0
+  python3 -I "$HERE/csn-trace.py" "$OUT/csn-traces" "$OUT/csn-trace-expected.txt" "${pairs[@]}" \
+    >"$OUT/csn-trace-gaps.txt" 2>&1
+}
+
 # The server id each directory server has in the replication domain of BASE_DN, which the
 # samples name the servers by: "Directory server DS(<id>) <host:port>" (ReplicationMonitor)
 record_server_ids() {
@@ -50,6 +103,7 @@ collect() {
   local n
   for n in $ALL_NODES; do
     docker inspect $n >/dev/null 2>&1 || continue
+    case " $DS_NODES " in *" $n "*) capture_csn_trace "$n" || true ;; esac
     mkdir -p "$OUT/state/$n"
     docker logs $n >"$OUT/state/$n/container.log" 2>&1 || true
     docker cp $n:/opt/opendj/data/logs "$OUT/state/$n/" >/dev/null 2>&1 || true
