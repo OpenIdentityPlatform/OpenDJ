@@ -887,8 +887,9 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
         } else {
             userSession = null;
         }
-        final ConnectionFactory requestFactory = directUserMode ? operationBindFactory : operationFactory;
-        if (operation.getOperationType() == OperationType.BIND ? operationBindFactory == null : requestFactory == null) {
+        final ConnectionFactory requestFactory = operation.getOperationType() == OperationType.BIND || directUserMode
+                ? operationBindFactory : operationFactory;
+        if (requestFactory == null) {
             operation.setResponseData(new DirectoryException(ResultCode.UNAVAILABLE,
                     LocalizableMessage.raw("No proxy backend servers are available for the target DN")));
             return;
@@ -920,7 +921,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                             final SimpleBindRequest bindRequest = newSimpleBindRequest(
                                     mapping.dn(request.getBindDN(), true).toString(), password);
                             addRequestControls(bindRequest, controls);
-                            try (Connection connection = operationBindFactory.getConnection()) {
+                            try (Connection connection = requestFactory.getConnection()) {
                                 result = connection.bind(bindRequest);
                             } catch (LdapException e) {
                                 result = e.getResult();
