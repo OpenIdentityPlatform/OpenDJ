@@ -70,6 +70,7 @@ disturb() {
   # The RS may log the same transient rejection on its side as warning 105. Restrict that
   # allowance to this DS's actual Docker address, and to the period after it restarts.
   cert_start=$(errors_lines "$REBUILT")
+  [ "${CSN_TRACE:-0}" != 1 ] || expect_csn_trace_restart "$DISTURBED"
   docker start "$DISTURBED" >/dev/null
   address=$(docker inspect -f "{{(index .NetworkSettings.Networks \"$NETWORK\").IPAddress}}" "$DISTURBED")
   [ -n "$address" ] || fail "cannot determine the address of $DISTURBED"

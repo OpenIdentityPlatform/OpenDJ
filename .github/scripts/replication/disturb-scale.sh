@@ -390,6 +390,45 @@ scale_stop_group() { # <node>...
   [ -z "$failed" ]
 }
 
+# A restarted DS may time out in a handshake with the RS restarted in its group. Accept
+# that one error only if this DS subsequently connected to that exact RS and domain before
+# it finished starting. Each allowance covers the single error line, not the whole window.
+scale_record_reconnected_timeouts() { # <DS> <RS> <direction>
+  local node=$1 rs=$2 direction=$3 window="$OUT/logs/$1.window-$3-$1"
+  local before after mark id address target="$OUT/scale-progress/timeouts-$3-$1.txt"
+  [ -f "$window" ] && [ -f "$OUT/logs/$node.mark" ] || return 0
+  read -r before _ <"$window" || return 0
+  mark=$(cat "$OUT/logs/$node.mark") || return 0
+  after=$(errors_lines "$node") || return 0
+  id=$(awk -v n="$node" '$2 == n { print $1 }' "$OUT/server-ids.txt") || return 0
+  case $id in ''|*[!0-9]*) return 0 ;; esac
+  address=$(docker inspect -f "{{(index .NetworkSettings.Networks \"$NETWORK\").IPAddress}}" "$rs") || return 0
+  case $address in ''|*[!0-9.]*) return 0 ;; esac
+  mkdir -p "$OUT/scale-progress" || return 1
+  if ! since_mark "$node" | awk -v first="$((mark + 1))" -v before="$before" -v after="$after" \
+      -v id="$id" -v rs="$rs" -v address="$address" -v domain="$BASE_DN" -v node="$node" '
+    {
+      line = first + NR - 1
+      if (finished || line <= before || line > after) next
+      if (index($0, "category=CORE severity=NOTICE msgID=135 msg=The Directory Server has started successfully")) {
+        for (i = 1; i <= accepted; i++) print confirmed[i] - 1, confirmed[i], "timeout:" node ":" rs
+        finished = 1
+        next
+      }
+      if (index($0, "category=SYNC severity=ERROR msgID=212 msg=Directory server DS(" id ") timed out while connecting to replication server " rs ":8989 for domain \"" domain "\""))
+        pending[++n] = line
+      if (index($0, "category=SYNC severity=NOTICE msgID=62 msg=Directory server DS(" id ") has connected to replication server RS(") \
+          && index($0, " for domain \"" domain "\" at " address ":8989 ")) {
+        for (i = 1; i <= n; i++) confirmed[++accepted] = pending[i]
+        n = 0
+      }
+    }' >"$target"; then
+    rm -f "$target"
+    return 0
+  fi
+  cat "$target" >>"$OUT/logs/$node.windows"
+}
+
 # In the separate topology, roll two directory servers together with one RS. The
 # other RS and a directory writer remain available; its checkpoint must cover the RS
 # before stopping, and a single LDAP batch confirms one write per stopped node.
@@ -426,6 +465,7 @@ scale_roll_pair() { # <directory node> <directory node> <peer list> <RS>
   scale_wait "$rolling_rs serves again" started_since "$rolling_rs" "$from" || return 1
   for node in "$first" "$second"; do
     scale_wait "$node serves again" started_since "$node" "$from" || return 1
+    scale_record_reconnected_timeouts "$node" "$rolling_rs" "$direction" || return 1
     rolling_resume "$node" || return 1
   done
 }
@@ -486,6 +526,9 @@ disturb() {
   wc -l <"$OUT/logs/$REMOVED.offline-log" >"$OUT/logs/$REMOVED.offline" || return 1
   docker logs "$REMOVED" >"$OUT/logs/$REMOVED.previous-container" 2>&1 || return 1
   scale_capture_bootstrap "$REMOVED" removed
+  if [ "${CSN_TRACE:-0}" = 1 ] && [ "$TOPOLOGY" = combined ] && [ "$SCALE_VOLUME" = empty ]; then
+    capture_csn_trace "$REMOVED" || return 1
+  fi
   # The empty-volume case destroys this RS's original changelog. Preserve it so a
   # gap after failover can be traced back to the departing RS or a surviving peer.
   if [ "$TOPOLOGY" = rs534 ] && [ "$SCALE_VOLUME" = empty ]; then

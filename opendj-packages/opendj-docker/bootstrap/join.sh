@@ -433,8 +433,10 @@ is_member() {
   # registration. Consume that result once; subsequent checks must read afresh.
   if [ "${RESET_MEMBER_CONFIRMED:-no}" = yes ]; then
     RESET_MEMBER_CONFIRMED=no
+    JOIN_REGISTRATIONS_READY=${JOIN_REGISTRATIONS_AVAILABLE:-no}
     return 0
   fi
+  JOIN_REGISTRATIONS_READY=no
   holds_own_part || return 1
   for host in $(registered_hosts); do
     is_self "$host" && return 0
@@ -483,6 +485,7 @@ member_of_topology() {
 # decides nothing
 registered_here() {
   local out host
+  JOIN_REGISTRATIONS_AVAILABLE=no
   out=$(search localhost --baseDN "cn=Servers,cn=admin data" --searchScope one "(objectClass=*)" hostname)
   case $? in
     0) ;;
@@ -490,7 +493,11 @@ registered_here() {
     *) return 2 ;;
   esac
   for host in $(printf '%s\n' "$out" | awk 'tolower($1) == "hostname:" { print $2 }'); do
-    is_self "$host" && return 0
+    if is_self "$host"; then
+      JOIN_REGISTRATIONS=$(printf '%s\n' "$out" | awk '/^dn: /{dn=substr($0,5)} tolower($1) == "hostname:" {print dn "\t" $2}')
+      JOIN_REGISTRATIONS_AVAILABLE=yes
+      return 0
+    fi
   done
   return 1
 }
@@ -825,17 +832,25 @@ release_writes() {
 # left alone: nothing tells it from a server listed by name, and the list moving from
 # MASTER_SERVER to REPLICATION_PEERS would otherwise throw the live master out.
 cleanup_departed() {
-  local dn host kind cn value
+  local dn host kind cn value registrations_snapshot
   local -a changes=()
   [ "$PEERS_ARE_EXPLICIT" = yes ] || return 0
-  registrations | while IFS=$'\t' read -r dn host; do
+  # reset_if_unregistered just read these same entries and is_member consumed its
+  # successful result. No topology changes occur between that check and cleanup.
+  if [ "${JOIN_REGISTRATIONS_READY:-no}" = yes ]; then
+    registrations_snapshot=$JOIN_REGISTRATIONS
+    JOIN_REGISTRATIONS_READY=no
+  else
+    registrations_snapshot=$(registrations)
+  fi
+  while IFS=$'\t' read -r dn host; do
     [ -z "$host" ] && continue
     is_address "$host" && continue
     if ! in_peers "$host" && ! is_self "$host"; then
       echo "join: removing departed server $host from cn=admin data"
       unregister "$dn" || echo "join: could not remove $dn (already removed by another survivor?)"
     fi
-  done
+  done <<<"$registrations_snapshot"
   while IFS=$'\t' read -r kind cn value; do
     [ -z "$value" ] && continue
     host=${value%:*}
@@ -1106,6 +1121,8 @@ may_seed() {
 reset_if_unregistered() { # <the state to publish meanwhile>
   local rc=0
   RESET_MEMBER_CONFIRMED=no
+  JOIN_REGISTRATIONS_AVAILABLE=no
+  JOIN_REGISTRATIONS_READY=no
   holds_own_part || return 0
   if ! registered_with_peers; then
     reset_replication "$1" "the peers no longer register this server"

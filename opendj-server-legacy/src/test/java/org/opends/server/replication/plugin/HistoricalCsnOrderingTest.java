@@ -1414,6 +1414,101 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   }
 
   /**
+   * Compare the actual changelogs after switching to an RS which missed two overwrites. Once
+   * the recent-message cache has discarded them, entry history can reconstruct the final
+   * value but not the overwritten operation. The last-CSN monitor alone cannot show this.
+   */
+  @Test
+  public void switchingToABehindRSAfterRecentMessagesWereDiscardedLosesAnOverwrite() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer first = createReplicationServer();
+    final SortedSet<String> towardsFirst = new TreeSet<>(replServers);
+    final int secondPort = TestCaseUtils.findFreePort();
+    final SortedSet<String> towardsSecond = towards(secondPort);
+    ReplicationServer second = null;
+    LDAPReplicationDomain domain = createReplicationDomain(serverId);
+    try
+    {
+      second = createIsolatedReplicationServer(secondPort, "HistoricalCsnOrderingEmptyHistory", SECOND_RS_ID);
+      final DN dn = addPerson("empty-history");
+      aChangeBothReplicationServersHold(domain, dn, first, towardsFirst, second, towardsSecond);
+      pendingChangesOf(domain).setMaxRecentChanges(0);
+
+      replace(dn, "description", "overwritten");
+      final CSN overwritten = domain.getLastLocalChange();
+      replace(dn, "description", "final");
+      final CSN last = domain.getLastLocalChange();
+      assertInTheChangelog(first, baseDN, overwritten);
+      assertInTheChangelog(first, baseDN, last);
+
+      connectTo(domain, towardsSecond, SECOND_RS_ID);
+      assertInTheChangelog(second, baseDN, last);
+      waitUntilTheRecoveryIsOver(domain);
+      assertOverwriteMissing(second, baseDN, overwritten, last);
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(first, second);
+    }
+  }
+
+  /** Both RSs can miss the same overwrite when neither accepted it before the recovery. */
+  @Test
+  public void aRecoveryFromHistoryCanLeaveTheSameGapOnBothReplicationServers() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer first = createReplicationServer();
+    final SortedSet<String> towardsFirst = new TreeSet<>(replServers);
+    final int secondPort = TestCaseUtils.findFreePort();
+    final SortedSet<String> towardsSecond = towards(secondPort);
+    ReplicationServer second = null;
+    LDAPReplicationDomain domain = createReplicationDomain(serverId);
+    try
+    {
+      second = createIsolatedReplicationServer(secondPort, "HistoricalCsnOrderingCommonGap", SECOND_RS_ID);
+      final DN dn = addPerson("common-gap");
+      aChangeBothReplicationServersHold(domain, dn, first, towardsFirst, second, towardsSecond);
+      // The broker refuses both writes, and the domain retains neither message.
+      refuseTheLocalChanges(domain);
+      replace(dn, "description", "overwritten");
+      final CSN overwritten = domain.getLastLocalChange();
+      replace(dn, "description", "final");
+      final CSN last = domain.getLastLocalChange();
+
+      connectTo(domain, towardsSecond, SECOND_RS_ID);
+      assertInTheChangelog(second, baseDN, last);
+      waitUntilTheRecoveryIsOver(domain);
+      connectTo(domain, towardsFirst, FIRST_RS_ID);
+      assertInTheChangelog(first, baseDN, last);
+      waitUntilTheRecoveryIsOver(domain);
+      assertOverwriteMissing(first, baseDN, overwritten, last);
+      assertOverwriteMissing(second, baseDN, overwritten, last);
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDN);
+      remove(first, second);
+    }
+  }
+
+  private static void assertOverwriteMissing(ReplicationServer rs, DN baseDN, CSN overwritten, CSN last)
+      throws Exception
+  {
+    try (DBCursor<UpdateMsg> cursor = rs.getChangelogDB().getReplicationDomainDB().getCursorFrom(
+        baseDN, overwritten.getServerId(), overwritten,
+        new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY)))
+    {
+      assertTrue(cursor.next());
+      assertEquals(cursor.getRecord().getCSN(), last,
+          "the RS has the later change, but not the overwritten operation");
+    }
+  }
+
+  /**
    * A replication server further behind than the messages the domain kept of its last local changes go
    * back gets the changes before the first of them rebuilt from the historical information, and the
    * others as they were done - a change a later one replaced included - and the domain says so, once

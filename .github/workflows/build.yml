@@ -1186,6 +1186,7 @@ jobs:
           .github/scripts/replication/selftest-disturb-rs.sh
           .github/scripts/replication/selftest-disturb-empty-rs.sh
           .github/scripts/replication/selftest-disturb-scale.sh
+          bash .github/scripts/replication/selftest-scale-timeout.sh
           .github/scripts/replication/selftest-scale-membership.sh
           .github/scripts/replication/selftest-scale-ids.sh
           .github/scripts/replication/selftest-scale-topology.sh
@@ -1195,6 +1196,8 @@ jobs:
           .github/scripts/replication/selftest-wait.sh
           python3 .github/scripts/replication/selftest-changelog-checkpoint.py
           python3 .github/scripts/replication/selftest-changelog-gaps.py
+          python3 .github/scripts/replication/selftest-csn-trace.py
+          bash .github/scripts/replication/selftest-csn-trace-harness.sh
           python3 .github/scripts/replication/selftest-scale-monitor.py
           python3 .github/scripts/replication/selftest-scale-fence.py
           python3 .github/scripts/replication/selftest-scale-coverage.py
@@ -1214,6 +1217,7 @@ jobs:
         env:
           TOPOLOGY: ${{ matrix.topology }}
           DISTURBANCE: ${{ matrix.disturbance }}
+          CSN_TRACE: "${{ (startsWith(matrix.disturbance, 'scale-') || matrix.disturbance == 'empty-rs') && '1' || '0' }}"
           # Scale stops after verified post-scale writes, subject to this 45-minute ceiling.
           DURATION: "${{ startsWith(matrix.disturbance, 'scale-') && '2700' || '900' }}"
           # the replicas fall behind during the load and catch up after it: 900 s at 325 and 65

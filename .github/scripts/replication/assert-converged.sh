@@ -207,6 +207,8 @@ since_mark() { # <node>
 # dns:<hostname> for ERROR 51 naming exactly that temporarily unavailable host, or
 # cert:<DS>:<RS> for that DS's transient bad-certificate handshake with the rebuilt RS, or
 # cert-peer:<RS>:<DS IP> for the corresponding RS-side warning after the DS restarts.
+# timeout:<DS>:<RS> is recorded on one startup error line only after that DS reconnects to
+# that RS in the same domain, as confirmed by scale_record_reconnected_timeouts.
 # window_close records "<lines before> <lines after> [<allowance>...]" in logs/<node>.windows.
 window_open() { window_open_key '' "$@"; }
 window_close() { window_close_key ''; }
@@ -283,7 +285,7 @@ replication_errors() { # <node>
   local windows=
   [ ! -f "$OUT/logs/$1.windows" ] || windows=$(tr '\n' ';' <"$OUT/logs/$1.windows")
   since_mark $1 | awk -v first=$(($(cat "$OUT/logs/$1.mark") + 1)) -v windows="$windows" \
-                      -v expected="$OUT/logs/$1.expected" -v node="$1" '
+                      -v expected="$OUT/logs/$1.expected" -v node="$1" -v base_dn="$BASE_DN" '
     BEGIN {
       n = split(windows, w, ";")
       for (i = 1; i <= n; i++) {
@@ -312,7 +314,14 @@ replication_errors() { # <node>
         }
       }
       for (i = 1; i <= n; i++) {
-        cert = 0
+        cert = timeout = 0
+        if (id == "212" && index($0, "msg=Directory server DS(")) {
+          count = split(ids[i], tokens, " ")
+          for (j = 1; j <= count; j++) {
+            if (split(tokens[j], part, ":") == 3 && part[1] == "timeout" && part[2] == node \
+                && index($0, " timed out while connecting to replication server " part[3] ":8989 for domain \"" base_dn "\"")) timeout = 1
+          }
+        }
         if (/category=SYNC severity=WARNING msgID=119 / && /SSLHandshakeException/ && /bad_certificate/) {
           count = split(ids[i], tokens, " ")
           for (j = 1; j <= count; j++) {
@@ -332,7 +341,7 @@ replication_errors() { # <node>
           }
         }
         if (line > from[i] + 0 && line <= to[i] + 0 \
-            && ((handshake && !index(ids[i], " dns-only ")) || cert || index(ids[i], " " id " ") || (dns != "" && index(ids[i], dns)))) {
+            && ((handshake && !index(ids[i], " dns-only ")) || cert || timeout || index(ids[i], " " id " ") || (dns != "" && index(ids[i], dns)))) {
           print >expected
           next
         }
