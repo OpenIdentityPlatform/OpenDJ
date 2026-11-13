@@ -1245,6 +1245,7 @@
                     <include>**/*TestCase.java</include>
                     <include>**/*TestCases.java</include>
                     <include>**/*TestSuite.java</include>
+                    <include>**/*IT.java</include>
                   </includes>
                   <properties>
                     <property>

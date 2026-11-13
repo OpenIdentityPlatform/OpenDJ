@@ -70,6 +70,9 @@ public class ProxyBackendOpenLdapIT extends DirectoryServerTestCase {
     @BeforeClass
     public void setUp() throws Exception {
         if (!DockerClientFactory.instance().isDockerAvailable()) {
+            if (Boolean.parseBoolean(System.getenv("CI"))) {
+                throw new AssertionError("Docker is required for the OpenLDAP proxy integration tests in CI");
+            }
             throw new SkipException("Docker is unavailable; skipping OpenLDAP integration tests");
         }
         TestCaseUtils.startServer();

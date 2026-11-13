@@ -115,7 +115,9 @@ jobs:
       id: failsafe
       if: runner.os == 'Linux'
       run:   |
-        echo "MAVEN_PROFILE_FLAG=-P precommit" >> $GITHUB_OUTPUT
+        # Testcontainers 1.20 uses an API version rejected by current Docker daemons.
+        docker_api_version=$(docker version --format '{{.Server.APIVersion}}')
+        echo "MAVEN_PROFILE_FLAG=-P precommit -Dapi.version=${docker_api_version}" >> "$GITHUB_OUTPUT"
 
     - name: Setup WiX (.NET tool) for MSI
       # Only the java 11 job's MSI is consumed downstream (test-msi*, deploy.yml); without

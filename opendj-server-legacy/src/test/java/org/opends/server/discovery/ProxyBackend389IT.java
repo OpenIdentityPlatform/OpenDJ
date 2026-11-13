@@ -54,6 +54,9 @@ public class ProxyBackend389IT extends DirectoryServerTestCase {
     @BeforeClass
     public void setUp() throws Exception {
         if (!DockerClientFactory.instance().isDockerAvailable()) {
+            if (Boolean.parseBoolean(System.getenv("CI"))) {
+                throw new AssertionError("Docker is required for the 389 Directory Server proxy integration tests in CI");
+            }
             throw new SkipException("Docker is unavailable; skipping 389 Directory Server integration tests");
         }
         TestCaseUtils.startServer();
