@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * Maintains a set of {@code Partition}s keeping it up to date according to a specific
@@ -37,7 +38,8 @@ import java.util.Set;
 public abstract class ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechanismCfg>
         implements Closeable,AutoCloseable {
 
-   public C cfg;
+   public volatile C cfg;
+   private final Set<ServiceDiscoveryChangeListener> listeners = new CopyOnWriteArraySet<>();
   /**
    * Returns the name of the mechanism.
    *
@@ -84,8 +86,8 @@ public abstract class ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechan
    * @param listener the listener to register for notifications
    * @return true if registration was successful
    */
-  boolean registerChangeListener(ServiceDiscoveryChangeListener listener){
-    return true;
+  public boolean registerChangeListener(ServiceDiscoveryChangeListener listener){
+    return listeners.add(listener);
   }
 
   /**
@@ -93,11 +95,17 @@ public abstract class ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechan
    *
    * @param listener the listener to de-register
    */
-  void deregisterChangeListener(ServiceDiscoveryChangeListener listener){
-
+  public void deregisterChangeListener(ServiceDiscoveryChangeListener listener){
+    listeners.remove(listener);
   }
 
-    Partition partition=new Partition(null, Collections.emptyList(),Collections.emptyList());
+  protected final void notifyChangeListeners() {
+    for (ServiceDiscoveryChangeListener listener : listeners) {
+      listener.serviceChanged(this);
+    }
+  }
+
+    volatile Partition partition=new Partition(null, Collections.emptyList(),Collections.emptyList());
   /**
    * Returns the partitions.
    * <p>
@@ -108,6 +116,11 @@ public abstract class ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechan
   public Partition getPartition() {
       return partition;
   };
+
+  /** Returns the servers suitable for an operation targeting the given remote DN. */
+  public Partition getPartition(DN target) {
+      return getPartition();
+  }
 
   @Override
   public void close() throws IOException {

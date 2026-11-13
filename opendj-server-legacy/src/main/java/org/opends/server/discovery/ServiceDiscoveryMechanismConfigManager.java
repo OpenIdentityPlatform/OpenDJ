@@ -99,7 +99,7 @@ public class ServiceDiscoveryMechanismConfigManager implements
   {
     try
     {
-      ServiceDiscoveryMechanism newMechanism = loadAndInitializeMechanism(configuration);
+      ServiceDiscoveryMechanism newMechanism = loadMechanism(configuration);
       return newMechanism.isConfigurationAcceptable(configuration, unacceptableReasons, serverContext);
     }
     catch (Exception e)
@@ -128,10 +128,16 @@ public class ServiceDiscoveryMechanismConfigManager implements
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
+  private ServiceDiscoveryMechanism loadMechanism(ServiceDiscoveryMechanismCfg cfg) throws Exception
+  {
+    return ((Class<ServiceDiscoveryMechanism>) DirectoryServer.loadClass(cfg.getJavaClass()))
+        .getDeclaredConstructor().newInstance();
+  }
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   private ServiceDiscoveryMechanism loadAndInitializeMechanism(ServiceDiscoveryMechanismCfg cfg) throws Exception
   {
-    final ServiceDiscoveryMechanism newMechanism =
-        ((Class<ServiceDiscoveryMechanism>) DirectoryServer.loadClass(cfg.getJavaClass())).getDeclaredConstructor().newInstance();
+    final ServiceDiscoveryMechanism newMechanism = loadMechanism(cfg);
     newMechanism.initializeMechanism(cfg, serverContext);
     return newMechanism;
   }
