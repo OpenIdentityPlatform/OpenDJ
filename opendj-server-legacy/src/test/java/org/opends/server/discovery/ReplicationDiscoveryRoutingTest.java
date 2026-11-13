@@ -52,7 +52,7 @@ public class ReplicationDiscoveryRoutingTest extends DirectoryServerTestCase {
                 Collections.emptyList());
 
         @Override
-        void initializeMechanism(ReplicationServiceDiscoveryMechanismCfg configuration, ServerContext context) {
+        public void initializeMechanism(ReplicationServiceDiscoveryMechanismCfg configuration, ServerContext context) {
             cfg = configuration;
             instance = this;
         }

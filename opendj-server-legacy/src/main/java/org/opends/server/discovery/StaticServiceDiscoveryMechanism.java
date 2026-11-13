@@ -35,7 +35,7 @@ public class StaticServiceDiscoveryMechanism extends ServiceDiscoveryMechanism<S
     private ServerContext context;
 
     @Override
-    void initializeMechanism(StaticServiceDiscoveryMechanismCfg configuration, ServerContext serverContext) {
+    public void initializeMechanism(StaticServiceDiscoveryMechanismCfg configuration, ServerContext serverContext) {
         super.initializeMechanism(configuration, serverContext);
         context = serverContext;
         partition = createPartition(configuration, serverContext);
@@ -55,7 +55,7 @@ public class StaticServiceDiscoveryMechanism extends ServiceDiscoveryMechanism<S
     }
 
     @Override
-    void finalizeMechanism() {
+    public void finalizeMechanism() {
         cfg.removeStaticChangeListener(this);
     }
 
@@ -96,7 +96,7 @@ public class StaticServiceDiscoveryMechanism extends ServiceDiscoveryMechanism<S
     }
 
     @Override
-    boolean isConfigurationAcceptable(StaticServiceDiscoveryMechanismCfg configuration,
+    public boolean isConfigurationAcceptable(StaticServiceDiscoveryMechanismCfg configuration,
                                       List<LocalizableMessage> reasons, ServerContext context) {
         if ((configuration.getBindDN() == null) != (configuration.getBindPassword() == null)) {
             reasons.add(LocalizableMessage.raw("bind-dn and bind-password must be specified together"));

@@ -30,6 +30,8 @@ import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
 import org.forgerock.opendj.ldap.controls.GenericControl;
 import org.forgerock.opendj.ldap.controls.PostReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PostReadResponseControl;
+import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
+import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -73,8 +75,15 @@ public final class ProxyBackendLdapAssertions {
             final ModifyRequest modify = Requests.newModifyRequest(proxyUser)
                     .addModification(ModificationType.REPLACE, "description", "Updated Value");
             modify.addControl(AssertionRequestControl.newControl(true, Filter.valueOf("(description=Remote Value)")));
+            modify.addControl(PreReadRequestControl.newControl(true, "description", "manager"));
             modify.addControl(PostReadRequestControl.newControl(true, "description", "manager"));
             final Result modifyResult = client.modify(modify);
+            final PreReadResponseControl preRead = modifyResult.getControl(PreReadResponseControl.DECODER,
+                    new DecodeOptions());
+            Assert.assertNotNull(preRead);
+            assertEquals(preRead.getEntry().getName(), DN.valueOf(proxyUser));
+            assertTrue(preRead.getEntry().getAttribute("description").contains(ByteString.valueOfUtf8("Remote Value")));
+            assertTrue(preRead.getEntry().getAttribute("manager").contains(ByteString.valueOfUtf8(proxyManager)));
             final PostReadResponseControl postRead = modifyResult.getControl(PostReadResponseControl.DECODER,
                     new DecodeOptions());
             Assert.assertNotNull(postRead);

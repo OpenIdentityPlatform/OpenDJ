@@ -19,13 +19,23 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.controls.SimplePagedResultsControl;
 import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.ProxyBackendLdapAssertions;
@@ -42,6 +52,7 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 /** End-to-end proxy compatibility test against an independently configured OpenLDAP server. */
 @Test(sequential = true)
@@ -144,6 +155,62 @@ public class ProxyBackendOpenLdapIT extends DirectoryServerTestCase {
         try (LDAPConnectionFactory proxy = new LDAPConnectionFactory("localhost", TestCaseUtils.getServerLdapPort())) {
             ProxyBackendLdapAssertions.assertRewriteOperations(proxy, remoteFactory, PROXY_BASE, REMOTE_BASE,
                     ADMIN, "password");
+        }
+    }
+
+    @Test
+    public void pagesThroughMappedEntries() throws Exception {
+        try (Connection admin = remoteFactory.getConnection();
+             LDAPConnectionFactory proxy = new LDAPConnectionFactory("localhost", TestCaseUtils.getServerLdapPort());
+             Connection client = proxy.getConnection()) {
+            admin.bind(ADMIN, "password".toCharArray());
+            final String first = "uid=rewrite-page-one," + REMOTE_BASE;
+            final String second = "uid=rewrite-page-two," + REMOTE_BASE;
+            admin.add(Requests.newAddRequest(first).addAttribute("objectClass", "top", "person", "organizationalPerson", "inetOrgPerson")
+                    .addAttribute("uid", "rewrite-page-one").addAttribute("cn", "Page One").addAttribute("sn", "One")
+                    .addAttribute("displayName", "Page One"));
+            try {
+                admin.add(Requests.newAddRequest(second).addAttribute("objectClass", "top", "person", "organizationalPerson", "inetOrgPerson")
+                        .addAttribute("uid", "rewrite-page-two").addAttribute("cn", "Page Two").addAttribute("sn", "Two")
+                        .addAttribute("displayName", "Page Two"));
+                try {
+                    client.bind("uid=rewrite-user," + PROXY_BASE, "password".toCharArray());
+                    ByteString cookie = ByteString.empty();
+                    final Set<DN> seen = new HashSet<>();
+                    for (int page = 0; page < 3; page++) {
+                        final SearchRequest request = Requests.newSearchRequest(PROXY_BASE, SearchScope.WHOLE_SUBTREE,
+                                "(uid=rewrite-page-*)", "description");
+                        request.addControl(SimplePagedResultsControl.newControl(true, 1, cookie));
+                        final List<SearchResultEntry> entries = new ArrayList<>();
+                        final Result result = client.search(request, entries);
+                        assertTrue(entries.size() <= 1);
+                        for (SearchResultEntry entry : entries) {
+                            assertTrue(seen.add(entry.getName()), "A paged result was returned twice");
+                            assertNotNull(entry.getAttribute("description"));
+                            assertEquals(entry.getAttribute("displayName"), null);
+                        }
+                        final SimplePagedResultsControl response = result.getControl(SimplePagedResultsControl.DECODER,
+                                new DecodeOptions());
+                        assertNotNull(response);
+                        cookie = response.getCookie();
+                        if (page == 0) {
+                            assertTrue(!cookie.isEmpty(), "The first page must contain a continuation cookie");
+                        }
+                        if (cookie.isEmpty()) {
+                            break;
+                        }
+                    }
+                    assertTrue(cookie.isEmpty(), "Paging must terminate");
+                    final Set<DN> expected = new HashSet<>();
+                    expected.add(DN.valueOf("uid=rewrite-page-one," + PROXY_BASE));
+                    expected.add(DN.valueOf("uid=rewrite-page-two," + PROXY_BASE));
+                    assertEquals(seen, expected);
+                } finally {
+                    admin.delete(second);
+                }
+            } finally {
+                admin.delete(first);
+            }
         }
     }
 
