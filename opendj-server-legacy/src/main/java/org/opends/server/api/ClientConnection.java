@@ -74,7 +74,7 @@ public abstract class ClientConnection
   /**
    * The set of authentication information for this client connection.
    */
-  protected AuthenticationInfo authenticationInfo;
+  protected volatile AuthenticationInfo authenticationInfo;
 
   /**
    * Indicates whether a multistage SASL bind is currently in progress
