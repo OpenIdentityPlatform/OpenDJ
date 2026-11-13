@@ -44,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
@@ -1665,7 +1664,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         }
         try {
             if (!clientContext.enableTLS(connectionHandler.createSSLEngine(), true)) {
-                unavailableReason.append(ERR_LDAP_TLS_EXISTING_SECURITY_PROVIDER.get(SSLEngine.class.getName()));
+                unavailableReason.append(ERR_LDAP_TLS_UPGRADE_UNAVAILABLE.get());
                 return false;
             }
         } catch (DirectoryException de) {
