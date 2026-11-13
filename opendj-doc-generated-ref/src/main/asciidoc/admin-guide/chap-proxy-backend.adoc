@@ -75,7 +75,7 @@ ldapsearch -Y EXTERNAL -H ldapi:/// -LLL -b cn=config \
   '(olcSuffix=dc=directory,dc=example)' dn
 ----
 
-Replace `olcDatabase={1}mdb,cn=config` below with the returned DN. For a test server whose proxy authorization policy is currently disabled, enable source rules and add the ACL ahead of existing ACLs:
+Replace `olcDatabase=\{1}mdb,cn=config` below with the returned DN. For a test server whose proxy authorization policy is currently disabled, enable source rules and add the ACL ahead of existing ACLs:
 
 [source,bash]
 ----
