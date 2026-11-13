@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024-2026 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
@@ -12092,6 +12092,13 @@ Severity: ERROR
 
 +
 Message: Use of the proxied authorization V2 control for user %s is not allowed: the account's password is expired.
+
+[#log-ref-log-ref-ERR_LDAP_TLS_UPGRADE_UNAVAILABLE_1544]
+ID: 1544::
+Severity: ERROR
+
++
+Message: StartTLS cannot be enabled because the connection is closed, TLS is already enabled, or a TLS upgrade is pending.
 
 --
 
