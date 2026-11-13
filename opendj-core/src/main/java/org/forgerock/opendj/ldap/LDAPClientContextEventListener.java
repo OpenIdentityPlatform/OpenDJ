@@ -12,16 +12,26 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.ldap;
 
 import java.util.EventListener;
 
+import org.forgerock.opendj.io.ProxyProtocolHeader;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
 
 /** A listener interface for handling LDAPClientContext state changes. */
 public interface LDAPClientContextEventListener extends EventListener {
+    /**
+     * Called synchronously after a valid PROXY header and before subsequent traffic is processed.
+     * @param context the connection context
+     * @param header the decoded header
+     */
+    default void handleProxyProtocolHeader(LDAPClientContext context, ProxyProtocolHeader header) {
+    }
+
     /**
      * Invoked when the connection has been disconnected because of an error (e.g: message too big).
      *

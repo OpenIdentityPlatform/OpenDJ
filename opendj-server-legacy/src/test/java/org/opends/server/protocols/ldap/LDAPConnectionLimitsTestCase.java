@@ -283,9 +283,10 @@ public class LDAPConnectionLimitsTestCase extends DirectoryServerTestCase
           (LDAPClientConnection2) handler.getClientConnections().iterator().next();
       handler.finalizeConnectionHandler(STOP_REASON);
       final Method limit =
-          LDAPConnectionHandler2.class.getDeclaredMethod("limitTimeToFirstRequest", LDAPClientConnection2.class);
+          LDAPConnectionHandler2.class.getDeclaredMethod("limitTimeToFirstRequest", LDAPClientConnection2.class,
+              boolean.class);
       limit.setAccessible(true);
-      limit.invoke(handler, connection);
+      limit.invoke(handler, connection, false);
     }
     finally
     {

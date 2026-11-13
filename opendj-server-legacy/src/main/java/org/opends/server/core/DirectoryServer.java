@@ -251,7 +251,7 @@ public final class DirectoryServer
   /** Indicates whether the server is currently online. Read without holding {@link #LIFECYCLE_LOCK}. */
   private volatile boolean isRunning;
   /** Indicates whether the server is currently in "lockdown mode". */
-  private boolean lockdownMode;
+  private volatile boolean lockdownMode;
 
   /**
    * Indicates whether the server is currently in the process of shutting down.

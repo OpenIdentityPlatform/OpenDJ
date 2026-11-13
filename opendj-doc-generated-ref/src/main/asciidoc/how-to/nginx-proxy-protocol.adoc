@@ -1,0 +1,160 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+[#how-to-nginx-proxy-protocol]
+== Forward LDAP Through nginx With PROXY Protocol
+
+This example runs OpenDJ, nginx, and an LDAP client in separate Docker containers. nginx forwards the client connection to a dedicated OpenDJ LDAP handler using PROXY protocol v2. You will search a directory entry and verify that the OpenDJ access log records the client's address.
+
+You need Docker. The commands create disposable containers and do not publish a port on the host. The example uses an illustrative password and unencrypted LDAP. For a real deployment, protect both network legs with TLS, restrict access to the handler, and use an account with only the permissions the client needs.
+
+Pull the OpenDJ image and create a temporary directory for the nginx configuration:
+
+[source,bash]
+----
+docker pull openidentityplatform/opendj:latest
+DEMO_DIR=$(mktemp -d "${TMPDIR:-/tmp}/opendj-nginx-demo.XXXXXX")
+----
+
+Use the same shell for the remaining commands so that `DEMO_DIR` and the address variables remain available. The example names must not already be in use.
+
+=== Start OpenDJ and nginx
+
+Create an isolated Docker network and start OpenDJ with a base entry:
+
+[source,bash]
+----
+docker network create opendj-proxy-demo
+docker run -d --init --name opendj-proxy-demo-opendj \
+  --network opendj-proxy-demo --network-alias opendj \
+  -e ROOT_PASSWORD='DemoPassword123!' -e ADD_BASE_ENTRY=--addBaseEntry \
+  openidentityplatform/opendj:latest
+----
+
+Wait until the container is healthy before configuring it. Initial setup can take several minutes. If it becomes unhealthy, inspect `docker logs opendj-proxy-demo-opendj`.
+
+[source,bash]
+----
+docker inspect -f '{{.State.Health.Status}}' opendj-proxy-demo-opendj
+----
+
+Write the nginx configuration. The `stream` module forwards TCP traffic to port `2389` on OpenDJ and sends a v2 PROXY header before the LDAP bytes. The pinned nginx image supports `proxy_protocol v2`; v2 upstream support requires nginx 1.31.4 or later.
+
+[source,bash]
+----
+cat > "$DEMO_DIR/nginx.conf" <<'EOF'
+worker_processes 1;
+error_log /dev/stderr info;
+events { worker_connections 128; }
+stream {
+    server {
+        listen 1389;
+        proxy_pass opendj:2389;
+        proxy_protocol v2;
+    }
+}
+EOF
+docker run -d --name opendj-proxy-demo-nginx \
+  --network opendj-proxy-demo --network-alias nginx \
+  -v "$DEMO_DIR/nginx.conf:/etc/nginx/nginx.conf:ro" nginx:1.31.4
+docker exec opendj-proxy-demo-nginx nginx -t
+----
+
+The configuration test must report `syntax is ok` and `test is successful`. The upstream handler is created in the next step.
+
+=== Trust nginx and Create the Handler
+
+Use nginx's actual address on this Docker network. An empty `proxy-protocol-allowed-client` list rejects every connection, and a trusted sender must provide a valid PROXY header. Create the handler enabled on port `2389`:
+
+[source,bash]
+----
+NGINX_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' opendj-proxy-demo-nginx)
+echo "Trusted nginx address: $NGINX_IP"
+docker exec opendj-proxy-demo-opendj /opt/opendj/bin/dsconfig create-connection-handler \
+  --handler-name 'LDAP via nginx' --type ldap \
+  --set enabled:true --set listen-address:0.0.0.0 --set listen-port:2389 \
+  --set use-ssl:false --set proxy-protocol-enabled:true \
+  --set "proxy-protocol-allowed-client:$NGINX_IP" \
+  --hostname localhost --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPassword 'DemoPassword123!' \
+  --trustAll --no-prompt
+----
+
+The existing LDAP listener on port `1389` remains available for direct connections inside the network. In a deployment, use network controls so untrusted clients cannot reach a listener that is intended only for a load balancer. If nginx is recreated with a different address, update the trusted list before using the new container.
+
+=== Search Through nginx and Check the Log
+
+Start a separate client container. It uses the OpenDJ image for its `ldapsearch` command; its entrypoint is `sleep`, so it does not start another server. Obtain the client and server addresses, then compare them with the nginx address:
+
+[source,bash]
+----
+docker run -d --name opendj-proxy-demo-client --network opendj-proxy-demo \
+  --entrypoint sleep openidentityplatform/opendj:latest 3600
+CLIENT_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' opendj-proxy-demo-client)
+SERVER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' opendj-proxy-demo-opendj)
+printf 'client=%s nginx=%s opendj=%s\n' "$CLIENT_IP" "$NGINX_IP" "$SERVER_IP"
+----
+
+The three addresses should be different. Bind and search through nginx:
+
+[source,bash]
+----
+docker exec opendj-proxy-demo-client /opt/opendj/bin/ldapsearch \
+  --hostname nginx --port 1389 \
+  --bindDN 'cn=Directory Manager' --bindPassword 'DemoPassword123!' \
+  --baseDN 'dc=example,dc=com' --searchScope base '(objectClass=*)' dn
+----
+
+The result contains `dn: dc=example,dc=com`. Look for the same client's address in OpenDJ's text access log:
+
+[source,bash]
+----
+docker exec opendj-proxy-demo-opendj grep -F "from=$CLIENT_IP:" /opt/opendj/data/logs/access
+----
+
+For example, with client `172.19.0.4`, nginx `172.19.0.3`, and OpenDJ `172.19.0.2`, the output includes a line like this; Docker assigns the actual addresses and client port:
+
+[source,text]
+----
+[13/Nov/2026:12:21:03 +0000] CONNECT conn=2 from=172.19.0.4:59000 to=172.19.0.2:2389 protocol=LDAP
+----
+
+The `from` address is the client, not nginx. If the line is not there yet, wait for the asynchronous log writer and repeat the `grep`. As a negative check, try connecting directly from the client to the PROXY handler. The client is not in the trusted list, so the search must fail with a closed connection:
+
+[source,bash]
+----
+docker exec opendj-proxy-demo-client /opt/opendj/bin/ldapsearch \
+  --hostname opendj --port 2389 \
+  --bindDN 'cn=Directory Manager' --bindPassword 'DemoPassword123!' \
+  --baseDN 'dc=example,dc=com' --searchScope base '(objectClass=*)' dn
+----
+
+=== Remove the Example
+
+Remove the containers and network created by this example, then remove the temporary nginx configuration directory:
+
+[source,bash]
+----
+docker rm -f opendj-proxy-demo-client opendj-proxy-demo-nginx opendj-proxy-demo-opendj
+docker network rm opendj-proxy-demo
+rm -r "$DEMO_DIR"
+----
+
+For the handler properties, TLS metadata, and load balancer trust requirements, see xref:../admin-guide/chap-connection-handlers.adoc#proxy-protocol[Client Addresses Behind a TCP Load Balancer].
