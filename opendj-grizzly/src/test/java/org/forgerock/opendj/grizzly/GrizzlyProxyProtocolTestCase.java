@@ -21,10 +21,12 @@ import static org.testng.Assert.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -36,9 +38,22 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SdkTestCase;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.util.Options;
+import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.IOEvent;
+import org.glassfish.grizzly.ProcessorResult;
+import org.glassfish.grizzly.filterchain.BaseFilter;
+import org.glassfish.grizzly.filterchain.FilterChain;
+import org.glassfish.grizzly.filterchain.FilterChainBuilder;
+import org.glassfish.grizzly.filterchain.FilterChainContext;
+import org.glassfish.grizzly.filterchain.NextAction;
+import org.glassfish.grizzly.memory.Buffers;
+import org.glassfish.grizzly.memory.MemoryManager;
+import org.glassfish.grizzly.nio.transport.TCPNIOConnection;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/** Tests a PROXY listener with real TCP sockets. */
+/** Tests PROXY header filtering and a listener with real TCP sockets. */
 @SuppressWarnings("javadoc")
 public class GrizzlyProxyProtocolTestCase extends SdkTestCase {
     private static final byte[] BIND = { 0x30, 0x0c, 0x02, 0x01, 0x01, 0x60, 0x07,
@@ -176,6 +191,48 @@ public class GrizzlyProxyProtocolTestCase extends SdkTestCase {
             socket.getOutputStream().flush();
             assertEquals(socket.getInputStream().read(), -1);
             assertEquals(requests.get(), 0);
+        }
+    }
+
+    @DataProvider
+    public Object[][] headerCallbackStates() {
+        return new Object[][] { { false, 0 }, { true, 1 } };
+    }
+
+    @Test(dataProvider = "headerCallbackStates")
+    public void headerCallbackControlsDeliveryOfCoalescedRequest(boolean remainActive, int expectedReads)
+            throws Exception {
+        AtomicBoolean active = new AtomicBoolean(true);
+        AtomicReference<ProxyProtocolHeader> observedHeader = new AtomicReference<>();
+        AtomicReference<Throwable> error = new AtomicReference<>();
+        AtomicInteger downstreamReads = new AtomicInteger();
+        FilterChain chain = FilterChainBuilder.stateless()
+                .add(new ProxyProtocolFilter(header -> {
+                    observedHeader.set(header);
+                    active.set(remainActive);
+                }, error::set, active::get))
+                .add(new BaseFilter() {
+                    @Override
+                    public NextAction handleRead(FilterChainContext ctx) {
+                        downstreamReads.incrementAndGet();
+                        return ctx.getStopAction();
+                    }
+                }).build();
+        byte[] header = "PROXY UNKNOWN\r\n".getBytes(StandardCharsets.US_ASCII);
+        byte[] coalesced = ByteBuffer.allocate(header.length + BIND.length).put(header).put(BIND).array();
+        Buffer input = Buffers.wrap(MemoryManager.DEFAULT_MEMORY_MANAGER, coalesced);
+        try (SocketChannel channel = SocketChannel.open()) {
+            TCPNIOConnection connection = new TCPNIOConnection(TCPNIOTransportBuilder.newInstance().build(), channel);
+            FilterChainContext ctx = chain.obtainFilterChainContext(connection);
+            ctx.getInternalContext().setIoEvent(IOEvent.READ);
+            ctx.setMessage(input);
+            assertEquals(chain.process(ctx.getInternalContext()).getStatus(), ProcessorResult.Status.COMPLETE);
+            assertNull(error.get(), "PROXY header decoding failed");
+            assertNotNull(observedHeader.get(), "Header callback was not invoked");
+            assertEquals(input.toByteBuffer(), ByteBuffer.wrap(BIND), "The complete BIND must remain after the header");
+            assertEquals(downstreamReads.get(), expectedReads, "Callback state must control downstream delivery");
+        } finally {
+            input.dispose();
         }
     }
 

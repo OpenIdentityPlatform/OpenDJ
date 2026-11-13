@@ -155,7 +155,7 @@ backend directories
     server ds2 ds2.example.com:1636 send-proxy-v2 check
 ----
 
-If HAProxy terminates client TLS, `send-proxy-v2-ssl` can forward its TLS metadata and cipher for security strength evaluation. OpenDJ reports a proxy security strength of zero when the cipher is missing or not recognized. The metadata does not provide a client certificate or an `SSLSession`. Configure HAProxy to accept only secure client connections and protect the connection from HAProxy to OpenDJ too: TLS on just one leg does not protect the other. For client StartTLS or certificate authentication with SASL EXTERNAL, pass TLS through to OpenDJ rather than terminating it at the load balancer.
+If HAProxy terminates client TLS, use `send-proxy-v2-ssl proxy-v2-options ssl-cipher` on its backend `server` lines to forward its TLS metadata and cipher for security strength evaluation. The `ssl-cipher` option is required to include the cipher name. OpenDJ reports a proxy security strength of zero when the cipher is missing or not recognized. The metadata does not provide a client certificate or an `SSLSession`. Configure HAProxy to accept only secure client connections and protect the connection from HAProxy to OpenDJ too: TLS on just one leg does not protect the other. For client StartTLS or certificate authentication with SASL EXTERNAL, pass TLS through to OpenDJ rather than terminating it at the load balancer.
 
 
 [#setup-server-cert]
