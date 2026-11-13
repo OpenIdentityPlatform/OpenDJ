@@ -71,10 +71,14 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="replication-server" multi-valued="true" mandatory="true">
+  <adm:property name="bootstrap-replication-server" multi-valued="true" mandatory="true">
     <adm:synopsis>
-      Specifies the list of replication servers to contact periodically when discovering server replicas.
+      Specifies the administration addresses of replication servers used to discover server replicas.
     </adm:synopsis>
+    <adm:description>
+      Each address must identify the administration port of a replication server.
+      IPv6 addresses must be enclosed in brackets.
+    </adm:description>
     <adm:syntax>
       <adm:string>
         <adm:pattern>
@@ -88,8 +92,16 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-replication-server</ldap:name>
+        <ldap:name>ds-cfg-bootstrap-replication-server</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="discovery-interval">
+    <adm:synopsis>Interval between topology discovery queries.</adm:synopsis>
+    <adm:default-behavior><adm:defined><adm:value>60s</adm:value></adm:defined></adm:default-behavior>
+    <adm:syntax><adm:duration base-unit="s" lower-limit="1s"/></adm:syntax>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-discovery-interval</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+
 </adm:managed-object>

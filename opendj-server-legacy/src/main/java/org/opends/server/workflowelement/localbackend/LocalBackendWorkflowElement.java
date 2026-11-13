@@ -791,7 +791,7 @@ public class LocalBackendWorkflowElement
    * @throws CanceledOperationException
    *           if this operation should be canceled.
    */
-  private static void executeSearchOnSubordinates(SearchOperation searchOp)
+  public static void executeSearchOnSubordinates(SearchOperation searchOp)
       throws CanceledOperationException {
     SearchScope originalScope = searchOp.getScope();
     if (originalScope == SearchScope.BASE_OBJECT)
@@ -804,7 +804,7 @@ public class LocalBackendWorkflowElement
 
     SearchResultCode searchResultCode = new SearchResultCode(searchOp.getResultCode(), searchOp.getErrorMessage());
     DN originalBaseDN = searchOp.getBaseDN();
-    for (DN subordinateDN : getBackendManager().findSubordinateLocalNamingContextsToSearchForEntry(originalBaseDN))
+    for (DN subordinateDN : getBackendManager().findSubordinateNamingContextsToSearchForEntry(originalBaseDN))
     {
       // We have to change the operation request base DN to match the
       // subordinate workflow base DN. Otherwise the workflow will

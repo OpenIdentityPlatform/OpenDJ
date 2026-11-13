@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.admin.ads.util;
 
@@ -129,6 +130,13 @@ public class ConnectionWrapper implements Closeable
   public ConnectionWrapper(HostPort hostPort, PreferredConnection.Type connectionType, DN bindDn, String bindPwd,
       int connectTimeout, TrustManager trustManager, KeyManager keyManager) throws LdapException
   {
+    this(hostPort, connectionType, bindDn, bindPwd, connectTimeout, trustManager, keyManager, 0);
+  }
+
+  /** Creates a connection wrapper with a timeout for each LDAP request, in milliseconds. */
+  public ConnectionWrapper(HostPort hostPort, PreferredConnection.Type connectionType, DN bindDn, String bindPwd,
+      int connectTimeout, TrustManager trustManager, KeyManager keyManager, long requestTimeout) throws LdapException
+  {
     this.hostPort = hostPort;
     this.connectionType = connectionType;
     this.bindDn = bindDn;
@@ -138,6 +146,10 @@ public class ConnectionWrapper implements Closeable
     this.keyManager = keyManager;
 
     final Options options = toOptions(connectionType, bindDn, bindPwd, connectTimeout, trustManager, keyManager);
+    if (requestTimeout > 0)
+    {
+      options.set(REQUEST_TIMEOUT, duration(requestTimeout, TimeUnit.MILLISECONDS));
+    }
     connectionFactory = new LDAPConnectionFactory(hostPort.getHost(), hostPort.getPort(), options);
     connection = connectionFactory.getConnection();
   }

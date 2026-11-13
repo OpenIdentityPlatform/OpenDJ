@@ -43,6 +43,9 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
+  <adm:property-override name="trust-manager-provider">
+    <adm:requires-admin-action><adm:component-restart/></adm:requires-admin-action>
+  </adm:property-override>
   <adm:property name="primary-server" multi-valued="true" mandatory="true">
     <adm:synopsis>
       Specifies a list of servers that will be used in preference to secondary servers when available.

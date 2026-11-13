@@ -22,8 +22,10 @@
     A Proxy Backend forwards LDAP requests to other servers.
   </adm:synopsis>
   <adm:description>
-    A Proxy Backend uses the proxied authorization control to forward LDAP requests on behalf of the proxy users.
-    As a consequence, the remote servers must support the proxied authorization control and the proxy user must have appropriate privileges and permissions allowing them to use the control.
+    A Proxy Backend forwards requests using proxied authorization when a service account is
+    configured and the remote servers advertise support for that control. Otherwise, it uses
+    connections authenticated with each client's own credentials. Passwords are not retained
+    for reconnecting; clients must bind again if their remote connections are lost.
   </adm:description>
   <adm:tag name="database" />
   <adm:profile name="ldap">
@@ -425,12 +427,44 @@
     </adm:profile>
   </adm:property-->
 
-  <adm:property name="route-all" mandatory="true" advanced="false">
+  <adm:property name="remote-base-dn" mandatory="false" multi-valued="false">
     <adm:synopsis>
-      Route requests to all discovered public naming contexts.
+      Specifies the remote suffix corresponding to the proxy backend base DN.
     </adm:synopsis>
     <adm:description>
-      When the "route-all" property is set to "true" then the "base-dn" property is ignored.
+      When specified, the proxy backend must have exactly one base DN. Names under that base DN
+      are translated to this remote suffix, and responses are translated back. When not specified,
+      distinguished names are not rewritten.
+    </adm:description>
+    <adm:default-behavior><adm:undefined/></adm:default-behavior>
+    <adm:syntax><adm:dn/></adm:syntax>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-remote-base-dn</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+
+  <adm:property name="attribute-mapping" mandatory="false" multi-valued="true">
+    <adm:synopsis>
+      Maps a client attribute name to a remote attribute name.
+    </adm:synopsis>
+    <adm:description>
+      Each value has the form client-attribute=remote-attribute. Attribute names must form a
+      one-to-one mapping; attribute options are preserved. Attribute mappings can be used
+      independently of remote-base-dn.
+    </adm:description>
+    <adm:default-behavior><adm:undefined/></adm:default-behavior>
+    <adm:syntax><adm:string/></adm:syntax>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-attribute-mapping</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+
+  <!-- Reserved until routing to all discovered naming contexts is implemented.
+  <adm:property name="route-all" mandatory="true" advanced="false">
+    <adm:synopsis>
+      Reserved for routing to all discovered public naming contexts.
+    </adm:synopsis>
+    <adm:description>
+      This property is not currently implemented. Its value has no effect; the proxy uses
+      the configured base-dn values.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -449,6 +483,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  -->
 
   <adm:property name="shard" mandatory="true" advanced="false" multi-valued="false">
     <adm:synopsis>

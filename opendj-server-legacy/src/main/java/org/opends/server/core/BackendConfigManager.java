@@ -26,6 +26,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -554,6 +555,23 @@ public class BackendConfigManager implements
     return findSubordinateLocalNamingContextsForEntry(entryDN);
   }
 
+  /** Returns direct subordinate naming contexts, including proxy backends, for a search. */
+  public Set<DN> findSubordinateNamingContextsToSearchForEntry(DN entryDN)
+  {
+    if (entryDN.isRootDN())
+    {
+      Set<DN> configured = serverContext.getCoreConfigManager().getSubordinateBaseDNs();
+      if (!configured.isEmpty())
+      {
+        return configured;
+      }
+    }
+    final Registry reg = registry;
+    final DN baseDN = reg.findNamingContextForEntry(entryDN);
+    return baseDN == null && !entryDN.isRootDN() ? Collections.emptySet()
+        : reg.getSubordinateNamingContexts(baseDN == null ? entryDN : baseDN);
+  }
+
   /**
    * Retrieves naming contexts corresponding to backends, filtered with the combination of
    * all provided filters.
@@ -676,6 +694,49 @@ public class BackendConfigManager implements
       Registry newRegister = registry.copy();
       newRegister.deregisterBaseDN(baseDN);
       registry = newRegister;
+    }
+    finally
+    {
+      writeLock.unlock();
+    }
+  }
+
+  /** Atomically replaces the registered base DNs and applies the associated backend change. */
+  public void replaceBackendBaseDNs(Backend<? extends BackendCfg> backend, Set<DN> oldBaseDNs,
+      Set<DN> newBaseDNs, Runnable applyChange) throws DirectoryException
+  {
+    writeLock.lock();
+    try
+    {
+      Set<DN> removed = new LinkedHashSet<>(oldBaseDNs);
+      removed.removeAll(newBaseDNs);
+      Set<DN> added = new LinkedHashSet<>(newBaseDNs);
+      added.removeAll(oldBaseDNs);
+      Registry check = registry.copyForCheckingChanges();
+      for (DN dn : removed)
+      {
+        if (check.backendsByName.get(dn) != backend)
+        {
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+              LocalizableMessage.raw("Backend no longer owns base DN " + dn));
+        }
+        check.deregisterBaseDN(dn);
+      }
+      for (DN dn : added)
+      {
+        check.registerBaseDN(dn, backend, false);
+      }
+      Registry updated = registry.copy();
+      for (DN dn : removed)
+      {
+        updated.deregisterBaseDN(dn);
+      }
+      for (DN dn : added)
+      {
+        updated.registerBaseDN(dn, backend, false);
+      }
+      registry = updated;
+      applyChange.run();
     }
     finally
     {
@@ -1166,10 +1227,6 @@ public class BackendConfigManager implements
       {
         listener.performBackendPostFinalizationProcessing(localBackend);
       }
-    }
-    else
-    {
-      throw new RuntimeException("Proxy backend deregistration not implemented yet");
     }
   }
 

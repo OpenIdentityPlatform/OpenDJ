@@ -118,50 +118,18 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property-->
-  <!--adm:property name="trust-manager-provider">
-    <adm:synopsis>
-      Specifies the name of the trust manager that should be used with
-      the <adm:user-friendly-name/>.
-    </adm:synopsis>
-    <adm:requires-admin-action>
-      <adm:none>
-        <adm:synopsis>
-          Changes to this property take effect immediately, but
-          only for subsequent attempts to access the trust manager
-          provider for associated client connections.
-        </adm:synopsis>
-      </adm:none>
-    </adm:requires-admin-action>
-    <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Use the trust manager provided by the JVM.
-        </adm:synopsis>
-      </adm:alias>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:aggregation relation-name="trust-manager-provider"
-                       parent-path="/">
-        <adm:constraint>
-          <adm:synopsis>
-            The referenced trust manager provider must be enabled when the
-            <adm:user-friendly-name/> is enabled and configured to use SSL or StartTLS.
-          </adm:synopsis>
-          <adm:target-needs-enabling-condition>
-            <adm:or>
-              <adm:contains property="use-ssl" value="true"/>
-              <adm:contains property="use-start-tls" value="true"/>
-            </adm:or>
-          </adm:target-needs-enabling-condition>
-        </adm:constraint>
-      </adm:aggregation>
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-trust-manager-provider</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property-->
+  <adm:property name="trust-manager-provider">
+    <adm:synopsis>Trust manager provider used for TLS connections to remote servers.</adm:synopsis>
+    <adm:description>
+      Static discovery uses this provider for LDAPS connections to directory servers.
+      Replication discovery always uses TLS for administration connections and uses this
+      provider for LDAP connections when use-ssl is enabled.
+    </adm:description>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:default-behavior><adm:alias><adm:synopsis>Use the trust manager provided by the JVM.</adm:synopsis></adm:alias></adm:default-behavior>
+    <adm:syntax><adm:aggregation relation-name="trust-manager-provider" parent-path="/"/></adm:syntax>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-trust-manager-provider</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
   <!--adm:property name="discovery-interval">
     <adm:synopsis>
       Interval between two server configuration discovery executions.
@@ -184,14 +152,18 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-->
-  <adm:property name="bind-dn" mandatory="true">
+  <adm:property name="bind-dn" mandatory="false">
     <adm:synopsis>
-      The bind DN for periodically reading replication server configurations
+      The optional service account bind DN used to connect to remote directory servers.
     </adm:synopsis>
     <adm:description>
-      The bind DN must be present on all replication servers and directory servers,
-      it must be able to read the server configuration.
+      For static discovery, omit both bind-dn and bind-password to use connections
+      authenticated as individual clients. When supplied, the account must be present on
+      all remote directory servers and must be allowed to use proxied authorization.
+      Replication discovery requires an account able to read the administration data
+      registry and replication configurations.
     </adm:description>
+    <adm:default-behavior><adm:undefined/></adm:default-behavior>
     <adm:syntax>
       <adm:dn/>
     </adm:syntax>
@@ -201,13 +173,15 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="bind-password" mandatory="true">
+  <adm:property name="bind-password" mandatory="false">
     <adm:synopsis>
-      The bind password for periodically reading replication server configurations
+      The optional password for the service account used to connect to remote servers.
     </adm:synopsis>
     <adm:description>
-      The bind password must be the same on all replication and directory servers
+      If supplied, bind-dn must also be supplied and the password must be the same on all
+      servers used by the discovery mechanism.
     </adm:description>
+    <adm:default-behavior><adm:undefined/></adm:default-behavior>
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-bind-password</ldap:name>
