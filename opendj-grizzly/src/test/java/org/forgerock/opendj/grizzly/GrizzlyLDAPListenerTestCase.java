@@ -30,7 +30,10 @@ import static org.mockito.Mockito.mock;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -50,6 +53,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -608,6 +612,60 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
             }
         } finally {
             restoreProperty(property, previous);
+            listener.close();
+            transport.shutdownNow();
+        }
+    }
+
+    /** An expiry which has started before a renewal must not close the renewed handshake. */
+    @Test(timeOut = 20000)
+    public void testStartedHandshakeExpiryDoesNotCloseRenewedConnection() throws Exception {
+        final SSLContext serverContext = largeCertificateContext();
+        final TCPNIOTransport transport = TCPNIOTransportBuilder.newInstance().build();
+        transport.start();
+        final MockServerConnection serverConnection = new MockServerConnection();
+        final LDAPListener listener = secureListener(transport, serverContext, serverConnection);
+        try {
+            final InetSocketAddress address = listener.firstSocketAddress();
+            try (Socket socket = new Socket(address.getAddress(), address.getPort())) {
+                final LDAPClientContext context = serverConnection.context.get(5, TimeUnit.SECONDS);
+                final Class<?> contextClass = context.getClass();
+                final Method renew = contextClass.getDeclaredMethod("renewHandshakeDeadline", long.class);
+                final Field deadlineField = contextClass.getDeclaredField("handshakeDeadline");
+                final Field connectionField = contextClass.getDeclaredField("connection");
+                renew.setAccessible(true);
+                deadlineField.setAccessible(true);
+                connectionField.setAccessible(true);
+                final org.glassfish.grizzly.Connection<?> connection =
+                        (org.glassfish.grizzly.Connection<?>) connectionField.get(context);
+                final Thread expiry;
+                synchronized (context) {
+                    // Run the actual scheduled task early, then hold it at the context monitor while renewing.
+                    renew.invoke(context, 60000L);
+                    final ScheduledFuture<?> oldDeadline = (ScheduledFuture<?>) deadlineField.get(context);
+                    expiry = new Thread((Runnable) oldDeadline, "test-started-handshake-expiry");
+                    expiry.setDaemon(true);
+                    expiry.start();
+                    final long waitUntil = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+                    while (expiry.getState() != Thread.State.BLOCKED && System.nanoTime() < waitUntil) {
+                        Thread.sleep(5);
+                    }
+                    org.testng.Assert.assertEquals(expiry.getState(), Thread.State.BLOCKED,
+                            "the expiry did not start and wait for the context monitor");
+                    final ThreadInfo blocked = ManagementFactory.getThreadMXBean().getThreadInfo(expiry.getId());
+                    org.testng.Assert.assertNotNull(blocked.getLockInfo(), "the expiry is not waiting on a monitor");
+                    org.testng.Assert.assertEquals(blocked.getLockInfo().getIdentityHashCode(),
+                            System.identityHashCode(context), "the expiry is blocked on a different monitor");
+                    renew.invoke(context, 5000L);
+                    org.testng.Assert.assertTrue(oldDeadline.isCancelled(), "the previous deadline was not cancelled");
+                }
+                expiry.join(5000);
+                org.testng.Assert.assertFalse(expiry.isAlive(), "the previous expiry did not finish");
+                org.testng.Assert.assertTrue(connection.isOpen(), "the previous expiry closed the renewed handshake");
+                socket.setSoTimeout(10000);
+                org.testng.Assert.assertEquals(socket.getInputStream().read(), -1, "the renewed deadline did not fire");
+            }
+        } finally {
             listener.close();
             transport.shutdownNow();
         }
