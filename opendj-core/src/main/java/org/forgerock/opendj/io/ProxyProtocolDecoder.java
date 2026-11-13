@@ -139,7 +139,12 @@ public final class ProxyProtocolDecoder {
             if (!octets[i].matches("0|[1-9][0-9]{0,2}")) {
                 throw invalid("invalid IPv4 address");
             }
-            int n = Integer.parseInt(octets[i]);
+            int n;
+            try {
+                n = Integer.parseInt(octets[i]);
+            } catch (NumberFormatException e) {
+                throw invalid("invalid IPv4 address");
+            }
             if (n > 255) {
                 throw invalid("invalid IPv4 address");
             }
@@ -152,7 +157,12 @@ public final class ProxyProtocolDecoder {
         if (!text.matches("0|[1-9][0-9]{0,4}")) {
             throw invalid("invalid port");
         }
-        int port = Integer.parseInt(text);
+        int port;
+        try {
+            port = Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            throw invalid("invalid port");
+        }
         if (port > 65535) {
             throw invalid("invalid port");
         }

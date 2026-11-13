@@ -108,6 +108,28 @@ public class ProxyProtocolDecoderTestCase extends SdkTestCase {
     }
 
     @Test
+    public void v1Ipv4AddressAndPortBoundaries() throws Exception {
+        ProxyProtocolHeader header = decode("PROXY TCP4 255.255.255.255 0.0.0.0 65535 0\r\n");
+        assertEquals(header.getSourceAddress(),
+                new InetSocketAddress(InetAddress.getByName("255.255.255.255"), 65535));
+
+        for (String text : new String[] {
+                "PROXY TCP4 256.0.0.1 198.51.100.2 123 389\r\n",
+                "PROXY TCP4 192.0.2.1 198.51.100.256 123 389\r\n",
+                "PROXY TCP4 999999999999.0.0.1 198.51.100.2 123 389\r\n",
+                "PROXY TCP4 192.0.2.1 198.51.100.2 99999 389\r\n",
+                "PROXY TCP4 192.0.2.1 198.51.100.2 123 65536\r\n",
+                "PROXY TCP4 192.0.2.1 198.51.100.2 100000 389\r\n" }) {
+            try {
+                decode(text);
+                fail("accepted " + text);
+            } catch (ProxyProtocolDecoder.InvalidHeaderException expected) {
+                // Invalid numerical fields must be reported as protocol errors.
+            }
+        }
+    }
+
+    @Test
     public void validatedSslTlvCarriesFlagAndCipher() throws Exception {
         byte[] address = { (byte) 192, 0, 2, 1, (byte) 198, 51, 100, 2, 0x30, 0x39, 1, (byte) 0x85 };
         byte[] cipher = "AES128-GCM-SHA256".getBytes(StandardCharsets.US_ASCII);
