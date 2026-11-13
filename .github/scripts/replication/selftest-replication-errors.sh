@@ -64,6 +64,8 @@ E211='[t] category=SYNC severity=ERROR msgID=211 msg=The connection from this re
 E66='[t] category=SYNC severity=ERROR msgID=66 msg=monitor reply failed'
 E108='[t] category=SYNC severity=ERROR msgID=108 msg=monitor request failed'
 E51='[05/Nov/2026:19:18:17 +0000] category=SYNC severity=ERROR msgID=51 msg=The hostname cv-r0 could not be resolved as an IP address'
+BASE_DN=dc=example,dc=com
+E212='[t] category=SYNC severity=ERROR msgID=212 msg=Directory server DS(23874) timed out while connecting to replication server cv-r1:8989 for domain "dc=example,dc=com"'
 E18='[t] category=SYNC severity=ERROR msgID=18 msg=an id that starts the first one a window lists'
 E80='[t] category=SYNC severity=ERROR msgID=80 msg=an id that ends the first one a window lists'
 E106KILL='[t] category=SYNC severity=ERROR msgID=106 msg=an id a window lists, 181, in the message'
@@ -216,6 +218,11 @@ case_ new-cert-rs-other-ip      1 0 '[ cert-peer:n0:172.18.0.8' "$WBAD_PEER" ']'
 case_ new-cert-rs-other-node    1 0 '[ cert-peer:n1:172.18.0.9' "$WBAD_PEER" ']'
 case_ new-cert-rs-outside       1 0 "$WBAD_PEER" '[ cert-peer:n0:172.18.0.9' ']'
 case_ new-cert-rs-other-fault   1 0 '[ cert-peer:n0:172.18.0.9' "${WBAD_PEER/Received fatal alert: bad_certificate/unexpected bad_certificate}" ']'
+case_ startup-timeout-exact     0 1 '[ timeout:n0:cv-r1' "$E212" ']'
+case_ startup-timeout-other-ds  1 0 '[ timeout:n1:cv-r1' "$E212" ']'
+case_ startup-timeout-other-rs  1 0 '[ timeout:n0:cv-r0' "$E212" ']'
+case_ startup-timeout-domain    1 0 '[ timeout:n0:cv-r1' "${E212/dc=example,dc=com/cn=schema}" ']'
+case_ startup-timeout-outside   1 0 "$E212" '[ timeout:n0:cv-r1' ']'
 
 # A long DNS-only window must not also hide the normally expected handshake errors.
 case_ dns-only-name           0 1 '[ dns-only dns:cv-r0' "$E51" ']'

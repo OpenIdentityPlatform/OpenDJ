@@ -122,7 +122,9 @@ assert_online || checks="the online checks"
 
 phase "offline checks"
 stop_all
+check_csn_traces || checks="${checks:+$checks and }the CSN traces"
 assert_offline || checks="${checks:+$checks and }the offline checks"
+diagnose_csn_gaps || checks="${checks:+$checks and }the CSN trace diagnostics"
 [ -z "$checks" ] || fail "$checks failed"
 
 timings

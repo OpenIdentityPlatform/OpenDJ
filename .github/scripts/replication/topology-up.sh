@@ -19,19 +19,28 @@
 # its REPLICATION_ROLE, as a StatefulSet would start it.
 
 start_server() { # <name> <role> [<docker run option>...]
-  local name=$1 role=$2
+  local name=$1 role=$2 java_args=$SERVER_JAVA_ARGS token=
   local -a monitor_port=() timing=()
   shift 2
   # Scale checkpoints use a lightweight host client; the admin listener remains loopback-only.
   case ${DISTURBANCE:-none} in scale-*) monitor_port=(-p 127.0.0.1::4444); timing=(-e JOIN_TIMING=1) ;; esac
-  docker volume create "vol-$name" >/dev/null
+  if [ "${CSN_TRACE:-0}" = 1 ] && [ "$role" != replication ]; then
+    token=$(python3 -c 'import uuid; print(uuid.uuid4().hex)') || return 1
+    java_args="$java_args -Dorg.opends.server.replication.csnTraceDirectory=/opt/opendj/data/csn-trace -Dorg.opends.server.replication.csnTraceToken=$token -Dorg.opends.server.replication.csnTraceTokenFile=/opt/opendj/data/csn-trace-token-$token"
+  fi
+  docker volume create "vol-$name" >/dev/null || return 1
   docker run -d --network $NETWORK --name "$name" --hostname "$name" "${monitor_port[@]}" "${timing[@]}" \
     -v "vol-$name:/opt/opendj/data" \
     -e ROOT_PASSWORD="$ROOT_PASSWORD" -e ADD_BASE_ENTRY="--addBaseEntry" \
-    -e OPENDJ_JAVA_ARGS="$SERVER_JAVA_ARGS" \
+    -e OPENDJ_JAVA_ARGS="$java_args" \
     -e OPENDJ_REPLICATION_TYPE=simple -e REPLICATION_ROLE="$role" -e REPLICATION_PEERS="$PEERS" \
     -e REPLICATION_RETRY_INTERVAL=3 \
-    "$@" "$IMAGE" >/dev/null
+    "$@" "$IMAGE" >/dev/null || return 1
+  if [ -n "$token" ]; then
+    mkdir -p "$OUT/csn-trace-tokens" || return 1
+    printf '%s\n' "$token" >"$OUT/csn-trace-tokens/$name" || return 1
+    printf '%s %s\n' "$name" "$token" >>"$OUT/csn-trace-expected.txt" || return 1
+  fi
 }
 
 topology_up() {
