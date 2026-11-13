@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -78,6 +79,28 @@ public class GrizzlyUtilsTestCase extends SdkTestCase {
         assertThat(sslChain.indexOfType(ConnectionSecurityLayerFilter.class)).isEqualTo(2);
         assertThat(sslChain.indexOfType(DummyLDAPFilter.class)).isEqualTo(3);
         assertThat(sslChain.size()).isEqualTo(4);
+    }
+
+    @Test
+    public void sslStartTlsAndSaslStayAfterTheProxyFilter() throws Exception {
+        FilterChain base = FilterChainBuilder.stateless().add(new TransportFilter())
+                .add(new ProxyProtocolFilter(header -> { }, error -> { }, () -> true))
+                .add(new DummyLDAPFilter()).build();
+        FilterChain ssl = GrizzlyUtils.addFilterToChain(new DummySSLFilter(), base);
+        FilterChain saslOnly = GrizzlyUtils.addFilterToChain(new SaslFilter(), base);
+        assertThat(saslOnly.indexOfType(ProxyProtocolFilter.class)).isEqualTo(1);
+        assertThat(saslOnly.indexOfType(SaslFilter.class)).isEqualTo(2);
+        FilterChain sasl = GrizzlyUtils.addFilterToChain(new SaslFilter(), ssl);
+        assertThat(sasl.indexOfType(ProxyProtocolFilter.class)).isEqualTo(1);
+        assertThat(sasl.indexOfType(DummySSLFilter.class)).isEqualTo(2);
+        assertThat(sasl.indexOfType(SaslFilter.class)).isEqualTo(3);
+        assertThat(sasl.indexOfType(DummyLDAPFilter.class)).isEqualTo(4);
+
+        FilterChain startTls = GrizzlyUtils.addFilterToChain(new StartTLSFilter(new SSLFilter()), base);
+        FilterChain startTlsSasl = GrizzlyUtils.addFilterToChain(new SaslFilter(), startTls);
+        assertThat(startTlsSasl.indexOfType(ProxyProtocolFilter.class)).isEqualTo(1);
+        assertThat(startTlsSasl.indexOfType(StartTLSFilter.class)).isEqualTo(2);
+        assertThat(startTlsSasl.indexOfType(SaslFilter.class)).isEqualTo(3);
     }
 
     @Test

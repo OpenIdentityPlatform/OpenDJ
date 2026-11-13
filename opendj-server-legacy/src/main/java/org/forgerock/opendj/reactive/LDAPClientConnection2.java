@@ -54,6 +54,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
+import org.forgerock.opendj.io.ProxyProtocolDecoder.InvalidHeaderException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LDAPClientContext;
@@ -168,8 +169,6 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      */
     private final AtomicLong operationsPerformed;
 
-    /** The port on the client from which this connection originated. */
-    private final int clientPort;
     /** The LDAP version that the client is using to communicate with the server. */
     private int ldapVersion;
     /** The port on the server to which this client has connected. */
@@ -190,8 +189,6 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
     /** The socket channel with which this client connection is associated. */
     private final LDAPClientContext clientContext;
 
-    /** The string representation of the address of the client. */
-    private final String clientAddress;
     /** The name of the protocol that the client is using to communicate with the server. */
     private final String protocol;
     /** The string representation of the address of the server to which the client has connected. */
@@ -222,8 +219,6 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         this.keepStats = keepStats;
         this.protocol = protocol;
 
-        clientAddress = clientContext.getPeerAddress().getAddress().getHostAddress();
-        clientPort = clientContext.getPeerAddress().getPort();
         serverAddress = clientContext.getLocalAddress().getAddress().getHostAddress();
         serverPort = clientContext.getLocalAddress().getPort();
 
@@ -239,7 +234,9 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         clientContext.addListener(new LDAPClientContextEventListener() {
             @Override
             public void handleConnectionError(LDAPClientContext context, Throwable error) {
-                if (error instanceof LocalizableException) {
+                if (error instanceof InvalidHeaderException) {
+                    disconnect(DisconnectReason.PROTOCOL_ERROR, false, ERR_PROXY_PROTOCOL_INVALID_HEADER.get(error.getMessage()));
+                } else if (error instanceof LocalizableException) {
                     disconnect(
                             DisconnectReason.PROTOCOL_ERROR, true, ((LocalizableException) error).getMessageObject());
 
@@ -308,7 +305,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      */
     @Override
     public String getClientAddress() {
-        return clientAddress;
+        return clientContext.getPeerAddress().getAddress().getHostAddress();
     }
 
     /**
@@ -318,7 +315,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      */
     @Override
     public int getClientPort() {
-        return clientPort;
+        return clientContext.getPeerAddress().getPort();
     }
 
     /**
@@ -379,7 +376,8 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      */
     @Override
     public boolean isSecure() {
-        return clientContext.getSSLSession() != null || clientContext.getSASLServer() != null;
+        return clientContext.isProxyClientSecure()
+                || clientContext.getSSLSession() != null || clientContext.getSASLServer() != null;
     }
 
     /**
@@ -1604,9 +1602,9 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         buffer.append("\" connectTime=\"");
         buffer.append(getConnectTimeString());
         buffer.append("\" source=\"");
-        buffer.append(clientAddress);
+        buffer.append(getClientAddress());
         buffer.append(":");
-        buffer.append(clientPort);
+        buffer.append(getClientPort());
         buffer.append("\" destination=\"");
         buffer.append(serverAddress);
         buffer.append(":");
@@ -1645,9 +1643,9 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
     @Override
     public void toString(StringBuilder buffer) {
         buffer.append("LDAP client connection from ");
-        buffer.append(clientAddress);
+        buffer.append(getClientAddress());
         buffer.append(":");
-        buffer.append(clientPort);
+        buffer.append(getClientPort());
         buffer.append(" to ");
         buffer.append(serverAddress);
         buffer.append(":");

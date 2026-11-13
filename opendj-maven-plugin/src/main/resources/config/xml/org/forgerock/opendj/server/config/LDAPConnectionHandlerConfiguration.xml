@@ -88,6 +88,27 @@
   <adm:property-reference name="listen-port" />
   <adm:property-reference name="use-ssl" />
   <adm:property-reference name="ssl-cert-nickname" />
+  <adm:property name="proxy-protocol-enabled">
+    <adm:synopsis>Requires a PROXY protocol header on each connection to this LDAP connection handler.</adm:synopsis>
+    <adm:description>
+      Only TCP peers matching proxy-protocol-allowed-client can connect. The header supplies the original
+      client address before LDAP or TLS traffic. Use a dedicated handler and trust only your load balancers.
+    </adm:description>
+    <adm:requires-admin-action><adm:component-restart /></adm:requires-admin-action>
+    <adm:default-behavior><adm:defined><adm:value>false</adm:value></adm:defined></adm:default-behavior>
+    <adm:syntax><adm:boolean /></adm:syntax>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-proxy-protocol-enabled</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+  <adm:property name="proxy-protocol-allowed-client" multi-valued="true">
+    <adm:synopsis>Specifies the trusted load balancer addresses allowed to send PROXY headers.</adm:synopsis>
+    <adm:description>
+      Only TCP peers matching this list can connect when the PROXY protocol is enabled. An empty list
+      rejects every connection. Changes affect new connections and do not close existing connections.
+    </adm:description>
+    <adm:default-behavior><adm:undefined /></adm:default-behavior>
+    <adm:syntax><adm:ip-address-mask /></adm:syntax>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-proxy-protocol-allowed-client</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
   <adm:property name="use-tcp-keep-alive" advanced="true">
     <adm:synopsis>
       Indicates whether the
@@ -694,8 +715,9 @@
       server allows. A limit at or above a server-wide limit other than 0
       never applies, because the server-wide limit rejects the connection
       first. Clients behind a load balancer or a network address
-      translation device share its address, so set the limit above the
-      number of connections all of them need together.
+      translation device share its address unless the PROXY protocol
+      supplies their original addresses. Without a forwarded client address,
+      set the limit above the number of connections all of them need together.
       A value of 0 indicates that no limit is enforced.
     </adm:description>
     <adm:default-behavior>

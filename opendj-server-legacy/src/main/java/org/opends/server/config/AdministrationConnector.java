@@ -407,6 +407,18 @@ public final class AdministrationConnector implements
     }
 
     @Override
+    public boolean isProxyProtocolEnabled()
+    {
+      return false;
+    }
+
+    @Override
+    public SortedSet<AddressMask> getProxyProtocolAllowedClient()
+    {
+      return ADMIN_ALLOWED_CLIENT;
+    }
+
+    @Override
     public boolean isEnabled()
     {
       return ADMIN_ENABLED;

@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -119,11 +120,13 @@ final class GrizzlyUtils {
      */
     static FilterChain addFilterToChain(final Filter filter, final FilterChain chain) {
         // By default, before LDAP filter which is the last one
+        final int transportOffset = chain.get(1) instanceof ProxyProtocolFilter ? 2 : 1;
         if (filter instanceof SSLFilter || filter instanceof StartTLSFilter) {
-            return FilterChainBuilder.stateless().addAll(chain).add(1, filter).build();
+            return FilterChainBuilder.stateless().addAll(chain).add(transportOffset, filter).build();
         }
         if (filter instanceof SaslFilter) {
-            final int pos = (chain.get(1) instanceof SSLFilter || chain.get(1) instanceof StartTLSFilter) ? 2 : 1;
+            final int pos = (chain.get(transportOffset) instanceof SSLFilter
+                    || chain.get(transportOffset) instanceof StartTLSFilter) ? transportOffset + 1 : transportOffset;
             return FilterChainBuilder.stateless().addAll(chain).add(pos, filter).build();
         }
         return FilterChainBuilder.stateless().addAll(chain).add(chain.size() - 1, filter).build();

@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyrighted 2026 3A Systems, LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.protocols.ldap;
 
@@ -572,6 +572,10 @@ public final class LDAPConnectionHandler extends
   public void initializeConnectionHandler(ServerContext serverContext, LDAPConnectionHandlerCfg config)
       throws ConfigException, InitializationException
   {
+    if (config.isProxyProtocolEnabled())
+    {
+      throw new InitializationException(ERR_PROXY_PROTOCOL_LEGACY_UNSUPPORTED.get());
+    }
     if (friendlyName == null)
     {
       friendlyName = config.name();
@@ -695,6 +699,12 @@ public final class LDAPConnectionHandler extends
       List<LocalizableMessage> unacceptableReasons)
   {
     LDAPConnectionHandlerCfg config = (LDAPConnectionHandlerCfg) configuration;
+
+    if (config.isProxyProtocolEnabled())
+    {
+      unacceptableReasons.add(ERR_PROXY_PROTOCOL_LEGACY_UNSUPPORTED.get());
+      return false;
+    }
 
     if (currentConfig == null
         || (!currentConfig.isEnabled() && config.isEnabled()))
