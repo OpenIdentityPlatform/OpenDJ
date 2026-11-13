@@ -23,12 +23,17 @@ can reconstruct only changes whose values have not since been replaced. The conv
 checks every RS so gaps can be investigated alongside replica data and logs.
 
 Usage: changelog-gaps.py <base DN> <from ms> <to ms> [<changelogDb directory>]
+       [--offline-snapshots <directory>]
 
 Without a directory it reads the changelogDb as a tar stream on its standard input, as
 "docker cp <container>:/opt/opendj/data/changelogDb -" writes it. It reports, for every
 replica of the domain of <base DN>, the changes whose CSN time is between <from ms> and
-<to ms>, and the sequence numbers missing between them. Exit code 1: a sequence number is missing;
-2: the changelog cannot be read (no such domain, or it is encrypted).
+<to ms>, and the sequence numbers missing between them. Captured offline states can identify an
+offline message with the same replica and sequence. They do not prove that an update did not later
+reuse the sequence after a restart: CSN time is logical and can be ahead of the real clock. The
+matching offline message is reported for investigation, and the gap remains an error. Exit code 1:
+a sequence number is missing;
+2: the arguments or changelog cannot be read (no such domain, or it is encrypted).
 
 What it cannot tell. A change lost at either end of a replica's changes in the window - its
 last ones, or its first ones when no earlier change of the replica is in the changelog - leaves
@@ -53,6 +58,8 @@ import os
 import re
 import sys
 import tarfile
+import argparse
+from pathlib import Path
 
 BLOCK_SIZE = 256
 SIZE_OF_BLOCK_OFFSET = 4
@@ -122,12 +129,54 @@ def from_tar(stream):
                 yield member.name, tar.extractfile(member).read()
 
 
+def offline_evidence(directory, base_dn):
+    """Read offline CSNs and snapshot times; a matching sequence is diagnostic only."""
+    try:
+        evidence = {}
+        for path in Path(directory).glob('offline-*.txt'):
+            lines = path.read_text().splitlines()
+            captures = [int(line.split()[1]) for line in lines if line.startswith('capture-start-ms ')]
+            if len(captures) != 1:
+                continue
+            domains = {}
+            for line in lines:
+                if match := re.fullmatch(r'(\d+):\s*(.+)', line):
+                    domains[match.group(1)] = match.group(2).strip().lower()
+            for line in lines:
+                match = re.fullmatch(r'(\d+)\.dom/(\d+)\.server/offline\.state ([0-9a-f]{28})', line)
+                if not match or domains.get(match.group(1)) != base_dn:
+                    continue
+                sid, csn = int(match.group(2)), match.group(3)
+                if int(csn[16:20], 16) != sid:
+                    continue
+                seq, time = int(csn[20:], 16), int(csn[:16], 16)
+                evidence.setdefault((sid, seq), []).append((time, captures[0], csn))
+        return evidence
+    except (OSError, ValueError, IndexError):
+        return {}
+
+
+def offline_matches(evidence, sid, seq, previous, following):
+    matches = set()
+    for time, captured, csn in evidence.get((sid, seq), []):
+        if previous[1] <= time <= following[1] < captured:
+            matches.add(csn)
+    return sorted(matches)
+
+
 def main(argv):
-    if len(argv) not in (4, 5):
-        sys.stderr.write(__doc__)
-        return 2
-    base_dn, start, end = argv[1].lower(), int(argv[2]), int(argv[3])
-    entries = from_directory(argv[4]) if len(argv) == 5 else from_tar(sys.stdin.buffer)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('base_dn')
+    parser.add_argument('start', type=int)
+    parser.add_argument('end', type=int)
+    parser.add_argument('directory', nargs='?')
+    parser.add_argument('--offline-snapshots')
+    args = parser.parse_args(argv[1:])
+    base_dn, start, end = args.base_dn.lower(), args.start, args.end
+    entries = from_directory(args.directory) if args.directory else from_tar(sys.stdin.buffer)
+    evidence = {}
+    if args.offline_snapshots:
+        evidence = offline_evidence(args.offline_snapshots, base_dn)
     try:
         domains, changes = read_changelog(entries)
     except EncryptedChangelog as e:
@@ -148,10 +197,17 @@ def main(argv):
             continue
         seqnums = [seqnum for seqnum, _, _ in load]
         missing = []
+        offline = {}
         for previous, following in zip(load, load[1:]):
-            missing += [(seqnum, previous, following) for seqnum in range(previous[0] + 1, following[0])]
+            for seqnum in range(previous[0] + 1, following[0]):
+                missing.append((seqnum, previous, following))
+                matched = offline_matches(evidence, server_id, seqnum, previous, following)
+                if matched:
+                    offline[seqnum] = matched
         print("replica %d: %d changes in the load, sequence numbers %d to %d, %d missing"
               % (server_id, len(load), seqnums[0], seqnums[-1], len(missing)))
+        for seqnum, csns in sorted(offline.items()):
+            print("  offline %d: captured CSN %s; a restart may have reused the sequence" % (seqnum, ', '.join(csns)))
         for seqnum, previous, following in missing[:20]:
             print("  missing %d, between the %s %d (%d) and the %s %d (%d)"
                   % (seqnum, previous[2], previous[0], previous[1], following[2], following[0], following[1]))

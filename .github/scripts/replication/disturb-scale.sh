@@ -316,10 +316,12 @@ collect_scale_bootstrap() {
 # FileReplicaDB keeps only the newest ReplicaOfflineMsg per replica. Save these
 # small state files between transitions, before a later stop overwrites them.
 scale_capture_offline_states() { # <phase> <RS>...
-  local phase=$1 node target
+  local phase=$1 node target captured
   shift
   for node in "$@"; do
     target="$OUT/scale-checkpoint/offline-$phase-$node.txt"
+    captured=$(date +%s) || return 1
+    printf 'capture-start-ms %s000\n' "$captured" >"$target.partial" || return 1
     docker exec "$node" sh -c '
       set -e
       cd /opt/opendj/data/changelogDb
@@ -331,7 +333,7 @@ scale_capture_offline_states() { # <phase> <RS>...
         cat "$file"
         echo
       done
-    ' >"$target.partial" || { fail "could not save offline states of $node after $phase"; return 1; }
+    ' >>"$target.partial" || { fail "could not save offline states of $node after $phase"; return 1; }
     mv "$target.partial" "$target" || return 1
   done
 }
@@ -493,10 +495,8 @@ disturb() {
   sleep 10
   window_close || return 1
   scale_roll_batch "$SHORT_PEERS" down || return 1
-  if [ "$TOPOLOGY" = rs534 ] && [ "$SCALE_VOLUME" = empty ]; then
-    for node in $RS_NODES; do [ "$node" = "$REMOVED" ] || surviving_rs="$surviving_rs $node"; done
-    scale_capture_offline_states down $surviving_rs || return 1
-  fi
+  for node in $RS_NODES; do [ "$node" = "$REMOVED" ] || surviving_rs="$surviving_rs $node"; done
+  scale_capture_offline_states down $surviving_rs || return 1
   for node in $SURVIVORS; do scale_wait "$REMOVED leaves $node" peer_removed "$node" "$REMOVED" || return 1; done
   scale_backlog || return 1
   # A join repairs only peers that are registered while it runs. Bring the removed node
@@ -519,9 +519,7 @@ disturb() {
   scale_wait "$REMOVED serves again" started_since "$REMOVED" "$from" || return 1
   rm "$OUT/logs/$REMOVED.offline" || return 1
   scale_wait "the join of $REMOVED ends" bootstrap_ended "$REMOVED" || return 1
-  if [ "$TOPOLOGY" = rs534 ] && [ "$SCALE_VOLUME" = empty ]; then
-    scale_capture_offline_states return $RS_NODES || return 1
-  fi
+  scale_capture_offline_states return $RS_NODES || return 1
   sleep 10
   dns_window_close || return 1
   window_close || return 1
@@ -530,9 +528,7 @@ disturb() {
     rolling_resume "$REMOVED" || return 1
   fi
   scale_roll_batch "$FULL_PEERS" up || return 1
-  if [ "$TOPOLOGY" = rs534 ] && [ "$SCALE_VOLUME" = empty ]; then
-    scale_capture_offline_states up $RS_NODES || return 1
-  fi
+  scale_capture_offline_states up $RS_NODES || return 1
   for node in $SURVIVORS; do scale_wait "$REMOVED returns to $node" peer_present "$node" "$REMOVED" || return 1; done
   end=$(date +%s) || return 1
   echo "$((from * 1000)) $((end * 1000)) $REMOVED scale-$SCALE_VOLUME" >>"$OUT/disturbances.txt" || return 1
