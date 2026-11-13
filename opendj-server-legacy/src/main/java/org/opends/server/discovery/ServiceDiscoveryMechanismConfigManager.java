@@ -130,8 +130,19 @@ public class ServiceDiscoveryMechanismConfigManager implements
   @SuppressWarnings({ "rawtypes", "unchecked" })
   private ServiceDiscoveryMechanism loadMechanism(ServiceDiscoveryMechanismCfg cfg) throws Exception
   {
-    return ((Class<ServiceDiscoveryMechanism>) DirectoryServer.loadClass(cfg.getJavaClass()))
-        .getDeclaredConstructor().newInstance();
+    try
+    {
+      return ((Class<ServiceDiscoveryMechanism>) DirectoryServer.loadClass(cfg.getJavaClass()))
+          .getDeclaredConstructor().newInstance();
+    }
+    catch (LinkageError e)
+    {
+      throw new ConfigException(LocalizableMessage.raw(
+          "Cannot link service discovery provider '%s' against this OpenDJ version. For providers built against "
+              + "the former interface, extend ServiceDiscoveryMechanism instead of implementing it, replace "
+              + "getPartitions(Collection<DN>) with getPartition(), and rebuild against this OpenDJ version.",
+          cfg.getJavaClass()), e);
+    }
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -152,7 +163,11 @@ public class ServiceDiscoveryMechanismConfigManager implements
   @Override
   public ConfigChangeResult applyConfigurationDelete(ServiceDiscoveryMechanismCfg configuration)
   {
-    serviceDiscoveryMechanisms.remove(configuration.name()).finalizeMechanism();
+    final ServiceDiscoveryMechanism<?> mechanism = serviceDiscoveryMechanisms.remove(configuration.name());
+    if (mechanism != null)
+    {
+      mechanism.finalizeMechanism();
+    }
     return new ConfigChangeResult();
   }
 

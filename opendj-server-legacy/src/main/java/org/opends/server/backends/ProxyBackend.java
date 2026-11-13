@@ -1082,18 +1082,30 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                                 }
                                 final Map<AttributeType,List<Attribute>> userAttributes=new HashMap<>();
                                 final Map<AttributeType,List<Attribute>> operationalAttributes=new HashMap<>();
+                                final Map<org.forgerock.opendj.ldap.schema.ObjectClass, String> objectClasses =
+                                        new LinkedHashMap<>();
+                                final Schema localSchema = (serverContext != null
+                                        ? serverContext.getSchema() : Schema.getDefaultSchema()).asNonStrictSchema();
                                 for (org.forgerock.opendj.ldap.Attribute attr : rewritten.getAllAttributes()){
+                                    final AttributeType type = attr.getAttributeDescription().getAttributeType();
+                                    if (type.isObjectClass() && !attr.isEmpty()) {
+                                        for (ByteString value : attr) {
+                                            final String name = value.toString().trim();
+                                            objectClasses.put(localSchema.getObjectClass(name), name);
+                                        }
+                                        continue;
+                                    }
+                                    // Empty objectClass attributes must survive types-only searches.
                                     final AttributeBuilder attrBuilder=new AttributeBuilder(attr.getAttributeDescription());
                                     for (final ByteString value: attr) {
                                         attrBuilder.add(value);
                                     }
-                                    final AttributeType type = attr.getAttributeDescription().getAttributeType();
                                     final Map<AttributeType,List<Attribute>> attributes =
                                             type.isOperational() ? operationalAttributes : userAttributes;
                                     attributes.computeIfAbsent(type, ignored -> new ArrayList<>()).add(attrBuilder.toAttribute());
                                 }
                                 request.sendSearchEntry(new org.opends.server.types.SearchResultEntry(
-                                        new Entry(rewritten.getName(),null,userAttributes,operationalAttributes),
+                                        new Entry(rewritten.getName(),objectClasses,userAttributes,operationalAttributes),
                                         convertResponseControls(sr.getControls(), mapping)));
                             }else{
                                 final SearchResultReference sr=entryReader.readReference();

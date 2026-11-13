@@ -834,6 +834,35 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
     }
 
     @Test
+    public void preservesObjectClassesInInternalSearchResults() throws Exception {
+        try (LDAPListener remote = testServer("object-classes")) {
+            final ProxyBackend backend = priorityBackend(
+                    Collections.singletonList(remote.firstSocketAddress().getPort()), Collections.emptyList());
+            backend.serverContext = TestCaseUtils.getServerContext();
+            try {
+                final org.opends.server.protocols.internal.InternalSearchOperation search =
+                        new org.opends.server.protocols.internal.InternalSearchOperation(
+                                new InternalClientConnection(new AuthenticationInfo()), nextOperationID(), nextMessageID(),
+                                org.opends.server.protocols.internal.Requests.newSearchRequest(
+                                        DN.valueOf("uid=user"), SearchScope.BASE_OBJECT,
+                                        SearchFilter.createFilterFromString("(objectClass=*)"), "objectClass", "cn"));
+                backend.execute(search);
+                assertEquals(search.getResultCode(), ResultCode.SUCCESS);
+                assertThat(search.getSearchEntries()).hasSize(1);
+                final SearchResultEntry entry = search.getSearchEntries().getFirst();
+                final org.forgerock.opendj.ldap.schema.ObjectClass person =
+                        TestCaseUtils.getServerContext().getSchema().getObjectClass("person");
+                assertTrue(entry.hasObjectClass(person), "Internal searches must retain the person object class");
+                assertThat(entry.getObjectClasses().values())
+                        .containsExactlyInAnyOrder("top", "person", "organizationalPerson", "inetOrgPerson");
+                assertThat(entry.getAllAttributes("cn").iterator().next().iterator().next().toString()).isEqualTo("user");
+            } finally {
+                backend.finalizeBackend();
+            }
+        }
+    }
+
+    @Test
     public void forwardsSearchParametersToRemoteServer() throws Exception {
         final ProxyBackend backend = new ProxyBackend();
         final ConnectionFactory connectionFactory = Mockito.mock(ConnectionFactory.class);
