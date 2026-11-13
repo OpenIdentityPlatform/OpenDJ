@@ -23,13 +23,14 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.zip.CRC32;
 
+import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-@Test(groups = { "precommit", "replication" })
-public class CsnAllocationTraceTest
+@Test(groups = { "precommit", "replication" }, sequential = true)
+public class CsnAllocationTraceTest extends DirectoryServerTestCase
 {
   @Test
   public void recordsBothKindsAndClosesWithAChecksum() throws Exception
