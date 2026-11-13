@@ -83,17 +83,18 @@ set_opendj_java_bin() {
   export OPENDJ_JAVA_BIN
 }
 
-check_noexec() { #returns 0 if can execute files in the directory, otherwise 1
-  local DIR_TO_TEST=$1
-  local res=0
-  local remove_dir=0
+# Use a subshell to keep the probe's variables private in POSIX shells.
+check_noexec() ( #returns 0 if can execute files in the directory, otherwise 1
+  DIR_TO_TEST=$1
+  res=0
+  remove_dir=0
 
   if [ ! -d "${DIR_TO_TEST}" ]; then
     remove_dir=1
     mkdir ${DIR_TO_TEST}
   fi
 
-  local TMP_FILE=`mktemp ${DIR_TO_TEST}/temp.XXXXXX`
+  TMP_FILE=`mktemp ${DIR_TO_TEST}/temp.XXXXXX`
 
   chmod +x ${TMP_FILE}
   if ! ${TMP_FILE} 2>/dev/null; then
@@ -107,23 +108,19 @@ check_noexec() { #returns 0 if can execute files in the directory, otherwise 1
   fi
 
   return $res
-}
+)
 
 set_bc_dir() {
   if echo "$OPENDJ_JAVA_ARGS" | grep -q -o "\-Dorg.bouncycastle.native.loader.install_dir=[^ ]*"; then
     return # bc install dir already set
   fi
 
-  check_noexec "${OPENDJ_TMP_DIR}"
-  local res=$?
-  if [ $res = 1 ]; then
+  if ! check_noexec "${OPENDJ_TMP_DIR}"; then
     if [ "$SCRIPT_NAME" = "setup" ]; then
       echo "WARNING: $OPENDJ_TMP_DIR is mounted as noexec, try switching to $HOME for org.bouncycastle.native.loader.install_dir"
     fi
-    check_noexec "${HOME}"
-    res=$?
-	if [ $res = 0 ]; then
-	  OPENDJ_JAVA_ARGS="${OPENDJ_JAVA_ARGS} -Dorg.bouncycastle.native.loader.install_dir=${HOME}"
+    if check_noexec "${HOME}"; then
+      OPENDJ_JAVA_ARGS="${OPENDJ_JAVA_ARGS} -Dorg.bouncycastle.native.loader.install_dir=${HOME}"
     elif [ "$SCRIPT_NAME" = "setup" ]; then
       echo "WARNING: $HOME is mounted as noexec, the OpenDJ installation could cause errors"
     fi
