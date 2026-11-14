@@ -95,6 +95,11 @@ assert_changelogs() {
   case ${DISTURBANCE:-none} in
     scale-*) evidence=(--offline-snapshots "$OUT/scale-checkpoint") ;;
   esac
+  # A failed copy must not authorize evidence left by an earlier snapshot. The checker
+  # validates the complete traces again rather than trusting the human-readable report.
+  if [ "${CSN_TRACES_COMPLETE:-0}" = 1 ]; then
+    evidence+=(--csn-traces "$OUT/csn-traces" --csn-manifest "$OUT/csn-trace-expected.txt")
+  fi
   mkdir -p "$OUT/changelog"
   for n in $RS_NODES; do
     code=0
@@ -314,7 +319,15 @@ replication_errors() { # <node>
         }
       }
       for (i = 1; i <= n; i++) {
-        cert = timeout = 0
+        cert = timeout = disconnect = 0
+        if (id == "180" && index($0, "msg=Directory server DS(") \
+            && index($0, " changes for domain \"" base_dn "\" from replication server RS(")) {
+          count = split(ids[i], tokens, " ")
+          for (j = 1; j <= count; j++) {
+            if (split(tokens[j], part, ":") == 3 && part[1] == "disconnect" && part[2] == node \
+                && index($0, ") at " part[3] ":8989. The connection will be closed,")) disconnect = 1
+          }
+        }
         if (id == "212" && index($0, "msg=Directory server DS(")) {
           count = split(ids[i], tokens, " ")
           for (j = 1; j <= count; j++) {
@@ -341,7 +354,7 @@ replication_errors() { # <node>
           }
         }
         if (line > from[i] + 0 && line <= to[i] + 0 \
-            && ((handshake && !index(ids[i], " dns-only ")) || cert || timeout || index(ids[i], " " id " ") || (dns != "" && index(ids[i], dns)))) {
+            && ((handshake && !index(ids[i], " dns-only ")) || cert || timeout || disconnect || index(ids[i], " " id " ") || (dns != "" && index(ids[i], dns)))) {
           print >expected
           next
         }

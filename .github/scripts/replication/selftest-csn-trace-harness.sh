@@ -57,9 +57,11 @@ diagnose_csn_gaps
 [ ! -e "$OUT/diagnosis-call" ] || { echo 'incomplete trace was used as evidence' >&2; exit 1; }
 docker() { [ "$1" != cp ]; }
 python3() { echo 'CSN allocation traces complete; local allocations may be uncommitted'; }
+CSN_TRACES_COMPLETE=1
 if check_csn_traces >/dev/null 2>&1; then
   echo 'failed trace copy was accepted' >&2; exit 1
 fi
+[ "$CSN_TRACES_COMPLETE" = 0 ] || { echo 'failed copy retained permission to classify gaps' >&2; exit 1; }
 if grep -Fx 'CSN allocation traces complete; local allocations may be uncommitted' "$OUT/csn-trace-validation.txt" >/dev/null; then
   echo 'failed trace copy left a complete validation marker' >&2; exit 1
 fi

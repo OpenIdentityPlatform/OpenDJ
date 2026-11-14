@@ -24,6 +24,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.api.DirectoryThread;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.ReplicaOfflineMsg;
 import org.opends.server.replication.protocol.Session;
@@ -133,6 +134,14 @@ public class ServerWriter extends DirectoryThread
           if (updateMsg instanceof ReplicaOfflineMsg && !handler.isDataServer())
           {
             forwardReplicaOfflineMsg((ReplicaOfflineMsg) updateMsg);
+          }
+          else if (handler instanceof ReplicationServerHandler && updateMsg.contributesToDomainState())
+          {
+            // take() already advanced the handler state, while publish() may only enqueue.
+            // A shutdown must wait until the session publisher has written the change.
+            final CSN csn = updateMsg.getCSN();
+            session.publish(updateMsg,
+                () -> ((ReplicationServerHandler) handler).updatePublishedState(csn));
           }
           else
           {

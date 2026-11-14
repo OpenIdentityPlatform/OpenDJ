@@ -1694,6 +1694,26 @@ public class ReplicationServer
       listenThread.interrupt();
     }
 
+    // Remote DSs may still write while this RS stops. End their readers first, then
+    // drain those accepted updates while the peer writers and their sessions remain up.
+    // Unlike a collocated DS, they need not send a ReplicaOfflineMsg at this shutdown.
+    for (ReplicationServerDomain domain : getReplicationServerDomains())
+    {
+      domain.stopDirectoryServers();
+    }
+    final long forwardingDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+    try
+    {
+      for (ReplicationServerDomain domain : getReplicationServerDomains())
+      {
+        domain.awaitDirectUpdatesForwarded(forwardingDeadline);
+      }
+    }
+    catch (InterruptedException e)
+    {
+      Thread.currentThread().interrupt();
+    }
+
     for (ReplicationServerDomain domain : getReplicationServerDomains())
     {
       domain.shutdown();

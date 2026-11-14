@@ -31,7 +31,10 @@ replica of the domain of <base DN>, the changes whose CSN time is between <from 
 <to ms>, and the sequence numbers missing between them. Captured offline states can identify an
 offline message with the same replica and sequence. They do not prove that an update did not later
 reuse the sequence after a restart: CSN time is logical and can be ahead of the real clock. The
-matching offline message is reported for investigation, and the gap remains an error. Exit code 1:
+matching offline message is reported for investigation, and the gap remains an error. With
+--csn-traces and --csn-manifest, all expected process traces must validate. Only a sequence
+allocated exclusively to offline messages in this domain, with no local allocation in any
+generation (even outside the load window), is classified as offline-only. Exit code 1:
 a sequence number is missing;
 2: the arguments or changelog cannot be read (no such domain, or it is encrypted).
 
@@ -59,6 +62,7 @@ import re
 import sys
 import tarfile
 import argparse
+import runpy
 from pathlib import Path
 
 BLOCK_SIZE = 256
@@ -171,7 +175,11 @@ def main(argv):
     parser.add_argument('end', type=int)
     parser.add_argument('directory', nargs='?')
     parser.add_argument('--offline-snapshots')
+    parser.add_argument('--csn-traces')
+    parser.add_argument('--csn-manifest')
     args = parser.parse_args(argv[1:])
+    if bool(args.csn_traces) != bool(args.csn_manifest):
+        parser.error('--csn-traces and --csn-manifest must be supplied together')
     base_dn, start, end = args.base_dn.lower(), args.start, args.end
     entries = from_directory(args.directory) if args.directory else from_tar(sys.stdin.buffer)
     evidence = {}
@@ -188,24 +196,54 @@ def main(argv):
     if base_dn not in domains:
         print("no domain %s in the changelog, which holds %s" % (base_dn, sorted(domains)))
         return 2
-    lost = False
+    loads = {}
     for (domain_id, server_id), found in sorted(changes.items()):
         if domain_id != domains[base_dn]:
             continue
         load = sorted((seqnum, time, kind) for seqnum, time, kind in found if start <= time <= end)
-        if not load:
-            continue
+        if load:
+            loads[server_id] = load
+    offline_only = {}
+    if args.csn_traces:
+        wanted = {(sid, seq) for sid, load in loads.items()
+                  for previous, following in zip(load, load[1:])
+                  for seq in range(previous[0] + 1, following[0])}
+        trace = runpy.run_path(str(Path(__file__).with_name('csn-trace.py')))
+        try:
+            events = trace['read_traces'](args.csn_traces, args.csn_manifest, wanted)
+        except ValueError as exc:
+            print('incomplete CSN allocation trace: %s' % exc)
+            return 2
+        local = set()
+        for kind, domain, csn, _, _ in events:
+            if domain.strip().lower() != base_dn:
+                continue
+            pair = (int(csn[16:20], 16), int(csn[20:], 16))
+            if kind == 'L':
+                local.add(pair)
+            else:
+                offline_only.setdefault(pair, set()).add(csn)
+        for pair in local:
+            offline_only.pop(pair, None)
+    lost = False
+    for server_id, load in loads.items():
         seqnums = [seqnum for seqnum, _, _ in load]
         missing = []
         offline = {}
         for previous, following in zip(load, load[1:]):
             for seqnum in range(previous[0] + 1, following[0]):
+                if (server_id, seqnum) in offline_only:
+                    continue
                 missing.append((seqnum, previous, following))
                 matched = offline_matches(evidence, server_id, seqnum, previous, following)
                 if matched:
                     offline[seqnum] = matched
         print("replica %d: %d changes in the load, sequence numbers %d to %d, %d missing"
               % (server_id, len(load), seqnums[0], seqnums[-1], len(missing)))
+        for (sid, seqnum), csns in sorted(offline_only.items()):
+            if sid == server_id:
+                print('  offline-only %d: CSN %s; complete traces contain no local allocation'
+                      % (seqnum, ', '.join(sorted(csns))))
         for seqnum, csns in sorted(offline.items()):
             print("  offline %d: captured CSN %s; a restart may have reused the sequence" % (seqnum, ', '.join(csns)))
         for seqnum, previous, following in missing[:20]:

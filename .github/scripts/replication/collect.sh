@@ -42,6 +42,7 @@ expect_csn_trace_restart() { # <directory server whose container is restarted>
 
 check_csn_traces() {
   local node failed=
+  CSN_TRACES_COMPLETE=0
   [ "${CSN_TRACE:-0}" = 1 ] || return 0
   for node in $DS_NODES; do
     capture_csn_trace "$node" || failed=1
@@ -54,6 +55,7 @@ check_csn_traces() {
   python3 -I "$HERE/csn-trace.py" "$OUT/csn-traces" "$OUT/csn-trace-expected.txt" \
     >"$OUT/csn-trace-validation.txt" 2>&1 || failed=1
   [ -z "$failed" ] || { echo '::error::CSN trace is incomplete; see csn-trace-validation.txt'; return 1; }
+  CSN_TRACES_COMPLETE=1
 }
 
 # Preserve the live snapshot first (collect), then allow the running DS processes to close their

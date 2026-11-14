@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -34,6 +35,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.MonitorData;
 import org.opends.server.replication.common.DSInfo;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
@@ -72,6 +74,44 @@ public class ReplicationServerHandler extends ServerHandler
    * LDAP servers connected to the remote replication server.
    */
   private final Map<Integer, LightweightServerHandler> remoteDirectoryServers = new ConcurrentHashMap<>();
+
+  /** Peer handshake state plus updates actually written, rather than merely dequeued. */
+  private final ServerState publishedState = new ServerState();
+
+  @Override
+  public void setInitialServerState(ServerState state) throws DirectoryException
+  {
+    super.setInitialServerState(state);
+    publishedState.update(state);
+  }
+
+  /** Records a successful socket write to this peer. */
+  void updatePublishedState(CSN csn)
+  {
+    synchronized (publishedState)
+    {
+      publishedState.update(csn);
+      publishedState.notifyAll();
+    }
+  }
+
+  /** Waits within a shared monotonic deadline for this peer's outstanding direct updates. */
+  boolean awaitPublished(ServerState target, long deadline) throws InterruptedException
+  {
+    synchronized (publishedState)
+    {
+      while (!publishedState.cover(target) && !shuttingDown())
+      {
+        final long remaining = deadline - System.nanoTime();
+        if (remaining <= 0)
+        {
+          break;
+        }
+        TimeUnit.NANOSECONDS.timedWait(publishedState, remaining);
+      }
+      return publishedState.cover(target);
+    }
+  }
 
   /**
    * Starts this handler based on a start message received from remote server.
@@ -614,6 +654,10 @@ public class ReplicationServerHandler extends ServerHandler
   public void shutdown()
   {
     super.shutdown();
+    synchronized (publishedState)
+    {
+      publishedState.notifyAll();
+    }
     clearRemoteLSHandlers();
   }
 

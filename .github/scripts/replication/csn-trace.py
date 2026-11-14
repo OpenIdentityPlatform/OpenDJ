@@ -16,8 +16,10 @@
 """Validate opt-in CSN allocation traces and look up replica/sequence pairs.
 
 A local allocation is an attempted operation, not proof that it committed. These traces
-are diagnostic only: neither an offline allocation nor a complete trace waives a changelog
-gap. A process with an absent, truncated, altered, duplicated, or unclosed trace fails
+do not prove that a local allocation committed. The changelog checker may classify an
+offline-only sequence only when every trace validates and no local allocation reused that
+domain/server/sequence in any generation. A process with an absent, truncated, altered,
+duplicated, or unclosed trace fails
 validation. The manifest lists every expected server-process generation, including restarts.
 """
 
