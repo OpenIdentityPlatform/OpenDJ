@@ -22,7 +22,8 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
+import static org.opends.server.api.Backend.*;
+import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.isRelaxRulesRequested;
 
 import java.util.ArrayList;
 import java.util.HashMap;

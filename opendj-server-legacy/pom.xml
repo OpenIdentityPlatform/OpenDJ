@@ -327,14 +327,6 @@
           <exclude>java-stubs/</exclude>
         </excludes>
       </resource>
-      <!-- Property files used in test sources -->
-      <resource>
-        <directory>src/test/java</directory>
-        <filtering>false</filtering>
-        <includes>
-          <include>**/*.properties</include>
-        </includes>
-      </resource>
       <!-- Images for quicksetup must be explicitely copied from sources -->
       <resource>
         <directory>src/quicksetup</directory>
@@ -590,7 +582,6 @@
           </execution>
         </executions>
       </plugin>
-
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
@@ -1254,6 +1245,7 @@
                     <include>**/*TestCase.java</include>
                     <include>**/*TestCases.java</include>
                     <include>**/*TestSuite.java</include>
+                    <include>**/*IT.java</include>
                   </includes>
                   <properties>
                     <property>
@@ -1358,6 +1350,12 @@
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>build-helper-maven-plugin</artifactId>
             <executions>
+              <execution>
+                <id>parse-version</id>
+                <goals>
+                  <goal>parse-version</goal>
+                </goals>
+              </execution>
               <!-- Add snmp source directory and snmp generated directory as sources -->
               <execution>
                 <id>snmp-java-sources</id>

@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.core;
 
@@ -36,17 +37,7 @@ import org.opends.server.api.LocalBackend;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.CanceledOperationException;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.IndexType;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -793,6 +784,11 @@ public class BackendConfigManagerTestCase extends CoreTestCase
     {
       this.baseDNs = baseDNs;
       setBackendID(backendId);
+    }
+
+    @Override
+    public void execute(Operation operation) throws CanceledOperationException {
+      // do nothing
     }
 
     @Override

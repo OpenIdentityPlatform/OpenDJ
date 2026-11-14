@@ -1,0 +1,264 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+[#chap-proxy-backend]
+== Configure an LDAP Proxy Backend
+
+An LDAP proxy backend exposes a base DN on OpenDJ and forwards LDAP operations to remote directory servers. Configure a service discovery mechanism to select the remote servers, then reference that mechanism from the proxy backend. Servers in the same primary and secondary groups must contain equivalent replicas of the data; this configuration does not merge different datasets.
+
+For the complete property descriptions, see the `dsconfig` reference for xref:../reference/dsconfig-subcommands-ref.adoc#dsconfig-create-backend-proxy-backend[Proxy Backend], xref:../reference/dsconfig-subcommands-ref.adoc#dsconfig-create-service-discovery-mechanism-static-service-discovery-mechanism[Static Service Discovery Mechanism], and xref:../reference/dsconfig-subcommands-ref.adoc#dsconfig-create-service-discovery-mechanism-replication-service-discovery-mechanism[Replication Service Discovery Mechanism].
+
+The examples use `ou=people,dc=example,dc=com` as the proxy base DN and `dc=directory,dc=example` as the corresponding remote base DN. Replace host names, ports, DNs, passwords, and certificate paths with values for your deployment. Run `dsconfig` from the OpenDJ installation directory.
+
+=== Before You Begin
+
+* Configure a remote LDAP directory with the remote base DN and client accounts. Configure remote access controls for the operations and entries that clients may use.
+* To use the LDAP Proxied Authorization V2 control (`2.16.840.1.113730.3.4.18`), create a service account on every remote directory with the same DN and password. Grant it permission to use proxied authorization for the client identities, including anonymous authorization if anonymous access is needed.
+* Enable LDAPS on the remote servers. The proxy must trust their certificates, and each server address must match its certificate. A trust manager provider can be specified below; otherwise the proxy uses the JVM's default trust configuration.
+* Ensure the proxy's administration connector is reachable and its certificate is trusted by `dsconfig`. The examples use password files and an administration truststore; keep those files readable only by authorized users.
+
+The proxy forwards simple binds to the remote directory. When a service account is configured and reachable remote servers advertise the proxied authorization control, other operations use service-account connections with a control specifying the client's identity. If any reachable server does not advertise the control, or no server's capabilities can be determined, operations use connections authenticated as the client, shared with other successfully authenticated sessions for the same DN and remote server. Unreachable servers are checked again when selecting a mode for a subsequent bind or a request without a user connection; if one does not support the critical control, an operation sent to it may fail until the next capability check. A session already using client-authenticated connections continues to use them if the automatic choice changes. If the choice changes from proxy to user connections, an existing session without a user connection must bind again. Every client bind is independently checked by the remote server. The proxy does not retain client passwords for reconnection: if all available user connections are lost, the client must bind again. The remote directory applies its access controls. SASL bind forwarding is not supported. A bind with a nonempty DN and an empty password is rejected.
+
+=== Authorize the Proxy Service Account
+
+The following examples use the existing service account `cn=proxy-service,dc=directory,dc=example` and user `uid=user1,dc=directory,dc=example`. The OpenDJ and OpenLDAP examples grant the account permission to proxy as that user. The 389 Directory Server example grants proxy access to a target entry; its ACI does not restrict the authorization identity to that user. Run the examples on each remote server, adapting the DNs and access policy to your deployment. The proxied user's own access controls still govern the operation. These examples do not configure anonymous authorization: verify that separately against the remote server's policy if anonymous proxy access is required.
+
+==== Remote OpenDJ Server
+
+The service account needs the `proxied-auth` privilege, permission to use the Proxied Authorization V2 control, and permission to proxy as the requested user. The following example grants access to the control and to one authorization identity; a broader target would permit impersonating additional users. Run it as a remote administrator able to change privileges and ACIs:
+
+[source,bash]
+----
+LDAPTLS_CACERT=/secure/remote-ca.pem ldapmodify -x \
+  -H ldaps://ldap1.example.com:636 -D 'cn=Directory Manager' -W <<'LDIF'
+dn: cn=proxy-service,dc=directory,dc=example
+changetype: modify
+add: ds-privilege-name
+ds-privilege-name: proxied-auth
+
+dn: dc=directory,dc=example
+changetype: modify
+add: aci
+aci: (targetcontrol="2.16.840.1.113730.3.4.18")
+ (version 3.0; acl "Proxy service may use proxied authorization control";
+ allow(read) userdn="ldap:///cn=proxy-service,dc=directory,dc=example";)
+aci: (target="ldap:///uid=user1,dc=directory,dc=example")
+ (targetattr="*")(version 3.0; acl "Proxy service may act as user1";
+ allow(proxy) userdn="ldap:///cn=proxy-service,dc=directory,dc=example";)
+LDIF
+----
+
+The first ACI may already be covered by a global ACI; assess the existing policy before adding it. Repeat or adjust the proxy target for the intended users without granting access to administrative identities. See xref:../server-dev-guide/chap-ldap-operations.adoc#setup-proxied-authz[Configure Proxied Authorization] for the privilege and ACI requirements.
+
+==== Remote OpenLDAP Server
+
+OpenLDAP can authorize the proxy through source rules in the service account's `authzTo` attribute. The example enables `to` rules, grants the service account `auth` access to its own `authzTo`, and allows it to assume the one test identity. These are changes to the **remote OpenLDAP server**, not the OpenDJ proxy.
+
+First identify the configuration entry for the database containing the service account. On the OpenLDAP host, using a local administrator permitted to manage `cn=config`:
+
+[source,bash]
+----
+ldapsearch -Y EXTERNAL -H ldapi:/// -LLL -b cn=config \
+  '(olcSuffix=dc=directory,dc=example)' dn
+----
+
+Replace `olcDatabase=\{1}mdb,cn=config` below with the returned DN. For a test server whose proxy authorization policy is currently disabled, enable source rules and add the ACL ahead of existing ACLs:
+
+[source,bash]
+----
+ldapmodify -Y EXTERNAL -H ldapi:/// <<'LDIF'
+dn: cn=config
+changetype: modify
+replace: olcAuthzPolicy
+olcAuthzPolicy: to
+
+dn: olcDatabase={1}mdb,cn=config
+changetype: modify
+add: olcAccess
+olcAccess: {0}to dn.exact="cn=proxy-service,dc=directory,dc=example"
+  attrs=authzTo by self auth by * none
+LDIF
+----
+
+`olcAuthzPolicy` is a global setting. If the server already uses `from` rules, replacing it with `to` would disable those rules; choose a policy compatible with the existing deployment, such as `both`, and review ACL order before making changes. The example ACL protects `authzTo` from ordinary users; OpenLDAP's database root DN bypasses ACLs and can administer the account.
+
+Add the source rule to the existing service account as the remote database administrator. The example adds `extensibleObject` if needed to allow the operational attribute; omit that change if the entry already permits `authzTo`:
+
+[source,bash]
+----
+LDAPTLS_CACERT=/secure/remote-ca.pem ldapmodify -x \
+  -H ldaps://ldap1.example.com:636 \
+  -D 'cn=admin,dc=directory,dc=example' -W <<'LDIF'
+dn: cn=proxy-service,dc=directory,dc=example
+changetype: modify
+add: objectClass
+objectClass: extensibleObject
+-
+add: authzTo
+authzTo: dn.exact:uid=user1,dc=directory,dc=example
+LDIF
+----
+
+Add further `authzTo` values for the intended authorization identities or use a suitably restricted subtree rule. Do not allow ordinary users to modify `authzTo`: source rules can grant impersonation. See the link:https://www.openldap.org/doc/admin26/guide.html#Proxy%20Authorization%20Rules[OpenLDAP proxy authorization rules] and link:https://www.openldap.org/doc/admin26/guide.html#Controlling%20the%20LDAP%20Proxied%20Authorization%20Control[access control requirements].
+
+==== Remote 389 Directory Server
+
+On the remote 389 Directory Server, grant the service account the `proxy` right with an ACI. This example allows proxy operations on the `uid=user1` entry. Run it as an administrator who can manage ACIs:
+
+[source,bash]
+----
+LDAPTLS_CACERT=/secure/remote-ca.pem ldapmodify -x \
+  -H ldaps://ldap1.example.com:636 -D 'cn=Directory Manager' -W <<'LDIF'
+dn: dc=directory,dc=example
+changetype: modify
+add: aci
+aci: (target="ldap:///uid=user1,dc=directory,dc=example")
+ (targetattr="*")(version 3.0; acl "OpenDJ proxy access to user1";
+ allow (proxy) userdn="ldap:///cn=proxy-service,dc=directory,dc=example";)
+LDIF
+----
+
+In 389 Directory Server, the ACI target limits the entries accessed by a proxied operation; it does not limit which authorization identities the service account can assume for those operations. For example, this rule can allow the service account to access the `user1` entry as another user whose own permissions permit that access. Set the target scope as narrowly as possible and protect the service account credentials. For a subtree, adjust the ACI target and review its scope against the existing access policy. See the link:https://www.port389.org/docs/389ds/howto/howto-chainonupdate.html[389 Directory Server proxy ACI example].
+
+=== Configure Static Discovery
+
+This example selects `ldap1.example.com:636` as primary and `ldap2.example.com:636` as secondary. Add further `primary-server` or `secondary-server` values as needed. The secondary group is used when the primary group is unavailable; the connection load balancer periodically checks failed servers for recovery.
+
+Create a file-based trust manager provider containing the CA certificates for the remote servers. This example assumes a JKS truststore and a PIN file already exist:
+
+[source,bash]
+----
+bin/dsconfig create-trust-manager-provider \
+  --hostname proxy.example.com --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /secure/admin-password \
+  --trustStorePath /secure/proxy-admin-truststore \
+  --trustStorePasswordFile /secure/proxy-admin-truststore.pin \
+  --provider-name remote-directory-trust --type file-based \
+  --set trust-store-file:/secure/remote-directory-truststore \
+  --set trust-store-type:JKS \
+  --set trust-store-pin-file:/secure/remote-directory-truststore.pin \
+  --set enabled:true --no-prompt
+----
+
+Set `PROXY_SERVICE_PASSWORD` in the shell by a method appropriate for your environment, then create the discovery mechanism:
+
+[source,bash]
+----
+bin/dsconfig create-service-discovery-mechanism \
+  --hostname proxy.example.com --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /secure/admin-password \
+  --trustStorePath /secure/proxy-admin-truststore \
+  --trustStorePasswordFile /secure/proxy-admin-truststore.pin \
+  --mechanism-name directory-servers --type static \
+  --set 'bind-dn:cn=proxy-service,dc=directory,dc=example' \
+  --set "bind-password:${PROXY_SERVICE_PASSWORD}" \
+  --set primary-server:ldap1.example.com:636 \
+  --set secondary-server:ldap2.example.com:636 \
+  --set use-ssl:true \
+  --set trust-manager-provider:remote-directory-trust --no-prompt
+----
+
+The service password is passed to `dsconfig` as a property value and stored in the server configuration. Protect process arguments and configuration files accordingly. The `use-ssl` setting selects LDAPS for connections to the remote LDAP servers; StartTLS is not implemented for this discovery mechanism.
+
+For static discovery without a service account, omit both `bind-dn` and `bind-password`. The proxy then uses client-authenticated connections. Replication discovery still requires the service account to read the administration registry and replication configuration, even when client-authenticated connections are used for LDAP operations.
+
+=== Create the Proxy Backend
+
+[source,bash]
+----
+bin/dsconfig create-backend \
+  --hostname proxy.example.com --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /secure/admin-password \
+  --trustStorePath /secure/proxy-admin-truststore \
+  --trustStorePasswordFile /secure/proxy-admin-truststore.pin \
+  --backend-name remote-people --type proxy \
+  --set 'base-dn:ou=people,dc=example,dc=com' \
+  --set 'remote-base-dn:dc=directory,dc=example' \
+  --set shard:directory-servers --set enabled:true --no-prompt
+----
+
+The proxy suffix must not conflict with an existing naming context. If the remote and proxy suffixes are identical, omit `remote-base-dn`. When it is set, exactly one proxy `base-dn` is required.
+
+When proxied authorization is selected, the proxy does not fall back to user connections after an operation has been sent. User connections are limited to 16 per proxy route, user, and remote server. Extra idle connections are closed after at least five minutes of inactivity, checked once per minute; one connection is retained while a client session remains active. When the last client session using the pool ends, idle connections are closed and in-flight connections are closed when returned. When all connections in a pool are in use, another operation returns `BUSY`; when no valid connections remain, it returns `UNAVAILABLE` and the client must bind again. Connections authenticated on one server are not reused on a different server.
+
+In user mode, a client must have successfully bound through this proxy backend to access it as an authenticated user. A session authenticated only by a different local backend has no corresponding remote user connection; requests to this backend return `UNAVAILABLE` until the client binds through the proxy. This also applies when a subtree search reaches the proxy from a parent naming context.
+
+User binds select a primary server using DN affinity and try secondary servers only when the primary servers cannot be reached before a bind is sent. An authentication failure from a reachable server is returned to the client; it is not retried against other replicas. If the connection fails after a bind was sent, the proxy returns `UNAVAILABLE` without retrying on another server, because the bind outcome is unknown. After a successful bind, the session uses connections authenticated on that server until it binds again.
+
+Use a bind DN under the proxy base DN. The proxy does not forward non-DN bind names such as an Active Directory user principal name. The remote server determines whether an established connection remains usable after a password change or account disablement.
+
+Use an LDAP client to bind as a remote user through the proxy and search the proxy suffix. For example, with OpenLDAP's `ldapsearch` and a TLS-enabled proxy listener:
+
+[source,bash]
+----
+LDAPTLS_CACERT=/secure/proxy-ca.pem ldapsearch -x \
+  -H ldaps://proxy.example.com:636 \
+  -D 'uid=user1,ou=people,dc=example,dc=com' -W \
+  -b 'ou=people,dc=example,dc=com' '(objectClass=*)' dn
+----
+
+The user must exist on the remote server as `uid=user1,dc=directory,dc=example`. Verify both allowed and denied operations with representative user accounts. Protect client-to-proxy connections separately from proxy-to-remote connections; `use-ssl` above controls only the latter.
+
+=== Rewrite DNs and Attributes
+
+`remote-base-dn` maps DNs under the proxy suffix to the remote suffix in requests and maps them back in responses. For example, `uid=user1,ou=people,dc=example,dc=com` maps to `uid=user1,dc=directory,dc=example`. Values of attributes recognized by the proxy schema as having DN syntax, such as `manager`, are also rewritten when they fall under the configured suffix. Configure the proxy schema for any custom DN-valued attributes.
+
+Attribute mappings are optional and independent of DN rewriting. Each mapping is `client-attribute=remote-attribute` and must be one-to-one. For example, expose the remote `displayName` as `description`:
+
+[source,bash]
+----
+bin/dsconfig set-backend-prop \
+  --hostname proxy.example.com --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /secure/admin-password \
+  --trustStorePath /secure/proxy-admin-truststore \
+  --trustStorePasswordFile /secure/proxy-admin-truststore.pin \
+  --backend-name remote-people \
+  --add 'attribute-mapping:description=displayName' --no-prompt
+----
+
+Mappings apply to attributes in requests, search filters, and returned entries. Do not configure mappings that cause two attributes of the same entry to resolve to the same name. Referral URLs are passed through and are not rewritten.
+
+When rewriting is enabled, assertion, pre-read, post-read, and simple paged results controls have explicit handling. Other critical controls that cannot be safely rewritten are rejected; unsupported noncritical controls are omitted. Without rewriting, request controls are forwarded, except client-supplied proxied authorization controls, which are rejected.
+
+=== Discover an OpenDJ Replication Topology
+
+As an alternative to static discovery, use replication discovery for an OpenDJ topology registered in the shared administration data (ADS). The bootstrap addresses are **administration ports**, not replication or LDAP ports. The account must read the ADS registry and remote replication configuration. When proxied authorization is used for LDAP operations, the account also needs the corresponding permissions.
+
+[source,bash]
+----
+bin/dsconfig create-service-discovery-mechanism \
+  --hostname proxy.example.com --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /secure/admin-password \
+  --trustStorePath /secure/proxy-admin-truststore \
+  --trustStorePasswordFile /secure/proxy-admin-truststore.pin \
+  --mechanism-name replicated-directory --type replication \
+  --set 'bind-dn:cn=proxy-service,dc=directory,dc=example' \
+  --set "bind-password:${PROXY_SERVICE_PASSWORD}" \
+  --set bootstrap-replication-server:ds1.example.com:4444 \
+  --set bootstrap-replication-server:ds2.example.com:4444 \
+  --set discovery-interval:60s --set use-ssl:true \
+  --set trust-manager-provider:remote-directory-trust --no-prompt
+----
+
+Use `shard:replicated-directory` when creating the backend instead of the static mechanism. The optional `primary-group-id` selects a preferred replication group; without it, discovered replicas are treated equally. Discovery reads the topology periodically, using a default interval of 60 seconds. If a registered node cannot be read, its last known information can be retained while accessible nodes are refreshed. Until a route has been discovered for the target DN, requests return an unavailable result.
+
+Discovery connects to administration ports over TLS regardless of `use-ssl`. The `use-ssl` setting selects the registered LDAPS or LDAP listener for forwarded operations. The trust manager provider must trust certificates used by both the administration ports and, when LDAPS is enabled, the LDAP listeners. Replication discovery without ADS is not supported.
+
+=== Current Scope
+
+The backend forwards bind, search, add, modify, modify DN, compare, and delete operations. Search limits and access control are evaluated by the remote directory. Extended operations are handled by the server's normal extended-operation dispatch and are not generally routed to this backend.
+
+The current configuration does not provide per-operation routing priorities, configurable application-level availability checks, or per-backend health metrics. Routing to all discovered naming contexts is not implemented; configure the proxy base DNs explicitly. Servers that do not support Proxied Authorization V2 use client-authenticated connections as described above. DN and attribute mappings do not provide general directory federation or virtual attributes.

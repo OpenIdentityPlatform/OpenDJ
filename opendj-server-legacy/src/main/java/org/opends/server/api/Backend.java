@@ -22,8 +22,12 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.Configuration;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
+import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.Operation;
 
 /**
  * Represents a directory server backend, which can be either local or remote (proxy).
@@ -39,13 +43,26 @@ public abstract class Backend<C extends Configuration>
   /** The unique identifier for this backend. */
   private String backendID;
 
-  /**
-   * Performs the provided request on this backend.
-   *
-   * @return a stream of response
-   */
-  //public abstract Stream<Response> handle(final LDAPClientConnection clientContext, final Request request)
-  //   throws Exception;
+
+  public static boolean execute(Operation operation, DN entryDN) throws CanceledOperationException {
+    final Backend<?> backend = DirectoryServer.getInstance().getServerContext().getBackendConfigManager().findBackendForEntry(entryDN);
+
+    if (backend == null)
+    {
+      // We have found no backend for the requested base DN,
+      // just return a no such entry result code and stop the processing.
+      if (operation instanceof AbstractOperation)
+      {
+        ((AbstractOperation) operation).updateOperationErrMsgAndResCode();
+      }
+      return false;
+    }
+
+    backend.execute(operation);
+    return true;
+  }
+
+  public abstract void execute(Operation operation) throws CanceledOperationException;
 
   /**
    * Configure this backend based on the information in the provided configuration.

@@ -74,7 +74,7 @@ public abstract class ClientConnection
   /**
    * The set of authentication information for this client connection.
    */
-  protected AuthenticationInfo authenticationInfo;
+  protected volatile AuthenticationInfo authenticationInfo;
 
   /**
    * Indicates whether a multistage SASL bind is currently in progress
@@ -102,6 +102,9 @@ public abstract class ClientConnection
    *  client connection.
    */
   private boolean finalized;
+
+  /** Cleanup callbacks associated with the current authenticated identity. */
+  private final List<Runnable> authenticationChangeListeners = new ArrayList<>();
 
   /** The set of privileges assigned to this client connection. */
   private HashSet<Privilege> privileges = new HashSet<>();
@@ -163,7 +166,7 @@ public abstract class ClientConnection
       mayInvoke=true,
       notes="This method should only be invoked by connection " +
              "handlers.")
-  protected final void finalizeConnectionInternal()
+  protected final synchronized void finalizeConnectionInternal()
   {
     if (finalized)
     {
@@ -171,6 +174,7 @@ public abstract class ClientConnection
     }
 
     finalized = true;
+    clearAuthenticationChangeListeners();
 
     // Deregister with the set of authenticated users.
     Entry authNEntry = authenticationInfo.getAuthenticationEntry();
@@ -785,9 +789,10 @@ public abstract class ClientConnection
    *                             connection.  It should not be
    *                             {@code null}.
    */
-  public void setAuthenticationInfo(AuthenticationInfo
+  public synchronized void setAuthenticationInfo(AuthenticationInfo
                                          authenticationInfo)
   {
+    clearAuthenticationChangeListeners();
     AuthenticatedUsers authenticatedUsers = DirectoryServer.getAuthenticatedUsers();
     if (this.authenticationInfo != null)
     {
@@ -846,6 +851,33 @@ public abstract class ClientConnection
       }
 
       updatePrivileges(authZEntry, authenticationInfo.isRoot());
+    }
+  }
+
+  /** Registers cleanup for the current authentication, unless it has already changed. */
+  public synchronized boolean addAuthenticationChangeListener(AuthenticationInfo expected, Runnable listener)
+  {
+    if (finalized || this.authenticationInfo != expected)
+    {
+      return false;
+    }
+    authenticationChangeListeners.add(listener);
+    return true;
+  }
+
+  /** Removes a previously registered authentication cleanup callback. */
+  public synchronized void removeAuthenticationChangeListener(Runnable listener)
+  {
+    authenticationChangeListeners.remove(listener);
+  }
+
+  private void clearAuthenticationChangeListeners()
+  {
+    final List<Runnable> listeners = new ArrayList<>(authenticationChangeListeners);
+    authenticationChangeListeners.clear();
+    for (Runnable listener : listeners)
+    {
+      listener.run();
     }
   }
 

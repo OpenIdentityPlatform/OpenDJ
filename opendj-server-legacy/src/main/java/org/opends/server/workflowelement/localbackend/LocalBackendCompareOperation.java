@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -21,7 +22,8 @@ import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.types.AbstractOperation.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
+import static org.opends.server.api.Backend.*;
+import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.findMatchedDN;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

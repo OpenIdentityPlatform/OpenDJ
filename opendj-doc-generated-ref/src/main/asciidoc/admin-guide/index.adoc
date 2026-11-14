@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 = Administration Guide
@@ -20,7 +20,7 @@
 :toc:
 :authors: Mark Craig, Nemanja Lukić, Ludovic Poitou, Chris Ridd, Valery Kharseko
 :copyright: Copyright 2011-2017 ForgeRock AS.
-:copyright: Portions Copyright 2024 3A Systems LLC.
+:copyright: Portions Copyright 2024-2026 3A Systems, LLC.
 
 :imagesdir: ../
 :figure-caption!:
@@ -38,6 +38,7 @@ include::./chap-connection-handlers.adoc[]
 include::./chap-privileges-acis.adoc[]
 include::./chap-indexing.adoc[]
 include::./chap-replication.adoc[]
+include::./chap-proxy-backend.adoc[]
 include::./chap-backup-restore.adoc[]
 include::./chap-pwd-policy.adoc[]
 include::./chap-account-lockout.adoc[]

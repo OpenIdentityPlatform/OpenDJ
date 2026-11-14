@@ -668,7 +668,7 @@ public final class InternalClientConnection
   public void setAuthenticationInfo(AuthenticationInfo
                                          authenticationInfo)
   {
-    // No implementation required.
+    this.authenticationInfo=authenticationInfo;
   }
 
 

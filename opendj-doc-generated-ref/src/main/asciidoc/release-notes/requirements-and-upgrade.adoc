@@ -55,6 +55,15 @@ The `upgrade` tool updates configuration and data for the new binaries. With `--
 * When migrating from OpenDJ 3 or earlier to the 5.x line, review the REST to LDAP configuration change described in the xref:../install-guide/chap-upgrade.adoc#upgrade-zip[upgrade procedure]. Do not assume an old HTTP mapping can be reused unchanged; see the xref:../reference/appendix-rest2ldap.adoc[REST to LDAP configuration reference].
 * For a container upgrade, retain the data volume and check the documented image upgrade procedure and health status. Replacing a container without its persistent volume creates a different instance.
 
+[#custom-discovery-provider-upgrade]
+=== Custom Service Discovery Providers
+
+The LDAP proxy backend changes the `org.opends.server.discovery.ServiceDiscoveryMechanism` SPI from an interface to an abstract class. Existing provider binaries implementing the former interface are incompatible and must be ported and rebuilt against the target OpenDJ version before upgrading an installation that uses them. The `upgrade` tool does not adapt or recompile extension JARs.
+
+Change providers from `implements ServiceDiscoveryMechanism` to `extends ServiceDiscoveryMechanism`. Keep lifecycle callbacks and `getName()` public. When overriding initialization, call `super.initializeMechanism(configuration, serverContext)` before using inherited configuration state. Replace `getPartitions(Collection<DN>)` with `getPartition()` for the default route, and override `getPartition(DN)` when discovery selects a route according to the target DN. Rebuild the provider and replace its extension JAR before starting the upgraded server; do not retain another copy compiled against the old interface.
+
+Test configuration validation, initialization, discovery and deletion with the rebuilt provider. If a configured provider cannot link against the current SPI, configuration validation rejects it with a diagnostic naming the provider and requiring a rebuild. During startup, the server logs the rejected mechanism and continues initializing other mechanisms; the rejected mechanism remains unavailable.
+
 === Known Issues and Help
 
 The link:https://github.com/OpenIdentityPlatform/OpenDJ/issues[issue tracker] records reported problems and ongoing work. An open issue is not, by itself, proof that a particular released version is affected: read its description, reproduction and linked fixes. Consult the link:https://github.com/OpenIdentityPlatform/OpenDJ/security/advisories[security advisories] separately for published security information.

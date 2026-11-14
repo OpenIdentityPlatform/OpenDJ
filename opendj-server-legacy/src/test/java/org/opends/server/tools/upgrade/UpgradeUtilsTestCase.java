@@ -149,6 +149,93 @@ public class UpgradeUtilsTestCase extends DirectoryServerTestCase
         summaries.toString());
   }
 
+  @Test
+  public void testServiceDiscoveryContainerTaskRunsOnUpgradeTo521() throws Exception
+  {
+    final List<String> tasks = new ArrayList<>();
+    for (final UpgradeTask task : Upgrade.getUpgradeTasks(BuildVersion.valueOf("5.2.0"), BuildVersion.valueOf("5.2.1")))
+    {
+      tasks.add(task.toString());
+    }
+    assertTrue(tasks.contains("Add entry dn: cn=Service Discovery Mechanisms,cn=config"), tasks.toString());
+  }
+
+  @Test
+  public void testServiceDiscoveryContainerIsAddedOnceAndMatchesFreshInstall() throws Exception
+  {
+    final File tempDir = TestCaseUtils.createTemporaryDirectory("upgradeServiceDiscovery");
+    try
+    {
+      final File config = new File(tempDir, "config.ldif");
+      writeServiceDiscoveryConfig(config, false);
+      assertEquals(applyAdd(config, Upgrade.SERVICE_DISCOVERY_CONTAINER_ENTRY), 1);
+      assertEquals(applyAdd(config, Upgrade.SERVICE_DISCOVERY_CONTAINER_ENTRY), 0);
+      assertEntryPresentOnce(readEntries(config), Upgrade.SERVICE_DISCOVERY_CONTAINER_ENTRY);
+      assertEntryPresentOnce(readEntries(freshInstallTemplate()), Upgrade.SERVICE_DISCOVERY_CONTAINER_ENTRY);
+    }
+    finally
+    {
+      StaticUtils.recursiveDelete(tempDir);
+    }
+  }
+
+  @Test
+  public void testExistingServiceDiscoveryConfigurationIsPreserved() throws Exception
+  {
+    final File tempDir = TestCaseUtils.createTemporaryDirectory("upgradeServiceDiscoveryExisting");
+    try
+    {
+      final File config = new File(tempDir, "config.ldif");
+      writeServiceDiscoveryConfig(config, true);
+      assertEquals(applyAdd(config, Upgrade.SERVICE_DISCOVERY_CONTAINER_ENTRY), 0);
+      final List<Entry> entries = readEntries(config);
+      assertEntryPresentOnce(entries,
+          "dn: cn=Service Discovery Mechanisms,cn=config", "objectClass: top", "objectClass: ds-cfg-branch",
+          "cn: Service Discovery Mechanisms", "description: existing container");
+      assertEntryPresentOnce(entries,
+          "dn: cn=Existing,cn=Service Discovery Mechanisms,cn=config", "objectClass: top",
+          "objectClass: ds-cfg-branch", "cn: Existing", "description: existing child");
+    }
+    finally
+    {
+      StaticUtils.recursiveDelete(tempDir);
+    }
+  }
+
+  private void writeServiceDiscoveryConfig(final File config, final boolean existing) throws Exception
+  {
+    final DN container = DN.valueOf("cn=Service Discovery Mechanisms,cn=config", schema);
+    int removed = 0;
+    try (LDIFEntryReader reader = new LDIFEntryReader(new FileInputStream(freshInstallTemplate())).setSchema(schema);
+        LDIFEntryWriter writer = new LDIFEntryWriter(new FileOutputStream(config)))
+    {
+      while (reader.hasNext())
+      {
+        final Entry entry = reader.readEntry();
+        if (entry.getName().equals(container))
+        {
+          removed++;
+          if (existing)
+          {
+            entry.addAttribute("description", "existing container");
+            writer.writeEntry(entry);
+            try (LDIFEntryReader child = new LDIFEntryReader(
+                "dn: cn=Existing,cn=Service Discovery Mechanisms,cn=config", "objectClass: top",
+                "objectClass: ds-cfg-branch", "cn: Existing", "description: existing child").setSchema(schema))
+            {
+              writer.writeEntry(child.readEntry());
+            }
+          }
+        }
+        else
+        {
+          writer.writeEntry(entry);
+        }
+      }
+    }
+    assertEquals(removed, 1, "fresh-install template must contain the discovery container");
+  }
+
   private int applyAdd(final File config, final String... ldifLines) throws Exception
   {
     return UpgradeUtils.updateConfigFile(config, null, ChangeOperationType.ADD, ldifLines);
