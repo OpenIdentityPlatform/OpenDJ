@@ -40,7 +40,7 @@ public class BootstrapSearchTestCase extends ForgeRockTestCase {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         BootstrapSearch.serve(new ByteArrayInputStream(input.getBytes(UTF_8)),
                 new PrintStream(output), false);
-        String[] lines = output.toString("UTF-8").split("\n");
+        String[] lines = output.toString("UTF-8").lines().toArray(String[]::new);
         assertEquals(lines.length, 2);
         assertFalse(lines[0].startsWith("0 "));
         assertTrue(lines[1].startsWith("0 "));
