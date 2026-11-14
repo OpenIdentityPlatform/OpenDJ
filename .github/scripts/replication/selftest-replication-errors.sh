@@ -64,6 +64,8 @@ E211='[t] category=SYNC severity=ERROR msgID=211 msg=The connection from this re
 E66='[t] category=SYNC severity=ERROR msgID=66 msg=monitor reply failed'
 E108='[t] category=SYNC severity=ERROR msgID=108 msg=monitor request failed'
 E51='[05/Nov/2026:19:18:17 +0000] category=SYNC severity=ERROR msgID=51 msg=The hostname cv-r0 could not be resolved as an IP address'
+BASE_DN=dc=example,dc=com
+E212='[t] category=SYNC severity=ERROR msgID=212 msg=Directory server DS(23874) timed out while connecting to replication server cv-r1:8989 for domain "dc=example,dc=com"'
 E18='[t] category=SYNC severity=ERROR msgID=18 msg=an id that starts the first one a window lists'
 E80='[t] category=SYNC severity=ERROR msgID=80 msg=an id that ends the first one a window lists'
 E106KILL='[t] category=SYNC severity=ERROR msgID=106 msg=an id a window lists, 181, in the message'
@@ -200,6 +202,47 @@ case_ ds-disconnect-rs-kill      1 0 "$KILL" "$E211" ']'
 case_ ds-disconnect-before-after 2 1 "$E211" '[ 211' "$E211" ']' "$E211"
 case_ monitors-in-combined-kill  2 0 '[ dns:cv-c1 180 181 211 284' "$E66" "$E108" ']'
 
+# Only the restarted DS may temporarily reject the new RS certificate during its window.
+WBAD_RS='[t] category=SYNC severity=WARNING msgID=119 msg=Directory server DS(1) encountered an unexpected error while connecting to replication server cv-r1:8989 for domain "dc=example,dc=com": SSLHandshakeException((bad_certificate) PKIX path validation failed)'
+case_ new-cert-exact            0 1 '[ cert:n0:cv-r1' "$WBAD_RS" ']'
+case_ new-cert-wrong-rs         1 0 '[ cert:n0:cv-r0' "$WBAD_RS" ']'
+case_ new-cert-wrong-ds         1 0 '[ cert:n1:cv-r1' "$WBAD_RS" ']'
+case_ new-cert-outside          2 1 "$WBAD_RS" '[ cert:n0:cv-r1' "$WBAD_RS" ']' "$WBAD_RS"
+case_ new-cert-unknown          1 0 '[ cert:n0:cv-r1' "${WBAD_RS/bad_certificate/other_error}" ']'
+case_ new-cert-other-category   1 0 '[ cert:n0:cv-r1' "${WBAD_RS/category=SYNC/category=CORE}" ']'
+# The RS also reports the rejected handshake, identifying the remote DS by IP and port.
+WBAD_PEER='[t] category=SYNC severity=WARNING msgID=105 msg=Replication server accepted a connection from /172.18.0.9:43210 to local address /172.18.0.2:8989 but the SSL handshake failed. The error was: Received fatal alert: bad_certificate'
+case_ new-cert-rs-side          0 1 '[ cert-peer:n0:172.18.0.9' "$WBAD_PEER" ']'
+case_ new-cert-rs-jdk-prefix    0 1 '[ cert-peer:n0:172.18.0.9' "${WBAD_PEER/The error was: Received/The error was: (bad_certificate) Received}" ']'
+case_ new-cert-rs-other-ip      1 0 '[ cert-peer:n0:172.18.0.8' "$WBAD_PEER" ']'
+case_ new-cert-rs-other-node    1 0 '[ cert-peer:n1:172.18.0.9' "$WBAD_PEER" ']'
+case_ new-cert-rs-outside       1 0 "$WBAD_PEER" '[ cert-peer:n0:172.18.0.9' ']'
+case_ new-cert-rs-other-fault   1 0 '[ cert-peer:n0:172.18.0.9' "${WBAD_PEER/Received fatal alert: bad_certificate/unexpected bad_certificate}" ']'
+case_ startup-timeout-exact     0 1 '[ timeout:n0:cv-r1' "$E212" ']'
+case_ startup-timeout-other-ds  1 0 '[ timeout:n1:cv-r1' "$E212" ']'
+case_ startup-timeout-other-rs  1 0 '[ timeout:n0:cv-r0' "$E212" ']'
+case_ startup-timeout-domain    1 0 '[ timeout:n0:cv-r1' "${E212/dc=example,dc=com/cn=schema}" ']'
+case_ startup-timeout-outside   1 0 "$E212" '[ timeout:n0:cv-r1' ']'
+
+# A long DNS-only window must not also hide the normally expected handshake errors.
+case_ dns-only-name           0 1 '[ dns-only dns:cv-r0' "$E51" ']'
+case_ dns-only-handshake      1 0 '[ dns-only dns:cv-r0' "$E178" ']'
+
+# Real long DNS window overlapping no ordinary restart window.
+rm -rf "$OUT/logs"
+printf '%s\n' "$E106" >"$LOG"
+mark_logs
+dns_window_open cv-r0
+printf '%s\n' "$E51" "$E178" >>"$LOG"
+dns_window_close
+errors=$(replication_errors n0 | grep -c . || true)
+expected=$(grep -c . "$OUT/logs/n0.expected" || true)
+if [ "$errors" = 1 ] && [ "$expected" = 1 ]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1)); echo '::error::DNS-only window accepted unrelated handshake or missed DNS error'
+fi
+
 # A log that cannot be read stops window_open, which would otherwise open a window from its first
 # line. In the background: errexit is off in a subshell on the left of ||, and on in a job
 code=0
@@ -212,6 +255,91 @@ else
   failed=$((failed + 1))
   echo "::error::window_open went on over an errors log that cannot be read"
 fi
+
+# The same failure must be fatal when the caller handles the return code itself: Bash
+# disables errexit throughout a function called from an if/|| condition.
+if window_open 180 >/dev/null 2>&1; then
+  failed=$((failed + 1)); echo '::error::conditional window_open accepted an unreadable log'
+else
+  passed=$((passed + 1))
+fi
+printf '0 180\n' >"$OUT/logs/n0.window"
+if window_close >/dev/null 2>&1; then
+  failed=$((failed + 1)); echo '::error::conditional window_close accepted an unreadable log'
+else
+  passed=$((passed + 1))
+fi
+
+# A replaced server has a new errors file. Preserve the old file as a prefix so marks and
+# window boundaries cover records on both volumes without accepting errors outside the window.
+rm -rf "$OUT/logs"
+printf '%s\n' "$E178" "$E106" >"$LOG"
+mark_logs
+printf '%s\n' "$E106" >>"$LOG"
+window_open 180
+printf '%s\n' "$E180" >>"$LOG"
+cp "$LOG" "$OUT/logs/n0.previous"
+printf '%s\n' "$E180" >"$LOG"
+window_close
+printf '%s\n' "$E106" >>"$LOG"
+errors=$(replication_errors n0 | grep -c . || true)
+expected=$(grep -c . "$OUT/logs/n0.expected" || true)
+if [ "$errors" = 2 ] && [ "$expected" = 2 ]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1))
+  echo "::error::replacement logs: $errors errors and $expected expected, wanted 2 each"
+fi
+
+# While a scaled-down container is absent, its captured line count keeps later windows
+# aligned; a different unreadable node still fails.
+printf '7\n' >"$OUT/logs/n0.offline"
+rm -f "$LOG"
+if [ "$(errors_lines n0 2>/dev/null || :)" = 7 ]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1)); echo '::error::offline node lost its captured line count'
+fi
+rm "$OUT/logs/n0.offline"
+if errors_lines n0 >/dev/null 2>&1; then
+  failed=$((failed + 1)); echo '::error::unreadable online log was accepted'
+else
+  passed=$((passed + 1))
+fi
+
+# Overlapping transitions retain separate bounds and exact hostname allowances.
+rm -rf "$OUT/logs"
+printf '%s\n' "$N62" >"$LOG"
+mark_logs
+window_open_key first dns:first
+printf '%s\n' "$E178" >>"$LOG"
+window_open_key second dns:second
+printf '%s\n' "$E180" >>"$LOG"
+window_close_key first
+printf '%s\n' "$E179" >>"$LOG"
+window_close_key second
+printf '%s\n' "$E178" >>"$LOG"
+errors=$(replication_errors n0 | grep -c . || true)
+expected=$(grep -c . "$OUT/logs/n0.expected" || true)
+[ "$errors" = 2 ] && [ "$expected" = 2 ] || { echo "overlapping windows misclassified records: $errors/$expected" >&2; exit 1; }
+[ ! -e "$OUT/logs/n0.window-first" ] && [ ! -e "$OUT/logs/n0.window-second" ] || { echo 'overlapping window left open' >&2; exit 1; }
+
+# DNS allowances stay scoped to their own overlapping node windows.
+rm -rf "$OUT/logs"
+printf '%s\n' "$N62" >"$LOG"
+mark_logs
+E51R1=${E51//cv-r0/cv-r1}
+window_open_key first dns:cv-r0
+printf '%s\n' "$E51" >>"$LOG"
+window_open_key second dns:cv-r1
+printf '%s\n' "$E51R1" >>"$LOG"
+window_close_key first
+printf '%s\n' "$E51" "$E51R1" >>"$LOG"
+window_close_key second
+printf '%s\n' "$E51R1" >>"$LOG"
+errors=$(replication_errors n0 | grep -c . || true)
+expected=$(grep -c . "$OUT/logs/n0.expected" || true)
+[ "$errors" = 2 ] && [ "$expected" = 3 ] || { echo "overlapping DNS windows misclassified records: $errors/$expected" >&2; exit 1; }
 
 echo "replication_errors: $passed cases passed, $failed failed"
 [ "$failed" -eq 0 ]

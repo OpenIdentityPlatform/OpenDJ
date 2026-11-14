@@ -89,6 +89,9 @@
 
 cd /opt/opendj || exit 1
 export PATH=/opt/opendj/bin:$PATH
+. /opt/opendj/bootstrap/join-timing.sh
+. /opt/opendj/bootstrap/join-batch.sh
+join_timing_init
 
 BASE_DN=${BASE_DN:-"dc=example,dc=com"}
 ROOT_USER_DN=${ROOT_USER_DN:-"cn=Directory Manager"}
@@ -254,14 +257,14 @@ in_peers() {
 search() {
   local host=$1
   shift
-  ldapsearch --noPropertiesFile --hostname "$host" --port "$ADMIN_PORT" --useSsl --trustAll \
+  join_timed "ldapsearch:$host" ldapsearch --noPropertiesFile --hostname "$host" --port "$ADMIN_PORT" --useSsl --trustAll \
     --bindDN "$ROOT_USER_DN" --bindPasswordFile "$PASSWORD_FILE" "$@" 2>/dev/null
 }
 
 ldapmodify_on() { # <host> [<option>...]
   local host=$1
   shift
-  ldapmodify --noPropertiesFile --hostname "$host" --port "$ADMIN_PORT" --useSsl --trustAll \
+  join_timed "ldapmodify:$host" ldapmodify --noPropertiesFile --hostname "$host" --port "$ADMIN_PORT" --useSsl --trustAll \
     --bindDN "$ROOT_USER_DN" --bindPasswordFile "$PASSWORD_FILE" "$@" 2>/dev/null
 }
 
@@ -270,7 +273,7 @@ ldapmodify_local() {
 }
 
 dsconfig_local() {
-  dsconfig "$@" --hostname localhost --port "$ADMIN_PORT" --bindDN "$ROOT_USER_DN" \
+  join_timed "dsconfig:$1" dsconfig "$@" --hostname localhost --port "$ADMIN_PORT" --bindDN "$ROOT_USER_DN" \
     --bindPasswordFile "$PASSWORD_FILE" --trustAll --no-prompt
 }
 
@@ -284,10 +287,6 @@ bounded() {
   else
     "$@"
   fi
-}
-
-server_up() {
-  search localhost --baseDN "" --searchScope base "(objectClass=*)" 1.1 >/dev/null
 }
 
 # the state goes with the role of this server, after it: a peer reads the first word as the
@@ -430,6 +429,14 @@ role_arguments() { # <1|2> <role>
 
 is_member() {
   local host
+  # reset_if_unregistered just verified both the local configuration and
+  # registration. Consume that result once; subsequent checks must read afresh.
+  if [ "${RESET_MEMBER_CONFIRMED:-no}" = yes ]; then
+    RESET_MEMBER_CONFIRMED=no
+    JOIN_REGISTRATIONS_READY=${JOIN_REGISTRATIONS_AVAILABLE:-no}
+    return 0
+  fi
+  JOIN_REGISTRATIONS_READY=no
   holds_own_part || return 1
   for host in $(registered_hosts); do
     is_self "$host" && return 0
@@ -448,6 +455,8 @@ is_member() {
 # stands - nothing else can be asked.
 registered_with_peers() {
   local peer host hosts config asked=no
+  JOIN_MEMBERSHIP_PEER=
+  JOIN_MEMBERSHIP_CONFIG=
   for peer in "${PEERS[@]}"; do
     is_self "$peer" && continue
     # a replication server alone is a member only as a replication server; on a combined
@@ -462,10 +471,27 @@ registered_with_peers() {
     hosts=$(registered_hosts "$peer") || continue
     asked=yes
     for host in $hosts; do
-      is_self "$host" && return 0
+      if is_self "$host"; then
+        JOIN_MEMBERSHIP_PEER=$peer
+        JOIN_MEMBERSHIP_CONFIG=$config
+        return 0
+      fi
     done
   done
   [ "$asked" = no ]
+}
+
+# The just-confirmed peer's configuration is sufficient for the advisory generation-ID
+# cross-check. Consume it once and only for that peer; every other caller searches afresh.
+replicates_base_dn_after_membership() { # <host>
+  local cached_peer=$JOIN_MEMBERSHIP_PEER cached_config=$JOIN_MEMBERSHIP_CONFIG
+  JOIN_MEMBERSHIP_PEER=
+  JOIN_MEMBERSHIP_CONFIG=
+  if [ -n "$cached_peer" ] && [ "$1" = "$cached_peer" ]; then
+    grep -qx domain <<<"$cached_config"
+  else
+    replicates_base_dn "$1"
+  fi
 }
 
 member_of_topology() {
@@ -478,6 +504,7 @@ member_of_topology() {
 # decides nothing
 registered_here() {
   local out host
+  JOIN_REGISTRATIONS_AVAILABLE=no
   out=$(search localhost --baseDN "cn=Servers,cn=admin data" --searchScope one "(objectClass=*)" hostname)
   case $? in
     0) ;;
@@ -485,7 +512,11 @@ registered_here() {
     *) return 2 ;;
   esac
   for host in $(printf '%s\n' "$out" | awk 'tolower($1) == "hostname:" { print $2 }'); do
-    is_self "$host" && return 0
+    if is_self "$host"; then
+      JOIN_REGISTRATIONS=$(printf '%s\n' "$out" | awk '/^dn: /{dn=substr($0,5)} tolower($1) == "hostname:" {print dn "\t" $2}')
+      JOIN_REGISTRATIONS_AVAILABLE=yes
+      return 0
+    fi
   done
   return 1
 }
@@ -820,25 +851,35 @@ release_writes() {
 # left alone: nothing tells it from a server listed by name, and the list moving from
 # MASTER_SERVER to REPLICATION_PEERS would otherwise throw the live master out.
 cleanup_departed() {
-  local dn host kind cn value
+  local dn host kind cn value registrations_snapshot
+  local -a changes=()
   [ "$PEERS_ARE_EXPLICIT" = yes ] || return 0
-  registrations | while IFS=$'\t' read -r dn host; do
+  # reset_if_unregistered just read these same entries and is_member consumed its
+  # successful result. No topology changes occur between that check and cleanup.
+  if [ "${JOIN_REGISTRATIONS_READY:-no}" = yes ]; then
+    registrations_snapshot=$JOIN_REGISTRATIONS
+    JOIN_REGISTRATIONS_READY=no
+  else
+    registrations_snapshot=$(registrations)
+  fi
+  while IFS=$'\t' read -r dn host; do
     [ -z "$host" ] && continue
     is_address "$host" && continue
     if ! in_peers "$host" && ! is_self "$host"; then
       echo "join: removing departed server $host from cn=admin data"
       unregister "$dn" || echo "join: could not remove $dn (already removed by another survivor?)"
     fi
-  done
-  replication_server_lists | while IFS=$'\t' read -r kind cn value; do
+  done <<<"$registrations_snapshot"
+  while IFS=$'\t' read -r kind cn value; do
     [ -z "$value" ] && continue
     host=${value%:*}
     is_address "$host" && continue
     if ! in_peers "$host" && ! is_self "$host"; then
       echo "join: removing departed replication server $value from the $kind list of $cn"
-      change_replication_servers "$kind" "$cn" --remove "$value" || true
+      changes+=("$kind" "$cn" --remove "$value")
     fi
-  done
+  done < <(replication_server_lists)
+  join_batch_changes "${changes[@]}"
 }
 
 # Adds every listed peer that is registered in the topology to each replication server list
@@ -854,6 +895,7 @@ cleanup_departed() {
 # start.
 repair_replication_servers() {
   local i peer waiting hosts host lists kind cn value found config servers=
+  local -a changes=()
   [ "$PEERS_ARE_EXPLICIT" = yes ] || return 0
   for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
     waiting=
@@ -872,7 +914,9 @@ repair_replication_servers() {
     echo "join: waiting for$waiting to register in the topology before the replication server lists are checked"
     sleep "$REPLICATION_RETRY_INTERVAL"
   done
-  hosts=$(registered_hosts)
+  # A successful round already contains every configured peer. Reuse it; if
+  # the retries expired with peers still missing, refresh once for a late join.
+  [ -z "$waiting" ] || hosts=$(registered_hosts)
   lists=$(replication_server_lists)
   # a here-string of nothing still reads as one empty line
   [ -n "$lists" ] || return 0
@@ -898,10 +942,11 @@ repair_replication_servers() {
     for host in $servers; do
       if ! list_holds "$host" "$kind" "$cn" "$lists"; then
         echo "join: adding replication server $host:$REPLICATION_PORT to the $kind list of $cn"
-        change_replication_servers "$kind" "$cn" --add "$host:$REPLICATION_PORT" || true
+        changes+=("$kind" "$cn" --add "$host:$REPLICATION_PORT")
       fi
     done
   done <<<"$lists"
+  join_batch_changes "${changes[@]}"
 }
 
 # whether the list of that kind and cn holds the host, in replication_server_lists output
@@ -955,7 +1000,7 @@ leave_rejoin() {
 }
 
 joined() {
-  cleanup_departed
+  join_timed cleanup_departed cleanup_departed
   leave_rejoin || exit 1
   # a replication server published itself rejoining until now, on the ready road too
   if [ "$ROLE" = replication ] && ! publish_state ready; then
@@ -964,7 +1009,7 @@ joined() {
   fi
   touch "$BOOTSTRAP_COMPLETE"
   echo "join: this server is a member of the replication topology, the health check may probe it"
-  repair_replication_servers
+  join_timed repair_replication_servers repair_replication_servers
 }
 
 # the peers learn that this server holds the data before anything else changes: a seed whose
@@ -995,7 +1040,7 @@ give_up() {
 
 echo "join: waiting for the server on the administration connector"
 for i in $(seq 1 150); do
-  server_up && own_config=$(replication_config localhost) && break
+  own_config=$(replication_config localhost) && break
   if [ "$i" -eq 150 ]; then
     echo "join: the server did not come up, or does not take ROOT_PASSWORD any more, giving up"
     exit 1
@@ -1094,6 +1139,9 @@ may_seed() {
 # an enable registers nobody before it.
 reset_if_unregistered() { # <the state to publish meanwhile>
   local rc=0
+  RESET_MEMBER_CONFIRMED=no
+  JOIN_REGISTRATIONS_AVAILABLE=no
+  JOIN_REGISTRATIONS_READY=no
   holds_own_part || return 0
   if ! registered_with_peers; then
     reset_replication "$1" "the peers no longer register this server"
@@ -1102,6 +1150,8 @@ reset_if_unregistered() { # <the state to publish meanwhile>
   registered_here || rc=$?
   if [ "$rc" -eq 1 ]; then
     reset_replication "$1" "the peers register this server but its own cn=admin data does not"
+  elif [ "$rc" -eq 0 ]; then
+    RESET_MEMBER_CONFIRMED=yes
   fi
 }
 
@@ -1119,9 +1169,9 @@ if [ ! -f "$INITIALIZE_PENDING" ]; then
     publish_state ready
   fi
   for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
-    if ! reset_if_unregistered rejoining; then
+    if ! join_timed reset_if_unregistered reset_if_unregistered rejoining; then
       : # the next round tries the reset again
-    elif is_member; then
+    elif join_timed is_member is_member; then
       echo "join: already a member of the replication topology"
       joined
       exit
@@ -1146,7 +1196,7 @@ if [ ! -f "$INITIALIZE_PENDING" ]; then
           # a replication server holds no generation ID of BASE_DN to compare with, neither
           # this one nor the peer joined through
           if [ "$ROLE" != replication ]; then
-            replicates_base_dn "$peer" || peer=$(trusted_source) || peer=
+            replicates_base_dn_after_membership "$peer" || peer=$(trusted_source) || peer=
             [ -z "$peer" ] || cross_check "$peer" "; replication will not flow until this server or that one is initialized by hand"
           fi
           joined
@@ -1185,9 +1235,9 @@ member=no
 for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
   member=no
   reset_due=no
-  if ! reset_if_unregistered pending; then
+  if ! join_timed reset_if_unregistered reset_if_unregistered pending; then
     reset_due=yes
-  elif is_member; then
+  elif join_timed is_member is_member; then
     member=yes
   fi
   if [ "$member" = no ] && [ "$reset_due" = no ]; then

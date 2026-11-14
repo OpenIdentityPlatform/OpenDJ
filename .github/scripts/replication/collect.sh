@@ -18,6 +18,82 @@
 # every run, and the state of every server of a failed one - what #534 could not get from its
 # reporter.
 
+# Trace files are unique to a server process. Copy the departing combined server before its
+# empty-volume replacement, and every directory server after the final stop. A missing file or
+# unsuccessful copy is an error; the validator also checks every expected process generation.
+capture_csn_trace() { # <directory server>
+  [ "${CSN_TRACE:-0}" = 1 ] || return 0
+  mkdir -p "$OUT/csn-traces/$1" || return 1
+  docker cp "$1:/opt/opendj/data/csn-trace/." "$OUT/csn-traces/$1/" || return 1
+}
+
+expect_csn_trace_restart() { # <directory server whose container is restarted>
+  local token next file
+  [ "${CSN_TRACE:-0}" = 1 ] || return 0
+  token=$(cat "$OUT/csn-trace-tokens/$1") || return 1
+  next=$(python3 -c 'import uuid; print(uuid.uuid4().hex)') || return 1
+  file="$OUT/csn-trace-tokens/$1.restart"
+  printf '%s\n' "$next" >"$file" || return 1
+  # docker cp creates a root-owned file; the unprivileged server must read it.
+  chmod 644 "$file" || return 1
+  docker cp "$file" "$1:/opt/opendj/data/csn-trace-token-$token" || return 1
+  printf '%s %s\n' "$1" "$next" >>"$OUT/csn-trace-expected.txt"
+}
+
+check_csn_traces() {
+  local node failed=
+  [ "${CSN_TRACE:-0}" = 1 ] || return 0
+  for node in $DS_NODES; do
+    capture_csn_trace "$node" || failed=1
+  done
+  if [ -n "$failed" ]; then
+    echo 'incomplete CSN allocation trace: could not copy every directory server trace' >"$OUT/csn-trace-validation.txt"
+    echo '::error::CSN trace is incomplete; see csn-trace-validation.txt'
+    return 1
+  fi
+  python3 -I "$HERE/csn-trace.py" "$OUT/csn-traces" "$OUT/csn-trace-expected.txt" \
+    >"$OUT/csn-trace-validation.txt" 2>&1 || failed=1
+  [ -z "$failed" ] || { echo '::error::CSN trace is incomplete; see csn-trace-validation.txt'; return 1; }
+}
+
+# Preserve the live snapshot first (collect), then allow the running DS processes to close their
+# traces before copying them again. Missing containers and killed processes remain incomplete.
+# KEEP leaves the servers untouched and validation will report any still-open trace.
+finalize_failure_csn_traces() {
+  local node pid
+  local -a pids=()
+  [ "${CSN_TRACE:-0}" = 1 ] || return 0
+  if [ "${KEEP:-0}" != 1 ]; then
+    for node in $DS_NODES; do
+      docker inspect "$node" >/dev/null 2>&1 || continue
+      ( trap - ERR; docker stop -t 120 "$node" >/dev/null ) &
+      pids+=("$!")
+    done
+    for pid in "${pids[@]}"; do wait "$pid" || true; done
+  fi
+  check_csn_traces || true
+}
+
+# Look up the first gaps reported for each replica on each RS. This is evidence only:
+# local allocations include operations which may have failed and never committed.
+diagnose_csn_gaps() {
+  local pair
+  local -a pairs=()
+  [ "${CSN_TRACE:-0}" = 1 ] || return 0
+  grep -Fx 'CSN allocation traces complete; local allocations may be uncommitted' \
+    "$OUT/csn-trace-validation.txt" >/dev/null 2>&1 || return 0
+  [ -d "$OUT/changelog" ] || return 0
+  compgen -G "$OUT/changelog/*.txt" >/dev/null || return 0
+  while IFS= read -r pair; do [ -z "$pair" ] || pairs+=("$pair"); done < <(
+    awk '/^replica [0-9]+(:| \([^)]*\):)/ { id=$2; sub(/:$/, "", id) }
+         /^  missing [0-9]+,/ { seq=$2; sub(/,$/, "", seq); if (id != "") print id ":" seq }' \
+      "$OUT"/changelog/*.txt | sort -u
+  )
+  [ "${#pairs[@]}" -gt 0 ] || return 0
+  python3 -I "$HERE/csn-trace.py" "$OUT/csn-traces" "$OUT/csn-trace-expected.txt" "${pairs[@]}" \
+    >"$OUT/csn-trace-gaps.txt" 2>&1
+}
+
 # The server id each directory server has in the replication domain of BASE_DN, which the
 # samples name the servers by: "Directory server DS(<id>) <host:port>" (ReplicationMonitor)
 record_server_ids() {
@@ -31,12 +107,26 @@ record_server_ids() {
     || fail "the server id of a directory server is missing, see server-ids.txt"
 }
 
+# A combined server on a fresh volume can return with a new replica id. Preserve both
+# identities, since each can have made changes during the load and must be checked.
+record_rejoined_id() { # <directory server>
+  local node=$1 result ids id owner
+  result=$(admin_search "$node" "$MONITOR_DOMAIN" one '(objectClass=*)' 1.1) || return 1
+  ids=$(printf '%s\n' "$result" | sed -n 's/^dn: cn=Directory server DS(\([0-9]*\)).*/\1/p')
+  [ "$(printf '%s\n' "$ids" | awk 'NF { n++ } END { print n+0 }')" -eq 1 ] || return 1
+  id=$ids
+  owner=$(awk -v id="$id" '$1 == id { print $2 }' "$OUT/server-ids.txt") || return 1
+  [ -z "$owner" ] || [ "$owner" = "$node" ] || return 1
+  [ "$owner" = "$node" ] || printf '%s %s\n' "$id" "$node" >>"$OUT/server-ids.txt"
+}
+
 # Every server's container log, logs/, config/ and changelogDb, packed into state.tgz; docker cp
 # reads a stopped or killed container as well. Nothing here may fail the run a second time
 collect() {
   local n
   for n in $ALL_NODES; do
     docker inspect $n >/dev/null 2>&1 || continue
+    case " $DS_NODES " in *" $n "*) capture_csn_trace "$n" || true ;; esac
     mkdir -p "$OUT/state/$n"
     docker logs $n >"$OUT/state/$n/container.log" 2>&1 || true
     docker cp $n:/opt/opendj/data/logs "$OUT/state/$n/" >/dev/null 2>&1 || true
@@ -55,12 +145,16 @@ summarize() { # <result>
     echo "| | |"
     echo "|---|---|"
     echo "| servers | $ALL_NODES |"
-    echo "| load | $DURATION s on each directory server, at most $LOAD_MOD_RATE modifications and $LOAD_ADD_RATE adds or deletes a second |"
+    case $DISTURBANCE in
+      scale-*) echo "| load | ${ROLLING_ELAPSED:--} s elapsed (limit $DURATION s), at most $LOAD_MOD_RATE modifications and $LOAD_ADD_RATE adds or deletes a second per directory server |" ;;
+      *) echo "| load | $DURATION s on each directory server, at most $LOAD_MOD_RATE modifications and $LOAD_ADD_RATE adds or deletes a second |" ;;
+    esac
     echo "| seeded users | $SAMPLE_DATA |"
     if [ -s "$OUT/disturbances.txt" ]; then
       completed=$(wc -l <"$OUT/disturbances.txt")
-      awk -v start="${LOAD_START_MS:-0}" '{ printf "| disturbance | %s of %s %d s into the load, serving again %d s later |\n",
-                                            $4, $3, ($1 - start) / 1000, ($2 - $1) / 1000 }' "$OUT/disturbances.txt"
+      awk -v start="${LOAD_START_MS:-0}" '{ action = ($4 ~ /^scale-/ ? "completed" : "serving again")
+                                            printf "| disturbance | %s of %s %d s into the load, %s %d s later |\n",
+                                              $4, $3, ($1 - start) / 1000, action, ($2 - $1) / 1000 }' "$OUT/disturbances.txt"
     fi
     if [ "$DISTURBANCE" != none ] && [ -z "${LOAD_START_MS:-}" ]; then
       # run.sh sets LOAD_START_MS as the load starts
@@ -72,7 +166,22 @@ summarize() { # <result>
         echo "| disturbance | $DISTURBANCE not completed: $((completed)) of $DISTURB_STEPS steps completed |"
       fi
     fi
+    if [ -f "$OUT/scale-checkpoint/backlog.txt" ]; then
+      awk '/^[0-9]+ changes while the server was absent$/ { printf "| scale backlog | %s |\n", $0 }' \
+        "$OUT/scale-checkpoint/backlog.txt"
+    fi
     echo "| converged | ${CONVERGED_IN:--} s after the load |"
+    if [ "$DISTURBANCE" = empty-rs ] && [ -n "${CONVERGED_IN:-}" ]; then
+      if [ -s "$OUT/failover.txt" ]; then
+        awk '{ printf "| failover | stopped %s; all directory servers connected to %s after %d s |\n", $1, $2, $3 }' "$OUT/failover.txt"
+        completed=$(( $(wc -l <"$OUT/failover.txt") ))
+      else
+        completed=0
+      fi
+      if [ "$completed" -lt 2 ]; then
+        echo "| failover | incomplete: $completed of 2 replication servers checked |"
+      fi
+    fi
     if [ -s "$OUT/samples.txt" ]; then
       awk '{ t[$1] = 1 } END { for (s in t) { n++; if (!min || s < min) min = s; if (s > max) max = s }
              printf "| samples of the monitor | %d, one every %d s |\n", n, (n > 1 ? (max - min) / (n - 1) : 0) }' "$OUT/samples.txt"

@@ -25,8 +25,20 @@
 start_client() {
   local name=$1 tool=$2
   shift 2
-  docker run -d --name "$name" --network $NETWORK -e OPENDJ_JAVA_ARGS="$CLIENT_JAVA_ARGS" \
-    -v "$OUT/load:/load:ro" --entrypoint /opt/opendj/bin/$tool "$IMAGE" "$@" >/dev/null
+  if [ -n "${ROLLING_END_MS:-}" ]; then
+    # The container enforces the absolute deadline as well as the host watchdog: it
+    # cannot start a late operation if Docker finishes creating it after the watchdog scan.
+    docker run -d --name "$name" --network "$NETWORK" -e OPENDJ_JAVA_ARGS="$CLIENT_JAVA_ARGS" \
+      -v "$OUT/load:/load:ro" --entrypoint /bin/sh "$IMAGE" -c '
+        deadline=$1; tool=$2; shift 2
+        left=$((deadline - $(date +%s)))
+        [ "$left" -gt 0 ] || exit 1
+        exec /usr/bin/timeout "$left" "/opt/opendj/bin/$tool" "$@"
+      ' sh "$((ROLLING_END_MS / 1000))" "$tool" "$@" >/dev/null
+  else
+    docker run -d --name "$name" --network $NETWORK -e OPENDJ_JAVA_ARGS="$CLIENT_JAVA_ARGS" \
+      -v "$OUT/load:/load:ro" --entrypoint /opt/opendj/bin/$tool "$IMAGE" "$@" >/dev/null
+  fi
 }
 
 CLIENTS=
@@ -43,8 +55,15 @@ STAT_INTERVAL=10
 # start at once next to the servers, and a runner that is short of CPU for a while accepts
 # their connections late
 start_clients() { # <node> <segment> <seconds>
-  local n=$1 name=$1 c
+  local n=$1 name=$1 c surname=AddRate
+  local -a addrate_options=()
+  case ${DISTURBANCE:-none} in
+    # Purging a segment at shutdown can take longer than the segment itself.
+    # FIFO deletes remain enabled; cycle each DS across three indexed shards.
+    scale-*) surname="AddRate-$n-$((($2 - 1) % 3 + 1))"; addrate_options=(--noPurge) ;;
+  esac
   [ "$2" -eq 1 ] || name=$1-$2
+  [ ! -e "$OUT/load/deadline" ] || return 1
   # entries of its own on each server, so that the adds and deletes of two servers never meet
   # on one DN: a naming conflict is not what this load is after
   cat >"$OUT/load/addrate-$name.template" <<TEMPLATE
@@ -61,7 +80,7 @@ objectClass: organizationalPerson
 objectClass: inetOrgPerson
 uid: addrate-$name.<sequential:0>
 cn: AddRate {uid}
-sn: AddRate
+sn: $surname
 userPassword: password
 TEMPLATE
   chmod 644 "$OUT/load/addrate-$name.template"
@@ -76,12 +95,20 @@ TEMPLATE
     --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --maxDuration "$3" \
     --statInterval $STAT_INTERVAL --numConnections 8 --numThreads 1 --scriptFriendly --targetThroughput "$LOAD_MOD_RATE" \
     --targetDN "uid=user.%d,ou=People,$BASE_DN" --argument "rand(0,$((SAMPLE_DATA - 1)))" \
-    --argument "randstr(16)" "description:$name-%2\$s"
+    --argument "randstr(16)" "description:$name-%2\$s" || return 1
+  if [ -e "$OUT/load/deadline" ]; then
+    docker kill "load-mod-$name" >/dev/null 2>&1 || true
+    return 1
+  fi
   # adds, and deletes of the oldest once 100 of them are there: a slow runner gets to the deletes as well
   start_client load-add-$name addrate --hostname $n --port 1389 --connectTimeout 120000 --noRebind \
     --bindDN "cn=Directory Manager" --bindPassword "$ROOT_PASSWORD" --maxDuration "$3" \
     --statInterval $STAT_INTERVAL --numConnections 8 --numThreads 1 --scriptFriendly --targetThroughput "$LOAD_ADD_RATE" \
-    --deleteMode fifo --deleteSizeThreshold 100 "/load/addrate-$name.template"
+    --deleteMode fifo --deleteSizeThreshold 100 "${addrate_options[@]}" "/load/addrate-$name.template" || return 1
+  if [ -e "$OUT/load/deadline" ]; then
+    docker kill "load-mod-$name" "load-add-$name" >/dev/null 2>&1 || true
+    return 1
+  fi
   # check_client reads how long each client was to run
   for c in load-mod-$name load-add-$name; do
     echo "$3" >"$OUT/load/$c.seconds"
@@ -140,15 +167,31 @@ run_load() {
 # prints the error to its error output, which goes to the same file. So the client has to have
 # done work, every interval of its CSV output has to report no errors (the "Errors/second"
 # column), the output has to cover the seconds the client was to run - a line every
-# STAT_INTERVAL seconds, of which the last may be missing - and hold nothing but the CSV
+# STAT_INTERVAL seconds, of which the last may be missing - and hold nothing but the CSV.
+# Scale rows also require a minimum time-weighted throughput; the last CSV interval can
+# be much shorter than STAT_INTERVAL or have the same timestamp as the preceding row.
 check_client() { # <client>
-  awk -F, -v c=$1 -v exit_state="$(cat "$OUT/load/$1.exit")" -v want=$(($(cat "$OUT/load/$1.seconds") / STAT_INTERVAL - 1)) '
+  local minimum_rate=0
+  case ${DISTURBANCE:-none}:$1 in
+    scale-*:load-mod-*) minimum_rate=$((LOAD_MOD_RATE / 10)) ;;
+    scale-*:load-add-*) minimum_rate=$((LOAD_ADD_RATE / 10)) ;;
+  esac
+  awk -F, -v c=$1 -v minimum_rate="$minimum_rate" -v exit_state="$(cat "$OUT/load/$1.exit")" -v want=$(($(cat "$OUT/load/$1.seconds") / STAT_INTERVAL - 1)) '
     /^Time \(seconds\)/ { for (i = 1; i <= NF; i++) { if ($i == "Recent throughput (ops/second)") t = i; if ($i == "Errors/second") e = i }; next }
-    t && $1 ~ /^[0-9.]+$/ { rows++; ops += $t; errors += $e; last = $0; next }
+    t && $1 ~ /^[0-9.]+$/ {
+      rows++; ops += $t; errors += $e; last = $0
+      elapsed = $1 + 0; duration = elapsed - previous
+      if (duration < 0) bad_time = 1
+      else if (duration > 0) { weighted_ops += $t * duration; observed += duration }
+      previous = elapsed
+      next
+    }
     NF { other++ }
     END {
       if (!rows || ops == 0) { printf "::error::%s did no work (exit code and OOM kill: %s)\n", c, exit_state; exit 1 }
       if (errors > 0) { printf "::error::%s got errors back\n", c; exit 1 }
+      if (minimum_rate && (bad_time || observed <= 0)) { printf "::error::%s has invalid interval times\n", c; exit 1 }
+      if (minimum_rate && weighted_ops / observed < minimum_rate) { printf "::error::%s averaged %.1f ops/s, below minimum %d ops/s\n", c, weighted_ops / observed, minimum_rate; exit 1 }
       if (exit_state != "0 false") { printf "::error::%s ended with exit code and OOM kill %s\n", c, exit_state; exit 1 }
       if (other) { printf "::error::%s printed %d lines besides its CSV output, see load/%s.csv\n", c, other, c; exit 1 }
       if (rows < want) { printf "::error::%s stopped after %d of %d intervals\n", c, rows, want; exit 1 }

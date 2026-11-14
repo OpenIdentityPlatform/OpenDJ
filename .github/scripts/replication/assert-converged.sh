@@ -81,27 +81,31 @@ assert_offline() {
       || { echo "::error::$n holds other data than $first, see diff/$n.ldif"; failed=1; }
   done
   assert_changelogs || failed=1
-  [ -z "$failed" ] || fail "the replicas do not hold the same data"
+  [ -z "$failed" ] || fail "the offline checks failed"
 }
 
 # The changes of every replica in the changelog of every replication server, one after the
-# other: a gap in the sequence numbers of a replica's changes during the load is a change that
-# reached no replication server. The data shows it only while no later change of the same
-# attribute overwrites it, and missing-changes never (#1195). docker cp streams the changelog
+# other: a gap in the sequence numbers may indicate a lost change, an offline message, or
+# history that cannot be reconstructed on an empty RS. Missing-changes alone cannot prove
+# which happened (#1195). docker cp streams the changelog
 # out of the stopped container; changelog-gaps.py reads it
 assert_changelogs() {
   local n id code failed=
+  local -a evidence=()
+  case ${DISTURBANCE:-none} in
+    scale-*) evidence=(--offline-snapshots "$OUT/scale-checkpoint") ;;
+  esac
   mkdir -p "$OUT/changelog"
   for n in $RS_NODES; do
     code=0
     docker cp "$n:/opt/opendj/data/changelogDb" - \
-      | python3 -I "$HERE/changelog-gaps.py" "$BASE_DN" "$LOAD_START_MS" "$LOAD_END_MS" \
+      | python3 -I "$HERE/changelog-gaps.py" "$BASE_DN" "$LOAD_START_MS" "$LOAD_END_MS" "${evidence[@]}" \
       | awk 'FILENAME == ARGV[1] { name[$1] = $2; next }
              $1 == "replica" { id = $2; sub(/:$/, "", id); if (id in name) $2 = id " (" name[id] "):" }
              { print }' "$OUT/server-ids.txt" - >"$OUT/changelog/$n.txt" || code=$?
     case $code in
       0) ;;
-      1) echo "::error::changes of the load are missing from the changelog of $n, see changelog/$n.txt"; failed=1 ;;
+      1) echo "::error::sequence numbers of the load are missing from the changelog of $n, see changelog/$n.txt"; failed=1 ;;
       *) echo "::error::the changelog of $n could not be read, see changelog/$n.txt"; failed=1; continue ;;
     esac
     # every directory server made changes in the load: a changelog whose records the script
@@ -122,19 +126,40 @@ assert_changelogs() {
 # (objectClass=inetOrgPerson) over the seeded users did - so unindexed_searches checks that
 # each search went through the index
 INDEXED_FILTERS="(sn=AddRate) (sn=Diverged)"
+case ${DISTURBANCE:-none} in
+  scale-*)
+    INDEXED_FILTERS="(sn=Diverged)"
+    for n in $DS_NODES; do
+      for shard in 1 2 3; do INDEXED_FILTERS="$INDEXED_FILTERS (sn=AddRate-$n-$shard)"; done
+    done
+    ;;
+esac
 
 # The searches of INDEXED_FILTERS a directory server ran without an index, or that its access
-# log does not hold, as errors. Every access log file is read: the load rotates them
+# log does not hold, as errors. Read rotated logs in chronological order, then the active log:
+# connection and operation numbers can be reused after a server restart.
 unindexed_searches() { # <node>
-  docker exec $1 sh -c 'grep -h " SEARCH " /opt/opendj/data/logs/access*; [ $? -le 1 ]' \
+  docker exec $1 sh -c 'for file in /opt/opendj/data/logs/access.[0-9]* /opt/opendj/data/logs/access; do
+    [ -f "$file" ] || continue
+    grep -h " SEARCH " "$file"; status=$?
+    [ "$status" -le 1 ] || exit "$status"
+  done' \
     | awk -v node=$1 -v base="$BASE_DN" -v filters="$INDEXED_FILTERS" '
       BEGIN { n = split(filters, f, " ") }
-      $3 == "SEARCH" && $4 == "REQ" && index($0, " base=\"" base "\" scope=sub ") {
-        for (i = 1; i <= n; i++) if (index($0, " filter=\"" f[i] "\" ")) req[$5 " " $6] = f[i]
+      $3 == "SEARCH" && $4 == "REQ" {
+        key = $5 " " $6
+        delete req[key]
+        if (index($0, " base=\"" base "\" scope=sub "))
+          for (i = 1; i <= n; i++) if (index($0, " filter=\"" f[i] "\" ")) {
+            req[key] = f[i]; seen[f[i]] = 1
+          }
       }
-      $3 == "SEARCH" && $4 == "RES" && / unindexed( |$)/ { unindexed[$5 " " $6] = 1 }
+      $3 == "SEARCH" && $4 == "RES" {
+        key = $5 " " $6
+        if (key in req && / unindexed( |$)/) printf "::error::%s ran %s without an index\n", node, req[key]
+        delete req[key]
+      }
       END {
-        for (k in req) { seen[req[k]] = 1; if (k in unindexed) printf "::error::%s ran %s without an index\n", node, req[k] }
         for (i = 1; i <= n; i++) if (!(f[i] in seen)) printf "::error::the access log of %s holds no search of %s\n", node, f[i]
       }'
 }
@@ -143,9 +168,21 @@ unindexed_searches() { # <node>
 # replication errors of their own while the servers come up one after the other, and only what
 # follows is the run's. A log that cannot be read fails the run: a cat that fails in a pipe
 # would count 0 lines and exit 0, and window_open would take that for a window from the first
-# line, while a redirect that fails ends sh with 2
+# line, while a redirect that fails ends sh with 2. A replacement RS retains its previous log
+# as a prefix on the host so that marks and windows cover both volumes.
 errors_lines() { # <node>
-  docker exec $1 sh -c 'wc -l </opt/opendj/data/logs/errors'
+  local current previous=0
+  # A scale-in captures the stopped node before removing its container. Its log cannot
+  # change until it starts again, but the other nodes still open and close windows.
+  if [ -f "$OUT/logs/$1.offline" ]; then
+    cat "$OUT/logs/$1.offline"
+    return
+  fi
+  current=$(docker exec "$1" sh -c 'wc -l </opt/opendj/data/logs/errors') || return 1
+  if [ -f "$OUT/logs/$1.previous" ]; then
+    previous=$(wc -l <"$OUT/logs/$1.previous") || return 1
+  fi
+  echo $((previous + current))
 }
 
 mark_logs() {
@@ -157,30 +194,67 @@ mark_logs() {
 }
 
 since_mark() { # <node>
-  docker exec $1 tail -n +$(($(cat "$OUT/logs/$1.mark") + 1)) /opt/opendj/data/logs/errors
+  local first=$(($(cat "$OUT/logs/$1.mark") + 1))
+  if [ -f "$OUT/logs/$1.previous" ]; then
+    { cat "$OUT/logs/$1.previous" || exit 1; docker exec "$1" tail -n +1 /opt/opendj/data/logs/errors; } | tail -n +"$first"
+  else
+    docker exec "$1" tail -n +"$first" /opt/opendj/data/logs/errors
+  fi
 }
 
 # A disturbance window over the errors log of every server (#1208): window_open before the
 # disturbance, with the msgIDs of the errors it expects besides the failed handshakes,
-# or dns:<hostname> for ERROR 51 naming exactly that temporarily unavailable host,
-# window_close once the disturbed server serves again, a line "<lines before> <lines after>
-# [<msgID>|dns:<hostname>...]" in logs/<node>.windows
-window_open() { # [<msgID>|dns:<hostname>...]
-  local n lines
+# dns:<hostname> for ERROR 51 naming exactly that temporarily unavailable host, or
+# cert:<DS>:<RS> for that DS's transient bad-certificate handshake with the rebuilt RS, or
+# cert-peer:<RS>:<DS IP> for the corresponding RS-side warning after the DS restarts.
+# timeout:<DS>:<RS> is recorded on one startup error line only after that DS reconnects to
+# that RS in the same domain, as confirmed by scale_record_reconnected_timeouts.
+# window_close records "<lines before> <lines after> [<allowance>...]" in logs/<node>.windows.
+window_open() { window_open_key '' "$@"; }
+window_close() { window_close_key ''; }
+
+# Separate keys permit overlapping joins while retaining the exact window for each node.
+window_open_key() { # <key> [<msgID>|dns:<hostname>...]
+  local key=$1 n lines file
+  shift
+  case $key in *[!a-zA-Z0-9_-]*) return 1 ;; esac
   for n in $ALL_NODES; do
-    # an assignment, so that a log that cannot be read stops the run here as well
-    lines=$(errors_lines $n)
-    echo "$lines${*:+ $*}" >"$OUT/logs/$n.window"
+    file="$OUT/logs/$n.window${key:+-$key}"
+    [ ! -e "$file" ] || return 1
+    lines=$(errors_lines "$n") || return 1
+    echo "$lines${*:+ $*}" >"$file" || return 1
   done
 }
 
-window_close() {
-  local n lines before ids
+window_close_key() { # <key>
+  local key=$1 n lines before ids file
+  case $key in *[!a-zA-Z0-9_-]*) return 1 ;; esac
   for n in $ALL_NODES; do
-    lines=$(errors_lines $n)
-    read -r before ids <"$OUT/logs/$n.window"
-    echo "$before $lines${ids:+ $ids}" >>"$OUT/logs/$n.windows"
-    rm "$OUT/logs/$n.window"
+    file="$OUT/logs/$n.window${key:+-$key}"
+    lines=$(errors_lines "$n") || return 1
+    read -r before ids <"$file" || return 1
+    echo "$before $lines${ids:+ $ids}" >>"$OUT/logs/$n.windows" || return 1
+    rm "$file" || return 1
+  done
+}
+
+# A server removed during a scale-in has no Docker DNS name between individual rolling
+# windows. Allow only that hostname for this whole interval, not other handshake failures.
+dns_window_open() { # <hostname>
+  local n lines
+  for n in $ALL_NODES; do
+    lines=$(errors_lines "$n") || return 1
+    printf '%s %s\n' "$lines" "$1" >"$OUT/logs/$n.dns-window" || return 1
+  done
+}
+
+dns_window_close() {
+  local n lines before host
+  for n in $ALL_NODES; do
+    lines=$(errors_lines "$n") || return 1
+    read -r before host <"$OUT/logs/$n.dns-window" || return 1
+    printf '%s %s dns-only dns:%s\n' "$before" "$lines" "$host" >>"$OUT/logs/$n.windows" || return 1
+    rm "$OUT/logs/$n.dns-window" || return 1
   done
 }
 
@@ -198,8 +272,8 @@ window_close() {
 # msgIDs as well. A dns:<hostname> token expects only ERROR 51's exact resolution-failure
 # message for that hostname, not other DNS errors inside the window. This covers the stopped
 # RS container's name temporarily disappearing during kill-rs, restart-rs or a combined
-# kill-ds or restart-ds. DS-only crashes and restarts pass no DNS token, and other hosts remain
-# errors.
+# kill-ds or restart-ds. The certificate allowance is limited to the named DS and rebuilt RS;
+# its later forced connection to that RS must succeed. Other hosts and DS remain errors.
 # The other allowances cover what one disturbance leaves behind besides the handshakes, such
 # as the connections a killed replication server breaks (disturb-kill-rs.sh), which a window of
 # another one does not expect. Those go to logs/<node>.expected; outside a window, and anything
@@ -211,7 +285,7 @@ replication_errors() { # <node>
   local windows=
   [ ! -f "$OUT/logs/$1.windows" ] || windows=$(tr '\n' ';' <"$OUT/logs/$1.windows")
   since_mark $1 | awk -v first=$(($(cat "$OUT/logs/$1.mark") + 1)) -v windows="$windows" \
-                      -v expected="$OUT/logs/$1.expected" '
+                      -v expected="$OUT/logs/$1.expected" -v node="$1" -v base_dn="$BASE_DN" '
     BEGIN {
       n = split(windows, w, ";")
       for (i = 1; i <= n; i++) {
@@ -239,12 +313,39 @@ replication_errors() { # <node>
           dns = " dns:" parts[3] " "
         }
       }
-      for (i = 1; i <= n; i++)
+      for (i = 1; i <= n; i++) {
+        cert = timeout = 0
+        if (id == "212" && index($0, "msg=Directory server DS(")) {
+          count = split(ids[i], tokens, " ")
+          for (j = 1; j <= count; j++) {
+            if (split(tokens[j], part, ":") == 3 && part[1] == "timeout" && part[2] == node \
+                && index($0, " timed out while connecting to replication server " part[3] ":8989 for domain \"" base_dn "\"")) timeout = 1
+          }
+        }
+        if (/category=SYNC severity=WARNING msgID=119 / && /SSLHandshakeException/ && /bad_certificate/) {
+          count = split(ids[i], tokens, " ")
+          for (j = 1; j <= count; j++) {
+            if (split(tokens[j], part, ":") == 3 && part[1] == "cert" && part[2] == node \
+                && index($0, " connecting to replication server " part[3] ":8989 for domain ")) cert = 1
+          }
+        }
+        if (/category=SYNC severity=WARNING msgID=105 / && /The error was: (\(bad_certificate\) )?Received fatal alert: bad_certificate$/) {
+          count = split(ids[i], tokens, " ")
+          for (j = 1; j <= count; j++) {
+            if (split(tokens[j], part, ":") != 3 || part[1] != "cert-peer" || part[2] != node) continue
+            if (split($0, sides, " from ") != 2 || split(sides[2], ends, " to local address ") != 2) continue
+            if (split(ends[1], remote, ":") != 2 || remote[2] !~ /^[0-9]+$/) continue
+            suffix = "/" part[3]
+            if (length(remote[1]) >= length(suffix) \
+                && substr(remote[1], length(remote[1]) - length(suffix) + 1) == suffix) cert = 1
+          }
+        }
         if (line > from[i] + 0 && line <= to[i] + 0 \
-            && (handshake || index(ids[i], " " id " ") || (dns != "" && index(ids[i], dns)))) {
+            && ((handshake && !index(ids[i], " dns-only ")) || cert || timeout || index(ids[i], " " id " ") || (dns != "" && index(ids[i], dns)))) {
           print >expected
           next
         }
+      }
       print
     }'
 }

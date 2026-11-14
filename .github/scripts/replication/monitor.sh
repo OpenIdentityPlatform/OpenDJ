@@ -57,6 +57,9 @@ sample() {
 converged_once() {
   local s rs want
   s=$(sample) || return 1
+  if [ "${CONVERGENCE_RECORDING:-0}" = 1 ]; then
+    printf '%s\n' "$s" >>"$OUT/convergence-samples.txt" || return 1
+  fi
   want=$(echo $DS_NODES | wc -w)
   for rs in $RS_NODES; do
     [ "$(echo "$s" | awk -v rs=$rs '$2 == rs { print $3 }' | sort -u | wc -l)" -eq "$want" ] || return 1
@@ -74,7 +77,7 @@ MONITORING_PERIOD=60
 # the publisher's 5 s latch) after the first ended. Sets CONVERGED_IN to the seconds from
 # <start> (a value of SECONDS, now by default) until the first of them
 wait_converged() { # [<start>]
-  local start=${1:-$SECONDS} hits=0 first= last=
+  local start=${1:-$SECONDS} hits=0 first= last= CONVERGENCE_RECORDING=1
   until [ $hits -ge 3 ] && [ $((last - first)) -gt $((MONITORING_PERIOD + 5)) ]; do
     last=$SECONDS
     if converged_once; then hits=$((hits + 1)); first=${first:-$SECONDS}; else hits=0; first=; fi

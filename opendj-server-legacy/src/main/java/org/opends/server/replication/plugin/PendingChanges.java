@@ -92,6 +92,9 @@ class PendingChanges
    */
   private final CSNGenerator csnGenerator;
 
+  /** Encoded domain for the opt-in allocation trace; null when tracing is disabled. */
+  private final String csnTraceDomain;
+
   /** The ReplicationDomain that will be used to send UpdateMsg. */
   private final ReplicationDomain domain;
 
@@ -126,6 +129,7 @@ class PendingChanges
   {
     this.csnGenerator = csnGenerator;
     this.domain = domain;
+    this.csnTraceDomain = CsnAllocationTrace.domain(domain);
     this.replicaOfflineAnnouncer = replicaOfflineAnnouncer;
   }
 
@@ -177,7 +181,7 @@ class PendingChanges
    */
   synchronized CSN putLocalOperation(PluginOperation operation)
   {
-    final CSN csn = csnGenerator.newCSN();
+    final CSN csn = CsnAllocationTrace.next(csnGenerator, csnTraceDomain, 'L');
     if (!operation.isSynchronizationOperation())
     {
       pendingChanges.put(csn, new PendingChange(csn, operation, null));
@@ -200,7 +204,7 @@ class PendingChanges
    */
   public synchronized CSN putReplicaOfflineMsg()
   {
-    final CSN offlineCSN = csnGenerator.newCSN();
+    final CSN offlineCSN = CsnAllocationTrace.next(csnGenerator, csnTraceDomain, 'O');
     final PendingChange pendingChange =
         new PendingChange(offlineCSN, null, new ReplicaOfflineMsg(offlineCSN));
     pendingChange.setCommitted(true);
