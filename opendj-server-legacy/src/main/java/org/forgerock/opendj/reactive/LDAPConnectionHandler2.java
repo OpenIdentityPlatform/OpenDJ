@@ -59,6 +59,7 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.grizzly.GrizzlyLDAPListener;
+import org.forgerock.opendj.io.ProxyProtocolHeader;
 import org.forgerock.opendj.ldap.AddressMask;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LDAPClientContext;
@@ -310,7 +311,13 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     private final Collection<TransportDrain> drains = new CopyOnWriteArrayList<>();
 
     /** The current configuration state. */
-    private LDAPConnectionHandlerCfg currentConfig;
+    private volatile LDAPConnectionHandlerCfg currentConfig;
+
+    /** Whether connections on the current listener require a PROXY header. */
+    private boolean proxyProtocolEnabled;
+
+    /** The exact address slot held by each accepted connection, if admission has reserved one. */
+    private final Map<ClientConnection, InetAddress> addressPlaces = new ConcurrentHashMap<>();
 
     /* Properties that cannot be modified dynamically */
 
@@ -354,10 +361,10 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     private boolean enabled;
 
     /** The set of clients that are explicitly allowed access to the server. */
-    private Collection<AddressMask> allowedClients;
+    private volatile Collection<AddressMask> allowedClients;
 
     /** The set of clients that have been explicitly denied access to the server. */
-    private Collection<AddressMask> deniedClients;
+    private volatile Collection<AddressMask> deniedClients;
 
     /** The set of listeners for this connection handler. */
     private List<HostPort> listeners;
@@ -707,6 +714,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
         useTCPNoDelay = config.isUseTCPNoDelay();
         bufferSize = (int) config.getBufferSize();
         numRequestHandlers = getNumRequestHandlers(config);
+        proxyProtocolEnabled = config.isProxyProtocolEnabled();
         listenAddresses = new HashSet<>();
         for (InetAddress addr : config.getListenAddress()) {
             listenAddresses.add(new InetSocketAddress(addr, config.getListenPort()));
@@ -876,9 +884,10 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
 
     private void connectionClosed(ClientConnection connection, Collection<ClientConnection> accepted) {
         accepted.remove(connection);
-        // Several events may report the end of the same connection: only the first gives back its place.
-        if (clientConnections.remove(connection)) {
-            releasePlaceOfAddress(connection.getRemoteAddress());
+        synchronized (connection) {
+            // Several events may report the end of the same connection: only the first gives back its place.
+            clientConnections.remove(connection);
+            releasePlaceOfAddress(addressPlaces.remove(connection));
         }
         for (TransportDrain drain : drains) {
             drain.connectionClosed();
@@ -915,6 +924,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     }
 
     private void startListener() throws IOException {
+        final boolean listenerProxyEnabled = proxyProtocolEnabled;
         final OpenConnections openConnections = new OpenConnections();
         final Collection<ClientConnection> accepted = ConcurrentHashMap.newKeySet();
         transport = newTransport(openConnections);
@@ -928,11 +938,22 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                     @Override
                     public ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>> apply(
                             LDAPClientContext clientContext) throws LdapException {
-                        final LDAPClientConnection2 conn = canAccept(clientContext);
+                        final LDAPClientConnection2 conn = listenerProxyEnabled
+                                ? acceptProxyPeer(clientContext) : canAccept(clientContext);
+                        if (!listenerProxyEnabled) {
+                            addressPlaces.put(conn, conn.getRemoteAddress());
+                        }
                         clientConnections.add(conn);
                         accepted.add(conn);
-                        logConnect(conn);
+                        if (!listenerProxyEnabled) {
+                            logConnect(conn);
+                        }
                         clientContext.addListener(new LDAPClientContextEventListener() {
+                            @Override
+                            public void handleProxyProtocolHeader(final LDAPClientContext context,
+                                    final ProxyProtocolHeader header) {
+                                finishProxyAdmission(conn);
+                            }
                             @Override
                             public void handleConnectionError(final LDAPClientContext context, final Throwable error) {
                                 connectionClosed(conn, accepted);
@@ -957,7 +978,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                             connectionClosed(conn, accepted);
                         }
                         // Once the listener is in place, so that a connection the time limit closes is reported to it.
-                        limitTimeToFirstRequest(conn);
+                        limitTimeToFirstRequest(conn, listenerProxyEnabled);
                         return new ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>() {
                             @Override
                             public Stream<Response> handle(final LDAPClientContext context,
@@ -967,6 +988,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                         };
                     }
                 }, Options.defaultOptions()
+                          .set(LDAPListener.PROXY_PROTOCOL_ENABLED, listenerProxyEnabled)
                           .set(LDAPListener.CONNECT_MAX_BACKLOG, backlog)
                           .set(LDAPListener.REQUEST_MAX_SIZE_IN_BYTES, (int) currentConfig.getMaxRequestSize())
                           // Set by the listener on every accepted connection, over the values of the transport.
@@ -1178,6 +1200,84 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
         }
     }
 
+    /** Registers the TCP peer before waiting for a header, so the global limit and lockdown apply immediately. */
+    private LDAPClientConnection2 acceptProxyPeer(LDAPClientContext context) throws LdapException {
+        LDAPClientConnection2 connection = new LDAPClientConnection2(this, context, getProtocol(),
+                currentConfig.isKeepStats());
+        if (connection.getConnectionID() < 0) {
+            connection.disconnect(DisconnectReason.ADMIN_LIMIT_EXCEEDED, false,
+                    ERR_CONNHANDLER_REJECTED_BY_SERVER.get());
+            throw LdapException.newLdapException(ResultCode.ADMIN_LIMIT_EXCEEDED);
+        }
+        InetAddress peer = context.getTcpPeerAddress().getAddress();
+        Collection<AddressMask> trusted = currentConfig.getProxyProtocolAllowedClient();
+        if (trusted.isEmpty() || !AddressMask.matchesAny(trusted, peer)) {
+            connection.disconnect(DisconnectReason.CONNECTION_REJECTED, false,
+                    ERR_PROXY_PROTOCOL_UNTRUSTED_PEER.get(connection.getClientHostPort()));
+            throw LdapException.newLdapException(ResultCode.CONSTRAINT_VIOLATION);
+        }
+        if (useSSL()) {
+            try {
+                context.enableTLS(createSSLEngine(), false);
+            } catch (DirectoryException e) {
+                connection.disconnect(DisconnectReason.SERVER_ERROR, false, e.getMessageObject());
+                throw LdapException.newLdapException(e.getResultCode(), e);
+            }
+        }
+        return connection;
+    }
+
+    /** Performs the address-dependent admission checks before any bytes following the header are consumed. */
+    private void finishProxyAdmission(LDAPClientConnection2 connection) {
+        synchronized (connection) {
+            if (!connection.isConnectionValid() || !clientConnections.contains(connection)) {
+                return;
+            }
+            InetAddress address = connection.getRemoteAddress();
+            if (DirectoryServer.lockdownMode() && address != null && !address.isLoopbackAddress()) {
+                connection.disconnect(DisconnectReason.CONNECTION_REJECTED, false,
+                        ERR_PROXY_PROTOCOL_LOCKDOWN_REJECTED.get(connection.getClientHostPort()));
+                return;
+            }
+            boolean notice = !useSSL() && currentConfig.isSendRejectionNotice();
+            if (!deniedClients.isEmpty() && AddressMask.matchesAny(deniedClients, address)) {
+                connection.disconnect(DisconnectReason.CONNECTION_REJECTED, notice,
+                        ERR_CONNHANDLER_DENIED_CLIENT.get(connection.getClientHostPort(), connection.getServerHostPort()));
+                return;
+            }
+            if (!allowedClients.isEmpty() && !AddressMask.matchesAny(allowedClients, address)) {
+                connection.disconnect(DisconnectReason.CONNECTION_REJECTED, notice,
+                        ERR_CONNHANDLER_DISALLOWED_CLIENT.get(connection.getClientHostPort(), connection.getServerHostPort()));
+                return;
+            }
+            int maximum = currentConfig.getMaxClientConnectionsPerAddress();
+            if (!takePlaceOfAddress(address, maximum)) {
+                connection.disconnect(DisconnectReason.ADMIN_LIMIT_EXCEEDED, notice,
+                        ERR_CONNHANDLER_CLIENT_ADDRESS_LIMIT_REACHED.get(connection.getClientHostPort(),
+                                connection.getServerHostPort(), maximum));
+                return;
+            }
+            addressPlaces.put(connection, address);
+            try {
+                PluginResult.PostConnect result = DirectoryServer.getPluginConfigManager()
+                        .invokePostConnectPlugins(connection);
+                if (!result.continueProcessing()) {
+                    connection.disconnect(result.getDisconnectReason(), !useSSL() && result.sendDisconnectNotification(),
+                            result.getErrorMessage());
+                    return;
+                }
+                if (connection.isConnectionValid()) {
+                    logConnect(connection);
+                }
+            } catch (Exception e) {
+                logger.traceException(e);
+                connection.disconnect(DisconnectReason.SERVER_ERROR, notice,
+                        INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(connection.getClientHostPort(),
+                                connection.getServerHostPort(), getExceptionMessage(e)));
+            }
+        }
+    }
+
     /**
      * Counts a new connection from the given address, unless the address holds the given number of connections
      * already.
@@ -1208,7 +1308,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
      * Closes the connection unless a complete request arrives on it within {@code first-request-time-limit}, so that
      * clients which send nothing, or only part of a request, cannot hold connections open.
      */
-    private void limitTimeToFirstRequest(final LDAPClientConnection2 connection) {
+    private void limitTimeToFirstRequest(final LDAPClientConnection2 connection, boolean proxyEnabled) {
         final long timeLimit = currentConfig.getFirstRequestTimeLimit();
         if (timeLimit <= 0) {
             return;
@@ -1222,7 +1322,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
             }
             connection.setFirstRequestTimer(connectionFinalizer.schedule(() -> {
                 if (!connection.hasReceivedRequest()) {
-                    connection.disconnect(DisconnectReason.IDLE_TIME_LIMIT_EXCEEDED, true,
+                    connection.disconnect(DisconnectReason.IDLE_TIME_LIMIT_EXCEEDED, !proxyEnabled,
                             INFO_CONNHANDLER_FIRST_REQUEST_TIME_LIMIT_EXCEEDED.get(timeLimit));
                 }
             }, timeLimit, TimeUnit.MILLISECONDS));

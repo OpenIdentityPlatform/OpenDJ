@@ -28,6 +28,7 @@ Practical recipes for running and integrating OpenDJ. These guides are maintaine
 
 include::./tasks.adoc[]
 include::./kubernetes.adoc[]
+include::./nginx-proxy-protocol.adoc[]
 include::./bcfks.adoc[]
 include::./jdbc-backend.adoc[]
 include::./embedded-ldap.adoc[]

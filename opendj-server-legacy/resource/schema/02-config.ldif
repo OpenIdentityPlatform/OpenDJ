@@ -4130,6 +4130,17 @@ attributeTypes: ( 1.3.6.1.4.1.60142.2.1.1.4
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.662
+  NAME 'ds-cfg-proxy-protocol-enabled'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.36733.2.1.3.3.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.663
+  NAME 'ds-cfg-proxy-protocol-allowed-client'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.36733.2.1.3.3.15
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -4222,6 +4233,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.13
         ds-cfg-max-blocked-write-time-limit $
         ds-cfg-buffer-size $
         ds-cfg-first-request-time-limit $
+        ds-cfg-proxy-protocol-enabled $
+        ds-cfg-proxy-protocol-allowed-client $
         ds-cfg-max-client-connections-per-address )
   X-ORIGIN 'OpenDS Directory Server' )
 # OPENDJ-3048 attributes 'ds-cfg-config-file' and 'ds-cfg-authentication-required'

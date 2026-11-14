@@ -101,6 +101,62 @@ $ dsconfig \
 
 ====
 
+[#proxy-protocol]
+=== Client Addresses Behind a TCP Load Balancer
+
+An LDAP connection handler can accept HAProxy PROXY protocol v1 or v2 headers from trusted load balancers. The header carries the original client's address and port, so connection logs, client access rules, and monitors use the client address rather than the load balancer address. The handler requires a header on every connection when the protocol is enabled; use a separate handler for clients that connect directly.
+
+Configure the handler with the actual TCP addresses of your load balancers before enabling PROXY protocol. An empty `proxy-protocol-allowed-client` list rejects all connections. List changes apply to new connections immediately. Changes to `proxy-protocol-enabled` require restarting the connection handler. Do not allow untrusted hosts to reach this listener: a sender permitted to use PROXY protocol can assert a client address and TLS information, which affect access and password policy decisions. Restrict access to the handler using network controls as well as the trusted address list.
+
+For example, configure an existing dedicated handler named `LDAPS via Load Balancer`:
+
+[source, console]
+----
+$ dsconfig set-connection-handler-prop \
+ --handler-name "LDAPS via Load Balancer" \
+ --add proxy-protocol-allowed-client:192.0.2.10 \
+ --set proxy-protocol-enabled:true \
+ --hostname opendj.example.com --port 4444 \
+ --bindDN "cn=Directory Manager" --bindPassword password \
+ --trustAll --no-prompt
+----
+
+Disable and re-enable the handler for the protocol setting to take effect. The trusted list matches the load balancer's TCP address; `allowed-client`, `denied-client`, and `max-client-connections-per-address` apply to the client address carried by the header. IPv4-mapped IPv6 client addresses are treated as IPv4 for these checks. In lockdown mode, both the TCP peer and the client address must be loopback addresses. PROXY v1 `UNKNOWN` and v2 `LOCAL` or `UNSPEC` retain the TCP peer address; v2 `PROXY` with `UNSPEC` can still carry TLS metadata. The first-request time limit includes the time spent waiting for the header and TLS handshake.
+
+The following nginx `stream` example forwards LDAPS without terminating TLS and sends a v1 header. Replace the server names, ports, and addresses with those of your deployment:
+
+[source, nginx]
+----
+stream {
+    upstream directory_servers {
+        server ds1.example.com:1636;
+        server ds2.example.com:1636;
+    }
+    server {
+        listen 1636;
+        proxy_pass directory_servers;
+        proxy_protocol on;
+    }
+}
+----
+
+`proxy_protocol on` sends v1. nginx 1.31.4 and later also support `proxy_protocol v2` for sending v2 headers. With HAProxy, `send-proxy` sends v1 and `send-proxy-v2` sends v2:
+
+[source, haproxy]
+----
+frontend ldap_tls
+    bind :1636
+    mode tcp
+    default_backend directories
+
+backend directories
+    mode tcp
+    server ds1 ds1.example.com:1636 send-proxy-v2 check
+    server ds2 ds2.example.com:1636 send-proxy-v2 check
+----
+
+If HAProxy terminates client TLS, use `send-proxy-v2-ssl proxy-v2-options ssl-cipher` on its backend `server` lines to forward its TLS metadata and cipher for security strength evaluation. The `ssl-cipher` option is required to include the cipher name. OpenDJ reports a proxy security strength of zero when the cipher is missing or not recognized. The metadata does not provide a client certificate or an `SSLSession`. Configure HAProxy to accept only secure client connections and protect the connection from HAProxy to OpenDJ too: TLS on just one leg does not protect the other. For client StartTLS or certificate authentication with SASL EXTERNAL, pass TLS through to OpenDJ rather than terminating it at the load balancer.
+
 
 [#setup-server-cert]
 === Preparing For Secure Communications

@@ -78,6 +78,22 @@ public interface LDAPClientContext {
     InetSocketAddress getPeerAddress();
 
     /**
+     * Returns the actual TCP peer even when the effective client address is forwarded.
+     * @return the TCP peer address
+     */
+    default InetSocketAddress getTcpPeerAddress() {
+        return getPeerAddress();
+    }
+
+    /**
+     * Returns whether the PROXY sender reports TLS on the client side. The listener must enforce trust in the sender.
+     * @return true if the sender asserts that the client used TLS
+     */
+    default boolean isProxyClientSecure() {
+        return false;
+    }
+
+    /**
      * Returns the cipher strength, in bits, currently in use by the underlying
      * connection. This value is analogous to the
      * {@code javax.servlet.request.key_size} property defined in the Servlet
