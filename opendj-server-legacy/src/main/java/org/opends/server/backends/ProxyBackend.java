@@ -1093,9 +1093,10 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                                             final String name = value.toString().trim();
                                             objectClasses.put(localSchema.getObjectClass(name), name);
                                         }
-                                        continue;
                                     }
-                                    // Empty objectClass attributes must survive types-only searches.
+                                    // Direct delivery bypasses returnEntry(), which normally adds objectClass
+                                    // to the attribute maps for LDAP encoding. Retain it here, even if empty
+                                    // for a types-only search, as well as in the internal object-class map.
                                     final AttributeBuilder attrBuilder=new AttributeBuilder(attr.getAttributeDescription());
                                     for (final ByteString value: attr) {
                                         attrBuilder.add(value);
