@@ -30,15 +30,22 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.controls.SimplePagedResultsControl;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.ProxyBackendLdapAssertions;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.SearchFilter;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
@@ -51,6 +58,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
@@ -215,6 +223,71 @@ public class ProxyBackendOpenLdapIT extends DirectoryServerTestCase {
                 admin.delete(first);
             }
         }
+    }
+
+    @Test
+    public void preservesUnknownRemoteSchema() throws Exception {
+        final Schema localSchema = TestCaseUtils.getServerContext().getSchema();
+        assertFalse(localSchema.hasObjectClass("remoteAux"));
+        assertFalse(localSchema.hasAttributeType("remoteCode"));
+        configure("dn: cn=opendj-proxy-test,cn=schema,cn=config\nchangetype: add\n"
+                + "objectClass: olcSchemaConfig\ncn: opendj-proxy-test\n"
+                + "olcAttributeTypes: ( 1.3.6.1.4.1.99999.1292.1 NAME 'remoteCode'"
+                + " EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE )\n"
+                + "olcObjectClasses: ( 1.3.6.1.4.1.99999.1292.2 NAME 'remoteAux'"
+                + " SUP top AUXILIARY MAY remoteCode )\n");
+
+        final String proxyDn = "uid=remote-schema," + PROXY_BASE;
+        final String remoteDn = "uid=remote-schema," + REMOTE_BASE;
+        try (Connection admin = remoteFactory.getConnection();
+             LDAPConnectionFactory proxy = new LDAPConnectionFactory("localhost", TestCaseUtils.getServerLdapPort());
+             Connection client = proxy.getConnection()) {
+            admin.bind(ADMIN, "password".toCharArray());
+            client.bind("uid=rewrite-user," + PROXY_BASE, "password".toCharArray());
+            client.add(Requests.newAddRequest(proxyDn)
+                    .addAttribute("objectClass", "top", "person", "organizationalPerson", "inetOrgPerson", "remoteAux")
+                    .addAttribute("uid", "remote-schema").addAttribute("cn", "Remote Schema").addAttribute("sn", "Schema")
+                    .addAttribute("remoteCode", "Initial Value"));
+            try {
+                final Entry stored = admin.searchSingleEntry(remoteDn, SearchScope.BASE_OBJECT,
+                        "(objectClass=remoteAux)", "objectClass", "remoteCode");
+                assertTrue(stored.getAttribute("objectClass").contains(ByteString.valueOfUtf8("remoteAux")));
+                assertEquals(stored.getAttribute("remoteCode").firstValueAsString(), "Initial Value");
+
+                final InternalClientConnection internal = new InternalClientConnection(AuthenticationInfo.internal(
+                        TestCaseUtils.makeEntry("dn: uid=rewrite-user," + PROXY_BASE,
+                                "objectClass: top", "objectClass: person", "cn: Rewrite User", "sn: User")));
+                final InternalSearchOperation search = internal.processSearch(
+                        org.opends.server.protocols.internal.Requests.newSearchRequest(
+                                DN.valueOf(proxyDn), SearchScope.BASE_OBJECT,
+                                SearchFilter.createFilterFromString("(objectClass=remoteAux)"), "objectClass", "remoteCode"));
+                assertEquals(search.getResultCode(), ResultCode.SUCCESS, search.getErrorMessage().toString());
+                assertEquals(search.getSearchEntries().size(), 1);
+                final org.opends.server.types.SearchResultEntry entry = search.getSearchEntries().getFirst();
+                assertEquals(entry.getName(), DN.valueOf(proxyDn));
+                assertTrue(entry.getObjectClasses().containsValue("remoteAux"));
+                assertTrue(entry.hasObjectClass(localSchema.getObjectClass("person")));
+                assertEquals(entry.getAllAttributes("remoteCode").iterator().next().iterator().next().toString(),
+                        "Initial Value");
+
+                final Entry forwarded = client.searchSingleEntry(proxyDn, SearchScope.BASE_OBJECT,
+                        "(&(objectClass=remoteAux)(remoteCode=initial value))", "objectClass", "remoteCode");
+                assertEquals(forwarded.getName(), DN.valueOf(proxyDn));
+                assertNotNull(forwarded.getAttribute("objectClass"), "LDAP results must retain the objectClass attribute");
+                assertTrue(forwarded.getAttribute("objectClass").contains(ByteString.valueOfUtf8("remoteAux")));
+                assertEquals(forwarded.getAttribute("remoteCode").firstValueAsString(), "Initial Value");
+                client.modify(Requests.newModifyRequest(proxyDn)
+                        .addModification(ModificationType.REPLACE, "remoteCode", "Updated Value"));
+                assertEquals(client.compare(proxyDn, "remoteCode", "updated value").getResultCode(), ResultCode.COMPARE_TRUE);
+                assertEquals(admin.searchSingleEntry(remoteDn, SearchScope.BASE_OBJECT,
+                        "(remoteCode=updated value)", "remoteCode").getAttribute("remoteCode").firstValueAsString(),
+                        "Updated Value");
+            } finally {
+                assertEquals(client.delete(proxyDn).getResultCode(), ResultCode.SUCCESS);
+            }
+        }
+        assertFalse(TestCaseUtils.getServerContext().getSchema().hasObjectClass("remoteAux"));
+        assertFalse(TestCaseUtils.getServerContext().getSchema().hasAttributeType("remoteCode"));
     }
 
     @Test
