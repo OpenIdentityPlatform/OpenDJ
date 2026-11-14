@@ -124,4 +124,28 @@ SEARCH_RESULT=2
 reset_if_unregistered pending
 cleanup_departed >/dev/null
 grep -Fx fallback "$OUT/registration-queries" >/dev/null || { echo 'cleanup used a failed membership search' >&2; exit 1; }
+# The peer which just confirmed membership also reported its replication shape.
+# Use that result only for the immediate generation-ID check and only once.
+sed -n '/^registered_with_peers() {/,/^}/p' "$HERE/../../../opendj-packages/opendj-docker/bootstrap/join.sh" >"$OUT/peer-check.sh"
+sed -n '/^replicates_base_dn_after_membership() {/,/^}/p' "$HERE/../../../opendj-packages/opendj-docker/bootstrap/join.sh" >>"$OUT/peer-check.sh"
+. "$OUT/peer-check.sh"
+PEERS=(self p1)
+replication_config() { echo "$1" >>"$OUT/config-queries"; printf 'server\ndomain\n'; }
+config_shape() { echo combined; }
+registered_hosts() { echo self; }
+replicates_base_dn() { replication_config "$1" | grep -qx domain; }
+registered_with_peers
+replicates_base_dn_after_membership p1 || { echo 'confirmed domain was lost' >&2; exit 1; }
+[ "$(wc -l <"$OUT/config-queries")" -eq 1 ] || { echo 'peer configuration queried again' >&2; exit 1; }
+replicates_base_dn_after_membership p1
+[ "$(wc -l <"$OUT/config-queries")" -eq 2 ] || { echo 'peer configuration was reused twice' >&2; exit 1; }
+registered_with_peers
+replicates_base_dn_after_membership p2
+[ "$(tail -1 "$OUT/config-queries")" = p2 ] || { echo 'configuration from another peer was used' >&2; exit 1; }
+registered_with_peers
+registered_hosts() { return 1; }
+registered_with_peers
+before=$(wc -l <"$OUT/config-queries")
+replicates_base_dn_after_membership p1
+[ "$(wc -l <"$OUT/config-queries")" -eq "$((before + 1))" ] || { echo 'stale peer configuration was used' >&2; exit 1; }
 echo 'join batch quoting and failure fallback passed'

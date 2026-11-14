@@ -63,7 +63,7 @@ mkdir -p "$OUT"
 # the main shell decides. A run that fails before the online checks - a load check, a wait
 # that timed out, which a reconnection under load would explain - counts the reconnections
 # while the servers are still up
-trap 'code=$?; [ "$BASH_SUBSHELL" -eq 0 ] || exit $code; sampler_stop; [ -f "$OUT/reconnections.txt" ] || [ ! -f "$OUT/logs/${DS_NODES%% *}.mark" ] || record_reconnections || true; timings; case $DISTURBANCE in scale-*) collect_scale_bootstrap ;; esac; collect; summarize failed; [ "$KEEP" = 1 ] || cleanup; exit $code' ERR
+trap 'code=$?; [ "$BASH_SUBSHELL" -eq 0 ] || exit $code; sampler_stop; [ -f "$OUT/reconnections.txt" ] || [ ! -f "$OUT/logs/${DS_NODES%% *}.mark" ] || record_reconnections || true; timings; case $DISTURBANCE in scale-*) collect_scale_bootstrap ;; esac; collect; finalize_failure_csn_traces; summarize failed; [ "$KEEP" = 1 ] || cleanup; exit $code' ERR
 cleanup
 
 phase "topology up ($TOPOLOGY)"

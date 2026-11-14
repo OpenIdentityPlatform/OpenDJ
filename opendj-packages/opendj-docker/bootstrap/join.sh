@@ -455,6 +455,8 @@ is_member() {
 # stands - nothing else can be asked.
 registered_with_peers() {
   local peer host hosts config asked=no
+  JOIN_MEMBERSHIP_PEER=
+  JOIN_MEMBERSHIP_CONFIG=
   for peer in "${PEERS[@]}"; do
     is_self "$peer" && continue
     # a replication server alone is a member only as a replication server; on a combined
@@ -469,10 +471,27 @@ registered_with_peers() {
     hosts=$(registered_hosts "$peer") || continue
     asked=yes
     for host in $hosts; do
-      is_self "$host" && return 0
+      if is_self "$host"; then
+        JOIN_MEMBERSHIP_PEER=$peer
+        JOIN_MEMBERSHIP_CONFIG=$config
+        return 0
+      fi
     done
   done
   [ "$asked" = no ]
+}
+
+# The just-confirmed peer's configuration is sufficient for the advisory generation-ID
+# cross-check. Consume it once and only for that peer; every other caller searches afresh.
+replicates_base_dn_after_membership() { # <host>
+  local cached_peer=$JOIN_MEMBERSHIP_PEER cached_config=$JOIN_MEMBERSHIP_CONFIG
+  JOIN_MEMBERSHIP_PEER=
+  JOIN_MEMBERSHIP_CONFIG=
+  if [ -n "$cached_peer" ] && [ "$1" = "$cached_peer" ]; then
+    grep -qx domain <<<"$cached_config"
+  else
+    replicates_base_dn "$1"
+  fi
 }
 
 member_of_topology() {
@@ -1177,7 +1196,7 @@ if [ ! -f "$INITIALIZE_PENDING" ]; then
           # a replication server holds no generation ID of BASE_DN to compare with, neither
           # this one nor the peer joined through
           if [ "$ROLE" != replication ]; then
-            replicates_base_dn "$peer" || peer=$(trusted_source) || peer=
+            replicates_base_dn_after_membership "$peer" || peer=$(trusted_source) || peer=
             [ -z "$peer" ] || cross_check "$peer" "; replication will not flow until this server or that one is initialized by hand"
           fi
           joined
