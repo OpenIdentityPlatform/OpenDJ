@@ -46,9 +46,32 @@ check_csn_traces() {
   for node in $DS_NODES; do
     capture_csn_trace "$node" || failed=1
   done
+  if [ -n "$failed" ]; then
+    echo 'incomplete CSN allocation trace: could not copy every directory server trace' >"$OUT/csn-trace-validation.txt"
+    echo '::error::CSN trace is incomplete; see csn-trace-validation.txt'
+    return 1
+  fi
   python3 -I "$HERE/csn-trace.py" "$OUT/csn-traces" "$OUT/csn-trace-expected.txt" \
     >"$OUT/csn-trace-validation.txt" 2>&1 || failed=1
   [ -z "$failed" ] || { echo '::error::CSN trace is incomplete; see csn-trace-validation.txt'; return 1; }
+}
+
+# Preserve the live snapshot first (collect), then allow the running DS processes to close their
+# traces before copying them again. Missing containers and killed processes remain incomplete.
+# KEEP leaves the servers untouched and validation will report any still-open trace.
+finalize_failure_csn_traces() {
+  local node pid
+  local -a pids=()
+  [ "${CSN_TRACE:-0}" = 1 ] || return 0
+  if [ "${KEEP:-0}" != 1 ]; then
+    for node in $DS_NODES; do
+      docker inspect "$node" >/dev/null 2>&1 || continue
+      ( trap - ERR; docker stop -t 120 "$node" >/dev/null ) &
+      pids+=("$!")
+    done
+    for pid in "${pids[@]}"; do wait "$pid" || true; done
+  fi
+  check_csn_traces || true
 }
 
 # Look up the first gaps reported for each replica on each RS. This is evidence only:
@@ -62,7 +85,7 @@ diagnose_csn_gaps() {
   [ -d "$OUT/changelog" ] || return 0
   compgen -G "$OUT/changelog/*.txt" >/dev/null || return 0
   while IFS= read -r pair; do [ -z "$pair" ] || pairs+=("$pair"); done < <(
-    awk '/^replica [0-9]+:/ { id=$2; sub(/:$/, "", id) }
+    awk '/^replica [0-9]+(:| \([^)]*\):)/ { id=$2; sub(/:$/, "", id) }
          /^  missing [0-9]+,/ { seq=$2; sub(/,$/, "", seq); if (id != "") print id ":" seq }' \
       "$OUT"/changelog/*.txt | sort -u
   )
