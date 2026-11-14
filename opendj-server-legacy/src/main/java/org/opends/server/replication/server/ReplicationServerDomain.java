@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import net.jcip.annotations.GuardedBy;
 
@@ -274,6 +275,12 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
   private final Object pendingStatusMessagesLock = new Object();
 
+  /** Changes accepted directly from DSs, which this RS owes to every peer in the mesh. */
+  private final ServerState directUpdates = new ServerState();
+  /** Covers puts whose DS handler may already have been removed by concurrent teardown. */
+  private final ReentrantReadWriteLock directUpdateLock = new ReentrantReadWriteLock();
+  private volatile boolean acceptDirectUpdates = true;
+
   @GuardedBy("pendingStatusMessagesLock")
   private PendingStatusMessages pendingStatusMessages = new PendingStatusMessages();
 
@@ -325,6 +332,30 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public void put(UpdateMsg updateMsg, ServerHandler sourceHandler) throws IOException
   {
+    if (!sourceHandler.isDataServer())
+    {
+      putUpdate(updateMsg, sourceHandler);
+      return;
+    }
+    directUpdateLock.readLock().lock();
+    try
+    {
+      if (!acceptDirectUpdates)
+      {
+        // Do not advance the source state or accept a late read after the shutdown fence.
+        throw new IOException("Replication server is closing its directory connections");
+      }
+      putUpdate(updateMsg, sourceHandler);
+    }
+    finally
+    {
+      directUpdateLock.readLock().unlock();
+    }
+  }
+
+  private void putUpdate(UpdateMsg updateMsg, ServerHandler sourceHandler) throws IOException
+  {
+    final long sourceGenerationId = sourceHandler.getGenerationId();
     sourceHandler.updateServerState(updateMsg);
     sourceHandler.incrementInCount();
     /*
@@ -383,6 +414,16 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     // Push the message to the replication servers
     if (sourceHandler.isDataServer())
     {
+      if (updateMsg.contributesToDomainState())
+      {
+        synchronized (generationIDLock)
+        {
+          if (generationId == sourceGenerationId)
+          {
+            directUpdates.update(updateMsg.getCSN());
+          }
+        }
+      }
       if (updateMsg instanceof ReplicaOfflineMsg)
       {
         pushReplicaOfflineMsgToReplicationServers(
@@ -1137,6 +1178,59 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     for (DataServerHandler dsHandler : connectedDSs.values())
     {
       stopServer(dsHandler, shutdown);
+    }
+  }
+
+  /** Stops DS readers before the peer RS writers which forward their last changes. */
+  void stopDirectoryServers()
+  {
+    for (DataServerHandler handler : connectedDSs.values())
+    {
+      stopServer(handler, true);
+    }
+  }
+
+  /**
+   * Drains changes received directly from DSs before the peer sessions are closed. A peer
+   * does not relay third-party changes, so a newer CSN received after failover cannot repair
+   * a hole left here. The deadline is shared by every peer and domain of one shutdown.
+   */
+  void awaitDirectUpdatesForwarded(long deadline) throws InterruptedException
+  {
+    // A handler leaves connectedDSs before its reader finishes. Closing admission and
+    // crossing this barrier includes those readers too, without serializing live DS puts.
+    acceptDirectUpdates = false;
+    if (!directUpdateLock.writeLock().tryLock(Math.max(0, deadline - System.nanoTime()), TimeUnit.NANOSECONDS))
+    {
+      logger.warn(LocalizableMessage.raw("RS shutdown timed out waiting for direct DS updates for " + baseDN));
+      return;
+    }
+    final ServerState target;
+    final long targetGenerationId;
+    try
+    {
+      synchronized (generationIDLock)
+      {
+        target = directUpdates.duplicate();
+        targetGenerationId = generationId;
+      }
+    }
+    finally
+    {
+      directUpdateLock.writeLock().unlock();
+    }
+    for (ReplicationServerHandler handler : connectedRSs.values())
+    {
+      if (targetGenerationId != getGenerationId())
+      {
+        break; // A reset deliberately discarded the old generation's changelog.
+      }
+      if (handler.getGenerationId() == targetGenerationId
+          && !handler.awaitPublished(target, deadline))
+      {
+        logger.warn(LocalizableMessage.raw("RS shutdown could not forward all direct DS updates for "
+            + baseDN + " to RS " + handler.getServerId() + "; target state: " + target));
+      }
     }
   }
 
@@ -2002,6 +2096,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       if (this.generationId != generationId)
       {
         clearDbs();
+        directUpdates.clear();
 
         this.generationId = generationId;
         this.generationIdSavedStatus = false;

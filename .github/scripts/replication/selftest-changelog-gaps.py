@@ -20,6 +20,8 @@ import sys
 import tarfile
 import tempfile
 import unittest
+import base64
+import zlib
 
 
 SCRIPT = Path(__file__).with_name('changelog-gaps.py')
@@ -56,11 +58,59 @@ class ChangelogGapTest(unittest.TestCase):
             'capture-start-ms %d\ndomains.state\n1:%s\n1.dom/1.server/offline.state %s\n'
             % (captured, domain, csn))
 
-    def run_check(self, evidence=True, records=((1, 1000000), (3, 1000010))):
+    def allocation_trace(self, events, token='first', node='d0'):
+        directory = self.root / 'traces' / node
+        directory.mkdir(parents=True, exist_ok=True)
+        body = b''.join(('%s %s %016x%04x%08x\n' %
+                         (kind, base64.b64encode(domain.encode()).decode(), time, sid, seq)).encode()
+                        for kind, domain, time, sid, seq in events)
+        (directory / (token + '.txt')).write_bytes(
+            ('START 1 %s\n' % token).encode() + body
+            + ('END %d %08x\n' % (len(events), zlib.crc32(body))).encode())
+        with (self.root / 'expected.txt').open('a') as manifest:
+            manifest.write('%s %s\n' % (node, token))
+
+    def run_check(self, evidence=True, records=((1, 1000000), (3, 1000010)), traces=False):
         args = [sys.executable, str(SCRIPT), 'dc=example,dc=com', '900000', '1100000']
         if evidence:
             args += ['--offline-snapshots', str(self.snapshots)]
+        if traces:
+            args += ['--csn-traces', str(self.root / 'traces'),
+                     '--csn-manifest', str(self.root / 'expected.txt')]
         return subprocess.run(args, input=changelog(records), capture_output=True, text=False, timeout=10)
+
+    def test_complete_offline_only_allocation_is_not_a_missing_update(self):
+        self.allocation_trace([('O', 'dc=example,dc=com', 1000005, 1, 2)])
+        result = self.run_check(traces=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn(b'0 missing', result.stdout)
+        self.assertIn(b'offline-only 2:', result.stdout)
+        self.assertEqual(self.run_check().returncode, 1)
+
+    def test_reuse_in_another_generation_or_node_blocks_classification(self):
+        self.allocation_trace([('O', 'dc=example,dc=com', 1000005, 1, 2)])
+        self.allocation_trace([('L', 'dc=example,dc=com', 1100010, 1, 2)], 'second', 'd1')
+        result = self.run_check(traces=True)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn(b'missing 2,', result.stdout)
+
+    def test_offline_other_domain_does_not_cover_gap(self):
+        self.allocation_trace([('O', 'cn=other', 1000005, 1, 2)])
+        self.assertEqual(self.run_check(traces=True).returncode, 1)
+
+    def test_offline_only_does_not_hide_other_missing_updates(self):
+        self.allocation_trace([('O', 'dc=example,dc=com', 1000005, 1, 2)])
+        result = self.run_check(traces=True, records=((1, 1000000), (3, 1000010), (5, 1000020)))
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn(b'missing 4,', result.stdout)
+
+    def test_incomplete_trace_never_excuses_offline_gap(self):
+        self.allocation_trace([('O', 'dc=example,dc=com', 1000005, 1, 2)])
+        path = self.root / 'traces/d0/first.txt'
+        path.write_bytes(path.read_bytes()[:-2])
+        result = self.run_check(traces=True)
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn(b'incomplete CSN allocation trace', result.stdout)
 
     def test_reports_an_exact_offline_csn_without_waiving_the_gap(self):
         self.assertEqual(self.run_check().returncode, 1)

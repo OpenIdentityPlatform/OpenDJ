@@ -341,5 +341,13 @@ errors=$(replication_errors n0 | grep -c . || true)
 expected=$(grep -c . "$OUT/logs/n0.expected" || true)
 [ "$errors" = 2 ] && [ "$expected" = 3 ] || { echo "overlapping DNS windows misclassified records: $errors/$expected" >&2; exit 1; }
 
+D180=${E180/cv-r0/172.18.0.8}
+case_ scoped-failover 0 1 '[ disconnect:n0:172.18.0.8' "$D180" ']'
+case_ failover-outside-window 2 1 "$D180" '[ disconnect:n0:172.18.0.8' "$D180" ']' "$D180"
+case_ failover-wrong-node 1 0 '[ disconnect:n1:172.18.0.8' "$D180" ']'
+case_ failover-wrong-peer 1 0 '[ disconnect:n0:172.18.0.9' "$D180" ']'
+case_ failover-wrong-domain 1 0 '[ disconnect:n0:172.18.0.8' "${D180/dc=example,dc=com/cn=schema}" ']'
+case_ failover-wrong-id 1 0 '[ disconnect:n0:172.18.0.8' "${D180/msgID=180 /msgID=1800 }" ']'
+
 echo "replication_errors: $passed cases passed, $failed failed"
 [ "$failed" -eq 0 ]

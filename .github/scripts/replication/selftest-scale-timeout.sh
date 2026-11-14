@@ -49,3 +49,17 @@ printf '%s\n%s\n' "$E" "$N" >"$OUT/errors"
 scale_record_reconnected_timeouts d0 r1 up
 [ ! -s "$OUT/logs/d0.windows" ] || { echo 'missing startup marker accepted' >&2; exit 1; }
 echo 'scale startup timeout requires the same later connection'
+printf '0 dns:r1\n' >"$OUT/logs/d0.window-down-r0"
+D='[t] category=SYNC severity=ERROR msgID=180 msg=Directory server DS(23874) encountered an error while receiving changes for domain "dc=example,dc=com" from replication server RS(9860) at 172.18.0.8:8989. The connection will be closed, and this directory server will now try to connect to another replication server'
+: >"$OUT/logs/d0.windows"
+printf '%s\n%s\n%s\n%s\n' "$S" "$D" "$E" "$N" >"$OUT/errors"
+scale_record_roll_failover d0 r0 r1 down 172.18.0.8
+grep -Fx '1 2 disconnect:d0:172.18.0.8' "$OUT/logs/d0.windows" >/dev/null
+grep -Fx '2 3 timeout:d0:r1' "$OUT/logs/d0.windows" >/dev/null
+for rows in "$S"$'\n'"$E"$'\n'"$N" "$D"$'\n'"$E" "${D/172.18.0.8/172.18.0.7}"$'\n'"$E"$'\n'"$N" "$D"$'\n'"$E"$'\n'"${N/dc=example,dc=com/cn=schema}" "$N"$'\n'"$D"$'\n'"$E"; do
+  : >"$OUT/logs/d0.windows"
+  printf '%s\n' "$rows" >"$OUT/errors"
+  scale_record_roll_failover d0 r0 r1 down 172.18.0.8
+  [ ! -s "$OUT/logs/d0.windows" ] || { echo 'unproven rolling failover accepted' >&2; exit 1; }
+done
+echo 'rolling failover requires the stopped peer and a later connection in the same domain'

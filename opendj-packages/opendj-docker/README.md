@@ -238,6 +238,13 @@ An enable that stopped half-way leaves that state behind (its initialize of `cn=
 failed, say): `BASE_DN` is replicated, and every later enable only reports it as replicated
 already, without registering the server where it is missing.
 
+Bootstrap LDAP reads share one Java process to avoid starting a JVM for every search.
+Each search opens a fresh connection and reads the current configuration or registrations;
+responses are not cached across topology changes. If the worker exits or cannot answer within
+`REPLICATION_ATTEMPT_TIMEOUT`, the join falls back to the regular `ldapsearch` command.
+Set `JOIN_SEARCH_REUSE=0` to use that command for every read. With `JOIN_TIMING=1`,
+`join-search` records the duration inside the worker alongside the enclosing bootstrap timings.
+
 ### Server roles
 
 `REPLICATION_ROLE` sets the part a server of `simple` takes in its topology:

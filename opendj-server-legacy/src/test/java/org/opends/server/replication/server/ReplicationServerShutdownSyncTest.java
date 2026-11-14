@@ -19,8 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.opends.messages.ReplicationMessages.WARN_IGNORING_UPDATE_UNSUPPORTED_BY_PEER;
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 import static org.opends.server.util.CollectionUtils.newArrayList;
+import static org.mockito.Mockito.*;
+import static org.mockito.AdditionalAnswers.delegatesTo;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -60,6 +63,8 @@ import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.StopMsg;
 import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.WindowMsg;
+import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attributes;
@@ -162,6 +167,199 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
   /** How often the domains of {@link #theGracePeriodIsSharedByAllTheDomainsOfOneShutdown()}
    * announce themselves offline again while the shutdown is waiting for them. */
   private static final long REANNOUNCE_INTERVAL = 200;
+
+  /** A remote DS can still write when its RS starts shutting down: no offline message
+   * announces those last changes. Every peer must receive them before its session closes. */
+  @Test
+  public void shutdownForwardsRemoteDirectoryUpdatesToEveryPeer() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer server = null;
+    ReplicationBroker broker = null;
+    FakePeerReplicationServer fast = null;
+    FakePeerReplicationServer slow = null;
+    final ExecutorService shutdown = Executors.newSingleThreadExecutor();
+    try
+    {
+      final int port = TestCaseUtils.findFreePort();
+      server = newReplicationServer(new DSRSShutdownSync(), "shutdownRemoteUpdatesDb", 8250, port);
+      broker = openReplicationSession(baseDN, REMOTE_DS_ID, 100, port, 5000, EMPTY_DN_GENID);
+      fast = FakePeerReplicationServer.connected(port, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID);
+      slow = FakePeerReplicationServer.connected(port, HELD_BACK_RS_ID, baseDN, EMPTY_DN_GENID, 1);
+      final ReplicationServerDomain domain = server.getReplicationServerDomain(baseDN, true);
+      waitForConnectedReplicationServer(domain, REMOTE_RS_ID);
+      waitForConnectedReplicationServer(domain, HELD_BACK_RS_ID);
+      final Future<List<ReplicationMsg>> fastMessages = fast.receiveUntil(StopMsg.class);
+      final Future<List<ReplicationMsg>> slowMessages = slow.receiveUntil(StopMsg.class);
+      final List<CSN> expected = new ArrayList<>();
+      final long time = System.currentTimeMillis();
+      for (int i = 1; i <= 4; i++)
+      {
+        final CSN csn = new CSN(time, i, REMOTE_DS_ID);
+        expected.add(csn);
+        broker.publish(new DeleteMsg(DN.valueOf("uid=last-" + i + "," + baseDN), csn,
+            "22222222-2222-2222-2222-222222222222"));
+      }
+      newConnectionTimer().repeatUntilSuccess(() -> {
+        assertThat(domain.getLatestServerState().getCSN(REMOTE_DS_ID)).isEqualTo(expected.get(3));
+      });
+      final ReplicationServer stopping = server;
+      final Future<?> stopped = shutdown.submit(() -> stopping.shutdown());
+      // Keep the slow peer's window closed until all DS readers have been stopped.
+      newConnectionTimer().repeatUntilSuccess(() -> { assertThat(domain.getConnectedDSs()).isEmpty(); });
+      slow.openSendWindow(10);
+      stopped.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      for (Future<List<ReplicationMsg>> messages : Arrays.asList(fastMessages, slowMessages))
+      {
+        final List<CSN> actual = new ArrayList<>();
+        for (ReplicationMsg msg : messages.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+        {
+          if (msg instanceof DeleteMsg)
+          {
+            actual.add(((DeleteMsg) msg).getCSN());
+          }
+        }
+        assertThat(actual).as("updates received by a peer before the RS stopped").containsExactlyElementsOf(expected);
+      }
+    }
+    finally
+    {
+      closeQuietly(fast);
+      closeQuietly(slow);
+      if (broker != null)
+      {
+        broker.stop();
+      }
+      removeQuietly(server);
+      shutdown.shutdownNow();
+    }
+  }
+
+  @Test
+  public void generationResetDoesNotAwaitDiscardedUpdates() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer server = null;
+    ReplicationBroker broker = null;
+    FakePeerReplicationServer peer = null;
+    try
+    {
+      final int port = TestCaseUtils.findFreePort();
+      server = newReplicationServer(new DSRSShutdownSync(), "shutdownResetUpdatesDb", 8251, port);
+      broker = openReplicationSession(baseDN, REMOTE_DS_ID, 100, port, 5000, EMPTY_DN_GENID);
+      final ReplicationServerDomain domain = server.getReplicationServerDomain(baseDN, true);
+      final CSN csn = new CSN(System.currentTimeMillis(), 1, REMOTE_DS_ID);
+      broker.publish(new DeleteMsg(DN.valueOf("uid=old," + baseDN), csn,
+          "22222222-2222-2222-2222-222222222222"));
+      newConnectionTimer().repeatUntilSuccess(() -> {
+        assertThat(domain.getLatestServerState().getCSN(REMOTE_DS_ID)).isEqualTo(csn);
+      });
+      broker.stop();
+      broker = null;
+      domain.changeGenerationId(EMPTY_DN_GENID + 1);
+      peer = FakePeerReplicationServer.connected(port, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID + 1);
+      waitForConnectedReplicationServer(domain, REMOTE_RS_ID);
+      final List<String> records = errorLogRecordsOf(() -> {
+        domain.awaitDirectUpdatesForwarded(System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(100));
+        return null;
+      });
+      assertThat(records.stream().anyMatch(line -> line.contains("RS shutdown could not forward")))
+          .as("a generation reset discarded these changes, so the new generation owes no forward")
+          .isFalse();
+    }
+    finally
+    {
+      closeQuietly(peer);
+      if (broker != null)
+      {
+        broker.stop();
+      }
+      removeQuietly(server);
+    }
+  }
+
+  @Test
+  public void shutdownWaitsForAReaderAlreadyRemovedByConcurrentTeardown() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final CountDownLatch inDatabase = new CountDownLatch(1);
+    final CountDownLatch releasePut = new CountDownLatch(1);
+    final ExecutorService executor = Executors.newFixedThreadPool(2);
+    ReplicationServer server = null;
+    ReplicationBroker broker = null;
+    FakePeerReplicationServer peer = null;
+    Future<?> teardown = null;
+    Future<?> stopped = null;
+    try
+    {
+      final int port = TestCaseUtils.findFreePort();
+      server = newReplicationServer(new DSRSShutdownSync(), "shutdownConcurrentReaderDb", 8252, port);
+      broker = openReplicationSession(baseDN, REMOTE_DS_ID, 100, port, 5000, EMPTY_DN_GENID);
+      peer = FakePeerReplicationServer.connected(port, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID);
+      final ReplicationServerDomain domain = server.getReplicationServerDomain(baseDN, true);
+      waitForConnectedReplicationServer(domain, REMOTE_RS_ID);
+      waitForFollowing(domain, REMOTE_RS_ID);
+      final CSN first = new CSN(System.currentTimeMillis(), 1, REMOTE_DS_ID);
+      Future<DeleteMsg> receivedFirst = peer.receive(DeleteMsg.class);
+      broker.publish(new DeleteMsg(DN.valueOf("uid=first," + baseDN), first,
+          "22222222-2222-2222-2222-222222222222"));
+      assertThat(receivedFirst.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS).getCSN()).isEqualTo(first);
+      final Future<List<ReplicationMsg>> received = peer.receiveUntil(StopMsg.class);
+
+      final Field dbField = ReplicationServerDomain.class.getDeclaredField("domainDB");
+      dbField.setAccessible(true);
+      final ReplicationDomainDB database = (ReplicationDomainDB) dbField.get(domain);
+      final ReplicationDomainDB delayed = mock(ReplicationDomainDB.class, delegatesTo(database));
+      doAnswer(invocation -> {
+        boolean created = database.publishUpdateMsg(baseDN, (UpdateMsg) invocation.getArguments()[1]);
+        inDatabase.countDown();
+        assertThat(releasePut.await(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+        return created;
+      }).when(delayed).publishUpdateMsg(eq(baseDN), any(UpdateMsg.class));
+      dbField.set(domain, delayed);
+      final CSN last = new CSN(first.getTime(), 2, REMOTE_DS_ID);
+      broker.publish(new DeleteMsg(DN.valueOf("uid=last," + baseDN), last,
+          "22222222-2222-2222-2222-222222222222"));
+      assertThat(inDatabase.await(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+      final DataServerHandler ds = domain.getConnectedDSs().get(REMOTE_DS_ID);
+      teardown = executor.submit(() -> domain.stopServer(ds, false));
+      newConnectionTimer().repeatUntilSuccess(() -> { assertThat(domain.getConnectedDSs()).isEmpty(); });
+      final ReplicationServer stopping = server;
+      stopped = executor.submit(() -> stopping.shutdown());
+      try
+      {
+        stopped.get(EARLY_CLOSE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      }
+      catch (TimeoutException expected)
+      {
+        // A correct shutdown is waiting for the put which already reached its database.
+      }
+      releasePut.countDown();
+      stopped.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      final List<CSN> changes = new ArrayList<>();
+      for (ReplicationMsg msg : received.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+      {
+        if (msg instanceof DeleteMsg)
+        {
+          changes.add(((DeleteMsg) msg).getCSN());
+        }
+      }
+      assertThat(changes).as("the accepted update of a reader already in teardown").contains(last);
+    }
+    finally
+    {
+      releasePut.countDown();
+      awaitQuietly(teardown);
+      awaitQuietly(stopped);
+      closeQuietly(peer);
+      if (broker != null)
+      {
+        broker.stop();
+      }
+      removeQuietly(server);
+      executor.shutdownNow();
+    }
+  }
 
   @Test
   public void shutdownWaitsForTheReplicaOfflineMsgToBeForwarded() throws Exception

@@ -429,11 +429,49 @@ scale_record_reconnected_timeouts() { # <DS> <RS> <direction>
   cat "$target" >>"$OUT/logs/$node.windows"
 }
 
+# A surviving DS can reconnect after its startup, when another group stops its RS.
+# Accept only the stopped RS address and a subsequent successful connection to the
+# surviving observer, in this RS's exact rolling window and the same DS/domain.
+scale_record_roll_failover() { # <DS> <stopped RS> <observer RS> <direction> <old RS address>
+  local node=$1 stopped=$2 observer=$3 direction=$4 old_address=$5
+  local before after mark id address target="$OUT/scale-progress/failover-$4-$2-$1.txt"
+  local window="$OUT/logs/$1.window-$4-$2"
+  [ -f "$window" ] && [ -f "$OUT/logs/$node.mark" ] || return 0
+  case $old_address in ''|*[!0-9.]*) return 0 ;; esac
+  read -r before _ <"$window" || return 0
+  mark=$(cat "$OUT/logs/$node.mark") || return 0
+  after=$(errors_lines "$node") || return 0
+  id=$(awk -v n="$node" '$2 == n { print $1 }' "$OUT/server-ids.txt") || return 0
+  case $id in ''|*[!0-9]*) return 0 ;; esac
+  address=$(docker inspect -f "{{(index .NetworkSettings.Networks \"$NETWORK\").IPAddress}}" "$observer") || return 0
+  case $address in ''|*[!0-9.]*) return 0 ;; esac
+  mkdir -p "$OUT/scale-progress" || return 1
+  if ! since_mark "$node" | awk -v first="$((mark + 1))" -v before="$before" -v after="$after" \
+      -v id="$id" -v old="$old_address" -v address="$address" -v rs="$observer" -v node="$node" -v domain="$BASE_DN" '
+    {
+      line = first + NR - 1
+      if (line <= before || line > after) next
+      if (index($0, "category=SYNC severity=ERROR msgID=180 msg=Directory server DS(" id ") encountered an error while receiving changes for domain \"" domain "\" from replication server RS(") \
+          && index($0, ") at " old ":8989. The connection will be closed,")) disconnected = line
+      if (disconnected && index($0, "category=SYNC severity=ERROR msgID=212 msg=Directory server DS(" id ") timed out while connecting to replication server " rs ":8989 for domain \"" domain "\"")) pending[++n] = line
+      if (disconnected && index($0, "category=SYNC severity=NOTICE msgID=62 msg=Directory server DS(" id ") has connected to replication server RS(") \
+          && index($0, " for domain \"" domain "\" at " address ":8989 ")) {
+        print disconnected - 1, disconnected, "disconnect:" node ":" old
+        for (i = 1; i <= n; i++) print pending[i] - 1, pending[i], "timeout:" node ":" rs
+        disconnected = n = 0
+      }
+    }' >"$target"; then
+    rm -f "$target"
+    return 0
+  fi
+  cat "$target" >>"$OUT/logs/$node.windows"
+}
+
 # In the separate topology, roll two directory servers together with one RS. The
 # other RS and a directory writer remain available; its checkpoint must cover the RS
 # before stopping, and a single LDAP batch confirms one write per stopped node.
 scale_roll_pair() { # <directory node> <directory node> <peer list> <RS>
-  local first=$1 second=$2 peers=$3 rolling_rs=$4 direction=up node candidate writer= observer= from
+  local first=$1 second=$2 peers=$3 rolling_rs=$4 direction=up node candidate writer= observer= from old_address
   [ "$TOPOLOGY" = rs534 ] || return 1
   [ "$peers" != "$SHORT_PEERS" ] || direction=down
   for candidate in $DS_NODES; do
@@ -451,6 +489,7 @@ scale_roll_pair() { # <directory node> <directory node> <peer list> <RS>
   window_open_key "$direction-$rolling_rs" "dns:$REMOVED" "dns:$rolling_rs" || return 1
   # Capture the checkpoint after opening all windows, immediately before the stops.
   scale_checkpoint_wait "$observer reaches a checkpoint of $rolling_rs" "$observer" "$rolling_rs" || return 1
+  old_address=$(docker inspect -f "{{(index .NetworkSettings.Networks \"$NETWORK\").IPAddress}}" "$rolling_rs") || return 1
   from=$(date +%s) || return 1
   scale_stop_group "$first" "$second" "$rolling_rs" || return 1
   if [ "$SCALE_VOLUME" = empty ] && [ "$direction" = down ]; then
@@ -467,6 +506,10 @@ scale_roll_pair() { # <directory node> <directory node> <peer list> <RS>
     scale_wait "$node serves again" started_since "$node" "$from" || return 1
     scale_record_reconnected_timeouts "$node" "$rolling_rs" "$direction" || return 1
     rolling_resume "$node" || return 1
+  done
+  for node in $DS_NODES; do
+    [ "$node" != "$first" ] && [ "$node" != "$second" ] || continue
+    scale_record_roll_failover "$node" "$rolling_rs" "$observer" "$direction" "$old_address" || return 1
   done
 }
 

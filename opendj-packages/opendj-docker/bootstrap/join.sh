@@ -91,6 +91,7 @@ cd /opt/opendj || exit 1
 export PATH=/opt/opendj/bin:$PATH
 . /opt/opendj/bootstrap/join-timing.sh
 . /opt/opendj/bootstrap/join-batch.sh
+. /opt/opendj/bootstrap/join-search.sh
 join_timing_init
 
 BASE_DN=${BASE_DN:-"dc=example,dc=com"}
@@ -187,8 +188,9 @@ fi
 # name, on every start - in /dev/shm those of its ADMIN_PORT, in /tmp all of them
 PASSWORD_FILE=$(mktemp -p /dev/shm "opendj-join.$ADMIN_PORT.XXXXXX" 2>/dev/null \
   || mktemp "/tmp/opendj-join.$ADMIN_PORT.XXXXXX") || exit 1
-trap 'rm -f "$PASSWORD_FILE"' EXIT
+trap 'join_search_close; rm -f "$PASSWORD_FILE"' EXIT
 printf '%s\n' "$ROOT_PASSWORD" >"$PASSWORD_FILE" || exit 1
+join_search_init || exit 1
 
 lower() {
   printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
@@ -257,7 +259,7 @@ in_peers() {
 search() {
   local host=$1
   shift
-  join_timed "ldapsearch:$host" ldapsearch --noPropertiesFile --hostname "$host" --port "$ADMIN_PORT" --useSsl --trustAll \
+  join_timed "ldapsearch:$host" join_search --noPropertiesFile --hostname "$host" --port "$ADMIN_PORT" --useSsl --trustAll \
     --bindDN "$ROOT_USER_DN" --bindPasswordFile "$PASSWORD_FILE" "$@" 2>/dev/null
 }
 
