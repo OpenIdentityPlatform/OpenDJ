@@ -27,4 +27,19 @@ if wait_until 0 'a late predicate' late_success >/dev/null; then
   exit 1
 fi
 [ "$calls" -eq 1 ] || { echo 'wait_until kept trying after timeout' >&2; exit 1; }
+. "$HERE/monitor.sh"
+OUT=$(mktemp -d); trap 'rm -rf "$OUT"' EXIT
+DS_NODES=d0 RS_NODES=r0 QUIESCE_TIMEOUT=100 MONITORING_PERIOD=0
+sample() {
+  local count=0
+  [ ! -f "$OUT/count" ] || count=$(cat "$OUT/count")
+  count=$((count + 1)); echo "$count" >"$OUT/count"
+  if [ "$count" -eq 1 ]; then echo '100 r0 123 42 3'; else echo '101 r0 123 0 0'; fi
+}
+sleep() { SECONDS=$((SECONDS + 5)); }
+wait_converged
+grep -Fx '100 r0 123 42 3' "$OUT/convergence-samples.txt" >/dev/null \
+  || { echo 'missing nonzero convergence sample' >&2; exit 1; }
+grep -Fx '101 r0 123 0 0' "$OUT/convergence-samples.txt" >/dev/null \
+  || { echo 'missing converged sample' >&2; exit 1; }
 echo 'wait deadline passed'
