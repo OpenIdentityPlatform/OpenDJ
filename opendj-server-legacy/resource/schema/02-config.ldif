@@ -4153,6 +4153,12 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.648
   SYNTAX 1.3.6.1.4.1.36733.2.1.3.3.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.60142.2.1.1.649
+  NAME 'ds-cfg-operation-identity-mode'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.36733.2.1.3.3.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.646
   NAME 'ds-cfg-availability-check-timeout'
   EQUALITY caseIgnoreMatch
@@ -6371,6 +6377,7 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.56
          )
   MAY ( ds-cfg-bind-dn $
         ds-cfg-bind-password $
+        ds-cfg-operation-identity-mode $
         ds-cfg-use-ssl $
         ds-cfg-use-start-tls $
         ds-cfg-ssl-cert-nickname $

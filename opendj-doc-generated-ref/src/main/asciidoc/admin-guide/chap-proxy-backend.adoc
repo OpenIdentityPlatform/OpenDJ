@@ -26,11 +26,11 @@ The examples use `ou=people,dc=example,dc=com` as the proxy base DN and `dc=dire
 === Before You Begin
 
 * Configure a remote LDAP directory with the remote base DN and client accounts. Configure remote access controls for the operations and entries that clients may use.
-* To use the LDAP Proxied Authorization V2 control (`2.16.840.1.113730.3.4.18`), create a service account on every remote directory with the same DN and password. Grant it permission to use proxied authorization for the client identities, including anonymous authorization if anonymous access is needed.
+* `specific` and `proxy-auth` operation identity modes require a service account on every remote directory with the same DN and password. `proxy-auth` additionally requires the LDAP Proxied Authorization V2 control (`2.16.840.1.113730.3.4.18`) and permission for the service account to use it for the relevant client identities, including anonymous authorization when anonymous access is needed.
 * Enable LDAPS on the remote servers. The proxy must trust their certificates, and each server address must match its certificate. A trust manager provider can be specified below; otherwise the proxy uses the JVM's default trust configuration.
 * Ensure the proxy's administration connector is reachable and its certificate is trusted by `dsconfig`. The examples use password files and an administration truststore; keep those files readable only by authorized users.
 
-The proxy forwards simple binds to the remote directory. When a service account is configured and reachable remote servers advertise the proxied authorization control, other operations use service-account connections with a control specifying the client's identity. If any reachable server does not advertise the control, or no server's capabilities can be determined, operations use connections authenticated as the client, shared with other successfully authenticated sessions for the same DN and remote server. Unreachable servers are checked again when selecting a mode for a subsequent bind or a request without a user connection; if one does not support the critical control, an operation sent to it may fail until the next capability check. A session already using client-authenticated connections continues to use them if the automatic choice changes. If the choice changes from proxy to user connections, an existing session without a user connection must bind again. Every client bind is independently checked by the remote server. The proxy does not retain client passwords for reconnection: if all available user connections are lost, the client must bind again. The remote directory applies its access controls. SASL bind forwarding is not supported. A bind with a nonempty DN and an empty password is rejected.
+The proxy forwards simple binds to the remote directory. `operation-identity-mode` determines the identity used for subsequent operations; it is not inferred solely from whether a service account is present. Every client bind is independently checked by the remote server. The proxy does not retain client passwords for reconnection: if all available user connections are lost, the client must bind again. The remote directory applies its access controls. SASL bind forwarding is not supported. A bind with a nonempty DN and an empty password is rejected.
 
 === Authorize the Proxy Service Account
 
@@ -133,6 +133,31 @@ LDIF
 
 In 389 Directory Server, the ACI target limits the entries accessed by a proxied operation; it does not limit which authorization identities the service account can assume for those operations. For example, this rule can allow the service account to access the `user1` entry as another user whose own permissions permit that access. Set the target scope as narrowly as possible and protect the service account credentials. For a subtree, adjust the ACI target and review its scope against the existing access policy. See the link:https://www.port389.org/docs/389ds/howto/howto-chainonupdate.html[389 Directory Server proxy ACI example].
 
+==== Remote Microsoft Active Directory
+
+Microsoft Active Directory Domain Services does not implement the Proxied Authorization control from RFC 4370. Do not use `operation-identity-mode:proxy-auth` for an AD route: its capability check returns `UNAVAILABLE`. `auto` with service credentials eventually selects `specific` after every domain controller reports that the control is absent, but `specific` is the explicit and recommended choice for AD.
+
+For `specific` mode, create a dedicated service account such as `CN=opendj-proxy,OU=Service Accounts,DC=example,DC=com`. Configure it with the same password on every selected domain controller (a normal replicated AD account satisfies this), enable LDAPS on each controller, and add the issuing CA to the proxy trust manager. Configure the static mechanism as follows after creating the trust manager provider described below:
+
+[source,bash]
+----
+bin/dsconfig create-service-discovery-mechanism \
+  --mechanism-name active-directory --type static \
+  --set 'bind-dn:CN=opendj-proxy,OU=Service Accounts,DC=example,DC=com' \
+  --set "bind-password:${AD_PROXY_PASSWORD}" \
+  --set operation-identity-mode:specific \
+  --set primary-server:dc1.example.com:636 \
+  --set secondary-server:dc2.example.com:636 \
+  --set use-ssl:true \
+  --set trust-manager-provider:ad-trust --no-prompt
+----
+
+Delegate to this account only the required read, search, write, or reset-password permissions on the target organizational units and attributes; do not add it to Domain Admins or grant unrestricted permissions on the domain. AD evaluates every forwarded operation as this account, so its permissions, rate limits, and audit identity apply to all proxy clients. This is appropriate for an integration API but not when AD must enforce per-user authorization. Rotate its password in AD and in the proxy configuration together.
+
+To preserve per-user authorization and AD audit identity, use `operation-identity-mode:client` instead and omit `bind-dn` and `bind-password` for static discovery. Each client must make a simple bind through the proxy using its full DN, for example `CN=Alice,OU=Users,DC=example,DC=com`; this proxy does not forward an AD UPN such as `alice@example.com`. The proxy does not retain client passwords, so a lost client-bound connection requires another bind.
+
+Use LDAPS (`use-ssl:true`) for both modes. AD can be configured to reject simple binds on unencrypted connections, and this discovery mechanism does not implement StartTLS. Verify the certificate name for every controller and test both an allowed and a denied operation through every configured controller. See the link:https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/faf0b8c6-8c59-439f-ac62-dc4c078ed715[Microsoft documentation on the unsupported Proxied Authentication control] and link:https://learn.microsoft.com/en-us/troubleshoot/windows-server/identity/enable-ldap-signing-in-windows-server[Microsoft LDAP signing guidance].
+
 === Configure Static Discovery
 
 This example selects `ldap1.example.com:636` as primary and `ldap2.example.com:636` as secondary. Add further `primary-server` or `secondary-server` values as needed. The secondary group is used when the primary group is unavailable; the connection load balancer periodically checks failed servers for recovery.
@@ -165,6 +190,7 @@ bin/dsconfig create-service-discovery-mechanism \
   --mechanism-name directory-servers --type static \
   --set 'bind-dn:cn=proxy-service,dc=directory,dc=example' \
   --set "bind-password:${PROXY_SERVICE_PASSWORD}" \
+  --set operation-identity-mode:auto \
   --set primary-server:ldap1.example.com:636 \
   --set secondary-server:ldap2.example.com:636 \
   --set use-ssl:true \
@@ -173,7 +199,54 @@ bin/dsconfig create-service-discovery-mechanism \
 
 The service password is passed to `dsconfig` as a property value and stored in the server configuration. Protect process arguments and configuration files accordingly. The `use-ssl` setting selects LDAPS for connections to the remote LDAP servers; StartTLS is not implemented for this discovery mechanism.
 
-For static discovery without a service account, omit both `bind-dn` and `bind-password`. The proxy then uses client-authenticated connections. Replication discovery still requires the service account to read the administration registry and replication configuration, even when client-authenticated connections are used for LDAP operations.
+==== Select the Operation Identity
+
+`operation-identity-mode` is a property of the service discovery mechanism. It applies to every proxy backend that uses that mechanism. Choose the mode according to which identity the *remote* directory must authorize and audit; it does not change how the proxy accepts a client bind. The following modes are available:
+
+[cols="1,2,3"]
+|===
+|Mode |Use it when |Operation identity and selection
+
+|`auto` (default)
+|A mixed deployment should select the safest supported identity automatically.
+|Without both service credentials, use `client`. With credentials, use `proxy-auth` only when every server in the selected route advertises Proxied Authorization V2. If every probe completes and any server does not advertise the control, use `specific`. If a capability probe fails or is incomplete, return `UNAVAILABLE`; do not silently change the identity.
+
+|`client`
+|The remote directory must enforce and audit each end user's authorization without a proxy authorization control.
+|Always use a connection authenticated by the client through this proxy. A service account may still be configured for replication discovery, but is not used for forwarded operations.
+
+|`specific`
+|The proxy must access the remote directory as one controlled integration identity.
+|Always use the configured service account and never add a Proxied Authorization V2 control. Both service credentials are required.
+
+|`proxy-auth`
+|The remote directory must authorize and audit each client, but connections must use a service account.
+|Always use the configured service account and add Proxied Authorization V2. Both credentials are required and every server in the selected route must advertise the control. Otherwise the operation returns `UNAVAILABLE`; it never falls back to `client` or `specific`.
+|===
+
+===== `auto`: Capability-Based Selection
+
+Use `auto` when the same configuration must work with directories that may or may not support Proxied Authorization V2. It is the default and needs no explicit setting. For a static mechanism with no service account, omit *both* `bind-dn` and `bind-password`; `auto` then selects `client`. To let it select `specific` or `proxy-auth`, configure both properties and provision the same service account with the same password on every server in the route. Replication discovery still needs this account to read the administration registry and replication configuration, even when `client` is selected for LDAP operations.
+
+With service credentials, `auto` only discovers support for the control; it cannot discover whether the service account has been granted proxy authorization for each requested identity. Test representative allowed and denied operations after configuring the remote access policy. A reachable server that does not advertise the control selects `specific`, so its service-account permissions become the effective remote permissions. An unreachable server, a failed root-DSE capability request, or a partially completed probe makes operations return `UNAVAILABLE` instead. This prevents an outage or an ambiguous capability result from silently changing remote authorization or audit identity, but it can reduce availability during maintenance or a network partition.
+
+===== `client`: Client-Bound Connections
+
+Use `client` when remote ACLs, rate limits, password policy, and audit records must see the authenticated end user and the remote server does not support, or must not receive, ProxyAuth. Set `operation-identity-mode:client`; a service account is not needed for static discovery and is ignored for forwarded operations if it is configured. Configure every client to use a simple bind through this proxy route. A client authenticated only by another local backend has no corresponding remote connection; it must bind through this route before making authenticated operations, otherwise the operation returns `UNAVAILABLE`.
+
+Each client bind is sent to the remote directory, so the remote password policy and account state apply. The proxy does not retain client passwords. User connections are limited to 16 per proxy route, user, and remote server. Extra idle connections are closed after at least five minutes of inactivity, checked once per minute; one connection is retained while a client session remains active. When all connections in a pool are in use, another operation returns `BUSY`; when no valid connections remain, it returns `UNAVAILABLE` and the client must bind again. Connections authenticated on one server are not reused on a different server. These limits and reconnect requirements are the main operational risk of this mode; size the remote connection limits and client retry policy accordingly.
+
+===== `specific`: Service Account Only
+
+Use `specific` for a controlled integration identity, for example when the remote service deliberately exposes a restricted API to the proxy service rather than per-user access. Set `operation-identity-mode:specific`, set both `bind-dn` and `bind-password`, and create that account with the same credentials on every remote server. Grant it only the LDAP operations, entries, and attributes the proxy needs. Proxied Authorization V2 support and proxy authorization privileges are not required.
+
+The remote directory sees the service account, not the client. Remote access control, rate limits, password policy, and audit records therefore apply to that account. A client authenticated by another backend can use this mode because no client connection pool is required. The risk is privilege aggregation: every client that the proxy allows to reach this backend can receive the service account's remote access. Do not use this mode where the remote directory must enforce each end user's authorization, and do not give the account administrative or unrestricted subtree access.
+
+===== `proxy-auth`: Service Account with Proxied Authorization
+
+Use `proxy-auth` when connections must use a service account but the remote directory must still apply ACLs, policy, and auditing to the client identity. Set `operation-identity-mode:proxy-auth`, set both service credentials, and configure the identical account on every remote server. Every server in the selected route must advertise LDAP Proxied Authorization V2 and the service account must have permission to use the control and to assume only the intended client identities. Follow the remote-server-specific authorization steps above and test both permitted and denied identities on every replica.
+
+This is the most sensitive mode: the service account can request another authorization identity. Limit its proxy privilege to the smallest set of identities and subtrees, protect and rotate its credentials, and review remote audit records. A server that omits, rejects, or becomes unreachable during the capability check causes `UNAVAILABLE` rather than an identity downgrade; there is no fallback to `client` or `specific`. This fail-closed behavior prevents accidental impersonation or a change in audit identity, but means a single inconsistent or unavailable route server can affect availability.
 
 === Create the Proxy Backend
 
@@ -192,11 +265,7 @@ bin/dsconfig create-backend \
 
 The proxy suffix must not conflict with an existing naming context. If the remote and proxy suffixes are identical, omit `remote-base-dn`. When it is set, exactly one proxy `base-dn` is required.
 
-When proxied authorization is selected, the proxy does not fall back to user connections after an operation has been sent. User connections are limited to 16 per proxy route, user, and remote server. Extra idle connections are closed after at least five minutes of inactivity, checked once per minute; one connection is retained while a client session remains active. When the last client session using the pool ends, idle connections are closed and in-flight connections are closed when returned. When all connections in a pool are in use, another operation returns `BUSY`; when no valid connections remain, it returns `UNAVAILABLE` and the client must bind again. Connections authenticated on one server are not reused on a different server.
-
-In user mode, a client must have successfully bound through this proxy backend to access it as an authenticated user. A session authenticated only by a different local backend has no corresponding remote user connection; requests to this backend return `UNAVAILABLE` until the client binds through the proxy. This also applies when a subtree search reaches the proxy from a parent naming context.
-
-User binds select a primary server using DN affinity and try secondary servers only when the primary servers cannot be reached before a bind is sent. An authentication failure from a reachable server is returned to the client; it is not retried against other replicas. If the connection fails after a bind was sent, the proxy returns `UNAVAILABLE` without retrying on another server, because the bind outcome is unknown. After a successful bind, the session uses connections authenticated on that server until it binds again.
+User binds select a primary server using DN affinity and try secondary servers only when the primary servers cannot be reached before a bind is sent. An authentication failure from a reachable server is returned to the client; it is not retried against other replicas. If the connection fails after a bind was sent, the proxy returns `UNAVAILABLE` without retrying on another server, because the bind outcome is unknown. After a successful bind in `client` mode, the session uses connections authenticated on that server until it binds again.
 
 Use a bind DN under the proxy base DN. The proxy does not forward non-DN bind names such as an Active Directory user principal name. The remote server determines whether an established connection remains usable after a password change or account disablement.
 

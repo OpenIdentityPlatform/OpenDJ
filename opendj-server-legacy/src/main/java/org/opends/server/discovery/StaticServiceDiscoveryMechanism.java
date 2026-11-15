@@ -21,6 +21,7 @@ import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.StaticServiceDiscoveryMechanismCfg;
+import org.forgerock.opendj.server.config.meta.ServiceDiscoveryMechanismCfgDefn.OperationIdentityMode;
 import org.forgerock.util.Options;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.HostPort;
@@ -105,6 +106,14 @@ public class StaticServiceDiscoveryMechanism extends ServiceDiscoveryMechanism<S
         if (configuration.getBindDN() != null
                 && (configuration.getBindDN().isRootDN() || configuration.getBindPassword().isEmpty())) {
             reasons.add(LocalizableMessage.raw("The service bind DN and password must not be empty"));
+            return false;
+        }
+        final OperationIdentityMode operationIdentityMode = configuration.getOperationIdentityMode();
+        if ((operationIdentityMode == OperationIdentityMode.SPECIFIC
+                || operationIdentityMode == OperationIdentityMode.PROXY_AUTH)
+                && configuration.getBindDN() == null) {
+            reasons.add(LocalizableMessage.raw("operation-identity-mode " + operationIdentityMode
+                    + " requires bind-dn and bind-password"));
             return false;
         }
         if (configuration.isUseSSL()) {

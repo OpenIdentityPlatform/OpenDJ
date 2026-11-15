@@ -32,6 +32,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
+import org.forgerock.opendj.server.config.meta.ServiceDiscoveryMechanismCfgDefn.OperationIdentityMode;
 import org.forgerock.opendj.server.config.server.ProxyBackendCfg;
 import org.forgerock.util.Options;
 import org.opends.server.api.Backend;
@@ -159,8 +160,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 cfg = configuration;
                 bindFactory = newBindFactory;
                 factory = newFactory;
-                staticRoute = new DynamicRoute(newBindFactory, newFactory, partition,
-                        hasServiceCredentials(discoveryMechanism));
+                staticRoute = new DynamicRoute(newBindFactory, newFactory, partition, discoveryMechanism);
                 rewriter = newRewriter;
             }
         };
@@ -249,8 +249,8 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
         final Map<Partition.Server, LDAPConnectionFactory> physicalFactories = new LinkedHashMap<>();
         final Map<List<Object>, UserPool> userPools = new HashMap<>();
         final boolean hasServiceCredentials;
-        final boolean fixedAuthorizationMode;
-        Boolean directUserMode;
+        final OperationIdentityMode configuredIdentityMode;
+        OperationIdentity operationIdentity;
         long nextCapabilityProbe;
         int users;
         boolean retired;
@@ -261,19 +261,19 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             this.servers = Collections.emptyList();
             this.primaryServerCount = 0;
             this.hasServiceCredentials = authenticated != null;
-            this.directUserMode = false;
-            this.fixedAuthorizationMode = true;
+            this.configuredIdentityMode = OperationIdentityMode.PROXY_AUTH;
+            this.operationIdentity = OperationIdentity.PROXY_AUTH;
+            this.nextCapabilityProbe = Long.MAX_VALUE;
         }
 
         DynamicRoute(ConnectionFactory bind, ConnectionFactory authenticated, Partition partition,
-                     boolean credentials) {
+                     ServiceDiscoveryMechanism<?> mechanism) {
             this.bind = bind;
             this.authenticated = authenticated;
             this.servers = orderedServers(partition);
             this.primaryServerCount = partition == null ? 0 : partition.getPrimaryServers().size();
-            this.hasServiceCredentials = credentials;
-            directUserMode = credentials ? null : true;
-            fixedAuthorizationMode = !credentials;
+            this.hasServiceCredentials = hasServiceCredentials(mechanism);
+            this.configuredIdentityMode = configuredIdentityMode(mechanism);
         }
 
         DynamicRoute(Partition partition, ServiceDiscoveryMechanism<?> mechanism) {
@@ -288,8 +288,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             servers = orderedServers(partition);
             primaryServerCount = partition.getPrimaryServers().size();
             hasServiceCredentials = hasServiceCredentials(mechanism);
-            directUserMode = hasServiceCredentials ? null : true;
-            fixedAuthorizationMode = !hasServiceCredentials;
+            configuredIdentityMode = configuredIdentityMode(mechanism);
         }
 
         private static List<Partition.Server> orderedServers(Partition partition) {
@@ -336,6 +335,20 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 authenticated.close();
             }
         }
+    }
+
+    private enum OperationIdentity {
+        CLIENT,
+        SPECIFIC,
+        PROXY_AUTH,
+        UNAVAILABLE
+    }
+
+    private static OperationIdentityMode configuredIdentityMode(ServiceDiscoveryMechanism<?> mechanism) {
+        if (mechanism == null || mechanism.cfg.getOperationIdentityMode() == null) {
+            return OperationIdentityMode.AUTO;
+        }
+        return mechanism.cfg.getOperationIdentityMode();
     }
 
     /** Connections in this pool have all been bound to the same identity on the same server. */
@@ -457,10 +470,31 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
     }
 
     private static boolean usesUserConnections(DynamicRoute route) {
+        return selectOperationIdentity(route) == OperationIdentity.CLIENT;
+    }
+
+    private static OperationIdentity selectOperationIdentity(DynamicRoute route) {
         synchronized (route) {
-            if (route.directUserMode != null && (route.fixedAuthorizationMode
-                    || route.nextCapabilityProbe - System.nanoTime() > 0)) {
-                return route.directUserMode;
+            switch (route.configuredIdentityMode) {
+                case CLIENT:
+                    return OperationIdentity.CLIENT;
+                case SPECIFIC:
+                    return route.hasServiceCredentials ? OperationIdentity.SPECIFIC : OperationIdentity.UNAVAILABLE;
+                case AUTO:
+                    if (!route.hasServiceCredentials) {
+                        return OperationIdentity.CLIENT;
+                    }
+                    break;
+                case PROXY_AUTH:
+                    if (!route.hasServiceCredentials) {
+                        return OperationIdentity.UNAVAILABLE;
+                    }
+                    break;
+                default:
+                    return OperationIdentity.UNAVAILABLE;
+            }
+            if (route.operationIdentity != null && route.nextCapabilityProbe - System.nanoTime() > 0) {
+                return route.operationIdentity;
             }
             boolean supportedServer = false;
             boolean unsupportedServer = false;
@@ -477,18 +511,28 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                             : root.getAttribute("supportedControl");
                     if (supported == null || !supported.contains(ByteString.valueOfUtf8(OID_PROXIED_AUTH_V2))) {
                         unsupportedServer = true;
-                        break;
+                        continue;
                     }
                     supportedServer = true;
                 } catch (LdapException e) {
                     unknownServer = true;
                 }
             }
-            final boolean direct = unsupportedServer || !supportedServer;
-            route.directUserMode = direct;
+            if (route.configuredIdentityMode == OperationIdentityMode.PROXY_AUTH) {
+                route.operationIdentity = supportedServer && !unsupportedServer && !unknownServer
+                        ? OperationIdentity.PROXY_AUTH : OperationIdentity.UNAVAILABLE;
+            } else if (unknownServer) {
+                route.operationIdentity = OperationIdentity.UNAVAILABLE;
+            } else if (unsupportedServer) {
+                route.operationIdentity = OperationIdentity.SPECIFIC;
+            } else if (supportedServer && !unknownServer) {
+                route.operationIdentity = OperationIdentity.PROXY_AUTH;
+            } else {
+                route.operationIdentity = OperationIdentity.UNAVAILABLE;
+            }
             route.nextCapabilityProbe = System.nanoTime()
                     + (unknownServer ? TimeUnit.SECONDS.toNanos(30) : TimeUnit.MINUTES.toNanos(5));
-            return direct;
+            return route.operationIdentity;
         }
     }
 
@@ -873,8 +917,16 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
         synchronized (routingLock) {
             existingSession = userSessions.get(operation.getClientConnection());
         }
-        final boolean directUserMode = route != null && ((existingSession != null && existingSession.route == route)
-                || usesUserConnections(route));
+        final OperationIdentity operationIdentity = route == null ? OperationIdentity.PROXY_AUTH
+                : existingSession != null && existingSession.route == route ? OperationIdentity.CLIENT
+                : selectOperationIdentity(route);
+        if (operationIdentity == OperationIdentity.UNAVAILABLE && operation.getOperationType() != OperationType.BIND) {
+            operation.setResponseData(new DirectoryException(ResultCode.UNAVAILABLE,
+                    LocalizableMessage.raw("The proxy operation identity is unavailable for the target route")));
+            return;
+        }
+        final boolean directUserMode = operationIdentity == OperationIdentity.CLIENT;
+        final boolean useProxiedAuth = operationIdentity == OperationIdentity.PROXY_AUTH;
         final UserSession userSession;
         if (directUserMode && operation.getOperationType() != OperationType.BIND
                 && operation.getClientConnection().getAuthenticationInfo().getAuthorizationDN() != null) {
@@ -952,7 +1004,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 );
                 final AddRequest addRequest = Requests.newAddRequest(mapping.entry(originalAddRequest, true));
                 addRequestControls(addRequest, controls);
-                if (!directUserMode) addProxiedAuthControl(operation,addRequest,mapping);
+                if (useProxiedAuth) addProxiedAuthControl(operation,addRequest,mapping);
                 Result result;
                 try (Connection connection = userSession == null ? requestFactory.getConnection() : userSession.pool.borrow()) {
                     result = connection.add(addRequest);
@@ -967,7 +1019,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 final ModifyOperation request = (ModifyOperation) operation;
                 ModifyRequest modifyRequest=Requests.newModifyRequest(mapping.dn(request.getEntryDN(), true));
                 addRequestControls(modifyRequest, controls);
-                if (!directUserMode) addProxiedAuthControl(operation,modifyRequest,mapping);
+                if (useProxiedAuth) addProxiedAuthControl(operation,modifyRequest,mapping);
                 for(Modification  modify: request.getModifications()){
                     final String attributeName = modify.getAttribute().getAttributeDescription().toString();
                     modifyRequest=modifyRequest.addModification(
@@ -994,7 +1046,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                         .setNewSuperior(mapping.dn(request.getNewSuperior(), true))
                         .setDeleteOldRDN(request.deleteOldRDN());
                 addRequestControls(modifyDNRequest, controls);
-                if (!directUserMode) addProxiedAuthControl(operation,modifyDNRequest,mapping);
+                if (useProxiedAuth) addProxiedAuthControl(operation,modifyDNRequest,mapping);
                 Result result;
                 try (Connection connection = userSession == null ? requestFactory.getConnection() : userSession.pool.borrow()) {
                     result = connection.modifyDN(modifyDNRequest);
@@ -1012,7 +1064,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                         AttributeDescription.valueOf(mapping.attribute(attributeName, true)),
                         mapping.value(attributeName, request.getAssertionValue(), true));
                 addRequestControls(compareRequest, controls);
-                if (!directUserMode) addProxiedAuthControl(operation,compareRequest,mapping);
+                if (useProxiedAuth) addProxiedAuthControl(operation,compareRequest,mapping);
                 Result result;
                 try (Connection connection = userSession == null ? requestFactory.getConnection() : userSession.pool.borrow()) {
                     result = connection.compare(compareRequest);
@@ -1027,7 +1079,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 final DeleteOperation request = (DeleteOperation) operation;
                 final DeleteRequest deleteRequest=Requests.newDeleteRequest(mapping.dn(request.getEntryDN(), true));
                 addRequestControls(deleteRequest, controls);
-                if (!directUserMode) addProxiedAuthControl(operation,deleteRequest,mapping);
+                if (useProxiedAuth) addProxiedAuthControl(operation,deleteRequest,mapping);
                 Result result;
                 try (Connection connection = userSession == null ? requestFactory.getConnection() : userSession.pool.borrow()) {
                     result = connection.delete(deleteRequest);
@@ -1042,7 +1094,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 final ExtendedOperation request = (ExtendedOperation) operation;
                 final ExtendedRequest extendedRequest=Requests.newGenericExtendedRequest(request.getRequestOID(),request.getRequestValue());
                 addRequestControls(extendedRequest, controls);
-                if (!directUserMode) addProxiedAuthControl(operation,extendedRequest,mapping);
+                if (useProxiedAuth) addProxiedAuthControl(operation,extendedRequest,mapping);
                 ExtendedResult result;
                 try (Connection connection = userSession == null ? requestFactory.getConnection() : userSession.pool.borrow()) {
                     result = connection.extendedRequest(extendedRequest);
@@ -1067,7 +1119,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                  .setTimeLimit(request.getTimeLimit())
                  .setTypesOnly(request.getTypesOnly());
                 addRequestControls(searchRequest, controls);
-                if (!directUserMode) addProxiedAuthControl(operation,searchRequest,mapping);
+                if (useProxiedAuth) addProxiedAuthControl(operation,searchRequest,mapping);
                 try (Connection connection = userSession == null ? requestFactory.getConnection() : userSession.pool.borrow()) {
                     try (ConnectionEntryReader entryReader = connection.search(searchRequest)){
                         while (entryReader.hasNext())

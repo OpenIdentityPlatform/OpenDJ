@@ -29,6 +29,7 @@ import org.forgerock.opendj.ldap.controls.SimplePagedResultsControl;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.forgerock.opendj.server.config.server.ProxyBackendCfg;
 import org.forgerock.opendj.server.config.server.StaticServiceDiscoveryMechanismCfg;
+import org.forgerock.opendj.server.config.meta.ServiceDiscoveryMechanismCfgDefn.OperationIdentityMode;
 import org.forgerock.util.Options;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
@@ -249,13 +250,15 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
     }
 
     @Test
-    public void usesUserConnectionsWhenRemoteServerDoesNotAdvertiseProxyControl() throws Exception {
+    public void autoUsesSpecificIdentityWhenRemoteServerDoesNotAdvertiseProxyControl() throws Exception {
         final String proxyBase = "ou=no-proxy-control,o=test";
         final String proxyUser = "uid=user," + proxyBase;
         final String mechanism = "no-proxy-control";
         final org.forgerock.opendj.ldap.MemoryBackend remote = new org.forgerock.opendj.ldap.MemoryBackend(
                 new LDIFEntryReader("dn:", "objectClass: top", "objectClass: extensibleObject", "",
                         "dn: dc=remote", "objectClass: top", "objectClass: domain", "dc: remote", "",
+                        "dn: cn=service,dc=remote", "objectClass: top", "objectClass: person",
+                        "cn: service", "sn: Service", "userPassword: service-password", "",
                         "dn: uid=user,dc=remote", "objectClass: top", "objectClass: person",
                         "objectClass: organizationalPerson", "objectClass: inetOrgPerson", "uid: user",
                         "cn: User", "sn: User", "userPassword: password", ""));
@@ -266,21 +269,223 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
                 new ServerConnectionFactoryAdapter(options.get(CommonLDAPOptions.LDAP_DECODE_OPTIONS),
                         Connections.<LDAPClientContext>newServerConnectionFactory(remote)), options)) {
             TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", mechanism,
-                    "--type", "static", "--set", "bind-dn:cn=unused,dc=remote",
-                    "--set", "bind-password:unused", "--set", "primary-server:127.0.0.1:"
+                    "--type", "static", "--set", "bind-dn:cn=service,dc=remote",
+                    "--set", "bind-password:service-password", "--set", "primary-server:127.0.0.1:"
                             + listener.firstSocketAddress().getPort(), "--set", "use-ssl:false");
             mechanismCreated = true;
             TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", mechanism,
                     "--set", "base-dn:" + proxyBase, "--set", "remote-base-dn:dc=remote",
                     "--set", "enabled:true", "--set", "shard:" + mechanism);
             backendCreated = true;
+            final ProxyBackend proxy = (ProxyBackend) TestCaseUtils.getServerContext().getBackendConfigManager()
+                    .findBackendForEntry(DN.valueOf(proxyUser));
+            final InternalClientConnection externallyAuthenticated = new InternalClientConnection(
+                    AuthenticationInfo.internal(new org.opends.server.types.Entry(DN.valueOf(proxyUser), null, null,
+                            null)));
+            final org.opends.server.protocols.internal.InternalSearchOperation search =
+                    new org.opends.server.protocols.internal.InternalSearchOperation(externallyAuthenticated,
+                            nextOperationID(), nextMessageID(),
+                            org.opends.server.protocols.internal.Requests.newSearchRequest(DN.valueOf(proxyUser),
+                                    SearchScope.BASE_OBJECT, SearchFilter.createFilterFromString("(objectClass=*)"),
+                                    "cn"));
+            proxy.execute(search);
+            assertEquals(search.getResultCode(), ResultCode.SUCCESS);
+            assertThat(search.getSearchEntries()).hasSize(1);
+        } finally {
+            if (backendCreated) {
+                TestCaseUtils.dsconfig("delete-backend", "--backend-name", mechanism);
+            }
+            if (mechanismCreated) {
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", mechanism);
+            }
+        }
+    }
+
+    @Test
+    public void specificModeDoesNotForwardAProxiedAuthorizationControl() throws Exception {
+        final String proxyBase = "ou=specific-identity,o=test";
+        final String proxyUser = "uid=user," + proxyBase;
+        final String mechanism = "specific-identity";
+        final org.forgerock.opendj.ldap.MemoryBackend remote = new org.forgerock.opendj.ldap.MemoryBackend(
+                new LDIFEntryReader("dn:", "objectClass: top", "objectClass: extensibleObject",
+                        "supportedControl: 2.16.840.1.113730.3.4.18", "",
+                        "dn: dc=remote", "objectClass: top", "objectClass: domain", "dc: remote", "",
+                        "dn: cn=service,dc=remote", "objectClass: top", "objectClass: person",
+                        "cn: service", "sn: Service", "userPassword: service-password", "",
+                        "dn: uid=user,dc=remote", "objectClass: top", "objectClass: person",
+                        "objectClass: organizationalPerson", "objectClass: inetOrgPerson", "uid: user",
+                        "cn: User", "sn: User", "userPassword: password", ""));
+        final java.util.concurrent.atomic.AtomicBoolean proxiedAuthorization =
+                new java.util.concurrent.atomic.AtomicBoolean();
+        final RequestHandlerFactory<LDAPClientContext, RequestContext> handlers = client -> {
+            @SuppressWarnings("unchecked")
+            final RequestHandler<RequestContext> handler = (RequestHandler<RequestContext>)
+                    java.lang.reflect.Proxy.newProxyInstance(RequestHandler.class.getClassLoader(),
+                            new Class<?>[] {RequestHandler.class}, (proxy, method, args) -> {
+                                if (method.getName().equals("handleSearch")) {
+                                    proxiedAuthorization.set(((SearchRequest) args[1])
+                                            .containsControl("2.16.840.1.113730.3.4.18"));
+                                }
+                                try {
+                                    return method.invoke(remote, args);
+                                } catch (java.lang.reflect.InvocationTargetException e) {
+                                    throw e.getCause();
+                                }
+                            });
+            return handler;
+        };
+        final Options options = Options.defaultOptions();
+        boolean mechanismCreated = false;
+        boolean backendCreated = false;
+        try (LDAPListener listener = new LDAPListener(Collections.singleton(new InetSocketAddress("127.0.0.1", 0)),
+                new ServerConnectionFactoryAdapter(options.get(CommonLDAPOptions.LDAP_DECODE_OPTIONS),
+                        Connections.newServerConnectionFactory(handlers)), options)) {
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", mechanism,
+                    "--type", "static", "--set", "bind-dn:cn=service,dc=remote",
+                    "--set", "bind-password:service-password", "--set", "operation-identity-mode:specific",
+                    "--set", "primary-server:127.0.0.1:" + listener.firstSocketAddress().getPort(),
+                    "--set", "use-ssl:false");
+            mechanismCreated = true;
+            TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", mechanism,
+                    "--set", "base-dn:" + proxyBase, "--set", "remote-base-dn:dc=remote",
+                    "--set", "enabled:true", "--set", "shard:" + mechanism);
+            backendCreated = true;
+            final ProxyBackend proxy = (ProxyBackend) TestCaseUtils.getServerContext().getBackendConfigManager()
+                    .findBackendForEntry(DN.valueOf(proxyUser));
+            final InternalClientConnection externallyAuthenticated = new InternalClientConnection(
+                    AuthenticationInfo.internal(new org.opends.server.types.Entry(DN.valueOf(proxyUser), null, null,
+                            null)));
+            final org.opends.server.protocols.internal.InternalSearchOperation search =
+                    new org.opends.server.protocols.internal.InternalSearchOperation(externallyAuthenticated,
+                            nextOperationID(), nextMessageID(),
+                            org.opends.server.protocols.internal.Requests.newSearchRequest(DN.valueOf(proxyUser),
+                                    SearchScope.BASE_OBJECT, SearchFilter.createFilterFromString("(objectClass=*)"),
+                                    "cn"));
+            proxy.execute(search);
+            assertEquals(search.getResultCode(), ResultCode.SUCCESS);
+            Assert.assertFalse(proxiedAuthorization.get(),
+                    "specific mode must not send a proxied authorization control");
+        } finally {
+            if (backendCreated) {
+                TestCaseUtils.dsconfig("delete-backend", "--backend-name", mechanism);
+            }
+            if (mechanismCreated) {
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", mechanism);
+            }
+        }
+    }
+
+    @Test
+    public void proxyAuthModeDoesNotFallbackToClientIdentity() throws Exception {
+        final String proxyBase = "ou=proxy-auth,o=test";
+        final String proxyUser = "uid=user," + proxyBase;
+        final String mechanism = "proxy-auth";
+        final org.forgerock.opendj.ldap.MemoryBackend remote = new org.forgerock.opendj.ldap.MemoryBackend(
+                new LDIFEntryReader("dn:", "objectClass: top", "objectClass: extensibleObject", "",
+                        "dn: dc=remote", "objectClass: top", "objectClass: domain", "dc: remote", "",
+                        "dn: cn=service,dc=remote", "objectClass: top", "objectClass: person",
+                        "cn: service", "sn: Service", "userPassword: service-password", "",
+                        "dn: uid=user,dc=remote", "objectClass: top", "objectClass: person",
+                        "objectClass: organizationalPerson", "objectClass: inetOrgPerson", "uid: user",
+                        "cn: User", "sn: User", "userPassword: password", ""));
+        final Options options = Options.defaultOptions();
+        boolean mechanismCreated = false;
+        boolean backendCreated = false;
+        try (LDAPListener listener = new LDAPListener(Collections.singleton(new InetSocketAddress("127.0.0.1", 0)),
+                new ServerConnectionFactoryAdapter(options.get(CommonLDAPOptions.LDAP_DECODE_OPTIONS),
+                        Connections.<LDAPClientContext>newServerConnectionFactory(remote)), options)) {
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", mechanism,
+                    "--type", "static", "--set", "bind-dn:cn=service,dc=remote",
+                    "--set", "bind-password:service-password", "--set", "operation-identity-mode:proxy-auth",
+                    "--set", "primary-server:127.0.0.1:" + listener.firstSocketAddress().getPort(),
+                    "--set", "use-ssl:false");
+            mechanismCreated = true;
+            TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", mechanism,
+                    "--set", "base-dn:" + proxyBase, "--set", "remote-base-dn:dc=remote",
+                    "--set", "enabled:true", "--set", "shard:" + mechanism);
+            backendCreated = true;
             try (Connection client = factory.getConnection()) {
-                assertEquals(client.bind(proxyUser, "password".toCharArray()).getResultCode(), ResultCode.SUCCESS);
-                Assert.assertNotNull(client.searchSingleEntry(proxyUser, SearchScope.BASE_OBJECT,
-                        "(objectClass=*)", "cn"));
+                assertEquals(client.bind(Requests.newSimpleBindRequest(proxyUser, "password".toCharArray()))
+                        .getResultCode(), ResultCode.SUCCESS);
+                try {
+                    client.searchSingleEntry(proxyUser, SearchScope.BASE_OBJECT, "(objectClass=*)", "cn");
+                    Assert.fail("proxy-auth must not fall back to the client-bound connection");
+                } catch (LdapException e) {
+                    assertEquals(e.getResult().getResultCode(), ResultCode.UNAVAILABLE);
+                }
             }
         } finally {
-            if (mechanismCreated && !backendCreated) {
+            if (backendCreated) {
+                TestCaseUtils.dsconfig("delete-backend", "--backend-name", mechanism);
+            }
+            if (mechanismCreated) {
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", mechanism);
+            }
+        }
+    }
+
+    @Test
+    public void clientModeUsesClientBoundConnectionsDespiteServiceCredentials() throws Exception {
+        final String proxyBase = "ou=client-identity,o=test";
+        final String proxyUser = "uid=user," + proxyBase;
+        final String mechanism = "client-identity";
+        final org.forgerock.opendj.ldap.MemoryBackend remote = new org.forgerock.opendj.ldap.MemoryBackend(
+                new LDIFEntryReader("dn:", "objectClass: top", "objectClass: extensibleObject",
+                        "supportedControl: 2.16.840.1.113730.3.4.18", "",
+                        "dn: dc=remote", "objectClass: top", "objectClass: domain", "dc: remote", "",
+                        "dn: cn=service,dc=remote", "objectClass: top", "objectClass: person",
+                        "cn: service", "sn: Service", "userPassword: service-password", "",
+                        "dn: uid=user,dc=remote", "objectClass: top", "objectClass: person",
+                        "objectClass: organizationalPerson", "objectClass: inetOrgPerson", "uid: user",
+                        "cn: User", "sn: User", "userPassword: password", ""));
+        final java.util.concurrent.atomic.AtomicBoolean proxiedAuthorization =
+                new java.util.concurrent.atomic.AtomicBoolean();
+        final RequestHandlerFactory<LDAPClientContext, RequestContext> handlers = client -> {
+            @SuppressWarnings("unchecked")
+            final RequestHandler<RequestContext> handler = (RequestHandler<RequestContext>)
+                    java.lang.reflect.Proxy.newProxyInstance(RequestHandler.class.getClassLoader(),
+                            new Class<?>[] {RequestHandler.class}, (proxy, method, args) -> {
+                                if (method.getName().equals("handleSearch")) {
+                                    proxiedAuthorization.set(((SearchRequest) args[1])
+                                            .containsControl("2.16.840.1.113730.3.4.18"));
+                                }
+                                try {
+                                    return method.invoke(remote, args);
+                                } catch (java.lang.reflect.InvocationTargetException e) {
+                                    throw e.getCause();
+                                }
+                            });
+            return handler;
+        };
+        final Options options = Options.defaultOptions();
+        boolean mechanismCreated = false;
+        boolean backendCreated = false;
+        try (LDAPListener listener = new LDAPListener(Collections.singleton(new InetSocketAddress("127.0.0.1", 0)),
+                new ServerConnectionFactoryAdapter(options.get(CommonLDAPOptions.LDAP_DECODE_OPTIONS),
+                        Connections.newServerConnectionFactory(handlers)), options)) {
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", mechanism,
+                    "--type", "static", "--set", "bind-dn:cn=service,dc=remote",
+                    "--set", "bind-password:service-password", "--set", "operation-identity-mode:client",
+                    "--set", "primary-server:127.0.0.1:" + listener.firstSocketAddress().getPort(),
+                    "--set", "use-ssl:false");
+            mechanismCreated = true;
+            TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", mechanism,
+                    "--set", "base-dn:" + proxyBase, "--set", "remote-base-dn:dc=remote",
+                    "--set", "enabled:true", "--set", "shard:" + mechanism);
+            backendCreated = true;
+            try (Connection client = factory.getConnection()) {
+                assertEquals(client.bind(Requests.newSimpleBindRequest(proxyUser, "password".toCharArray()))
+                        .getResultCode(), ResultCode.SUCCESS);
+                assertThat(client.searchSingleEntry(proxyUser, SearchScope.BASE_OBJECT, "(objectClass=*)", "cn"))
+                        .isNotNull();
+            }
+            Assert.assertFalse(proxiedAuthorization.get(),
+                    "client mode must not send a proxied authorization control");
+        } finally {
+            if (backendCreated) {
+                TestCaseUtils.dsconfig("delete-backend", "--backend-name", mechanism);
+            }
+            if (mechanismCreated) {
                 TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", mechanism);
             }
         }
@@ -331,6 +536,15 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
         final List<org.forgerock.i18n.LocalizableMessage> reasons = new ArrayList<>();
         Assert.assertFalse(new StaticServiceDiscoveryMechanism().isConfigurationChangeAcceptable(configuration, reasons));
         assertTrue(reasons.stream().anyMatch(reason -> reason.toString().contains("must be specified together")));
+    }
+
+    @Test
+    public void rejectsServiceIdentityModeWithoutServiceCredentials() throws Exception {
+        final StaticServiceDiscoveryMechanismCfg configuration = mockCfg(StaticServiceDiscoveryMechanismCfg.class);
+        when(configuration.getOperationIdentityMode()).thenReturn(OperationIdentityMode.SPECIFIC);
+        final List<org.forgerock.i18n.LocalizableMessage> reasons = new ArrayList<>();
+        Assert.assertFalse(new StaticServiceDiscoveryMechanism().isConfigurationChangeAcceptable(configuration, reasons));
+        assertTrue(reasons.stream().anyMatch(reason -> reason.toString().contains("requires bind-dn and bind-password")));
     }
 
     @Test
@@ -429,10 +643,9 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
     }
 
     @Test
-    public void unreachableSecondaryDoesNotDisableProxyAuthorization() throws Exception {
+    public void autoModeFailsClosedUntilAllServerCapabilitiesAreKnown() throws Exception {
         final org.forgerock.opendj.ldap.MemoryBackend memory = new org.forgerock.opendj.ldap.MemoryBackend(
-                new LDIFEntryReader("dn:", "objectClass: top", "objectClass: extensibleObject",
-                        "supportedControl: 2.16.840.1.113730.3.4.18", ""));
+                new LDIFEntryReader("dn:", "objectClass: top", "objectClass: extensibleObject", ""));
         final Options options = Options.defaultOptions();
         try (LDAPListener primary = new LDAPListener(Collections.singleton(new InetSocketAddress("127.0.0.1", 0)),
                 new ServerConnectionFactoryAdapter(options.get(CommonLDAPOptions.LDAP_DECODE_OPTIONS),
@@ -445,11 +658,12 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
             final Field routeField = ProxyBackend.class.getDeclaredField("staticRoute");
             routeField.setAccessible(true);
             final Object route = routeField.get(backend);
-            final java.lang.reflect.Method select = ProxyBackend.class.getDeclaredMethod("usesUserConnections", route.getClass());
+            final java.lang.reflect.Method select = ProxyBackend.class.getDeclaredMethod("selectOperationIdentity",
+                    route.getClass());
             select.setAccessible(true);
             try {
-                Assert.assertFalse((Boolean) select.invoke(null, route),
-                        "An unreachable secondary must not force user mode when a primary supports proxy authorization");
+                assertEquals(select.invoke(null, route).toString(), "UNAVAILABLE",
+                        "An unknown capability must not select specific identity even when another server lacks proxy support");
                 final org.forgerock.opendj.ldap.MemoryBackend withoutProxy = new org.forgerock.opendj.ldap.MemoryBackend(
                         new LDIFEntryReader("dn:", "objectClass: top", "objectClass: extensibleObject", ""));
                 final Field nextProbe = route.getClass().getDeclaredField("nextCapabilityProbe");
@@ -459,12 +673,12 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
                         new ServerConnectionFactoryAdapter(options.get(CommonLDAPOptions.LDAP_DECODE_OPTIONS),
                                 Connections.<LDAPClientContext>newServerConnectionFactory(withoutProxy)), options)) {
                     nextProbe.setLong(route, 0);
-                    assertTrue((Boolean) select.invoke(null, route),
-                            "A recovered secondary without proxy support must select user mode");
+                    assertEquals(select.invoke(null, route).toString(), "SPECIFIC",
+                            "When every server lacks proxy support, auto mode must select the service identity");
                 }
                 nextProbe.setLong(route, 0);
-                Assert.assertFalse((Boolean) select.invoke(null, route),
-                        "The automatic mode must be re-evaluated after a server becomes unavailable");
+                assertEquals(select.invoke(null, route).toString(), "UNAVAILABLE",
+                        "The automatic mode must fail closed after a server becomes unavailable");
             } finally {
                 backend.factory.close();
                 backend.bindFactory.close();
@@ -932,19 +1146,25 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
                 final Field routeField = ProxyBackend.class.getDeclaredField("staticRoute");
                 routeField.setAccessible(true);
                 final Object route = routeField.get(backend);
-                final Field mode = route.getClass().getDeclaredField("directUserMode");
+                final Field mode = route.getClass().getDeclaredField("operationIdentity");
                 final Field probe = route.getClass().getDeclaredField("nextCapabilityProbe");
                 mode.setAccessible(true);
                 probe.setAccessible(true);
                 probe.setLong(route, System.nanoTime() + TimeUnit.MINUTES.toNanos(1));
-                mode.set(route, false);
+                final Object specific = Arrays.stream(mode.getType().getEnumConstants())
+                        .filter(identity -> identity.toString().equals("SPECIFIC"))
+                        .findFirst().orElseThrow(AssertionError::new);
+                final Object client = Arrays.stream(mode.getType().getEnumConstants())
+                        .filter(identity -> identity.toString().equals("CLIENT"))
+                        .findFirst().orElseThrow(AssertionError::new);
+                mode.set(route, specific);
                 final BindOperationBasis bind = new BindOperationBasis(
                         new InternalClientConnection(new AuthenticationInfo()), nextOperationID(), nextMessageID(),
                         Collections.emptyList(), "3", ByteString.valueOfUtf8("uid=user"),
                         ByteString.valueOfUtf8("password"));
                 backend.execute(bind);
                 assertEquals(bind.getResultCode(), ResultCode.SUCCESS);
-                mode.set(route, true);
+                mode.set(route, client);
                 final org.opends.server.protocols.internal.InternalSearchOperation search =
                         new org.opends.server.protocols.internal.InternalSearchOperation(
                                 new InternalClientConnection(new AuthenticationInfo()), nextOperationID(), nextMessageID(),
@@ -1228,16 +1448,14 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
                 "--type", "static",
                 "--set", "bind-dn:cn=Directory Manager",
                 "--set", "bind-password:password",
-                "--set", "primary-server:unknown:636",
                 "--set", "primary-server:localhost:"+TestCaseUtils.getServerLdapPort(),
-                "--set", "secondary-server:unknown:389",
                 "--set", "secondary-server:localhost:"+TestCaseUtils.getServerLdapPort(),
                 "--set", "use-ssl:false"
         );
         Assert.assertNotNull(TestCaseUtils.getServerContext().getServiceDiscoveryMechanismConfigManager().getMechanism(shardName));
         Assert.assertNotNull(TestCaseUtils.getServerContext().getServiceDiscoveryMechanismConfigManager().getMechanism(shardName).getPartition());
-        Assert.assertEquals(TestCaseUtils.getServerContext().getServiceDiscoveryMechanismConfigManager().getMechanism(shardName).getPartition().getPrimaryServers().size(), 2);
-        Assert.assertEquals(TestCaseUtils.getServerContext().getServiceDiscoveryMechanismConfigManager().getMechanism(shardName).getPartition().getSecondaryServers().size(), 2);
+        Assert.assertEquals(TestCaseUtils.getServerContext().getServiceDiscoveryMechanismConfigManager().getMechanism(shardName).getPartition().getPrimaryServers().size(), 1);
+        Assert.assertEquals(TestCaseUtils.getServerContext().getServiceDiscoveryMechanismConfigManager().getMechanism(shardName).getPartition().getSecondaryServers().size(), 1);
 
         final ProxyBackendCfg backendCfg = mockCfg(ProxyBackendCfg.class);
         when(backendCfg.getShard()).thenReturn(shardName);

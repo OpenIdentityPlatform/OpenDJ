@@ -159,7 +159,8 @@
     <adm:description>
       For static discovery, omit both bind-dn and bind-password to use connections
       authenticated as individual clients. When supplied, the account must be present on
-      all remote directory servers and must be allowed to use proxied authorization.
+      all remote directory servers and have the privileges required by the selected
+      operation-identity-mode.
       Replication discovery requires an account able to read the administration data
       registry and replication configurations.
     </adm:description>
@@ -190,6 +191,44 @@
     <adm:syntax>
       <adm:password/>
     </adm:syntax>
+  </adm:property>
+  <adm:property name="operation-identity-mode" mandatory="true">
+    <adm:synopsis>
+      Specifies the identity used for proxied operations.
+    </adm:synopsis>
+    <adm:description>
+      In auto mode, an absent service account uses client-bound connections. With a service
+      account, all remote servers advertising the proxied authorization v2 control use
+      proxy-auth; a server that explicitly does not advertise it uses the service account
+      directly. A failed capability probe makes operations unavailable rather than changing
+      identity. client always requires a client bind through this proxy. specific always uses
+      the service account without proxied authorization. proxy-auth always uses the service
+      account with proxied authorization and requires every remote server to advertise the
+      proxied authorization v2 control.
+    </adm:description>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:default-behavior><adm:defined><adm:value>auto</adm:value></adm:defined></adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="auto">
+          <adm:synopsis>Select client, specific, or proxy-auth from credentials and capability.</adm:synopsis>
+        </adm:value>
+        <adm:value name="client">
+          <adm:synopsis>Use connections authenticated by a client bind through this proxy.</adm:synopsis>
+        </adm:value>
+        <adm:value name="specific">
+          <adm:synopsis>Use the configured service account without proxied authorization.</adm:synopsis>
+        </adm:value>
+        <adm:value name="proxy-auth">
+          <adm:synopsis>Use the service account and proxied authorization v2.</adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-operation-identity-mode</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
   </adm:property>
   <!--adm:property name="ssl-protocol" multi-valued="true">
     <adm:synopsis>
