@@ -46,6 +46,7 @@ import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.StopMsg;
 import org.opends.server.replication.protocol.TopologyMsg;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.HostPort;
 
@@ -74,6 +75,28 @@ public class ReplicationServerHandler extends ServerHandler
    * LDAP servers connected to the remote replication server.
    */
   private final Map<Integer, LightweightServerHandler> remoteDirectoryServers = new ConcurrentHashMap<>();
+
+  /** Incoming peer knowledge is useful to monitors, but cannot advance the outgoing cursor. */
+  private final ServerState receivedState = new ServerState();
+
+  @Override
+  void recordReceivedUpdate(UpdateMsg update)
+  {
+    // A DS may have moved to this peer while older updates are still queued here.
+    // Its newer CSN does not prove that this peer received that older history.
+    if (update.contributesToDomainState())
+    {
+      receivedState.update(update.getCSN());
+    }
+  }
+
+  @Override
+  public ServerState getServerState()
+  {
+    final ServerState knownState = super.getServerState().duplicate();
+    knownState.update(receivedState);
+    return knownState;
+  }
 
   /** Peer handshake state plus updates actually written, rather than merely dequeued. */
   private final ServerState publishedState = new ServerState();

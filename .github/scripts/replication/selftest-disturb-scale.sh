@@ -60,7 +60,7 @@ run_case() (
         else cat >"$OUT/probe.ldif"; [ "${FAIL_PROBE:-0}" = 0 ]; fi ;;
     esac
   }
-  start_server() { record "start $1 $2 $PEERS"; }
+  start_server() { record "start $1 $2 $PEERS"; [ "$#" -le 2 ] || record "start-options $1 ${*:3}"; }
   admin_search() { echo 'scale checkpoint must not start an admin-search JVM' >&2; return 1; }
   scale_monitor_search() { record "search $1"; echo 'baseline'; }
   window_open() { record "window $*"; }; window_close() { :; }
@@ -76,6 +76,7 @@ run_case() (
   wait_until() {
     record "wait ${*:3}"
     [ "${FAIL_CHECKPOINT:-0}" != 1 ] || [ "${3:-}" != scale_caught_up ] || return 1
+    [ "${FAIL_RETURN_HISTORY:-0}" != 1 ] || [ "${3:-} ${4:-} ${5:-}" != 'scale_caught_up r2 r0' ] || return 1
     [ "${FAIL_JOIN:-0}" != 1 ] || [ "${3:-}" != bootstrap_ended ] || return 1
     [ "${FAIL_RS:-0}" != 1 ] || [ "${3:-} ${4:-} ${5:-}" != 'scale_caught_up r1 r0' ] || return 1
     [ "${FAIL_PAIR_PROBE:-0}" != 1 ] || { [ "${3:-}" != scale_probe ] && [ "${3:-}" != scale_probe_batch ]; } || return 1
@@ -94,6 +95,16 @@ run_case() (
     echo 'stopped a node without a checkpoint' >&2; exit 1
   fi
   : >"$OUT/calls"
+  if [ "$topology" = rs534 ] && [ "$mode" = empty ]; then
+    if (FAIL_RETURN_HISTORY=1; disturb) >/dev/null 2>&1; then
+      echo 'incomplete returned RS history was accepted' >&2; exit 1
+    fi
+    if grep -Fx 'key-open up-r0' "$OUT/calls" >/dev/null; then
+      echo 'writers exposed to the returned RS before its history caught up' >&2; exit 1
+    fi
+    : >"$OUT/calls"
+    rm -f "$OUT/logs/$target.offline" "$OUT/logs/$target.previous"
+  fi
   # A failed stop must abort the roll rather than recreate that still-running node.
   if (FAIL_STOP=d0; disturb) >/dev/null 2>&1; then
     echo 'failed node stop was accepted' >&2; exit 1
@@ -259,6 +270,19 @@ run_case() (
   expected_windows=4
   [ "$(grep -c '^sleep 10$' "$OUT/calls")" -eq "$expected_windows" ] || { echo 'missing handshake grace after a transition' >&2; exit 1; }
   expected_checkpoints=$((1 + 2 * ($(echo "$RS_NODES" | wc -w) - 1)))
+  if [ "$topology" = rs534 ] && [ "$mode" = empty ]; then
+    expected_checkpoints=$((expected_checkpoints + 1))
+    grep -Fx 'start-options r2 -e REPLICATION_RECOVER_FROM_RS=1' "$OUT/calls" >/dev/null || { echo 'empty RS returned without recovery-only bootstrap' >&2; exit 1; }
+    awk '
+      $0 == "wait bootstrap_ended r2" { joined=NR }
+      $0 == "wait scale_caught_up r2 r0" { copied=NR }
+      $0 == "key-open up-r0" { exposed=NR }
+      END { if (!joined || !copied || !exposed || !(joined < copied && copied < exposed)) exit 1 }
+    ' "$OUT/calls" || { echo 'returned RS was exposed before retained history catch-up' >&2; exit 1; }
+  fi
+  if [ "$topology" != rs534 ] || [ "$mode" != empty ]; then
+    if grep -q 'REPLICATION_RECOVER_FROM_RS' "$OUT/calls"; then echo 'recovery-only bootstrap changed another scale variant' >&2; exit 1; fi
+  fi
   [ "$(grep -c '^wait scale_caught_up ' "$OUT/calls")" -eq "$expected_checkpoints" ] || { echo 'a rolling RS lacked a checkpoint' >&2; exit 1; }
   grep -F 'wait scale_probe' "$OUT/calls" >/dev/null || { echo 'no confirmed write required while nodes are stopped' >&2; exit 1; }
   grep -Fx "dns-open $target" "$OUT/calls" >/dev/null || { echo 'absence DNS window not opened' >&2; exit 1; }

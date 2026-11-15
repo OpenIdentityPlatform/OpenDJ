@@ -210,6 +210,23 @@ case_ new-cert-wrong-ds         1 0 '[ cert:n1:cv-r1' "$WBAD_RS" ']'
 case_ new-cert-outside          2 1 "$WBAD_RS" '[ cert:n0:cv-r1' "$WBAD_RS" ']' "$WBAD_RS"
 case_ new-cert-unknown          1 0 '[ cert:n0:cv-r1' "${WBAD_RS/bad_certificate/other_error}" ']'
 case_ new-cert-other-category   1 0 '[ cert:n0:cv-r1' "${WBAD_RS/category=SYNC/category=CORE}" ']'
+# An RS-to-RS certificate warning requires a later recovery of that exact session
+# in the same rebuild window, including its RS id and domain (which may contain spaces).
+WRSCERT='[t] category=SYNC severity=WARNING msgID=312 msg=Replication server RS(31897) could not connect to replication server cv-c3:8989 for domain "cn=admin data": SSLHandshakeException((bad_certificate) PKIX path validation failed). This is reported once: the next message comes when it can be reached again'
+NRSCERT='[t] category=SYNC severity=NOTICE msgID=313 msg=Replication server RS(31897) connected to replication server cv-c3:8989 for domain "cn=admin data", which it had reported it had no replication session with'
+case_ rs-cert-recovered        0 1 '[ cert:n0:cv-c3' "$WRSCERT" "$NRSCERT" ']'
+case_ rs-cert-not-recovered    1 0 '[ cert:n0:cv-c3' "$WRSCERT" ']'
+case_ rs-cert-recovered-before 1 0 '[ cert:n0:cv-c3' "$NRSCERT" "$WRSCERT" ']'
+case_ rs-cert-recovered-after  1 0 '[ cert:n0:cv-c3' "$WRSCERT" ']' "$NRSCERT"
+case_ rs-cert-outside          1 0 "$WRSCERT" '[ cert:n0:cv-c3' "$NRSCERT" ']'
+case_ rs-cert-wrong-node       1 0 '[ cert:n1:cv-c3' "$WRSCERT" "$NRSCERT" ']'
+case_ rs-cert-unknown-peer     1 0 '[ cert:n0:cv-c2' "$WRSCERT" "$NRSCERT" ']'
+for notice in "${NRSCERT/RS(31897)/RS(31898)}" "${NRSCERT/cv-c3/cv-c2}" "${NRSCERT/cn=admin data/cn=schema}" "${NRSCERT/msgID=313/msgID=62}"; do
+  case_ rs-cert-wrong-recovery 1 0 '[ cert:n0:cv-c3' "$WRSCERT" "$notice" ']'
+done
+case_ rs-cert-other-error      1 0 '[ cert:n0:cv-c3' "${WRSCERT/bad_certificate/certificate_unknown}" "$NRSCERT" ']'
+case_ rs-cert-next-window      1 0 '[ cert:n0:cv-c3' "$WRSCERT" ']' '[ cert:n0:cv-c3' "$NRSCERT" ']'
+
 # The RS also reports the rejected handshake, identifying the remote DS by IP and port.
 WBAD_PEER='[t] category=SYNC severity=WARNING msgID=105 msg=Replication server accepted a connection from /172.18.0.9:43210 to local address /172.18.0.2:8989 but the SSL handshake failed. The error was: Received fatal alert: bad_certificate'
 case_ new-cert-rs-side          0 1 '[ cert-peer:n0:172.18.0.9' "$WBAD_PEER" ']'

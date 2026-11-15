@@ -299,8 +299,21 @@ replication_errors() { # <node>
         for (j = 3; j <= k; j++) ids[i] = ids[i] f[j] " "
       }
     }
+    /category=SYNC severity=NOTICE msgID=313 msg=Replication server RS\([0-9]+\) connected to replication server / {
+      recovery = substr($0, index($0, " msg=") + 5)
+      sub(/, which it had reported it had no replication session with$/, "", recovery)
+      line = first + NR - 1
+      for (p in pendingCert) {
+        split(p, position, SUBSEP)
+        if (line <= to[position[1]] + 0 && recovery == pendingCert[p]) {
+          allowed[position[2]] = 1
+          delete pendingCert[p]
+        }
+      }
+    }
     !/category=SYNC severity=ERROR|SSLHandshakeException|bad_certificate/ { next }
     {
+      records[NR] = $0; order[++recordCount] = NR
       line = first + NR - 1
       handshake = /category=SYNC severity=ERROR msgID=(145|178|179) / \
                   || /category=SYNC severity=WARNING .*SSLHandshakeException\(Remote host terminated the handshake\)/
@@ -342,6 +355,20 @@ replication_errors() { # <node>
                 && index($0, " connecting to replication server " part[3] ":8989 for domain ")) cert = 1
           }
         }
+        if (line > from[i] + 0 && line <= to[i] + 0 \
+            && /category=SYNC severity=WARNING msgID=312 msg=Replication server RS\([0-9]+\) could not connect to replication server / \
+            && /: SSLHandshakeException\(\(bad_certificate\)/) {
+          count = split(ids[i], tokens, " ")
+          for (j = 1; j <= count; j++) {
+            if (split(tokens[j], part, ":") == 3 && part[1] == "cert" && part[2] == node \
+                && index($0, " connect to replication server " part[3] ":8989 for domain ")) {
+              recovery = substr($0, index($0, " msg=") + 5)
+              sub(/: SSLHandshakeException.*/, "", recovery)
+              sub(/ could not connect to /, " connected to ", recovery)
+              pendingCert[i, NR] = recovery
+            }
+          }
+        }
         if (/category=SYNC severity=WARNING msgID=105 / && /The error was: (\(bad_certificate\) )?Received fatal alert: bad_certificate$/) {
           count = split(ids[i], tokens, " ")
           for (j = 1; j <= count; j++) {
@@ -355,11 +382,17 @@ replication_errors() { # <node>
         }
         if (line > from[i] + 0 && line <= to[i] + 0 \
             && ((handshake && !index(ids[i], " dns-only ")) || cert || timeout || disconnect || index(ids[i], " " id " ") || (dns != "" && index(ids[i], dns)))) {
-          print >expected
+          allowed[NR] = 1
           next
         }
       }
-      print
+    }
+    END {
+      for (r = 1; r <= recordCount; r++) {
+        line = order[r]
+        if (allowed[line]) print records[line] >expected
+        else print records[line]
+      }
     }'
 }
 
@@ -438,5 +471,5 @@ assert_online() {
     [ -z "$lines" ] || { printf '%s\n' "$lines" >"$OUT/logs/$n.errors"; echo "::error::$n logged replication errors, see logs/$n.errors"; failed=1; }
   done
   assert_rs_mesh || failed=1
-  [ -z "$failed" ] || fail "the replicas do not answer the same"
+  [ -z "$failed" ] || fail "the online checks failed"
 }

@@ -235,6 +235,122 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     }
   }
 
+  /**
+   * A DS can move to the peer while older changes still wait for send-window credit.
+   * The newer change coming back from that peer proves nothing about those older
+   * records: advancing the outgoing cursor would skip them and strand shutdown.
+   */
+  @DataProvider
+  public Object[][] migrationHistorySources()
+  {
+    return new Object[][] { { false }, { true } };
+  }
+
+  @Test(dataProvider = "migrationHistorySources")
+  public void incomingPeerUpdateDoesNotSkipDirectoryHistory(boolean retainedHistory) throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer server = null;
+    ReplicationBroker broker = null;
+    FakePeerReplicationServer peer = null;
+    try
+    {
+      final int port = TestCaseUtils.findFreePort();
+      server = newReplicationServer(new DSRSShutdownSync(), "shutdownMigratedUpdatesDb", 8253, port);
+      broker = openReplicationSession(baseDN, REMOTE_DS_ID, 100, port, 5000, EMPTY_DN_GENID);
+      final List<CSN> expected = new ArrayList<>();
+      final long time = System.currentTimeMillis();
+      for (int i = 1; i <= 3; i++)
+      {
+        final CSN csn = new CSN(time, i, REMOTE_DS_ID);
+        expected.add(csn);
+      }
+      if (retainedHistory)
+      {
+        publishBeforeMigration(broker, baseDN, expected);
+      }
+      final ReplicationServerDomain domain = server.getReplicationServerDomain(baseDN, true);
+      if (retainedHistory)
+      {
+        newConnectionTimer().repeatUntilSuccess(() -> {
+          assertThat(domain.getLatestServerState().getCSN(REMOTE_DS_ID)).isEqualTo(expected.get(2));
+        });
+      }
+      peer = FakePeerReplicationServer.connected(port, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID, 1);
+      waitForConnectedReplicationServer(domain, REMOTE_RS_ID);
+      if (!retainedHistory)
+      {
+        waitForFollowing(domain, REMOTE_RS_ID);
+        publishBeforeMigration(broker, baseDN, expected);
+      }
+      final ReplicationServerHandler handler = domain.getConnectedRSs().get(REMOTE_RS_ID);
+      final Future<List<ReplicationMsg>> received = peer.receiveUntil(StopMsg.class);
+      newConnectionTimer().repeatUntilSuccess(() -> {
+        assertThat(domain.getLatestServerState().getCSN(REMOTE_DS_ID)).isEqualTo(expected.get(2));
+        assertThat(handler.getServerState().getCSN(REMOTE_DS_ID)).isEqualTo(expected.get(1));
+      });
+      // Change 2 is dequeued but blocked; change 3 is still in the outgoing queue.
+      final CSN migrated = new CSN(time, 4, REMOTE_DS_ID);
+      peer.session.publish(new DeleteMsg(DN.valueOf("uid=after-migration," + baseDN), migrated,
+          "22222222-2222-2222-2222-222222222222"));
+      newConnectionTimer().repeatUntilSuccess(() -> {
+        assertThat(domain.getLatestServerState().getCSN(REMOTE_DS_ID)).isEqualTo(migrated);
+        assertThat(handler.getServerState().getCSN(REMOTE_DS_ID)).isEqualTo(migrated);
+      });
+      final ServerState outstanding = new ServerState();
+      outstanding.update(expected.get(2));
+      assertThat(handler.awaitPublished(outstanding, System.nanoTime()))
+          .as("a newer incoming CSN does not confirm delivery of an older outgoing record")
+          .isFalse();
+      peer.openSendWindow(10);
+      final List<String> records = errorLogRecordsOf(() -> {
+        domain.awaitDirectUpdatesForwarded(System.nanoTime() + TimeUnit.SECONDS.toNanos(2));
+        return null;
+      });
+      assertThat(records.stream().anyMatch(line -> line.contains("RS shutdown could not forward")))
+          .as("the incoming update must not strand the earlier direct updates")
+          .isFalse();
+      server.shutdown();
+      final List<CSN> actual = new ArrayList<>();
+      for (ReplicationMsg msg : received.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+      {
+        if (msg instanceof DeleteMsg)
+        {
+          actual.add(((DeleteMsg) msg).getCSN());
+        }
+      }
+      // Crediting the incoming maximum to publishedState would hide the warning,
+      // but still lose change 3. Verify the actual stream, not just the drain result.
+      assertThat(actual.size()).isBetween(expected.size(), expected.size() + 1);
+      assertThat(actual.subList(0, expected.size())).containsExactlyElementsOf(expected);
+      if (actual.size() > expected.size())
+      {
+        // Catch-up may read the peer's new change from the changelog too. That
+        // harmless echo must come after every older record, never replace one.
+        assertThat(actual.get(expected.size())).isEqualTo(migrated);
+      }
+    }
+    finally
+    {
+      closeQuietly(peer);
+      if (broker != null)
+      {
+        broker.stop();
+      }
+      removeQuietly(server);
+    }
+  }
+
+  private void publishBeforeMigration(ReplicationBroker broker, DN baseDN, List<CSN> csns)
+      throws Exception
+  {
+    for (CSN csn : csns)
+    {
+      broker.publish(new DeleteMsg(DN.valueOf("uid=before-migration-" + csn + "," + baseDN), csn,
+          "22222222-2222-2222-2222-222222222222"));
+    }
+  }
+
   @Test
   public void generationResetDoesNotAwaitDiscardedUpdates() throws Exception
   {

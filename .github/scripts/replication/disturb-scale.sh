@@ -431,10 +431,11 @@ scale_record_reconnected_timeouts() { # <DS> <RS> <direction>
 
 # A surviving DS can reconnect after its startup, when another group stops its RS.
 # Accept only the stopped RS address and a subsequent successful connection to the
-# surviving observer, in this RS's exact rolling window and the same DS/domain.
+# surviving RS, in this RS's exact rolling window and the same DS/domain.
+# The returned RS is also a candidate during scale-out, after its join completed.
 scale_record_roll_failover() { # <DS> <stopped RS> <observer RS> <direction> <old RS address>
   local node=$1 stopped=$2 observer=$3 direction=$4 old_address=$5
-  local before after mark id address target="$OUT/scale-progress/failover-$4-$2-$1.txt"
+  local before after mark id address candidate addresses= target="$OUT/scale-progress/failover-$4-$2-$1.txt"
   local window="$OUT/logs/$1.window-$4-$2"
   [ -f "$window" ] && [ -f "$OUT/logs/$node.mark" ] || return 0
   case $old_address in ''|*[!0-9.]*) return 0 ;; esac
@@ -443,22 +444,39 @@ scale_record_roll_failover() { # <DS> <stopped RS> <observer RS> <direction> <ol
   after=$(errors_lines "$node") || return 0
   id=$(awk -v n="$node" '$2 == n { print $1 }' "$OUT/server-ids.txt") || return 0
   case $id in ''|*[!0-9]*) return 0 ;; esac
-  address=$(docker inspect -f "{{(index .NetworkSettings.Networks \"$NETWORK\").IPAddress}}" "$observer") || return 0
-  case $address in ''|*[!0-9.]*) return 0 ;; esac
+  for candidate in $RS_NODES; do
+    [ "$candidate" != "$stopped" ] || continue
+    [ "$direction" = up ] || [ "$candidate" != "$REMOVED" ] || continue
+    address=$(docker inspect -f "{{(index .NetworkSettings.Networks \"$NETWORK\").IPAddress}}" "$candidate") || return 0
+    case $address in ''|*[!0-9.]*) return 0 ;; esac
+    addresses="$addresses $candidate=$address"
+  done
   mkdir -p "$OUT/scale-progress" || return 1
   if ! since_mark "$node" | awk -v first="$((mark + 1))" -v before="$before" -v after="$after" \
-      -v id="$id" -v old="$old_address" -v address="$address" -v rs="$observer" -v node="$node" -v domain="$BASE_DN" '
+      -v id="$id" -v old="$old_address" -v addresses="$addresses" -v node="$node" -v domain="$BASE_DN" '
+    BEGIN {
+      count = split(addresses, peers, " ")
+      for (i = 1; i <= count; i++) {
+        split(peers[i], pair, "=")
+        address[pair[1]] = pair[2]
+      }
+    }
     {
       line = first + NR - 1
       if (line <= before || line > after) next
       if (index($0, "category=SYNC severity=ERROR msgID=180 msg=Directory server DS(" id ") encountered an error while receiving changes for domain \"" domain "\" from replication server RS(") \
           && index($0, ") at " old ":8989. The connection will be closed,")) disconnected = line
-      if (disconnected && index($0, "category=SYNC severity=ERROR msgID=212 msg=Directory server DS(" id ") timed out while connecting to replication server " rs ":8989 for domain \"" domain "\"")) pending[++n] = line
-      if (disconnected && index($0, "category=SYNC severity=NOTICE msgID=62 msg=Directory server DS(" id ") has connected to replication server RS(") \
-          && index($0, " for domain \"" domain "\" at " address ":8989 ")) {
-        print disconnected - 1, disconnected, "disconnect:" node ":" old
-        for (i = 1; i <= n; i++) print pending[i] - 1, pending[i], "timeout:" node ":" rs
-        disconnected = n = 0
+      for (rs in address) {
+        if (disconnected && index($0, "category=SYNC severity=ERROR msgID=212 msg=Directory server DS(" id ") timed out while connecting to replication server " rs ":8989 for domain \"" domain "\"")) {
+          pending[++n] = line; timeoutPeer[n] = rs
+        }
+        if (disconnected && index($0, "category=SYNC severity=NOTICE msgID=62 msg=Directory server DS(" id ") has connected to replication server RS(") \
+            && index($0, " for domain \"" domain "\" at " address[rs] ":8989 ")) {
+          print disconnected - 1, disconnected, "disconnect:" node ":" old
+          for (i = 1; i <= n; i++)
+            if (timeoutPeer[i] == rs) print pending[i] - 1, pending[i], "timeout:" node ":" rs
+          disconnected = n = 0
+        }
       }
     }' >"$target"; then
     rm -f "$target"
@@ -548,7 +566,7 @@ scale_roll_batch() { # <peer list> <down|up>
 
 disturb() {
   local node from end address surviving_rs=
-  local -a return_window=("dns:$REMOVED" 180)
+  local -a return_window=("dns:$REMOVED" 180) recovery=()
   from=$(date +%s) || return 1
   if is_directory_node "$REMOVED"; then rolling_pause "$REMOVED" || return 1; fi
   SCALE_HELD_WRITERS=
@@ -601,10 +619,20 @@ disturb() {
     cp "$OUT/logs/$REMOVED.offline-log" "$OUT/logs/$REMOVED.previous" || return 1
     docker volume rm "vol-$REMOVED" >/dev/null || return 1
   fi
-  PEERS="$FULL_PEERS" start_server "$REMOVED" "$REMOVED_ROLE" || return 1
+  if [ "$TOPOLOGY" = rs534 ] && [ "$SCALE_VOLUME" = empty ]; then
+    recovery=(-e REPLICATION_RECOVER_FROM_RS=1)
+  fi
+  PEERS="$FULL_PEERS" start_server "$REMOVED" "$REMOVED_ROLE" "${recovery[@]}" || return 1
   scale_wait "$REMOVED serves again" started_since "$REMOVED" "$from" || return 1
   rm "$OUT/logs/$REMOVED.offline" || return 1
   scale_wait "the join of $REMOVED ends" bootstrap_ended "$REMOVED" || return 1
+  if [ "$TOPOLOGY" = rs534 ] && [ "$SCALE_VOLUME" = empty ]; then
+    # Scale-in verified that every DS removed this endpoint. The RS-only join
+    # connects the mesh without advertising BASE_DN to those DSs. Catch up before
+    # their scale-out bootstraps add it again: only retained, ordered RS history
+    # can advance this position. Final offline checks still verify every CSN.
+    scale_checkpoint_wait "$REMOVED receives retained RS history before serving writers" "$REMOVED" "$SURVIVING_RS" || return 1
+  fi
   scale_capture_offline_states return $RS_NODES || return 1
   sleep 10
   dns_window_close || return 1

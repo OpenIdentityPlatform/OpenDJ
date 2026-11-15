@@ -1007,6 +1007,12 @@ public abstract class ServerHandler extends MessageHandler
     }
   }
 
+  /** Records an update received from the remote server, separately from delivery where needed. */
+  void recordReceivedUpdate(UpdateMsg update)
+  {
+    updateServerState(update);
+  }
+
   /**
    * Select the next update that must be sent to the server managed by this
    * ServerHandler.

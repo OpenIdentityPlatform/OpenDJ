@@ -588,6 +588,27 @@ release_join_lock() { # <host> <value>
     || echo "join: could not remove the lock on $1, it expires in $JOIN_LOCK_TTL s"
 }
 
+# The scale recovery path is explicit: it first connects only the RS mesh, and
+# the controller later expands DS lists after verifying retained history. Unknown
+# or unavailable RS peers must leave this path retrying, never fall back to a DS.
+# Ordinary bootstrap retains its original peer order and directory advertisement.
+join_candidates() {
+  local peer config state
+  local -a servers=()
+  if [ "$ROLE" = replication ] && [ "${REPLICATION_RECOVER_FROM_RS:-0}" = 1 ]; then
+    for peer in "${PEERS[@]}"; do
+      is_self "$peer" && continue
+      state=$(peer_state "$peer") || continue
+      trusted "$state" || continue
+      config=$(replication_config "$peer") || continue
+      grep -qx server <<<"$config" && servers+=("$peer")
+    done
+    [ "${#servers[@]}" -eq 0 ] || printf '%s\n' "${servers[@]}"
+  else
+    for peer in "${PEERS[@]}"; do is_self "$peer" || printf '%s\n' "$peer"; done
+  fi
+}
+
 # exits 75 without running the enable while another server enables through the peer or
 # through this one. Neither lock is waited for, so two servers that each hold their own and
 # ask for the other's cannot deadlock; they both give up and try again after pause().
@@ -597,7 +618,7 @@ release_join_lock() { # <host> <value>
 # dsreplication enable refuses it. The peer is read under its lock, which an enable through
 # it by another server holds while it changes what the peer runs.
 enable_through() {
-  local rc own peer_lock config role peer_args own_args
+  local rc own peer_lock config role state peer_args own_args enable_dn="$BASE_DN"
   take_join_lock localhost || return 75
   own=$JOIN_LOCK_VALUE
   if ! take_join_lock "$1"; then
@@ -608,11 +629,25 @@ enable_through() {
   if ! config=$(replication_config "$1"); then
     echo "join: could not read how $1 replicates"
     rc=75
+  elif [ "$ROLE" = replication ] && [ "${REPLICATION_RECOVER_FROM_RS:-0}" = 1 ] \
+      && { ! grep -qx server <<<"$config" || ! state=$(peer_state "$1") || ! trusted "$state"; }; then
+    # Recheck under the peer lock: discovery is not permission to use a peer
+    # which has since reset its replication or become unavailable.
+    echo "join: $1 is not a ready replication server, retained-history recovery will retry"
+    rc=75
   elif role=$(peer_role "$config") && [ "$ROLE" = directory ] && [ "$role" = directory ] \
     && [ -z "$(config_shape "$config")" ]; then
     echo "join: $1 is a directory server that no replication server joined yet, and a directory server joins only through a topology that has one"
     rc=75
   else
+    # An existing RS already serves all its domains over its RS sessions. Joining
+    # its administrative topology is sufficient to receive their changelogs.
+    # Naming BASE_DN here would also add this empty RS to every DS domain list,
+    # allowing lossy DS recovery to overtake the retained RS history. Directory
+    # peers discover the joined RS when their own bootstrap repairs their lists.
+    if [ "$ROLE" = replication ] && [ "${REPLICATION_RECOVER_FROM_RS:-0}" = 1 ]; then
+      enable_dn='cn=admin data'
+    fi
     mapfile -t peer_args < <(role_arguments 1 "$role")
     mapfile -t own_args < <(role_arguments 2 "$ROLE")
     bounded "$REPLICATION_ATTEMPT_TIMEOUT" dsreplication enable \
@@ -621,7 +656,7 @@ enable_through() {
       --host2 "$MYHOSTNAME" --port2 "$ADMIN_PORT" --bindDN2 "$ROOT_USER_DN" \
       --bindPasswordFile2 "$PASSWORD_FILE" "${own_args[@]}" \
       --adminUID admin --adminPasswordFile "$PASSWORD_FILE" \
-      --baseDN "$BASE_DN" -X -n
+      --baseDN "$enable_dn" -X -n
     rc=$?
   fi
   release_join_lock "$1" "$peer_lock"
@@ -1183,7 +1218,7 @@ if [ ! -f "$INITIALIZE_PENDING" ]; then
       # an enable with any of them registers the two in a registry of their own - which counts
       # as membership, a peer of the pair lists this server - beside the survivors, whom
       # nothing ever adds to it
-      for peer in "${PEERS[@]}"; do
+      while IFS= read -r peer; do
         is_self "$peer" && continue
         state=$(peer_state "$peer")
         if ! trusted "$state"; then
@@ -1205,7 +1240,7 @@ if [ ! -f "$INITIALIZE_PENDING" ]; then
           exit
         fi
         [ "$rc" -eq 75 ] || echo "join: dsreplication enable with $peer exited with $rc and membership is not there"
-      done
+      done < <(join_candidates)
     fi
     # a list without a single other server leaves nothing to retry against, and peers that
     # all wait for data join through this one rather than the other way round
@@ -1243,7 +1278,7 @@ for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
     member=yes
   fi
   if [ "$member" = no ] && [ "$reset_due" = no ]; then
-    for peer in "${PEERS[@]}"; do
+    while IFS= read -r peer; do
       is_self "$peer" && continue
       state=$(peer_state "$peer")
       if ! trusted "$state"; then
@@ -1259,7 +1294,7 @@ for i in $(seq 1 "$REPLICATION_RETRY_COUNT"); do
         break
       fi
       [ "$rc" -eq 75 ] || echo "join: dsreplication enable with $peer exited with $rc and membership is not there"
-    done
+    done < <(join_candidates)
   fi
   if [ "$member" = yes ] && [ "$ROLE" = replication ]; then
     # a replication server holds no data that an initialize would bring: membership is all

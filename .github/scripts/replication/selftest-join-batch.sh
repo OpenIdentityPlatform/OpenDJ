@@ -149,3 +149,82 @@ before=$(wc -l <"$OUT/config-queries")
 replicates_base_dn_after_membership p1
 [ "$(wc -l <"$OUT/config-queries")" -eq "$((before + 1))" ] || { echo 'stale peer configuration was used' >&2; exit 1; }
 echo 'join batch quoting and failure fallback passed'
+
+# Recovery is explicit: ordinary joins must retain their peer order and update
+# the DS endpoint lists. Recovery must never fall back to a DS on unknown RS state.
+sed -n '/^join_candidates() {/,/^}/p' "$HERE/../../../opendj-packages/opendj-docker/bootstrap/join.sh" >"$OUT/candidates.sh"
+. "$OUT/candidates.sh"
+ROLE=replication PEERS=(self d0 r0 r1) REPLICATION_RECOVER_FROM_RS=1
+is_self() { [ "$1" = self ]; }
+peer_state() { case " ${STATE_FAIL:-} " in *" $1 "*) return 1 ;; esac; echo ready; }
+trusted() { [ "$1" = ready ]; }
+replication_config() {
+  case " ${CONFIG_FAIL:-} " in *" $1 "*) return 1 ;; esac
+  case $1 in r0|r1) printf 'server\npublished replication\n' ;; *) echo domain ;; esac
+}
+join_failures=0
+expect_candidates() {
+  local actual
+  actual=$(join_candidates)
+  if [ "$actual" != "$2" ]; then
+    echo "::error::$1: candidates [$actual], expected [$2]" >&2
+    join_failures=$((join_failures + 1))
+  fi
+}
+expect_candidates retained-rs $'r0\nr1'
+CONFIG_FAIL='r0 r1'
+expect_candidates unknown-rs-config ''
+CONFIG_FAIL= STATE_FAIL='r0 r1'
+expect_candidates unknown-rs-state ''
+STATE_FAIL=
+PEERS=(self d0)
+expect_candidates no-retained-rs ''
+REPLICATION_RECOVER_FROM_RS=0
+expect_candidates ordinary-first-rs d0
+PEERS=(self d0 r0 r1)
+expect_candidates ordinary-rs-order $'d0\nr0\nr1'
+ROLE=directory REPLICATION_RECOVER_FROM_RS=1
+expect_candidates directory-order $'d0\nr0\nr1'
+
+sed -n '/^enable_through() {/,/^}/p' "$HERE/../../../opendj-packages/opendj-docker/bootstrap/join.sh" >"$OUT/enable.sh"
+sed -n '/^role_arguments() {/,/^}/p' "$HERE/../../../opendj-packages/opendj-docker/bootstrap/join.sh" >>"$OUT/enable.sh"
+. "$OUT/enable.sh"
+# The image uses Bash 4+; keep this harness usable with macOS Bash 3 too.
+if ! type mapfile >/dev/null 2>&1; then
+  mapfile() { local value; local -a values=(); while IFS= read -r value; do values+=("$value"); done; eval "$2=(\"\${values[@]}\")"; }
+fi
+ROLE=replication BASE_DN=dc=example,dc=com REPLICATION_PORT=8989
+take_join_lock() { JOIN_LOCK_VALUE=lock; }; release_join_lock() { :; }
+peer_role() { case $1 in *server*) echo replication ;; *) echo directory ;; esac; }
+bounded() { printf '%s\n' "$@" >"$OUT/enable-args"; }
+expect_enable_dn() {
+  local actual
+  enable_through "$1"
+  actual=$(awk 'previous=="--baseDN" {print;exit} {previous=$0}' "$OUT/enable-args")
+  if [ "$actual" != "$2" ]; then
+    echo "::error::enable $1 used [$actual], expected [$2]" >&2
+    join_failures=$((join_failures + 1))
+  fi
+}
+REPLICATION_RECOVER_FROM_RS=1
+expect_enable_dn r0 'cn=admin data'
+REPLICATION_RECOVER_FROM_RS=0
+expect_enable_dn r0 "$BASE_DN"
+expect_enable_dn d0 "$BASE_DN"
+REPLICATION_RECOVER_FROM_RS=1
+for unavailable in changed-role changed-state; do
+  rm -f "$OUT/enable-args"
+  peer=r0 STATE_FAIL=
+  [ "$unavailable" != changed-role ] || peer=d0
+  [ "$unavailable" != changed-state ] || STATE_FAIL=r0
+  if enable_through "$peer"; then
+    echo "::error::recovery enabled through $unavailable" >&2
+    join_failures=$((join_failures + 1))
+  fi
+  if [ -e "$OUT/enable-args" ]; then
+    echo "::error::recovery changed topology through $unavailable" >&2
+    join_failures=$((join_failures + 1))
+  fi
+done
+[ "$join_failures" = 0 ] || exit 1
+echo 'ordinary joins and fail-closed RS recovery selection passed'
