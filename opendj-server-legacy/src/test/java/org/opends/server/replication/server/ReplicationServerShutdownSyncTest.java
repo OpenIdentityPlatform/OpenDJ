@@ -30,6 +30,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
@@ -42,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -49,6 +51,9 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.DSInfo;
+import org.opends.server.replication.common.AssuredMode;
+import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
@@ -167,6 +172,220 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
   /** How often the domains of {@link #theGracePeriodIsSharedByAllTheDomainsOfOneShutdown()}
    * announce themselves offline again while the shutdown is waiting for them. */
   private static final long REANNOUNCE_INTERVAL = 200;
+
+  /** A departing RS reader may already be waiting to apply its last topology message. */
+  @Test
+  public void stoppingPeerDoesNotHoldDomainLockWhileJoiningReader() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer server = null;
+    FakePeerReplicationServer peer = null;
+    ReplicationBroker broker = null;
+    final ExecutorService stopping = Executors.newSingleThreadExecutor();
+    final AtomicReference<Thread> stoppingThread = new AtomicReference<>();
+    try
+    {
+      final int port = TestCaseUtils.findFreePort();
+      final ReplServerFakeConfiguration config = new ReplServerFakeConfiguration(
+          port, "shutdownDomainLockDb", 0, 8258, 0, 100, new TreeSet<String>());
+      // This peer exercises topology messages, not the unrelated five-second
+      // wait for replies to monitor requests.
+      config.setMonitoringPeriod(0);
+      server = new ReplicationServer(config, new DSRSShutdownSync());
+      peer = FakePeerReplicationServer.connected(port, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID);
+      final ReplicationServerDomain domain = server.getReplicationServerDomain(baseDN, true);
+      waitForConnectedReplicationServer(domain, REMOTE_RS_ID);
+      final ReplicationServerHandler handler = domain.getConnectedRSs().get(REMOTE_RS_ID);
+      final Field lockField = ReplicationServerDomain.class.getDeclaredField("lock");
+      lockField.setAccessible(true);
+      final ReentrantLock domainLock = (ReentrantLock) lockField.get(domain);
+      final Field readerField = ServerHandler.class.getDeclaredField("reader");
+      readerField.setAccessible(true);
+      final Thread reader = (Thread) readerField.get(handler);
+      final Future<?> stopped;
+      domain.lock();
+      try
+      {
+        // Queue teardown first, then the real reader of a real peer session. Once
+        // released, teardown must let that reader finish before joining it.
+        stopped = stopping.submit(() -> {
+          stoppingThread.set(Thread.currentThread());
+          domain.stopServer(handler, false);
+        });
+        newConnectionTimer().repeatUntilSuccess(() -> {
+          assertThat(stoppingThread.get()).isNotNull();
+          assertThat(domainLock.hasQueuedThread(stoppingThread.get())).isTrue();
+        });
+        peer.session.publish(new TopologyMsg(null,
+            newArrayList(new RSInfo(REMOTE_RS_ID, peer.serverURL, EMPTY_DN_GENID, (byte) 1, 1))));
+        newConnectionTimer().repeatUntilSuccess(() -> {
+          assertThat(domainLock.hasQueuedThread(reader)).as("peer reader waiting for domain lock").isTrue();
+        });
+      }
+      finally
+      {
+        domain.release();
+      }
+      stopped.get(2000, TimeUnit.MILLISECONDS);
+      assertThat(reader.isAlive()).as("departing peer reader has stopped").isFalse();
+      broker = openReplicationSession(baseDN, REMOTE_DS_ID, 100, port, 5000, EMPTY_DN_GENID);
+      waitForConnectedDirectoryServer(domain);
+    }
+    finally
+    {
+      // Interrupt a failing teardown test before cleanup: it may be in the old
+      // 30-second join while its reader waits for the lock it still owns.
+      stopping.shutdownNow();
+      stopping.awaitTermination(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      if (broker != null)
+      {
+        broker.stop();
+      }
+      closeQuietly(peer);
+      removeQuietly(server);
+    }
+  }
+
+  /** A replacement can connect while the old reader finishes, but must keep its monitors. */
+  @Test
+  public void stoppingPeerKeepsReplacementMonitors() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final CountDownLatch releaseReader = new CountDownLatch(1);
+    final ExecutorService stopping = Executors.newSingleThreadExecutor();
+    ReplicationServer server = null;
+    Thread reader = null;
+    try (ServerSocket listen = new ServerSocket(0))
+    {
+      final ReplServerFakeConfiguration config = new ReplServerFakeConfiguration(
+          TestCaseUtils.findFreePort(), "replacementMonitorsDb", 0, 8260, 0, 100, new TreeSet<String>());
+      config.setMonitoringPeriod(0);
+      server = new ReplicationServer(config, new DSRSShutdownSync());
+      final ReplicationServerDomain domain = server.getReplicationServerDomain(baseDN, true);
+      final Session[] oldPair = connectSessionPair(listen, getReplSessionSecurity());
+      final Session[] newPair = connectSessionPair(listen, getReplSessionSecurity());
+      try (Session oldRemote = oldPair[0]; Session oldLocal = oldPair[1];
+          Session newRemote = newPair[0]; Session newLocal = newPair[1])
+      {
+        final ReplicationServerHandler old = registerConnectedReplicationServer(server, baseDN, oldLocal);
+        DirectoryServer.registerMonitorProvider(old);
+        final DSInfo replica = new DSInfo(REMOTE_DS_ID, "localhost:1389", REMOTE_RS_ID, EMPTY_DN_GENID,
+            ServerStatus.NORMAL_STATUS, false, AssuredMode.SAFE_READ_MODE, (byte) 1, (byte) 1,
+            Collections.<String>emptyList(), Collections.<String>emptyList(), Collections.<String>emptyList(),
+            ProtocolVersion.getCurrentVersion());
+        final TopologyMsg topology = new TopologyMsg(newArrayList(replica),
+            newArrayList(new RSInfo(REMOTE_RS_ID, old.serverURL, EMPTY_DN_GENID, (byte) 1, 1)));
+        domain.receiveTopoInfoFromRS(topology, old, false);
+        final String replicaMonitorName = StaticUtils.toLowerCase("Connected directory server DS("
+            + REMOTE_DS_ID + ") localhost:1389,cn=" + old.getMonitorInstanceName());
+        final Object oldReplicaMonitor = DirectoryServer.getMonitorProviders().get(replicaMonitorName);
+        assertThat(oldReplicaMonitor).isInstanceOf(LightweightServerHandler.class);
+
+        // Model a reader finishing accepted work after its session has closed.
+        // Its join must allow the replacement handshake, but cleanup by monitor
+        // name must finish before that replacement can register its providers.
+        reader = new ServerReader(oldLocal, old) {
+          @Override
+          public void run()
+          {
+            try
+            {
+              releaseReader.await(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            }
+            catch (InterruptedException e)
+            {
+              Thread.currentThread().interrupt();
+            }
+          }
+        };
+        final Field readerField = ServerHandler.class.getDeclaredField("reader");
+        readerField.setAccessible(true);
+        readerField.set(old, reader);
+        reader.start();
+        final Future<?> stopped = stopping.submit(() -> domain.stopServer(old, false));
+        newConnectionTimer().repeatUntilSuccess(() -> {
+          assertThat(domain.getConnectedRSs()).doesNotContainKey(REMOTE_RS_ID);
+          assertThat(DirectoryServer.getMonitorProviders()).doesNotContainValue(old);
+        });
+
+        final ReplicationServerHandler replacement =
+            registerConnectedReplicationServer(server, baseDN, newLocal);
+        DirectoryServer.registerMonitorProvider(replacement);
+        domain.receiveTopoInfoFromRS(topology, replacement, false);
+        final Object replacementReplicaMonitor = DirectoryServer.getMonitorProviders().get(replicaMonitorName);
+        assertThat(replacementReplicaMonitor).isInstanceOf(LightweightServerHandler.class)
+            .isNotSameAs(oldReplicaMonitor);
+        releaseReader.countDown();
+        stopped.get(WRITER_REACTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        assertThat(DirectoryServer.getMonitorProviders()).containsValue(replacement);
+        assertThat(DirectoryServer.getMonitorProviders().get(replicaMonitorName))
+            .as("old teardown must not remove the replacement's replica monitor")
+            .isSameAs(replacementReplicaMonitor);
+      }
+      finally
+      {
+        releaseReader.countDown();
+      }
+    }
+    finally
+    {
+      releaseReader.countDown();
+      stopping.shutdownNow();
+      stopping.awaitTermination(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      if (reader != null)
+      {
+        reader.join(SOCKET_TIMEOUT_MS);
+      }
+      removeQuietly(server);
+    }
+  }
+
+  @DataProvider
+  public Object[][] disconnectedPeerReplacements()
+  {
+    return new Object[][] { { false }, { true } };
+  }
+
+  /** A late topology message of a removed session must not resurrect its generation. */
+  @Test(dataProvider = "disconnectedPeerReplacements")
+  public void disconnectedPeerCannotChangeGeneration(boolean replacementConnected) throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer server = null;
+    ReplicationServerHandler old = null;
+    try (ServerSocket listen = TestCaseUtils.bindFreePort())
+    {
+      server = newReplicationServer(new DSRSShutdownSync(), "disconnectedPeerGenerationDb", 8259);
+      final ReplicationServerDomain domain = server.getReplicationServerDomain(baseDN, true);
+      final Session[] oldPair = connectSessionPair(listen, getReplSessionSecurity());
+      final Session[] newPair = connectSessionPair(listen, getReplSessionSecurity());
+      try (Session oldRemote = oldPair[0]; Session oldLocal = oldPair[1];
+          Session newRemote = newPair[0]; Session newLocal = newPair[1])
+      {
+        old = registerConnectedReplicationServer(server, baseDN, oldLocal);
+        domain.stopServer(old, false);
+        if (replacementConnected)
+        {
+          registerConnectedReplicationServer(server, baseDN, newLocal);
+        }
+        final DSInfo replica = new DSInfo(REMOTE_DS_ID, "localhost:1389", REMOTE_RS_ID, 123456,
+            ServerStatus.NORMAL_STATUS, false, AssuredMode.SAFE_READ_MODE, (byte) 1, (byte) 1,
+            Collections.<String>emptyList(), Collections.<String>emptyList(), Collections.<String>emptyList(),
+            ProtocolVersion.getCurrentVersion());
+        domain.receiveTopoInfoFromRS(new TopologyMsg(newArrayList(replica),
+            newArrayList(new RSInfo(REMOTE_RS_ID, "localhost:1636", 123456, (byte) 1, 1))), old, true);
+        assertThat(domain.getGenerationId()).as("removed peer cannot supply a generation id").isEqualTo(-1);
+      }
+    }
+    finally
+    {
+      if (old != null)
+      {
+        old.shutdown(); // Also clears remote-replica monitors created by a failing implementation.
+      }
+      removeQuietly(server);
+    }
+  }
 
   /** A remote DS can still write when its RS starts shutting down: no offline message
    * announces those last changes. Every peer must receive them before its session closes. */

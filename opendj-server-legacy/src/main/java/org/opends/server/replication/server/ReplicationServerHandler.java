@@ -799,12 +799,33 @@ public class ReplicationServerHandler extends ServerHandler
   public void shutdown()
   {
     super.shutdown();
+    clearReceivedUpdates();
+    clearRemoteLSHandlers();
+  }
+
+  @Override
+  void shutdownWithoutWaiting()
+  {
+    super.shutdownWithoutWaiting();
+    // These monitors share their names with a replacement session's monitors.
+    // Remove them while the domain lock still excludes that replacement.
+    clearRemoteLSHandlers();
+  }
+
+  @Override
+  void awaitShutdown()
+  {
+    super.awaitShutdown();
+    clearReceivedUpdates();
+  }
+
+  private void clearReceivedUpdates()
+  {
     synchronized (publishedState)
     {
       receivedUpdates.clear();
       publishedState.notifyAll();
     }
-    clearRemoteLSHandlers();
   }
 
   private void clearRemoteLSHandlers()

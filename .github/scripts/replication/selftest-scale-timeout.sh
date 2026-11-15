@@ -23,7 +23,7 @@ TOPOLOGY=rs534 SCALE_VOLUME=kept PEERS=d0,d1,r0,r1,r2 NETWORK=test BASE_DN=dc=ex
 printf '23874 d0\n' >"$OUT/server-ids.txt"
 printf '0\n' >"$OUT/logs/d0.mark"
 printf '0 dns:r1\n' >"$OUT/logs/d0.window-up-d0"
-docker() { echo 172.18.0.9; }
+docker() { case ${@: -1} in r0) echo 172.18.0.8 ;; r1) echo 172.18.0.9 ;; r2) echo 172.18.0.10 ;; *) return 1 ;; esac; }
 errors_lines() { wc -l <"$OUT/errors"; }
 since_mark() { cat "$OUT/errors"; }
 E='[t] category=SYNC severity=ERROR msgID=212 msg=Directory server DS(23874) timed out while connecting to replication server r1:8989 for domain "dc=example,dc=com"'
@@ -31,8 +31,8 @@ N='[t] category=SYNC severity=NOTICE msgID=62 msg=Directory server DS(23874) has
 S='[t] category=CORE severity=NOTICE msgID=135 msg=The Directory Server has started successfully'
 printf 'other\n%s\n%s\n%s\n' "$E" "$N" "$S" >"$OUT/errors"
 scale_record_reconnected_timeouts d0 r1 up
-grep -Fx '1 2 timeout:d0:r1' "$OUT/logs/d0.windows" >/dev/null || { echo 'confirmed timeout was not scoped to its line' >&2; exit 1; }
-for notice in "${N/172.18.0.9/172.18.0.8}" "${N/DS(23874)/DS(23875)}" "${N/dc=example,dc=com/cn=schema}"; do
+grep -Fx '1 2 startup-timeout:d0' "$OUT/logs/d0.windows" >/dev/null || { echo 'confirmed timeout was not scoped to its line' >&2; exit 1; }
+for notice in "${N/172.18.0.9/172.18.0.77}" "${N/DS(23874)/DS(23875)}" "${N/dc=example,dc=com/cn=schema}"; do
   : >"$OUT/logs/d0.windows"
   printf '%s\n%s\n%s\n' "$E" "$notice" "$S" >"$OUT/errors"
   scale_record_reconnected_timeouts d0 r1 up
@@ -81,3 +81,46 @@ for direction in down up; do
   done
 done
 echo 'returned RS is accepted only after return; stopped and unknown peers remain errors'
+
+# Exercise the recorder and the error filter together. The admin-data domain has
+# its own DS ID, and recovery may choose another currently available RS.
+. "$HERE/assert-converged.sh"
+errors_lines() { wc -l <"$OUT/errors"; }
+since_mark() { cat "$OUT/errors"; }
+docker() {
+  case ${@: -1} in
+    r0) echo 172.18.0.8 ;; r1) echo 172.18.0.9 ;; r2) echo 172.18.0.10 ;;
+    *) return 1 ;;
+  esac
+}
+REMOVED=r2
+A='[t] category=SYNC severity=ERROR msgID=212 msg=Directory server DS(31955) timed out while connecting to replication server r1:8989 for domain "cn=admin data"'
+B='[t] category=SYNC severity=NOTICE msgID=62 msg=Directory server DS(31955) has connected to replication server RS(9860) for domain "cn=admin data" at 172.18.0.8:8989 with generation ID 1'
+check_startup() { # <description> <direction> <expected error count> <records...>
+  local description=$1 direction=$2 expected=$3; shift 3
+  : >"$OUT/logs/d0.windows"
+  rm -f "$OUT/logs/d0.startup-timeouts"
+  printf '0 dns:r1\n' >"$OUT/logs/d0.window-$direction-d0"
+  printf '%s\n' "$@" >"$OUT/errors"
+  scale_record_reconnected_timeouts d0 r1 "$direction"
+  replication_errors d0 >"$OUT/rejected"
+  [ "$(wc -l <"$OUT/rejected" | tr -d ' ')" = "$expected" ] \
+    || { echo "startup: $description (expected $expected errors)" >&2; cat "$OUT/rejected" >&2; exit 1; }
+}
+check_startup 'admin domain recovers on another eligible RS' down 0 "$A" "$B" "$S"
+check_startup 'schema domain recovers' down 0 "${A/cn=admin data/cn=schema}" "${B/cn=admin data/cn=schema}" "$S"
+check_startup 'returning RS is available during scale-out' up 0 "$A" "${B/172.18.0.8/172.18.0.10}" "$S"
+check_startup 'removed RS is unavailable during scale-in' down 1 "$A" "${B/172.18.0.8/172.18.0.10}" "$S"
+check_startup 'unknown RS' up 1 "$A" "${B/172.18.0.8/172.18.0.77}" "$S"
+check_startup 'different domain' down 1 "$A" "${B/cn=admin data/cn=schema}" "$S"
+check_startup 'different DS' down 1 "$A" "${B/DS(31955)/DS(31956)}" "$S"
+check_startup 'connection precedes error' down 1 "$B" "$A" "$S"
+check_startup 'connection follows startup' down 1 "$A" "$S" "$B"
+check_startup 'startup incomplete' down 1 "$A" "$B"
+check_startup 'timeout outside startup window' down 1 "$S" "$A" "$B"
+check_startup 'unrecovered second domain' down 1 "$A" "${A/cn=admin data/cn=schema}" "$B" "$S"
+check_startup 'only the recorded line is accepted' down 1 "$A" "$B" "$S" "$A"
+check_startup 'original evidence' down 0 "$A" "$B" "$S"
+printf '%s\n%s\n%s\n' "${A/cn=admin data/cn=schema}" "$B" "$S" >"$OUT/errors"
+[ "$(replication_errors d0 | wc -l | tr -d ' ')" = 1 ] || { echo 'changed log accepted with stale evidence' >&2; exit 1; }
+echo 'startup timeouts require exact evidence, matching domain/DS, an eligible RS and completed startup'

@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.assertj.core.api.SoftAssertions;
@@ -71,6 +72,7 @@ import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.util.TestTimer;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -2731,7 +2733,10 @@ public class AssuredReplicationServerTest
                .wrongStatusUpdates(shouldSeeWrongStatus ? 1 : 0)
                .replayErrorUpdates(shouldSeeReplayError ? 1 : 0);
       addExpectedErrors(srAssertsRD1, shouldSeeDsIdInError, shouldSeeRsIdInError, shouldSeeDsRsIdInError);
-      srAssertsRD1.runAsserts();
+      // receiveAck releases the sender before logging and updating these counters.
+      // A fixed propagation sleep is not a completion barrier on a busy runner.
+      new TestTimer.Builder().maxSleep(LONG_TIMEOUT, TimeUnit.MILLISECONDS)
+          .sleepTimes(10, TimeUnit.MILLISECONDS).toTimer().repeatUntilSuccess(srAssertsRD1::runAsserts);
 
       // Check monitoring values in DS 2
       checkDSReceivedAndAcked(fakeRDs[2], 1);

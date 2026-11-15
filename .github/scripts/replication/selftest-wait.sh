@@ -43,3 +43,39 @@ grep -Fx '100 r0 123 42 3' "$OUT/convergence-samples.txt" >/dev/null \
 grep -Fx '101 r0 123 0 0' "$OUT/convergence-samples.txt" >/dev/null \
   || { echo 'missing converged sample' >&2; exit 1; }
 echo 'wait deadline passed'
+calls=0
+incomplete_checkpoint() { calls=$((calls + 1)); [ "$calls" -ge 2 ] || return 2; }
+wait_until 100 'a checkpoint which is not complete yet' incomplete_checkpoint >"$OUT/retryable" \
+  || { echo 'ordinary predicate status 2 aborted a retryable wait' >&2; exit 1; }
+[ "$calls" -eq 2 ]
+# Status 200 is a terminal predicate failure, not a state which more waiting fixes.
+calls=0
+terminal_failure() { calls=$((calls + 1)); return 200; }
+if wait_until 100 'a failed bootstrap' terminal_failure >"$OUT/terminal"; then
+  echo 'terminal bootstrap failure accepted' >&2; exit 1
+fi
+[ "$calls" -eq 1 ] || { echo 'terminal bootstrap failure retried until timeout' >&2; exit 1; }
+# Run the predicate shell against real marker files; only Docker transport is replaced.
+docker() {
+  case $1 in
+    inspect) echo healthy; return "${INSPECT_RC:-0}" ;;
+    exec) [ "${EXEC_RC:-0}" -eq 0 ] || return "$EXEC_RC"; shift 2; BOOTSTRAP_FAILED="$OUT/bootstrap-failed" "$@" ;;
+    *) return 1 ;;
+  esac
+}
+is_healthy node
+printf 'join:8\n' >"$OUT/bootstrap-failed"
+rc=0; is_healthy node || rc=$?
+[ "$rc" -eq 200 ] || { echo 'failed join counted as healthy' >&2; exit 1; }
+rc=0; bootstrap_ended node || rc=$?
+[ "$rc" -eq 200 ] || { echo 'failed join counted as successfully ended' >&2; exit 1; }
+rm "$OUT/bootstrap-failed"
+for code in 1 2 124 137; do
+  if EXEC_RC=$code is_healthy node; then
+    echo 'failed Docker marker read counted as healthy' >&2; exit 1
+  fi
+done
+if INSPECT_RC=1 is_healthy node; then
+  echo 'failed Docker inspect counted as healthy' >&2; exit 1
+fi
+echo 'terminal bootstrap failures abort waits immediately'

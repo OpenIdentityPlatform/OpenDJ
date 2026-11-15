@@ -967,6 +967,18 @@ public abstract class ServerHandler extends MessageHandler
   @Override
   public void shutdown()
   {
+    closeForShutdown();
+    joinShutdownThreads();
+  }
+
+  /** Closes the handler and removes its monitors before a replacement can register. */
+  void shutdownWithoutWaiting()
+  {
+    closeForShutdown();
+  }
+
+  private void closeForShutdown()
+  {
     shutdownWriter = true;
     setConsumerActive(false);
     super.shutdown();
@@ -981,7 +993,16 @@ public abstract class ServerHandler extends MessageHandler
     }
 
     DirectoryServer.deregisterMonitorProvider(this);
+  }
 
+  /** Waits for accepted work to finish without retaining the replication domain lock. */
+  void awaitShutdown()
+  {
+    joinShutdownThreads();
+  }
+
+  private void joinShutdownThreads()
+  {
     /*
      * Be sure to wait for ServerWriter and ServerReader death
      * It does not matter if we try to stop a thread which is us (reader

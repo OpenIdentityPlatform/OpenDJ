@@ -390,42 +390,69 @@ scale_stop_group() { # <node>...
   [ -z "$failed" ]
 }
 
-# A restarted DS may time out in a handshake with the RS restarted in its group. Accept
-# that one error only if this DS subsequently connected to that exact RS and domain before
-# it finished starting. Each allowance covers the single error line, not the whole window.
-scale_record_reconnected_timeouts() { # <DS> <RS> <direction>
-  local node=$1 rs=$2 direction=$3 window="$OUT/logs/$1.window-$3-$1"
-  local before after mark id address target="$OUT/scale-progress/timeouts-$3-$1.txt"
+# Accept a startup timeout only after the same DS/domain connected to an eligible
+# RS and startup completed in this rolling window. Admin/schema domains have their
+# own DS IDs; another live RS may win the retry. Keep the full error as evidence so
+# a different record at the same line cannot inherit the allowance.
+scale_record_reconnected_timeouts() { # <DS> <rolling RS> <direction>
+  local node=$1 direction=$3 window="$OUT/logs/$1.window-$3-$1"
+  local before after mark candidate address addresses= target="$OUT/scale-progress/timeouts-$3-$1.txt"
   [ -f "$window" ] && [ -f "$OUT/logs/$node.mark" ] || return 0
   read -r before _ <"$window" || return 0
   mark=$(cat "$OUT/logs/$node.mark") || return 0
   after=$(errors_lines "$node") || return 0
-  id=$(awk -v n="$node" '$2 == n { print $1 }' "$OUT/server-ids.txt") || return 0
-  case $id in ''|*[!0-9]*) return 0 ;; esac
-  address=$(docker inspect -f "{{(index .NetworkSettings.Networks \"$NETWORK\").IPAddress}}" "$rs") || return 0
-  case $address in ''|*[!0-9.]*) return 0 ;; esac
+  for candidate in $RS_NODES; do
+    [ "$direction" = up ] || [ "$candidate" != "$REMOVED" ] || continue
+    address=$(docker inspect -f "{{(index .NetworkSettings.Networks \"$NETWORK\").IPAddress}}" "$candidate") || return 0
+    case $address in ''|*[!0-9.]*) return 0 ;; esac
+    addresses="$addresses $candidate=$address"
+  done
   mkdir -p "$OUT/scale-progress" || return 1
   if ! since_mark "$node" | awk -v first="$((mark + 1))" -v before="$before" -v after="$after" \
-      -v id="$id" -v rs="$rs" -v address="$address" -v domain="$BASE_DN" -v node="$node" '
+      -v addresses="$addresses" -v node="$node" -v evidence="$target.evidence" '
+    BEGIN {
+      printf "" > evidence
+      count = split(addresses, peers, " ")
+      for (i = 1; i <= count; i++) {
+        split(peers[i], pair, "=")
+        address[pair[1]] = pair[2]
+      }
+    }
     {
       line = first + NR - 1
       if (finished || line <= before || line > after) next
       if (index($0, "category=CORE severity=NOTICE msgID=135 msg=The Directory Server has started successfully")) {
-        for (i = 1; i <= accepted; i++) print confirmed[i] - 1, confirmed[i], "timeout:" node ":" rs
+        for (i = 1; i <= n; i++) if (confirmed[i]) {
+          print position[i] - 1, position[i], "startup-timeout:" node
+          printf "%d\t%s\n", position[i], record[i] > evidence
+        }
         finished = 1
         next
       }
-      if (index($0, "category=SYNC severity=ERROR msgID=212 msg=Directory server DS(" id ") timed out while connecting to replication server " rs ":8989 for domain \"" domain "\""))
-        pending[++n] = line
-      if (index($0, "category=SYNC severity=NOTICE msgID=62 msg=Directory server DS(" id ") has connected to replication server RS(") \
-          && index($0, " for domain \"" domain "\" at " address ":8989 ")) {
-        for (i = 1; i <= n; i++) confirmed[++accepted] = pending[i]
-        n = 0
+      message = substr($0, index($0, " msg=") + 5)
+      id = message; sub(/^Directory server DS\(/, "", id); sub(/\).*/, "", id)
+      if (id !~ /^[0-9]+$/) next
+      domain = message; sub(/^.* for domain "/, "", domain); sub(/".*/, "", domain)
+      if (index($0, "category=SYNC severity=ERROR msgID=212 ")) {
+        for (rs in address) {
+          if (message == "Directory server DS(" id ") timed out while connecting to replication server " rs ":8989 for domain \"" domain "\"") {
+            key[++n] = id SUBSEP domain; position[n] = line; record[n] = $0
+          }
+        }
+      }
+      if (index($0, "category=SYNC severity=NOTICE msgID=62 ") \
+          && index(message, "Directory server DS(" id ") has connected to replication server RS(") == 1) {
+        for (rs in address) {
+          if (index(message, " for domain \"" domain "\" at " address[rs] ":8989 ")) {
+            for (i = 1; i <= n; i++) if (key[i] == id SUBSEP domain) confirmed[i] = 1
+          }
+        }
       }
     }' >"$target"; then
-    rm -f "$target"
+    rm -f "$target" "$target.evidence"
     return 0
   fi
+  cat "$target.evidence" >>"$OUT/logs/$node.startup-timeouts" || return 1
   cat "$target" >>"$OUT/logs/$node.windows"
 }
 

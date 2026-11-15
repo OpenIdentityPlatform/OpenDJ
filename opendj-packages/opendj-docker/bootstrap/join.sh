@@ -103,6 +103,7 @@ MYHOSTNAME=${MYHOSTNAME:-$(hostname -f)}
 BOOTSTRAP_COMPLETE=${BOOTSTRAP_COMPLETE:-/opt/opendj/.bootstrap-complete}
 INITIALIZE_PENDING=${INITIALIZE_PENDING:-/opt/opendj/data/.replication-initialize-pending}
 REJOIN_PENDING=${REJOIN_PENDING:-/opt/opendj/data/.replication-rejoin-pending}
+RESET_PENDING=${RESET_PENDING:-/opt/opendj/data/.replication-reset-pending}
 # the role the volume was set up with (setup.sh), or the one a first start of this image read
 # from a volume set up before roles
 REPLICATION_ROLE_FILE=${REPLICATION_ROLE_FILE:-/opt/opendj/data/.replication-role}
@@ -582,10 +583,12 @@ take_join_lock() { # <host>
 }
 
 release_join_lock() { # <host> <value>
+  local rc=0
   [ -n "$2" ] || return 0
   printf 'dn: %s\nchangetype: delete\n' "$JOIN_LOCK_DN" \
-    | ldapmodify_on "$1" --assertionFilter "(description=$2)" >/dev/null \
-    || echo "join: could not remove the lock on $1, it expires in $JOIN_LOCK_TTL s"
+    | ldapmodify_on "$1" --assertionFilter "(description=$2)" >/dev/null || rc=$?
+  [ "$rc" -eq 0 ] || echo "join: could not remove the lock on $1, it expires in $JOIN_LOCK_TTL s"
+  return "$rc"
 }
 
 # The scale recovery path is explicit: it first connects only the RS mesh, and
@@ -808,11 +811,11 @@ unregister() { # <dn>
 # lock while its configuration goes, so that no server enables through it then. One attempt:
 # a lock another join holds leaves everything as it was, and the next round tries again.
 reset_replication() { # <rejoining|pending> <why>
-  local dn host own
+  local own rc=0 remaining
   echo "join: $2, taking its replication configuration down to enable it anew"
   publish_state "$1" || return 1
-  touch "$REJOIN_PENDING"
-  rm -f "$BOOTSTRAP_COMPLETE"
+  touch "$REJOIN_PENDING" || return 1
+  rm -f "$BOOTSTRAP_COMPLETE" || return 1
   if ! take_join_lock localhost; then
     echo "join: its replication configuration stays as it is until the next round"
     return 1
@@ -824,15 +827,35 @@ reset_replication() { # <rejoining|pending> <why>
     release_join_lock localhost "$own"
     return 1
   fi
-  registrations | while IFS=$'\t' read -r dn host; do
-    [ -n "$host" ] && is_self "$host" || continue
-    echo "join: dropping the stale entry $dn"
-    unregister "$dn" || echo "join: could not remove $dn"
-  done
+  # A failed disable may already have removed BASE_DN. Persist the unfinished
+  # reset so the next round/start finishes it even when holds_own_part is false.
+  if ! touch "$RESET_PENDING"; then
+    release_join_lock localhost "$own"
+    return 1
+  fi
+  # The local root account exists even when a partial enable left cn=admin data
+  # without its global administrator. --bindDN also keeps disable local: this
+  # repair must not edit every peer while it holds only its own join lock.
+  # --disableAll removes this server registration and the local admin data too.
   bounded "$REPLICATION_ATTEMPT_TIMEOUT" dsreplication disable --hostname "$MYHOSTNAME" --port "$ADMIN_PORT" \
-    --adminUID admin --adminPasswordFile "$PASSWORD_FILE" --disableAll -X -n \
-    || echo "join: dsreplication disable exited with $?"
-  release_join_lock localhost "$own"
+    --bindDN "$ROOT_USER_DN" --adminPasswordFile "$PASSWORD_FILE" --disableAll -X -n || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    echo "join: dsreplication disable exited with $rc, replication has not been reset"
+  else
+    remaining=$(search localhost --baseDN cn=config --searchScope sub \
+      '(|(objectClass=ds-cfg-replication-domain)(objectClass=ds-cfg-replication-server))' 1.1) || rc=$?
+    if [ "$rc" -ne 0 ]; then
+      echo "join: could not verify replication cleanup, LDAP status $rc"
+    elif grep -qi '^dn:' <<<"$remaining"; then
+      echo "join: replication configuration remains after disable, not enabling over a partial reset"
+      rc=1
+    fi
+  fi
+  release_join_lock localhost "$own" || { [ "$rc" -ne 0 ] || rc=1; }
+  if [ "$rc" -eq 0 ]; then
+    rm -f "$RESET_PENDING" || rc=1
+  fi
+  return "$rc"
 }
 
 # "<backend-id> <writability-mode>" of the backend that holds BASE_DN; the mode is left out
@@ -1179,6 +1202,10 @@ reset_if_unregistered() { # <the state to publish meanwhile>
   RESET_MEMBER_CONFIRMED=no
   JOIN_REGISTRATIONS_AVAILABLE=no
   JOIN_REGISTRATIONS_READY=no
+  if [ -f "$RESET_PENDING" ]; then
+    reset_replication "$1" "an earlier replication reset did not finish"
+    return
+  fi
   holds_own_part || return 0
   if ! registered_with_peers; then
     reset_replication "$1" "the peers no longer register this server"
