@@ -23,6 +23,8 @@ import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -79,6 +81,15 @@ public class ReplicationServerHandler extends ServerHandler
   /** Incoming peer knowledge is useful to monitors, but cannot advance the outgoing cursor. */
   private final ServerState receivedState = new ServerState();
 
+  /** Exact recent receipts, bounded like the message queue. Guarded by publishedState. */
+  private final Set<CSN> receivedUpdates = new LinkedHashSet<>();
+  /** Selected updates and their local generation, awaiting a socket write. Guarded by publishedState. */
+  private final Map<CSN, Long> pendingWrites = new HashMap<>();
+  /** A filtered update cannot be certified by traversing the cursor. Guarded by publishedState. */
+  private final Map<Integer, CSN> firstDiscardedWrites = new HashMap<>();
+  /** Local changelog generation to which firstDiscardedWrites belongs. Guarded by publishedState. */
+  private long discardedGenerationId = -1;
+
   @Override
   void recordReceivedUpdate(UpdateMsg update)
   {
@@ -86,7 +97,44 @@ public class ReplicationServerHandler extends ServerHandler
     // Its newer CSN does not prove that this peer received that older history.
     if (update.contributesToDomainState())
     {
-      receivedState.update(update.getCSN());
+      synchronized (publishedState)
+      {
+        final CSN csn = update.getCSN();
+        receivedState.update(csn);
+        receivedUpdates.remove(csn);
+        receivedUpdates.add(csn);
+        if (receivedUpdates.size() > Math.max(1, maxQueueSize))
+        {
+          // Forgetting a receipt may resend that record during a later catch-up.
+          // It must never turn an incoming maximum into proof of an older prefix.
+          receivedUpdates.remove(receivedUpdates.iterator().next());
+        }
+      }
+    }
+  }
+
+  @Override
+  boolean updateServerState(UpdateMsg update)
+  {
+    synchronized (publishedState)
+    {
+      if (!super.updateServerState(update))
+      {
+        return false;
+      }
+      if (update.contributesToDomainState())
+      {
+        final CSN csn = update.getCSN();
+        if (receivedUpdates.remove(csn))
+        {
+          // Only the ordered reader advances the cursor. Every older unknown
+          // record has been selected, and pendingWrites still fences its delivery.
+          publishedState.notifyAll();
+          return false;
+        }
+        pendingWrites.put(csn, replicationServerDomain.getGenerationId());
+      }
+      return true;
     }
   }
 
@@ -104,8 +152,17 @@ public class ReplicationServerHandler extends ServerHandler
   @Override
   public void setInitialServerState(ServerState state) throws DirectoryException
   {
-    super.setInitialServerState(state);
-    publishedState.update(state);
+    synchronized (publishedState)
+    {
+      super.setInitialServerState(state);
+      receivedState.clear();
+      receivedUpdates.clear();
+      pendingWrites.clear();
+      firstDiscardedWrites.clear();
+      discardedGenerationId = -1;
+      publishedState.clear();
+      publishedState.update(state);
+    }
   }
 
   /** Records a successful socket write to this peer. */
@@ -113,9 +170,59 @@ public class ReplicationServerHandler extends ServerHandler
   {
     synchronized (publishedState)
     {
+      pendingWrites.remove(csn);
       publishedState.update(csn);
       publishedState.notifyAll();
     }
+  }
+
+  /** Releases bookkeeping for a selected update which the writer filters out. */
+  void updateDiscardedState(CSN csn)
+  {
+    synchronized (publishedState)
+    {
+      final Long selectedGenerationId = pendingWrites.remove(csn);
+      final long localGenerationId = replicationServerDomain.getGenerationId();
+      // A reset may occur between selection, filtering and reporting the drop.
+      // An old selection must not create a barrier in the new local generation.
+      if (selectedGenerationId != null && selectedGenerationId == localGenerationId)
+      {
+        if (discardedGenerationId != localGenerationId)
+        {
+          firstDiscardedWrites.clear();
+          discardedGenerationId = localGenerationId;
+        }
+        firstDiscardedWrites.merge(csn.getServerId(), csn,
+            (first, next) -> first.isNewerThan(next) ? next : first);
+      }
+      publishedState.notifyAll();
+    }
+  }
+
+  /** Must be called under publishedState, like selecting a record and completing its write. */
+  private boolean delivered(ServerState target)
+  {
+    for (CSN csn : target)
+    {
+      final CSN discarded = discardedGenerationId == replicationServerDomain.getGenerationId()
+          ? firstDiscardedWrites.get(csn.getServerId()) : null;
+      if (discarded != null && !discarded.isNewerThan(csn))
+      {
+        return false;
+      }
+      for (CSN pending : pendingWrites.keySet())
+      {
+        if (pending.getServerId() == csn.getServerId() && !pending.isNewerThan(csn))
+        {
+          return false;
+        }
+      }
+      if (!publishedState.cover(csn) && !super.getServerState().cover(csn))
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
   /** Waits within a shared monotonic deadline for this peer's outstanding direct updates. */
@@ -123,7 +230,7 @@ public class ReplicationServerHandler extends ServerHandler
   {
     synchronized (publishedState)
     {
-      while (!publishedState.cover(target) && !shuttingDown())
+      while (!delivered(target) && !shuttingDown())
       {
         final long remaining = deadline - System.nanoTime();
         if (remaining <= 0)
@@ -132,7 +239,22 @@ public class ReplicationServerHandler extends ServerHandler
         }
         TimeUnit.NANOSECONDS.timedWait(publishedState, remaining);
       }
-      return publishedState.cover(target);
+      return delivered(target);
+    }
+  }
+
+  @Override
+  public void setGenerationId(long generationId)
+  {
+    synchronized (publishedState)
+    {
+      if (this.generationId != generationId)
+      {
+        receivedUpdates.clear();
+        receivedState.clear();
+        // Changing only the peer's generation does not deliver previously filtered history.
+      }
+      super.setGenerationId(generationId);
     }
   }
 
@@ -679,6 +801,7 @@ public class ReplicationServerHandler extends ServerHandler
     super.shutdown();
     synchronized (publishedState)
     {
+      receivedUpdates.clear();
       publishedState.notifyAll();
     }
     clearRemoteLSHandlers();
@@ -706,7 +829,7 @@ public class ReplicationServerHandler extends ServerHandler
   {
     // List should only contain RS info for sender
     final RSInfo rsInfo = topoMsg.getRsInfos().get(0);
-    generationId = rsInfo.getGenerationId();
+    setGenerationId(rsInfo.getGenerationId());
     groupId = rsInfo.getGroupId();
     weight = rsInfo.getWeight();
 

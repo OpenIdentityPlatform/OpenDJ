@@ -122,6 +122,10 @@ public class ServerWriter extends DirectoryThread
            * as sent (issue #1080).
            */
           handler.releasePermitInSendWindow();
+          if (handler instanceof ReplicationServerHandler && updateMsg.contributesToDomainState())
+          {
+            ((ReplicationServerHandler) handler).updateDiscardedState(updateMsg.getCSN());
+          }
           if (updateMsg instanceof ReplicaOfflineMsg && !handler.isDataServer())
           {
             dsrsShutdownSync.replicaOfflineMsgNotForwarded(
