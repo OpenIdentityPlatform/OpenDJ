@@ -63,3 +63,21 @@ for rows in "$S"$'\n'"$E"$'\n'"$N" "$D"$'\n'"$E" "${D/172.18.0.8/172.18.0.7}"$'\
   [ ! -s "$OUT/logs/d0.windows" ] || { echo 'unproven rolling failover accepted' >&2; exit 1; }
 done
 echo 'rolling failover requires the stopped peer and a later connection in the same domain'
+
+# After return, either live RS can receive a surviving writer. The absent third RS
+# is not a candidate during scale-in, even if its address still appears in a log.
+docker() { case ${@: -1} in r1) echo 172.18.0.9 ;; r2) echo 172.18.0.10 ;; *) return 1 ;; esac; }
+printf '0 dns:r0\n' >"$OUT/logs/d0.window-up-r0"
+: >"$OUT/logs/d0.windows"
+printf '%s\n%s\n' "$D" "${N/172.18.0.9/172.18.0.10}" >"$OUT/errors"
+scale_record_roll_failover d0 r0 r1 up 172.18.0.8
+grep -Fx '0 1 disconnect:d0:172.18.0.8' "$OUT/logs/d0.windows" >/dev/null || { echo 'returned third RS failover rejected' >&2; exit 1; }
+for direction in down up; do
+  for address in 172.18.0.8 172.18.0.77 $([ "$direction" != down ] || echo 172.18.0.10); do
+    : >"$OUT/logs/d0.windows"
+    printf '%s\n%s\n' "$D" "${N/172.18.0.9/$address}" >"$OUT/errors"
+    scale_record_roll_failover d0 r0 r1 "$direction" 172.18.0.8
+    [ ! -s "$OUT/logs/d0.windows" ] || { echo 'stopped or unknown RS failover accepted' >&2; exit 1; }
+  done
+done
+echo 'returned RS is accepted only after return; stopped and unknown peers remain errors'

@@ -356,7 +356,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   private void putUpdate(UpdateMsg updateMsg, ServerHandler sourceHandler) throws IOException
   {
     final long sourceGenerationId = sourceHandler.getGenerationId();
-    sourceHandler.updateServerState(updateMsg);
+    sourceHandler.recordReceivedUpdate(updateMsg);
     sourceHandler.incrementInCount();
     /*
      * A directory server which already has changes does not give its generation id at the handshake to a
