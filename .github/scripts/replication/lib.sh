@@ -148,13 +148,17 @@ fail() {
 }
 
 wait_until() { # <seconds> <what> <command> [<argument>...]
-  local deadline=$((SECONDS + $1)) what=$2 start=$SECONDS
+  local deadline=$((SECONDS + $1)) what=$2 start=$SECONDS rc
   shift 2
   while :; do
     if [ "${SCALE_DEADLINE_ACTIVE:-0}" = 1 ] && declare -F rolling_worker_failed >/dev/null && rolling_worker_failed; then
       fail "load worker failed while waiting until $what"; return 1
     fi
-    "$@" && break
+    rc=0
+    "$@" || rc=$?
+    [ "$rc" -ne 0 ] || break
+    # Reserve 200 for terminal bootstrap failure; existing predicates may retry status 2.
+    [ "$rc" -ne 200 ] || { fail "terminal failure while waiting until $what"; return 1; }
     [ "$SECONDS" -lt "$deadline" ] || { fail "timed out waiting until $what"; return 1; }
     sleep 2
   done
@@ -162,7 +166,12 @@ wait_until() { # <seconds> <what> <command> [<argument>...]
 }
 
 is_healthy() { # <container>
-  [ "$(docker inspect --format='{{.State.Health.Status}}' "$1")" = healthy ]
+  local rc=0 state
+  docker exec "$1" sh -c 'test ! -f "${BOOTSTRAP_FAILED:-/opt/opendj/.bootstrap-failed}" || exit 200' 2>/dev/null || rc=$?
+  [ "$rc" -ne 200 ] || return 200
+  [ "$rc" -eq 0 ] || return 1
+  state=$(docker inspect --format='{{.State.Health.Status}}' "$1") || return 1
+  [ "$state" = healthy ]
 }
 
 # The server of the container logged that it started (msgID 135, once its connection handlers
@@ -181,7 +190,7 @@ started_since() { # <container> <seconds>
 bootstrap_ended() { # <container>
   # Invert grep inside the container, not docker itself: a Docker failure or deadline
   # must never be mistaken for the absence of a bootstrap process.
-  docker exec "$1" sh -c "grep -qs -e 'bootstrap/[j]oin\.sh' -e 'bootstrap/[r]eplicate\.sh' /proc/[0-9]*/cmdline; rc=\$?; [ \$rc -eq 1 ]"
+  docker exec "$1" sh -c "test ! -f \"\${BOOTSTRAP_FAILED:-/opt/opendj/.bootstrap-failed}\" || exit 200; grep -qs -e 'bootstrap/[j]oin\.sh' -e 'bootstrap/[r]eplicate\.sh' /proc/[0-9]*/cmdline; rc=\$?; [ \$rc -eq 1 ]"
 }
 
 ldaps_search() { # <container> <base DN> <scope> <filter> [<attribute>...]

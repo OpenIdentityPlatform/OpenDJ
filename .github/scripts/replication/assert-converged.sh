@@ -290,8 +290,14 @@ replication_errors() { # <node>
   local windows=
   [ ! -f "$OUT/logs/$1.windows" ] || windows=$(tr '\n' ';' <"$OUT/logs/$1.windows")
   since_mark $1 | awk -v first=$(($(cat "$OUT/logs/$1.mark") + 1)) -v windows="$windows" \
-                      -v expected="$OUT/logs/$1.expected" -v node="$1" -v base_dn="$BASE_DN" '
+                      -v expected="$OUT/logs/$1.expected" -v node="$1" -v base_dn="$BASE_DN" \
+                      -v startup_timeouts="$OUT/logs/$1.startup-timeouts" '
     BEGIN {
+      while ((getline proof < startup_timeouts) > 0) {
+        separator = index(proof, "\t")
+        if (separator > 1) startup[substr(proof, 1, separator - 1)] = substr(proof, separator + 1)
+      }
+      close(startup_timeouts)
       n = split(windows, w, ";")
       for (i = 1; i <= n; i++) {
         k = split(w[i], f, " ")
@@ -342,6 +348,7 @@ replication_errors() { # <node>
           }
         }
         if (id == "212" && index($0, "msg=Directory server DS(")) {
+          if (index(ids[i], " startup-timeout:" node " ") && startup[line] == $0) timeout = 1
           count = split(ids[i], tokens, " ")
           for (j = 1; j <= count; j++) {
             if (split(tokens[j], part, ":") == 3 && part[1] == "timeout" && part[2] == node \

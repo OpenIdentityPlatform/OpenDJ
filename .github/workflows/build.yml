@@ -697,6 +697,8 @@ jobs:
           sparse-checkout: |
             .github/benchmark
             .github/scripts
+            opendj-server-legacy/resource/bin
+            opendj-packages/opendj-docker/bootstrap
       - name: Download the image
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -711,7 +713,8 @@ jobs:
       - name: Docker test
         shell: bash
         run: |
-          trap 'code=$?; echo "::group::container logs (test)"; docker logs test 2>&1 || true; echo "::endgroup::"; exit $code' ERR
+          bash .github/scripts/selftest-docker-setup.sh
+          trap 'code=$?; bash .github/scripts/docker-startup-diagnostics.sh test "$RUNNER_TEMP/docker-startup" || true; exit $code' ERR
           # the image draws nothing: the OS carries none of what AWT needs to, freetype with brotli, X11 or ALSA.
           # The temurin JRE of the default image keeps a freetype of its own in /opt/java, linking nothing but libc (#1238)
           awt=$(docker run --rm --entrypoint sh localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }} -c 'find / -xdev \( -name "libfreetype.so*" ! -path "/opt/java/*" -o -name "libbrotli*.so*" -o -name "libX11.so*" -o -name "libasound.so*" \) 2>/dev/null; true')
@@ -751,6 +754,13 @@ jobs:
           out=$(docker exec test sh -c 'unset JAVA_HOME; PATH=/bin:/usr/bin /opt/opendj/bin/ldapsearch --version' 2>&1 || true)
           if grep -F "unexpected operator" <<<"$out"; then echo "::error::The lookup of java on the PATH fails with a shell error where it finds no java"; false; fi
           docker rm -f test
+      - name: Upload Docker startup diagnostics
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: docker-startup-${{ matrix.flavor }}
+          path: ${{ runner.temp }}/docker-startup
+          if-no-files-found: ignore
       - name: Docker test custom password
         shell: bash
         run: |
@@ -1195,7 +1205,7 @@ jobs:
         with:
           sparse-checkout: |
             .github/scripts/replication
-            opendj-packages/opendj-docker/bootstrap
+            opendj-packages/opendj-docker
       # what a green row does not show: what a disturbance window of the errors log check
       # expects - nothing it expects is logged outside the window there, and a base row has
       # none - and where each disturbance opens and closes its windows
@@ -1215,6 +1225,7 @@ jobs:
           .github/scripts/replication/selftest-scale-topology.sh
           bash .github/scripts/replication/selftest-join-timing.sh
           bash .github/scripts/replication/selftest-join-batch.sh
+          bash .github/scripts/replication/selftest-join-reset.sh
           bash .github/scripts/replication/selftest-join-search.sh
           .github/scripts/replication/selftest-rolling-load.sh
           .github/scripts/replication/selftest-wait.sh

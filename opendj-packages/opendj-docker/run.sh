@@ -32,7 +32,8 @@ cd /opt/opendj
 # the volume holds - and a restart of a container replays this script over the writable
 # layer the previous run left behind, so it is cleared before anything else.
 BOOTSTRAP_COMPLETE=${BOOTSTRAP_COMPLETE:-/opt/opendj/.bootstrap-complete}
-rm -f "$BOOTSTRAP_COMPLETE"
+export BOOTSTRAP_FAILED=${BOOTSTRAP_FAILED:-/opt/opendj/.bootstrap-failed}
+rm -f "$BOOTSTRAP_COMPLETE" "$BOOTSTRAP_FAILED"
 
 # A replicate.sh or a setup.sh killed before its EXIT trap ran leaves the root password in
 # /dev/shm, and on Kubernetes that outlives the container: the pod keeps its /dev/shm across
@@ -103,6 +104,17 @@ upgrade_instance() {
 # start; srs, sdsr and rg keep the one-shot replicate.sh of the first bootstrap
 join_requested() {
   [ "$OPENDJ_REPLICATION_TYPE" = "simple" ] && [ -n "${REPLICATION_PEERS:-$MASTER_SERVER}" ]
+}
+
+# Record the background result separately from readiness: a terminal join failure
+# is observable immediately, including on a volume which used to be ready.
+run_join() {
+  local rc=0
+  /opt/opendj/bootstrap/join.sh || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    printf 'join:%s\n' "$rc" >"$BOOTSTRAP_FAILED"
+  fi
+  return "$rc"
 }
 
 # Keystores and truststores mounted as a volume (a Kubernetes Secret, say) are copied into
@@ -331,7 +343,7 @@ if [ -d ./data/config ]; then
     fi
     # the join also repairs membership that changed while no container ran, on every start
     if join_requested; then
-      /opt/opendj/bootstrap/join.sh &
+      run_join &
     fi
   else
     echo "The upgrade did not complete, this container will not report itself healthy"
@@ -360,6 +372,7 @@ if join_requested; then
 fi
 if ! sh "${BOOTSTRAP}"; then
   BOOTSTRAPPED=false
+  printf 'setup failed\n' >"$BOOTSTRAP_FAILED"
   echo "$BOOTSTRAP failed, this container will not report itself healthy"
 fi
 
@@ -368,6 +381,7 @@ fi
 if ! join_requested && [ -n "${MASTER_SERVER}" ] && [ -n "${OPENDJ_REPLICATION_TYPE}" ]; then
   if ! /opt/opendj/bootstrap/replicate.sh; then
     BOOTSTRAPPED=false
+    printf 'replication setup failed\n' >"$BOOTSTRAP_FAILED"
     echo "Replication setup failed, this container will not report itself healthy"
   fi
 fi
@@ -398,7 +412,7 @@ if [ "$BOOTSTRAPPED" = true ] && ! rm -f "$BOOTSTRAP_PENDING"; then
 fi
 if [ "$BOOTSTRAPPED" = true ]; then
   if join_requested; then
-    /opt/opendj/bootstrap/join.sh &
+    run_join &
     echo "The instance is bootstrapped, joining the replication topology decides whether it is healthy"
   else
     touch "$BOOTSTRAP_COMPLETE"

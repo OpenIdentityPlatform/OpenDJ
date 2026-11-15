@@ -122,6 +122,23 @@ record_rejoined_id() { # <directory server>
   [ "$owner" = "$node" ] || printf '%s %s\n' "$id" "$node" >>"$OUT/server-ids.txt"
 }
 
+# CLI failures carry the detailed cause in tmp/opendj-*.log. Read Docker archive
+# streams so diagnostics survive a stopped container too, copying only regular
+# tool logs (never passwords, worker FIFOs or unrelated temporary data).
+collect_tool_logs() { # <node> <output directory>
+  mkdir -p "$2" || return 1
+  docker cp "$1:/opt/opendj/data/tmp/." - 2>/dev/null | python3 -c '
+import pathlib, re, shutil, sys, tarfile
+out = pathlib.Path(sys.argv[1])
+with tarfile.open(fileobj=sys.stdin.buffer, mode="r|*") as archive:
+    for item in archive:
+        name = pathlib.PurePosixPath(item.name).name
+        if item.isfile() and re.fullmatch(r"opendj-(setup|replication|status)-[^/]+[.]log", name):
+            with archive.extractfile(item) as source, (out / name).open("wb") as target:
+                shutil.copyfileobj(source, target)
+' "$2" 2>/dev/null
+}
+
 # Every server's container log, logs/, config/ and changelogDb, packed into state.tgz; docker cp
 # reads a stopped or killed container as well. Nothing here may fail the run a second time
 collect() {
@@ -131,6 +148,8 @@ collect() {
     case " $DS_NODES " in *" $n "*) capture_csn_trace "$n" || true ;; esac
     mkdir -p "$OUT/state/$n"
     docker logs $n >"$OUT/state/$n/container.log" 2>&1 || true
+    collect_tool_logs "$n" "$OUT/state/$n/tool-logs" || true
+    docker cp "$n:/opt/opendj/.bootstrap-failed" "$OUT/state/$n/bootstrap-failed" >/dev/null 2>&1 || true
     docker cp $n:/opt/opendj/data/logs "$OUT/state/$n/" >/dev/null 2>&1 || true
     docker cp $n:/opt/opendj/data/config "$OUT/state/$n/" >/dev/null 2>&1 || true
     docker cp $n:/opt/opendj/data/changelogDb "$OUT/state/$n/" >/dev/null 2>&1 || true

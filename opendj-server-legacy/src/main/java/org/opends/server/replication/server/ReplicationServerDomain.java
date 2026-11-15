@@ -1364,7 +1364,29 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       boolean isDirectoryServer)
   {
     unregisterServerHandler(sHandler);
-    sHandler.shutdown();
+    if (shutdown)
+    {
+      sHandler.shutdown();
+    }
+    else
+    {
+      // Close and remove all name-based monitors before a replacement can register.
+      // Only the thread joins run unlocked: the reader may already need this lock
+      // to apply its last TopologyMsg. Holding it used to block failover handshakes
+      // for the 30-second join timeout.
+      sHandler.shutdownWithoutWaiting();
+      release();
+      try
+      {
+        sHandler.awaitShutdown();
+      }
+      finally
+      {
+        // Include any new DS/replacement RS in the generation and topology decisions.
+        // Cleanup still owns this hold on return, including after an interrupt.
+        lock.lock();
+      }
+    }
 
     resetGenerationIdIfPossible();
     if (!shutdown)
@@ -2495,6 +2517,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     try
     {
+      // Teardown releases the domain lock while joining this reader. Its final
+      // message must not change the topology after its handler was removed or
+      // replaced by a new session with the same server id.
+      if (connectedRSs.get(rsHandler.getServerId()) != rsHandler)
+      {
+        return;
+      }
       // Store DS connected to remote RS & update information about the peer RS
       rsHandler.processTopoInfoFromRS(topoMsg);
 
