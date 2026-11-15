@@ -321,14 +321,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       }
       // Crediting the incoming maximum to publishedState would hide the warning,
       // but still lose change 3. Verify the actual stream, not just the drain result.
-      assertThat(actual.size()).isBetween(expected.size(), expected.size() + 1);
-      assertThat(actual.subList(0, expected.size())).containsExactlyElementsOf(expected);
-      if (actual.size() > expected.size())
-      {
-        // Catch-up may read the peer's new change from the changelog too. That
-        // harmless echo must come after every older record, never replace one.
-        assertThat(actual.get(expected.size())).isEqualTo(migrated);
-      }
+      assertThat(actual).containsExactlyElementsOf(expected);
     }
     finally
     {
@@ -348,6 +341,215 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     {
       broker.publish(new DeleteMsg(DN.valueOf("uid=before-migration-" + csn + "," + baseDN), csn,
           "22222222-2222-2222-2222-222222222222"));
+    }
+  }
+
+  @Test
+  public void catchUpSkipsOnlyExactPeerReceiptsAndWaitsForOlderWrites() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer server = null;
+    try
+    {
+      server = newReplicationServer(new DSRSShutdownSync(), "shutdownPeerReceiptsDb", 8254);
+      final ReplicationServerHandler handler = new ReplicationServerHandler(null, 100, server, 100);
+      handler.setBaseDNAndDomain(baseDN, false);
+      handler.setInitialServerState(new ServerState());
+      final List<DeleteMsg> updates = new ArrayList<>();
+      for (int i = 1; i <= 5; i++)
+      {
+        final DeleteMsg update = new DeleteMsg(baseDN,
+            new CSN(System.currentTimeMillis(), i, REMOTE_DS_ID),
+            "22222222-2222-2222-2222-222222222222");
+        updates.add(update);
+        if (i == 2 || i == 4)
+        {
+          handler.recordReceivedUpdate(update);
+        }
+        server.getChangelogDB().getReplicationDomainDB().publishUpdateMsg(baseDN, update);
+      }
+      assertThat(handler.getNextMessage().getCSN()).isEqualTo(updates.get(0).getCSN());
+      assertThat(handler.getNextMessage().getCSN()).isEqualTo(updates.get(2).getCSN());
+      assertThat(handler.getNextMessage().getCSN()).isEqualTo(updates.get(4).getCSN());
+      final ServerState target = new ServerState();
+      target.update(updates.get(3).getCSN());
+      handler.updatePublishedState(updates.get(0).getCSN());
+      assertThat(handler.awaitPublished(target, System.nanoTime()))
+          .as("the received change 4 cannot confirm the unwritten change 3").isFalse();
+      handler.updatePublishedState(updates.get(2).getCSN());
+      assertThat(handler.awaitPublished(target, System.nanoTime()))
+          .as("change 4 is already held by the peer once its older writes complete").isTrue();
+      target.update(updates.get(4).getCSN());
+      assertThat(handler.awaitPublished(target, System.nanoTime()))
+          .as("the selected change 5 is not written yet").isFalse();
+      handler.updatePublishedState(updates.get(4).getCSN());
+      assertThat(handler.awaitPublished(target, System.nanoTime())).isTrue();
+    }
+    finally
+    {
+      removeQuietly(server);
+    }
+  }
+
+  @DataProvider
+  public Object[][] peerGenerationChanges()
+  {
+    return new Object[][] { { false }, { true } };
+  }
+
+  @Test(dataProvider = "peerGenerationChanges")
+  public void aDiscardedWriteIsNotConfirmedByALaterReceiptOrWrite(boolean changePeerGeneration) throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer server = null;
+    try
+    {
+      server = newReplicationServer(new DSRSShutdownSync(), "shutdownDiscardedReceiptDb", 8255);
+      final ReplicationServerHandler handler = new ReplicationServerHandler(null, 100, server, 100);
+      handler.setBaseDNAndDomain(baseDN, false);
+      handler.setInitialServerState(new ServerState());
+      final ReplicationServerDomain domain = server.getReplicationServerDomain(baseDN, false);
+      domain.initGenerationID(1);
+      handler.setGenerationId(changePeerGeneration ? 2 : 1);
+      final long time = System.currentTimeMillis();
+      final CSN first = new CSN(time, 1, REMOTE_DS_ID);
+      final CSN received = new CSN(time, 2, REMOTE_DS_ID);
+      final CSN last = new CSN(time, 3, REMOTE_DS_ID);
+      for (CSN csn : Arrays.asList(first, received, last))
+      {
+        final DeleteMsg update = new DeleteMsg(baseDN, csn,
+            "22222222-2222-2222-2222-222222222222");
+        if (csn.equals(received))
+        {
+          handler.recordReceivedUpdate(update);
+        }
+        server.getChangelogDB().getReplicationDomainDB().publishUpdateMsg(baseDN, update);
+      }
+      assertThat(handler.getNextMessage().getCSN()).isEqualTo(first);
+      handler.updateDiscardedState(first);
+      if (changePeerGeneration)
+      {
+        // A peer now advertising the right generation has not received the dropped history.
+        handler.setGenerationId(1);
+        // Its old receipts are forgotten, so this record is conservatively sent again.
+        assertThat(handler.getNextMessage().getCSN()).isEqualTo(received);
+        handler.updatePublishedState(received);
+      }
+      assertThat(handler.getNextMessage().getCSN()).isEqualTo(last);
+      final ServerState target = new ServerState();
+      target.update(received);
+      assertThat(handler.awaitPublished(target, System.nanoTime())).isFalse();
+      handler.updatePublishedState(last);
+      assertThat(handler.awaitPublished(target, System.nanoTime()))
+          .as("a later socket write must not conceal an earlier discarded record").isFalse();
+    }
+    finally
+    {
+      removeQuietly(server);
+    }
+  }
+
+  @DataProvider
+  public Object[][] discardBeforeOrAfterLocalReset()
+  {
+    return new Object[][] { { false }, { true } };
+  }
+
+  @Test(dataProvider = "discardBeforeOrAfterLocalReset")
+  public void localGenerationResetDoesNotCarryDiscardedWrites(boolean delayedDiscard) throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer server = null;
+    try
+    {
+      server = newReplicationServer(new DSRSShutdownSync(), "shutdownDiscardedGenerationDb", 8257);
+      final ReplicationServerHandler handler = new ReplicationServerHandler(null, 100, server, 100);
+      handler.setBaseDNAndDomain(baseDN, false);
+      handler.setInitialServerState(new ServerState());
+      final ReplicationServerDomain domain = server.getReplicationServerDomain(baseDN, false);
+      domain.initGenerationID(1);
+      handler.setGenerationId(1);
+      final long time = System.currentTimeMillis();
+      final CSN old = new CSN(time, 1, REMOTE_DS_ID);
+      final CSN current = new CSN(time, 2, REMOTE_DS_ID);
+      server.getChangelogDB().getReplicationDomainDB().publishUpdateMsg(baseDN,
+          new DeleteMsg(baseDN, old, "22222222-2222-2222-2222-222222222222"));
+      assertThat(handler.getNextMessage().getCSN()).isEqualTo(old);
+      if (!delayedDiscard)
+      {
+        handler.updateDiscardedState(old);
+      }
+      domain.changeGenerationId(2);
+      handler.setGenerationId(2);
+      if (delayedDiscard)
+      {
+        // The writer selected this record before reset, but reports its drop afterwards.
+        handler.updateDiscardedState(old);
+      }
+      server.getChangelogDB().getReplicationDomainDB().publishUpdateMsg(baseDN,
+          new DeleteMsg(baseDN, current, "22222222-2222-2222-2222-222222222222"));
+      assertThat(handler.getNextMessage().getCSN()).isEqualTo(current);
+      handler.updatePublishedState(current);
+      final ServerState target = new ServerState();
+      target.update(current);
+      assertThat(handler.awaitPublished(target, System.nanoTime()))
+          .as("a local reset discards the old generation's delivery obligation").isTrue();
+    }
+    finally
+    {
+      removeQuietly(server);
+    }
+  }
+
+  @DataProvider
+  public Object[][] receiptCacheResets()
+  {
+    return new Object[][] { { false }, { true } };
+  }
+
+  @Test(dataProvider = "receiptCacheResets")
+  public void boundedReceiptsNeverHideUnknownHistory(boolean newGeneration) throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer server = null;
+    try
+    {
+      server = newReplicationServer(new DSRSShutdownSync(), "boundedPeerReceiptsDb", 8256);
+      final ReplicationServerHandler handler = new ReplicationServerHandler(null, 2, server, 100);
+      handler.setBaseDNAndDomain(baseDN, false);
+      handler.setInitialServerState(new ServerState());
+      handler.setGenerationId(1);
+      final long time = System.currentTimeMillis();
+      final List<CSN> expected = new ArrayList<>();
+      for (int i = 1; i <= 6; i++)
+      {
+        final CSN csn = new CSN(time, i, REMOTE_DS_ID);
+        final DeleteMsg update = new DeleteMsg(baseDN, csn,
+            "22222222-2222-2222-2222-222222222222");
+        if (i % 2 == 1)
+        {
+          handler.recordReceivedUpdate(update);
+        }
+        if (newGeneration || i == 1 || i % 2 == 0)
+        {
+          // The first receipt is evicted; an unknown or forgotten record is sent.
+          expected.add(csn);
+        }
+        server.getChangelogDB().getReplicationDomainDB().publishUpdateMsg(baseDN, update);
+      }
+      if (newGeneration)
+      {
+        handler.setGenerationId(2);
+      }
+      for (CSN csn : expected)
+      {
+        assertThat(handler.getNextMessage().getCSN()).isEqualTo(csn);
+        handler.updatePublishedState(csn);
+      }
+    }
+    finally
+    {
+      removeQuietly(server);
     }
   }
 
