@@ -24,6 +24,7 @@ docker inspect --format '{{json .State}}' "$node" >"$out/state.json" 2>&1 || tru
 docker logs --timestamps "$node" >"$out/container.log" 2>&1 || true
 docker cp "$node:/opt/opendj/data/logs" "$out/" >/dev/null 2>&1 || true
 collect_tool_logs "$node" "$out/tool-logs" || true
+docker cp "$node:/opt/opendj/.bootstrap-failed" "$out/bootstrap-failed" >/dev/null 2>&1 || true
 docker exec "$node" sh -c '
   for file in /sys/fs/cgroup/memory.events /sys/fs/cgroup/memory.events.local \
       /sys/fs/cgroup/memory.current /sys/fs/cgroup/memory.peak /sys/fs/cgroup/memory.max \
@@ -35,8 +36,12 @@ docker exec "$node" sh -c '
   done
   ps -eo pid,ppid,rss,comm 2>/dev/null || true
 ' >"$out/processes-and-memory.txt" 2>&1 || true
-printf '::group::Docker startup diagnostics (%s)\n' "$node"
+printf '::group::Docker diagnostics (%s)\n' "$node"
 cat "$out/state.json" "$out/processes-and-memory.txt"
 [ ! -f "$out/logs/start-ds.log" ] || cat "$out/logs/start-ds.log"
+[ ! -f "$out/logs/errors" ] || tail -n 1000 "$out/logs/errors"
+for file in "$out"/tool-logs/*.log; do
+  [ ! -f "$file" ] || { printf '%s\n' "$file"; cat "$file"; }
+done
 tail -n 100 "$out/container.log"
 printf '::endgroup::\n'

@@ -33,7 +33,11 @@ cd /opt/opendj
 # layer the previous run left behind, so it is cleared before anything else.
 BOOTSTRAP_COMPLETE=${BOOTSTRAP_COMPLETE:-/opt/opendj/.bootstrap-complete}
 export BOOTSTRAP_FAILED=${BOOTSTRAP_FAILED:-/opt/opendj/.bootstrap-failed}
-rm -f "$BOOTSTRAP_COMPLETE" "$BOOTSTRAP_FAILED"
+# Completion of this start is separate from health: a retained volume may serve before
+# its background join repairs membership. Absence of join.sh is not completion either:
+# setup runs first, and there is a gap before the background child starts.
+BOOTSTRAP_FINISHED=${BOOTSTRAP_FINISHED:-/opt/opendj/.bootstrap-finished}
+rm -f "$BOOTSTRAP_COMPLETE" "$BOOTSTRAP_FAILED" "$BOOTSTRAP_FINISHED"
 
 # A replicate.sh or a setup.sh killed before its EXIT trap ran leaves the root password in
 # /dev/shm, and on Kubernetes that outlives the container: the pod keeps its /dev/shm across
@@ -113,6 +117,8 @@ run_join() {
   /opt/opendj/bootstrap/join.sh || rc=$?
   if [ "$rc" -ne 0 ]; then
     printf 'join:%s\n' "$rc" >"$BOOTSTRAP_FAILED"
+  else
+    touch "$BOOTSTRAP_FINISHED" || return 1
   fi
   return "$rc"
 }
@@ -230,6 +236,8 @@ if [ -d ./data/config ]; then
     # the join also repairs membership that changed while no container ran, on every start
     if join_requested; then
       run_join &
+    else
+      touch "$BOOTSTRAP_FINISHED"
     fi
   else
     echo "The upgrade did not complete, this container will not report itself healthy"
@@ -302,6 +310,7 @@ if [ "$BOOTSTRAPPED" = true ]; then
     echo "The instance is bootstrapped, joining the replication topology decides whether it is healthy"
   else
     touch "$BOOTSTRAP_COMPLETE"
+    touch "$BOOTSTRAP_FINISHED"
     echo "The instance is bootstrapped, the health check may probe it"
   fi
 fi
