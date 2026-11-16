@@ -230,6 +230,27 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="server-priority" multi-valued="true">
+    <adm:synopsis>Specifies the selection priority for a remote LDAP server.</adm:synopsis>
+    <adm:description>
+      Values have the form HOST:PORT=PRIORITY, or [IPv6]:PORT=PRIORITY. Priority is a
+      non-negative integer; smaller values are preferred. Servers without an entry have priority
+      zero. This applies to failover and to ties in least-requests within each server group.
+      Static discovery requires an address configured as a primary or secondary server. Replication
+      discovery matches the discovered LDAP address, not the bootstrap administration address, and
+      permits addresses of servers that have not yet been discovered.
+    </adm:description>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:default-behavior><adm:undefined/></adm:default-behavior>
+    <adm:syntax>
+      <adm:string case-insensitive="false"><adm:pattern>
+        <adm:regex>^([A-Za-z0-9._-]+|\\[[0-9A-Za-z:.%_-]+\\]):[0-9]+=[0-9]+$</adm:regex>
+        <adm:usage>HOST:PORT=PRIORITY</adm:usage>
+        <adm:synopsis>A server address and non-negative integer priority.</adm:synopsis>
+      </adm:pattern></adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-server-priority</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
   <adm:property name="primary-load-balancing-algorithm" mandatory="true">
     <adm:synopsis>
       Specifies how requests are distributed among primary remote LDAP servers.

@@ -756,6 +756,44 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
         }
     }
 
+    @Test
+    public void clientBindsRespectServerPriority() throws Exception {
+        final String remoteBase = "dc=userpool";
+        final String proxyBase = "ou=userpool-priority,o=test";
+        final String name = "user-bind-priority";
+        try (LDAPListener first = userAffinityServer("first", "user0", "user1", remoteBase);
+             LDAPListener second = userAffinityServer("second", "user0", "user1", remoteBase)) {
+            final String firstAddress = "127.0.0.1:" + first.firstSocketAddress().getPort();
+            final String secondAddress = "127.0.0.1:" + second.firstSocketAddress().getPort();
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", name,
+                    "--type", "static", "--set", "primary-server:" + firstAddress,
+                    "--set", "primary-server:" + secondAddress, "--set", "primary-load-balancing-algorithm:failover",
+                    "--set", "server-priority:" + firstAddress + "=10", "--set", "use-ssl:false");
+            TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", name,
+                    "--set", "base-dn:" + proxyBase, "--set", "remote-base-dn:" + remoteBase,
+                    "--set", "enabled:true", "--set", "shard:" + name);
+            try {
+                final String dn = "uid=user0," + proxyBase;
+                try (Connection client = factory.getConnection()) {
+                    client.bind(dn, "password".toCharArray());
+                    assertEquals(client.searchSingleEntry(dn, SearchScope.BASE_OBJECT, "(objectClass=*)", "description")
+                            .getAttribute("description").firstValueAsString(), "second");
+                }
+                TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", name,
+                        "--set", "primary-load-balancing-algorithm:least-requests",
+                        "--set", "server-priority:" + secondAddress + "=10");
+                try (Connection client = factory.getConnection()) {
+                    client.bind(dn, "password".toCharArray());
+                    assertEquals(client.searchSingleEntry(dn, SearchScope.BASE_OBJECT, "(objectClass=*)", "description")
+                            .getAttribute("description").firstValueAsString(), "first");
+                }
+            } finally {
+                TestCaseUtils.dsconfig("delete-backend", "--backend-name", name);
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", name);
+            }
+        }
+    }
+
     private LDAPListener userAffinityServer(String label, String first, String second, String base) throws Exception {
         return userAffinityServer(label, first, second, base, "password");
     }
@@ -1882,6 +1920,210 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
         try (Connection connection = factory.getConnection()) {
             return connection.searchSingleEntry("uid=user", SearchScope.BASE_OBJECT,
                     "(objectClass=*)", "description").getAttribute("description").firstValueAsString();
+        }
+    }
+
+    @Test
+    public void appliesServerPrioritiesToFailoverAndLeastRequests() throws Exception {
+        try (LDAPListener first = testServer("priority-first"); LDAPListener second = testServer("priority-second")) {
+            final String name = "server-priority-test";
+            final String firstAddress = "127.0.0.1:" + first.firstSocketAddress().getPort();
+            final String secondAddress = "127.0.0.1:" + second.firstSocketAddress().getPort();
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", name, "--type", "static",
+                    "--set", "bind-dn:cn=service", "--set", "bind-password:service-password",
+                    "--set", "primary-server:" + firstAddress, "--set", "primary-server:" + secondAddress,
+                    "--set", "primary-load-balancing-algorithm:failover",
+                    "--set", "server-priority:" + firstAddress + "=10");
+            final ProxyBackendCfg configuration = mockCfg(ProxyBackendCfg.class);
+            when(configuration.getShard()).thenReturn(name);
+            final ProxyBackend backend = new ProxyBackend();
+            backend.configureBackend(configuration, TestCaseUtils.getServerContext());
+            backend.openBackend();
+            try {
+                assertEquals(readBackendLabel(backendFactory(backend, "factory")), "priority-second");
+                try (Connection bind = backendFactory(backend, "bindFactory").getConnection()) {
+                    assertEquals(bind.bind("uid=user", "priority-second-password".toCharArray()).getResultCode(),
+                            ResultCode.SUCCESS);
+                }
+                TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", name,
+                        "--set", "server-priority:" + secondAddress + "=20");
+                assertEquals(readBackendLabel(backendFactory(backend, "factory")), "priority-first");
+                final String configDN = "cn=" + name + ",cn=Service Discovery Mechanisms,cn=config";
+                for (String[] invalid : new String[][] {
+                        {firstAddress + "=-1"}, {firstAddress + "=2147483648"},
+                        {firstAddress + "=1", firstAddress + "=2"}, {"not-an-address=1"},
+                        {"bad host:389=1"}, {"[not::ipv6]:389=1"}, {"[2001:::1]:389=1"},
+                        {"999.999.999.999:389=1"}, {"...:389=1"}, {"127.0.0.1:1=5"}}) {
+                    final ResultCode code = getRootConnection().processModify(Requests.newModifyRequest(configDN)
+                            .addModification(ModificationType.REPLACE, "ds-cfg-server-priority", invalid))
+                            .getResultCode();
+                    Assert.assertNotEquals(code, ResultCode.SUCCESS, "Invalid priorities must be rejected");
+                }
+                assertEquals(readBackendLabel(backendFactory(backend, "factory")), "priority-first");
+                TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", name,
+                        "--set", "primary-load-balancing-algorithm:least-requests");
+                assertEquals(readBackendLabel(backendFactory(backend, "factory")), "priority-first");
+            } finally {
+                backend.finalizeBackend();
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", name);
+            }
+        }
+    }
+
+    @Test
+    public void rejectsPrioritiesForServersNotInStaticDiscovery() throws Exception {
+        final String name = "unknown-static-priority";
+        TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", name, "--type", "static",
+                "--set", "primary-server:127.0.0.1:1389", "--set", "primary-server:127.0.0.1:1391");
+        try {
+            final String configDN = "cn=" + name + ",cn=Service Discovery Mechanisms,cn=config";
+            final ResultCode result = getRootConnection().processModify(Requests.newModifyRequest(configDN)
+                    .addModification(ModificationType.REPLACE, "ds-cfg-server-priority", "127.0.0.1:1390=10"))
+                    .getResultCode();
+            Assert.assertNotEquals(result, ResultCode.SUCCESS, "An unconfigured static server must be rejected");
+            TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", name,
+                    "--set", "server-priority:127.0.0.1:1389=10");
+            final ResultCode removal = getRootConnection().processModify(Requests.newModifyRequest(configDN)
+                    .addModification(ModificationType.DELETE, "ds-cfg-primary-server", "127.0.0.1:1389"))
+                    .getResultCode();
+            Assert.assertNotEquals(removal, ResultCode.SUCCESS, "A referenced server must not be removed alone");
+            final ResultCode combined = getRootConnection().processModify(Requests.newModifyRequest(configDN)
+                    .addModification(ModificationType.DELETE, "ds-cfg-primary-server", "127.0.0.1:1389")
+                    .addModification(ModificationType.DELETE, "ds-cfg-server-priority", "127.0.0.1:1389=10"))
+                    .getResultCode();
+            assertEquals(combined, ResultCode.SUCCESS);
+        } finally {
+            TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", name);
+        }
+    }
+
+    @Test
+    public void leastRequestsPrefersLowerLoadOverServerPriority() throws Exception {
+        final CountDownLatch entered = new CountDownLatch(1);
+        final CountDownLatch release = new CountDownLatch(1);
+        final org.forgerock.opendj.ldap.MemoryBackend memory = new org.forgerock.opendj.ldap.MemoryBackend(new LDIFEntryReader(
+                "dn:", "objectClass: top", "objectClass: extensibleObject", "",
+                "dn: cn=service", "objectClass: top", "objectClass: person", "cn: service", "sn: service",
+                "userPassword: service-password", "",
+                "dn: uid=user", "objectClass: top", "objectClass: person", "uid: user", "sn: user", "cn: user",
+                "description: busy", ""));
+        final RequestHandlerFactory<LDAPClientContext, RequestContext> handlers = client -> {
+            @SuppressWarnings("unchecked")
+            final RequestHandler<RequestContext> handler = (RequestHandler<RequestContext>)
+                    java.lang.reflect.Proxy.newProxyInstance(RequestHandler.class.getClassLoader(),
+                            new Class<?>[] {RequestHandler.class}, (proxy, method, args) -> {
+                                if (method.getName().equals("handleSearch")
+                                        && ((SearchRequest) args[1]).getName().equals(DN.valueOf("uid=user"))) {
+                                    entered.countDown();
+                                    if (!release.await(20, TimeUnit.SECONDS)) {
+                                        throw new IllegalStateException("The search was not released");
+                                    }
+                                }
+                                try {
+                                    return method.invoke(memory, args);
+                                } catch (java.lang.reflect.InvocationTargetException e) {
+                                    throw e.getCause();
+                                }
+                            });
+            return handler;
+        };
+        final Options options = Options.defaultOptions();
+        final ExecutorService executor = Executors.newSingleThreadExecutor();
+        final String name = "server-priority-load-test";
+        try (LDAPListener busy = new LDAPListener(Collections.singleton(new InetSocketAddress("127.0.0.1", 0)),
+                new ServerConnectionFactoryAdapter(options.get(CommonLDAPOptions.LDAP_DECODE_OPTIONS),
+                        Connections.newServerConnectionFactory(handlers)), options);
+             LDAPListener idle = testServer("idle")) {
+            final String busyAddress = "127.0.0.1:" + busy.firstSocketAddress().getPort();
+            final String idleAddress = "127.0.0.1:" + idle.firstSocketAddress().getPort();
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", name, "--type", "static",
+                    "--set", "bind-dn:cn=service", "--set", "bind-password:service-password",
+                    "--set", "primary-server:" + busyAddress, "--set", "primary-server:" + idleAddress,
+                    "--set", "primary-load-balancing-algorithm:least-requests",
+                    "--set", "server-priority:" + idleAddress + "=10");
+            final ProxyBackendCfg configuration = mockCfg(ProxyBackendCfg.class);
+            when(configuration.getShard()).thenReturn(name);
+            final ProxyBackend backend = new ProxyBackend();
+            backend.configureBackend(configuration, TestCaseUtils.getServerContext());
+            try {
+                final Future<String> active = executor.submit(() -> readBackendLabel(backendFactory(backend, "factory")));
+                assertTrue(entered.await(5, TimeUnit.SECONDS));
+                assertEquals(readBackendLabel(backendFactory(backend, "factory")), "idle");
+                release.countDown();
+                assertEquals(active.get(5, TimeUnit.SECONDS), "busy");
+            } finally {
+                release.countDown();
+                backend.finalizeBackend();
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", name);
+            }
+        } finally {
+            release.countDown();
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    public void serverPriorityAlsoAppliesWithinSecondaryTier() throws Exception {
+        final String name = "secondary-server-priority-test";
+        try (LDAPListener first = testServer("secondary-first"); LDAPListener second = testServer("secondary-second");
+             ServerSocket unused = new ServerSocket(0)) {
+            final int unavailablePort = unused.getLocalPort();
+            unused.close();
+            final String firstAddress = "127.0.0.1:" + first.firstSocketAddress().getPort();
+            final String secondAddress = "127.0.0.1:" + second.firstSocketAddress().getPort();
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", name, "--type", "static",
+                    "--set", "bind-dn:cn=service", "--set", "bind-password:service-password",
+                    "--set", "primary-server:127.0.0.1:" + unavailablePort,
+                    "--set", "secondary-server:" + firstAddress, "--set", "secondary-server:" + secondAddress,
+                    "--set", "secondary-load-balancing-algorithm:failover",
+                    "--set", "server-priority:" + firstAddress + "=10");
+            final ProxyBackendCfg configuration = mockCfg(ProxyBackendCfg.class);
+            when(configuration.getShard()).thenReturn(name);
+            final ProxyBackend backend = new ProxyBackend();
+            backend.configureBackend(configuration, TestCaseUtils.getServerContext());
+            backend.openBackend();
+            try {
+                assertEquals(readBackendLabel(backendFactory(backend, "factory")), "secondary-second");
+                TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", name,
+                        "--set", "secondary-load-balancing-algorithm:least-requests",
+                        "--set", "server-priority:" + secondAddress + "=10");
+                assertEquals(readBackendLabel(backendFactory(backend, "factory")), "secondary-first");
+            } finally {
+                backend.finalizeBackend();
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", name);
+            }
+        }
+    }
+
+    @Test
+    public void serverPriorityDoesNotReorderOtherAlgorithms() throws Exception {
+        final String name = "unaffected-server-algorithms-test";
+        try (LDAPListener first = testServer("unaffected-first"); LDAPListener second = testServer("unaffected-second")) {
+            final String firstAddress = "127.0.0.1:" + first.firstSocketAddress().getPort();
+            final String secondAddress = "127.0.0.1:" + second.firstSocketAddress().getPort();
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", name, "--type", "static",
+                    "--set", "bind-dn:cn=service", "--set", "bind-password:service-password",
+                    "--set", "primary-server:" + firstAddress, "--set", "primary-server:" + secondAddress);
+            final ProxyBackendCfg configuration = mockCfg(ProxyBackendCfg.class);
+            when(configuration.getShard()).thenReturn(name);
+            final ProxyBackend backend = new ProxyBackend();
+            backend.configureBackend(configuration, TestCaseUtils.getServerContext());
+            backend.openBackend();
+            try {
+                for (String algorithm : Arrays.asList("affinity", "distribution", "round-robin")) {
+                    TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", name,
+                            "--set", "primary-load-balancing-algorithm:" + algorithm,
+                            "--reset", "server-priority");
+                    final String before = readBackendLabel(backendFactory(backend, "factory"));
+                    TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", name,
+                            "--set", "server-priority:" + firstAddress + "=10",
+                            "--set", "server-priority:" + secondAddress + "=20");
+                    assertEquals(readBackendLabel(backendFactory(backend, "factory")), before, algorithm);
+                }
+            } finally {
+                backend.finalizeBackend();
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", name);
+            }
         }
     }
 

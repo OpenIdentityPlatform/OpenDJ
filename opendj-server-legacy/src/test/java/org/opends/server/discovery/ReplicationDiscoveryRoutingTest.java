@@ -16,15 +16,27 @@
 package org.opends.server.discovery;
 
 import java.util.Collections;
+import java.util.Arrays;
+import java.net.InetSocketAddress;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LDAPListener;
+import org.forgerock.opendj.ldap.LDAPClientContext;
+import org.forgerock.opendj.ldap.CommonLDAPOptions;
+import org.forgerock.opendj.ldap.Connections;
+import org.forgerock.opendj.ldap.MemoryBackend;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.server.config.server.ReplicationServiceDiscoveryMechanismCfg;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.ldif.LDIFEntryReader;
+import org.forgerock.util.Options;
+import com.forgerock.reactive.ServerConnectionFactoryAdapter;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.ProxyBackendLdapAssertions;
@@ -54,7 +66,20 @@ public class ReplicationDiscoveryRoutingTest extends DirectoryServerTestCase {
         @Override
         public void initializeMechanism(ReplicationServiceDiscoveryMechanismCfg configuration, ServerContext context) {
             cfg = configuration;
+            configuration.addReplicationChangeListener(this);
             instance = this;
+        }
+
+        @Override
+        public ConfigChangeResult applyConfigurationChange(ReplicationServiceDiscoveryMechanismCfg configuration) {
+            cfg = configuration;
+            notifyChangeListeners();
+            return new ConfigChangeResult();
+        }
+
+        @Override
+        public void finalizeMechanism() {
+            cfg.removeReplicationChangeListener(this);
         }
 
         @Override
@@ -67,6 +92,13 @@ public class ReplicationDiscoveryRoutingTest extends DirectoryServerTestCase {
                     ? Collections.singletonList(new ReplicationTopology.Replica(DN.valueOf(REMOTE),
                         new HostPort("localhost", TestCaseUtils.getServerLdapPort()), 1))
                     : Collections.emptyList());
+            notifyChangeListeners();
+        }
+
+        void publish(int firstPort, int secondPort) {
+            snapshot = ReplicationTopology.create("test", null, Arrays.asList(
+                    new ReplicationTopology.Replica(DN.valueOf(REMOTE), new HostPort("127.0.0.1", firstPort), 1),
+                    new ReplicationTopology.Replica(DN.valueOf(REMOTE), new HostPort("127.0.0.1", secondPort), 1)));
             notifyChangeListeners();
         }
     }
@@ -117,6 +149,71 @@ public class ReplicationDiscoveryRoutingTest extends DirectoryServerTestCase {
                 assertEquals(expected.getResult().getResultCode(), ResultCode.UNAVAILABLE);
             }
         }
+    }
+
+    @Test
+    public void appliesPrioritiesToDiscoveredReplicasAndConfigurationChanges() throws Exception {
+        try (LDAPListener first = replica("first"); LDAPListener second = replica("second");
+             LDAPConnectionFactory proxy = new LDAPConnectionFactory("localhost", TestCaseUtils.getServerLdapPort());
+             Connection client = proxy.getConnection()) {
+            final int firstPort = first.firstSocketAddress().getPort();
+            final int secondPort = second.firstSocketAddress().getPort();
+            TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", "replication-routing-test",
+                    "--set", "operation-identity-mode:specific", "--set", "primary-load-balancing-algorithm:failover",
+                    "--set", "server-priority:127.0.0.1:" + firstPort + "=10",
+                    "--set", "server-priority:[::1]:1389=20");
+            Fixture.instance.publish(firstPort, secondPort);
+            client.bind("cn=Directory Manager", "password".toCharArray());
+            assertEquals(client.searchSingleEntry("uid=rewrite-user," + PROXY, SearchScope.BASE_OBJECT,
+                    "(objectClass=*)", "description").getAttribute("description").firstValueAsString(), "second");
+            TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", "replication-routing-test",
+                    "--set", "server-priority:127.0.0.1:" + secondPort + "=10");
+            assertEquals(client.searchSingleEntry("uid=rewrite-user," + PROXY, SearchScope.BASE_OBJECT,
+                    "(objectClass=*)", "description").getAttribute("description").firstValueAsString(), "first");
+        } finally {
+            TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", "replication-routing-test",
+                    "--reset", "server-priority", "--reset", "operation-identity-mode",
+                    "--reset", "primary-load-balancing-algorithm");
+            Fixture.instance.publish(false);
+        }
+    }
+
+    @Test
+    public void preservesCaseDistinctIpv6ZonePrioritiesInConfiguration() throws Exception {
+        final String lower = "[fe80::1%eth0]:389=20";
+        final String upper = "[fe80::1%ETH0]:389=20";
+        try {
+            TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", "replication-routing-test",
+                    "--set", "server-priority:" + lower, "--set", "server-priority:" + upper);
+            assertEquals(Fixture.instance.cfg.getServerPriority().size(), 2);
+            try (LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", TestCaseUtils.getServerLdapPort());
+                 Connection client = factory.getConnection()) {
+                client.bind("cn=Directory Manager", "password".toCharArray());
+                final org.forgerock.opendj.ldap.Attribute values = client.searchSingleEntry(
+                        "cn=replication-routing-test,cn=Service Discovery Mechanisms,cn=config",
+                        SearchScope.BASE_OBJECT, "(objectClass=*)", "ds-cfg-server-priority")
+                        .getAttribute("ds-cfg-server-priority");
+                assertEquals(values.size(), 2);
+            }
+        } finally {
+            TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", "replication-routing-test",
+                    "--reset", "server-priority");
+        }
+    }
+
+    private LDAPListener replica(String label) throws Exception {
+        final MemoryBackend memory = new MemoryBackend(new LDIFEntryReader(
+                "dn:", "objectClass: top", "objectClass: extensibleObject", "",
+                "dn: cn=Directory Manager", "objectClass: top", "objectClass: person", "cn: Directory Manager",
+                "sn: Manager", "userPassword: password", "",
+                "dn: " + REMOTE, "objectClass: top", "objectClass: organizationalUnit", "ou: replication-remote", "",
+                "dn: uid=rewrite-user," + REMOTE, "objectClass: top", "objectClass: person",
+                "objectClass: organizationalPerson", "objectClass: inetOrgPerson", "uid: rewrite-user",
+                "cn: Rewrite User", "sn: User", "displayName: " + label, ""));
+        final Options options = Options.defaultOptions();
+        return new LDAPListener(Collections.singleton(new InetSocketAddress("127.0.0.1", 0)),
+                new ServerConnectionFactoryAdapter(options.get(CommonLDAPOptions.LDAP_DECODE_OPTIONS),
+                        Connections.<LDAPClientContext>newServerConnectionFactory(memory)), options);
     }
 
     @AfterClass(alwaysRun = true)

@@ -21,19 +21,69 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.types.HostPort;
+import org.forgerock.opendj.server.config.server.ReplicationServiceDiscoveryMechanismCfg;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
+import static org.mockito.Mockito.when;
 
 @Test(sequential = true)
 public class ReplicationTopologyTest extends DirectoryServerTestCase {
+    @Test
+    public void rejectsMalformedPriorityAddressesBeforeTheyAreDiscovered() {
+        for (String value : Arrays.asList("bad host:389=1", "999.999.999.999:389=1", "...:389=1",
+                "[not::ipv6]:389=1", "[2001:::1]:389=1")) {
+            try {
+                ServerPriorities.parse(Collections.singleton(value));
+                fail("Invalid address accepted: " + value);
+            } catch (IllegalArgumentException expected) {
+                // An unresolvable but syntactically valid host remains allowed.
+            }
+        }
+        ServerPriorities.parse(Arrays.asList("future.example:389=1", "ldap_server.example:389=1",
+                "[2001:db8::1]:636=2"));
+    }
+
+    @Test
+    public void acceptsConfiguredAddressFormsAndPreservesIpv6ZoneCase() {
+        ServerPriorities.parse(Arrays.asList("127.1:389=10", "[fe80::1%eth0]:389=20",
+                "[fe80::1%ETH0]:389=30"))
+                .validateStaticServers(Arrays.asList("127.1:389", "[fe80::1%eth0]:389",
+                        "[fe80::1%ETH0]:389", "-other-configured-host-:389"), Collections.emptyList());
+    }
+    @Test
+    public void priorityChangesPreserveTheDiscoveredTopology() throws Exception {
+        final DN base = DN.valueOf("dc=example,dc=com");
+        final HostPort address = HostPort.valueOf("localhost:1389");
+        final ReplicationTopology topology = ReplicationTopology.create("test", null, Collections.singletonList(
+                new ReplicationTopology.Replica(base, address, 1)));
+        final ReplicationServiceDiscoveryMechanism mechanism = new ReplicationServiceDiscoveryMechanism();
+        final ReplicationServiceDiscoveryMechanismCfg previous = mockCfg(ReplicationServiceDiscoveryMechanismCfg.class);
+        final ReplicationServiceDiscoveryMechanismCfg updated = mockCfg(ReplicationServiceDiscoveryMechanismCfg.class);
+        when(updated.getServerPriority()).thenReturn(new TreeSet<>(Collections.singleton("localhost:1389=10")));
+        mechanism.cfg = previous;
+        final Field field = ReplicationServiceDiscoveryMechanism.class.getDeclaredField("topology");
+        field.setAccessible(true);
+        field.set(mechanism, topology);
+        try {
+            mechanism.applyConfigurationChange(updated);
+            assertEquals(mechanism.getPartition(base).getPrimaryServers().size(), 1,
+                    "A priority-only change must not discard discovered replicas");
+        } finally {
+            mechanism.finalizeMechanism();
+        }
+    }
     @Test
     public void resolvesReplicationLoopbackAddressesAgainstTheOwningServer() throws Exception {
         final Method method = ReplicationServiceDiscoveryMechanism.class.getDeclaredMethod(

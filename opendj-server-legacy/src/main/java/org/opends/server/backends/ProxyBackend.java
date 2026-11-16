@@ -43,6 +43,7 @@ import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.*;
 import org.opends.server.discovery.Partition;
 import org.opends.server.discovery.ReplicationServiceDiscoveryMechanism;
+import org.opends.server.discovery.ServerPriorities;
 import org.opends.server.discovery.ServiceDiscoveryChangeListener;
 import org.opends.server.discovery.ServiceDiscoveryMechanism;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -122,13 +123,15 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 .getMechanism(configuration.getShard());
 
         final Partition partition=discoveryMechanism.getPartition();
+        final ProxyLoadBalancingAlgorithm primaryAlgorithm = primaryLoadBalancingAlgorithm(discoveryMechanism);
+        final ProxyLoadBalancingAlgorithm secondaryAlgorithm = secondaryLoadBalancingAlgorithm(discoveryMechanism);
 
         final List<ConnectionFactory> primaryBind = new LinkedList<>();
         final List<ConnectionFactory> secondaryBind = new LinkedList<>();
         final List<ConnectionFactory> primary = new LinkedList<>();
         final List<ConnectionFactory> secondary = new LinkedList<>();
         if (partition!=null) {
-            for (Partition.Server server : partition.getPrimaryServers()) {
+            for (Partition.Server server : orderedTier(partition.getPrimaryServers(), discoveryMechanism, primaryAlgorithm)) {
                 primaryBind.add(new LDAPConnectionFactory(server.getHostPort().getHost(), server.getHostPort().getPort(),
                         connectionOptions(server, configuration)
                 ));
@@ -137,7 +140,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                                 .set(AUTHN_BIND_REQUEST, newSimpleBindRequest(discoveryMechanism.cfg.getBindDN().toString(), discoveryMechanism.cfg.getBindPassword().toCharArray()))
                 ), configuration));
             }
-            for (Partition.Server server : partition.getSecondaryServers()) {
+            for (Partition.Server server : orderedTier(partition.getSecondaryServers(), discoveryMechanism, secondaryAlgorithm)) {
                 secondaryBind.add(new LDAPConnectionFactory(server.getHostPort().getHost(), server.getHostPort().getPort(),
                         connectionOptions(server, configuration)
                 ));
@@ -148,8 +151,6 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             }
         }
 
-        final ProxyLoadBalancingAlgorithm primaryAlgorithm = primaryLoadBalancingAlgorithm(discoveryMechanism);
-        final ProxyLoadBalancingAlgorithm secondaryAlgorithm = secondaryLoadBalancingAlgorithm(discoveryMechanism);
         final ConnectionFactory newBindFactory = prioritizedLoadBalancer(primaryBind, secondaryBind,
                 primaryAlgorithm, secondaryAlgorithm, configuration);
         final ConnectionFactory newFactory = prioritizedLoadBalancer(primary, secondary,
@@ -286,6 +287,14 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
         DISTRIBUTION
     }
 
+    private static Collection<Partition.Server> orderedTier(Collection<Partition.Server> servers,
+            ServiceDiscoveryMechanism<?> mechanism, ProxyLoadBalancingAlgorithm algorithm) {
+        if (algorithm == ProxyLoadBalancingAlgorithm.FAILOVER || algorithm == ProxyLoadBalancingAlgorithm.LEAST_REQUESTS) {
+            return ServerPriorities.parse(mechanism.cfg.getServerPriority()).order(servers);
+        }
+        return servers;
+    }
+
     private static ProxyLoadBalancingAlgorithm primaryLoadBalancingAlgorithm(
             ServiceDiscoveryMechanism<?> mechanism) {
         final PrimaryLoadBalancingAlgorithm configured = mechanism.cfg.getPrimaryLoadBalancingAlgorithm();
@@ -337,9 +346,11 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             this.bind = bind;
             this.authenticated = authenticated;
             this.servers = orderedServers(partition);
-            this.primaryUserBindTier = new UserBindTier(primaryServers(partition),
+            this.primaryUserBindTier = new UserBindTier(orderedTier(primaryServers(partition), mechanism,
+                    primaryLoadBalancingAlgorithm(mechanism)),
                     primaryLoadBalancingAlgorithm(mechanism));
-            this.secondaryUserBindTier = new UserBindTier(secondaryServers(partition),
+            this.secondaryUserBindTier = new UserBindTier(orderedTier(secondaryServers(partition), mechanism,
+                    secondaryLoadBalancingAlgorithm(mechanism)),
                     secondaryLoadBalancingAlgorithm(mechanism));
             this.userBindTiers = userBindTiers(primaryUserBindTier, secondaryUserBindTier);
             this.hasServiceCredentials = hasServiceCredentials(mechanism);
@@ -352,15 +363,17 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             final List<ConnectionFactory> secondaryBind = new ArrayList<>();
             final List<ConnectionFactory> primary = new ArrayList<>();
             final List<ConnectionFactory> secondary = new ArrayList<>();
-            addServers(partition.getPrimaryServers(), mechanism, configuration, primaryBind, primary);
-            addServers(partition.getSecondaryServers(), mechanism, configuration, secondaryBind, secondary);
             final ProxyLoadBalancingAlgorithm primaryAlgorithm = primaryLoadBalancingAlgorithm(mechanism);
             final ProxyLoadBalancingAlgorithm secondaryAlgorithm = secondaryLoadBalancingAlgorithm(mechanism);
+            final Collection<Partition.Server> orderedPrimary = orderedTier(partition.getPrimaryServers(), mechanism, primaryAlgorithm);
+            final Collection<Partition.Server> orderedSecondary = orderedTier(partition.getSecondaryServers(), mechanism, secondaryAlgorithm);
+            addServers(orderedPrimary, mechanism, configuration, primaryBind, primary);
+            addServers(orderedSecondary, mechanism, configuration, secondaryBind, secondary);
             bind = prioritizedLoadBalancer(primaryBind, secondaryBind, primaryAlgorithm, secondaryAlgorithm, configuration);
             authenticated = prioritizedLoadBalancer(primary, secondary, primaryAlgorithm, secondaryAlgorithm, configuration);
             servers = orderedServers(partition);
-            primaryUserBindTier = new UserBindTier(primaryServers(partition), primaryAlgorithm);
-            secondaryUserBindTier = new UserBindTier(secondaryServers(partition), secondaryAlgorithm);
+            primaryUserBindTier = new UserBindTier(orderedPrimary, primaryAlgorithm);
+            secondaryUserBindTier = new UserBindTier(orderedSecondary, secondaryAlgorithm);
             userBindTiers = userBindTiers(primaryUserBindTier, secondaryUserBindTier);
             hasServiceCredentials = hasServiceCredentials(mechanism);
             configuredIdentityMode = configuredIdentityMode(mechanism);

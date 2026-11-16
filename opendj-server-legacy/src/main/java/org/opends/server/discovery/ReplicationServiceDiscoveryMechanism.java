@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -117,6 +118,13 @@ public class ReplicationServiceDiscoveryMechanism extends ServiceDiscoveryMechan
 
     @Override
     public synchronized ConfigChangeResult applyConfigurationChange(ReplicationServiceDiscoveryMechanismCfg configuration) {
+        if (cfg != null && hasSameDiscoveryConfiguration(cfg, configuration)) {
+            cfg = configuration;
+            notifyChangeListeners();
+            // A refresh using the previous configuration is discarded; schedule a replacement now.
+            restartDiscovery();
+            return new ConfigChangeResult();
+        }
         cfg = configuration;
         cachedNodes = Collections.emptyMap();
         topology = ReplicationTopology.create(configuration.name(), configuration.getPrimaryGroupId(),
@@ -127,12 +135,30 @@ public class ReplicationServiceDiscoveryMechanism extends ServiceDiscoveryMechan
         return new ConfigChangeResult();
     }
 
+    private static boolean hasSameDiscoveryConfiguration(ReplicationServiceDiscoveryMechanismCfg a,
+                                                          ReplicationServiceDiscoveryMechanismCfg b) {
+        return Objects.equals(a.getJavaClass(), b.getJavaClass())
+                && Objects.equals(a.getBootstrapReplicationServer(), b.getBootstrapReplicationServer())
+                && a.getDiscoveryInterval() == b.getDiscoveryInterval()
+                && Objects.equals(a.getPrimaryGroupId(), b.getPrimaryGroupId())
+                && Objects.equals(a.getBindDN(), b.getBindDN())
+                && Objects.equals(a.getBindPassword(), b.getBindPassword())
+                && Objects.equals(a.getTrustManagerProviderDN(), b.getTrustManagerProviderDN())
+                && a.isUseSSL() == b.isUseSSL();
+    }
+
     @Override
     public boolean isConfigurationAcceptable(ReplicationServiceDiscoveryMechanismCfg configuration,
                                       List<LocalizableMessage> reasons, ServerContext context) {
         if (configuration.getBindDN() == null || configuration.getBindDN().isRootDN()
                 || configuration.getBindPassword() == null || configuration.getBindPassword().isEmpty()) {
             reasons.add(LocalizableMessage.raw("Replication discovery requires bind-dn and bind-password"));
+            return false;
+        }
+        try {
+            ServerPriorities.parse(configuration.getServerPriority());
+        } catch (IllegalArgumentException e) {
+            reasons.add(LocalizableMessage.raw(e.getMessage()));
             return false;
         }
         try {

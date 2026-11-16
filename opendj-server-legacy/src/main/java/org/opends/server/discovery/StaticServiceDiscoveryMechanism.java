@@ -99,6 +99,13 @@ public class StaticServiceDiscoveryMechanism extends ServiceDiscoveryMechanism<S
     @Override
     public boolean isConfigurationAcceptable(StaticServiceDiscoveryMechanismCfg configuration,
                                       List<LocalizableMessage> reasons, ServerContext context) {
+        try {
+            ServerPriorities.parse(configuration.getServerPriority()).validateStaticServers(
+                    configuration.getPrimaryServer(), configuration.getSecondaryServer());
+        } catch (IllegalArgumentException e) {
+            reasons.add(LocalizableMessage.raw(e.getMessage()));
+            return false;
+        }
         if ((configuration.getBindDN() == null) != (configuration.getBindPassword() == null)) {
             reasons.add(LocalizableMessage.raw("bind-dn and bind-password must be specified together"));
             return false;

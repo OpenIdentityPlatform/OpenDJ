@@ -266,7 +266,7 @@ bin/dsconfig set-service-discovery-mechanism-prop \
 
 |`failover`
 |Starts with the first available server in the order supplied by discovery and uses the next server after a connection failure.
-|This is not load distribution: the first available server receives most traffic. The order in which server values are entered is not preserved as an explicit priority; do not rely on it to select a designated server. A recovered server becomes eligible again. Existing client-mode sessions remain bound to their selected server.
+|This is not load distribution: the first available server receives most traffic. Configure `server-priority` to prefer a particular server; the order in which server values are entered is not an explicit priority. A recovered server becomes eligible again. Existing client-mode sessions remain bound to their selected server.
 
 |`distribution`
 |Uses consistent hashing of the full target DN across fully replicated servers. Adding or removing a server moves only part of the DN space. Requests without a target DN select a server at random.
@@ -274,6 +274,23 @@ bin/dsconfig set-service-discovery-mechanism-prop \
 |===
 
 `affinity`, `least-requests`, and `distribution` select a server at request level. They use virtual connections, so LDAP abandon requests cannot be routed and are ignored. All five algorithms retry connection acquisition within the current group before the proxy proceeds to secondary servers. These algorithms do not provide weights, per-operation priorities, or an external health-check policy; size remote connection pools, timeouts, and replica capacity for the selected policy.
+
+==== Set Server Priorities
+
+Both static and replication discovery accept the optional, multi-valued `server-priority` property. Each value associates an LDAP server address with a non-negative 32-bit integer. Lower numbers are preferred. An address without an entry has priority `0`, so it is preferred to a server with a positive priority. For example, after adding these servers to a static discovery mechanism:
+
+[source,bash]
+----
+bin/dsconfig set-service-discovery-mechanism-prop \
+  --mechanism-name directory-servers \
+  --set server-priority:ldap1.example.com:636=0 \
+  --set server-priority:ldap2.example.com:636=10 \
+  --set 'server-priority:[2001:db8::1]:636=20' --no-prompt
+----
+
+For `failover`, the first available server with the lowest priority number is used. For `least-requests`, the fewest active requests decide first, and priority breaks a tie. A server with fewer active requests can therefore be selected even if its priority number is higher. The SDK affinity control, when passed through on a service-account request, overrides least-requests and selects a route by index; changing priorities can change that mapping. The priority is applied separately within each group: all primary candidates are exhausted before secondary candidates are tried. It applies to service-account operations and client binds. Changing priorities replaces the route; clients with existing client-bound sessions must bind again.
+
+Use the remote LDAP address and port, not a replication bootstrap administration address. Static discovery requires every priority address to appear in `primary-server` or `secondary-server`; remove its priority in the same configuration change when removing the server. Replication discovery may receive priorities for servers not yet discovered; they take effect when the matching LDAP address appears. Matching ignores case in host names but does not resolve aliases: use the address reported by discovery, including brackets around IPv6 addresses. IPv6 zone identifiers are case-sensitive. Duplicate address entries and invalid or out-of-range priorities are rejected. If any priority is configured, equal priorities are ordered by address; otherwise discovery order is preserved. Priority changes do not reorder `affinity`, `distribution`, or `round-robin` selections.
 
 ==== Select the Operation Identity
 
