@@ -59,10 +59,16 @@ fi
 docker() {
   case $1 in
     inspect) echo healthy; return "${INSPECT_RC:-0}" ;;
-    exec) [ "${EXEC_RC:-0}" -eq 0 ] || return "$EXEC_RC"; shift 2; BOOTSTRAP_FAILED="$OUT/bootstrap-failed" "$@" ;;
+    exec) [ "${EXEC_RC:-0}" -eq 0 ] || return "$EXEC_RC"; shift 2; BOOTSTRAP_FAILED="$OUT/bootstrap-failed" BOOTSTRAP_FINISHED="$OUT/bootstrap-finished" "$@" ;;
     *) return 1 ;;
   esac
 }
+# Setup has not launched join.sh yet: absence of a join process is not completion.
+if bootstrap_ended node; then
+  echo 'setup before join counted as a completed bootstrap' >&2; exit 1
+fi
+touch "$OUT/bootstrap-finished"
+bootstrap_ended node || { echo 'successful bootstrap rejected' >&2; exit 1; }
 is_healthy node
 printf 'join:8\n' >"$OUT/bootstrap-failed"
 rc=0; is_healthy node || rc=$?
@@ -71,6 +77,9 @@ rc=0; bootstrap_ended node || rc=$?
 [ "$rc" -eq 200 ] || { echo 'failed join counted as successfully ended' >&2; exit 1; }
 rm "$OUT/bootstrap-failed"
 for code in 1 2 124 137; do
+  if EXEC_RC=$code bootstrap_ended node; then
+    echo 'failed Docker marker read counted as a completed bootstrap' >&2; exit 1
+  fi
   if EXEC_RC=$code is_healthy node; then
     echo 'failed Docker marker read counted as healthy' >&2; exit 1
   fi

@@ -185,12 +185,11 @@ started_since() { # <container> <seconds>
 
 # The background join of the image goes on once the container reports itself healthy: it adds
 # replication servers to the replication server lists while its peers register
-# (repair_replication_servers in join.sh). Ended once no bootstrap script runs any more, as
-# docker-test-replication.sh waits for it
+# (repair_replication_servers in join.sh). Only the wrapper's successful result proves
+# completion: no join process also means setup has not launched it yet.
 bootstrap_ended() { # <container>
-  # Invert grep inside the container, not docker itself: a Docker failure or deadline
-  # must never be mistaken for the absence of a bootstrap process.
-  docker exec "$1" sh -c "test ! -f \"\${BOOTSTRAP_FAILED:-/opt/opendj/.bootstrap-failed}\" || exit 200; grep -qs -e 'bootstrap/[j]oin\.sh' -e 'bootstrap/[r]eplicate\.sh' /proc/[0-9]*/cmdline; rc=\$?; [ \$rc -eq 1 ]"
+  docker exec "$1" sh -c 'test ! -f "${BOOTSTRAP_FAILED:-/opt/opendj/.bootstrap-failed}" || exit 200;
+    test -f "${BOOTSTRAP_FINISHED:-/opt/opendj/.bootstrap-finished}"'
 }
 
 ldaps_search() { # <container> <base DN> <scope> <filter> [<attribute>...]
