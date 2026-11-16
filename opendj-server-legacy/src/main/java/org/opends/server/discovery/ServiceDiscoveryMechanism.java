@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -59,7 +60,11 @@ public abstract class ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechan
    * @param serverContext the server context of this Directory Server instance
    * @return if the provided configuration is correct for the mechanism.
    */
+  // Default hook for providers without additional configuration constraints.
   public boolean isConfigurationAcceptable(C configuration, List<LocalizableMessage> unacceptableReasons, ServerContext serverContext){
+    Objects.requireNonNull(configuration);
+    Objects.requireNonNull(unacceptableReasons);
+    Objects.requireNonNull(serverContext);
     return true;
   }
 
@@ -69,8 +74,10 @@ public abstract class ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechan
    * @param configuration the configuration for initialization
    * @param serverContext the server context for this Directory Server instance
    */
+  // Subclasses that need the server context override this public lifecycle hook.
   public void initializeMechanism(C configuration, ServerContext serverContext){
-    this.cfg=configuration;
+    this.cfg=Objects.requireNonNull(configuration);
+    Objects.requireNonNull(serverContext);
   }
 
   /**
@@ -118,7 +125,9 @@ public abstract class ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechan
   };
 
   /** Returns the servers suitable for an operation targeting the given remote DN. */
+  // Static discovery uses one partition; sharded discovery overrides this hook.
   public Partition getPartition(DN target) {
+      Objects.requireNonNull(target);
       return getPartition();
   }
 
