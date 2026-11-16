@@ -553,6 +553,232 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     }
   }
 
+  @DataProvider
+  public Object[][] directWriteOrigins()
+  {
+    return new Object[][] { { true, false }, { false, false }, { true, true } };
+  }
+
+  /** A new direct write must not overtake history of its replica received through another RS. */
+  @Test(dataProvider = "directWriteOrigins")
+  public void directWriteAfterPeerHistoryPreservesTheOutgoingPrefix(boolean sameOrigin, boolean newerPeerUpdate) throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    ReplicationServer server = null;
+    ReplicationBroker broker = null;
+    FakePeerReplicationServer source = null;
+    FakePeerReplicationServer target = null;
+    try
+    {
+      final int port = TestCaseUtils.findFreePort();
+      server = newReplicationServer(new DSRSShutdownSync(), "peerHistoryPrefixDb", 8254, port);
+      broker = openReplicationSession(baseDN, REMOTE_DS_ID, 100, port, 5000, EMPTY_DN_GENID);
+      source = FakePeerReplicationServer.connected(port, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID);
+      target = FakePeerReplicationServer.connected(port, HELD_BACK_RS_ID, baseDN, EMPTY_DN_GENID);
+      final ReplicationServerDomain domain = server.getReplicationServerDomain(baseDN, true);
+      waitForConnectedReplicationServer(domain, REMOTE_RS_ID);
+      waitForConnectedReplicationServer(domain, HELD_BACK_RS_ID);
+      final Future<List<ReplicationMsg>> received = target.receiveUntil(StopMsg.class);
+      source.receiveUntil(StopMsg.class);
+      final List<CSN> expected = new ArrayList<>();
+      final long time = System.currentTimeMillis();
+      for (int i = 1; i <= 4; i++)
+      {
+        expected.add(new CSN(time, i, i == 4 && !sameOrigin ? REMOTE_DS_ID + 1 : REMOTE_DS_ID));
+      }
+      publishBeforeMigration(broker, baseDN, expected.subList(0, 1));
+      final ReplicationServerHandler targetHandler = domain.getConnectedRSs().get(HELD_BACK_RS_ID);
+      newConnectionTimer().repeatUntilSuccess(() -> {
+        assertThat(targetHandler.getServerState().getCSN(REMOTE_DS_ID)).isEqualTo(expected.get(0));
+      });
+      waitForFollowing(domain, HELD_BACK_RS_ID);
+      for (CSN csn : expected.subList(1, 3))
+      {
+        source.session.publish(new DeleteMsg(DN.valueOf("uid=via-peer-" + csn + "," + baseDN), csn,
+            "22222222-2222-2222-2222-222222222222"));
+      }
+      newConnectionTimer().repeatUntilSuccess(() -> {
+        assertThat(domain.getLatestServerState().getCSN(REMOTE_DS_ID)).isEqualTo(expected.get(2));
+      });
+      if (newerPeerUpdate)
+      {
+        // Hold the outgoing queue while both publications complete: peer 5 must
+        // not hide the unqueued prefix 2,3 when direct 4 is selected next.
+        final Field queueField = MessageHandler.class.getDeclaredField("msgQueue");
+        queueField.setAccessible(true);
+        synchronized (queueField.get(targetHandler))
+        {
+          domain.put(new DeleteMsg(DN.valueOf("uid=direct-four," + baseDN), expected.get(3),
+              "22222222-2222-2222-2222-222222222222"), domain.getConnectedDSs().get(REMOTE_DS_ID));
+          expected.add(new CSN(time, 5, REMOTE_DS_ID));
+          domain.put(new DeleteMsg(DN.valueOf("uid=peer-five," + baseDN), expected.get(4),
+              "22222222-2222-2222-2222-222222222222"), domain.getConnectedRSs().get(REMOTE_RS_ID));
+        }
+      }
+      else
+      {
+        publishBeforeMigration(broker, baseDN, expected.subList(3, 4));
+      }
+      newConnectionTimer().repeatUntilSuccess(() -> {
+        assertThat(targetHandler.getServerState().cover(expected.get(3))).isTrue();
+      });
+      final ServerState delivered = new ServerState();
+      delivered.update(expected.get(expected.size() - 1));
+      assertThat(targetHandler.awaitPublished(delivered, System.nanoTime() + TimeUnit.SECONDS.toNanos(5)))
+          .as("the last peer update is written before shutdown, which only drains direct updates").isTrue();
+      server.shutdown();
+      final List<CSN> actual = new ArrayList<>();
+      for (ReplicationMsg msg : received.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+      {
+        if (msg instanceof DeleteMsg)
+        {
+          actual.add(((DeleteMsg) msg).getCSN());
+        }
+      }
+      assertThat(actual).as("only a direct write from the same origin needs the peer history")
+          .containsExactlyElementsOf(sameOrigin ? expected : Arrays.asList(expected.get(0), expected.get(3)));
+    }
+    finally
+    {
+      closeQuietly(source);
+      closeQuietly(target);
+      if (broker != null)
+      {
+        broker.stop();
+      }
+      removeQuietly(server);
+    }
+  }
+
+  /** Registration between the peer watermark and persistence must not lose that prefix. */
+  @Test
+  public void newlyConnectedPeerSeesHistoryPublishedDuringItsRegistration() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final CountDownLatch beforePersistence = new CountDownLatch(1);
+    final CountDownLatch releasePut = new CountDownLatch(1);
+    ReplicationServer server = null;
+    ReplicationBroker broker = null;
+    FakePeerReplicationServer source = null;
+    FakePeerReplicationServer target = null;
+    try
+    {
+      final int port = TestCaseUtils.findFreePort();
+      server = newReplicationServer(new DSRSShutdownSync(), "peerRegistrationPrefixDb", 8255, port);
+      broker = openReplicationSession(baseDN, REMOTE_DS_ID, 100, port, 5000, EMPTY_DN_GENID);
+      source = FakePeerReplicationServer.connected(port, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID);
+      final ReplicationServerDomain domain = server.getReplicationServerDomain(baseDN, true);
+      waitForConnectedReplicationServer(domain, REMOTE_RS_ID);
+      source.receiveUntil(StopMsg.class);
+      final Field dbField = ReplicationServerDomain.class.getDeclaredField("domainDB");
+      dbField.setAccessible(true);
+      final ReplicationDomainDB database = (ReplicationDomainDB) dbField.get(domain);
+      final ReplicationDomainDB delayed = mock(ReplicationDomainDB.class, delegatesTo(database));
+      doAnswer(invocation -> {
+        beforePersistence.countDown();
+        assertThat(releasePut.await(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+        return database.publishUpdateMsg(baseDN, (UpdateMsg) invocation.getArguments()[1]);
+      }).when(delayed).publishUpdateMsg(eq(baseDN), any(UpdateMsg.class));
+      dbField.set(domain, delayed);
+      final CSN first = new CSN(System.currentTimeMillis(), 1, REMOTE_DS_ID);
+      final CSN last = new CSN(first.getTime(), 2, REMOTE_DS_ID);
+      source.session.publish(new DeleteMsg(DN.valueOf("uid=peer-history," + baseDN), first,
+          "22222222-2222-2222-2222-222222222222"));
+      assertThat(beforePersistence.await(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+      target = FakePeerReplicationServer.connected(port, HELD_BACK_RS_ID, baseDN, EMPTY_DN_GENID);
+      waitForConnectedReplicationServer(domain, HELD_BACK_RS_ID);
+      waitForFollowing(domain, HELD_BACK_RS_ID);
+      final Future<List<ReplicationMsg>> received = target.receiveUntil(StopMsg.class);
+      releasePut.countDown();
+      newConnectionTimer().repeatUntilSuccess(() -> {
+        assertThat(domain.getLatestServerState().cover(first)).isTrue();
+      });
+      publishBeforeMigration(broker, baseDN, Arrays.asList(last));
+      final ReplicationServerHandler handler = domain.getConnectedRSs().get(HELD_BACK_RS_ID);
+      newConnectionTimer().repeatUntilSuccess(() -> {
+        assertThat(handler.getServerState().cover(last)).isTrue();
+      });
+      server.shutdown();
+      final List<CSN> actual = new ArrayList<>();
+      for (ReplicationMsg msg : received.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+      {
+        if (msg instanceof DeleteMsg)
+        {
+          actual.add(((DeleteMsg) msg).getCSN());
+        }
+      }
+      assertThat(actual).containsExactly(first, last);
+    }
+    finally
+    {
+      releasePut.countDown();
+      closeQuietly(source);
+      closeQuietly(target);
+      if (broker != null)
+      {
+        broker.stop();
+      }
+      removeQuietly(server);
+    }
+  }
+
+  /** A future CSN from an old generation must not force replay of every new direct write. */
+  @Test
+  public void generationResetForgetsUnqueuedPeerHistory() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final ExecutorService consumer = Executors.newSingleThreadExecutor();
+    ReplicationServer server = null;
+    ReplicationServerHandler handler = null;
+    try
+    {
+      server = newReplicationServer(new DSRSShutdownSync(), "peerHistoryGenerationDb", 8256);
+      handler = new ReplicationServerHandler(null, 100, server, 100);
+      handler.setBaseDNAndDomain(baseDN, false);
+      handler.setInitialServerState(new ServerState());
+      handler.setGenerationId(1);
+      final ReplicationServerDomain domain = server.getReplicationServerDomain(baseDN, false);
+      domain.initGenerationID(1);
+      final ReplicationServerHandler source = new ReplicationServerHandler(null, 100, server, 100);
+      source.setBaseDNAndDomain(baseDN, false);
+      source.setInitialServerState(new ServerState());
+      source.setGenerationId(1);
+      final long time = System.currentTimeMillis();
+      final DeleteMsg first = new DeleteMsg(baseDN, new CSN(time, 1, REMOTE_DS_ID),
+          "22222222-2222-2222-2222-222222222222");
+      final ReplicationDomainDB database = server.getChangelogDB().getReplicationDomainDB();
+      database.publishUpdateMsg(baseDN, first);
+      handler.add(first);
+      assertThat(handler.getNextMessage().getCSN()).isEqualTo(first.getCSN());
+      final ReplicationServerHandler target = handler;
+      final DeleteMsg current = new DeleteMsg(baseDN, new CSN(time + 1, 2, REMOTE_DS_ID),
+          "22222222-2222-2222-2222-222222222222");
+      final Future<Boolean> fromChangelog = consumer.submit(() -> {
+        assertThat(target.getNextMessage().getCSN()).isEqualTo(current.getCSN());
+        return target.isLastMessageFromLateQueue();
+      });
+      newConnectionTimer().repeatUntilSuccess(() -> { assertThat(target.isFollowing()).isTrue(); });
+      domain.put(new DeleteMsg(baseDN, new CSN(time + 60000, 1, REMOTE_DS_ID),
+          "22222222-2222-2222-2222-222222222222"), source);
+      domain.changeGenerationId(2);
+      handler.setGenerationId(2);
+      database.publishUpdateMsg(baseDN, current);
+      handler.add(current);
+      assertThat(fromChangelog.get(5, TimeUnit.SECONDS))
+          .as("a new-generation direct write needs no replay of discarded old-generation history").isFalse();
+    }
+    finally
+    {
+      if (handler != null)
+      {
+        handler.setConsumerActive(false);
+      }
+      consumer.shutdownNow();
+      assertThat(consumer.awaitTermination(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+      removeQuietly(server);
+    }
+  }
+
   private void publishBeforeMigration(ReplicationBroker broker, DN baseDN, List<CSN> csns)
       throws Exception
   {

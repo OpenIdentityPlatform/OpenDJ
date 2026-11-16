@@ -114,6 +114,12 @@ public class ReplicationServerHandler extends ServerHandler
   }
 
   @Override
+  protected CSN getLatestUnqueuedUpdate(int serverId)
+  {
+    return replicationServerDomain.getLatestPeerUpdate(serverId);
+  }
+
+  @Override
   boolean updateServerState(UpdateMsg update)
   {
     synchronized (publishedState)

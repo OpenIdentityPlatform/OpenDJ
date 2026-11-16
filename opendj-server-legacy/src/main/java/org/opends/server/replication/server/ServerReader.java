@@ -202,7 +202,9 @@ public class ServerReader extends DirectoryThread
        * that this handler is stopped.
        */
       logException(e);
-      if (!handler.shuttingDown())
+      // A local close can wake receive() with SocketException as well as EOF.
+      // The writer closes the session before stopServer marks the handler.
+      if (!handler.shuttingDown() && !session.closeInitiated())
       {
         errMessage = handler.getBadlyDisconnectedErrorMessage();
         logger.error(errMessage);
