@@ -277,6 +277,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
   /** Changes accepted directly from DSs, which this RS owes to every peer in the mesh. */
   private final ServerState directUpdates = new ServerState();
+  /** Peer history persisted without being queued to other RSs, including ones registering meanwhile. */
+  private final ServerState peerUpdates = new ServerState();
   /** Covers puts whose DS handler may already have been removed by concurrent teardown. */
   private final ReentrantReadWriteLock directUpdateLock = new ReentrantReadWriteLock();
   private volatile boolean acceptDirectUpdates = true;
@@ -388,6 +390,19 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
      * data center 1.
      */
     final PreparedAssuredInfo preparedAssuredInfo = getPreparedAssuredInfo(updateMsg, sourceHandler);
+
+    if (!sourceHandler.isDataServer() && updateMsg.contributesToDomainState())
+    {
+      // Record before publication, independently of the current handler set:
+      // a peer can register while this update is being written to the changelog.
+      synchronized (generationIDLock)
+      {
+        if (generationId == sourceGenerationId)
+        {
+          peerUpdates.update(updateMsg.getCSN());
+        }
+      }
+    }
 
     if (!publishUpdateMsg(updateMsg))
     {
@@ -2003,6 +2018,17 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return domainDB.getDomainNewestCSNs(baseDN);
   }
 
+  /**
+   * Returns peer history which an outgoing RS queue may not contain.
+   *
+   * @param serverId the replica which produced the history
+   * @return its newest peer update, or {@code null} when none is known
+   */
+  CSN getLatestPeerUpdate(int serverId)
+  {
+    return peerUpdates.getCSN(serverId);
+  }
+
   @Override
   public String toString()
   {
@@ -2119,6 +2145,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       {
         clearDbs();
         directUpdates.clear();
+        peerUpdates.clear();
 
         this.generationId = generationId;
         this.generationIdSavedStatus = false;
