@@ -51,7 +51,7 @@ public class ProxyRewriterTest extends DirectoryServerTestCase {
     @Test
     public void aliasesRemoteAttributesWithoutRemovingTheirOriginalNames() {
         final ProxyRewriter mapping = new ProxyRewriter(null, null, Collections.emptyList(),
-                Collections.singletonList("description=mail"), Schema.getDefaultSchema());
+                Arrays.asList("description=mail", "displayName=mail"), Schema.getDefaultSchema());
         final org.forgerock.opendj.ldap.Entry rewritten = mapping.entry(
                 new LinkedHashMapEntry("uid=user,o=test").addAttribute("mail", "user@example.com"), false);
 
@@ -60,6 +60,7 @@ public class ProxyRewriterTest extends DirectoryServerTestCase {
                 "(mail=user@example.com)");
         assertEquals(rewritten.getAttribute("mail").firstValueAsString(), "user@example.com");
         assertEquals(rewritten.getAttribute("description").firstValueAsString(), "user@example.com");
+        assertEquals(rewritten.getAttribute("displayName").firstValueAsString(), "user@example.com");
     }
 
     @Test

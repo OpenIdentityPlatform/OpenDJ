@@ -858,6 +858,87 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
         }
     }
 
+    @Test(timeOut = 30000)
+    public void serviceModeMapsRemoteOperationTimeoutToUnavailable() throws Exception {
+        final String remoteBase = "cn=remote";
+        final String proxyBase = "ou=service-mode-timeout,o=test";
+        final String mechanism = "service-mode-timeout";
+        final org.forgerock.opendj.ldap.MemoryBackend remote = new org.forgerock.opendj.ldap.MemoryBackend(
+                new LDIFEntryReader("dn:", "objectClass: top", "objectClass: extensibleObject", "",
+                        "dn: cn=service", "objectClass: top", "objectClass: person",
+                        "cn: service", "sn: Service", "userPassword: service-password", "",
+                        "dn: " + remoteBase, "objectClass: top", "objectClass: person",
+                        "cn: remote", "sn: Remote", ""));
+        final java.util.concurrent.atomic.AtomicBoolean stallSearch = new java.util.concurrent.atomic.AtomicBoolean();
+        final java.util.concurrent.atomic.AtomicReference<InetSocketAddress> establishedPeer =
+                new java.util.concurrent.atomic.AtomicReference<>();
+        final java.util.concurrent.atomic.AtomicReference<InetSocketAddress> stalledPeer =
+                new java.util.concurrent.atomic.AtomicReference<>();
+        final RequestHandlerFactory<LDAPClientContext, RequestContext> handlers = client -> {
+            @SuppressWarnings("unchecked")
+            final RequestHandler<RequestContext> handler = (RequestHandler<RequestContext>)
+                    java.lang.reflect.Proxy.newProxyInstance(RequestHandler.class.getClassLoader(),
+                            new Class<?>[] {RequestHandler.class}, (proxy, method, args) -> {
+                                if (method.getName().equals("handleSearch")
+                                        && ((SearchRequest) args[1]).getName().equals(DN.valueOf(remoteBase))) {
+                                    if (stallSearch.get()) {
+                                        stalledPeer.set(client.getPeerAddress());
+                                        // Keep the connection open without replying, so the SDK request times out.
+                                        return null;
+                                    }
+                                    establishedPeer.set(client.getPeerAddress());
+                                }
+                                try {
+                                    return method.invoke(remote, args);
+                                } catch (java.lang.reflect.InvocationTargetException e) {
+                                    throw e.getCause();
+                                }
+                            });
+            return handler;
+        };
+        final Options options = Options.defaultOptions();
+        boolean mechanismCreated = false;
+        boolean backendCreated = false;
+        try (LDAPListener listener = new LDAPListener(Collections.singleton(new InetSocketAddress("127.0.0.1", 0)),
+                new ServerConnectionFactoryAdapter(options.get(CommonLDAPOptions.LDAP_DECODE_OPTIONS),
+                        Connections.newServerConnectionFactory(handlers)), options)) {
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", mechanism,
+                    "--type", "static", "--set", "bind-dn:cn=service", "--set", "bind-password:service-password",
+                    "--set", "operation-identity-mode:specific", "--set", "primary-server:127.0.0.1:"
+                            + listener.firstSocketAddress().getPort(), "--set", "use-ssl:false");
+            mechanismCreated = true;
+            TestCaseUtils.getServerContext().getServiceDiscoveryMechanismConfigManager().getMechanism(mechanism)
+                    .getPartition().getPrimaryServers().iterator().next().getOptions()
+                    .set(LDAPConnectionFactory.REQUEST_TIMEOUT,
+                            org.forgerock.util.time.Duration.duration(2, TimeUnit.SECONDS));
+            TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", mechanism,
+                    "--set", "base-dn:" + proxyBase, "--set", "remote-base-dn:" + remoteBase,
+                    "--set", "enabled:true", "--set", "shard:" + mechanism);
+            backendCreated = true;
+            try (Connection client = getConnection()) {
+                assertEquals(client.searchSingleEntry(proxyBase, SearchScope.BASE_OBJECT, "(objectClass=*)", "cn")
+                        .getAttribute("cn").firstValueAsString(), "remote");
+                stallSearch.set(true);
+                try {
+                    client.searchSingleEntry(proxyBase, SearchScope.BASE_OBJECT, "(objectClass=*)", "cn");
+                    Assert.fail("A remote operation timeout must fail the search");
+                } catch (LdapException e) {
+                    assertEquals(e.getResult().getResultCode(), ResultCode.UNAVAILABLE);
+                }
+                Assert.assertNotNull(stalledPeer.get(), "The timed-out search must reach the remote server");
+                assertEquals(stalledPeer.get(), establishedPeer.get(),
+                        "The timed-out search must reuse the established remote connection");
+            }
+        } finally {
+            if (backendCreated) {
+                TestCaseUtils.dsconfig("delete-backend", "--backend-name", mechanism);
+            }
+            if (mechanismCreated) {
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", mechanism);
+            }
+        }
+    }
+
     @Test(dependsOnMethods = "rewritesDnAndAttributesThroughLdap")
     public void userBindDoesNotRetryInvalidCredentialsOnSecondary() throws Exception {
         final String base = "dc=userpool";

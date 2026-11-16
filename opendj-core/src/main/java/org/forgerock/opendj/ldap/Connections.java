@@ -606,9 +606,8 @@ public final class Connections {
     static Function<Request, PartitionedRequest, NeverThrowsException> newConsistentHashRequestLoadBalancerNextFunction(
             final Collection<? extends ConnectionFactory> factories) {
         final ConsistentHashMap<Integer> partitions = new ConsistentHashMap<>();
-        int index = 0;
-        for (ConnectionFactory ignored : factories) {
-            partitions.put("factory-" + index, index++);
+        for (int index = 0, count = factories.size(); index < count; index++) {
+            partitions.put("factory-" + index, index);
         }
         return new Function<Request, PartitionedRequest, NeverThrowsException>() {
             @Override
