@@ -150,6 +150,10 @@ public final class ServerPriorities {
         final int zone = host.startsWith("[") ? host.indexOf('%') : -1;
         final String normalizedHost = zone < 0 ? host.toLowerCase(Locale.ROOT)
                 : host.substring(0, zone).toLowerCase(Locale.ROOT) + host.substring(zone);
-        return normalizedHost + ":" + Integer.parseInt(address.substring(separator + 1));
+        try {
+            return normalizedHost + ":" + Integer.parseInt(address.substring(separator + 1));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid server port: " + address, e);
+        }
     }
 }

@@ -62,6 +62,20 @@ public class ReplicationTopologyTest extends DirectoryServerTestCase {
                 .validateStaticServers(Arrays.asList("127.1:389", "[fe80::1%eth0]:389",
                         "[fe80::1%ETH0]:389", "-other-configured-host-:389"), Collections.emptyList());
     }
+
+    @Test
+    public void reportsInvalidPortInConfiguredStaticServer() {
+        final String invalidAddress = "ldap.example:2147483648";
+        try {
+            ServerPriorities.parse(Collections.singleton("ldap.example:389=1"))
+                    .validateStaticServers(Collections.singleton(invalidAddress), Collections.emptyList());
+            fail("An overflowing server port must be rejected");
+        } catch (IllegalArgumentException expected) {
+            assertTrue(expected.getMessage().contains("Invalid server port"));
+            assertTrue(expected.getMessage().contains(invalidAddress));
+        }
+    }
+
     @Test
     public void priorityChangesPreserveTheDiscoveredTopology() throws Exception {
         final DN base = DN.valueOf("dc=example,dc=com");
