@@ -865,6 +865,17 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
         }
     }
 
+    /** Maps SDK-only remote transport failures to LDAP result codes valid on the client connection. */
+    private static ResultCode clientResultCode(Result result) {
+        final ResultCode resultCode = result.getResultCode();
+        if (resultCode.equals(ResultCode.CLIENT_SIDE_CONNECT_ERROR)
+                || resultCode.equals(ResultCode.CLIENT_SIDE_SERVER_DOWN)
+                || resultCode.equals(ResultCode.CLIENT_SIDE_TIMEOUT)) {
+            return ResultCode.UNAVAILABLE;
+        }
+        return resultCode;
+    }
+
     private void addProxiedAuthControl(Operation operation, final Request request, ProxyRewriter mapping) {
         final DN authorizationDN = operation.getClientConnection().getAuthenticationInfo().getAuthorizationDN();
         final String authorizationID = authorizationDN == null || authorizationDN.isRootDN()
@@ -989,7 +1000,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                             Arrays.fill(password, (byte) 0);
                         }
                     }
-                    request.setResultCode(result.getResultCode());
+                    request.setResultCode(clientResultCode(result));
                     addResponseControls(operation, result, mapping);
                     request.setAuthFailureReason(LocalizableMessage.raw(result.getDiagnosticMessage()));
                     if (!directUserMode && !operation.isInternalOperation()
@@ -1018,7 +1029,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 } catch (LdapException e) {
                     result =e.getResult();
                 }
-                request.setResultCode(result.getResultCode());
+                request.setResultCode(clientResultCode(result));
                 addResponseControls(operation, result, mapping);
                 break;
             }
@@ -1042,7 +1053,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 } catch (LdapException e) {
                     result =e.getResult();
                 }
-                request.setResultCode(result.getResultCode());
+                request.setResultCode(clientResultCode(result));
                 addResponseControls(operation, result, mapping);
                 break;
             }
@@ -1060,7 +1071,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 } catch (LdapException e) {
                     result =e.getResult();
                 }
-                request.setResultCode(result.getResultCode());
+                request.setResultCode(clientResultCode(result));
                 addResponseControls(operation, result, mapping);
                 break;
             }
@@ -1078,7 +1089,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 } catch (LdapException e) {
                     result =e.getResult();
                 }
-                request.setResultCode(result.getResultCode());
+                request.setResultCode(clientResultCode(result));
                 addResponseControls(operation, result, mapping);
                 break;
             }
@@ -1093,7 +1104,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 } catch (LdapException e) {
                     result =e.getResult();
                 }
-                request.setResultCode(result.getResultCode());
+                request.setResultCode(clientResultCode(result));
                 addResponseControls(operation, result, mapping);
                 break;
             }
@@ -1105,11 +1116,11 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 ExtendedResult result;
                 try (Connection connection = userSession == null ? requestFactory.getConnection() : userSession.pool.borrow()) {
                     result = connection.extendedRequest(extendedRequest);
-                    request.setResultCode(result.getResultCode());
+                    request.setResultCode(clientResultCode(result));
                     request.setResponseValue(result.getValue());
                     addResponseControls(operation, result, mapping);
                 } catch (LdapException e) {
-                    request.setResultCode(e.getResult().getResultCode());
+                    request.setResultCode(clientResultCode(e.getResult()));
                     addResponseControls(operation, e.getResult(), mapping);
                 }
                 break;
@@ -1174,11 +1185,11 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                             }
                         }
                         final Result result = entryReader.readResult();
-                        request.setResultCode(result.getResultCode());
+                        request.setResultCode(clientResultCode(result));
                         addResponseControls(operation, result, mapping);
                     }
                 } catch (LdapException e) {
-                   request.setResultCode(e.getResult().getResultCode());
+                   request.setResultCode(clientResultCode(e.getResult()));
                    addResponseControls(operation, e.getResult(), mapping);
                 } catch (SearchResultReferenceIOException | DirectoryException e) {
                     throw new RuntimeException(e);

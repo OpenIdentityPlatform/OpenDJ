@@ -793,6 +793,41 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
         }
     }
 
+    @Test
+    public void serviceModeMapsRemoteConnectionFailureToUnavailable() throws Exception {
+        final String proxyBase = "ou=service-mode-offline,o=test";
+        final String mechanism = "service-mode-offline";
+        boolean mechanismCreated = false;
+        boolean backendCreated = false;
+        try (ServerSocket unused = new ServerSocket(0)) {
+            final int port = unused.getLocalPort();
+            unused.close();
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", mechanism,
+                    "--type", "static", "--set", "bind-dn:cn=service",
+                    "--set", "bind-password:service-password", "--set", "operation-identity-mode:specific",
+                    "--set", "primary-server:127.0.0.1:" + port, "--set", "use-ssl:false");
+            mechanismCreated = true;
+            TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", mechanism,
+                    "--set", "base-dn:" + proxyBase, "--set", "enabled:true", "--set", "shard:" + mechanism);
+            backendCreated = true;
+            try (Connection client = getConnection()) {
+                try {
+                    client.searchSingleEntry(proxyBase, SearchScope.BASE_OBJECT, "(objectClass=*)", "cn");
+                    Assert.fail("A proxy with no operational remote connections must be unavailable");
+                } catch (LdapException e) {
+                    assertEquals(e.getResult().getResultCode(), ResultCode.UNAVAILABLE);
+                }
+            }
+        } finally {
+            if (backendCreated) {
+                TestCaseUtils.dsconfig("delete-backend", "--backend-name", mechanism);
+            }
+            if (mechanismCreated) {
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", mechanism);
+            }
+        }
+    }
+
     @Test(dependsOnMethods = "rewritesDnAndAttributesThroughLdap")
     public void userBindDoesNotRetryInvalidCredentialsOnSecondary() throws Exception {
         final String base = "dc=userpool";
