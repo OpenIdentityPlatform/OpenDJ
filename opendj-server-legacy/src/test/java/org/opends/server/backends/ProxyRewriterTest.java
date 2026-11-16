@@ -22,12 +22,14 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.fail;
 
 @Test(sequential = true)
 public class ProxyRewriterTest extends DirectoryServerTestCase {
@@ -44,6 +46,40 @@ public class ProxyRewriterTest extends DirectoryServerTestCase {
         assertEquals(mapping.value("manager", ByteString.valueOfUtf8(original.toString()), true),
                 ByteString.valueOfUtf8(original.toString()));
         assertEquals(mapping.filter(Filter.valueOf("(description=one)")).toString(), "(displayName=one)");
+    }
+
+    @Test
+    public void aliasesRemoteAttributesWithoutRemovingTheirOriginalNames() {
+        final ProxyRewriter mapping = new ProxyRewriter(null, null, Collections.emptyList(),
+                Collections.singletonList("description=mail"), Schema.getDefaultSchema());
+        final org.forgerock.opendj.ldap.Entry rewritten = mapping.entry(
+                new LinkedHashMapEntry("uid=user,o=test").addAttribute("mail", "user@example.com"), false);
+
+        assertEquals(mapping.attribute("description", true), "mail");
+        assertEquals(mapping.filter(Filter.valueOf("(description=user@example.com)")).toString(),
+                "(mail=user@example.com)");
+        assertEquals(rewritten.getAttribute("mail").firstValueAsString(), "user@example.com");
+        assertEquals(rewritten.getAttribute("description").firstValueAsString(), "user@example.com");
+    }
+
+    @Test
+    public void rejectsAliasesInWriteEntriesAndRdns() {
+        final ProxyRewriter mapping = new ProxyRewriter(null, null, Collections.emptyList(),
+                Collections.singletonList("description=mail"), Schema.getDefaultSchema());
+
+        try {
+            mapping.entry(new LinkedHashMapEntry("uid=user,o=test").addAttribute("description", "user@example.com"), true);
+            fail("An alias in an add entry must be rejected");
+        } catch (ProxyRewriter.RewriteException e) {
+            assertEquals(e.resultCode, ResultCode.UNWILLING_TO_PERFORM);
+        }
+
+        try {
+            mapping.dn(DN.valueOf("description=user@example.com,o=test"), true);
+            fail("An alias in an RDN must be rejected");
+        } catch (ProxyRewriter.RewriteException e) {
+            assertEquals(e.resultCode, ResultCode.UNWILLING_TO_PERFORM);
+        }
     }
 
     @Test
@@ -68,6 +104,12 @@ public class ProxyRewriterTest extends DirectoryServerTestCase {
     public void rejectsAmbiguousAttributeMappings() {
         new ProxyRewriter(null, null, Arrays.asList("description=displayName", "cn=displayName"),
                 Schema.getDefaultSchema());
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void rejectsAliasesThatOverlapAttributeMappings() {
+        new ProxyRewriter(null, null, Collections.singletonList("description=displayName"),
+                Collections.singletonList("mail=displayName"), Schema.getDefaultSchema());
     }
 
     @Test(expectedExceptions = ProxyRewriter.RewriteException.class)

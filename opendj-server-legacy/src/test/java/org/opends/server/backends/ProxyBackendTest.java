@@ -949,6 +949,63 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
         }
     }
 
+    @Test
+    public void aliasesRemoteAttributesThroughLdap() throws Exception {
+        final String remoteBase = "ou=alias-remote,o=test";
+        final String proxyBase = "ou=alias-proxy,o=test";
+        final String remoteUser = "uid=alias-user," + remoteBase;
+        final String proxyUser = "uid=alias-user," + proxyBase;
+        final String mechanism = "alias-integration";
+        final String backend = "alias-integration";
+        boolean mechanismCreated = false;
+        boolean backendCreated = false;
+        try {
+            assertEquals(getRootConnection().processAdd(TestCaseUtils.makeEntry(
+                    "dn: " + remoteBase, "objectClass: top", "objectClass: organizationalUnit",
+                    "ou: alias-remote")).getResultCode(), ResultCode.SUCCESS);
+            assertEquals(getRootConnection().processAdd(TestCaseUtils.makeEntry(
+                    "dn: " + remoteUser, "objectClass: top", "objectClass: person",
+                    "objectClass: organizationalPerson", "objectClass: inetOrgPerson", "uid: alias-user",
+                    "cn: Alias User", "sn: User", "mail: user@example.com")).getResultCode(), ResultCode.SUCCESS);
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", mechanism,
+                    "--type", "static", "--set", "bind-dn:cn=Directory Manager",
+                    "--set", "bind-password:password", "--set", "primary-server:localhost:" + TestCaseUtils.getServerLdapPort(),
+                    "--set", "use-ssl:false");
+            mechanismCreated = true;
+            TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", backend,
+                    "--set", "base-dn:" + proxyBase, "--set", "remote-base-dn:" + remoteBase,
+                    "--set", "attribute-alias:description=mail", "--set", "enabled:true", "--set", "shard:" + mechanism);
+            backendCreated = true;
+
+            try (Connection client = getConnection()) {
+                final org.forgerock.opendj.ldap.Entry entry = client.searchSingleEntry(proxyUser,
+                        SearchScope.BASE_OBJECT, "(description=user@example.com)", "description");
+                assertEquals(entry.getAttribute("mail").firstValueAsString(), "user@example.com");
+                assertEquals(entry.getAttribute("description").firstValueAsString(), "user@example.com");
+                try {
+                    client.modify(Requests.newModifyRequest(proxyUser)
+                            .addModification(ModificationType.REPLACE, "description", "changed@example.com"));
+                    Assert.fail("A write through an attribute alias must be rejected");
+                } catch (LdapException e) {
+                    assertEquals(e.getResult().getResultCode(), ResultCode.UNWILLING_TO_PERFORM);
+                }
+            }
+            try (Connection remote = getConnection()) {
+                assertEquals(remote.searchSingleEntry(remoteUser, SearchScope.BASE_OBJECT,
+                        "(objectClass=*)", "mail").getAttribute("mail").firstValueAsString(), "user@example.com");
+            }
+        } finally {
+            if (backendCreated) {
+                TestCaseUtils.dsconfig("delete-backend", "--backend-name", backend);
+            }
+            if (mechanismCreated) {
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", mechanism);
+            }
+            getRootConnection().processDelete(DN.valueOf(remoteUser));
+            getRootConnection().processDelete(DN.valueOf(remoteBase));
+        }
+    }
+
     private LDAPListener testServer(String label) throws Exception {
         final org.forgerock.opendj.ldap.MemoryBackend memory =
                 new org.forgerock.opendj.ldap.MemoryBackend(new LDIFEntryReader(

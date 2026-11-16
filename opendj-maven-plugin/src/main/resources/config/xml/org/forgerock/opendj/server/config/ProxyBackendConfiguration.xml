@@ -457,6 +457,21 @@
     <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-attribute-mapping</ldap:name></ldap:attribute></adm:profile>
   </adm:property>
 
+  <adm:property name="attribute-alias" mandatory="false" multi-valued="true">
+    <adm:synopsis>
+      Exposes a remote attribute under an additional client attribute name.
+    </adm:synopsis>
+    <adm:description>
+      Each value has the form client-alias=remote-attribute. The remote attribute remains available
+      under its original name. Aliases are read-only and can be used in search filters, compare
+      requests, and requested-attribute lists. They cannot be used in LDAP write operations.
+    </adm:description>
+    <adm:default-behavior><adm:undefined/></adm:default-behavior>
+    <adm:syntax><adm:string/></adm:syntax>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-attribute-alias</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+
   <!-- Reserved until routing to all discovered naming contexts is implemented.
   <adm:property name="route-all" mandatory="true" advanced="false">
     <adm:synopsis>

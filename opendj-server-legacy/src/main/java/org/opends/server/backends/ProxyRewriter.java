@@ -64,8 +64,14 @@ final class ProxyRewriter {
     private final Schema schema;
     private final Map<String, String> toRemote;
     private final Map<String, String> toClient;
+    private final Map<String, String> aliasesToRemote;
+    private final Map<String, List<String>> aliasesForRemote;
 
     ProxyRewriter(DN clientBase, DN remoteBase, Collection<String> mappings, Schema schema) {
+        this(clientBase, remoteBase, mappings, Collections.emptyList(), schema);
+    }
+
+    ProxyRewriter(DN clientBase, DN remoteBase, Collection<String> mappings, Collection<String> aliases, Schema schema) {
         if (remoteBase != null && clientBase == null) {
             throw new IllegalArgumentException("A single proxy base DN is required when remote-base-dn is set");
         }
@@ -87,8 +93,37 @@ final class ProxyRewriter {
                 }
             }
         }
+        final Map<String, String> aliasToRemote = new HashMap<>();
+        final Map<String, List<String>> aliasesByRemote = new HashMap<>();
+        if (aliases != null) {
+            for (String alias : aliases) {
+                final String[] names = alias.split("=", -1);
+                if (names.length != 2 || !isAttributeName(names[0]) || !isAttributeName(names[1])) {
+                    throw new IllegalArgumentException("Invalid attribute alias: " + alias);
+                }
+                final String source = names[0].trim();
+                final String target = names[1].trim();
+                final String sourceKey = key(source);
+                final String targetKey = key(target);
+                if (sourceKey.equals(targetKey) || forward.containsKey(sourceKey) || reverse.containsKey(sourceKey)
+                        || forward.containsKey(targetKey) || reverse.containsKey(targetKey)
+                        || aliasToRemote.containsKey(sourceKey) || aliasToRemote.containsKey(targetKey)
+                        || aliasesByRemote.containsKey(sourceKey)) {
+                    throw new IllegalArgumentException("Attribute aliases must not overlap attribute mappings or aliases: "
+                            + alias);
+                }
+                aliasToRemote.put(sourceKey, target);
+                aliasesByRemote.computeIfAbsent(targetKey, ignored -> new ArrayList<>()).add(source);
+            }
+        }
         this.toRemote = Collections.unmodifiableMap(forward);
         this.toClient = Collections.unmodifiableMap(reverse);
+        this.aliasesToRemote = Collections.unmodifiableMap(aliasToRemote);
+        final Map<String, List<String>> immutableAliases = new HashMap<>();
+        for (Map.Entry<String, List<String>> entry : aliasesByRemote.entrySet()) {
+            immutableAliases.put(entry.getKey(), Collections.unmodifiableList(entry.getValue()));
+        }
+        this.aliasesForRemote = Collections.unmodifiableMap(immutableAliases);
     }
 
     private static boolean isAttributeName(String name) {
@@ -101,21 +136,47 @@ final class ProxyRewriter {
     }
 
     boolean isActive() {
-        return remoteBase != null || !toRemote.isEmpty();
+        return remoteBase != null || !toRemote.isEmpty() || !aliasesToRemote.isEmpty();
     }
 
     String attribute(String description, boolean forward) {
-        if (toRemote.isEmpty()) {
+        if (toRemote.isEmpty() && aliasesToRemote.isEmpty()) {
             return description;
         }
+        final String name = attributeName(description);
         final int separator = description.indexOf(';');
-        final String name = separator < 0 ? description : description.substring(0, separator);
-        final String replacement = (forward ? toRemote : toClient).get(key(name));
+        String replacement = (forward ? toRemote : toClient).get(key(name));
+        if (replacement == null && forward) {
+            replacement = aliasesToRemote.get(key(name));
+        }
         return replacement == null ? description : replacement + (separator < 0 ? "" : description.substring(separator));
     }
 
+    String attributeForWrite(String description) {
+        rejectAlias(description);
+        return attribute(description, true);
+    }
+
+    private String attributeName(String description) {
+        final int separator = description.indexOf(';');
+        return separator < 0 ? description : description.substring(0, separator);
+    }
+
+    private void rejectAlias(String description) {
+        if (!aliasesToRemote.isEmpty() && aliasesToRemote.containsKey(key(attributeName(description)))) {
+            throw new RewriteException(ResultCode.UNWILLING_TO_PERFORM,
+                    "Attribute aliases are read-only: " + description);
+        }
+    }
+
     DN dn(DN dn, boolean forward) {
-        if (dn == null || remoteBase == null) {
+        if (dn == null) {
+            return dn;
+        }
+        if (forward) {
+            rejectAliases(dn);
+        }
+        if (remoteBase == null) {
             return dn;
         }
         final DN source = forward ? clientBase : remoteBase;
@@ -131,7 +192,13 @@ final class ProxyRewriter {
     }
 
     RDN rdn(RDN rdn, boolean forward) {
-        if (rdn == null || remoteBase == null || toRemote.isEmpty()) {
+        if (rdn == null) {
+            return rdn;
+        }
+        if (forward) {
+            rejectAliases(rdn);
+        }
+        if (remoteBase == null || toRemote.isEmpty()) {
             return rdn;
         }
         final List<AVA> values = new ArrayList<>(rdn.size());
@@ -140,6 +207,18 @@ final class ProxyRewriter {
             values.add(new AVA(schema.getAttributeType(name), name, ava.getAttributeValue()));
         }
         return new RDN(values);
+    }
+
+    private void rejectAliases(DN dn) {
+        for (int i = 0; i < dn.size(); i++) {
+            rejectAliases(dn.rdn(i));
+        }
+    }
+
+    private void rejectAliases(RDN rdn) {
+        for (AVA ava : rdn) {
+            rejectAlias(ava.getAttributeName());
+        }
     }
 
     private boolean isDnAttribute(String name) {
@@ -188,20 +267,43 @@ final class ProxyRewriter {
         return rewritten;
     }
 
+    private Attribute attributeForWrite(Attribute attribute) {
+        rejectAlias(attribute.getAttributeDescriptionAsString());
+        return attribute(attribute, true);
+    }
+
     Entry entry(Entry entry, boolean forward) {
         if (!isActive()) {
             return entry;
         }
         final Entry rewritten = new LinkedHashMapEntry(dn(entry.getName(), forward));
         for (Attribute attribute : entry.getAllAttributes()) {
-            final Attribute mapped = attribute(attribute, forward);
-            if (rewritten.getAttribute(mapped.getAttributeDescription()) != null) {
-                throw new RewriteException(ResultCode.CONSTRAINT_VIOLATION,
-                        "Attribute mapping produces duplicate attribute " + mapped.getAttributeDescription());
+            final Attribute mapped = forward ? attributeForWrite(attribute) : attribute(attribute, false);
+            addAttribute(rewritten, mapped);
+            if (!forward) {
+                final String description = attribute.getAttributeDescriptionAsString();
+                final int separator = description.indexOf(';');
+                final String name = attributeName(description);
+                final String options = separator < 0 ? "" : description.substring(separator);
+                for (String alias : aliasesForRemote.getOrDefault(key(name), Collections.emptyList())) {
+                    final AttributeDescription aliasDescription = AttributeDescription.valueOf(alias + options, schema);
+                    final LinkedAttribute aliased = new LinkedAttribute(aliasDescription);
+                    for (ByteString value : attribute) {
+                        aliased.add(value(description, value, false));
+                    }
+                    addAttribute(rewritten, aliased);
+                }
             }
-            rewritten.addAttribute(mapped);
         }
         return rewritten;
+    }
+
+    private void addAttribute(Entry entry, Attribute attribute) {
+        if (entry.getAttribute(attribute.getAttributeDescription()) != null) {
+            throw new RewriteException(ResultCode.CONSTRAINT_VIOLATION,
+                    "Attribute mapping produces duplicate attribute " + attribute.getAttributeDescription());
+        }
+        entry.addAttribute(attribute);
     }
 
     private List<String> attributes(List<String> names, boolean forward) {

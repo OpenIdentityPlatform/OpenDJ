@@ -80,7 +80,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
     private boolean listening;
     private ScheduledFuture<?> userPoolCleanup;
     private volatile ProxyRewriter rewriter = new ProxyRewriter(null, null, Collections.emptyList(),
-            Schema.getDefaultSchema());
+            Collections.emptyList(), Schema.getDefaultSchema());
 
     @Override
     public void configureBackend(ProxyBackendCfg cfg, ServerContext serverContext) throws ConfigException {
@@ -200,7 +200,8 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             throw new IllegalArgumentException("remote-base-dn requires exactly one proxy base-dn");
         }
         final DN clientBase = remoteBase == null ? null : bases.iterator().next();
-        return new ProxyRewriter(clientBase, remoteBase, configuration.getAttributeMapping(), context.getSchema());
+        return new ProxyRewriter(clientBase, remoteBase, configuration.getAttributeMapping(),
+                configuration.getAttributeAlias(), context.getSchema());
     }
 
     @Override
@@ -891,7 +892,13 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
         synchronized (routingLock) {
             mapping = rewriter;
             if (discovery instanceof ReplicationServiceDiscoveryMechanism) {
-                final Partition partition = discovery.getPartition(mapping.dn(targetDN(operation), true));
+                final Partition partition;
+                try {
+                    partition = discovery.getPartition(mapping.dn(targetDN(operation), true));
+                } catch (ProxyRewriter.RewriteException e) {
+                    operation.setResponseData(new DirectoryException(e.resultCode, LocalizableMessage.raw(e.getMessage())));
+                    return;
+                }
                 if (partition == null || partition.getPrimaryServers().isEmpty()
                         && partition.getSecondaryServers().isEmpty()) {
                     operation.setResponseData(new DirectoryException(ResultCode.UNAVAILABLE,
@@ -1024,7 +1031,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                     final String attributeName = modify.getAttribute().getAttributeDescription().toString();
                     modifyRequest=modifyRequest.addModification(
                             modify.getModificationType(),
-                            mapping.attribute(attributeName, true),
+                            mapping.attributeForWrite(attributeName),
                             StreamSupport.stream(modify.getAttribute().spliterator(),false)
                                     .map(value -> mapping.value(attributeName, value, true)).toArray(Object[]::new)
                     );

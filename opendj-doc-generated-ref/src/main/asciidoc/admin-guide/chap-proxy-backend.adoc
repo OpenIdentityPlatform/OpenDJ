@@ -281,7 +281,7 @@ LDAPTLS_CACERT=/secure/proxy-ca.pem ldapsearch -x \
 
 The user must exist on the remote server as `uid=user1,dc=directory,dc=example`. Verify both allowed and denied operations with representative user accounts. Protect client-to-proxy connections separately from proxy-to-remote connections; `use-ssl` above controls only the latter.
 
-=== Rewrite DNs and Attributes
+=== Rewrite DNs, Rename Attributes, and Add Aliases
 
 `remote-base-dn` maps DNs under the proxy suffix to the remote suffix in requests and maps them back in responses. For example, `uid=user1,ou=people,dc=example,dc=com` maps to `uid=user1,dc=directory,dc=example`. Values of attributes recognized by the proxy schema as having DN syntax, such as `manager`, are also rewritten when they fall under the configured suffix. Configure the proxy schema for any custom DN-valued attributes.
 
@@ -299,6 +299,25 @@ bin/dsconfig set-backend-prop \
 ----
 
 Mappings apply to attributes in requests, search filters, and returned entries. Do not configure mappings that cause two attributes of the same entry to resolve to the same name. Referral URLs are passed through and are not rewritten.
+
+An attribute alias preserves the remote attribute and exposes the same values under an additional client-side name. Use `client-alias=remote-attribute`; unlike `attribute-mapping`, an alias is not a rename and multiple aliases can refer to the same remote attribute. For example, retain remote `mail` while exposing it as a custom `orgPersonPrincipalName` attribute:
+
+[source,bash]
+----
+bin/dsconfig set-backend-prop \
+  --hostname proxy.example.com --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /secure/admin-password \
+  --trustStorePath /secure/proxy-admin-truststore \
+  --trustStorePasswordFile /secure/proxy-admin-truststore.pin \
+  --backend-name remote-people \
+  --add 'attribute-alias:orgPersonPrincipalName=mail' --no-prompt
+----
+
+For every returned `mail` value, the proxy returns both `mail` and `orgPersonPrincipalName`. An alias can be used in a search filter, a compare request, an assertion control, a pre-read or post-read attribute list, and a search requested-attribute list; the proxy requests the underlying remote attribute. It is read-only: add and modify requests naming an alias return `UNWILLING_TO_PERFORM`. An alias cannot be used in a DN or RDN, including a bind DN, search base DN, or modify DN request.
+
+Define every custom alias in the proxy schema with a syntax and matching rules compatible with its remote source attribute. Do not configure an alias that overlaps an attribute mapping or another alias, and do not use an alias name that remote entries already return: both cases make the client namespace ambiguous. An alias exposes the same remote value under another name; verify the proxy's access-control policy for both names and test permitted and denied client operations. Remote ACLs still control whether the source value is available, but the alias is not a separate security boundary.
+
+Aliases are not virtual attributes. The proxy does not create values from templates such as `{$uid}@example.com`, does not fetch hidden source attributes to calculate values, and does not support filtering, sorting, or writing computed values.
 
 When rewriting is enabled, assertion, pre-read, post-read, and simple paged results controls have explicit handling. Other critical controls that cannot be safely rewritten are rejected; unsupported noncritical controls are omitted. Without rewriting, request controls are forwarded, except client-supplied proxied authorization controls, which are rejected.
 
@@ -330,4 +349,4 @@ Discovery connects to administration ports over TLS regardless of `use-ssl`. The
 
 The backend forwards bind, search, add, modify, modify DN, compare, and delete operations. Search limits and access control are evaluated by the remote directory. Extended operations are handled by the server's normal extended-operation dispatch and are not generally routed to this backend.
 
-The current configuration does not provide per-operation routing priorities, configurable application-level availability checks, or per-backend health metrics. Routing to all discovered naming contexts is not implemented; configure the proxy base DNs explicitly. Servers that do not support Proxied Authorization V2 use client-authenticated connections as described above. DN and attribute mappings do not provide general directory federation or virtual attributes.
+The current configuration does not provide per-operation routing priorities, configurable application-level availability checks, or per-backend health metrics. Routing to all discovered naming contexts is not implemented; configure the proxy base DNs explicitly. With service credentials, `auto` selects `proxy-auth` only when every route server advertises Proxied Authorization V2; when every probe completes and the control is absent, it selects `specific`. An incomplete probe returns `UNAVAILABLE` and never silently falls back to a different identity. DN rewriting, attribute mappings, and attribute aliases do not provide general directory federation or virtual attributes.
