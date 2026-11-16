@@ -1,0 +1,140 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+ifndef::env-site[]
+[#chap-ldif-backend]
+endif::[]
+== Configure an LDIF Backend
+
+ifdef::env-site[]
+anchor:chap-ldif-backend[]
+endif::[]
+
+An LDIF backend stores directory entries in an LDIF file. When the backend starts, it loads the file into memory and serves reads from memory. Each LDAP write rewrites the backing file. Use it for small, mostly static datasets, such as a namespace root or a few configuration entries. For large datasets or frequent writes, use a database backend with indexes instead.
+
+The backend supports basic LDAP operations, with limited support for custom controls. Its backend-specific supported-control list contains only the subtree delete control. Do not assume that database-backend features such as paged results or server-side sorting are available; check the controls required by your application.
+
+For the complete property descriptions, see xref:../reference/dsconfig-subcommands-ref.adoc#dsconfig-create-backend-ldif-backend[LDIF Backend] in the __Reference__.
+
+[#create-ldif-backend]
+=== Create the Backend
+
+The example publishes `dc=example,dc=com` from a backend named `namespace`. Run the commands from the OpenDJ installation directory on the server host. Replace the host name, paths, credentials, and base DN for your deployment. The base DN must not already be registered by another backend, including the default `userRoot` backend.
+
+Prepare a password file and a truststore for the administration connector. Keep password files readable only by authorized users. The examples assume that the server's certificate is trusted by `/secure/admin-truststore`, with its password in `/secure/admin-truststore.pin`, and the Directory Manager password is in `/secure/directory-manager.pwd`.
+
+. Save the following entries as `config/namespace.ldif` under the OpenDJ instance directory. List parent entries before their children:
++
+[source,ldif]
+----
+dn: dc=example,dc=com
+objectClass: top
+objectClass: domain
+dc: example
+
+dn: ou=static,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: static
+----
++
+The server process must be able to read the file. If LDAP writes will be allowed, it must also be able to write the file and create and rename files in its directory. Updates use temporary `.new` and `.old` files alongside the backing file.
+
+. Create and enable the backend, explicitly disabling LDAP writes for this static dataset:
++
+[source,bash]
+----
+bin/dsconfig create-backend \
+  --hostname opendj.example.com \
+  --port 4444 \
+  --bindDN "cn=Directory Manager" \
+  --bindPasswordFile /secure/directory-manager.pwd \
+  --trustStorePath /secure/admin-truststore \
+  --trustStorePasswordFile /secure/admin-truststore.pin \
+  --backend-name namespace \
+  --type ldif \
+  --set base-dn:dc=example,dc=com \
+  --set ldif-file:config/namespace.ldif \
+  --set enabled:true \
+  --set writability-mode:disabled \
+  --no-prompt
+----
++
+Creating the backend loads the file; a separate `import-ldif` command is not required. If the file does not exist, the backend starts empty. It does not synthesize the base entry from `base-dn`.
+
+. Check the effective settings:
++
+[source,bash]
+----
+bin/dsconfig get-backend-prop \
+  --hostname opendj.example.com \
+  --port 4444 \
+  --bindDN "cn=Directory Manager" \
+  --bindPasswordFile /secure/directory-manager.pwd \
+  --trustStorePath /secure/admin-truststore \
+  --trustStorePasswordFile /secure/admin-truststore.pin \
+  --backend-name namespace \
+  --no-prompt
+----
++
+Using an authenticated LDAP client permitted to read the entries, perform a base-object search at `dc=example,dc=com` with filter `(objectClass=*)`. Verify that it returns the domain entry, then search `ou=static,dc=example,dc=com` to verify the child entry. Configure access controls for application clients separately; creating a backend does not grant them read access.
+
+[#operate-ldif-backend]
+=== Manage the File and Write Policy
+
+[cols="1,3",options="header"]
+|===
+|Property |Behavior
+|`ldif-file`
+|Required path to the backing file on the server. Relative paths are resolved against the OpenDJ instance directory. Changing the path requires a backend restart.
+|`base-dn`
+|Exactly one base DN is supported by this implementation. Entries must be at or below it, with their parents present in the file. Changing it requires a backend restart.
+|`enabled`
+|`true` opens the backend and loads its entries. `false` takes it out of service.
+|`writability-mode`
+|`enabled`, the LDIF backend default, permits authorized LDAP writes subject to global writability and normal validation. `disabled` rejects writes. `internal-only` rejects external writes while allowing internal and replication operations; this setting does not itself configure replication.
+|===
+
+To change a property, use `dsconfig set-backend-prop` with the same connection options as above, `--backend-name namespace`, and, for example, `--set writability-mode:enabled`. The backend's write policy applies to its own entries; it does not set the write policy of subordinate backends.
+
+The backend does not watch the file for external edits. To replace the static entries, take the backend out of service with `--set enabled:false`, back up and edit its LDIF file, and enable it again with `--set enabled:true`. Re-enabling reloads the file. Do not edit the file while the backend is enabled: reads continue to use the in-memory data, and an LDAP write can overwrite your edits. Schedule the interruption when clients do not need this suffix or its subordinate suffixes.
+
+[#ldif-backend-proxy-suffixes]
+=== Publish a Parent Suffix for Proxy Backends
+
+A local LDIF backend can provide a parent entry while separate proxy backends serve subordinate suffixes. For example:
+
+[source,text]
+----
+dc=example,dc=com                       LDIF backend: namespace
+|-- ou=static,dc=example,dc=com          local LDIF entries
+|-- dc=sub1,dc=example,dc=com            proxy backend: sub1
+`-- dc=sub2,dc=example,dc=com            proxy backend: sub2
+----
+
+Keep the parent and local entries in `namespace.ldif`. Configure each proxy backend with its own child base DN and discovery mechanism for the directory authoritative for that branch. Two backends cannot register the same base DN. This topology publishes a namespace root and lets clients address the branches through one OpenDJ endpoint.
+
+Operations at or below `dc=sub1,dc=example,dc=com` are routed to the `sub1` proxy backend. Adding a copy of that child base entry to the parent's LDIF file does not change suffix routing or make the LDIF backend authoritative for that branch.
+
+A subtree search from `dc=example,dc=com` reaches the subordinate proxy backends as well as the local parent. If a selected child proxy route has no operational remote server after its primary and secondary candidates have been exhausted, the search returns LDAP `UNAVAILABLE (52)`. Entries from available branches may already have been returned before the final error. Clients must check the final result code; those entries do not make the search successful or complete. A base-object search confined to the local parent does not query the child proxy routes.
+
+This remains true even if the LDIF file contains the parent entry and copies of the child base entries. Those static entries can publish namespace roots; they do not provide runtime failover, reconcile duplicate local and remote entries, or transparently replace a proxy backend for operations under its suffix. The LDIF backend does not turn an unavailable child route into a successful empty search or a user-not-found result.
+
+Health-aware local LDIF fallback, a policy for accepting partial results, and full virtual-directory federation require separate design and implementation. They are not enabled by this configuration.
