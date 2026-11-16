@@ -804,7 +804,11 @@ final class CachedConnectionPool implements ConnectionPool {
         try {
             return acquisition.getOrThrow();
         } catch (final InterruptedException e) {
-            acquisition.cancel(false);
+            if (!acquisition.cancel(false)) {
+                // Completion may have won the race with interruption. Return any
+                // connection which can no longer be delivered to this caller.
+                acquisition.thenOnResult(Connection::close);
+            }
             Thread.currentThread().interrupt();
             throw newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
         }

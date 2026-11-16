@@ -92,6 +92,94 @@ public class ConnectionPoolTestCase extends SdkTestCase {
         }
     }
 
+    @Test(timeOut = 15000)
+    public void cancellationAfterDequeueReturnsTheUndeliveredConnection() throws Exception {
+        final MemoryBackend backend = new MemoryBackend();
+        try (ConnectionPool pool = newCachedConnectionPool(newInternalConnectionFactory(backend),
+                0, 1, 60L, TimeUnit.SECONDS, 10000L); Connection held = pool.getConnection()) {
+            final Promise<Connection, LdapException> waiting = pool.getConnectionAsync();
+            final Thread publisher = new Thread(held::close, "return-pooled-connection");
+            synchronized (waiting) {
+                publisher.start();
+                awaitBlockedOn(publisher, waiting, Thread.State.BLOCKED);
+                Assert.assertTrue(waiting.cancel(false));
+            }
+            publisher.join(5000);
+            Assert.assertFalse(publisher.isAlive(), "The publisher must finish");
+            try (Connection reused = pool.getConnectionAsync().getOrThrow(1, TimeUnit.SECONDS)) {
+                Assert.assertTrue(reused.isValid(), "The undelivered connection must return to the pool");
+            }
+        }
+    }
+
+    @Test(timeOut = 15000)
+    public void interruptedWaiterReturnsAConnectionPublishedBeforeCancellation() throws Exception {
+        final MemoryBackend backend = new MemoryBackend();
+        try (ConnectionPool pool = newCachedConnectionPool(newInternalConnectionFactory(backend),
+                0, 1, 60L, TimeUnit.SECONDS, 10000L); Connection held = pool.getConnection()) {
+            final java.lang.reflect.Field queueField = CachedConnectionPool.class.getDeclaredField("queue");
+            queueField.setAccessible(true);
+            final LinkedList<?> observedQueue = (LinkedList<?>) queueField.get(pool);
+            final java.util.concurrent.atomic.AtomicReference<ResultCode> result = new java.util.concurrent.atomic.AtomicReference<>();
+            final java.util.concurrent.atomic.AtomicBoolean interrupted = new java.util.concurrent.atomic.AtomicBoolean();
+            final java.util.concurrent.atomic.AtomicReference<Throwable> failure = new java.util.concurrent.atomic.AtomicReference<>();
+            final Thread waiter = new Thread(() -> {
+                try (Connection ignored = pool.getConnection()) {
+                    failure.set(new AssertionError("An interrupted waiter must not receive a connection"));
+                } catch (LdapException e) {
+                    result.set(e.getResult().getResultCode());
+                    interrupted.set(Thread.currentThread().isInterrupted());
+                } catch (Throwable e) {
+                    failure.set(e);
+                }
+            }, "interrupted-pool-waiter");
+            waiter.start();
+            Object queued = null;
+            final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+            while (queued == null && System.nanoTime() < deadline) {
+                synchronized (observedQueue) {
+                    if (!observedQueue.isEmpty()) {
+                        final Object entry = observedQueue.getFirst();
+                        final java.lang.reflect.Field value = entry.getClass().getDeclaredField("value");
+                        value.setAccessible(true);
+                        queued = value.get(entry);
+                    }
+                }
+                Thread.yield();
+            }
+            Assert.assertNotNull(queued, "The acquisition must enter the pool queue");
+            final Object promise = queued;
+            awaitBlockedOn(waiter, promise, Thread.State.WAITING);
+            synchronized (promise) {
+                waiter.interrupt();
+                awaitBlockedOn(waiter, promise, Thread.State.BLOCKED);
+                held.close();
+            }
+            waiter.join(5000);
+            Assert.assertFalse(waiter.isAlive(), "The interrupted waiter must finish");
+            Assert.assertNull(failure.get());
+            Assert.assertEquals(result.get(), ResultCode.CLIENT_SIDE_USER_CANCELLED);
+            Assert.assertTrue(interrupted.get(), "The interrupt status must be retained");
+            try (Connection reused = pool.getConnectionAsync().getOrThrow(1, TimeUnit.SECONDS)) {
+                Assert.assertTrue(reused.isValid(), "The completed acquisition must not lose the connection");
+            }
+        }
+    }
+
+    private static void awaitBlockedOn(Thread thread, Object monitor, Thread.State expectedState) {
+        final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (System.nanoTime() < deadline) {
+            final java.lang.management.ThreadInfo info = java.lang.management.ManagementFactory.getThreadMXBean()
+                    .getThreadInfo(thread.getId());
+            if (info != null && info.getThreadState() == expectedState && info.getLockInfo() != null
+                    && info.getLockInfo().getIdentityHashCode() == System.identityHashCode(monitor)) {
+                return;
+            }
+            Thread.yield();
+        }
+        Assert.fail(thread.getName() + " did not reach " + expectedState + " on the expected monitor");
+    }
+
     @Test(timeOut = 5000)
     public void closingPoolFailsWaitingAcquisitions() throws Exception {
         final org.forgerock.opendj.ldap.MemoryBackend backend = new org.forgerock.opendj.ldap.MemoryBackend();

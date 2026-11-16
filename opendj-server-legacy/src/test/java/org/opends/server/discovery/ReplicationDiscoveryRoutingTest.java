@@ -18,6 +18,12 @@ package org.opends.server.discovery;
 import java.util.Collections;
 import java.util.Arrays;
 import java.net.InetSocketAddress;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
@@ -28,10 +34,14 @@ import org.forgerock.opendj.ldap.CommonLDAPOptions;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.MemoryBackend;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.RequestContext;
+import org.forgerock.opendj.ldap.RequestHandler;
+import org.forgerock.opendj.ldap.RequestHandlerFactory;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.server.config.server.ReplicationServiceDiscoveryMechanismCfg;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
@@ -45,9 +55,11 @@ import org.opends.server.types.HostPort;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 /** Exercises topology changes through a real LDAP client and a proxy backend. */
@@ -99,6 +111,12 @@ public class ReplicationDiscoveryRoutingTest extends DirectoryServerTestCase {
             snapshot = ReplicationTopology.create("test", null, Arrays.asList(
                     new ReplicationTopology.Replica(DN.valueOf(REMOTE), new HostPort("127.0.0.1", firstPort), 1),
                     new ReplicationTopology.Replica(DN.valueOf(REMOTE), new HostPort("127.0.0.1", secondPort), 1)));
+            notifyChangeListeners();
+        }
+
+        void publishPort(int port) {
+            snapshot = ReplicationTopology.create("test", null, Collections.singletonList(
+                    new ReplicationTopology.Replica(DN.valueOf(REMOTE), new HostPort("127.0.0.1", port), 1)));
             notifyChangeListeners();
         }
     }
@@ -198,6 +216,104 @@ public class ReplicationDiscoveryRoutingTest extends DirectoryServerTestCase {
         } finally {
             TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", "replication-routing-test",
                     "--reset", "server-priority");
+        }
+    }
+
+    @Test(timeOut = 30000)
+    public void replicationRouteAppliesHeartbeatAndServicePoolLimits() throws Exception {
+        final String user = "uid=rewrite-user," + REMOTE;
+        final MemoryBackend remote = new MemoryBackend(new LDIFEntryReader(
+                "dn:", "objectClass: top", "objectClass: extensibleObject", "",
+                "dn: cn=Directory Manager", "objectClass: top", "objectClass: person", "cn: Directory Manager",
+                "sn: Manager", "userPassword: password", "",
+                "dn: " + REMOTE, "objectClass: top", "objectClass: organizationalUnit", "ou: replication-remote", "",
+                "dn: " + user, "objectClass: top", "objectClass: person", "objectClass: organizationalPerson",
+                "objectClass: inetOrgPerson", "uid: rewrite-user", "cn: Rewrite User", "sn: User",
+                "displayName: Replica", ""));
+        final CountDownLatch heartbeat = new CountDownLatch(1);
+        final CountDownLatch entered = new CountDownLatch(1);
+        final CountDownLatch release = new CountDownLatch(1);
+        final AtomicBoolean block = new AtomicBoolean();
+        final RequestHandlerFactory<LDAPClientContext, RequestContext> handlers = client -> {
+            @SuppressWarnings("unchecked")
+            final RequestHandler<RequestContext> handler = (RequestHandler<RequestContext>)
+                    java.lang.reflect.Proxy.newProxyInstance(RequestHandler.class.getClassLoader(),
+                            new Class<?>[] {RequestHandler.class}, (proxy, method, args) -> {
+                                if (method.getName().equals("handleSearch")) {
+                                    final SearchRequest request = (SearchRequest) args[1];
+                                    if (request.getName().equals(DN.valueOf(REMOTE))
+                                            && request.getFilter().toString().equals("(ou=replication-remote)")) {
+                                        heartbeat.countDown();
+                                    }
+                                    if (request.getName().equals(DN.valueOf(user)) && block.compareAndSet(true, false)) {
+                                        entered.countDown();
+                                        if (!release.await(10, TimeUnit.SECONDS)) {
+                                            throw new IllegalStateException("The held search was not released");
+                                        }
+                                    }
+                                }
+                                try {
+                                    return method.invoke(remote, args);
+                                } catch (java.lang.reflect.InvocationTargetException e) {
+                                    throw e.getCause();
+                                }
+                            });
+            return handler;
+        };
+        final ExecutorService executor = Executors.newSingleThreadExecutor();
+        final Options options = Options.defaultOptions();
+        try (LDAPListener listener = new LDAPListener(Collections.singleton(new InetSocketAddress("127.0.0.1", 0)),
+                new ServerConnectionFactoryAdapter(options.get(CommonLDAPOptions.LDAP_DECODE_OPTIONS),
+                        Connections.newServerConnectionFactory(handlers)), options);
+             LDAPConnectionFactory proxy = new LDAPConnectionFactory("localhost", TestCaseUtils.getServerLdapPort());
+             Connection first = proxy.getConnection(); Connection second = proxy.getConnection()) {
+            TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", "replication-routing-test",
+                    "--set", "operation-identity-mode:specific");
+            TestCaseUtils.dsconfig("set-backend-prop", "--backend-name", "replication-routing-test",
+                    "--set", "connection-pool-min-size:0", "--set", "connection-pool-max-size:1",
+                    "--set", "connection-pool-wait-timeout:100ms", "--set", "keep-alive-enabled:true",
+                    "--set", "keep-alive-interval:1s", "--set", "keep-alive-timeout:2s",
+                    "--set", "keep-alive-search-request-base-dn:" + REMOTE,
+                    "--set", "keep-alive-search-request-filter:(ou=replication-remote)");
+            Fixture.instance.publishPort(listener.firstSocketAddress().getPort());
+            first.bind("cn=Directory Manager", "password".toCharArray());
+            second.bind("cn=Directory Manager", "password".toCharArray());
+            final String proxyUser = "uid=rewrite-user," + PROXY;
+            assertEquals(first.searchSingleEntry(proxyUser, SearchScope.BASE_OBJECT, "(objectClass=*)", "description")
+                    .getAttribute("description").firstValueAsString(), "Replica");
+            final SoftAssert observedSettings = new SoftAssert();
+            observedSettings.assertTrue(heartbeat.await(8, TimeUnit.SECONDS),
+                    "The replication route must use the configured heartbeat");
+            block.set(true);
+            final Future<String> active = executor.submit(() -> first.searchSingleEntry(proxyUser, SearchScope.BASE_OBJECT,
+                    "(objectClass=*)", "description").getAttribute("description").firstValueAsString());
+            assertTrue(entered.await(5, TimeUnit.SECONDS), "The first operation must hold the only service connection");
+            ResultCode saturation = ResultCode.SUCCESS;
+            try {
+                second.searchSingleEntry(proxyUser, SearchScope.BASE_OBJECT, "(objectClass=*)", "description");
+            } catch (LdapException e) {
+                saturation = e.getResult().getResultCode();
+            } finally {
+                block.set(false);
+                release.countDown();
+            }
+            observedSettings.assertEquals(saturation, ResultCode.BUSY,
+                    "A saturated replication service pool must return BUSY");
+            assertEquals(active.get(5, TimeUnit.SECONDS), "Replica");
+            assertEquals(second.searchSingleEntry(proxyUser, SearchScope.BASE_OBJECT, "(objectClass=*)", "description")
+                    .getAttribute("description").firstValueAsString(), "Replica");
+            observedSettings.assertAll();
+        } finally {
+            release.countDown();
+            executor.shutdownNow();
+            Fixture.instance.publish(false);
+            TestCaseUtils.dsconfig("set-backend-prop", "--backend-name", "replication-routing-test",
+                    "--reset", "connection-pool-min-size", "--reset", "connection-pool-max-size",
+                    "--reset", "connection-pool-wait-timeout", "--reset", "keep-alive-enabled",
+                    "--reset", "keep-alive-interval", "--reset", "keep-alive-timeout",
+                    "--reset", "keep-alive-search-request-base-dn", "--reset", "keep-alive-search-request-filter");
+            TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", "replication-routing-test",
+                    "--reset", "operation-identity-mode");
         }
     }
 

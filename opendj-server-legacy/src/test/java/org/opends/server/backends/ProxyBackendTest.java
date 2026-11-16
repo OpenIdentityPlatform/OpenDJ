@@ -744,7 +744,7 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
                     "--set", "base-dn:" + proxyBase, "--set", "remote-base-dn:" + remoteBase,
                     "--set", "enabled:true", "--set", "shard:user-round-robin");
             final List<String> servers = new ArrayList<>();
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < 4; i++) {
                 final String dn = "uid=" + user + "," + proxyBase;
                 try (Connection client = factory.getConnection()) {
                     assertEquals(client.bind(dn, "password".toCharArray()).getResultCode(), ResultCode.SUCCESS);
@@ -752,7 +752,11 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
                             .getAttribute("description").firstValueAsString());
                 }
             }
-            assertEquals(servers, Arrays.asList("first", "second"));
+            assertThat(servers.get(0)).isIn("first", "second");
+            assertThat(servers.get(1)).isIn("first", "second");
+            Assert.assertNotEquals(servers.get(0), servers.get(1), "Consecutive binds must use different servers");
+            assertEquals(servers.get(2), servers.get(0));
+            assertEquals(servers.get(3), servers.get(1));
         }
     }
 
@@ -882,6 +886,24 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
                     "--set", "connection-pool-max-size:2", "--set", "connection-pool-idle-timeout:10s",
                     "--set", "connection-pool-wait-timeout:2s", "--set", "enabled:true");
             backendCreated = true;
+            final ProxyBackend backend = (ProxyBackend) TestCaseUtils.getServerContext().getBackendConfigManager()
+                    .findBackendForEntry(DN.valueOf("ou=connection-settings,o=test"));
+            final ConnectionFactory balancer = backendFactory(backend, "bindFactory");
+            final Class<?> loadBalancerClass = Class.forName("org.forgerock.opendj.ldap.LoadBalancer");
+            final Field interval = loadBalancerClass.getDeclaredField("monitoringIntervalMS");
+            interval.setAccessible(true);
+            final SoftAssert sdkSettings = new SoftAssert();
+            sdkSettings.assertEquals(interval.getLong(balancer), 500L, "The SDK must receive the reconnect interval");
+            final Field monitored = loadBalancerClass.getDeclaredField("monitoredFactories");
+            monitored.setAccessible(true);
+            final Object member = ((List<?>) monitored.get(balancer)).get(0);
+            final Field wrapped = member.getClass().getDeclaredField("factory");
+            wrapped.setAccessible(true);
+            final Object remoteFactory = wrapped.get(member);
+            final Field timeout = LDAPConnectionFactory.class.getDeclaredField("connectTimeoutMS");
+            timeout.setAccessible(true);
+            sdkSettings.assertEquals(timeout.getLong(remoteFactory), 3000L, "The SDK must receive the connection timeout");
+            sdkSettings.assertAll();
             final String configDN = "ds-cfg-backend-id=" + name + ",cn=Backends,cn=config";
             assertThat(getRootConnection().processModify(Requests.newModifyRequest(configDN)
                     .addModification(ModificationType.REPLACE, "ds-cfg-connection-pool-min-size", "3"))
