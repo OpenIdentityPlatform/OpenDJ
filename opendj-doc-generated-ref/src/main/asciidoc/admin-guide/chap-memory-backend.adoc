@@ -1,0 +1,152 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+:figure-caption!:
+:example-caption!:
+:table-caption!:
+
+[#chap-memory-backend]
+== Using the Memory Backend
+
+The Memory backend stores directory entries only in the OpenDJ server process memory. Use it for small development datasets, isolated tests, disposable demonstrations, or temporary data that can be recreated.
+
+[WARNING]
+====
+The Memory backend has no persistence. All entries, including the base entry, are discarded when the backend is disabled, when it is enabled, and when OpenDJ restarts. Re-enabling the backend starts with an empty dataset. Do not use it for a production suffix that requires durable directory storage.
+====
+
+Saving the backend configuration does not save its entries. Keeping an LDIF file on disk does not make the Memory backend reload that file automatically; populate the running backend again after each reset.
+
+The implementation is intended for small datasets and does not provide configurable attribute indexes. Searches other than base-object searches scan the dataset. Choose a database backend when you need indexed searches over larger datasets.
+
+[#memory-backend-create]
+=== Creating a Memory Backend
+
+Run the following commands from the OpenDJ installation directory on a running test instance. The examples use the administration connector on port `4444`, LDAP with StartTLS on port `1389`, and the demonstration credentials `cn=Directory Manager` / `password`. Adjust these values for your instance. The `--trustAll` option is for the self-signed certificate in this local test.
+
+Choose a unique backend name and a base DN that is not already assigned to another backend. The Memory backend implementation requires exactly one base DN. This example uses `temporaryData` and `dc=memory,dc=example`:
+
+[source,bash]
+----
+bin/dsconfig create-backend \
+  --hostname localhost --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPassword password \
+  --backend-name temporaryData --type memory \
+  --set base-dn:dc=memory,dc=example \
+  --set enabled:true --set writability-mode:enabled \
+  --trustAll --no-prompt
+----
+
+The backend is initially empty. Configuring `base-dn` registers the naming context; it does not create its base entry. `writability-mode:enabled` permits supported write operations, subject to the global writability mode and the client's access rights.
+
+For the complete property list, defaults, and constraints, see xref:../reference/dsconfig-subcommands-ref.adoc#dsconfig-create-backend-memory-backend[Memory backend creation properties] and xref:../reference/dsconfig-subcommands-ref.adoc#dsconfig-set-backend-prop-memory-backend[Memory backend property updates] in the generated `dsconfig` reference.
+
+[#memory-backend-populate]
+=== Populating and Verifying the Backend
+
+Create `memory-data.ldif` with the base entry followed by a child entry:
+
+[source,ldif]
+----
+dn: dc=memory,dc=example
+objectClass: top
+objectClass: domain
+dc: memory
+
+dn: ou=People,dc=memory,dc=example
+objectClass: top
+objectClass: organizationalUnit
+ou: People
+----
+
+Add the entries through LDAP while the backend is enabled, then search the naming context:
+
+[source,bash]
+----
+bin/ldapmodify \
+  --hostname localhost --port 1389 --useStartTLS --trustAll \
+  --bindDN 'cn=Directory Manager' --bindPassword password \
+  --defaultAdd --filename memory-data.ldif
+
+bin/ldapsearch \
+  --hostname localhost --port 1389 --useStartTLS --trustAll \
+  --bindDN 'cn=Directory Manager' --bindPassword password \
+  --baseDN 'dc=memory,dc=example' --searchScope sub \
+  '(objectClass=*)' dc ou
+----
+
+The search returns both entries:
+
+[source,ldif]
+----
+dn: dc=memory,dc=example
+dc: memory
+
+dn: ou=People,dc=memory,dc=example
+ou: People
+----
+
+Repeating the add while these entries still exist reports `Entry Already Exists`. Keep the source file if you want to recreate the same disposable dataset later.
+
+[#memory-backend-reset]
+=== Resetting the Dataset
+
+On the disposable backend created above, disabling and re-enabling it clears the entries:
+
+[source,bash]
+----
+bin/dsconfig set-backend-prop \
+  --hostname localhost --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPassword password \
+  --backend-name temporaryData --set enabled:false \
+  --trustAll --no-prompt
+
+bin/dsconfig set-backend-prop \
+  --hostname localhost --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPassword password \
+  --backend-name temporaryData --set enabled:true \
+  --trustAll --no-prompt
+----
+
+Repeat the search from the previous section. It now returns `No Such Entry` (LDAP result code `32`), because even the base entry has been discarded. Run the `ldapmodify` command again to reload both entries. Restarting OpenDJ also clears the dataset and requires another reload.
+
+[#memory-backend-alternatives]
+=== Choosing Storage and Routing
+
+[cols="1,3",options="header"]
+|===
+|Backend |When to use it
+
+|Memory
+|Small, disposable datasets held only in server memory. Entries are lost on backend disablement, enablement, and server restart.
+
+|LDIF
+|A small directory backed by an LDIF file, such as static namespace entries. Unlike Memory, its configured file supplies entries when the backend starts; supported writes update that file.
+
+|JE or PDB
+|Persistent local database storage for directory suffixes, with database indexes. See xref:./chap-import-export.adoc#create-database-backend[Creating a New Database Backend].
+
+|JDBC
+|Directory data stored in a supported relational database. See xref:../how-to/jdbc-backend.adoc[Use a Relational Database as an LDAP Backend].
+
+|Cassandra
+|Directory data stored in a Cassandra cluster. See xref:../how-to/cassandra-backend.adoc[Store Directory Data in Cassandra].
+
+|Proxy
+|Routing LDAP operations to remote directories. Data durability depends on the remote directories' storage. A local Memory backend does not automatically replace an unavailable proxy suffix.
+|===
+
+For JDBC and Cassandra, configure the database or cluster's persistence and availability to meet your requirements. For a local parent suffix above subordinate proxy suffixes, Memory can publish temporary parent entries, but those entries disappear on reset and do not provide failover for operations routed to a child proxy backend. Use durable storage for parent entries that must survive a restart.
