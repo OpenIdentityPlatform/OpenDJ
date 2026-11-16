@@ -230,6 +230,49 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="primary-load-balancing-algorithm" mandatory="true">
+    <adm:synopsis>
+      Specifies how requests are distributed among primary remote LDAP servers.
+    </adm:synopsis>
+    <adm:description>
+      The algorithm selects a server only within the primary group. Secondary servers are used only
+      when no primary server can provide a connection. This setting applies to both client binds and
+      service-account operation connections.
+    </adm:description>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:default-behavior><adm:defined><adm:value>affinity</adm:value></adm:defined></adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="affinity"><adm:synopsis>Route the same target DN to the same server when available.</adm:synopsis></adm:value>
+        <adm:value name="round-robin"><adm:synopsis>Cycle evenly through the configured servers.</adm:synopsis></adm:value>
+        <adm:value name="least-requests"><adm:synopsis>Select the server with the fewest active proxy requests.</adm:synopsis></adm:value>
+        <adm:value name="failover"><adm:synopsis>Prefer the first configured healthy server.</adm:synopsis></adm:value>
+        <adm:value name="distribution"><adm:synopsis>Use consistent hashing of the target DN across fully replicated servers.</adm:synopsis></adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-primary-load-balancing-algorithm</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+  <adm:property name="secondary-load-balancing-algorithm" mandatory="true">
+    <adm:synopsis>
+      Specifies how requests are distributed among secondary remote LDAP servers.
+    </adm:synopsis>
+    <adm:description>
+      The algorithm is used only after every primary server is unavailable. It applies to both client
+      binds and service-account operation connections.
+    </adm:description>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:default-behavior><adm:defined><adm:value>affinity</adm:value></adm:defined></adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="affinity"><adm:synopsis>Route the same target DN to the same server when available.</adm:synopsis></adm:value>
+        <adm:value name="round-robin"><adm:synopsis>Cycle evenly through the configured servers.</adm:synopsis></adm:value>
+        <adm:value name="least-requests"><adm:synopsis>Select the server with the fewest active proxy requests.</adm:synopsis></adm:value>
+        <adm:value name="failover"><adm:synopsis>Prefer the first configured healthy server.</adm:synopsis></adm:value>
+        <adm:value name="distribution"><adm:synopsis>Use consistent hashing of the target DN across fully replicated servers.</adm:synopsis></adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-secondary-load-balancing-algorithm</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
   <!--adm:property name="ssl-protocol" multi-valued="true">
     <adm:synopsis>
       Specifies the names of the SSL protocols that are allowed for

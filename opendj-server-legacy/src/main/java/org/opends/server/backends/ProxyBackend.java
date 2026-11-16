@@ -33,6 +33,8 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.opendj.server.config.meta.ServiceDiscoveryMechanismCfgDefn.OperationIdentityMode;
+import org.forgerock.opendj.server.config.meta.ServiceDiscoveryMechanismCfgDefn.PrimaryLoadBalancingAlgorithm;
+import org.forgerock.opendj.server.config.meta.ServiceDiscoveryMechanismCfgDefn.SecondaryLoadBalancingAlgorithm;
 import org.forgerock.opendj.server.config.server.ProxyBackendCfg;
 import org.forgerock.util.Options;
 import org.opends.server.api.Backend;
@@ -54,6 +56,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.stream.StreamSupport;
 
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.AUTHN_BIND_REQUEST;
@@ -144,8 +148,12 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             }
         }
 
-        final ConnectionFactory newBindFactory = prioritizedAffinity(primaryBind, secondaryBind);
-        final ConnectionFactory newFactory = prioritizedAffinity(primary, secondary);
+        final ProxyLoadBalancingAlgorithm primaryAlgorithm = primaryLoadBalancingAlgorithm(discoveryMechanism);
+        final ProxyLoadBalancingAlgorithm secondaryAlgorithm = secondaryLoadBalancingAlgorithm(discoveryMechanism);
+        final ConnectionFactory newBindFactory = prioritizedLoadBalancer(primaryBind, secondaryBind,
+                primaryAlgorithm, secondaryAlgorithm);
+        final ConnectionFactory newFactory = prioritizedLoadBalancer(primary, secondary,
+                primaryAlgorithm, secondaryAlgorithm);
         final Runnable applyRoute = () -> {
             synchronized (routingLock) {
                 if (listening && discovery != discoveryMechanism) {
@@ -216,18 +224,24 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
         }
     }
 
-    private static ConnectionFactory prioritizedAffinity(List<ConnectionFactory> primary,
-                                                         List<ConnectionFactory> secondary) {
+    /**
+     * Builds a strict primary-before-secondary route. The primary policy only chooses among the
+     * primary candidate routes; each candidate route attempts every primary before accepting the
+     * secondary request-level balancer as its final candidate.
+     */
+    private static ConnectionFactory prioritizedLoadBalancer(List<ConnectionFactory> primary,
+                                                             List<ConnectionFactory> secondary,
+                                                             ProxyLoadBalancingAlgorithm primaryAlgorithm,
+                                                             ProxyLoadBalancingAlgorithm secondaryAlgorithm) {
         if (primary.isEmpty() && secondary.isEmpty()) {
             return null;
         }
         if (primary.isEmpty() || secondary.isEmpty()) {
-            return Connections.newAffinityRequestLoadBalancer(primary.isEmpty() ? secondary : primary,
-                    Options.defaultOptions());
+            return newLoadBalancer(primary.isEmpty() ? secondary : primary,
+                    primary.isEmpty() ? secondaryAlgorithm : primaryAlgorithm);
         }
 
-        final ConnectionFactory secondaryAffinity =
-                Connections.newAffinityRequestLoadBalancer(secondary, Options.defaultOptions());
+        final ConnectionFactory secondaryLoadBalancer = newLoadBalancer(secondary, secondaryAlgorithm);
         final List<ConnectionFactory> routes = new ArrayList<>(primary.size());
         for (int start = 0; start < primary.size(); start++) {
             final List<ConnectionFactory> candidates = new ArrayList<>(primary.size() + 1);
@@ -236,17 +250,60 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             }
             // The request-level secondary balancer must be last: it returns a
             // virtual connection before checking whether a server is reachable.
-            candidates.add(secondaryAffinity);
+            candidates.add(secondaryLoadBalancer);
             routes.add(Connections.newFailoverLoadBalancer(candidates, Options.defaultOptions()));
         }
-        return Connections.newAffinityRequestLoadBalancer(routes, Options.defaultOptions());
+        return newLoadBalancer(routes, primaryAlgorithm);
+    }
+
+    private static ConnectionFactory newLoadBalancer(Collection<ConnectionFactory> factories,
+                                                     ProxyLoadBalancingAlgorithm algorithm) {
+        final Options options = Options.defaultOptions();
+        switch (algorithm) {
+            case AFFINITY:
+                return Connections.newAffinityRequestLoadBalancer(factories, options);
+            case ROUND_ROBIN:
+                return Connections.newRoundRobinLoadBalancer(factories, options);
+            case LEAST_REQUESTS:
+                return Connections.newLeastRequestsLoadBalancer(factories, options);
+            case FAILOVER:
+                return Connections.newFailoverLoadBalancer(factories, options);
+            case DISTRIBUTION:
+                return Connections.newConsistentHashRequestLoadBalancer(factories, options);
+            default:
+                throw new AssertionError("Unsupported load-balancing algorithm: " + algorithm);
+        }
+    }
+
+    private enum ProxyLoadBalancingAlgorithm {
+        AFFINITY,
+        ROUND_ROBIN,
+        LEAST_REQUESTS,
+        FAILOVER,
+        DISTRIBUTION
+    }
+
+    private static ProxyLoadBalancingAlgorithm primaryLoadBalancingAlgorithm(
+            ServiceDiscoveryMechanism<?> mechanism) {
+        final PrimaryLoadBalancingAlgorithm configured = mechanism.cfg.getPrimaryLoadBalancingAlgorithm();
+        return configured == null ? ProxyLoadBalancingAlgorithm.AFFINITY
+                : ProxyLoadBalancingAlgorithm.valueOf(configured.name());
+    }
+
+    private static ProxyLoadBalancingAlgorithm secondaryLoadBalancingAlgorithm(
+            ServiceDiscoveryMechanism<?> mechanism) {
+        final SecondaryLoadBalancingAlgorithm configured = mechanism.cfg.getSecondaryLoadBalancingAlgorithm();
+        return configured == null ? ProxyLoadBalancingAlgorithm.AFFINITY
+                : ProxyLoadBalancingAlgorithm.valueOf(configured.name());
     }
 
     private static final class DynamicRoute {
         final ConnectionFactory bind;
         final ConnectionFactory authenticated;
         final List<Partition.Server> servers;
-        final int primaryServerCount;
+        final UserBindTier primaryUserBindTier;
+        final UserBindTier secondaryUserBindTier;
+        final Map<Partition.Server, UserBindTier> userBindTiers;
         final Map<Partition.Server, LDAPConnectionFactory> physicalFactories = new LinkedHashMap<>();
         final Map<List<Object>, UserPool> userPools = new HashMap<>();
         final boolean hasServiceCredentials;
@@ -260,7 +317,9 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             this.bind = bind;
             this.authenticated = authenticated;
             this.servers = Collections.emptyList();
-            this.primaryServerCount = 0;
+            this.primaryUserBindTier = new UserBindTier(Collections.emptyList(), ProxyLoadBalancingAlgorithm.AFFINITY);
+            this.secondaryUserBindTier = new UserBindTier(Collections.emptyList(), ProxyLoadBalancingAlgorithm.AFFINITY);
+            this.userBindTiers = Collections.emptyMap();
             this.hasServiceCredentials = authenticated != null;
             this.configuredIdentityMode = OperationIdentityMode.PROXY_AUTH;
             this.operationIdentity = OperationIdentity.PROXY_AUTH;
@@ -272,7 +331,11 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             this.bind = bind;
             this.authenticated = authenticated;
             this.servers = orderedServers(partition);
-            this.primaryServerCount = partition == null ? 0 : partition.getPrimaryServers().size();
+            this.primaryUserBindTier = new UserBindTier(primaryServers(partition),
+                    primaryLoadBalancingAlgorithm(mechanism));
+            this.secondaryUserBindTier = new UserBindTier(secondaryServers(partition),
+                    secondaryLoadBalancingAlgorithm(mechanism));
+            this.userBindTiers = userBindTiers(primaryUserBindTier, secondaryUserBindTier);
             this.hasServiceCredentials = hasServiceCredentials(mechanism);
             this.configuredIdentityMode = configuredIdentityMode(mechanism);
         }
@@ -284,12 +347,32 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             final List<ConnectionFactory> secondary = new ArrayList<>();
             addServers(partition.getPrimaryServers(), mechanism, primaryBind, primary);
             addServers(partition.getSecondaryServers(), mechanism, secondaryBind, secondary);
-            bind = prioritizedAffinity(primaryBind, secondaryBind);
-            authenticated = prioritizedAffinity(primary, secondary);
+            final ProxyLoadBalancingAlgorithm primaryAlgorithm = primaryLoadBalancingAlgorithm(mechanism);
+            final ProxyLoadBalancingAlgorithm secondaryAlgorithm = secondaryLoadBalancingAlgorithm(mechanism);
+            bind = prioritizedLoadBalancer(primaryBind, secondaryBind, primaryAlgorithm, secondaryAlgorithm);
+            authenticated = prioritizedLoadBalancer(primary, secondary, primaryAlgorithm, secondaryAlgorithm);
             servers = orderedServers(partition);
-            primaryServerCount = partition.getPrimaryServers().size();
+            primaryUserBindTier = new UserBindTier(primaryServers(partition), primaryAlgorithm);
+            secondaryUserBindTier = new UserBindTier(secondaryServers(partition), secondaryAlgorithm);
+            userBindTiers = userBindTiers(primaryUserBindTier, secondaryUserBindTier);
             hasServiceCredentials = hasServiceCredentials(mechanism);
             configuredIdentityMode = configuredIdentityMode(mechanism);
+        }
+
+        private static Collection<Partition.Server> primaryServers(Partition partition) {
+            return partition == null ? Collections.emptyList() : partition.getPrimaryServers();
+        }
+
+        private static Collection<Partition.Server> secondaryServers(Partition partition) {
+            return partition == null ? Collections.emptyList() : partition.getSecondaryServers();
+        }
+
+        private static Map<Partition.Server, UserBindTier> userBindTiers(UserBindTier primary,
+                                                                           UserBindTier secondary) {
+            final Map<Partition.Server, UserBindTier> result = new IdentityHashMap<>();
+            primary.addTo(result);
+            secondary.addTo(result);
+            return result;
         }
 
         private static List<Partition.Server> orderedServers(Partition partition) {
@@ -334,6 +417,95 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             }
             if (authenticated != null) {
                 authenticated.close();
+            }
+        }
+    }
+
+    /** Selects physical servers for client binds while retaining successful-session pinning. */
+    private static final class UserBindTier {
+        private final List<Partition.Server> servers;
+        private final ProxyLoadBalancingAlgorithm algorithm;
+        private final AtomicInteger nextServer = new AtomicInteger();
+        private final AtomicLongArray activeBinds;
+        private final Map<Partition.Server, Integer> indexes = new IdentityHashMap<>();
+        private final ConsistentHashMap<Partition.Server> distribution = new ConsistentHashMap<>();
+
+        UserBindTier(Collection<Partition.Server> servers, ProxyLoadBalancingAlgorithm algorithm) {
+            this.servers = new ArrayList<>(servers);
+            this.algorithm = algorithm;
+            this.activeBinds = new AtomicLongArray(this.servers.size());
+            for (int i = 0; i < this.servers.size(); i++) {
+                final Partition.Server server = this.servers.get(i);
+                indexes.put(server, i);
+                distribution.put("server-" + i, server);
+            }
+        }
+
+        void addTo(Map<Partition.Server, UserBindTier> tiers) {
+            for (Partition.Server server : servers) {
+                tiers.put(server, this);
+            }
+        }
+
+        void addServers(List<Partition.Server> result, DN dn) {
+            if (servers.isEmpty()) {
+                return;
+            }
+            switch (algorithm) {
+                case AFFINITY:
+                    addFrom(result, affinityIndex(dn), servers.size());
+                    return;
+                case ROUND_ROBIN:
+                    addFrom(result, Math.floorMod(nextServer.getAndIncrement(), servers.size()), servers.size());
+                    return;
+                case LEAST_REQUESTS:
+                    addFrom(result, leastRequestsIndex(), servers.size());
+                    return;
+                case FAILOVER:
+                    result.addAll(servers);
+                    return;
+                case DISTRIBUTION:
+                    final Partition.Server selected = distribution.get(dn.toNormalizedUrlSafeString());
+                    addFrom(result, indexes.get(selected), servers.size());
+                    return;
+                default:
+                    throw new AssertionError("Unsupported load-balancing algorithm: " + algorithm);
+            }
+        }
+
+        void requestStarted(Partition.Server server) {
+            if (algorithm == ProxyLoadBalancingAlgorithm.LEAST_REQUESTS) {
+                activeBinds.incrementAndGet(indexes.get(server));
+            }
+        }
+
+        void requestCompleted(Partition.Server server) {
+            if (algorithm == ProxyLoadBalancingAlgorithm.LEAST_REQUESTS) {
+                activeBinds.decrementAndGet(indexes.get(server));
+            }
+        }
+
+        private int affinityIndex(DN dn) {
+            final int hash = dn.hashCode();
+            return hash == Integer.MIN_VALUE ? 0 : Math.abs(hash) % servers.size();
+        }
+
+        private int leastRequestsIndex() {
+            int selected = 0;
+            long minimum = activeBinds.get(0);
+            for (int i = 1; i < activeBinds.length(); i++) {
+                final long value = activeBinds.get(i);
+                if (value < minimum) {
+                    minimum = value;
+                    selected = i;
+                }
+            }
+            return selected;
+        }
+
+        private void addFrom(List<Partition.Server> result, int start, int count) {
+            for (int offset = 0; offset < count; offset++) {
+                result.add(servers.get((start + offset) % servers.size()));
             }
         }
     }
@@ -561,7 +733,9 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                     }
                     final SimpleBindRequest bind = newSimpleBindRequest(remoteDN.toString(), password);
                     addRequestControls(bind, controls);
+                    final UserBindTier tier = route.userBindTiers.get(server);
                     final Result result;
+                    tier.requestStarted(server);
                     try {
                         result = connection.bind(bind);
                     } catch (LdapException e) {
@@ -576,6 +750,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                         return e.getResult();
                     } finally {
                         Arrays.fill(bind.getPassword(), (byte) 0);
+                        tier.requestCompleted(server);
                     }
                     if (result.getResultCode() != ResultCode.SUCCESS) {
                         return result;
@@ -627,22 +802,9 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
 
     private static List<Partition.Server> userBindServers(DynamicRoute route, DN dn) {
         final List<Partition.Server> result = new ArrayList<>(route.servers.size());
-        addAffinityServers(result, route.servers, 0, route.primaryServerCount, dn);
-        addAffinityServers(result, route.servers, route.primaryServerCount,
-                route.servers.size() - route.primaryServerCount, dn);
+        route.primaryUserBindTier.addServers(result, dn);
+        route.secondaryUserBindTier.addServers(result, dn);
         return result;
-    }
-
-    private static void addAffinityServers(List<Partition.Server> result, List<Partition.Server> servers,
-                                           int start, int count, DN dn) {
-        if (count == 0) {
-            return;
-        }
-        final int hash = dn.hashCode();
-        final int first = hash == Integer.MIN_VALUE ? 0 : Math.abs(hash) % count;
-        for (int offset = 0; offset < count; offset++) {
-            result.add(servers.get(start + (first + offset) % count));
-        }
     }
 
     private void retireDynamicRoutes() {

@@ -30,6 +30,8 @@ import org.opends.server.protocols.ldap.LDAPControl;
 import org.forgerock.opendj.server.config.server.ProxyBackendCfg;
 import org.forgerock.opendj.server.config.server.StaticServiceDiscoveryMechanismCfg;
 import org.forgerock.opendj.server.config.meta.ServiceDiscoveryMechanismCfgDefn.OperationIdentityMode;
+import org.forgerock.opendj.server.config.meta.ServiceDiscoveryMechanismCfgDefn.PrimaryLoadBalancingAlgorithm;
+import org.forgerock.opendj.server.config.meta.ServiceDiscoveryMechanismCfgDefn.SecondaryLoadBalancingAlgorithm;
 import org.forgerock.util.Options;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
@@ -726,6 +728,34 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
         }
     }
 
+    @Test(dependsOnMethods = "rewritesDnAndAttributesThroughLdap")
+    public void userBindsUseConfiguredPrimaryRoundRobinAlgorithm() throws Exception {
+        final String remoteBase = "dc=userpool";
+        final String proxyBase = "ou=userpool-round-robin,o=test";
+        final String user = "user0";
+        try (LDAPListener firstServer = userAffinityServer("first", user, "user1", remoteBase);
+             LDAPListener secondServer = userAffinityServer("second", user, "user1", remoteBase)) {
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", "user-round-robin",
+                    "--type", "static", "--set", "primary-server:127.0.0.1:"
+                            + firstServer.firstSocketAddress().getPort(),
+                    "--set", "primary-server:127.0.0.1:" + secondServer.firstSocketAddress().getPort(),
+                    "--set", "primary-load-balancing-algorithm:round-robin", "--set", "use-ssl:false");
+            TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", "user-round-robin",
+                    "--set", "base-dn:" + proxyBase, "--set", "remote-base-dn:" + remoteBase,
+                    "--set", "enabled:true", "--set", "shard:user-round-robin");
+            final List<String> servers = new ArrayList<>();
+            for (int i = 0; i < 2; i++) {
+                final String dn = "uid=" + user + "," + proxyBase;
+                try (Connection client = factory.getConnection()) {
+                    assertEquals(client.bind(dn, "password".toCharArray()).getResultCode(), ResultCode.SUCCESS);
+                    servers.add(client.searchSingleEntry(dn, SearchScope.BASE_OBJECT, "(objectClass=*)", "description")
+                            .getAttribute("description").firstValueAsString());
+                }
+            }
+            assertEquals(servers, Arrays.asList("first", "second"));
+        }
+    }
+
     private LDAPListener userAffinityServer(String label, String first, String second, String base) throws Exception {
         return userAffinityServer(label, first, second, base, "password");
     }
@@ -1057,11 +1087,20 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
     }
 
     private ProxyBackend priorityBackend(List<Integer> primaryPorts, List<Integer> secondaryPorts) throws Exception {
+        return priorityBackend(primaryPorts, secondaryPorts, PrimaryLoadBalancingAlgorithm.AFFINITY,
+                SecondaryLoadBalancingAlgorithm.AFFINITY);
+    }
+
+    private ProxyBackend priorityBackend(List<Integer> primaryPorts, List<Integer> secondaryPorts,
+                                         PrimaryLoadBalancingAlgorithm primaryAlgorithm,
+                                         SecondaryLoadBalancingAlgorithm secondaryAlgorithm) throws Exception {
         final StaticServiceDiscoveryMechanism mechanism =
                 ProxyBackendDiscoveryFixture.mechanism(primaryPorts, secondaryPorts);
         mechanism.cfg = mockCfg(StaticServiceDiscoveryMechanismCfg.class);
         when(mechanism.cfg.getBindDN()).thenReturn(DN.valueOf("cn=service"));
         when(mechanism.cfg.getBindPassword()).thenReturn("service-password");
+        when(mechanism.cfg.getPrimaryLoadBalancingAlgorithm()).thenReturn(primaryAlgorithm);
+        when(mechanism.cfg.getSecondaryLoadBalancingAlgorithm()).thenReturn(secondaryAlgorithm);
         final ServiceDiscoveryMechanismConfigManager manager = Mockito.mock(ServiceDiscoveryMechanismConfigManager.class);
         Mockito.doReturn(mechanism).when(manager).getMechanism("priority-test");
         final ServerContext context = Mockito.mock(ServerContext.class);
@@ -1090,22 +1129,109 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
     }
 
     private void assertServer(ProxyBackend backend, String expected, boolean forceSecondaryAffinity) throws Exception {
-        try (ConnectionFactory factory = backendFactory(backend, "factory");
-             ConnectionFactory bindFactory = backendFactory(backend, "bindFactory")) {
-            final SearchRequest search = Requests.newSearchRequest("uid=user", SearchScope.BASE_OBJECT,
-                    "(objectClass=*)", "description");
-            final org.forgerock.opendj.ldap.requests.BindRequest bind =
-                    Requests.newSimpleBindRequest("uid=user", (expected + "-password").toCharArray());
-            if (forceSecondaryAffinity) {
-                search.addControl(secondaryAffinity());
-                bind.addControl(secondaryAffinity());
+        try {
+            assertServerWithoutClosingFactories(backend, expected, forceSecondaryAffinity);
+        } finally {
+            closeRouteFactories(backend);
+        }
+    }
+
+    private void assertServerWithoutClosingFactories(ProxyBackend backend, String expected,
+                                                      boolean forceSecondaryAffinity) throws Exception {
+        final SearchRequest search = Requests.newSearchRequest("uid=user", SearchScope.BASE_OBJECT,
+                "(objectClass=*)", "description");
+        final org.forgerock.opendj.ldap.requests.BindRequest bind =
+                Requests.newSimpleBindRequest("uid=user", (expected + "-password").toCharArray());
+        if (forceSecondaryAffinity) {
+            search.addControl(secondaryAffinity());
+            bind.addControl(secondaryAffinity());
+        }
+        try (Connection connection = backendFactory(backend, "factory").getConnection()) {
+            assertTrue(connection.searchSingleEntry(search).getAttribute("description")
+                    .contains(ByteString.valueOfUtf8(expected)));
+        }
+        try (Connection connection = backendFactory(backend, "bindFactory").getConnection()) {
+            assertEquals(connection.bind(bind).getResultCode(), ResultCode.SUCCESS);
+        }
+    }
+
+    private void closeRouteFactories(ProxyBackend backend) throws Exception {
+        backendFactory(backend, "factory").close();
+        backendFactory(backend, "bindFactory").close();
+    }
+
+    @Test
+    public void appliesConfiguredAlgorithmsWithinPrimaryAndSecondaryTiers() throws Exception {
+        try (LDAPListener primary = testServer("primary"); LDAPListener primary2 = testServer("primary2");
+             LDAPListener secondary = testServer("secondary"); LDAPListener secondary2 = testServer("secondary2");
+             ServerSocket unusedPort = new ServerSocket(0)) {
+            final int primaryPort = primary.firstSocketAddress().getPort();
+            final int primary2Port = primary2.firstSocketAddress().getPort();
+            final int secondaryPort = secondary.firstSocketAddress().getPort();
+            final int secondary2Port = secondary2.firstSocketAddress().getPort();
+            final int unavailablePort = unusedPort.getLocalPort();
+            unusedPort.close();
+
+            final ProxyBackend primaryRoundRobin = priorityBackend(Arrays.asList(primaryPort, primary2Port),
+                    Collections.singletonList(secondaryPort), PrimaryLoadBalancingAlgorithm.ROUND_ROBIN,
+                    SecondaryLoadBalancingAlgorithm.AFFINITY);
+            try {
+                assertServerWithoutClosingFactories(primaryRoundRobin, "primary", false);
+                assertServerWithoutClosingFactories(primaryRoundRobin, "primary2", false);
+            } finally {
+                closeRouteFactories(primaryRoundRobin);
             }
-            try (Connection connection = factory.getConnection()) {
-                assertTrue(connection.searchSingleEntry(search).getAttribute("description")
-                        .contains(ByteString.valueOfUtf8(expected)));
+
+            final ProxyBackend primaryFailover = priorityBackend(Arrays.asList(primaryPort, primary2Port),
+                    Collections.singletonList(secondaryPort), PrimaryLoadBalancingAlgorithm.FAILOVER,
+                    SecondaryLoadBalancingAlgorithm.AFFINITY);
+            assertServer(primaryFailover, "primary", false);
+
+            final ProxyBackend primaryLeastRequests = priorityBackend(Arrays.asList(primaryPort, primary2Port),
+                    Collections.singletonList(secondaryPort), PrimaryLoadBalancingAlgorithm.LEAST_REQUESTS,
+                    SecondaryLoadBalancingAlgorithm.AFFINITY);
+            assertServer(primaryLeastRequests, "primary", false);
+
+            final ProxyBackend primaryDistribution = priorityBackend(Arrays.asList(primaryPort, primary2Port),
+                    Collections.singletonList(secondaryPort), PrimaryLoadBalancingAlgorithm.DISTRIBUTION,
+                    SecondaryLoadBalancingAlgorithm.AFFINITY);
+            try {
+                final String selected = readBackendLabel(backendFactory(primaryDistribution, "factory"));
+                assertThat(selected).isIn("primary", "primary2");
+                assertEquals(readBackendLabel(backendFactory(primaryDistribution, "factory")), selected);
+            } finally {
+                closeRouteFactories(primaryDistribution);
             }
-            try (Connection connection = bindFactory.getConnection()) {
-                assertEquals(connection.bind(bind).getResultCode(), ResultCode.SUCCESS);
+
+            final ProxyBackend secondaryRoundRobin = priorityBackend(Collections.singletonList(unavailablePort),
+                    Arrays.asList(secondaryPort, secondary2Port), PrimaryLoadBalancingAlgorithm.AFFINITY,
+                    SecondaryLoadBalancingAlgorithm.ROUND_ROBIN);
+            try {
+                assertServerWithoutClosingFactories(secondaryRoundRobin, "secondary", false);
+                assertServerWithoutClosingFactories(secondaryRoundRobin, "secondary2", false);
+            } finally {
+                closeRouteFactories(secondaryRoundRobin);
+            }
+
+            final ProxyBackend secondaryFailover = priorityBackend(Collections.singletonList(unavailablePort),
+                    Arrays.asList(secondaryPort, secondary2Port), PrimaryLoadBalancingAlgorithm.AFFINITY,
+                    SecondaryLoadBalancingAlgorithm.FAILOVER);
+            assertServer(secondaryFailover, "secondary", false);
+
+            final ProxyBackend secondaryLeastRequests = priorityBackend(Collections.singletonList(unavailablePort),
+                    Arrays.asList(secondaryPort, secondary2Port), PrimaryLoadBalancingAlgorithm.AFFINITY,
+                    SecondaryLoadBalancingAlgorithm.LEAST_REQUESTS);
+            assertServer(secondaryLeastRequests, "secondary", false);
+
+            final ProxyBackend secondaryDistribution = priorityBackend(Collections.singletonList(unavailablePort),
+                    Arrays.asList(secondaryPort, secondary2Port), PrimaryLoadBalancingAlgorithm.AFFINITY,
+                    SecondaryLoadBalancingAlgorithm.DISTRIBUTION);
+            try {
+                final String selected = readBackendLabel(backendFactory(secondaryDistribution, "factory"));
+                assertThat(selected).isIn("secondary", "secondary2");
+                assertEquals(readBackendLabel(backendFactory(secondaryDistribution, "factory")), selected);
+            } finally {
+                closeRouteFactories(secondaryDistribution);
             }
         }
     }
@@ -1461,6 +1587,17 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
                 TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", name,
                         "--set", "bind-password:service-password");
                 assertEquals(readBackendLabel(backendFactory(backend, "factory")), "second");
+                final ConnectionFactory beforeAlgorithmChange = backendFactory(backend, "factory");
+                TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", name,
+                        "--set", "primary-load-balancing-algorithm:failover",
+                        "--set", "secondary-load-balancing-algorithm:round-robin");
+                assertEquals(readBackendLabel(backendFactory(backend, "factory")), "second");
+                try {
+                    readBackendLabel(beforeAlgorithmChange);
+                    Assert.fail("Changing a tier algorithm must replace the connection factory");
+                } catch (LdapException | IllegalStateException expected) {
+                    // The discovery listener retires the old route.
+                }
             } finally {
                 backend.finalizeBackend();
             }

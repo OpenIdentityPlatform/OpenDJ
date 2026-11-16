@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -22,6 +23,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import org.forgerock.opendj.ldap.Connections.LeastRequestsDispatcher;
 import org.forgerock.opendj.ldap.RequestLoadBalancer.PartitionedRequest;
@@ -141,6 +145,37 @@ public class ConnectionsTestCase extends SdkTestCase {
         // always be 0.
         final GenericExtendedRequest genericExtendedRequest = mock(GenericExtendedRequest.class);
         assertThat(index(f, genericExtendedRequest)).isBetween(0, 1);
+    }
+
+    @Test
+    public void consistentHashRequestLoadBalancerKeepsTargetOnOneMember() {
+        final Function<Request, PartitionedRequest, NeverThrowsException> next =
+                newConsistentHashRequestLoadBalancerNextFunction(asList(mock(ConnectionFactory.class),
+                        mock(ConnectionFactory.class), mock(ConnectionFactory.class)));
+        final AddRequest sameTarget = mock(AddRequest.class);
+        when(sameTarget.getName()).thenReturn(DN.valueOf("uid=same,dc=example,dc=com"));
+        assertThat(index(next, sameTarget)).isEqualTo(index(next, sameTarget));
+
+        final Set<Integer> selectedMembers = new HashSet<>();
+        for (int i = 0; i < 32; i++) {
+            final AddRequest request = mock(AddRequest.class);
+            when(request.getName()).thenReturn(DN.valueOf("uid=user" + i + ",dc=example,dc=com"));
+            selectedMembers.add(index(next, request));
+        }
+        assertThat(selectedMembers.size()).isGreaterThan(1);
+    }
+
+    @Test
+    public void consistentHashRequestLoadBalancerNormalizesEquivalentDns() {
+        final Function<Request, PartitionedRequest, NeverThrowsException> next =
+                newConsistentHashRequestLoadBalancerNextFunction(asList(mock(ConnectionFactory.class),
+                        mock(ConnectionFactory.class), mock(ConnectionFactory.class)));
+        final AddRequest lowerCase = mock(AddRequest.class);
+        when(lowerCase.getName()).thenReturn(DN.valueOf("uid=user,dc=example,dc=com"));
+        final AddRequest upperCase = mock(AddRequest.class);
+        when(upperCase.getName()).thenReturn(DN.valueOf("UID=USER,DC=EXAMPLE,DC=COM"));
+
+        assertThat(index(next, lowerCase)).isEqualTo(index(next, upperCase));
     }
 
     @Test

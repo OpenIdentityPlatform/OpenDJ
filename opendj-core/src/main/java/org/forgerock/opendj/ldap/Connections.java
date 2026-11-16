@@ -577,6 +577,52 @@ public final class Connections {
     }
 
     /**
+     * Creates a request-level load balancer which uses consistent hashing of target DNs to select one of a set of
+     * fully replicated connection factories. Adding or removing a factory moves only a portion of target DNs to a
+     * different factory. Requests without a resolvable target DN are routed to a random factory.
+     * <p>
+     * This algorithm differs from {@link #newFixedSizeDistributionLoadBalancer(DN, ConsistentHashMap, Options)}:
+     * it does not partition data or broadcast searches. Every connection factory is expected to provide the same LDAP
+     * data.
+     * <p>
+     * This connection factory returns fake connections, since real connections are obtained for each request. Abandon
+     * requests are therefore ignored.
+     *
+     * @param factories
+     *         The connection factories.
+     * @param options
+     *         The configuration options for the load balancer.
+     * @return The new consistent-hash request load balancer.
+     * @see #newAffinityRequestLoadBalancer(Collection, Options)
+     * @see #newLeastRequestsLoadBalancer(Collection, Options)
+     * @see #newFixedSizeDistributionLoadBalancer(DN, ConsistentHashMap, Options)
+     */
+    public static ConnectionFactory newConsistentHashRequestLoadBalancer(
+            final Collection<? extends ConnectionFactory> factories, final Options options) {
+        return new RequestLoadBalancer("ConsistentHashRequestLoadBalancer", factories, options,
+                newConsistentHashRequestLoadBalancerNextFunction(factories), NOOP_END_OF_REQUEST_FUNCTION);
+    }
+
+    static Function<Request, PartitionedRequest, NeverThrowsException> newConsistentHashRequestLoadBalancerNextFunction(
+            final Collection<? extends ConnectionFactory> factories) {
+        final ConsistentHashMap<Integer> partitions = new ConsistentHashMap<>();
+        int index = 0;
+        for (ConnectionFactory ignored : factories) {
+            partitions.put("factory-" + index, index++);
+        }
+        return new Function<Request, PartitionedRequest, NeverThrowsException>() {
+            @Override
+            public PartitionedRequest apply(final Request request) {
+                final DN target = dnOfRequest(request);
+                final Integer selected = target != null ? partitions.get(target.toNormalizedUrlSafeString()) : null;
+                final int partitionId = selected != null ? selected
+                        : ThreadLocalRandom.current().nextInt(0, factories.size());
+                return new PartitionedRequest(request, partitionId);
+            }
+        };
+    }
+
+    /**
      * Returns the partition ID which should be selected based on the provided DN and number of partitions, taking care
      * of negative hash values and especially Integer.MIN_VALUE (see doc for Math.abs()). If the provided DN is
      * {@code null} then a random partition ID will be returned.

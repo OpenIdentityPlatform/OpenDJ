@@ -160,7 +160,7 @@ Use LDAPS (`use-ssl:true`) for both modes. AD can be configured to reject simple
 
 === Configure Static Discovery
 
-This example selects `ldap1.example.com:636` as primary and `ldap2.example.com:636` as secondary. Add further `primary-server` or `secondary-server` values as needed. The secondary group is used when the primary group is unavailable; the connection load balancer periodically checks failed servers for recovery.
+This example selects `ldap1.example.com:636` as primary and `ldap2.example.com:636` as secondary. Add further `primary-server` or `secondary-server` values as needed. All servers in either group must hold equivalent replicas of the remote data. The proxy exhausts the primary group before trying secondary servers, regardless of the load-balancing algorithm selected for either group. The connection load balancer periodically checks failed servers for recovery.
 
 Create a file-based trust manager provider containing the CA certificates for the remote servers. This example assumes a JKS truststore and a PIN file already exist:
 
@@ -198,6 +198,47 @@ bin/dsconfig create-service-discovery-mechanism \
 ----
 
 The service password is passed to `dsconfig` as a property value and stored in the server configuration. Protect process arguments and configuration files accordingly. The `use-ssl` setting selects LDAPS for connections to the remote LDAP servers; StartTLS is not implemented for this discovery mechanism.
+
+==== Select Tier Load-Balancing Algorithms
+
+`primary-load-balancing-algorithm` and `secondary-load-balancing-algorithm` select servers independently within the primary and secondary groups. They are available on both static and replication discovery mechanisms and default to `affinity`. They do not change primary-to-secondary failover: the proxy tries every primary connection candidate before it selects a secondary candidate. A transport failure can move to another server; an LDAP result returned by a reachable server is returned to the client and is not retried on another server.
+
+For example, distribute primary connections in round-robin order, while retaining the first available secondary server as the fallback:
+
+[source,bash]
+----
+bin/dsconfig set-service-discovery-mechanism-prop \
+  --mechanism-name directory-servers \
+  --set primary-load-balancing-algorithm:round-robin \
+  --set secondary-load-balancing-algorithm:failover --no-prompt
+----
+
+[cols="1,2,3"]
+|===
+|Algorithm |Selection within one group |Requirements and operational risks
+
+|`affinity` (default)
+|Hashes the target DN to one server. Requests for the same DN normally stay on the same server; if it is unavailable, the proxy probes other servers in that group.
+|Use it when DN locality and repeatable routing are more valuable than an even instantaneous load. Every proxy must list servers in the same order or the same DN can select different replicas. Adding or removing a server can remap DNs.
+
+|`round-robin`
+|Cycles successive connection acquisitions through the servers in configured order, skipping unavailable servers.
+|Use it for even distribution of new connections. Long-lived client-bound connections and cached service connections can make observed request traffic uneven; it does not preserve DN affinity. The configured order determines the first selection after startup.
+
+|`least-requests`
+|Selects the primary candidate route with the fewest active proxy requests. A request targeting the same DN can select a different server later.
+|Use it when request duration varies substantially. Counts are local to one proxy instance, so they do not include traffic sent by other proxies or directly to the remote servers. If the initially selected primary is unavailable, connection recovery can use another primary while the active count remains associated with the original candidate route; it is therefore not an exact per-server measure during an outage. It also sacrifices DN affinity and can expose replica-lag inconsistencies for write-then-read workloads.
+
+|`failover`
+|Always starts with the first available server in the configured order and uses the next server only after a transport failure.
+|Use it for an ordered preference, such as a nearby or designated server. It is not load distribution: the first healthy server receives nearly all traffic. Order every server deliberately and make the preferred server capable of that load.
+
+|`distribution`
+|Uses consistent hashing of the full target DN across fully replicated servers. Adding or removing a server moves only part of the DN space. Requests without a target DN select a server at random.
+|This is *not* LDAP data partitioning or federation: every server must contain the full dataset, and searches are sent to one selected server, not broadcast. Use the same server order on every proxy. Server IDs follow configured positions, so append servers and remove only the final server when minimal remapping matters; reordering or removing a server in the middle can remap more DNs. Verify replica convergence before changing the group.
+|===
+
+`affinity`, `least-requests`, and `distribution` select a server at request level. They use virtual connections, so LDAP abandon requests cannot be routed and are ignored. All five algorithms retry connection acquisition within the current group before the proxy proceeds to secondary servers. These algorithms do not provide weights, per-operation priorities, or an external health-check policy; size remote connection pools, timeouts, and replica capacity for the selected policy.
 
 ==== Select the Operation Identity
 
@@ -265,7 +306,7 @@ bin/dsconfig create-backend \
 
 The proxy suffix must not conflict with an existing naming context. If the remote and proxy suffixes are identical, omit `remote-base-dn`. When it is set, exactly one proxy `base-dn` is required.
 
-User binds select a primary server using DN affinity and try secondary servers only when the primary servers cannot be reached before a bind is sent. An authentication failure from a reachable server is returned to the client; it is not retried against other replicas. If the connection fails after a bind was sent, the proxy returns `UNAVAILABLE` without retrying on another server, because the bind outcome is unknown. After a successful bind in `client` mode, the session uses connections authenticated on that server until it binds again.
+User binds select a primary server using the configured primary load-balancing algorithm and try secondary servers only when the primary servers cannot be reached before a bind is sent. An authentication failure from a reachable server is returned to the client; it is not retried against other replicas. If the connection fails after a bind was sent, the proxy returns `UNAVAILABLE` without retrying on another server, because the bind outcome is unknown. After a successful bind in `client` mode, the session uses connections authenticated on that server until it binds again.
 
 Use a bind DN under the proxy base DN. The proxy does not forward non-DN bind names such as an Active Directory user principal name. The remote server determines whether an established connection remains usable after a password change or account disablement.
 
