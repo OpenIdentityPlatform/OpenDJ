@@ -199,6 +199,41 @@ bin/dsconfig create-service-discovery-mechanism \
 
 The service password is passed to `dsconfig` as a property value and stored in the server configuration. Protect process arguments and configuration files accordingly. The `use-ssl` setting selects LDAPS for connections to the remote LDAP servers; StartTLS is not implemented for this discovery mechanism.
 
+==== Configure Remote Connections
+
+The following proxy backend properties control remote connections. Durations are limited to one hour. Changes create new routes; requests already using a previous route can complete there. A client-mode session associated with a previous route must bind again to use the replacement route.
+
+[cols="1,1,3",options="header"]
+|===
+|Property |Default |Purpose
+|`connection-timeout` |SDK default: 10s |Connection establishment timeout, including TLS and initial authentication. When unset, the SDK's `org.forgerock.opendj.io.connectTimeout` JVM property can override its default. Zero uses the operating system timeout.
+|`request-timeout` |30s |Timeout for remote LDAP requests. Zero disables it. This proxy setting overrides the SDK's JVM request-timeout property. A timed-out write may already have been applied and is not retried automatically.
+|`keep-alive-enabled` |true |Enable SDK heartbeat on remote connections.
+|`keep-alive-interval` |10s |Interval between heartbeat checks on connections that have been idle. The minimum is 1s.
+|`keep-alive-timeout` |3s |Heartbeat response timeout. The minimum is 10ms.
+|`keep-alive-search-request-base-dn` |Root DSE |Remote base DN of the heartbeat search; it is not rewritten through `remote-base-dn`.
+|`keep-alive-search-request-filter` |`(objectClass=*)` |LDAP filter for heartbeat searches. The configured string must be a valid LDAP filter.
+|`reconnect-interval` |1s |Interval between attempts to reconnect a connection factory marked offline by the SDK load balancer. The minimum is 10ms.
+|`connection-pool-min-size` |4 |Number of already-created idle service-account connections to retain per server. This does not pre-create connections.
+|`connection-pool-max-size` |1024 |Maximum service-account connections per server; `unlimited` removes the practical limit. The minimum size must not exceed this value.
+|`connection-pool-idle-timeout` |60s |Idle timeout for service connections above the minimum. The minimum is 1ms.
+|`connection-pool-wait-timeout` |10s |Maximum time waiting for a service pool slot. The minimum is 1ms; when the wait expires, the operation returns `BUSY`.
+|===
+
+For example, configure a short remote request timeout and limit each service pool to 100 connections:
+
+[source,bash]
+----
+bin/dsconfig set-backend-prop \
+  --backend-name proxy-example \
+  --set request-timeout:15s \
+  --set connection-pool-min-size:4 \
+  --set connection-pool-max-size:100 \
+  --set connection-pool-wait-timeout:5s --no-prompt
+----
+
+Heartbeat uses existing connections and does not continuously probe every configured server. A failed LDAP search or a filter matching no entry is not a PingDS-style availability check. Choose a heartbeat base entry readable by the identities used on the remote connections; initial checks may be anonymous. The SDK's reconnect interval applies after a connection factory has been marked offline; client-mode binds have a separate path and established client sessions are not moved between remote servers. These settings do not change the capability-probe and replication-discovery administrative timeouts.
+
 ==== Select Tier Load-Balancing Algorithms
 
 `primary-load-balancing-algorithm` and `secondary-load-balancing-algorithm` select servers independently within the primary and secondary groups. They are available on both static and replication discovery mechanisms and default to `affinity`. They do not change primary-to-secondary failover: the proxy tries every primary connection candidate before it selects a secondary candidate. A transport failure can move to another server; an LDAP result returned by a reachable server is returned to the client and is not retried on another server.
@@ -230,12 +265,12 @@ bin/dsconfig set-service-discovery-mechanism-prop \
 |Use it when request duration varies substantially. Counts are local to one proxy instance, so they do not include traffic sent by other proxies or directly to the remote servers. If the initially selected primary is unavailable, connection recovery can use another primary while the active count remains associated with the original candidate route; it is therefore not an exact per-server measure during an outage. It also sacrifices DN affinity and can expose replica-lag inconsistencies for write-then-read workloads.
 
 |`failover`
-|Always starts with the first available server in the configured order and uses the next server only after a transport failure.
-|Use it for an ordered preference, such as a nearby or designated server. It is not load distribution: the first healthy server receives nearly all traffic. Order every server deliberately and make the preferred server capable of that load.
+|Starts with the first available server in the order supplied by discovery and uses the next server after a connection failure.
+|This is not load distribution: the first available server receives most traffic. The order in which server values are entered is not preserved as an explicit priority; do not rely on it to select a designated server. A recovered server becomes eligible again. Existing client-mode sessions remain bound to their selected server.
 
 |`distribution`
 |Uses consistent hashing of the full target DN across fully replicated servers. Adding or removing a server moves only part of the DN space. Requests without a target DN select a server at random.
-|This is *not* LDAP data partitioning or federation: every server must contain the full dataset, and searches are sent to one selected server, not broadcast. Use the same server order on every proxy. Server IDs follow configured positions, so append servers and remove only the final server when minimal remapping matters; reordering or removing a server in the middle can remap more DNs. Verify replica convergence before changing the group.
+|This is *not* LDAP data partitioning or federation: every server must contain the full dataset, and searches are sent to one selected server, not broadcast. Server IDs follow the discovery order, which is not an administrator-controlled insertion order and can differ between proxy instances or change with membership. Such differences can remap DNs. Verify replica convergence before changing the group.
 |===
 
 `affinity`, `least-requests`, and `distribution` select a server at request level. They use virtual connections, so LDAP abandon requests cannot be routed and are ignored. All five algorithms retry connection acquisition within the current group before the proxy proceeds to secondary servers. These algorithms do not provide weights, per-operation priorities, or an external health-check policy; size remote connection pools, timeouts, and replica capacity for the selected policy.

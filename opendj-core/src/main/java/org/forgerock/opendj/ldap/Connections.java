@@ -163,6 +163,22 @@ public final class Connections {
                 null);
     }
 
+    /** Creates a cached pool with a bounded wait for a free pool slot.
+     * @param factory underlying connection factory
+     * @param corePoolSize number of idle connections to retain
+     * @param maximumPoolSize maximum number of connections
+     * @param idleTimeout idle timeout
+     * @param unit unit of the idle timeout
+     * @param waitTimeoutMillis maximum slot wait in milliseconds
+     * @return the connection pool
+     */
+    public static ConnectionPool newCachedConnectionPool(final ConnectionFactory factory,
+            final int corePoolSize, final int maximumPoolSize, final long idleTimeout,
+            final TimeUnit unit, final long waitTimeoutMillis) {
+        return new CachedConnectionPool(factory, corePoolSize, maximumPoolSize, idleTimeout, unit,
+                null, waitTimeoutMillis);
+    }
+
     /**
      * Creates a new connection pool which creates new connections as needed
      * using the provided connection factory, but will reuse previously

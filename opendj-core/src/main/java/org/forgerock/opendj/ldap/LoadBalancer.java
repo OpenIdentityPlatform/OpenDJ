@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -114,6 +115,10 @@ abstract class LoadBalancer implements ConnectionFactory {
             try {
                 connection = factory.getConnection();
             } catch (LdapException e) {
+                if (e.getResult().getResultCode().equals(ResultCode.BUSY)
+                        || e.getResult().getResultCode().equals(ResultCode.CLIENT_SIDE_USER_CANCELLED)) {
+                    throw e;
+                }
                 // Attempt failed - try next factory.
                 notifyOffline(e);
                 final int nextIndex = (index + 1) % monitoredFactories.size();
@@ -136,6 +141,10 @@ abstract class LoadBalancer implements ConnectionFactory {
                 new AsyncFunction<LdapException, Connection, LdapException>() {
                     @Override
                     public Promise<Connection, LdapException> apply(LdapException error) throws LdapException {
+                        if (error.getResult().getResultCode().equals(ResultCode.BUSY)
+                                || error.getResult().getResultCode().equals(ResultCode.CLIENT_SIDE_USER_CANCELLED)) {
+                            return newExceptionPromise(error);
+                        }
                         // Attempt failed - try next factory.
                         notifyOffline(error);
                         final int nextIndex = (index + 1) % monitoredFactories.size();

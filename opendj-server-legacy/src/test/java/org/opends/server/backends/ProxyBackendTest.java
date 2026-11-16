@@ -824,6 +824,203 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
     }
 
     @Test
+    public void configuresConnectionAndPoolSettings() throws Exception {
+        final String name = "connection-settings";
+        boolean mechanismCreated = false;
+        boolean backendCreated = false;
+        try (LDAPListener listener = testServer("settings")) {
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", name,
+                    "--type", "static", "--set", "bind-dn:cn=service", "--set", "bind-password:service-password",
+                    "--set", "operation-identity-mode:specific", "--set", "primary-server:127.0.0.1:"
+                            + listener.firstSocketAddress().getPort(), "--set", "use-ssl:false");
+            mechanismCreated = true;
+            TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", name,
+                    "--set", "base-dn:ou=connection-settings,o=test", "--set", "shard:" + name,
+                    "--set", "connection-timeout:3s", "--set", "request-timeout:4s",
+                    "--set", "keep-alive-enabled:true", "--set", "keep-alive-interval:5s",
+                    "--set", "keep-alive-timeout:2s", "--set", "keep-alive-search-request-base-dn:cn=service",
+                    "--set", "keep-alive-search-request-filter:(objectClass=person)",
+                    "--set", "reconnect-interval:500ms", "--set", "connection-pool-min-size:1",
+                    "--set", "connection-pool-max-size:2", "--set", "connection-pool-idle-timeout:10s",
+                    "--set", "connection-pool-wait-timeout:2s", "--set", "enabled:true");
+            backendCreated = true;
+            final String configDN = "ds-cfg-backend-id=" + name + ",cn=Backends,cn=config";
+            assertThat(getRootConnection().processModify(Requests.newModifyRequest(configDN)
+                    .addModification(ModificationType.REPLACE, "ds-cfg-connection-pool-min-size", "3"))
+                    .getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+            assertThat(getRootConnection().processModify(Requests.newModifyRequest(configDN)
+                    .addModification(ModificationType.REPLACE, "ds-cfg-keep-alive-search-request-filter", "("))
+                    .getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+            assertThat(getRootConnection().processModify(Requests.newModifyRequest(configDN)
+                    .addModification(ModificationType.REPLACE, "ds-cfg-request-timeout", "3600001ms"))
+                    .getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+            assertThat(getRootConnection().processModify(Requests.newModifyRequest(configDN)
+                    .addModification(ModificationType.REPLACE, "ds-cfg-connection-pool-max-size", "0"))
+                    .getResultCode()).isNotEqualTo(ResultCode.SUCCESS);
+        } finally {
+            if (backendCreated) {
+                TestCaseUtils.dsconfig("delete-backend", "--backend-name", name);
+            }
+            if (mechanismCreated) {
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", name);
+            }
+        }
+    }
+
+    @Test(timeOut = 30000)
+    public void heartbeatUsesConfiguredRemoteBaseAndFilter() throws Exception {
+        final String name = "heartbeat-settings";
+        final String proxyBase = "ou=heartbeat-settings,o=test";
+        final org.forgerock.opendj.ldap.MemoryBackend remote = new org.forgerock.opendj.ldap.MemoryBackend(
+                new LDIFEntryReader("dn:", "objectClass: top", "objectClass: extensibleObject", "",
+                        "dn: cn=service", "objectClass: top", "objectClass: person", "cn: service",
+                        "sn: service", "userPassword: service-password", "",
+                        "dn: uid=user", "objectClass: top", "objectClass: person",
+                        "cn: User", "sn: User", ""));
+        final CountDownLatch heartbeat = new CountDownLatch(1);
+        final RequestHandlerFactory<LDAPClientContext, RequestContext> handlers = client -> {
+            @SuppressWarnings("unchecked")
+            final RequestHandler<RequestContext> handler = (RequestHandler<RequestContext>)
+                    java.lang.reflect.Proxy.newProxyInstance(RequestHandler.class.getClassLoader(),
+                            new Class<?>[] {RequestHandler.class}, (proxy, method, args) -> {
+                                if (method.getName().equals("handleSearch")) {
+                                    final SearchRequest request = (SearchRequest) args[1];
+                                    if (request.getName().equals(DN.valueOf("cn=service"))
+                                            && request.getFilter().toString().equals("(sn=service)")) {
+                                        heartbeat.countDown();
+                                    }
+                                }
+                                try {
+                                    return method.invoke(remote, args);
+                                } catch (java.lang.reflect.InvocationTargetException e) {
+                                    throw e.getCause();
+                                }
+                            });
+            return handler;
+        };
+        final Options options = Options.defaultOptions();
+        boolean mechanismCreated = false;
+        boolean backendCreated = false;
+        try (LDAPListener listener = new LDAPListener(Collections.singleton(new InetSocketAddress("127.0.0.1", 0)),
+                new ServerConnectionFactoryAdapter(options.get(CommonLDAPOptions.LDAP_DECODE_OPTIONS),
+                        Connections.newServerConnectionFactory(handlers)), options)) {
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", name,
+                    "--type", "static", "--set", "bind-dn:cn=service", "--set", "bind-password:service-password",
+                    "--set", "operation-identity-mode:specific", "--set", "primary-server:127.0.0.1:"
+                            + listener.firstSocketAddress().getPort(), "--set", "use-ssl:false");
+            mechanismCreated = true;
+            TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", name,
+                    "--set", "base-dn:" + proxyBase, "--set", "remote-base-dn:uid=user",
+                    "--set", "keep-alive-interval:1s", "--set", "keep-alive-search-request-base-dn:cn=service",
+                    "--set", "keep-alive-search-request-filter:(sn=service)",
+                    "--set", "enabled:true", "--set", "shard:" + name);
+            backendCreated = true;
+            final ProxyBackendCfg loaded = (ProxyBackendCfg) TestCaseUtils.getServerContext().getRootConfig()
+                    .getBackend(name);
+            assertEquals(loaded.getRequestTimeout(), 30000L);
+            assertEquals(loaded.getConnectionPoolMinSize(), 4);
+            assertEquals(loaded.getConnectionPoolMaxSize(), 1024);
+            try (Connection client = getConnection()) {
+                assertEquals(client.searchSingleEntry(proxyBase, SearchScope.BASE_OBJECT, "(objectClass=*)", "cn")
+                        .getAttribute("cn").firstValueAsString(), "User");
+                assertTrue(heartbeat.await(8, TimeUnit.SECONDS), "The configured heartbeat search must reach the remote server");
+            }
+        } finally {
+            if (backendCreated) {
+                TestCaseUtils.dsconfig("delete-backend", "--backend-name", name);
+            }
+            if (mechanismCreated) {
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", name);
+            }
+        }
+    }
+
+    @Test(timeOut = 30000)
+    public void saturatedServicePoolReturnsBusyAndRecovers() throws Exception {
+        final String name = "service-pool-limit";
+        final String proxyBase = "ou=service-pool-limit,o=test";
+        final org.forgerock.opendj.ldap.MemoryBackend remote = new org.forgerock.opendj.ldap.MemoryBackend(
+                new LDIFEntryReader("dn:", "objectClass: top", "objectClass: extensibleObject", "",
+                        "dn: cn=service", "objectClass: top", "objectClass: person", "cn: service",
+                        "sn: service", "userPassword: service-password", "",
+                        "dn: uid=user", "objectClass: top", "objectClass: person", "cn: User", "sn: User", ""));
+        final CountDownLatch searchStarted = new CountDownLatch(1);
+        final CountDownLatch releaseSearch = new CountDownLatch(1);
+        final java.util.concurrent.atomic.AtomicBoolean block = new java.util.concurrent.atomic.AtomicBoolean(true);
+        final RequestHandlerFactory<LDAPClientContext, RequestContext> handlers = client -> {
+            @SuppressWarnings("unchecked")
+            final RequestHandler<RequestContext> handler = (RequestHandler<RequestContext>)
+                    java.lang.reflect.Proxy.newProxyInstance(RequestHandler.class.getClassLoader(),
+                            new Class<?>[] {RequestHandler.class}, (proxy, method, args) -> {
+                                if (method.getName().equals("handleSearch")
+                                        && ((SearchRequest) args[1]).getName().equals(DN.valueOf("uid=user"))
+                                        && block.get()) {
+                                    searchStarted.countDown();
+                                    if (!releaseSearch.await(10, TimeUnit.SECONDS)) {
+                                        throw new IllegalStateException("Blocked search was not released");
+                                    }
+                                }
+                                try {
+                                    return method.invoke(remote, args);
+                                } catch (java.lang.reflect.InvocationTargetException e) {
+                                    throw e.getCause();
+                                }
+                            });
+            return handler;
+        };
+        final Options options = Options.defaultOptions();
+        final ExecutorService executor = Executors.newSingleThreadExecutor();
+        boolean mechanismCreated = false;
+        boolean backendCreated = false;
+        try (LDAPListener listener = new LDAPListener(Collections.singleton(new InetSocketAddress("127.0.0.1", 0)),
+                new ServerConnectionFactoryAdapter(options.get(CommonLDAPOptions.LDAP_DECODE_OPTIONS),
+                        Connections.newServerConnectionFactory(handlers)), options)) {
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", name,
+                    "--type", "static", "--set", "bind-dn:cn=service", "--set", "bind-password:service-password",
+                    "--set", "operation-identity-mode:specific", "--set", "primary-server:127.0.0.1:"
+                            + listener.firstSocketAddress().getPort(), "--set", "use-ssl:false");
+            mechanismCreated = true;
+            TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", name,
+                    "--set", "base-dn:" + proxyBase, "--set", "remote-base-dn:uid=user",
+                    "--set", "connection-pool-min-size:0", "--set", "connection-pool-max-size:1",
+                    "--set", "connection-pool-wait-timeout:100ms", "--set", "keep-alive-enabled:false",
+                    "--set", "enabled:true", "--set", "shard:" + name);
+            backendCreated = true;
+            try (Connection first = getConnection(); Connection second = getConnection()) {
+                final Future<?> active = executor.submit(() -> {
+                    try {
+                        first.searchSingleEntry(proxyBase, SearchScope.BASE_OBJECT, "(objectClass=*)", "cn");
+                    } catch (LdapException e) {
+                        throw new IllegalStateException(e);
+                    }
+                });
+                assertTrue(searchStarted.await(5, TimeUnit.SECONDS));
+                try {
+                    second.searchSingleEntry(proxyBase, SearchScope.BASE_OBJECT, "(objectClass=*)", "cn");
+                    Assert.fail("A saturated service pool must report BUSY");
+                } catch (LdapException e) {
+                    assertEquals(e.getResult().getResultCode(), ResultCode.BUSY);
+                } finally {
+                    block.set(false);
+                    releaseSearch.countDown();
+                }
+                active.get(5, TimeUnit.SECONDS);
+                assertEquals(second.searchSingleEntry(proxyBase, SearchScope.BASE_OBJECT, "(objectClass=*)", "cn")
+                        .getAttribute("cn").firstValueAsString(), "User");
+            }
+        } finally {
+            releaseSearch.countDown();
+            executor.shutdownNow();
+            if (backendCreated) {
+                TestCaseUtils.dsconfig("delete-backend", "--backend-name", name);
+            }
+            if (mechanismCreated) {
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", name);
+            }
+        }
+    }
+
+    @Test
     public void serviceModeMapsRemoteConnectionFailureToUnavailable() throws Exception {
         final String proxyBase = "ou=service-mode-offline,o=test";
         final String mechanism = "service-mode-offline";
@@ -907,13 +1104,9 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
                     "--set", "operation-identity-mode:specific", "--set", "primary-server:127.0.0.1:"
                             + listener.firstSocketAddress().getPort(), "--set", "use-ssl:false");
             mechanismCreated = true;
-            TestCaseUtils.getServerContext().getServiceDiscoveryMechanismConfigManager().getMechanism(mechanism)
-                    .getPartition().getPrimaryServers().iterator().next().getOptions()
-                    .set(LDAPConnectionFactory.REQUEST_TIMEOUT,
-                            org.forgerock.util.time.Duration.duration(2, TimeUnit.SECONDS));
             TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", mechanism,
                     "--set", "base-dn:" + proxyBase, "--set", "remote-base-dn:" + remoteBase,
-                    "--set", "enabled:true", "--set", "shard:" + mechanism);
+                    "--set", "request-timeout:2s", "--set", "enabled:true", "--set", "shard:" + mechanism);
             backendCreated = true;
             try (Connection client = getConnection()) {
                 assertEquals(client.searchSingleEntry(proxyBase, SearchScope.BASE_OBJECT, "(objectClass=*)", "cn")

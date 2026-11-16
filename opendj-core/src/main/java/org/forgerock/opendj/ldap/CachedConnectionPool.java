@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -118,7 +119,7 @@ final class CachedConnectionPool implements ConnectionPool {
                 }
             }
             for (QueueElement waitingPromise : waitingPromises) {
-                waitingPromise.getWaitingPromise().handleException(exception);
+                waitingPromise.getWaitingPromise().tryHandleException(exception);
             }
         }
     }
@@ -642,7 +643,12 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         QueueElement(final long timestampMillis, final StackTraceElement[] stack) {
-            this.value = PromiseImpl.create();
+            this.value = new PromiseImpl<Connection, LdapException>() {
+                @Override
+                protected LdapException tryCancel(boolean mayInterruptIfRunning) {
+                    return newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED);
+                }
+            };
             this.timestampMillis = timestampMillis;
             this.stack = stack;
         }
@@ -694,6 +700,7 @@ final class CachedConnectionPool implements ConnectionPool {
     private boolean isClosed;
     private final ScheduledFuture<?> idleTimeoutFuture;
     private final long idleTimeoutMillis;
+    private final long waitTimeoutMillis;
     private final int maxPoolSize;
     private final LinkedList<QueueElement> queue = new LinkedList<>();
     private final ReferenceCountedObject<ScheduledExecutorService>.Reference scheduler;
@@ -707,28 +714,36 @@ final class CachedConnectionPool implements ConnectionPool {
     CachedConnectionPool(final ConnectionFactory factory, final int corePoolSize,
             final int maximumPoolSize, final long idleTimeout, final TimeUnit unit,
             final ScheduledExecutorService scheduler) {
+        this(factory, corePoolSize, maximumPoolSize, idleTimeout, unit, scheduler, 0);
+    }
+
+    CachedConnectionPool(final ConnectionFactory factory, final int corePoolSize,
+            final int maximumPoolSize, final long idleTimeout, final TimeUnit unit,
+            final ScheduledExecutorService scheduler, final long waitTimeoutMillis) {
         Reject.ifNull(factory);
         Reject.ifFalse(corePoolSize >= 0, "corePoolSize < 0");
         Reject.ifFalse(maximumPoolSize > 0, "maxPoolSize <= 0");
         Reject.ifFalse(corePoolSize <= maximumPoolSize, "corePoolSize > maxPoolSize");
         Reject.ifFalse(idleTimeout >= 0, "idleTimeout < 0");
+        Reject.ifFalse(waitTimeoutMillis >= 0, "waitTimeoutMillis < 0");
         Reject.ifFalse(idleTimeout == 0 || unit != null, "time unit is null");
 
         this.factory = factory;
         this.corePoolSize = corePoolSize;
         this.maxPoolSize = maximumPoolSize;
         this.availableConnections = new Semaphore(maximumPoolSize);
+        this.waitTimeoutMillis = waitTimeoutMillis;
 
+        this.scheduler = corePoolSize < maximumPoolSize && idleTimeout > 0 || waitTimeoutMillis > 0
+                ? DEFAULT_SCHEDULER.acquireIfNull(scheduler) : null;
         if (corePoolSize < maximumPoolSize && idleTimeout > 0) {
             // Dynamic pool.
-            this.scheduler = DEFAULT_SCHEDULER.acquireIfNull(scheduler);
             this.idleTimeoutMillis = unit.toMillis(idleTimeout);
             this.idleTimeoutFuture =
                     this.scheduler.get().scheduleWithFixedDelay(new PurgeIdleConnectionsTask(),
                             idleTimeout, idleTimeout, unit);
         } else {
             // Fixed pool.
-            this.scheduler = null;
             this.idleTimeoutMillis = 0;
             this.idleTimeoutFuture = null;
         }
@@ -737,6 +752,7 @@ final class CachedConnectionPool implements ConnectionPool {
     @Override
     public void close() {
         final LinkedList<Connection> idleConnections;
+        final LinkedList<QueueElement> waiting = new LinkedList<>();
         synchronized (queue) {
             if (isClosed) {
                 return;
@@ -753,6 +769,13 @@ final class CachedConnectionPool implements ConnectionPool {
                 idleConnections.add(holder.getWaitingConnection());
                 availableConnections.release();
             }
+            while (hasWaitingPromises()) {
+                waiting.add(queue.removeFirst());
+            }
+        }
+
+        for (QueueElement holder : waiting) {
+            holder.getWaitingPromise().tryHandleException(newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED));
         }
 
         logger.debug(LocalizableMessage.raw(
@@ -761,6 +784,8 @@ final class CachedConnectionPool implements ConnectionPool {
 
         if (idleTimeoutFuture != null) {
             idleTimeoutFuture.cancel(false);
+        }
+        if (scheduler != null) {
             scheduler.release();
         }
 
@@ -775,9 +800,12 @@ final class CachedConnectionPool implements ConnectionPool {
 
     @Override
     public Connection getConnection() throws LdapException {
+        final Promise<Connection, LdapException> acquisition = getConnectionAsync();
         try {
-            return getConnectionAsync().getOrThrow();
+            return acquisition.getOrThrow();
         } catch (final InterruptedException e) {
+            acquisition.cancel(false);
+            Thread.currentThread().interrupt();
             throw newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
         }
     }
@@ -787,24 +815,56 @@ final class CachedConnectionPool implements ConnectionPool {
         // Loop while iterating through stale connections (see OPENDJ-590).
         for (;;) {
             final QueueElement holder;
+            final boolean startConnection;
             synchronized (queue) {
                 if (isClosed) {
                     throw new IllegalStateException("CachedConnectionPool is already closed");
                 } else if (hasWaitingConnections()) {
                     holder = queue.removeFirst();
+                    startConnection = false;
                 } else {
                     holder = new QueueElement(timeService.now(), getStackTraceIfDebugEnabled());
                     queue.add(holder);
+                    // Reserve in queue order so the waiter which starts a connection cannot
+                    // be left behind another waiter without a bounded wait.
+                    startConnection = availableConnections.tryAcquire();
+                    if (startConnection) {
+                        pendingConnectionAttempts.incrementAndGet();
+                    }
                 }
             }
 
             if (holder.isWaitingPromise()) {
                 // Grow the pool if needed.
                 final Promise<Connection, LdapException> promise = holder.getWaitingPromise();
-                if (!promise.isDone() && availableConnections.tryAcquire()) {
-                    pendingConnectionAttempts.incrementAndGet();
-                    factory.getConnectionAsync().thenOnResult(connectionResultHandler)
-                                                .thenOnException(connectionFailureHandler);
+                promise.thenFinally(() -> {
+                    synchronized (queue) {
+                        queue.remove(holder);
+                    }
+                });
+                if (startConnection) {
+                    try {
+                        factory.getConnectionAsync().thenOnResult(connectionResultHandler)
+                                                    .thenOnException(connectionFailureHandler);
+                    } catch (RuntimeException e) {
+                        connectionFailureHandler.handleException(newLdapException(ResultCode.CLIENT_SIDE_CONNECT_ERROR, e));
+                    }
+                } else if (!promise.isDone() && waitTimeoutMillis > 0) {
+                    synchronized (queue) {
+                        if (!isClosed && !promise.isDone()) {
+                            final ScheduledFuture<?> timeout = scheduler.get().schedule(() -> {
+                                final boolean removed;
+                                synchronized (queue) {
+                                    removed = queue.remove(holder);
+                                }
+                                if (removed) {
+                                    holder.getWaitingPromise().tryHandleException(
+                                            newLdapException(ResultCode.BUSY, "Connection pool wait timed out"));
+                                }
+                            }, waitTimeoutMillis, TimeUnit.MILLISECONDS);
+                            promise.thenFinally(() -> timeout.cancel(false));
+                        }
+                    }
                 }
                 return promise;
             }
@@ -901,15 +961,17 @@ final class CachedConnectionPool implements ConnectionPool {
                 final LdapException e =
                         newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED,
                                 ERR_CONNECTION_POOL_CLOSING.get(toString()).toString());
-                holder.getWaitingPromise().handleException(e);
+                holder.getWaitingPromise().tryHandleException(e);
 
                 logger.debug(LocalizableMessage.raw(
                         "Connection attempt failed: availableConnections=%d, maxPoolSize=%d",
                         currentPoolSize(), maxPoolSize, e));
             }
         } else {
-            holder.getWaitingPromise().handleResult(
-                    newPooledConnection(connection, holder.getStackTrace()));
+            final Connection pooled = newPooledConnection(connection, holder.getStackTrace());
+            if (!holder.getWaitingPromise().tryHandleResult(pooled)) {
+                pooled.close();
+            }
         }
     }
 

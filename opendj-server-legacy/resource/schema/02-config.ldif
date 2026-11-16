@@ -4234,6 +4234,30 @@ attributeTypes: ( 1.3.6.1.4.1.60142.2.1.1.650
   EQUALITY caseIgnoreMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.60142.2.1.1.654
+  NAME 'ds-cfg-keep-alive-enabled'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.60142.2.1.1.655
+  NAME 'ds-cfg-reconnect-interval'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.60142.2.1.1.656
+  NAME 'ds-cfg-connection-pool-wait-timeout'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.60142.2.1.1.653
+  NAME 'ds-cfg-request-timeout'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.538
   NAME 'ds-cfg-bootstrap-replication-server'
   EQUALITY caseIgnoreMatch
@@ -4244,7 +4268,11 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.55
   SUP ds-cfg-backend
   STRUCTURAL
   MUST ds-cfg-shard
-  MAY ( ds-cfg-proxy-route-all $
+  MAY ( ds-cfg-keep-alive-enabled $
+        ds-cfg-reconnect-interval $
+        ds-cfg-connection-pool-wait-timeout $
+        ds-cfg-proxy-route-all $
+        ds-cfg-request-timeout $
         ds-cfg-remote-base-dn $
         ds-cfg-attribute-mapping $
         ds-cfg-attribute-alias $

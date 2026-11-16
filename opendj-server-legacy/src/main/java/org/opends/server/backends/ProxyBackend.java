@@ -63,6 +63,9 @@ import java.util.stream.StreamSupport;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.AUTHN_BIND_REQUEST;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.CONNECT_TIMEOUT;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.HEARTBEAT_ENABLED;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.HEARTBEAT_INTERVAL;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.HEARTBEAT_TIMEOUT;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.HEARTBEAT_SEARCH_REQUEST;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.REQUEST_TIMEOUT;
 import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
 import static org.forgerock.util.time.Duration.duration;
@@ -101,6 +104,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
     public ConfigChangeResult applyConfigurationChange(ProxyBackendCfg configuration) {
         final ProxyRewriter newRewriter;
         try {
+            validateConnectionSettings(configuration);
             newRewriter = createRewriter(configuration, serverContext);
         } catch (IllegalArgumentException e) {
             final ConfigChangeResult result = new ConfigChangeResult();
@@ -126,34 +130,30 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
         if (partition!=null) {
             for (Partition.Server server : partition.getPrimaryServers()) {
                 primaryBind.add(new LDAPConnectionFactory(server.getHostPort().getHost(), server.getHostPort().getPort(),
-                        Options.copyOf(server.getOptions())
-                                .set(HEARTBEAT_ENABLED, true)
+                        connectionOptions(server, configuration)
                 ));
-                if (hasServiceCredentials(discoveryMechanism)) primary.add(Connections.newCachedConnectionPool(new LDAPConnectionFactory(server.getHostPort().getHost(), server.getHostPort().getPort(),
-                        Options.copyOf(server.getOptions())
-                                .set(HEARTBEAT_ENABLED, true)
+                if (hasServiceCredentials(discoveryMechanism)) primary.add(newServicePool(new LDAPConnectionFactory(server.getHostPort().getHost(), server.getHostPort().getPort(),
+                        connectionOptions(server, configuration)
                                 .set(AUTHN_BIND_REQUEST, newSimpleBindRequest(discoveryMechanism.cfg.getBindDN().toString(), discoveryMechanism.cfg.getBindPassword().toCharArray()))
-                )));
+                ), configuration));
             }
             for (Partition.Server server : partition.getSecondaryServers()) {
                 secondaryBind.add(new LDAPConnectionFactory(server.getHostPort().getHost(), server.getHostPort().getPort(),
-                        Options.copyOf(server.getOptions())
-                                .set(HEARTBEAT_ENABLED, true)
+                        connectionOptions(server, configuration)
                 ));
-                if (hasServiceCredentials(discoveryMechanism)) secondary.add(Connections.newCachedConnectionPool(new LDAPConnectionFactory(server.getHostPort().getHost(), server.getHostPort().getPort(),
-                        Options.copyOf(server.getOptions())
-                                .set(HEARTBEAT_ENABLED, true)
+                if (hasServiceCredentials(discoveryMechanism)) secondary.add(newServicePool(new LDAPConnectionFactory(server.getHostPort().getHost(), server.getHostPort().getPort(),
+                        connectionOptions(server, configuration)
                                 .set(AUTHN_BIND_REQUEST, newSimpleBindRequest(discoveryMechanism.cfg.getBindDN().toString(), discoveryMechanism.cfg.getBindPassword().toCharArray()))
-                )));
+                ), configuration));
             }
         }
 
         final ProxyLoadBalancingAlgorithm primaryAlgorithm = primaryLoadBalancingAlgorithm(discoveryMechanism);
         final ProxyLoadBalancingAlgorithm secondaryAlgorithm = secondaryLoadBalancingAlgorithm(discoveryMechanism);
         final ConnectionFactory newBindFactory = prioritizedLoadBalancer(primaryBind, secondaryBind,
-                primaryAlgorithm, secondaryAlgorithm);
+                primaryAlgorithm, secondaryAlgorithm, configuration);
         final ConnectionFactory newFactory = prioritizedLoadBalancer(primary, secondary,
-                primaryAlgorithm, secondaryAlgorithm);
+                primaryAlgorithm, secondaryAlgorithm, configuration);
         final Runnable applyRoute = () -> {
             synchronized (routingLock) {
                 if (listening && discovery != discoveryMechanism) {
@@ -168,7 +168,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 cfg = configuration;
                 bindFactory = newBindFactory;
                 factory = newFactory;
-                staticRoute = new DynamicRoute(newBindFactory, newFactory, partition, discoveryMechanism);
+                staticRoute = new DynamicRoute(newBindFactory, newFactory, partition, discoveryMechanism, configuration);
                 rewriter = newRewriter;
             }
         };
@@ -216,6 +216,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
     public boolean isConfigurationAcceptable(ProxyBackendCfg configuration, List<LocalizableMessage> reasons,
                                              ServerContext context) {
         try {
+            validateConnectionSettings(configuration);
             createRewriter(configuration, context);
             return true;
         } catch (IllegalArgumentException e) {
@@ -232,16 +233,17 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
     private static ConnectionFactory prioritizedLoadBalancer(List<ConnectionFactory> primary,
                                                              List<ConnectionFactory> secondary,
                                                              ProxyLoadBalancingAlgorithm primaryAlgorithm,
-                                                             ProxyLoadBalancingAlgorithm secondaryAlgorithm) {
+                                                             ProxyLoadBalancingAlgorithm secondaryAlgorithm,
+                                                             ProxyBackendCfg configuration) {
         if (primary.isEmpty() && secondary.isEmpty()) {
             return null;
         }
         if (primary.isEmpty() || secondary.isEmpty()) {
             return newLoadBalancer(primary.isEmpty() ? secondary : primary,
-                    primary.isEmpty() ? secondaryAlgorithm : primaryAlgorithm);
+                    primary.isEmpty() ? secondaryAlgorithm : primaryAlgorithm, configuration);
         }
 
-        final ConnectionFactory secondaryLoadBalancer = newLoadBalancer(secondary, secondaryAlgorithm);
+        final ConnectionFactory secondaryLoadBalancer = newLoadBalancer(secondary, secondaryAlgorithm, configuration);
         final List<ConnectionFactory> routes = new ArrayList<>(primary.size());
         for (int start = 0; start < primary.size(); start++) {
             final List<ConnectionFactory> candidates = new ArrayList<>(primary.size() + 1);
@@ -251,14 +253,15 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             // The request-level secondary balancer must be last: it returns a
             // virtual connection before checking whether a server is reachable.
             candidates.add(secondaryLoadBalancer);
-            routes.add(Connections.newFailoverLoadBalancer(candidates, Options.defaultOptions()));
+            routes.add(Connections.newFailoverLoadBalancer(candidates, loadBalancerOptions(configuration)));
         }
-        return newLoadBalancer(routes, primaryAlgorithm);
+        return newLoadBalancer(routes, primaryAlgorithm, configuration);
     }
 
     private static ConnectionFactory newLoadBalancer(Collection<ConnectionFactory> factories,
-                                                     ProxyLoadBalancingAlgorithm algorithm) {
-        final Options options = Options.defaultOptions();
+                                                     ProxyLoadBalancingAlgorithm algorithm,
+                                                     ProxyBackendCfg configuration) {
+        final Options options = loadBalancerOptions(configuration);
         switch (algorithm) {
             case AFFINITY:
                 return Connections.newAffinityRequestLoadBalancer(factories, options);
@@ -300,6 +303,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
     private static final class DynamicRoute {
         final ConnectionFactory bind;
         final ConnectionFactory authenticated;
+        final ProxyBackendCfg configuration;
         final List<Partition.Server> servers;
         final UserBindTier primaryUserBindTier;
         final UserBindTier secondaryUserBindTier;
@@ -314,6 +318,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
         boolean retired;
 
         DynamicRoute(ConnectionFactory bind, ConnectionFactory authenticated) {
+            this.configuration = null;
             this.bind = bind;
             this.authenticated = authenticated;
             this.servers = Collections.emptyList();
@@ -327,7 +332,8 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
         }
 
         DynamicRoute(ConnectionFactory bind, ConnectionFactory authenticated, Partition partition,
-                     ServiceDiscoveryMechanism<?> mechanism) {
+                     ServiceDiscoveryMechanism<?> mechanism, ProxyBackendCfg configuration) {
+            this.configuration = configuration;
             this.bind = bind;
             this.authenticated = authenticated;
             this.servers = orderedServers(partition);
@@ -340,17 +346,18 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             this.configuredIdentityMode = configuredIdentityMode(mechanism);
         }
 
-        DynamicRoute(Partition partition, ServiceDiscoveryMechanism<?> mechanism) {
+        DynamicRoute(Partition partition, ServiceDiscoveryMechanism<?> mechanism, ProxyBackendCfg configuration) {
+            this.configuration = configuration;
             final List<ConnectionFactory> primaryBind = new ArrayList<>();
             final List<ConnectionFactory> secondaryBind = new ArrayList<>();
             final List<ConnectionFactory> primary = new ArrayList<>();
             final List<ConnectionFactory> secondary = new ArrayList<>();
-            addServers(partition.getPrimaryServers(), mechanism, primaryBind, primary);
-            addServers(partition.getSecondaryServers(), mechanism, secondaryBind, secondary);
+            addServers(partition.getPrimaryServers(), mechanism, configuration, primaryBind, primary);
+            addServers(partition.getSecondaryServers(), mechanism, configuration, secondaryBind, secondary);
             final ProxyLoadBalancingAlgorithm primaryAlgorithm = primaryLoadBalancingAlgorithm(mechanism);
             final ProxyLoadBalancingAlgorithm secondaryAlgorithm = secondaryLoadBalancingAlgorithm(mechanism);
-            bind = prioritizedLoadBalancer(primaryBind, secondaryBind, primaryAlgorithm, secondaryAlgorithm);
-            authenticated = prioritizedLoadBalancer(primary, secondary, primaryAlgorithm, secondaryAlgorithm);
+            bind = prioritizedLoadBalancer(primaryBind, secondaryBind, primaryAlgorithm, secondaryAlgorithm, configuration);
+            authenticated = prioritizedLoadBalancer(primary, secondary, primaryAlgorithm, secondaryAlgorithm, configuration);
             servers = orderedServers(partition);
             primaryUserBindTier = new UserBindTier(primaryServers(partition), primaryAlgorithm);
             secondaryUserBindTier = new UserBindTier(secondaryServers(partition), secondaryAlgorithm);
@@ -385,9 +392,10 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
         }
 
         private static void addServers(Collection<Partition.Server> servers, ServiceDiscoveryMechanism<?> mechanism,
-                                       List<ConnectionFactory> bind, List<ConnectionFactory> authenticated) {
+                                       ProxyBackendCfg configuration, List<ConnectionFactory> bind,
+                                       List<ConnectionFactory> authenticated) {
             for (Partition.Server server : servers) {
-                final Options options = Options.copyOf(server.getOptions()).set(HEARTBEAT_ENABLED, true);
+                final Options options = connectionOptions(server, configuration);
                 // A successful client bind changes the physical connection's identity. Never
                 // reuse it for anonymous requests after a capability-driven mode change.
                 bind.add(new LDAPConnectionFactory(
@@ -398,8 +406,8 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 final Options authOptions = Options.copyOf(options).set(AUTHN_BIND_REQUEST,
                         newSimpleBindRequest(mechanism.cfg.getBindDN().toString(),
                                 mechanism.cfg.getBindPassword().toCharArray()));
-                authenticated.add(Connections.newCachedConnectionPool(new LDAPConnectionFactory(
-                        server.getHostPort().getHost(), server.getHostPort().getPort(), authOptions)));
+                authenticated.add(newServicePool(new LDAPConnectionFactory(
+                        server.getHostPort().getHost(), server.getHostPort().getPort(), authOptions), configuration));
             }
         }
 
@@ -636,10 +644,51 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
         }
     }
 
+    private static void validateConnectionSettings(ProxyBackendCfg configuration) {
+        if (configuration.getConnectionPoolMaxSize() != -1
+                && configuration.getConnectionPoolMinSize() > configuration.getConnectionPoolMaxSize()) {
+            throw new IllegalArgumentException("connection-pool-min-size must not exceed connection-pool-max-size");
+        }
+        Filter.valueOf(configuration.getKeepAliveSearchRequestFilter());
+    }
+
+    private static Options loadBalancerOptions(ProxyBackendCfg configuration) {
+        return Options.defaultOptions().set(Connections.LOAD_BALANCER_MONITORING_INTERVAL,
+                duration(configuration.getReconnectInterval(), TimeUnit.MILLISECONDS));
+    }
+
+    private static ConnectionFactory newServicePool(ConnectionFactory factory, ProxyBackendCfg configuration) {
+        int max = configuration.getConnectionPoolMaxSize();
+        if (max == -1) {
+            max = Integer.MAX_VALUE;
+        }
+        return Connections.newCachedConnectionPool(factory, configuration.getConnectionPoolMinSize(), max,
+                configuration.getConnectionPoolIdleTimeout(), TimeUnit.MILLISECONDS,
+                configuration.getConnectionPoolWaitTimeout());
+    }
+
+    private static Options connectionOptions(Partition.Server server, ProxyBackendCfg configuration) {
+        final Options options = Options.copyOf(server.getOptions()).set(HEARTBEAT_ENABLED, true);
+        if (configuration != null) {
+            if (configuration.getConnectionTimeout() != null) {
+                options.set(CONNECT_TIMEOUT, duration(configuration.getConnectionTimeout(), TimeUnit.MILLISECONDS));
+            }
+            options.set(REQUEST_TIMEOUT, duration(configuration.getRequestTimeout(), TimeUnit.MILLISECONDS));
+            options.set(HEARTBEAT_ENABLED, configuration.isKeepAliveEnabled());
+            options.set(HEARTBEAT_INTERVAL, duration(configuration.getKeepAliveInterval(), TimeUnit.MILLISECONDS));
+            options.set(HEARTBEAT_TIMEOUT, duration(configuration.getKeepAliveTimeout(), TimeUnit.MILLISECONDS));
+            final DN base = configuration.getKeepAliveSearchRequestBaseDN();
+            options.set(HEARTBEAT_SEARCH_REQUEST, Requests.newSearchRequest(
+                    base == null ? "" : base.toString(), SearchScope.BASE_OBJECT,
+                    configuration.getKeepAliveSearchRequestFilter(), "1.1"));
+        }
+        return options;
+    }
+
     private static synchronized LDAPConnectionFactory physicalFactory(DynamicRoute route, Partition.Server server) {
         return route.physicalFactories.computeIfAbsent(server, key -> new LDAPConnectionFactory(
                 key.getHostPort().getHost(), key.getHostPort().getPort(),
-                Options.copyOf(key.getOptions()).set(HEARTBEAT_ENABLED, true)));
+                connectionOptions(key, route.configuration)));
     }
 
     private static boolean usesUserConnections(DynamicRoute route) {
@@ -1079,7 +1128,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                     return;
                 }
                 route = dynamicRoutes.computeIfAbsent(partition,
-                        key -> new DynamicRoute(key, discovery));
+                        key -> new DynamicRoute(key, discovery, cfg));
                 route.users++;
                 operationFactory = route.authenticated;
                 operationBindFactory = route.bind;

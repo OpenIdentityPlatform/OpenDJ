@@ -427,6 +427,102 @@
     </adm:profile>
   </adm:property-->
 
+  <adm:property name="connection-timeout">
+    <adm:synopsis>Timeout for establishing a remote connection.</adm:synopsis>
+    <adm:default-behavior><adm:undefined/></adm:default-behavior>
+    <adm:syntax><adm:duration base-unit="ms" lower-limit="0ms" upper-limit="1h"/></adm:syntax>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-connection-timeout</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+
+  <adm:property name="keep-alive-enabled">
+    <adm:synopsis>Enable heartbeat on remote connections.</adm:synopsis>
+    <adm:default-behavior><adm:defined><adm:value>true</adm:value></adm:defined></adm:default-behavior>
+    <adm:syntax><adm:boolean/></adm:syntax>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-keep-alive-enabled</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+
+  <adm:property name="keep-alive-interval">
+    <adm:synopsis>Heartbeat interval for remote connections.</adm:synopsis>
+    <adm:default-behavior><adm:defined><adm:value>10s</adm:value></adm:defined></adm:default-behavior>
+    <adm:syntax><adm:duration base-unit="ms" lower-limit="1s" upper-limit="1h"/></adm:syntax>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-keep-alive-interval</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+
+  <adm:property name="keep-alive-timeout">
+    <adm:synopsis>Heartbeat response timeout.</adm:synopsis>
+    <adm:default-behavior><adm:defined><adm:value>3s</adm:value></adm:defined></adm:default-behavior>
+    <adm:syntax><adm:duration base-unit="ms" lower-limit="10ms" upper-limit="1h"/></adm:syntax>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-keep-alive-timeout</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+
+  <adm:property name="keep-alive-search-request-base-dn">
+    <adm:synopsis>Remote base DN for heartbeat searches.</adm:synopsis>
+    <adm:default-behavior><adm:undefined/></adm:default-behavior>
+    <adm:syntax><adm:dn/></adm:syntax>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-keep-alive-search-request-base-dn</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+
+  <adm:property name="keep-alive-search-request-filter">
+    <adm:synopsis>LDAP filter for heartbeat searches.</adm:synopsis>
+    <adm:default-behavior><adm:defined><adm:value>(objectClass=*)</adm:value></adm:defined></adm:default-behavior>
+    <adm:syntax><adm:string/></adm:syntax>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-keep-alive-search-request-filter</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+
+  <adm:property name="reconnect-interval">
+    <adm:synopsis>Interval between recovery connection attempts.</adm:synopsis>
+    <adm:default-behavior><adm:defined><adm:value>1s</adm:value></adm:defined></adm:default-behavior>
+    <adm:syntax><adm:duration base-unit="ms" lower-limit="10ms" upper-limit="1h"/></adm:syntax>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-reconnect-interval</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+
+  <adm:property name="connection-pool-min-size">
+    <adm:synopsis>Number of idle service connections to retain.</adm:synopsis>
+    <adm:default-behavior><adm:defined><adm:value>4</adm:value></adm:defined></adm:default-behavior>
+    <adm:syntax><adm:integer lower-limit="0"/></adm:syntax>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-connection-pool-min-size</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+
+  <adm:property name="connection-pool-max-size">
+    <adm:synopsis>Maximum service connections per remote server.</adm:synopsis>
+    <adm:default-behavior><adm:defined><adm:value>1024</adm:value></adm:defined></adm:default-behavior>
+    <adm:syntax><adm:integer lower-limit="1" allow-unlimited="true"/></adm:syntax>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-connection-pool-max-size</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+
+  <adm:property name="connection-pool-idle-timeout">
+    <adm:synopsis>Idle timeout for excess service connections.</adm:synopsis>
+    <adm:default-behavior><adm:defined><adm:value>60s</adm:value></adm:defined></adm:default-behavior>
+    <adm:syntax><adm:duration base-unit="ms" lower-limit="1ms" upper-limit="1h"/></adm:syntax>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-connection-pool-idle-timeout</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+
+  <adm:property name="connection-pool-wait-timeout">
+    <adm:synopsis>Maximum time waiting for a service connection pool slot.</adm:synopsis>
+    <adm:default-behavior><adm:defined><adm:value>10s</adm:value></adm:defined></adm:default-behavior>
+    <adm:syntax><adm:duration base-unit="ms" lower-limit="1ms" upper-limit="1h"/></adm:syntax>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-connection-pool-wait-timeout</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+
+  <adm:property name="request-timeout" mandatory="true">
+    <adm:synopsis>Maximum time allowed for a remote LDAP request; zero disables the timeout.</adm:synopsis>
+    <adm:default-behavior><adm:defined><adm:value>30s</adm:value></adm:defined></adm:default-behavior>
+    <adm:syntax><adm:duration base-unit="ms" lower-limit="0ms" upper-limit="1h"/></adm:syntax>
+    <adm:requires-admin-action><adm:none/></adm:requires-admin-action>
+    <adm:profile name="ldap"><ldap:attribute><ldap:name>ds-cfg-request-timeout</ldap:name></ldap:attribute></adm:profile>
+  </adm:property>
+
   <adm:property name="remote-base-dn" mandatory="false" multi-valued="false">
     <adm:synopsis>
       Specifies the remote suffix corresponding to the proxy backend base DN.
