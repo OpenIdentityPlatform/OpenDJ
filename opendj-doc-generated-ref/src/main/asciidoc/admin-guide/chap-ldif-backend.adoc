@@ -116,25 +116,25 @@ To change a property, use `dsconfig set-backend-prop` with the same connection o
 
 The backend does not watch the file for external edits. To replace the static entries, take the backend out of service with `--set enabled:false`, back up and edit its LDIF file, and enable it again with `--set enabled:true`. Re-enabling reloads the file. Do not edit the file while the backend is enabled: reads continue to use the in-memory data, and an LDAP write can overwrite your edits. Schedule the interruption when clients do not need this suffix or its subordinate suffixes.
 
-[#ldif-backend-proxy-suffixes]
-=== Publish a Parent Suffix for Proxy Backends
+anchor:ldif-backend-proxy-suffixes[]
 
-A local LDIF backend can provide a parent entry while separate proxy backends serve subordinate suffixes. For example:
+[#ldif-backend-subordinate-suffixes]
+=== Publish a Parent Suffix for Local Backends
+
+An LDIF backend can provide a parent entry while separate local backends serve subordinate suffixes. For example:
 
 [source,text]
 ----
-dc=example,dc=com                       LDIF backend: namespace
-|-- ou=static,dc=example,dc=com          local LDIF entries
-|-- dc=sub1,dc=example,dc=com            proxy backend: sub1
-`-- dc=sub2,dc=example,dc=com            proxy backend: sub2
+dc=example,dc=com                       LDIF parent backend: namespace
+|-- ou=People,dc=example,dc=com         PDB backend: people
+|-- ou=Groups,dc=example,dc=com         PDB backend: groups
+`-- ou=Scratch,dc=example,dc=com        Memory backend: scratch
 ----
 
-Keep the parent and local entries in `namespace.ldif`. Configure each proxy backend with its own child base DN and discovery mechanism for the directory authoritative for that branch. Two backends cannot register the same base DN. This topology publishes a namespace root and lets clients address the branches through one OpenDJ endpoint.
+Keep the parent entry and any other entries owned by the LDIF backend in `namespace.ldif`. Configure each subordinate backend with its own child base DN; two backends cannot register the same base DN. Create the base entry and populate each child backend separately. Do not keep copies of the subordinate branches in the parent backend: registering a child does not remove existing parent data.
 
-Operations at or below `dc=sub1,dc=example,dc=com` are routed to the `sub1` proxy backend. Adding a copy of that child base entry to the parent's LDIF file does not change suffix routing or make the LDIF backend authoritative for that branch.
+Operations at or below `ou=People,dc=example,dc=com` are routed to `people`. A subtree search based at `dc=example,dc=com` can include the parent and subordinate entries. Test the complete results and final LDAP result code with the controls and client identities your applications use.
 
-A subtree search from `dc=example,dc=com` reaches the subordinate proxy backends as well as the local parent. If a selected child proxy route has no operational remote server after its primary and secondary candidates have been exhausted, the search returns LDAP `UNAVAILABLE (52)`. Entries from available branches may already have been returned before the final error. Clients must check the final result code; those entries do not make the search successful or complete. A base-object search confined to the local parent does not query the child proxy routes.
+The PDB backends provide persistent storage for their branches. The Memory backend is suitable only for disposable data: its entries, including its base entry, disappear on restart or backend reset and must be populated again. The parent LDIF backend does not provide automatic fallback for an unavailable child.
 
-This remains true even if the LDIF file contains the parent entry and copies of the child base entries. Those static entries can publish namespace roots; they do not provide runtime failover, reconcile duplicate local and remote entries, or transparently replace a proxy backend for operations under its suffix. The LDIF backend does not turn an unavailable child route into a successful empty search or a user-not-found result.
-
-Health-aware local LDIF fallback, a policy for accepting partial results, and full virtual-directory federation require separate design and implementation. They are not enabled by this configuration.
+For creation, migration, and operational considerations, see xref:./chap-subordinate-backends.adoc#chap-subordinate-backends[Subordinate Backends]. For the individual backend procedures, see xref:./chap-import-export.adoc#create-database-backend[Creating a New Database Backend] and xref:./chap-memory-backend.adoc#chap-memory-backend[Using the Memory Backend].
