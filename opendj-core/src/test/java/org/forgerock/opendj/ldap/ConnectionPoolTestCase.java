@@ -49,6 +49,58 @@ import static org.mockito.Mockito.*;
 public class ConnectionPoolTestCase extends SdkTestCase {
 
     @Test(timeOut = 5000)
+    public void reportsPoolStateForBorrowedIdleWaitingAndClosedConnections() throws Exception {
+        final MemoryBackend backend = new MemoryBackend();
+        try (ConnectionPool pool = newCachedConnectionPool(newInternalConnectionFactory(backend),
+                0, 1, 60L, TimeUnit.SECONDS, 2000L)) {
+            ConnectionPoolStatistics empty = pool.getStatistics();
+            Assert.assertEquals(empty.getSize(), 0);
+            Assert.assertFalse(empty.isClosed());
+            Connection held = pool.getConnection();
+            ConnectionPoolStatistics borrowed = pool.getStatistics();
+            Assert.assertEquals(borrowed.getSize(), 1);
+            Assert.assertEquals(borrowed.getInUse(), 1);
+            Assert.assertEquals(borrowed.getIdle(), 0);
+            Promise<Connection, LdapException> waiting = pool.getConnectionAsync();
+            Assert.assertEquals(pool.getStatistics().getWaiting(), 1);
+            Assert.assertTrue(waiting.cancel(false));
+            Assert.assertEquals(pool.getStatistics().getWaiting(), 0);
+            held.close();
+            ConnectionPoolStatistics idle = pool.getStatistics();
+            Assert.assertEquals(idle.getSize(), 1);
+            Assert.assertEquals(idle.getIdle(), 1);
+            Assert.assertEquals(idle.getInUse(), 0);
+            Assert.assertEquals(idle.getMaximum(), 1);
+            pool.close();
+            ConnectionPoolStatistics closed = pool.getStatistics();
+            Assert.assertTrue(closed.isClosed());
+            Assert.assertEquals(closed.getSize(), 0);
+            Assert.assertEquals(closed.getIdle(), 0);
+        }
+    }
+
+    @Test(timeOut = 5000)
+    public void reportsPendingConnectionAttempts() throws Exception {
+        final PromiseImpl<Connection, LdapException> attempt = PromiseImpl.create();
+        final ConnectionFactory factory = mock(ConnectionFactory.class);
+        when(factory.getConnectionAsync()).thenReturn(attempt);
+        try (ConnectionPool pool = newCachedConnectionPool(factory, 0, 1, 60L, TimeUnit.SECONDS, 2000L);
+             ConnectionFactory physicalFactory = newInternalConnectionFactory(new MemoryBackend())) {
+            Promise<Connection, LdapException> waiting = pool.getConnectionAsync();
+            ConnectionPoolStatistics pending = pool.getStatistics();
+            Assert.assertEquals(pending.getSize(), 1);
+            Assert.assertEquals(pending.getPending(), 1);
+            Assert.assertEquals(pending.getWaiting(), 1);
+            Assert.assertEquals(pending.getInUse(), 0);
+            attempt.handleResult(physicalFactory.getConnection());
+            try (Connection acquired = waiting.getOrThrow(2, TimeUnit.SECONDS)) {
+                Assert.assertEquals(pool.getStatistics().getPending(), 0);
+                Assert.assertEquals(pool.getStatistics().getInUse(), 1);
+            }
+        }
+    }
+
+    @Test(timeOut = 5000)
     public void saturatedPoolTimesOutWithoutLosingReturnedConnection() throws Exception {
         final java.lang.reflect.Method boundedFactory;
         try {

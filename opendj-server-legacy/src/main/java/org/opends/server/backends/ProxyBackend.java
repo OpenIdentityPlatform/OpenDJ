@@ -47,6 +47,7 @@ import org.opends.server.discovery.ServerPriorities;
 import org.opends.server.discovery.ServiceDiscoveryChangeListener;
 import org.opends.server.discovery.ServiceDiscoveryMechanism;
 import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.loggers.AccessLogger;
 import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 import org.opends.server.types.*;
 import org.opends.server.types.Attribute;
@@ -77,6 +78,7 @@ import static org.opends.server.util.ServerConstants.OID_PROXIED_AUTH_V2;
 public class ProxyBackend extends Backend<ProxyBackendCfg>
         implements ConfigurationChangeListener<ProxyBackendCfg>, ServiceDiscoveryChangeListener {
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+    private static final java.util.concurrent.atomic.AtomicLong PROXY_IDS = new java.util.concurrent.atomic.AtomicLong();
 
     ProxyBackendCfg cfg;
     ServerContext serverContext;
@@ -132,22 +134,22 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
         final List<ConnectionFactory> secondary = new LinkedList<>();
         if (partition!=null) {
             for (Partition.Server server : orderedTier(partition.getPrimaryServers(), discoveryMechanism, primaryAlgorithm)) {
-                primaryBind.add(new LDAPConnectionFactory(server.getHostPort().getHost(), server.getHostPort().getPort(),
+                primaryBind.add(routedFactory(server, new LDAPConnectionFactory(server.getHostPort().getHost(), server.getHostPort().getPort(),
                         connectionOptions(server, configuration)
-                ));
-                if (hasServiceCredentials(discoveryMechanism)) primary.add(newServicePool(new LDAPConnectionFactory(server.getHostPort().getHost(), server.getHostPort().getPort(),
+                )));
+                if (hasServiceCredentials(discoveryMechanism)) primary.add(routedFactory(server, newServicePool(new LDAPConnectionFactory(server.getHostPort().getHost(), server.getHostPort().getPort(),
                         connectionOptions(server, configuration)
                                 .set(AUTHN_BIND_REQUEST, newSimpleBindRequest(discoveryMechanism.cfg.getBindDN().toString(), discoveryMechanism.cfg.getBindPassword().toCharArray()))
-                ), configuration));
+                ), configuration)));
             }
             for (Partition.Server server : orderedTier(partition.getSecondaryServers(), discoveryMechanism, secondaryAlgorithm)) {
-                secondaryBind.add(new LDAPConnectionFactory(server.getHostPort().getHost(), server.getHostPort().getPort(),
+                secondaryBind.add(routedFactory(server, new LDAPConnectionFactory(server.getHostPort().getHost(), server.getHostPort().getPort(),
                         connectionOptions(server, configuration)
-                ));
-                if (hasServiceCredentials(discoveryMechanism)) secondary.add(newServicePool(new LDAPConnectionFactory(server.getHostPort().getHost(), server.getHostPort().getPort(),
+                )));
+                if (hasServiceCredentials(discoveryMechanism)) secondary.add(routedFactory(server, newServicePool(new LDAPConnectionFactory(server.getHostPort().getHost(), server.getHostPort().getPort(),
                         connectionOptions(server, configuration)
                                 .set(AUTHN_BIND_REQUEST, newSimpleBindRequest(discoveryMechanism.cfg.getBindDN().toString(), discoveryMechanism.cfg.getBindPassword().toCharArray()))
-                ), configuration));
+                ), configuration)));
             }
         }
 
@@ -320,6 +322,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
         final Map<Partition.Server, LDAPConnectionFactory> physicalFactories = new LinkedHashMap<>();
         final Map<List<Object>, UserPool> userPools = new HashMap<>();
         final boolean hasServiceCredentials;
+        final String serviceIdentity;
         final OperationIdentityMode configuredIdentityMode;
         OperationIdentity operationIdentity;
         long nextCapabilityProbe;
@@ -335,6 +338,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             this.secondaryUserBindTier = new UserBindTier(Collections.emptyList(), ProxyLoadBalancingAlgorithm.AFFINITY);
             this.userBindTiers = Collections.emptyMap();
             this.hasServiceCredentials = authenticated != null;
+            this.serviceIdentity = null;
             this.configuredIdentityMode = OperationIdentityMode.PROXY_AUTH;
             this.operationIdentity = OperationIdentity.PROXY_AUTH;
             this.nextCapabilityProbe = Long.MAX_VALUE;
@@ -354,6 +358,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                     secondaryLoadBalancingAlgorithm(mechanism));
             this.userBindTiers = userBindTiers(primaryUserBindTier, secondaryUserBindTier);
             this.hasServiceCredentials = hasServiceCredentials(mechanism);
+            this.serviceIdentity = this.hasServiceCredentials ? mechanism.cfg.getBindDN().toString() : null;
             this.configuredIdentityMode = configuredIdentityMode(mechanism);
         }
 
@@ -376,6 +381,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             secondaryUserBindTier = new UserBindTier(orderedSecondary, secondaryAlgorithm);
             userBindTiers = userBindTiers(primaryUserBindTier, secondaryUserBindTier);
             hasServiceCredentials = hasServiceCredentials(mechanism);
+            serviceIdentity = hasServiceCredentials ? mechanism.cfg.getBindDN().toString() : null;
             configuredIdentityMode = configuredIdentityMode(mechanism);
         }
 
@@ -411,16 +417,16 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 final Options options = connectionOptions(server, configuration);
                 // A successful client bind changes the physical connection's identity. Never
                 // reuse it for anonymous requests after a capability-driven mode change.
-                bind.add(new LDAPConnectionFactory(
-                        server.getHostPort().getHost(), server.getHostPort().getPort(), options));
+                bind.add(routedFactory(server, new LDAPConnectionFactory(
+                        server.getHostPort().getHost(), server.getHostPort().getPort(), options)));
                 if (!hasServiceCredentials(mechanism)) {
                     continue;
                 }
                 final Options authOptions = Options.copyOf(options).set(AUTHN_BIND_REQUEST,
                         newSimpleBindRequest(mechanism.cfg.getBindDN().toString(),
                                 mechanism.cfg.getBindPassword().toCharArray()));
-                authenticated.add(newServicePool(new LDAPConnectionFactory(
-                        server.getHostPort().getHost(), server.getHostPort().getPort(), authOptions), configuration));
+                authenticated.add(routedFactory(server, newServicePool(new LDAPConnectionFactory(
+                        server.getHostPort().getHost(), server.getHostPort().getPort(), authOptions), configuration)));
             }
         }
 
@@ -614,6 +620,11 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                     borrowed > 0 ? "All user connections are in use" : "User must bind again to reconnect");
         }
 
+        synchronized ConnectionPoolStatistics getStatistics() {
+            return new ConnectionPoolStatistics(idle.size() + borrowed, idle.size(), borrowed,
+                    0, 0, MAX_CONNECTIONS, closed);
+        }
+
         synchronized void close() {
             closed = true;
             while (!idle.isEmpty()) {
@@ -649,6 +660,27 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
         }
     }
 
+    private static void logProxyRequest(Operation operation, String identityMode, String shard,
+                                        ConnectionRoutingContext context, long proxyId, String target, String filter, String scope) {
+        context.onRequestIssued();
+        AccessLogger.logProxyRequest(operation, proxyId, identityMode, shard, target, filter, scope);
+    }
+
+    private static Connection borrowUserConnection(UserSession session, ConnectionRoutingContext context)
+            throws LdapException {
+        context.onAcquisitionStarted();
+        String server = ((Partition.Server) session.key.get(1)).getHostPort().toString();
+        context.onPoolAttempt(server, session.pool::getStatistics);
+        try {
+            Connection connection = session.pool.borrow();
+            context.onServerSelected(server);
+            return new RoutedConnection(connection, context);
+        } catch (LdapException | RuntimeException e) {
+            context.onPoolAcquisitionFailure();
+            throw e;
+        }
+    }
+
     private void removeUserSession(ClientConnection client, UserSession session) {
         synchronized (routingLock) {
             if (userSessions.remove(client, session) && session.pool.removeSession()) {
@@ -668,6 +700,214 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
     private static Options loadBalancerOptions(ProxyBackendCfg configuration) {
         return Options.defaultOptions().set(Connections.LOAD_BALANCER_MONITORING_INTERVAL,
                 duration(configuration.getReconnectInterval(), TimeUnit.MILLISECONDS));
+    }
+
+    private static final class RoutedConnection extends AbstractConnectionWrapper<Connection> {
+        private final ConnectionRoutingContext context;
+
+        RoutedConnection(Connection connection, ConnectionRoutingContext context) {
+            super(connection);
+            this.context = context;
+        }
+
+        private <T extends Result> LdapPromise<T> observe(LdapPromise<T> promise) {
+            return org.forgerock.opendj.ldap.spi.LdapPromises.mapWithCancellation(promise, promise.getRequestID(),
+                    result -> {
+                        context.onComplete(result);
+                        return result;
+                    }, failure -> {
+                        context.onComplete(failure.getResult());
+                    });
+        }
+
+        private interface LdapCall<T extends Result> { T run() throws LdapException; }
+
+        private <T extends Result> T observe(LdapCall<T> call) throws LdapException {
+            try {
+                T result = call.run();
+                context.onComplete(result);
+                return result;
+            } catch (LdapException e) {
+                context.onComplete(e.getResult());
+                throw e;
+            }
+        }
+
+        @Override
+        public Result add(AddRequest request) throws LdapException {
+            return observe(() -> connection.add(request));
+        }
+
+        @Override
+        public LdapPromise<Result> addAsync(AddRequest request, IntermediateResponseHandler handler) {
+            return observe(connection.addAsync(request, handler));
+        }
+
+        @Override
+        public BindResult bind(BindRequest request) throws LdapException {
+            return observe(() -> connection.bind(request));
+        }
+
+        @Override
+        public LdapPromise<BindResult> bindAsync(BindRequest request, IntermediateResponseHandler handler) {
+            return observe(connection.bindAsync(request, handler));
+        }
+
+        @Override
+        public Result modify(ModifyRequest request) throws LdapException {
+            return observe(() -> connection.modify(request));
+        }
+
+        @Override
+        public LdapPromise<Result> modifyAsync(ModifyRequest request, IntermediateResponseHandler handler) {
+            return observe(connection.modifyAsync(request, handler));
+        }
+
+        @Override
+        public Result modifyDN(ModifyDNRequest request) throws LdapException {
+            return observe(() -> connection.modifyDN(request));
+        }
+
+        @Override
+        public LdapPromise<Result> modifyDNAsync(ModifyDNRequest request, IntermediateResponseHandler handler) {
+            return observe(connection.modifyDNAsync(request, handler));
+        }
+
+        @Override
+        public CompareResult compare(CompareRequest request) throws LdapException {
+            return observe(() -> connection.compare(request));
+        }
+
+        @Override
+        public LdapPromise<CompareResult> compareAsync(CompareRequest request, IntermediateResponseHandler handler) {
+            return observe(connection.compareAsync(request, handler));
+        }
+
+        @Override
+        public Result delete(DeleteRequest request) throws LdapException {
+            return observe(() -> connection.delete(request));
+        }
+
+        @Override
+        public LdapPromise<Result> deleteAsync(DeleteRequest request, IntermediateResponseHandler handler) {
+            return observe(connection.deleteAsync(request, handler));
+        }
+
+        @Override
+        public ConnectionEntryReader search(SearchRequest request) {
+            return new ConnectionEntryReader(this, request);
+        }
+
+        @Override
+        public LdapPromise<Result> searchAsync(SearchRequest request, SearchResultHandler handler) {
+            return searchAsync(request, null, handler);
+        }
+
+        @Override
+        public LdapPromise<Result> searchAsync(SearchRequest request, IntermediateResponseHandler intermediate,
+                                               SearchResultHandler handler) {
+            SearchResultHandler counted = new SearchResultHandler() {
+                @Override
+                public boolean handleEntry(SearchResultEntry entry) {
+                    context.onSearchEntry();
+                    return handler.handleEntry(entry);
+                }
+
+                @Override
+                public boolean handleReference(SearchResultReference reference) {
+                    return handler.handleReference(reference);
+                }
+            };
+            return observe(connection.searchAsync(request, intermediate, counted));
+        }
+
+        @Override
+        public <R extends ExtendedResult> R extendedRequest(ExtendedRequest<R> request) throws LdapException {
+            return observe(() -> connection.extendedRequest(request));
+        }
+
+        @Override
+        public <R extends ExtendedResult> R extendedRequest(ExtendedRequest<R> request,
+                IntermediateResponseHandler handler) throws LdapException {
+            return observe(() -> connection.extendedRequest(request, handler));
+        }
+
+        @Override
+        public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(ExtendedRequest<R> request,
+                IntermediateResponseHandler handler) {
+            return observe(connection.extendedRequestAsync(request, handler));
+        }
+    }
+
+    private static final class RoutedFactory implements ConnectionFactory {
+        private final Partition.Server server;
+        private final ConnectionFactory delegate;
+
+        RoutedFactory(Partition.Server server, ConnectionFactory delegate) {
+            this.server = server;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void close() { delegate.close(); }
+
+        @Override
+        public Connection getConnection() throws LdapException { return delegate.getConnection(); }
+
+        @Override
+        public org.forgerock.util.promise.Promise<Connection, LdapException> getConnectionAsync() {
+            return delegate.getConnectionAsync();
+        }
+
+        @Override
+        public Connection getConnectionWithContext(ConnectionRoutingContext context) throws LdapException {
+            preparePool(context);
+            try {
+                Connection connection = delegate.getConnection();
+                return route(connection, context);
+            } catch (LdapException | RuntimeException e) {
+                if (context != null) context.onPoolAcquisitionFailure();
+                throw e;
+            }
+        }
+
+        @Override
+        public org.forgerock.util.promise.Promise<Connection, LdapException> getConnectionAsyncWithContext(
+                ConnectionRoutingContext context) {
+            preparePool(context);
+            try {
+                return org.forgerock.opendj.ldap.spi.LdapPromises.mapWithCancellation(delegate.getConnectionAsync(), -1,
+                        connection -> route(connection, context), failure -> {
+                            if (context != null) context.onPoolAcquisitionFailure();
+                        });
+            } catch (RuntimeException e) {
+                if (context != null) context.onPoolAcquisitionFailure();
+                throw e;
+            }
+        }
+
+        private void preparePool(ConnectionRoutingContext context) {
+            if (context == null) return;
+            context.onAcquisitionStarted();
+            if (delegate instanceof ConnectionPool) {
+                context.onPoolAttempt(server.getHostPort().toString(), ((ConnectionPool) delegate)::getStatistics);
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "RoutedFactory(" + server.getHostPort() + ")";
+        }
+
+        private Connection route(Connection connection, ConnectionRoutingContext context) {
+            if (context == null) return connection;
+            context.onServerSelected(server.getHostPort().toString());
+            return new RoutedConnection(connection, context);
+        }
+    }
+
+    private static ConnectionFactory routedFactory(Partition.Server server, ConnectionFactory delegate) {
+        return new RoutedFactory(server, delegate);
     }
 
     private static ConnectionFactory newServicePool(ConnectionFactory factory, ProxyBackendCfg configuration) {
@@ -772,16 +1012,20 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
     }
 
     private Result bindUser(DynamicRoute route, BindOperation request, ProxyRewriter mapping,
-                            List<org.forgerock.opendj.ldap.controls.Control> controls) {
+                            List<org.forgerock.opendj.ldap.controls.Control> controls,
+                            ConnectionRoutingContext routingContext, String identityMode, String shard, long proxyId) {
         final DN remoteDN = mapping.dn(request.getBindDN(), true);
+        logProxyRequest(request, identityMode, shard, routingContext, proxyId, remoteDN.toString(), null, null);
         final byte[] password = request.getSimplePassword().toByteArray();
         LdapException lastFailure = null;
+        routingContext.onAcquisitionStarted();
         try {
             for (Partition.Server server : userBindServers(route, remoteDN)) {
                 Connection connection = null;
                 try {
                     try {
                         connection = physicalFactory(route, server).getConnection();
+                        routingContext.onServerSelected(server.getHostPort().toString());
                     } catch (LdapException e) {
                         lastFailure = e;
                         final ResultCode code = e.getResult().getResultCode();
@@ -799,7 +1043,7 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                     final Result result;
                     tier.requestStarted(server);
                     try {
-                        result = connection.bind(bind);
+                        result = new RoutedConnection(connection, routingContext).bind(bind);
                     } catch (LdapException e) {
                         final ResultCode code = e.getResult().getResultCode();
                         if (code.equals(ResultCode.CLIENT_SIDE_CONNECT_ERROR)
@@ -1198,6 +1442,12 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
             operation.setResponseData(new DirectoryException(e.resultCode, LocalizableMessage.raw(e.getMessage())));
             return;
         }
+        final ConnectionRoutingContext routingContext = new ConnectionRoutingContext();
+        final long proxyId = PROXY_IDS.incrementAndGet();
+        final String identityMode = operation.getOperationType() == OperationType.BIND
+                ? "client" : operationIdentity.toString().toLowerCase(Locale.ROOT).replace('_', '-');
+        final String shard = route != null && route.configuration != null ? route.configuration.getShard() : null;
+        boolean searchSubordinates = false;
         try {
         switch (operation.getOperationType()) {
             case BIND: {
@@ -1208,22 +1458,26 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 } else {
                     Result result;
                     if (directUserMode && !request.getBindDN().isRootDN()) {
-                        result = bindUser(route, request, mapping, controls);
+                        result = bindUser(route, request, mapping, controls, routingContext, identityMode, shard, proxyId);
                     } else {
                         final byte[] password = request.getSimplePassword().toByteArray();
                         try {
                             final SimpleBindRequest bindRequest = newSimpleBindRequest(
                                     mapping.dn(request.getBindDN(), true).toString(), password);
                             addRequestControls(bindRequest, controls);
-                            try (Connection connection = requestFactory.getConnection()) {
+                            logProxyRequest(operation, identityMode, shard, routingContext, proxyId,
+                                    bindRequest.getName(), null, null);
+                            try (Connection connection = requestFactory.getConnectionWithContext(routingContext)) {
                                 result = connection.bind(bindRequest);
                             } catch (LdapException e) {
+                                routingContext.onComplete(null);
                                 result = e.getResult();
                             }
                         } finally {
                             Arrays.fill(password, (byte) 0);
                         }
                     }
+                    routingContext.onComplete(null);
                     request.setResultCode(clientResultCode(result));
                     addResponseControls(operation, result, mapping);
                     request.setAuthFailureReason(LocalizableMessage.raw(result.getDiagnosticMessage()));
@@ -1248,9 +1502,11 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 addRequestControls(addRequest, controls);
                 if (useProxiedAuth) addProxiedAuthControl(operation,addRequest,mapping);
                 Result result;
-                try (Connection connection = userSession == null ? requestFactory.getConnection() : userSession.pool.borrow()) {
+                logProxyRequest(operation, identityMode, shard, routingContext, proxyId, addRequest.getName().toString(), null, null);
+                try (Connection connection = userSession == null ? requestFactory.getConnectionWithContext(routingContext) : borrowUserConnection(userSession, routingContext)) {
                     result = connection.add(addRequest);
                 } catch (LdapException e) {
+                    routingContext.onComplete(null);
                     result =e.getResult();
                 }
                 request.setResultCode(clientResultCode(result));
@@ -1272,9 +1528,11 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                     );
                 }
                 Result result;
-                try (Connection connection = userSession == null ? requestFactory.getConnection() : userSession.pool.borrow()) {
+                logProxyRequest(operation, identityMode, shard, routingContext, proxyId, modifyRequest.getName().toString(), null, null);
+                try (Connection connection = userSession == null ? requestFactory.getConnectionWithContext(routingContext) : borrowUserConnection(userSession, routingContext)) {
                     result = connection.modify(modifyRequest);
                 } catch (LdapException e) {
+                    routingContext.onComplete(null);
                     result =e.getResult();
                 }
                 request.setResultCode(clientResultCode(result));
@@ -1290,9 +1548,11 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 addRequestControls(modifyDNRequest, controls);
                 if (useProxiedAuth) addProxiedAuthControl(operation,modifyDNRequest,mapping);
                 Result result;
-                try (Connection connection = userSession == null ? requestFactory.getConnection() : userSession.pool.borrow()) {
+                logProxyRequest(operation, identityMode, shard, routingContext, proxyId, modifyDNRequest.getName().toString(), null, null);
+                try (Connection connection = userSession == null ? requestFactory.getConnectionWithContext(routingContext) : borrowUserConnection(userSession, routingContext)) {
                     result = connection.modifyDN(modifyDNRequest);
                 } catch (LdapException e) {
+                    routingContext.onComplete(null);
                     result =e.getResult();
                 }
                 request.setResultCode(clientResultCode(result));
@@ -1308,9 +1568,11 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 addRequestControls(compareRequest, controls);
                 if (useProxiedAuth) addProxiedAuthControl(operation,compareRequest,mapping);
                 Result result;
-                try (Connection connection = userSession == null ? requestFactory.getConnection() : userSession.pool.borrow()) {
+                logProxyRequest(operation, identityMode, shard, routingContext, proxyId, compareRequest.getName().toString(), null, null);
+                try (Connection connection = userSession == null ? requestFactory.getConnectionWithContext(routingContext) : borrowUserConnection(userSession, routingContext)) {
                     result = connection.compare(compareRequest);
                 } catch (LdapException e) {
+                    routingContext.onComplete(null);
                     result =e.getResult();
                 }
                 request.setResultCode(clientResultCode(result));
@@ -1323,9 +1585,11 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 addRequestControls(deleteRequest, controls);
                 if (useProxiedAuth) addProxiedAuthControl(operation,deleteRequest,mapping);
                 Result result;
-                try (Connection connection = userSession == null ? requestFactory.getConnection() : userSession.pool.borrow()) {
+                logProxyRequest(operation, identityMode, shard, routingContext, proxyId, deleteRequest.getName().toString(), null, null);
+                try (Connection connection = userSession == null ? requestFactory.getConnectionWithContext(routingContext) : borrowUserConnection(userSession, routingContext)) {
                     result = connection.delete(deleteRequest);
                 } catch (LdapException e) {
+                    routingContext.onComplete(null);
                     result =e.getResult();
                 }
                 request.setResultCode(clientResultCode(result));
@@ -1338,12 +1602,14 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                 addRequestControls(extendedRequest, controls);
                 if (useProxiedAuth) addProxiedAuthControl(operation,extendedRequest,mapping);
                 ExtendedResult result;
-                try (Connection connection = userSession == null ? requestFactory.getConnection() : userSession.pool.borrow()) {
+                logProxyRequest(operation, identityMode, shard, routingContext, proxyId, null, null, null);
+                try (Connection connection = userSession == null ? requestFactory.getConnectionWithContext(routingContext) : borrowUserConnection(userSession, routingContext)) {
                     result = connection.extendedRequest(extendedRequest);
                     request.setResultCode(clientResultCode(result));
                     request.setResponseValue(result.getValue());
                     addResponseControls(operation, result, mapping);
                 } catch (LdapException e) {
+                    routingContext.onComplete(null);
                     request.setResultCode(clientResultCode(e.getResult()));
                     addResponseControls(operation, e.getResult(), mapping);
                 }
@@ -1362,7 +1628,9 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                  .setTypesOnly(request.getTypesOnly());
                 addRequestControls(searchRequest, controls);
                 if (useProxiedAuth) addProxiedAuthControl(operation,searchRequest,mapping);
-                try (Connection connection = userSession == null ? requestFactory.getConnection() : userSession.pool.borrow()) {
+                logProxyRequest(operation, identityMode, shard, routingContext, proxyId, searchRequest.getName().toString(), searchRequest.getFilter().toString(),
+                        searchRequest.getScope().toString());
+                try (Connection connection = userSession == null ? requestFactory.getConnectionWithContext(routingContext) : borrowUserConnection(userSession, routingContext)) {
                     try (ConnectionEntryReader entryReader = connection.search(searchRequest)){
                         while (entryReader.hasNext())
                         {
@@ -1413,15 +1681,13 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
                         addResponseControls(operation, result, mapping);
                     }
                 } catch (LdapException e) {
+                    routingContext.onComplete(null);
                    request.setResultCode(clientResultCode(e.getResult()));
                    addResponseControls(operation, e.getResult(), mapping);
                 } catch (SearchResultReferenceIOException | DirectoryException e) {
                     throw new RuntimeException(e);
                 }
-                if (serverContext != null
-                        && serverContext.getBackendConfigManager().findBackendForEntry(request.getBaseDN()) == this) {
-                    LocalBackendWorkflowElement.executeSearchOnSubordinates(request);
-                }
+                searchSubordinates = true;
                 break;
             }
             case ABANDON:
@@ -1431,6 +1697,42 @@ public class ProxyBackend extends Backend<ProxyBackendCfg>
         }
         } catch (ProxyRewriter.RewriteException e) {
             operation.setResponseData(new DirectoryException(e.resultCode, LocalizableMessage.raw(e.getMessage())));
+        } finally {
+            String remoteAuthDN = null;
+            String authorizationDN = null;
+            if (routingContext.getRespondingServer() != null) {
+                if (operation.getOperationType() == OperationType.BIND) {
+                    if (routingContext.getResponseCode() == ResultCode.SUCCESS) {
+                        try {
+                            remoteAuthDN = mapping.dn(((BindOperation) operation).getBindDN(), true).toString();
+                        } catch (ProxyRewriter.RewriteException ignored) {
+                            // The response remains useful when the identity cannot be rewritten.
+                        }
+                    }
+                } else if (directUserMode) {
+                    remoteAuthDN = userSession == null ? "" : userSession.key.get(0).toString();
+                } else if (route != null) {
+                    remoteAuthDN = route.serviceIdentity;
+                }
+                if (useProxiedAuth && operation.getOperationType() != OperationType.BIND) {
+                    final DN dn = operation.getClientConnection().getAuthenticationInfo().getAuthorizationDN();
+                    authorizationDN = dn == null ? "" : dn.toString();
+                }
+            }
+            if (routingContext.wasRequestIssued()) {
+                AccessLogger.deferProxyResponse(operation, proxyId, routingContext.getRespondingServer(),
+                        routingContext.getSelectedServer(), routingContext.getResponseCode(), remoteAuthDN,
+                        authorizationDN, operation.getOperationType() == OperationType.SEARCH
+                                ? routingContext.getSearchEntries() : -1, routingContext.getPoolSnapshot(),
+                        routingContext.getElapsedMillis());
+            }
+        }
+        if (searchSubordinates) {
+            final SearchOperation request = (SearchOperation) operation;
+            if (serverContext != null
+                    && serverContext.getBackendConfigManager().findBackendForEntry(request.getBaseDN()) == this) {
+                LocalBackendWorkflowElement.executeSearchOnSubordinates(request);
+            }
         }
         } finally {
             if (route != null) {

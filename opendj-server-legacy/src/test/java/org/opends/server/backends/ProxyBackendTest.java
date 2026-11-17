@@ -144,12 +144,17 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
                  Connection rejected = factory.getConnection(); Connection other = factory.getConnection()) {
                 assertEquals(first.bind(proxyUser, "pool-password".toCharArray()).getResultCode(), ResultCode.SUCCESS);
                 assertEquals(second.bind(proxyUser, "pool-password".toCharArray()).getResultCode(), ResultCode.SUCCESS);
+                TestCaseUtils.ACCESS_TEXT_WRITER.clear();
                 try {
                     rejected.bind(proxyUser, "wrong-password".toCharArray());
                     Assert.fail("A client must authenticate even when a pool for its DN already exists");
                 } catch (LdapException e) {
                     assertEquals(e.getResult().getResultCode(), ResultCode.INVALID_CREDENTIALS);
                 }
+                assertThat(TestCaseUtils.ACCESS_TEXT_WRITER.getMessages()).anyMatch(line ->
+                        line.contains("BIND PROXY_RES conn=") && line.contains("server=\"localhost:")
+                                && line.contains(" result=49") && !line.contains("s_authdn=")
+                                && !line.contains("wrong-password"));
                 assertEquals(other.bind(proxyOtherUser, "other-password".toCharArray()).getResultCode(), ResultCode.SUCCESS);
                 try (Connection direct = factory.getConnection()) {
                     direct.bind(remoteOtherUser, "other-password".toCharArray());
@@ -760,6 +765,240 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
         }
     }
 
+    @Test(timeOut = 15000)
+    public void proxyResponseWaitsUntilRoutingCallbackCompletes() throws Exception {
+        ConnectionRoutingContext context = new ConnectionRoutingContext();
+        org.forgerock.util.promise.PromiseImpl<org.forgerock.opendj.ldap.responses.Result, LdapException> source =
+                org.forgerock.util.promise.PromiseImpl.create();
+        CountDownLatch sourceCompleted = new CountDownLatch(1);
+        source.thenOnResult(result -> sourceCompleted.countDown());
+        LdapPromise<org.forgerock.opendj.ldap.responses.Result> observed = observeProxyPromise(context,
+                org.forgerock.opendj.ldap.spi.LdapPromises.asPromise(source));
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<?> completion;
+            synchronized (context) {
+                completion = executor.submit(() -> source.handleResult(Responses.newResult(ResultCode.SUCCESS)));
+                assertTrue(sourceCompleted.await(5, TimeUnit.SECONDS));
+                Assert.assertFalse(observed.isDone(), "The caller must wait for the routing callback");
+                Assert.assertFalse(observed.cancel(true), "Cancellation must lose after the LDAP result completes");
+            }
+            completion.get(5, TimeUnit.SECONDS);
+            assertEquals(observed.getOrThrow().getResultCode(), ResultCode.SUCCESS);
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    public void cancellingObservedProxyPromiseCancelsUnderlyingRequest() throws Exception {
+        org.forgerock.util.promise.PromiseImpl<org.forgerock.opendj.ldap.responses.Result, LdapException> source =
+                new org.forgerock.util.promise.PromiseImpl<org.forgerock.opendj.ldap.responses.Result, LdapException>() {
+                    @Override
+                    protected LdapException tryCancel(boolean mayInterruptIfRunning) {
+                        return LdapException.newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED);
+                    }
+                };
+        LdapPromise<org.forgerock.opendj.ldap.responses.Result> observed = observeProxyPromise(
+                new ConnectionRoutingContext(), org.forgerock.opendj.ldap.spi.LdapPromises.asPromise(source));
+        assertTrue(observed.cancel(true));
+        assertTrue(source.isCancelled(), "Cancellation must reach the LDAP operation");
+        assertTrue(observed.isCancelled(), "The observed promise must report cancellation");
+        assertTrue(observed.isDone());
+        try {
+            observed.getOrThrow();
+            Assert.fail("A cancelled LDAP request must not return a result");
+        } catch (LdapException e) {
+            assertEquals(e.getResult().getResultCode(), ResultCode.CLIENT_SIDE_USER_CANCELLED);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static LdapPromise<org.forgerock.opendj.ldap.responses.Result> observeProxyPromise(
+            ConnectionRoutingContext context, LdapPromise<org.forgerock.opendj.ldap.responses.Result> source)
+            throws Exception {
+        Class<?> type = Class.forName(ProxyBackend.class.getName() + "$RoutedConnection");
+        java.lang.reflect.Constructor<?> constructor = type.getDeclaredConstructor(Connection.class,
+                ConnectionRoutingContext.class);
+        constructor.setAccessible(true);
+        Object connection = constructor.newInstance(Mockito.mock(Connection.class), context);
+        java.lang.reflect.Method observe = type.getDeclaredMethod("observe", LdapPromise.class);
+        observe.setAccessible(true);
+        return (LdapPromise<org.forgerock.opendj.ldap.responses.Result>) observe.invoke(connection, source);
+    }
+
+    @Test
+    public void accessLogIdentifiesServerForProxiedSearch() throws Exception {
+        final String remoteBase = "dc=userpool";
+        final String proxyBase = "ou=access-server,o=test";
+        final String name = "access-server";
+        try (LDAPListener remote = userAffinityServer("remote", "user0", "user1", remoteBase)) {
+            final String address = "127.0.0.1:" + remote.firstSocketAddress().getPort();
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", name,
+                    "--type", "static", "--set", "primary-server:" + address, "--set", "use-ssl:false");
+            TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", name,
+                    "--set", "base-dn:" + proxyBase, "--set", "remote-base-dn:" + remoteBase,
+                    "--set", "enabled:true", "--set", "shard:" + name);
+            try {
+                try (Connection client = factory.getConnection()) {
+                    TestCaseUtils.ACCESS_TEXT_WRITER.clear();
+                    client.bind("uid=user0," + proxyBase, "password".toCharArray());
+                    assertThat(TestCaseUtils.ACCESS_TEXT_WRITER.getMessages()).anyMatch(line ->
+                            line.contains("BIND PROXY_REQ conn=") && line.contains("dn=\"uid=user0," + remoteBase + "\""));
+                    assertThat(TestCaseUtils.ACCESS_TEXT_WRITER.getMessages()).anyMatch(line ->
+                            line.contains("BIND PROXY_RES conn=") && line.contains("server=\"" + address + "\"")
+                                    && line.contains("s_authdn=\"uid=user0," + remoteBase + "\"")
+                                    && line.contains(" result=0") && !line.contains("password"));
+                    TestCaseUtils.ACCESS_TEXT_WRITER.clear();
+                    assertThat(client.searchSingleEntry("uid=user0," + proxyBase, SearchScope.BASE_OBJECT,
+                            "(objectClass=*)", "cn")).isNotNull();
+                    final List<String> records = TestCaseUtils.ACCESS_TEXT_WRITER.getMessages();
+                    final java.util.regex.Pattern identifiers = java.util.regex.Pattern.compile(
+                            "conn=([0-9]+) op=([0-9]+) msgID=([0-9]+)");
+                    final String requestLine = records.stream().filter(line -> line.contains("SEARCH REQ conn="))
+                            .findFirst().orElseThrow(() -> new AssertionError(records));
+                    final String proxyRequest = records.stream().filter(line -> line.contains("SEARCH PROXY_REQ conn="))
+                            .findFirst().orElseThrow(() -> new AssertionError(records));
+                    final String proxyResponse = records.stream().filter(line -> line.contains("SEARCH PROXY_RES conn="))
+                            .findFirst().orElseThrow(() -> new AssertionError(records));
+                    final java.util.regex.Matcher sourceId = identifiers.matcher(requestLine);
+                    final java.util.regex.Matcher proxyRequestId = identifiers.matcher(proxyRequest);
+                    final java.util.regex.Matcher proxyResponseId = identifiers.matcher(proxyResponse);
+                    assertTrue(sourceId.find());
+                    assertTrue(proxyRequestId.find());
+                    assertTrue(proxyResponseId.find());
+                    assertEquals(proxyRequestId.group(), sourceId.group());
+                    assertEquals(proxyResponseId.group(), sourceId.group());
+                    final java.util.regex.Matcher requestProxyId = java.util.regex.Pattern.compile(" proxyOp=([0-9]+)")
+                            .matcher(proxyRequest);
+                    final java.util.regex.Matcher responseProxyId = java.util.regex.Pattern.compile(" proxyOp=([0-9]+)")
+                            .matcher(proxyResponse);
+                    assertTrue(requestProxyId.find());
+                    assertTrue(responseProxyId.find());
+                    assertEquals(responseProxyId.group(1), requestProxyId.group(1));
+                    assertThat(proxyRequest).contains("s_credmode=\"client\"", "shard=\"" + name + "\"",
+                            "base=\"uid=user0," + remoteBase + "\"", "scope=\"base\"", "filter=\"(objectClass=*)\"");
+                    assertThat(proxyResponse).contains("server=\"" + address + "\"", " result=0", " nentries=1",
+                            "s_authdn=\"uid=user0," + remoteBase + "\"", " etime=",
+                            "poolServer=\"" + address + "\" poolSize=1 poolIdle=0 poolInUse=1"
+                                    + " poolPending=0 poolWaiting=0 poolMax=16 poolClosed=false result=0");
+                }
+            } finally {
+                TestCaseUtils.dsconfig("delete-backend", "--backend-name", name);
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", name);
+            }
+        }
+    }
+
+    @Test
+    public void accessLogReportsTheServerAfterFailover() throws Exception {
+        final String name = "access-failover";
+        final String base = "ou=access-failover,o=test";
+        try (LDAPListener remote = testServer("secondary"); ServerSocket unavailable = new ServerSocket(0)) {
+            int unavailablePort = unavailable.getLocalPort();
+            unavailable.close();
+            String address = "127.0.0.1:" + remote.firstSocketAddress().getPort();
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", name,
+                    "--type", "static", "--set", "bind-dn:cn=service", "--set", "bind-password:service-password",
+                    "--set", "operation-identity-mode:specific", "--set", "use-ssl:false",
+                    "--set", "primary-server:127.0.0.1:" + unavailablePort,
+                    "--set", "secondary-server:" + address);
+            TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", name,
+                    "--set", "base-dn:" + base, "--set", "remote-base-dn:uid=user",
+                    "--set", "enabled:true", "--set", "shard:" + name);
+            try {
+                try (Connection client = getConnection()) {
+                    for (String algorithm : Arrays.asList("affinity", "round-robin", "least-requests", "failover", "distribution")) {
+                        TestCaseUtils.dsconfig("set-service-discovery-mechanism-prop", "--mechanism-name", name,
+                                "--set", "primary-load-balancing-algorithm:" + algorithm,
+                                "--set", "secondary-load-balancing-algorithm:" + algorithm);
+                        TestCaseUtils.ACCESS_TEXT_WRITER.clear();
+                        assertEquals(client.searchSingleEntry(base, SearchScope.BASE_OBJECT, "(objectClass=*)", "description")
+                                .getAttribute("description").firstValueAsString(), "secondary");
+                        List<String> records = TestCaseUtils.ACCESS_TEXT_WRITER.getMessages();
+                        assertThat(records).anyMatch(line -> line.contains("SEARCH PROXY_REQ conn=")
+                                && line.contains("s_credmode=\"specific\""));
+                        assertThat(records).anyMatch(line -> line.contains("SEARCH PROXY_RES conn=")
+                                && line.contains("server=\"" + address + "\"") && line.contains(" result=0")
+                                && line.contains("s_authdn=\"cn=service\"") && line.contains(" nentries=1")
+                                && line.contains("poolServer=\"" + address + "\"")
+                                && line.contains("poolMax=1024 poolClosed=false result=0"));
+                    }
+                }
+            } finally {
+                TestCaseUtils.dsconfig("delete-backend", "--backend-name", name);
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", name);
+            }
+        }
+    }
+
+    @Test(timeOut = 30000)
+    public void accessLogKeepsConcurrentServerSelectionsSeparate() throws Exception {
+        final String name = "access-concurrent";
+        final String base = "ou=access-concurrent,o=test";
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try (LDAPListener firstServer = testServer("first"); LDAPListener secondServer = testServer("second")) {
+            String firstAddress = "127.0.0.1:" + firstServer.firstSocketAddress().getPort();
+            String secondAddress = "127.0.0.1:" + secondServer.firstSocketAddress().getPort();
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", name,
+                    "--type", "static", "--set", "bind-dn:cn=service", "--set", "bind-password:service-password",
+                    "--set", "operation-identity-mode:specific", "--set", "use-ssl:false",
+                    "--set", "primary-load-balancing-algorithm:round-robin", "--set", "primary-server:" + firstAddress,
+                    "--set", "primary-server:" + secondAddress);
+            TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", name,
+                    "--set", "base-dn:" + base, "--set", "remote-base-dn:uid=user",
+                    "--set", "enabled:true", "--set", "shard:" + name);
+            try {
+                TestCaseUtils.ACCESS_TEXT_WRITER.clear();
+                try (Connection first = getConnection()) {
+                    String firstId = lastBindConnectionId();
+                    TestCaseUtils.ACCESS_TEXT_WRITER.clear();
+                    try (Connection second = getConnection()) {
+                        String secondId = lastBindConnectionId();
+                        Assert.assertNotEquals(firstId, secondId);
+                        TestCaseUtils.ACCESS_TEXT_WRITER.clear();
+                        CountDownLatch start = new CountDownLatch(1);
+                        Future<String> firstResult = executor.submit(() -> {
+                            start.await();
+                            return first.searchSingleEntry(base, SearchScope.BASE_OBJECT, "(objectClass=*)", "description")
+                                    .getAttribute("description").firstValueAsString();
+                        });
+                        Future<String> secondResult = executor.submit(() -> {
+                            start.await();
+                            return second.searchSingleEntry(base, SearchScope.BASE_OBJECT, "(objectClass=*)", "description")
+                                    .getAttribute("description").firstValueAsString();
+                        });
+                        start.countDown();
+                        String firstLabel = firstResult.get(10, TimeUnit.SECONDS);
+                        String secondLabel = secondResult.get(10, TimeUnit.SECONDS);
+                        Assert.assertNotEquals(firstLabel, secondLabel);
+                        List<String> records = TestCaseUtils.ACCESS_TEXT_WRITER.getMessages();
+                        for (String[] observed : Arrays.asList(new String[] {firstId, firstLabel},
+                                new String[] {secondId, secondLabel})) {
+                            String address = observed[1].equals("first") ? firstAddress : secondAddress;
+                            assertThat(records).anyMatch(line -> line.contains("SEARCH PROXY_RES conn=" + observed[0] + " ")
+                                    && line.contains("server=\"" + address + "\""));
+                        }
+                    }
+                }
+            } finally {
+                TestCaseUtils.dsconfig("delete-backend", "--backend-name", name);
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", name);
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    private static String lastBindConnectionId() {
+        final String line = TestCaseUtils.ACCESS_TEXT_WRITER.getMessages().stream()
+                .filter(record -> record.contains("BIND RES conn="))
+                .reduce((first, second) -> second).orElseThrow(() -> new AssertionError("Missing bind response"));
+        java.util.regex.Matcher id = java.util.regex.Pattern.compile("conn=([0-9]+)").matcher(line);
+        assertTrue(id.find());
+        return id.group(1);
+    }
+
     @Test
     public void accessLogCountsEntriesReturnedThroughProxy() throws Exception {
         final String remoteBase = "dc=userpool";
@@ -951,7 +1190,10 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
             final Object member = ((List<?>) monitored.get(balancer)).get(0);
             final Field wrapped = member.getClass().getDeclaredField("factory");
             wrapped.setAccessible(true);
-            final Object remoteFactory = wrapped.get(member);
+            final Object routedFactory = wrapped.get(member);
+            final Field delegate = routedFactory.getClass().getDeclaredField("delegate");
+            delegate.setAccessible(true);
+            final Object remoteFactory = delegate.get(routedFactory);
             final Field timeout = LDAPConnectionFactory.class.getDeclaredField("connectTimeoutMS");
             timeout.setAccessible(true);
             sdkSettings.assertEquals(timeout.getLong(remoteFactory), 3000L, "The SDK must receive the connection timeout");
@@ -1107,11 +1349,23 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
                     }
                 });
                 assertTrue(searchStarted.await(5, TimeUnit.SECONDS));
+                TestCaseUtils.ACCESS_TEXT_WRITER.clear();
                 try {
                     second.searchSingleEntry(proxyBase, SearchScope.BASE_OBJECT, "(objectClass=*)", "cn");
                     Assert.fail("A saturated service pool must report BUSY");
                 } catch (LdapException e) {
                     assertEquals(e.getResult().getResultCode(), ResultCode.BUSY);
+                    final String proxyResponse = TestCaseUtils.ACCESS_TEXT_WRITER.getMessages().stream()
+                            .filter(line -> line.contains("SEARCH PROXY_RES conn="))
+                            .findFirst().orElseThrow(() -> new AssertionError("Missing proxy response"));
+                    assertThat(proxyResponse).contains("outcome=no-response", " result=51",
+                            "poolServer=\"127.0.0.1:" + listener.firstSocketAddress().getPort() + "\"",
+                            "poolSize=1 poolIdle=0 poolInUse=1", "poolMax=1 poolClosed=false result=51")
+                            .doesNotContain(" server=", "selectedServer=");
+                    final java.util.regex.Matcher duration = java.util.regex.Pattern.compile(" etime=([0-9]+)")
+                            .matcher(proxyResponse);
+                    assertTrue(duration.find());
+                    assertTrue(Long.parseLong(duration.group(1)) >= 80, "Elapsed time must include the pool wait");
                 } finally {
                     block.set(false);
                     releaseSearch.countDown();
@@ -1224,12 +1478,23 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
                 assertEquals(client.searchSingleEntry(proxyBase, SearchScope.BASE_OBJECT, "(objectClass=*)", "cn")
                         .getAttribute("cn").firstValueAsString(), "remote");
                 stallSearch.set(true);
+                TestCaseUtils.ACCESS_TEXT_WRITER.clear();
                 try {
                     client.searchSingleEntry(proxyBase, SearchScope.BASE_OBJECT, "(objectClass=*)", "cn");
                     Assert.fail("A remote operation timeout must fail the search");
                 } catch (LdapException e) {
                     assertEquals(e.getResult().getResultCode(), ResultCode.UNAVAILABLE);
                 }
+                final String proxyResponse = TestCaseUtils.ACCESS_TEXT_WRITER.getMessages().stream()
+                        .filter(line -> line.contains("SEARCH PROXY_RES conn="))
+                        .findFirst().orElseThrow(() -> new AssertionError("Missing proxy response"));
+                assertThat(proxyResponse).contains("outcome=no-response", " result=52",
+                        "selectedServer=\"127.0.0.1:" + listener.firstSocketAddress().getPort() + "\"")
+                        .doesNotContain(" server=");
+                final java.util.regex.Matcher duration = java.util.regex.Pattern.compile(" etime=([0-9]+)")
+                        .matcher(proxyResponse);
+                assertTrue(duration.find());
+                assertTrue(Long.parseLong(duration.group(1)) >= 1000, "The elapsed time must include the timeout");
                 Assert.assertNotNull(stalledPeer.get(), "The timed-out search must reach the remote server");
                 assertEquals(stalledPeer.get(), establishedPeer.get(),
                         "The timed-out search must reuse the established remote connection");
@@ -1687,6 +1952,7 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
         final Connection connection = Mockito.mock(Connection.class);
         final ConnectionEntryReader reader = Mockito.mock(ConnectionEntryReader.class);
         when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connectionFactory.getConnectionWithContext(Mockito.any(ConnectionRoutingContext.class))).thenReturn(connection);
         when(connection.search(Mockito.any(SearchRequest.class))).thenReturn(reader);
         when(reader.readResult()).thenReturn(Responses.newResult(ResultCode.SUCCESS));
         final Field factoryField = ProxyBackend.class.getDeclaredField("factory");
@@ -1703,6 +1969,8 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
         final ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
         Mockito.verify(connection).search(captor.capture());
         final SearchRequest forwarded = captor.getValue();
+        assertEquals(forwarded.getControls().size(), 1, "Routing context must not become an LDAP control");
+        assertEquals(forwarded.getControls().get(0).getOID(), "2.16.840.1.113730.3.4.18");
         assertEquals(forwarded.getSizeLimit(), 7);
         assertEquals(forwarded.getTimeLimit(), 12);
         assertEquals(forwarded.getDereferenceAliasesPolicy(), DereferenceAliasesPolicy.ALWAYS);
@@ -1837,6 +2105,7 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
         final Connection connection = Mockito.mock(Connection.class);
         final byte[] observed = new byte[1];
         when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connectionFactory.getConnectionWithContext(Mockito.any(ConnectionRoutingContext.class))).thenReturn(connection);
         when(connection.bind(Mockito.any(org.forgerock.opendj.ldap.requests.BindRequest.class)))
                 .thenAnswer(invocation -> {
                     final org.forgerock.opendj.ldap.requests.SimpleBindRequest request = invocation.getArgumentAt(0,
@@ -1876,6 +2145,7 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
         final ConnectionFactory connectionFactory = Mockito.mock(ConnectionFactory.class);
         final Connection connection = Mockito.mock(Connection.class);
         when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connectionFactory.getConnectionWithContext(Mockito.any(ConnectionRoutingContext.class))).thenReturn(connection);
         when(connection.bind(Mockito.any(org.forgerock.opendj.ldap.requests.BindRequest.class)))
                 .thenReturn(Responses.newBindResult(ResultCode.SUCCESS));
         final Field field = ProxyBackend.class.getDeclaredField("bindFactory");
@@ -1899,6 +2169,7 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
         final ConnectionFactory connectionFactory = Mockito.mock(ConnectionFactory.class);
         final Connection connection = Mockito.mock(Connection.class);
         when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connectionFactory.getConnectionWithContext(Mockito.any(ConnectionRoutingContext.class))).thenReturn(connection);
         when(connection.bind(Mockito.any(org.forgerock.opendj.ldap.requests.BindRequest.class)))
                 .thenReturn(Responses.newBindResult(ResultCode.SUCCESS));
         backend.bindFactory = connectionFactory;
@@ -1921,6 +2192,7 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
         result.setDiagnosticMessage("Remote directory referral");
         result.addReferralURI("ldap://other.example/o=test");
         when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connectionFactory.getConnectionWithContext(Mockito.any(ConnectionRoutingContext.class))).thenReturn(connection);
         when(connection.compare(Mockito.any(org.forgerock.opendj.ldap.requests.CompareRequest.class))).thenReturn(result);
         final Field field = ProxyBackend.class.getDeclaredField("factory");
         field.setAccessible(true);
@@ -2214,6 +2486,7 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
         final CountDownLatch entered = new CountDownLatch(1);
         final CountDownLatch release = new CountDownLatch(1);
         when(authenticated.getConnection()).thenReturn(connection);
+        when(authenticated.getConnectionWithContext(Mockito.any(ConnectionRoutingContext.class))).thenReturn(connection);
         when(connection.search(Mockito.any(SearchRequest.class))).thenReturn(reader);
         when(reader.hasNext()).thenAnswer(invocation -> {
             entered.countDown();

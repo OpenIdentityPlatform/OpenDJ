@@ -23,6 +23,31 @@ For the complete property descriptions, see the `dsconfig` reference for xref:..
 
 The examples use `ou=people,dc=example,dc=com` as the proxy base DN and `dc=directory,dc=example` as the corresponding remote base DN. Replace host names, ports, DNs, passwords, and certificate paths with values for your deployment. Run `dsconfig` from the OpenDJ installation directory.
 
+=== Proxy Access Log Records
+
+The file-based text access logger records a `PROXY_REQ` for a proxy forwarding attempt and a corresponding `PROXY_RES`. They retain the client operation's `conn`, `op`, and `msgID`; these identifiers are local to the proxy and are not sent to the remote server. Each pair also has a local `proxyOp` identifier, which distinguishes multiple forwarding attempts within one client operation. Existing access-log filtering also applies to the proxy records; response criteria use the overall client operation result and duration. In combined log format, both proxy records are emitted when the client operation completes, so their timestamps do not measure the remote duration; use `etime` for that duration. JSON, CSV, and external access publishers do not emit these records.
+
+[source,text]
+----
+SEARCH PROXY_REQ conn=42 op=1 msgID=2 proxyOp=7 s_credmode="specific" shard="directory-servers" base="dc=directory,dc=example" scope="sub" filter="(uid=user1)"
+SEARCH PROXY_RES conn=42 op=1 msgID=2 proxyOp=7 server="ldap2.example.com:636" s_authdn="cn=proxy-service,dc=directory,dc=example" poolServer="ldap2.example.com:636" poolSize=10 poolIdle=0 poolInUse=10 poolPending=0 poolWaiting=3 poolMax=10 poolClosed=false result=0 nentries=1 etime=12
+----
+
+`server` identifies the configured endpoint whose connection returned the LDAP response, after any failover. It does not identify the TCP peer behind DNS or an external load balancer. `s_credmode` is the selected operation identity mode; a forwarded bind uses `client`. `s_authdn` is the remote bind DN when known. `authzDN` is the proxy client's authorization DN when proxied authorization is used. A bind DN is logged as authenticated only after a successful bind. Search `nentries` counts entries received from the remote server and may differ from the final client response after local routing. `etime` is measured on the proxy in milliseconds, starting before connection acquisition and ending when the remote operation completes; it includes waiting for the pool and network transit.
+
+Pool fields appear immediately before `result` when the request uses a pool with available statistics. `poolServer` identifies the configured endpoint for that pool. `poolSize` counts reserved slots, including pending connection attempts; `poolIdle`, `poolInUse`, `poolPending`, and `poolWaiting` show idle connections, borrowed connections, pending connections, and waiting acquisitions. `poolMax` is the pool limit and `poolClosed` indicates whether the pool has been closed. A client-bound pool has no acquisition queue or pending connection creation, so those values are zero. A directly forwarded bind does not use a pool and has no pool fields. The snapshot is taken before the borrowed connection is returned, or when acquisition fails; under concurrent updates some counters are best-effort and can immediately change.
+
+For example, a saturated service pool can report:
+
+[source,text]
+----
+SEARCH PROXY_RES conn=42 op=2 msgID=3 proxyOp=8 outcome=no-response poolServer="ldap2.example.com:636" poolSize=1 poolIdle=0 poolInUse=1 poolPending=0 poolWaiting=0 poolMax=1 poolClosed=false result=51 nentries=0 etime=100
+----
+
+Here `poolServer` identifies the exhausted pool; it does not mean a remote server returned a response. The timed-out waiter has left the queue when the snapshot is recorded.
+
+If no LDAP response is received, `outcome=no-response` is present and `server` is omitted. `selectedServer`, when present, identifies the endpoint whose connection was selected; it does not imply that the endpoint processed the request. In this case `result` is the client-facing proxy result. Request parameters are the rewritten values sent to the remote server. Passwords and request control values are never included. The records can contain DNs and search filters; protect the log accordingly.
+
 === Before You Begin
 
 * Configure a remote LDAP directory with the remote base DN and client accounts. Configure remote access controls for the operations and entries that clients may use.
@@ -232,7 +257,7 @@ bin/dsconfig set-backend-prop \
   --set connection-pool-wait-timeout:5s --no-prompt
 ----
 
-Heartbeat uses existing connections and does not continuously probe every configured server. A failed LDAP search or a filter matching no entry is not a PingDS-style availability check. Choose a heartbeat base entry readable by the identities used on the remote connections; initial checks may be anonymous. The SDK's reconnect interval applies after a connection factory has been marked offline; client-mode binds have a separate path and established client sessions are not moved between remote servers. These settings do not change the capability-probe and replication-discovery administrative timeouts.
+Heartbeat uses existing connections and does not continuously probe every configured server. A heartbeat search returning no entries is not treated as a failed availability check. Choose a heartbeat base entry readable by the identities used on the remote connections; initial checks may be anonymous. The SDK's reconnect interval applies after a connection factory has been marked offline; client-mode binds have a separate path and established client sessions are not moved between remote servers. These settings do not change the capability-probe and replication-discovery administrative timeouts.
 
 ==== Select Tier Load-Balancing Algorithms
 

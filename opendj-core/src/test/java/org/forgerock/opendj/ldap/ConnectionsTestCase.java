@@ -54,6 +54,19 @@ import com.forgerock.opendj.ldap.controls.AffinityControl;
 public class ConnectionsTestCase extends SdkTestCase {
 
     @Test
+    public void mappedLdapPromiseRetainsRequestIdentifier() throws Exception {
+        final org.forgerock.util.promise.PromiseImpl<String, LdapException> source =
+                org.forgerock.util.promise.PromiseImpl.create();
+        final LdapPromise<String> mapped = org.forgerock.opendj.ldap.spi.LdapPromises.mapWithCancellation(
+                source, 27, value -> value, failure -> { });
+        assertThat(mapped.getRequestID()).isEqualTo(27);
+        source.handleResult("done");
+        assertThat(mapped.getOrThrow()).isEqualTo("done");
+        assertThat(mapped.cancel(true)).isFalse();
+        assertThat(mapped.isCancelled()).isFalse();
+    }
+
+    @Test
     public void testUncloseableConnectionClose() throws Exception {
         final Connection connection = mock(Connection.class);
         final Connection uncloseable = Connections.uncloseable(connection);

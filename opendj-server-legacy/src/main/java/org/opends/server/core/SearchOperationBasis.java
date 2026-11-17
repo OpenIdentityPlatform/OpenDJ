@@ -1183,6 +1183,7 @@ public class SearchOperationBasis
         }
         else
         {
+          logProxyResponses(this);
           setSizeLimit(0);
           setTimeLimit(0);
         }
@@ -1191,6 +1192,10 @@ public class SearchOperationBasis
           DirectoryServer.getCoreConfigManager().isNotifyAbandonedOperations())
       {
         sendSearchResultDone();
+      }
+      else
+      {
+        logProxyResponses(this);
       }
 
       // If no cancel result, set it

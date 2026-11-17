@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -87,8 +88,27 @@ final class RequestLoadBalancer extends LoadBalancer {
         return newResultPromise((Connection) new ConnectionImpl());
     }
 
+    @Override
+    public final Connection getConnectionWithContext(ConnectionRoutingContext context) throws LdapException {
+        return new ConnectionImpl(context);
+    }
+
+    @Override
+    public final Promise<Connection, LdapException> getConnectionAsyncWithContext(ConnectionRoutingContext context) {
+        return newResultPromise((Connection) new ConnectionImpl(context));
+    }
+
     private class ConnectionImpl extends AbstractAsynchronousConnection {
         private final ConnectionState state = new ConnectionState();
+        private final ConnectionRoutingContext routingContext;
+
+        ConnectionImpl() {
+            this(null);
+        }
+
+        ConnectionImpl(ConnectionRoutingContext routingContext) {
+            this.routingContext = routingContext;
+        }
 
         @Override
         public String toString() {
@@ -250,7 +270,7 @@ final class RequestLoadBalancer extends LoadBalancer {
                 final PartitionedRequest partitionedRequest = nextFactoryFunction.apply(request);
                 final ConnectionFactory factory = getMonitoredConnectionFactory(partitionedRequest.getServerIndex());
                 return new ConnectionContext(
-                        LdapPromises.asPromise(factory.getConnectionAsync()
+                        LdapPromises.asPromise(factory.getConnectionAsyncWithContext(routingContext)
                                 .thenOnException(new ExceptionHandler<LdapException>() {
                                     @Override
                                     public void handleException(final LdapException e) {

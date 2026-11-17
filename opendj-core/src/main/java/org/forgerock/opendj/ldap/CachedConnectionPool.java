@@ -890,6 +890,19 @@ final class CachedConnectionPool implements ConnectionPool {
     }
 
     @Override
+    public ConnectionPoolStatistics getStatistics() {
+        synchronized (queue) {
+            final int size = currentPoolSize();
+            final int pending = pendingConnectionAttempts.get();
+            // The queue contains either idle connections or waiting acquisitions, never both.
+            final int idle = hasWaitingConnections() ? queue.size() : 0;
+            final int waiting = hasWaitingPromises() ? queue.size() : 0;
+            return new ConnectionPoolStatistics(size, idle, size - idle - pending, pending,
+                    waiting, maxPoolSize, isClosed);
+        }
+    }
+
+    @Override
     public String toString() {
         final int size = currentPoolSize();
         final int pending = pendingConnectionAttempts.get();

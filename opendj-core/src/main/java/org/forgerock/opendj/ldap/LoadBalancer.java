@@ -111,9 +111,14 @@ abstract class LoadBalancer implements ConnectionFactory {
 
         @Override
         public Connection getConnection() throws LdapException {
+            return getConnectionWithContext(null);
+        }
+
+        @Override
+        public Connection getConnectionWithContext(ConnectionRoutingContext context) throws LdapException {
             final Connection connection;
             try {
-                connection = factory.getConnection();
+                connection = factory.getConnectionWithContext(context);
             } catch (LdapException e) {
                 if (e.getResult().getResultCode().equals(ResultCode.BUSY)
                         || e.getResult().getResultCode().equals(ResultCode.CLIENT_SIDE_USER_CANCELLED)) {
@@ -122,7 +127,7 @@ abstract class LoadBalancer implements ConnectionFactory {
                 // Attempt failed - try next factory.
                 notifyOffline(e);
                 final int nextIndex = (index + 1) % monitoredFactories.size();
-                return getMonitoredConnectionFactory(nextIndex).getConnection();
+                return getMonitoredConnectionFactory(nextIndex).getConnectionWithContext(context);
             }
             notifyOnline();
             return connection;
@@ -130,7 +135,12 @@ abstract class LoadBalancer implements ConnectionFactory {
 
         @Override
         public Promise<Connection, LdapException> getConnectionAsync() {
-            return factory.getConnectionAsync().thenAsync(
+            return getConnectionAsyncWithContext(null);
+        }
+
+        @Override
+        public Promise<Connection, LdapException> getConnectionAsyncWithContext(ConnectionRoutingContext context) {
+            return factory.getConnectionAsyncWithContext(context).thenAsync(
                 new AsyncFunction<Connection, Connection, LdapException>() {
                     @Override
                     public Promise<Connection, LdapException> apply(Connection value) throws LdapException {
@@ -148,7 +158,7 @@ abstract class LoadBalancer implements ConnectionFactory {
                         // Attempt failed - try next factory.
                         notifyOffline(error);
                         final int nextIndex = (index + 1) % monitoredFactories.size();
-                        return getMonitoredConnectionFactory(nextIndex).getConnectionAsync();
+                        return getMonitoredConnectionFactory(nextIndex).getConnectionAsyncWithContext(context);
                     }
                 });
         }
