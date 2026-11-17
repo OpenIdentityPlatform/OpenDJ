@@ -375,10 +375,10 @@ public final class Session extends DirectoryThread implements Closeable
    * The whole queue goes out under {@code publishLock}, because the publisher is not the only
    * thread which writes this socket: a {@code ServerWriter} is joined only after the close which
    * gets here (ServerHandler.shutdown() closes the session before joining it, and ServerReader's
-   * finally closes it before stopping the handler), and a {@code HeartbeatThread} is shut down
-   * after it too. Their {@code publish()} takes the synchronous branch once the session is off
-   * the queueing one, so without the lock a newer message could be written between two of these
-   * older ones - which a peer replication server answers by dropping the older ones at debug
+   * finally closes it before stopping the handler), and a {@code HeartbeatThread} may still be
+   * publishing when its shutdown is requested. Their {@code publish()} takes the synchronous
+   * branch once the session is off the queueing one, so without the lock a newer message could be
+   * written between two of these older ones - which a peer replication server answers by dropping them at debug
    * level, its log file refusing a record which would break its key ordering. The close takes
    * the session off the queueing branch under the same lock it holds here, so such a
    * {@code publish()} either queues ahead of that and is drained here, or waits for the drain and
@@ -396,10 +396,9 @@ public final class Session extends DirectoryThread implements Closeable
    * this session is not. The budget is per close, and a shutdown closes its sessions one after
    * another - ReplicationServerDomain.stopAllServers() stops each handler in turn on one thread -
    * so a domain with several peers which are alive and not reading pays it once per such peer.
-   * On the road which does not shut the whole server down the wait is paid under the lock of the
-   * replication domain - ReplicationServerDomain.stopServer() holds it across the handler
-   * shutdown which closes this session - where a handshake meanwhile waiting on that lock times
-   * out and the broker retries. What is given up on is reported rather than dropped in silence,
+   * Runtime peer teardown releases the replication domain lock before closing this session,
+   * so this drain does not hold up another peer's handshake on the live server.
+   * What is given up on is reported rather than dropped in silence,
    * that being the part of this which cost the most to diagnose.
    */
   private void sendWhatThePublisherLeftQueued()

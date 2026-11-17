@@ -1206,6 +1206,7 @@ jobs:
           .github/scripts/replication/selftest-disturb-empty-rs.sh
           .github/scripts/replication/selftest-disturb-scale.sh
           bash .github/scripts/replication/selftest-scale-timeout.sh
+          bash .github/scripts/replication/selftest-scale-bootstrap.sh
           .github/scripts/replication/selftest-scale-membership.sh
           .github/scripts/replication/selftest-scale-ids.sh
           .github/scripts/replication/selftest-scale-topology.sh

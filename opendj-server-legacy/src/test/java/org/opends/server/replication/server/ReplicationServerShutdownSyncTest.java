@@ -22,6 +22,7 @@ import static org.opends.server.util.CollectionUtils.newArrayList;
 import static org.mockito.Mockito.*;
 import static org.mockito.AdditionalAnswers.delegatesTo;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
@@ -57,6 +58,7 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.plugin.DummyReplicationDomain;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.ProtocolVersion;
@@ -243,6 +245,129 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       }
       closeQuietly(peer);
       removeQuietly(server);
+    }
+  }
+
+  /** Both directory and replication sessions can spend time draining accepted messages. */
+  @DataProvider
+  public Object[][] closingHandlerRoles()
+  {
+    return new Object[][] { { false }, { true } };
+  }
+
+  /** A slow close must not prevent another DS from completing a real failover handshake. */
+  @Test(dataProvider = "closingHandlerRoles")
+  public void stoppingHandlerDoesNotHoldDomainLockWhileClosingSession(boolean replicationPeer)
+      throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final CountDownLatch closing = new CountDownLatch(1);
+    final CountDownLatch releaseClose = new CountDownLatch(1);
+    final ExecutorService stopping = Executors.newFixedThreadPool(2);
+    ReplicationServer server = null;
+    ReplicationBroker keeper = null;
+    ReplicationBroker reconnecting = null;
+    Future<?> stopped = null;
+    try (ServerSocket listen = TestCaseUtils.bindFreePort())
+    {
+      final int port = TestCaseUtils.findFreePort();
+      final ReplServerFakeConfiguration config = new ReplServerFakeConfiguration(
+          port, "closingHandlerHandshakeDb" + replicationPeer, 0, 8269, 0, 100, new TreeSet<String>());
+      config.setMonitoringPeriod(0);
+      server = new ReplicationServer(config, new DSRSShutdownSync());
+      keeper = openReplicationSession(baseDN, LOCAL_DS_ID, 100, port, 5000, EMPTY_DN_GENID);
+      final ReplicationServerDomain domain = server.getReplicationServerDomain(baseDN, true);
+      final Session[] pair = connectSessionPair(listen, getReplSessionSecurity());
+      try (Session remote = pair[0]; Session local = pair[1])
+      {
+        final ServerHandler old;
+        if (replicationPeer)
+        {
+          old = registerConnectedReplicationServer(server, baseDN, local);
+        }
+        else
+        {
+          final DataServerHandler ds = new DataServerHandler(local, 100, server, 100);
+          ds.serverId = UNREACHABLE_DS_ID;
+          ds.serverURL = "127.0.0.1:1636";
+          ds.setBaseDNAndDomain(baseDN, true);
+          ds.setInitialServerState(new ServerState());
+          ds.setGenerationId(EMPTY_DN_GENID);
+          domain.lock();
+          try
+          {
+            domain.register(ds);
+          }
+          finally
+          {
+            domain.release();
+          }
+          old = ds;
+        }
+        DirectoryServer.registerMonitorProvider(old);
+        // Delay only the socket write during close. The real Session still drains
+        // and sends StopMsg; the new broker performs its real network handshake.
+        final Field outputField = Session.class.getDeclaredField("output");
+        outputField.setAccessible(true);
+        final BufferedOutputStream output = (BufferedOutputStream) outputField.get(local);
+        outputField.set(local, new BufferedOutputStream(output) {
+          @Override
+          public synchronized void flush() throws IOException
+          {
+            if (local.closeInitiated())
+            {
+              closing.countDown();
+              try
+              {
+                if (!releaseClose.await(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+                {
+                  throw new IOException("Test did not release the session close");
+                }
+              }
+              catch (InterruptedException e)
+              {
+                Thread.currentThread().interrupt();
+                throw new IOException(e);
+              }
+            }
+            super.flush();
+          }
+        });
+        stopped = stopping.submit(() -> domain.stopServer(old, false));
+        assertThat(closing.await(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+        assertThat(stopped.isDone()).as("the old session is still draining").isFalse();
+        reconnecting = new ReplicationBroker(new DummyReplicationDomain(EMPTY_DN_GENID),
+            new ServerState(), newFakeCfg(baseDN, REMOTE_DS_ID, port), getReplSessionSecurity());
+        final ReplicationBroker newBroker = reconnecting;
+        stopping.submit(() -> newBroker.start()).get(10, TimeUnit.SECONDS);
+        assertThat(reconnecting.isConnected())
+            .as("a live RS must accept failover while another peer's session is closing").isTrue();
+        assertThat(stopped.isDone()).as("the new handshake did not wait for the old close").isFalse();
+        assertThat(DirectoryServer.getMonitorProviders()).doesNotContainValue(old);
+        releaseClose.countDown();
+        stopped.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        assertThat(domain.getConnectedDSs()).containsKey(REMOTE_DS_ID);
+      }
+      finally
+      {
+        releaseClose.countDown();
+      }
+    }
+    finally
+    {
+      releaseClose.countDown();
+      awaitQuietly(stopped);
+      if (reconnecting != null)
+      {
+        reconnecting.stop();
+      }
+      if (keeper != null)
+      {
+        keeper.stop();
+      }
+      removeQuietly(server);
+      stopping.shutdownNow();
+      stopping.awaitTermination(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     }
   }
 

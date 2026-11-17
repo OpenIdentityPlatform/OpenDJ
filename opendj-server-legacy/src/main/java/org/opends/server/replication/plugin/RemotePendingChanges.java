@@ -707,10 +707,9 @@ final class RemotePendingChanges
    * waiting for them.
    * <p>
    * The changes another thread parked are left alone: a change is given back by the thread
-   * which owns it and by nobody else (issue #922). That thread may be inside the dependency
-   * checks which parked it - they park a change once per dependency it has - so a change
-   * released under it would be listed as waiting again a moment later, and handed out while
-   * the delivery which took it over is being replayed.
+   * which owns it and by nobody else (issue #922). Its replay still has the road which
+   * hands parked changes out, so another thread unwinding must not make them eligible for
+   * redelivery as well.
    *
    * @return the CSNs of the changes it gave back, oldest first; empty when this thread owns
    *         no parked change - the changes a thread parked stay its own, whichever replay
@@ -853,9 +852,11 @@ final class RemotePendingChanges
   }
 
   /**
-   * Mark the first pendingChange as dependent on the second PendingChange.
-   * @param dependentChange The PendingChange that depend on the second
-   *                        PendingChange.
+   * Park a change once a dependency is found. The caller must stop scanning after this
+   * transfer: another thread can take the change before the next predecessor is visited.
+   * {@link #getNextUpdate()} waits for all earlier pending changes, so one match suffices.
+   *
+   * @param dependentChange the change which must wait for an earlier change
    */
   private void addDependency(PendingChange dependentChange)
   {
@@ -864,24 +865,21 @@ final class RemotePendingChanges
     try
     {
       /*
-       * A change which is not listed as pending anymore - the domain was disabled while
-       * its dependencies were computed - must not be listed as dependent either:
-       * getNextUpdate() reads both and would hand out a change nothing owns. The
-       * replication server sends it again when the domain is enabled back.
+       * The scan may outlive a domain clear and a new delivery of the same CSN. It must
+       * still refer to the same pending change, owned by this replay thread: parking an
+       * old delivery or another thread's change would hand the CSN out twice.
        */
-      if (pendingChanges.containsKey(dependentChange.getCSN()))
+      if (pendingChanges.get(dependentChange.getCSN()) == dependentChange
+          && dependentChange.isOwnedBy(Thread.currentThread()))
       {
         dependentChanges.add(dependentChange);
       }
       /*
-       * Whichever of the two it was, this thread is not replaying that change anymore: a
-       * parked one is handed to whichever thread calls getNextUpdate() first once the
-       * changes before it are gone - the clearing thread as a rule, this one when the
-       * clearing lands before it gets there - and one which is not listed here anymore is
-       * gone with the pending changes of a domain which was disabled. The owner stays as it
-       * is - it is what has getNextUpdate() hand the change over rather than leave it to
-       * nobody - and the give-back of the change a replay was unwound on leaves it alone
-       * (issue #922). What hands a parked change back is
+       * This thread no longer replays a parked change or a stale one which the registration
+       * refused. A parked change is handed to whichever thread calls getNextUpdate() first
+       * once its predecessors are gone. Its owner stays as it is until that hand-off, and
+       * the give-back of the change a replay was unwound on leaves it alone (issue #922).
+       * What hands a parked change back is
        * releaseParkedChangesOwnedByCurrentThread(), which unparks it in the same step so
        * that the two roads can not hand it out at once (issue #954).
        */
@@ -932,7 +930,6 @@ final class RemotePendingChanges
       return false;
     }
 
-    boolean hasDependencies = false;
     final DN targetDN = op.getEntryDN();
     for (PendingChange pendingChange : replayDependencies)
     {
@@ -947,8 +944,8 @@ final class RemotePendingChanges
         if (pendingMsg.getDN().equals(targetDN))
         {
           // it is a deleteOperation on the same DN
-          hasDependencies = true;
           addDependency(change);
+          return true;
         }
       }
       else if (pendingMsg instanceof AddMsg)
@@ -956,8 +953,8 @@ final class RemotePendingChanges
         if (pendingMsg.getDN().isSuperiorOrEqualTo(targetDN))
         {
           // it is an addOperation on a parent of the current AddOperation
-          hasDependencies = true;
           addDependency(change);
+          return true;
         }
       }
       else if (pendingMsg instanceof ModifyDNMsg)
@@ -966,21 +963,21 @@ final class RemotePendingChanges
         // or a ModifyDnOperation with new DN equals to the ADD DN parent?
         if (pendingMsg.getDN().equals(targetDN))
         {
-          hasDependencies = true;
           addDependency(change);
+          return true;
         }
         else
         {
           final ModifyDNMsg pendingModDn = (ModifyDNMsg) pendingMsg;
           if (pendingModDn.newDNIsParent(targetDN))
           {
-            hasDependencies = true;
             addDependency(change);
+            return true;
           }
         }
       }
     }
-    return hasDependencies;
+    return false;
   }
 
   /**
@@ -1006,7 +1003,6 @@ final class RemotePendingChanges
         return false;
     }
 
-    boolean hasDependencies = false;
     final DN targetDN = change.getLDAPUpdateMsg().getDN();
     for (PendingChange pendingChange : replayDependencies)
     {
@@ -1021,16 +1017,16 @@ final class RemotePendingChanges
         if (pendingMsg.getDN().equals(targetDN))
         {
           // it is an addOperation on a same DN
-          hasDependencies = true;
           addDependency(change);
+          return true;
         }
       }
       else if (pendingMsg instanceof ModifyDNMsg)
       {
         if (((ModifyDNMsg) pendingMsg).newDNIsEqual(targetDN))
         {
-          hasDependencies = true;
           addDependency(change);
+          return true;
         }
       }
       else if (pendingMsg instanceof ModifyMsg)
@@ -1038,12 +1034,12 @@ final class RemotePendingChanges
         if (pendingMsg.getDN().equals(targetDN))
         {
           // it is another modify on the same DN, they depend
-          hasDependencies = true;
           addDependency(change);
+          return true;
         }
       }
     }
-    return hasDependencies;
+    return false;
   }
 
   /**
@@ -1073,7 +1069,6 @@ final class RemotePendingChanges
       return false;
     }
 
-    boolean hasDependencies = false;
     final DN targetDN = change.getLDAPUpdateMsg().getDN();
     for (PendingChange pendingChange : replayDependencies)
     {
@@ -1089,8 +1084,8 @@ final class RemotePendingChanges
         // as the new DN of this ModifyDN
         if (msg.newDNIsEqual(pendingMsg.getDN()))
         {
-          hasDependencies = true;
           addDependency(change);
+          return true;
         }
       }
       else if (pendingMsg instanceof AddMsg)
@@ -1099,15 +1094,15 @@ final class RemotePendingChanges
         // the MODDN  operation
         if (msg.newParentIsEqual(pendingMsg.getDN()))
         {
-          hasDependencies = true;
           addDependency(change);
+          return true;
         }
         // Check if the AddOperation was done on the same DN as the
         // target DN of the MODDN operation
         if (pendingMsg.getDN().equals(targetDN))
         {
-          hasDependencies = true;
           addDependency(change);
+          return true;
         }
       }
       else if (pendingMsg instanceof ModifyDNMsg)
@@ -1115,12 +1110,12 @@ final class RemotePendingChanges
         if (msg.newDNIsEqual(pendingMsg.getDN()))
         {
           // the ModifyDNOperation was done from the new DN of the MODDN operation
-          hasDependencies = true;
           addDependency(change);
+          return true;
         }
       }
     }
-    return hasDependencies;
+    return false;
   }
 
   /**
@@ -1148,7 +1143,6 @@ final class RemotePendingChanges
       return false;
     }
 
-    boolean hasDependencies = false;
     final DN targetDN = op.getEntryDN();
     for (PendingChange pendingChange : replayDependencies)
     {
@@ -1166,8 +1160,8 @@ final class RemotePendingChanges
            */
         if (pendingMsg.getDN().isSubordinateOrEqualTo(targetDN))
         {
-          hasDependencies = true;
           addDependency(change);
+          return true;
         }
       }
       else if (pendingMsg instanceof AddMsg)
@@ -1178,8 +1172,8 @@ final class RemotePendingChanges
            */
         if (pendingMsg.getDN().equals(targetDN))
         {
-          hasDependencies = true;
           addDependency(change);
+          return true;
         }
       }
       else if (pendingMsg instanceof ModifyDNMsg)
@@ -1191,12 +1185,12 @@ final class RemotePendingChanges
            */
         if (pendingMsg.getDN().isSubordinateOrEqualTo(targetDN) || pendingModDn.newDNIsParent(targetDN))
         {
-          hasDependencies = true;
           addDependency(change);
+          return true;
         }
       }
     }
-    return hasDependencies;
+    return false;
   }
 
   /**

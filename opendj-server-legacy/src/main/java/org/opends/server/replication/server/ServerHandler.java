@@ -967,26 +967,17 @@ public abstract class ServerHandler extends MessageHandler
   @Override
   public void shutdown()
   {
-    closeForShutdown();
-    joinShutdownThreads();
+    shutdownWithoutWaiting();
+    awaitShutdown();
   }
 
-  /** Closes the handler and removes its monitors before a replacement can register. */
+  /** Stops accepting work and removes monitors before a replacement can register. */
   void shutdownWithoutWaiting()
-  {
-    closeForShutdown();
-  }
-
-  private void closeForShutdown()
   {
     shutdownWriter = true;
     setConsumerActive(false);
     super.shutdown();
 
-    if (session != null)
-    {
-      session.close();
-    }
     if (heartbeatThread != null)
     {
       heartbeatThread.shutdown();
@@ -998,6 +989,12 @@ public abstract class ServerHandler extends MessageHandler
   /** Waits for accepted work to finish without retaining the replication domain lock. */
   void awaitShutdown()
   {
+    // Closing drains accepted writes and may block on a slow peer. Runtime
+    // teardown must release the domain lock before this phase, just as for joins.
+    if (session != null)
+    {
+      session.close();
+    }
     joinShutdownThreads();
   }
 

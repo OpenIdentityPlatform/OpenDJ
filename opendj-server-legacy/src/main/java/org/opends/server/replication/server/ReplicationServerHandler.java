@@ -798,17 +798,6 @@ public class ReplicationServerHandler extends ServerHandler
     }
   }
 
-  /**
-   * Shutdown This ServerHandler.
-   */
-  @Override
-  public void shutdown()
-  {
-    super.shutdown();
-    clearReceivedUpdates();
-    clearRemoteLSHandlers();
-  }
-
   @Override
   void shutdownWithoutWaiting()
   {

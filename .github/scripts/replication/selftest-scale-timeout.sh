@@ -24,8 +24,9 @@ printf '23874 d0\n' >"$OUT/server-ids.txt"
 printf '0\n' >"$OUT/logs/d0.mark"
 printf '0 dns:r1\n' >"$OUT/logs/d0.window-up-d0"
 docker() { case ${@: -1} in r0) echo 172.18.0.8 ;; r1) echo 172.18.0.9 ;; r2) echo 172.18.0.10 ;; *) return 1 ;; esac; }
-errors_lines() { wc -l <"$OUT/errors"; }
+errors_lines() { if [ -n "${WINDOW_AFTER:-}" ]; then echo "$WINDOW_AFTER"; else wc -l <"$OUT/errors"; fi; }
 since_mark() { cat "$OUT/errors"; }
+bootstrap_ended() { return "${BOOTSTRAP_STATUS:-0}"; }
 E='[t] category=SYNC severity=ERROR msgID=212 msg=Directory server DS(23874) timed out while connecting to replication server r1:8989 for domain "dc=example,dc=com"'
 N='[t] category=SYNC severity=NOTICE msgID=62 msg=Directory server DS(23874) has connected to replication server RS(9861) for domain "dc=example,dc=com" at 172.18.0.9:8989 with generation ID 1'
 S='[t] category=CORE severity=NOTICE msgID=135 msg=The Directory Server has started successfully'
@@ -85,7 +86,7 @@ echo 'returned RS is accepted only after return; stopped and unknown peers remai
 # Exercise the recorder and the error filter together. The admin-data domain has
 # its own DS ID, and recovery may choose another currently available RS.
 . "$HERE/assert-converged.sh"
-errors_lines() { wc -l <"$OUT/errors"; }
+errors_lines() { if [ -n "${WINDOW_AFTER:-}" ]; then echo "$WINDOW_AFTER"; else wc -l <"$OUT/errors"; fi; }
 since_mark() { cat "$OUT/errors"; }
 docker() {
   case ${@: -1} in
@@ -100,7 +101,7 @@ check_startup() { # <description> <direction> <expected error count> <records...
   local description=$1 direction=$2 expected=$3; shift 3
   : >"$OUT/logs/d0.windows"
   rm -f "$OUT/logs/d0.startup-timeouts"
-  printf '0 dns:r1\n' >"$OUT/logs/d0.window-$direction-d0"
+  printf '%s dns:r1\n' "${WINDOW_BEFORE:-0}" >"$OUT/logs/d0.window-$direction-d0"
   printf '%s\n' "$@" >"$OUT/errors"
   scale_record_reconnected_timeouts d0 r1 "$direction"
   replication_errors d0 >"$OUT/rejected"
@@ -115,7 +116,14 @@ check_startup 'unknown RS' up 1 "$A" "${B/172.18.0.8/172.18.0.77}" "$S"
 check_startup 'different domain' down 1 "$A" "${B/cn=admin data/cn=schema}" "$S"
 check_startup 'different DS' down 1 "$A" "${B/DS(31955)/DS(31956)}" "$S"
 check_startup 'connection precedes error' down 1 "$B" "$A" "$S"
-check_startup 'connection follows startup' down 1 "$A" "$S" "$B"
+check_startup 'connection follows startup before successful bootstrap' down 0 "$A" "$S" "$B"
+check_startup 'unknown timeout peer' down 1 "${A/r1:8989/unknown:8989}" "$S" "$B"
+check_startup 'unknown matching domain' down 1 "${A/cn=admin data/dc=unknown}" "$S" "${B/cn=admin data/dc=unknown}"
+check_startup 'later unrelated restart' down 1 "$A" "$S" "$S" "$B"
+BOOTSTRAP_STATUS=1 check_startup 'bootstrap incomplete' down 1 "$A" "$S" "$B"
+BOOTSTRAP_STATUS=200 check_startup 'bootstrap failed' down 1 "$A" "$S" "$B"
+WINDOW_BEFORE=1 check_startup 'timeout before rolling window' down 1 "$A" "$S" "$B"
+WINDOW_AFTER=2 check_startup 'connection after captured bootstrap bound' down 1 "$A" "$S" "$B"
 check_startup 'startup incomplete' down 1 "$A" "$B"
 check_startup 'timeout outside startup window' down 1 "$S" "$A" "$B"
 check_startup 'unrecovered second domain' down 1 "$A" "${A/cn=admin data/cn=schema}" "$B" "$S"
@@ -123,4 +131,4 @@ check_startup 'only the recorded line is accepted' down 1 "$A" "$B" "$S" "$A"
 check_startup 'original evidence' down 0 "$A" "$B" "$S"
 printf '%s\n%s\n%s\n' "${A/cn=admin data/cn=schema}" "$B" "$S" >"$OUT/errors"
 [ "$(replication_errors d0 | wc -l | tr -d ' ')" = 1 ] || { echo 'changed log accepted with stale evidence' >&2; exit 1; }
-echo 'startup timeouts require exact evidence, matching domain/DS, an eligible RS and completed startup'
+echo 'startup timeouts require exact evidence, matching domain/DS, an eligible RS and completed bootstrap in one bounded rolling startup'
