@@ -1385,10 +1385,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
     else
     {
-      // Close and remove all name-based monitors before a replacement can register.
-      // Only the thread joins run unlocked: the reader may already need this lock
-      // to apply its last TopologyMsg. Holding it used to block failover handshakes
-      // for the 30-second join timeout.
+      // Stop accepting work and remove name-based monitors before a replacement
+      // can register. Both Session.close() and thread joins run unlocked: closing
+      // may drain writes to a slow peer, and the reader may need this lock for its
+      // last TopologyMsg. Neither may block another peer's failover handshake.
       sHandler.shutdownWithoutWaiting();
       release();
       try

@@ -18,12 +18,16 @@ package org.opends.server.replication.plugin;
 import static java.util.Collections.*;
 import static org.testng.Assert.*;
 
+import java.lang.reflect.Proxy;
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
@@ -31,12 +35,22 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.protocol.AddContext;
+import org.opends.server.replication.protocol.AddMsg;
+import org.opends.server.replication.protocol.DeleteContext;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
+import org.opends.server.replication.protocol.ModifyContext;
 import org.opends.server.replication.protocol.ModifyDNMsg;
+import org.opends.server.replication.protocol.ModifyMsg;
+import org.opends.server.replication.protocol.OperationContext;
+import org.opends.server.types.Operation;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -1201,10 +1215,9 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
    * Test case for [Issue 954]: the changes another thread parked are left alone.
    * <p>
    * A change is given back by the thread which owns it and by nobody else, here as
-   * everywhere else (issue #922). The thread which parked a change is the one which may
-   * still be inside the dependency checks which parked it - they park a change once per
-   * dependency it has - so a change released under it would be listed as waiting again a
-   * moment later, and handed out while the delivery which took it over is being replayed.
+   * everywhere else (issue #922). The thread which parked a change still has the road
+   * which hands it out after its predecessors commit. Another thread unwinding must not
+   * also make it eligible for redelivery.
    */
   @Test
   public void theParkedChangesOfAnotherThreadAreLeftAlone() throws Exception
@@ -1242,6 +1255,229 @@ public class RemotePendingChangesTest extends DirectoryServerTestCase
     // It is still handed out once the change it was waiting for is gone.
     pendingChanges.commit(deleted);
     assertSame(pendingChanges.getNextUpdate(), rename);
+  }
+
+  @DataProvider
+  public Object[][] dependencyOperations()
+  {
+    return new Object[][] { { "add" }, { "modify" }, { "delete" }, { "rename" } };
+  }
+
+  @Test(dataProvider = "dependencyOperations")
+  public void aDependencyScanCannotHandOutTheSameChangeTwice(String operation) throws Exception
+  {
+    final CSN firstCSN = new CSN(1000, 1, SERVER_ID);
+    final CSN secondCSN = new CSN(1000, 2, SERVER_ID);
+    final CSN targetCSN = new CSN(1000, 3, SERVER_ID);
+    final PausingDependencies dependencies = new PausingDependencies(secondCSN);
+    final ServerState state = new ServerState();
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(state, -1,
+        new ConcurrentHashMap<Thread, CSN>(), dependencies);
+    final LDAPUpdateMsg first = dependencyMessage(operation, firstCSN, true);
+    final LDAPUpdateMsg second = dependencyMessage(operation, secondCSN, true);
+    final LDAPUpdateMsg target = dependencyMessage(operation, targetCSN, false);
+    assertTrue(pendingChanges.putRemoteUpdate(first));
+    assertTrue(pendingChanges.putRemoteUpdate(second));
+    assertTrue(pendingChanges.putRemoteUpdate(target));
+    assertTrue(pendingChanges.markInProgress(first));
+    assertTrue(pendingChanges.markInProgress(second));
+
+    final FutureTask<Boolean> scan = new FutureTask<>(() ->
+    {
+      try
+      {
+        assertTrue(pendingChanges.markInProgress(target));
+        return checkDependencies(pendingChanges, target);
+      }
+      finally
+      {
+        // A scan which stops at its first dependency has already finished. Otherwise,
+        // the iterator holds its second predecessor across the concurrent commits.
+        dependencies.reached.countDown();
+      }
+    });
+    dependencies.scanningThread = new Thread(scan, "dependency scan");
+    dependencies.scanningThread.start();
+    try
+    {
+      awaitDependencyScan(dependencies.reached);
+      pendingChanges.commit(firstCSN);
+      assertNull(pendingChanges.getNextUpdate(), "the second predecessor must still hold back replay");
+      pendingChanges.commit(secondCSN);
+      assertSame(pendingChanges.getNextUpdate(), target);
+      dependencies.resume.countDown();
+      assertTrue(scan.get(10, TimeUnit.SECONDS));
+
+      runAndJoin(() -> assertNull(pendingChanges.getNextUpdate(),
+          "a stale predecessor must not park a change which has already been handed out"));
+      assertEquals(pendingChanges.getChangeOwnedByCurrentThread(), targetCSN);
+      pendingChanges.commit(targetCSN);
+      assertTrue(state.cover(targetCSN));
+      assertEquals(pendingChanges.getQueueSize(), 0);
+    }
+    finally
+    {
+      dependencies.resume.countDown();
+      dependencies.scanningThread.join(10000);
+      assertFalse(dependencies.scanningThread.isAlive(), "dependency scan did not finish");
+    }
+  }
+
+  @Test(dataProvider = "dependencyOperations")
+  public void aDependencyScanCannotParkAChangeFromBeforeClear(String operation) throws Exception
+  {
+    final CSN firstCSN = new CSN(1000, 1, SERVER_ID);
+    final CSN targetCSN = new CSN(1000, 2, SERVER_ID);
+    final PausingDependencies dependencies = new PausingDependencies(firstCSN);
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState(), -1,
+        new ConcurrentHashMap<Thread, CSN>(), dependencies);
+    final LDAPUpdateMsg target = dependencyMessage(operation, targetCSN, false);
+    assertTrue(pendingChanges.putRemoteUpdate(dependencyMessage(operation, firstCSN, true)));
+    assertTrue(pendingChanges.putRemoteUpdate(target));
+    final FutureTask<Boolean> scan = new FutureTask<>(() ->
+    {
+      assertTrue(pendingChanges.markInProgress(target));
+      return checkDependencies(pendingChanges, target);
+    });
+    dependencies.scanningThread = new Thread(scan, "dependency scan before clear");
+    dependencies.scanningThread.start();
+    try
+    {
+      awaitDependencyScan(dependencies.reached);
+      pendingChanges.clear();
+      final LDAPUpdateMsg replacement = dependencyMessage(operation, targetCSN, false);
+      assertTrue(pendingChanges.putRemoteUpdate(replacement));
+      dependencies.resume.countDown();
+      assertTrue(scan.get(10, TimeUnit.SECONDS));
+
+      assertNull(pendingChanges.getNextUpdate(), "the old scan must not hand out the discarded delivery");
+      assertTrue(pendingChanges.markInProgress(replacement));
+      pendingChanges.commit(targetCSN);
+      assertEquals(pendingChanges.getQueueSize(), 0);
+    }
+    finally
+    {
+      dependencies.resume.countDown();
+      dependencies.scanningThread.join(10000);
+      assertFalse(dependencies.scanningThread.isAlive(), "dependency scan did not finish");
+    }
+  }
+
+  @Test(dataProvider = "dependencyOperations")
+  public void aStaleDependencyCheckCannotParkAnotherThreadsChange(String operation) throws Exception
+  {
+    final CSN firstCSN = new CSN(1000, 1, SERVER_ID);
+    final CSN targetCSN = new CSN(1000, 2, SERVER_ID);
+    final RemotePendingChanges pendingChanges = new RemotePendingChanges(new ServerState());
+    final LDAPUpdateMsg target = dependencyMessage(operation, targetCSN, false);
+    assertTrue(pendingChanges.putRemoteUpdate(dependencyMessage(operation, firstCSN, true)));
+    assertTrue(pendingChanges.putRemoteUpdate(target));
+    assertTrue(pendingChanges.markInProgress(target));
+
+    runAndJoin(() -> assertTrue(checkDependencies(pendingChanges, target)));
+    pendingChanges.commit(firstCSN);
+    runAndJoin(() -> assertNull(pendingChanges.getNextUpdate(),
+        "dependency checks must not take a change away from its current replay owner"));
+    pendingChanges.commit(targetCSN);
+    assertEquals(pendingChanges.getQueueSize(), 0);
+  }
+
+  private static LDAPUpdateMsg dependencyMessage(String operation, CSN csn, boolean predecessor)
+  {
+    final DN dn = DN.valueOf("cn=dependency,dc=example,dc=com");
+    if ("modify".equals(operation))
+    {
+      return new ModifyMsg(csn, dn, emptyList(), "dependency");
+    }
+    if (predecessor || "add".equals(operation))
+    {
+      return new AddMsg(csn, dn, "dependency", "parent", emptyMap(), emptyMap(), emptyMap());
+    }
+    if ("delete".equals(operation))
+    {
+      return new DeleteMsg(dn, csn, "dependency");
+    }
+    return new ModifyDNMsg(dn, csn, "dependency", null, false, null, "cn=renamed");
+  }
+
+  private static boolean checkDependencies(RemotePendingChanges pendingChanges, LDAPUpdateMsg msg)
+  {
+    if (msg instanceof ModifyDNMsg)
+    {
+      return pendingChanges.checkDependencies((ModifyDNMsg) msg);
+    }
+    final Class<? extends Operation> type = msg instanceof AddMsg ? AddOperation.class
+        : msg instanceof DeleteMsg ? DeleteOperation.class : ModifyOperation.class;
+    final OperationContext context = msg instanceof AddMsg ? new AddContext(msg.getCSN(), "dependency", "parent")
+        : msg instanceof DeleteMsg ? new DeleteContext(msg.getCSN(), "dependency")
+        : new ModifyContext(msg.getCSN(), "dependency");
+    // Only the operation's DN and replication context are inputs to the real dependency scan.
+    final Operation op = (Operation) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type },
+        (proxy, method, args) ->
+        {
+          if ("getAttachment".equals(method.getName()))
+          {
+            return context;
+          }
+          if ("getEntryDN".equals(method.getName()))
+          {
+            return msg.getDN();
+          }
+          throw new AssertionError("Unexpected operation method: " + method.getName());
+        });
+    return pendingChanges.checkDependencies(op, msg);
+  }
+
+  private static void awaitDependencyScan(CountDownLatch latch)
+  {
+    try
+    {
+      assertTrue(latch.await(10, TimeUnit.SECONDS), "dependency scan did not reach its barrier");
+    }
+    catch (InterruptedException e)
+    {
+      Thread.currentThread().interrupt();
+      throw new AssertionError(e);
+    }
+  }
+
+  private static final class PausingDependencies extends ConcurrentSkipListSet<PendingChange>
+  {
+    private final CSN pauseAt;
+    private final CountDownLatch reached = new CountDownLatch(1);
+    private final CountDownLatch resume = new CountDownLatch(1);
+    private Thread scanningThread;
+
+    private PausingDependencies(CSN pauseAt)
+    {
+      this.pauseAt = pauseAt;
+    }
+
+    @Override
+    public Iterator<PendingChange> iterator()
+    {
+      final Iterator<PendingChange> iterator = super.iterator();
+      return new Iterator<PendingChange>()
+      {
+        @Override
+        public boolean hasNext()
+        {
+          return iterator.hasNext();
+        }
+
+        @Override
+        public PendingChange next()
+        {
+          final PendingChange change = iterator.next();
+          if (Thread.currentThread() == scanningThread && change.getCSN().equals(pauseAt))
+          {
+            reached.countDown();
+            awaitDependencyScan(resume);
+          }
+          return change;
+        }
+      };
+    }
   }
 
   /** A rename of an entry into the DN {@code deleteMsg(csn, "uuid-1")} deletes. */

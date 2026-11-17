@@ -374,6 +374,7 @@ scale_roll() { # <node> <peer list>
   docker rm "$node" >/dev/null || return 1
   PEERS="$peers" start_server "$node" "$role" || return 1
   scale_wait "$node serves again" started_since "$node" "$from" || return 1
+  scale_wait "the join of $node ends" bootstrap_ended "$node" || return 1
   if is_directory_node "$node"; then rolling_resume "$node" || return 1; fi
 }
 
@@ -391,13 +392,15 @@ scale_stop_group() { # <node>...
 }
 
 # Accept a startup timeout only after the same DS/domain connected to an eligible
-# RS and startup completed in this rolling window. Admin/schema domains have their
-# own DS IDs; another live RS may win the retry. Keep the full error as evidence so
-# a different record at the same line cannot inherit the allowance.
+# RS before the successful bootstrap was observed in this rolling window. The retry
+# may finish after CORE135; only timeouts before that startup marker are candidates.
+# Admin/schema domains have their own DS IDs; another live RS may win the retry.
+# Keep the full error as evidence so another record cannot inherit the allowance.
 scale_record_reconnected_timeouts() { # <DS> <rolling RS> <direction>
   local node=$1 direction=$3 window="$OUT/logs/$1.window-$3-$1"
   local before after mark candidate address addresses= target="$OUT/scale-progress/timeouts-$3-$1.txt"
   [ -f "$window" ] && [ -f "$OUT/logs/$node.mark" ] || return 0
+  bootstrap_ended "$node" || return 0
   read -r before _ <"$window" || return 0
   mark=$(cat "$OUT/logs/$node.mark") || return 0
   after=$(errors_lines "$node") || return 0
@@ -409,7 +412,7 @@ scale_record_reconnected_timeouts() { # <DS> <rolling RS> <direction>
   done
   mkdir -p "$OUT/scale-progress" || return 1
   if ! since_mark "$node" | awk -v first="$((mark + 1))" -v before="$before" -v after="$after" \
-      -v addresses="$addresses" -v node="$node" -v evidence="$target.evidence" '
+      -v addresses="$addresses" -v node="$node" -v domain_base="$BASE_DN" -v evidence="$target.evidence" '
     BEGIN {
       printf "" > evidence
       count = split(addresses, peers, " ")
@@ -420,20 +423,17 @@ scale_record_reconnected_timeouts() { # <DS> <rolling RS> <direction>
     }
     {
       line = first + NR - 1
-      if (finished || line <= before || line > after) next
+      if (line <= before || line > after) next
       if (index($0, "category=CORE severity=NOTICE msgID=135 msg=The Directory Server has started successfully")) {
-        for (i = 1; i <= n; i++) if (confirmed[i]) {
-          print position[i] - 1, position[i], "startup-timeout:" node
-          printf "%d\t%s\n", position[i], record[i] > evidence
-        }
-        finished = 1
+        startups++
         next
       }
       message = substr($0, index($0, " msg=") + 5)
       id = message; sub(/^Directory server DS\(/, "", id); sub(/\).*/, "", id)
       if (id !~ /^[0-9]+$/) next
       domain = message; sub(/^.* for domain "/, "", domain); sub(/".*/, "", domain)
-      if (index($0, "category=SYNC severity=ERROR msgID=212 ")) {
+      if (domain != domain_base && domain != "cn=admin data" && domain != "cn=schema") next
+      if (!startups && index($0, "category=SYNC severity=ERROR msgID=212 ")) {
         for (rs in address) {
           if (message == "Directory server DS(" id ") timed out while connecting to replication server " rs ":8989 for domain \"" domain "\"") {
             key[++n] = id SUBSEP domain; position[n] = line; record[n] = $0
@@ -447,6 +447,13 @@ scale_record_reconnected_timeouts() { # <DS> <rolling RS> <direction>
             for (i = 1; i <= n; i++) if (key[i] == id SUBSEP domain) confirmed[i] = 1
           }
         }
+      }
+    }
+    END {
+      # Another startup in this interval cannot prove recovery of the first one.
+      if (startups == 1) for (i = 1; i <= n; i++) if (confirmed[i]) {
+        print position[i] - 1, position[i], "startup-timeout:" node
+        printf "%d\t%s\n", position[i], record[i] > evidence
       }
     }' >"$target"; then
     rm -f "$target" "$target.evidence"
@@ -549,9 +556,16 @@ scale_roll_pair() { # <directory node> <directory node> <peer list> <RS>
   scale_wait "$rolling_rs serves again" started_since "$rolling_rs" "$from" || return 1
   for node in "$first" "$second"; do
     scale_wait "$node serves again" started_since "$node" "$from" || return 1
-    scale_record_reconnected_timeouts "$node" "$rolling_rs" "$direction" || return 1
-    rolling_resume "$node" || return 1
   done
+  # Startup opens LDAP before the background join has finished its administrative
+  # JVMs. Keep this group paused until every join succeeds, while the other DSs keep
+  # writing. This also completes the group before the next surviving writer rolls.
+  scale_wait "the join of $rolling_rs ends" bootstrap_ended "$rolling_rs" || return 1
+  for node in "$first" "$second"; do
+    scale_wait "the join of $node ends" bootstrap_ended "$node" || return 1
+    scale_record_reconnected_timeouts "$node" "$rolling_rs" "$direction" || return 1
+  done
+  for node in "$first" "$second"; do rolling_resume "$node" || return 1; done
   for node in $DS_NODES; do
     [ "$node" != "$first" ] && [ "$node" != "$second" ] || continue
     scale_record_roll_failover "$node" "$rolling_rs" "$observer" "$direction" "$old_address" || return 1
@@ -583,9 +597,6 @@ scale_roll_batch() { # <peer list> <down|up>
   else
     for node in $SURVIVORS; do scale_roll "$node" "$peers" || return 1; done
   fi
-  for node in $SURVIVORS; do
-    scale_wait "the join of $node ends" bootstrap_ended "$node" || return 1
-  done
   # A handshake begun before any join ended may log its timeout up to eight seconds later.
   sleep 10
   for node in $SURVIVORS; do window_close_key "$direction-$node" || return 1; done

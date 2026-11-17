@@ -214,17 +214,13 @@ run_case() (
       ' "$OUT/calls" || { echo "$n changelog was not saved before restart" >&2; exit 1; }
     done
   fi
-  # Every survivor is serving before the batch waits for the first background join.
-  awk -v full="$FULL_PEERS" -v short="$SHORT_PEERS" -v target="$target" '
-    $1 == "start" && $2 != target && $4 == short { short_started++ }
-    $1 == "start" && $2 != target && $4 == full { full_started++ }
-    $1 == "wait" && $2 == "bootstrap_ended" && $3 != target {
-      if (!returned && short_started != expected) exit 1
-      if (returned && full_started != expected) exit 1
-    }
-    $1 == "start" && $2 == target { returned = 1 }
-    END { if (short_started != expected || full_started != expected) exit 1 }
-  ' expected="$(($(echo "$ALL_NODES" | wc -w) - 1))" "$OUT/calls" || { echo 'join blocked a later survivor start' >&2; exit 1; }
+  # Every restarted directory server completes its join before measured load resumes.
+  awk '
+    $1 == "start" { started[$2]=1; joined[$2]=0 }
+    $1 == "wait" && $2 == "bootstrap_ended" { joined[$3]=1 }
+    $1 == "resume" && started[$2] && !joined[$2] { exit 1 }
+    END { for (node in started) if (!joined[node]) exit 1 }
+  ' "$OUT/calls" || { echo 'restarted writer resumed before bootstrap completed' >&2; exit 1; }
   if [ "$topology" = combined ]; then
     # A combined node must serve again before another is stopped.
     awk -v target="$target" '
@@ -233,6 +229,13 @@ run_case() (
       END { if (down) exit 1 }
     ' "$OUT/calls" || { echo 'more than one combined survivor stopped at a time' >&2; exit 1; }
   else
+    # Finish a whole group before resuming either writer or starting the next group.
+    awk '
+      $1 == "start" && $2 == "r0" { joined=0 }
+      $1 == "wait" && $2 == "bootstrap_ended" && $3 ~ /^(d0|d1|r0)$/ { joined++ }
+      $1 == "resume" && $2 ~ /^d[01]$/ && joined != 3 { exit 1 }
+      $1 == "docker" && $2 == "stop" && $NF ~ /^(d2|d3|r1)$/ && joined != 3 { exit 1 }
+    ' "$OUT/calls" || { echo 'next rolling group or load resumed before the first group joined' >&2; exit 1; }
     # The first pair and one RS overlap; the other RS must remain up until the first serves.
     awk '
       $1 == "docker" && $2 == "stop" && $NF == "d0" && !first {first=NR}
