@@ -20,12 +20,12 @@ package org.opends.server.replication.service;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.TestCaseUtils.generateThreadDump;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.net.SocketTimeoutException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ExecutionException;
 import java.util.Collections;
@@ -418,6 +418,202 @@ public class ReplicationDomainTest extends ReplicationTestCase
     }
   }
 
+  /** A receiver can have all data while the exporter is still accounting for it (issue #1303). */
+  @Test
+  public void exportChecksWaitForExporterAfterDataArrives() throws Exception
+  {
+    final int entryCount = 5000;
+    DN baseDN = DN.valueOf("o=test");
+    ReplicationServer rs1 = null;
+    ReplicationServer rs2 = null;
+    RecordingExportDomain exporter = null;
+    FakeReplicationDomain importer = null;
+    ReplicationBroker originalBroker = null;
+    CountDownLatch published = new CountDownLatch(1);
+    CountDownLatch resume = new CountDownLatch(1);
+    CountDownLatch brokerReady = new CountDownLatch(1);
+    CountDownLatch exportReturned = new CountDownLatch(1);
+    CountDownLatch finishExport = new CountDownLatch(1);
+    FutureTask<Void> check = null;
+    Thread checkThread = null;
+    try
+    {
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      rs1 = createReplicationServer(11, ports[0], "exportCounterRace1", 100);
+      rs2 = createReplicationServer(12, ports[1], "exportCounterRace2", 100, "localhost:" + ports[0]);
+      String exportedData = buildExportedData(entryCount);
+      StringBuffer importedData = new StringBuffer();
+      exporter = new RecordingExportDomain(baseDN, 1, newTreeSet("localhost:" + ports[0]),
+          0, exportedData, entryCount)
+      {
+        @Override
+        protected void initializeRemote(int target, int taskServer, Task task, int window) throws DirectoryException
+        {
+          try
+          {
+            assertTrue(brokerReady.await(90, SECONDS), "the test broker was not installed");
+          }
+          catch (InterruptedException e)
+          {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(e);
+          }
+          super.initializeRemote(target, taskServer, task, window);
+        }
+
+        @Override
+        void beforeCompletion() throws InterruptedException
+        {
+          exportReturned.countDown();
+          assertTrue(finishExport.await(90, SECONDS), "the export completion was not released");
+        }
+      };
+      importer = new FakeReplicationDomain(baseDN, 2, newTreeSet("localhost:" + ports[1]),
+          0, null, importedData, 0);
+      waitTopologyKnowsReplica(importer, 1);
+      waitTopologyKnowsReplica(exporter, 2);
+
+      originalBroker = exporter.broker;
+      ReplicationBroker delegate = originalBroker;
+      exporter.broker = org.mockito.Mockito.mock(ReplicationBroker.class, (org.mockito.stubbing.Answer<Object>) invocation -> {
+        Object result;
+        try
+        {
+          result = invocation.getMethod().invoke(delegate, invocation.getArguments());
+        }
+        catch (java.lang.reflect.InvocationTargetException e)
+        {
+          throw e.getCause();
+        }
+        if (invocation.getMethod().getName().equals("publish")
+            && invocation.getArguments().length == 2
+            && invocation.getArguments()[0] instanceof org.opends.server.replication.protocol.EntryMsg)
+        {
+          published.countDown();
+          if (!resume.await(30, SECONDS))
+          {
+            throw new AssertionError("exporter was not resumed");
+          }
+        }
+        return result;
+      });
+      brokerReady.countDown();
+      RecordingInitializeTask task = new RecordingInitializeTask();
+      importer.initializeFromRemote(1, task);
+      assertTrue(published.await(30, SECONDS), "the export did not publish its data");
+      newTimer().repeatUntilSuccess(() -> assertEquals(importedData.length(), exportedData.length()));
+      ImportExportContext exportContext = exporter.getImportExportContext();
+      assertNotNull(exportContext, "the export must still own its context");
+      assertEquals(exportContext.getLeftEntryCount(), (long) entryCount,
+          "the exporter must still be paused before accounting");
+
+      RecordingExportDomain finalExporter = exporter;
+      FakeReplicationDomain finalImporter = importer;
+      CountDownLatch checkStarted = new CountDownLatch(1);
+      check = new FutureTask<>(() -> {
+        checkStarted.countDown();
+        assertExportSuccessful(finalExporter, finalImporter, task, exportedData, importedData);
+        return null;
+      });
+      checkThread = new Thread(check, "export-counter-check");
+      checkThread.start();
+      assertTrue(checkStarted.await(30, SECONDS), "the transfer check did not start");
+      try
+      {
+        check.get(500, MILLISECONDS);
+        fail("the transfer check completed while the exporter was paused");
+      }
+      catch (TimeoutException expected)
+      {
+        // It must wait for the exporter, even though the receiver has all data.
+      }
+      resume.countDown();
+      assertNull(task.waitForCompletion(90, SECONDS), "the import failed");
+      assertTrue(exportReturned.await(90, SECONDS), "the exporter did not finish its operation");
+      try
+      {
+        check.get(500, MILLISECONDS);
+        fail("the transfer check completed before export completion was recorded");
+      }
+      catch (TimeoutException expected)
+      {
+        // The importer succeeded, but the export result is still withheld.
+      }
+      finishExport.countDown();
+      check.get(90, SECONDS);
+    }
+    finally
+    {
+      brokerReady.countDown();
+      resume.countDown();
+      finishExport.countDown();
+      if (check != null && !check.isDone())
+      {
+        check.cancel(true);
+      }
+      if (exporter != null && originalBroker != null)
+      {
+        exporter.broker = originalBroker;
+      }
+      if (checkThread != null)
+      {
+        checkThread.join(30000);
+      }
+      disable(exporter, importer);
+      remove(rs1, rs2);
+      assertTrue(checkThread == null || !checkThread.isAlive(), "the transfer check thread did not stop");
+    }
+  }
+
+  /** Receiving every byte is not success when the importer fails afterwards. */
+  @Test
+  public void exportChecksRejectImportFailureAfterDataArrives() throws Exception
+  {
+    DN baseDN = DN.valueOf("o=test");
+    ReplicationServer rs = null;
+    RecordingExportDomain exporter = null;
+    FakeReplicationDomain importer = null;
+    try
+    {
+      int port = TestCaseUtils.findFreePort();
+      rs = createReplicationServer(11, port, "exportCounterFailedImport", 100);
+      SortedSet<String> servers = newTreeSet("localhost:" + port);
+      String exportedData = buildExportedData(10);
+      StringBuffer importedData = new StringBuffer();
+      exporter = new RecordingExportDomain(baseDN, 1, servers, 0, exportedData, 10);
+      importer = new FakeReplicationDomain(baseDN, 2, servers, 0, null, importedData, 0)
+      {
+        @Override
+        protected void importBackend(InputStream input) throws DirectoryException
+        {
+          super.importBackend(input);
+          throw new DirectoryException(org.forgerock.opendj.ldap.ResultCode.OTHER,
+              LocalizableMessage.raw("injected import failure after receiving data"));
+        }
+      };
+      waitTopologyKnowsReplica(importer, 1);
+      waitTopologyKnowsReplica(exporter, 2);
+      RecordingInitializeTask task = new RecordingInitializeTask();
+      importer.initializeFromRemote(1, task);
+      assertNotNull(task.waitForCompletion(90, SECONDS), "the injected failure was not reported");
+      assertTrue(importedData.toString().startsWith(exportedData), "the importer did not receive the data");
+      try
+      {
+        assertExportSuccessful(exporter, importer, task, exportedData, importedData);
+        fail("the transfer check accepted a failed import");
+      }
+      catch (AssertionError expected)
+      {
+        assertTrue(expected.getMessage().contains("the import failed"), expected.toString());
+      }
+    }
+    finally
+    {
+      disable(exporter, importer);
+      remove(rs);
+    }
+  }
+
   @DataProvider(name = "exportAndImportData")
   public Object[][] createExportAndimportData()
   {
@@ -438,7 +634,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
     DN testService = DN.valueOf("o=test");
     ReplicationServer replServer = null;
     int replServerID = 11;
-    FakeReplicationDomain domain1 = null;
+    RecordingExportDomain domain1 = null;
     FakeReplicationDomain domain2 = null;
 
     try
@@ -450,8 +646,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
       SortedSet<String> servers = newTreeSet("localhost:" + replServerPort);
 
       String exportedData = buildExportedData(ENTRYCOUNT);
-      domain1 = new FakeReplicationDomain(
-          testService, serverId1, servers, 0, exportedData, null, ENTRYCOUNT);
+      domain1 = new RecordingExportDomain(
+          testService, serverId1, servers, 0, exportedData, ENTRYCOUNT);
 
       StringBuffer importedData = new StringBuffer();
       domain2 = new FakeReplicationDomain(
@@ -461,9 +657,9 @@ public class ReplicationDomainTest extends ReplicationTestCase
        * Trigger a total update from domain1 to domain2.
        * Check that the exported data is correctly received on domain2.
        */
-      assertTrue(initializeFromRemote(domain2));
-      waitEndExport(exportedData, importedData);
-      assertExportSucessful(domain1, domain2, exportedData, importedData);
+      RecordingInitializeTask task = new RecordingInitializeTask();
+      assertTrue(initializeFromRemote(domain2, task));
+      assertExportSuccessful(domain1, domain2, task, exportedData, importedData);
     }
     finally
     {
@@ -474,6 +670,11 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
   private boolean initializeFromRemote(ReplicationDomain domain) throws DirectoryException
   {
+    return initializeFromRemote(domain, NO_INIT_TASK);
+  }
+
+  private boolean initializeFromRemote(ReplicationDomain domain, Task task) throws DirectoryException
+  {
     try {
       Thread.sleep(2000);
     } catch (InterruptedException e) {
@@ -483,7 +684,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
     {
       if (remoteDS.getDsId() != domain.getServerId())
       {
-        domain.initializeFromRemote(remoteDS.getDsId(), NO_INIT_TASK);
+        domain.initializeFromRemote(remoteDS.getDsId(), task);
         return true;
       }
     }
@@ -503,7 +704,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
     ReplicationServer replServer1 = null;
     int replServerID = 11;
     int replServerID2 = 12;
-    FakeReplicationDomain domain1 = null;
+    RecordingExportDomain domain1 = null;
     FakeReplicationDomain domain2 = null;
 
     try
@@ -521,8 +722,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
       SortedSet<String> servers2 = newTreeSet("localhost:" + replServerPort2);
 
       String exportedData = buildExportedData(ENTRYCOUNT);
-      domain1 = new FakeReplicationDomain(
-          testService, 1, servers1, 0, exportedData, null, ENTRYCOUNT);
+      domain1 = new RecordingExportDomain(
+          testService, 1, servers1, 0, exportedData, ENTRYCOUNT);
 
       StringBuffer importedData = new StringBuffer();
       domain2 = new FakeReplicationDomain(
@@ -545,10 +746,10 @@ public class ReplicationDomainTest extends ReplicationTestCase
         });
       }
 
-      domain2.initializeFromRemote(1, NO_INIT_TASK);
+      RecordingInitializeTask task = new RecordingInitializeTask();
+      domain2.initializeFromRemote(1, task);
 
-      waitEndExport(exportedData, importedData);
-      assertExportSucessful(domain1, domain2, exportedData, importedData);
+      assertExportSuccessful(domain1, domain2, task, exportedData, importedData);
     }
     finally
     {
@@ -582,7 +783,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
     final int ENTRYCOUNT = 100;
     DN testService = DN.valueOf("o=test");
     ReplicationServer replServer = null;
-    FakeReplicationDomain exporter = null;
+    RecordingExportDomain exporter = null;
     FakeReplicationDomain importer = null;
 
     try
@@ -592,16 +793,16 @@ public class ReplicationDomainTest extends ReplicationTestCase
       SortedSet<String> servers = newTreeSet("localhost:" + replServerPort);
 
       String exportedData = buildExportedData(ENTRYCOUNT);
-      exporter = new FakeReplicationDomain(testService, exporterId, servers, 0, exportedData, null, ENTRYCOUNT);
+      exporter = new RecordingExportDomain(testService, exporterId, servers, 0, exportedData, ENTRYCOUNT);
       StringBuffer importedData = new StringBuffer();
       importer = new FakeReplicationDomain(testService, importerId, servers, 0, null, importedData, 0);
       waitTopologyKnowsReplica(importer, exporterId);
       waitTopologyKnowsReplica(exporter, importerId);
 
-      importer.initializeFromRemote(exporterId, NO_INIT_TASK);
+      RecordingInitializeTask task = new RecordingInitializeTask();
+      importer.initializeFromRemote(exporterId, task);
 
-      waitEndExport(exportedData, importedData);
-      assertExportSucessful(exporter, importer, exportedData, importedData);
+      assertExportSuccessful(exporter, importer, task, exportedData, importedData);
     }
     finally
     {
@@ -635,7 +836,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
     DN testService = DN.valueOf("o=test");
     ReplicationServer replServer1 = null;
     ReplicationServer replServer2 = null;
-    FakeReplicationDomain exporter = null;
+    RecordingExportDomain exporter = null;
     FakeReplicationDomain importer = null;
 
     try
@@ -645,18 +846,18 @@ public class ReplicationDomainTest extends ReplicationTestCase
       replServer2 = createReplicationServer(12, ports[1], "replicaWithTheIdOfAnRS2", 100, "localhost:" + ports[0]);
 
       String exportedData = buildExportedData(ENTRYCOUNT);
-      exporter = new FakeReplicationDomain(testService, exporterId, newTreeSet("localhost:" + ports[exporterRs]),
-          0, exportedData, null, ENTRYCOUNT);
+      exporter = new RecordingExportDomain(testService, exporterId, newTreeSet("localhost:" + ports[exporterRs]),
+          0, exportedData, ENTRYCOUNT);
       StringBuffer importedData = new StringBuffer();
       importer = new FakeReplicationDomain(testService, importerId, newTreeSet("localhost:" + ports[importerRs]),
           0, null, importedData, 0);
       waitTopologyKnowsReplica(importer, exporterId);
       waitTopologyKnowsReplica(exporter, importerId);
 
-      importer.initializeFromRemote(exporterId, NO_INIT_TASK);
+      RecordingInitializeTask task = new RecordingInitializeTask();
+      importer.initializeFromRemote(exporterId, task);
 
-      waitEndExport(exportedData, importedData);
-      assertExportSucessful(exporter, importer, exportedData, importedData);
+      assertExportSuccessful(exporter, importer, task, exportedData, importedData);
     }
     finally
     {
@@ -1837,11 +2038,88 @@ public class ReplicationDomainTest extends ReplicationTestCase
     };
   }
 
+  /** Records the export's counters on its own thread and its final outcome. */
+  private static class RecordingExportDomain extends FakeReplicationDomain
+  {
+    private final CountDownLatch completed = new CountDownLatch(1);
+    private Throwable failure;
+    private Long leftAfterWriting;
+
+    RecordingExportDomain(DN baseDN, int serverId, SortedSet<String> servers, long heartbeatInterval,
+        String exportedData, int entryCount) throws org.forgerock.opendj.config.server.ConfigException
+    {
+      super(baseDN, serverId, servers, heartbeatInterval, exportedData, null, entryCount);
+    }
+
+    @Override
+    protected void exportBackend(OutputStream output) throws DirectoryException
+    {
+      super.exportBackend(output);
+      leftAfterWriting = getImportExportContext().getLeftEntryCount();
+    }
+
+    @Override
+    protected void initializeRemote(int target, int taskServer, Task task, int window) throws DirectoryException
+    {
+      try
+      {
+        super.initializeRemote(target, taskServer, task, window);
+        beforeCompletion();
+      }
+      catch (InterruptedException e)
+      {
+        Thread.currentThread().interrupt();
+        failure = e;
+        throw new IllegalStateException(e);
+      }
+      catch (DirectoryException | RuntimeException | Error e)
+      {
+        failure = e;
+        throw e;
+      }
+      finally
+      {
+        completed.countDown();
+      }
+    }
+
+    // Test subclasses can delay publication of the completed export result.
+    void beforeCompletion() throws InterruptedException
+    {
+    }
+
+    void assertExportCompleted() throws InterruptedException
+    {
+      assertTrue(completed.await(90, SECONDS), "the export did not complete");
+      assertNull(failure, "the export failed");
+      assertNotNull(leftAfterWriting, "the export did not write its data");
+      assertEquals(leftAfterWriting.longValue(), 0L, "Wrong LeftEntryCount for export");
+    }
+  }
+
   /** InitializeTask double recording the completion reported by the domain. */
   private static final class RecordingInitializeTask extends InitializeTask
   {
     private final CountDownLatch completed = new CountDownLatch(1);
     private volatile DirectoryException failure;
+    private Long total;
+    private Long left;
+    private int totalUpdates;
+
+    @Override
+    public void setTotal(long total)
+    {
+      super.setTotal(total);
+      this.total = total;
+      totalUpdates++;
+    }
+
+    @Override
+    public void setLeft(long left)
+    {
+      super.setLeft(left);
+      this.left = left;
+    }
 
     @Override
     public void updateTaskCompletionState(DirectoryException de)
@@ -1995,25 +2273,16 @@ public class ReplicationDomainTest extends ReplicationTestCase
     return sb.toString();
   }
 
-  private void waitEndExport(String exportedData, StringBuffer importedData) throws Exception
+  private void assertExportSuccessful(RecordingExportDomain exporter, FakeReplicationDomain importer,
+      RecordingInitializeTask task, String exportedData, StringBuffer importedData) throws Exception
   {
-    int count = 0;
-    while (importedData.length() < exportedData.length() && count < 500*5)
-    {
-      if(count % 100 == 0) { //capture thread dump on start and every 10 seconds
-        logger.debug(LocalizableMessage.raw("waitEndExport: thread dump on count=" + count));
-        logger.debug(LocalizableMessage.raw(generateThreadDump()));
-      }
-      count ++;
-      Thread.sleep(100);
-    }
-  }
-
-  private void assertExportSucessful(FakeReplicationDomain domain1,
-      FakeReplicationDomain domain2, String exportedData, StringBuffer importedData)
-  {
-    assertEquals(getLeftEntryCount(domain2), 0, "Wrong LeftEntryCount for export");
-    assertEquals(getLeftEntryCount(domain1), 0, "Wrong LeftEntryCount for import");
+    assertNull(task.waitForCompletion(90, SECONDS), "the import failed");
+    exporter.assertExportCompleted();
+    assertEquals(task.totalUpdates, 1, "the import unexpectedly retried");
+    assertNotNull(task.total, "the import did not receive an entry count");
+    assertNotNull(task.left, "the import did not update its entry count");
+    assertEquals(task.total.longValue(), exporter.countEntries(), "Wrong total entry count for import");
+    assertEquals(task.left.longValue(), 0L, "Wrong LeftEntryCount for import");
     assertEquals(importedData.length(), exportedData.length());
     assertEquals(importedData.toString(), exportedData);
     /*
@@ -2022,21 +2291,11 @@ public class ReplicationDomainTest extends ReplicationTestCase
      * replica has to: the exporter keeps its data and its ServerState - and keeps replaying
      * into them - while the importer is having both replaced.
      */
-    assertEquals(domain2.importReportedDuringImport(), Boolean.TRUE,
+    assertEquals(importer.importReportedDuringImport(), Boolean.TRUE,
         "the replica whose data is being replaced must report a total update into itself");
-    assertEquals(domain1.importReportedDuringExport(), Boolean.FALSE,
+    assertEquals(exporter.importReportedDuringExport(), Boolean.FALSE,
         "the replica which is exporting must not report a total update into itself:"
             + " its data and its ServerState are left alone");
-  }
-
-  private long getLeftEntryCount(ReplicationDomain domain)
-  {
-    final ImportExportContext ieContext = domain.getImportExportContext();
-    if (ieContext != null)
-    {
-      return ieContext.getLeftEntryCount();
-    }
-    return 0; // import/export is finished
   }
 
   /**
