@@ -19,6 +19,7 @@ package org.opends.server.replication.service;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toSet;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.generateThreadDump;
 import static org.opends.server.util.CollectionUtils.*;
@@ -157,14 +158,24 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
       domain1.setGenerationID(2);
       domain1.resetReplicationLog();
-      Thread.sleep(500);
 
-      for (RSInfo replServerInfo : domain1.getRsInfos())
-      {
-        // The generation Id of the remote should now be 2
-        assertEquals(replServerInfo.getGenerationId(), 2,
-            "Unexpected value of generationId in RSInfo for RS=" + replServerInfo);
-      }
+      // The reset and the resulting topology messages are processed asynchronously.
+      final FakeReplicationDomain receivingDomain = domain1;
+      final ReplicationServer server1 = replServer1;
+      final ReplicationServer server2 = replServer2;
+      newTimer().repeatUntilSuccess(() -> {
+        List<RSInfo> rsInfos = receivingDomain.getRsInfos();
+        assertEquals(rsInfos.size(), 2, "replication servers in DS1 topology: " + rsInfos);
+        assertEquals(rsInfos.stream().map(RSInfo::getId).collect(toSet()),
+            newHashSet(replServerID1, replServerID2), "replication server IDs in DS1 topology");
+        for (RSInfo replServerInfo : rsInfos)
+        {
+          assertEquals(replServerInfo.getGenerationId(), 2,
+              "Unexpected value of generationId in RSInfo for RS=" + replServerInfo);
+        }
+        assertEquals(server1.getGenerationId(testService), 2, "generation ID of RS(" + replServerID1 + ")");
+        assertEquals(server2.getGenerationId(testService), 2, "generation ID of RS(" + replServerID2 + ")");
+      });
 
       int sleepTime = 50;
       while (true)
