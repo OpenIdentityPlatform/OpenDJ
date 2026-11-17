@@ -759,8 +759,6 @@ public class SearchOperationBasis
       try
       {
         sendSearchEntry(filteredSearchEntry);
-
-        entriesSent.incrementAndGet();
       }
       catch (DirectoryException de)
       {
@@ -1087,6 +1085,13 @@ public class SearchOperationBasis
       throws DirectoryException
   {
     getClientConnection().sendSearchEntry(this, searchEntry);
+    recordEntrySent();
+  }
+
+  /** Records an entry successfully sent by a specialized search operation. */
+  protected final void recordEntrySent()
+  {
+    entriesSent.incrementAndGet();
   }
 
   @Override

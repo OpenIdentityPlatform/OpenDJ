@@ -761,6 +761,58 @@ public class ProxyBackendTest extends DirectoryServerTestCase {
     }
 
     @Test
+    public void accessLogCountsEntriesReturnedThroughProxy() throws Exception {
+        final String remoteBase = "dc=userpool";
+        final String proxyBase = "ou=access-count,o=test";
+        final String name = "access-count";
+        try (LDAPListener remote = userAffinityServer("remote", "user0", "user1", remoteBase)) {
+            TestCaseUtils.dsconfig("create-service-discovery-mechanism", "--mechanism-name", name,
+                    "--type", "static", "--set", "primary-server:127.0.0.1:"
+                            + remote.firstSocketAddress().getPort(), "--set", "use-ssl:false");
+            TestCaseUtils.dsconfig("create-backend", "--type", "proxy", "--backend-name", name,
+                    "--set", "base-dn:" + proxyBase, "--set", "remote-base-dn:" + remoteBase,
+                    "--set", "enabled:true", "--set", "shard:" + name);
+            try {
+                try (Connection client = factory.getConnection()) {
+                    client.bind("uid=user0," + proxyBase, "password".toCharArray());
+                    assertLoggedSearchCount(client, "uid=user0," + proxyBase, SearchScope.BASE_OBJECT,
+                            "(objectClass=*)", 1);
+                    assertLoggedSearchCount(client, proxyBase, SearchScope.WHOLE_SUBTREE,
+                            "(objectClass=*)", 3);
+                    assertLoggedSearchCount(client, "uid=user0," + proxyBase, SearchScope.BASE_OBJECT,
+                            "(cn=missing)", 0);
+                }
+                try (Connection admin = getConnection()) {
+                    assertLoggedSearchCount(admin, "o=test", SearchScope.BASE_OBJECT, "(objectClass=*)", 1);
+                }
+            } finally {
+                TestCaseUtils.dsconfig("delete-backend", "--backend-name", name);
+                TestCaseUtils.dsconfig("delete-service-discovery-mechanism", "--mechanism-name", name);
+            }
+        }
+    }
+
+    private static void assertLoggedSearchCount(Connection client, String base, SearchScope scope,
+                                                 String filter, int expected) throws Exception {
+        TestCaseUtils.ACCESS_TEXT_WRITER.clear();
+        int count = 0;
+        try (ConnectionEntryReader reader = client.search(base, scope, filter, "cn")) {
+            while (reader.hasNext()) {
+                reader.readEntry();
+                count++;
+            }
+            assertEquals(reader.readResult().getResultCode(), ResultCode.SUCCESS);
+        }
+        assertEquals(count, expected, "Entries delivered to the client");
+        final List<String> responses = new ArrayList<>();
+        for (String message : TestCaseUtils.ACCESS_TEXT_WRITER.getMessages()) {
+            if (message.contains(" SEARCH RES ")) responses.add(message);
+        }
+        assertEquals(responses.size(), 1, responses.toString());
+        assertThat(responses.get(0)).contains(" nentries=" + expected + " ");
+    }
+
+    @Test
     public void clientBindsRespectServerPriority() throws Exception {
         final String remoteBase = "dc=userpool";
         final String proxyBase = "ou=userpool-priority,o=test";
