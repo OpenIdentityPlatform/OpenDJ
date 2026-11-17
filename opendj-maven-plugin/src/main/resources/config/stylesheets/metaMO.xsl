@@ -13,6 +13,7 @@
 
   Copyright 2007-2010 Sun Microsystems, Inc.
   Portions copyright 2011-2016 ForgeRock AS.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:admpp="http://opendj.forgerock.org/admin-preprocessor"
@@ -483,6 +484,7 @@
     -->
     <xsl:for-each select="$this-all-properties">
       <xsl:sort select="@name" />
+      <xsl:if test="not(adm:syntax/adm:password)">
       <xsl:text>&#xa;</xsl:text>
       <xsl:value-of
         select="concat('    /** The value of the &quot;', @name, '&quot; property. */&#xa;')" />
@@ -521,6 +523,7 @@
         <xsl:with-param name="value" select="@name" />
       </xsl:call-template>
       <xsl:value-of select="';&#xa;'" />
+      </xsl:if>
     </xsl:for-each>
     <!--
       Private constructor.
@@ -541,6 +544,7 @@
           <xsl:with-param name="value" select="@name" />
         </xsl:call-template>
       </xsl:variable>
+      <xsl:if test="not(adm:syntax/adm:password)">
       <xsl:value-of
         select="concat('      this.p', $java-prop-name, ' = ')" />
       <xsl:choose>
@@ -553,6 +557,7 @@
             select="concat('impl.getPropertyValues(INSTANCE.get', $java-prop-name , 'PropertyDefinition());&#xa;')" />
         </xsl:otherwise>
       </xsl:choose>
+      </xsl:if>
     </xsl:for-each>
     <xsl:value-of select="'    }&#xa;'" />
     <!--

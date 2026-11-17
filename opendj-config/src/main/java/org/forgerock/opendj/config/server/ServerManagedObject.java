@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.config.server;
 
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.Configuration;
@@ -31,6 +33,8 @@ import org.forgerock.opendj.config.Constraint;
 import org.forgerock.opendj.config.InstantiableRelationDefinition;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
 import org.forgerock.opendj.config.ManagedObjectPath;
+import org.forgerock.opendj.config.LDAPProfile;
+import org.forgerock.opendj.config.PasswordPropertyDefinition;
 import org.forgerock.opendj.config.OptionalRelationDefinition;
 import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.PropertyProvider;
@@ -589,7 +593,18 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         if (!properties.containsKey(d)) {
             throw new IllegalArgumentException("Unknown property " + d.getName());
         }
-        return Collections.unmodifiableSortedSet((SortedSet<T>) properties.get(d));
+        SortedSet<T> values = (SortedSet<T>) properties.get(d);
+        if (d instanceof PasswordPropertyDefinition) {
+            SortedSet<T> decoded = new TreeSet<>(d);
+            String attributeName = LDAPProfile.getInstance().getAttributeName(definition, d);
+            for (T value : values) {
+                String plaintext = configRepository.decodePassword(configDN, attributeName,
+                        (PasswordPropertyDefinition) d, (String) value);
+                decoded.add(d.castValue(plaintext));
+            }
+            return Collections.unmodifiableSortedSet(decoded);
+        }
+        return Collections.unmodifiableSortedSet(values);
     }
 
     /**

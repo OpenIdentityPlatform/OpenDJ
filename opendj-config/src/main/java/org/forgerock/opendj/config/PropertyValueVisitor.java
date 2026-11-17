@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.config;
@@ -243,15 +244,26 @@ public abstract class PropertyValueVisitor<R, P> {
     }
 
     /**
-     * Visit a string.
+     * Visit a password.
      *
      * @param pd
-     *            The string property definition.
+     *            The password property definition.
      * @param v
      *            The property value to visit.
      * @param p
      *            A visitor specified parameter.
      * @return Returns a visitor specified result.
+     */
+    public R visitPassword(PasswordPropertyDefinition pd, String v, P p) {
+        return visitUnknown(pd, v, p);
+    }
+
+    /**
+     * Visit a string.
+     * @param pd The property definition.
+     * @param v The value.
+     * @param p The visitor parameter.
+     * @return The visitor result.
      */
     public R visitString(StringPropertyDefinition pd, String v, P p) {
         return visitUnknown(pd, v, p);

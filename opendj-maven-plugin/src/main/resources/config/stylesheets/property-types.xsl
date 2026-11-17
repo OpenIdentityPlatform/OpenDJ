@@ -12,6 +12,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2008-2010 Sun Microsystems, Inc.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -434,7 +435,7 @@
       </xsl:otherwise>
     </xsl:choose>
     <xsl:choose>
-      <xsl:when test="$interface='server'">
+      <xsl:when test="$interface='server' and not(adm:syntax/adm:password)">
         <xsl:value-of
           select="concat($java-prop-name, '() {&#xa;',
                                      '      return p', $java-prop-name , ';&#xa;' ,
