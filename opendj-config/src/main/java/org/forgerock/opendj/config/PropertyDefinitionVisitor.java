@@ -26,10 +26,10 @@ package org.forgerock.opendj.config;
  * method, the corresponding visit method most applicable to that property
  * definition is invoked.
  * <p>
- * Each <code>visitXXX</code> method is provided with a default implementation
- * which calls {@link #visitUnknown(PropertyDefinition, Object)}. Sub-classes
- * can override any or all of the methods to provide their own type-specific
- * behavior.
+ * The default implementations call {@link #visitUnknown(PropertyDefinition, Object)},
+ * except that {@link #visitPassword(PasswordPropertyDefinition, Object)} delegates
+ * to {@link #visitString(StringPropertyDefinition, Object)}. Sub-classes can
+ * override the methods to provide their own type-specific behavior.
  *
  * @param <R>
  *            The return type of this visitor's methods. Use
@@ -223,7 +223,7 @@ public abstract class PropertyDefinitionVisitor<R, P> {
      * @return Returns a visitor specified result.
      */
     public R visitPassword(PasswordPropertyDefinition pd, P p) {
-        return visitUnknown(pd, p);
+        return visitString(pd, p);
     }
 
     /**

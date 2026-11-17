@@ -17,12 +17,33 @@ package org.forgerock.opendj.config;
 
 import static org.testng.Assert.assertEquals;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
 import org.forgerock.opendj.server.config.meta.LDAPPassThroughAuthenticationPolicyCfgDefn;
 import org.forgerock.opendj.server.config.meta.ReplicationServiceDiscoveryMechanismCfgDefn;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class PasswordPropertyDefinitionTest extends ConfigTestCase {
+    @Test
+    public void passwordMetadataRetainsStringAccessorDescriptor() throws Throwable {
+        LDAPPassThroughAuthenticationPolicyCfgDefn definition =
+                LDAPPassThroughAuthenticationPolicyCfgDefn.getInstance();
+        StringPropertyDefinition property = (StringPropertyDefinition) MethodHandles.publicLookup().findVirtual(
+                LDAPPassThroughAuthenticationPolicyCfgDefn.class, "getMappedSearchBindPasswordPropertyDefinition",
+                MethodType.methodType(StringPropertyDefinition.class)).invokeExact(definition);
+        assertEquals(property.getClass().getSimpleName(), "PasswordPropertyDefinition");
+    }
+
+    @Test
+    public void passwordSyntaxIsDisplayedAsString() {
+        PropertyDefinition<?> definition = LDAPPassThroughAuthenticationPolicyCfgDefn.getInstance()
+                .getMappedSearchBindPasswordPropertyDefinition();
+        assertEquals(new PropertyDefinitionUsageBuilder(false).getUsage(definition).toString(), "STRING");
+        assertEquals(new PropertyDefinitionUsageBuilder(true).getUsage(definition).toString(), "STRING");
+    }
+
     @Test
     public void passwordDeclarationsHavePasswordDefinitions() {
         assertEquals(LDAPPassThroughAuthenticationPolicyCfgDefn.getInstance()
@@ -35,7 +56,7 @@ public class PasswordPropertyDefinitionTest extends ConfigTestCase {
 
     @Test
     public void unclosedBraceIsAnUnprefixedPassword() throws Exception {
-        PasswordPropertyDefinition definition = PasswordPropertyDefinition.createBuilder(
+        PasswordPropertyDefinition definition = PasswordPropertyDefinition.createPasswordBuilder(
                 LDAPPassThroughAuthenticationPolicyCfgDefn.getInstance(), "test-unprefixed-password").getInstance();
         PasswordPropertyDefinition.Codec codec = new PasswordPropertyDefinition.Codec() {
             @Override

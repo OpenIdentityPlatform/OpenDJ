@@ -25,6 +25,10 @@
   <xsl:template match="adm:password" mode="java-definition-type">
     <xsl:value-of select="'PasswordPropertyDefinition'" />
   </xsl:template>
+  <xsl:template match="adm:password" mode="java-definition-imports">
+    <import>org.forgerock.opendj.config.PasswordPropertyDefinition</import>
+    <import>org.forgerock.opendj.config.StringPropertyDefinition</import>
+  </xsl:template>
   <xsl:template match="adm:password" mode="java-definition-ctor">
     <xsl:if test="@encryption-scheme">
       <xsl:value-of select="concat('      builder.setEncryptionScheme(&quot;',

@@ -285,6 +285,47 @@ public class ConfigurationPasswordTestCase extends DirectoryServerTestCase {
     }
 
     @Test
+    public void failedReplacementDuringPasswordUpdateRestoresFileAndEntry() throws Exception {
+        ConfigurationHandler handler = TestCaseUtils.getServerContext().getConfigurationHandler();
+        DN dn = DN.valueOf("cn=Replacement Failure Test,cn=Password Policies,cn=config");
+        Field field = ConfigurationHandler.class.getDeclaredField("configFile");
+        field.setAccessible(true);
+        File configFile = (File) field.get(handler);
+        Path temporary = Files.createTempDirectory("opendj-config-move-failure");
+        Path exported = new File(configFile + ".tmp").toPath();
+        try {
+            handler.addEntry(policy(dn, "old-password"));
+            byte[] before = Files.readAllBytes(configFile.toPath());
+            String oldCiphertext = password(handler, dn);
+            Entry oldEntry = handler.getEntry(dn);
+            Entry updated = LinkedHashMapEntry.deepCopyOfEntry(oldEntry);
+            updated.replaceAttribute("ds-cfg-mapped-search-bind-password", "new-password");
+            File failingTarget = new File(configFile.getPath()) {
+                @Override
+                public Path toPath() {
+                    return temporary.resolve("missing").resolve("config.ldif");
+                }
+            };
+            field.set(handler, failingTarget);
+            try {
+                handler.replaceEntry(oldEntry, updated);
+                fail("A failed replacement must reject the password update");
+            } catch (DirectoryException expected) {
+                assertTrue(Files.exists(exported), "Export must complete before the replacement fails");
+                assertEquals(Files.readAllBytes(configFile.toPath()), before);
+                assertEquals(password(handler, dn), oldCiphertext);
+            }
+        } finally {
+            field.set(handler, configFile);
+            Files.deleteIfExists(exported);
+            if (handler.hasEntry(dn)) {
+                handler.deleteEntry(dn);
+            }
+            Files.deleteIfExists(temporary);
+        }
+    }
+
+    @Test
     public void migrationDuringValidationIsPreservedWhenAnotherPasswordOptionChanges() throws Exception {
         ConfigurationHandler handler = TestCaseUtils.getServerContext().getConfigurationHandler();
         DN dn = DN.valueOf("cn=Migration During Validation,cn=Password Policies,cn=config");
@@ -664,7 +705,7 @@ public class ConfigurationPasswordTestCase extends DirectoryServerTestCase {
 
     @Test
     public void nonDefaultReversibleSchemeIsUsed() throws Exception {
-        PasswordPropertyDefinition.Builder builder = PasswordPropertyDefinition.createBuilder(
+        PasswordPropertyDefinition.Builder builder = PasswordPropertyDefinition.createPasswordBuilder(
                 LDAPPassThroughAuthenticationPolicyCfgDefn.getInstance(), "test-scheme-override");
         builder.setEncryptionScheme("3DES");
         PasswordPropertyDefinition definition = builder.getInstance();
@@ -674,6 +715,34 @@ public class ConfigurationPasswordTestCase extends DirectoryServerTestCase {
         String encoded = definition.encodeForStorage("non-default-secret", codec);
         assertTrue(encoded.startsWith("{3DES}"));
         assertEquals(definition.decodeFromStorage(encoded, codec), "non-default-secret");
+    }
+
+    @Test
+    public void configuredNonDefaultSchemeIsUsedByPersistenceAndServerGetter() throws Exception {
+        ConfigurationHandler handler = TestCaseUtils.getServerContext().getConfigurationHandler();
+        DN dn = DN.valueOf("cn=Alternate Scheme Test,cn=Password Policies,cn=config");
+        PasswordPropertyDefinition definition = (PasswordPropertyDefinition)
+                LDAPPassThroughAuthenticationPolicyCfgDefn.getInstance()
+                        .getMappedSearchBindPasswordPropertyDefinition();
+        Field scheme = PasswordPropertyDefinition.class.getDeclaredField("encryptionScheme");
+        scheme.setAccessible(true);
+        String original = definition.getEncryptionScheme();
+        try {
+            // The stylesheet test separately verifies that an XML override sets this metadata.
+            scheme.set(definition, "3DES");
+            handler.addEntry(policy(dn, "alternate-scheme-secret"));
+            assertTrue(password(handler, dn).startsWith("{3DES}"));
+            String ldif = new String(Files.readAllBytes(handler.getConfigurationFile().toPath()), StandardCharsets.UTF_8);
+            assertTrue(ldif.contains("ds-cfg-mapped-search-bind-password: {3DES}"));
+            assertFalse(ldif.contains("alternate-scheme-secret"));
+            assertEquals(configuration("Alternate Scheme Test").getMappedSearchBindPassword(),
+                    "alternate-scheme-secret");
+        } finally {
+            scheme.set(definition, original);
+            if (handler.hasEntry(dn)) {
+                handler.deleteEntry(dn);
+            }
+        }
     }
 
     @Test

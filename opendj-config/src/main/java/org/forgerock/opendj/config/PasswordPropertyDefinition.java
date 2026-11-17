@@ -20,7 +20,7 @@ import java.util.EnumSet;
 import org.forgerock.util.Reject;
 
 /** Definition of a configuration property containing a password. */
-public final class PasswordPropertyDefinition extends PropertyDefinition<String> {
+public final class PasswordPropertyDefinition extends StringPropertyDefinition {
     /** Cryptographic services supplied by the server configuration repository. */
     public interface Codec {
         /** Checks that the named scheme is enabled and reversible. */
@@ -56,7 +56,7 @@ public final class PasswordPropertyDefinition extends PropertyDefinition<String>
     }
 
     /** Creates a builder for the specified property. */
-    public static Builder createBuilder(AbstractManagedObjectDefinition<?, ?> definition, String name) {
+    public static Builder createPasswordBuilder(AbstractManagedObjectDefinition<?, ?> definition, String name) {
         return new Builder(definition, name);
     }
 
@@ -65,7 +65,7 @@ public final class PasswordPropertyDefinition extends PropertyDefinition<String>
     private PasswordPropertyDefinition(AbstractManagedObjectDefinition<?, ?> definition, String name,
             EnumSet<PropertyOption> options, AdministratorAction action, DefaultBehaviorProvider<String> defaultBehavior,
             String encryptionScheme) {
-        super(definition, String.class, name, options, action, defaultBehavior);
+        super(definition, name, options, action, defaultBehavior, false, null, null);
         this.encryptionScheme = encryptionScheme;
     }
 

@@ -689,6 +689,10 @@
       select="concat('  /** Build the &quot;', @name, '&quot; property definition. */&#xa;',
                                  '  static {&#xa;')" />
     <xsl:choose>
+      <xsl:when test="adm:syntax/adm:password">
+        <xsl:value-of
+          select="concat('      ', $type, '.Builder builder = ', $type, '.createPasswordBuilder(INSTANCE, &quot;',@name, '&quot;);&#xa;')" />
+      </xsl:when>
       <xsl:when test="string-length($generic-type) != 0">
         <xsl:value-of
           select="concat('      ', $type, '.Builder&lt;', $generic-type, '&gt; builder = ', $type, '.createBuilder(INSTANCE, &quot;',@name, '&quot;);&#xa;')" />
@@ -1015,6 +1019,9 @@
     </xsl:variable>
     <xsl:variable name="pdtype">
       <xsl:choose>
+        <xsl:when test="adm:syntax/adm:password">
+          <xsl:value-of select="'StringPropertyDefinition'" />
+        </xsl:when>
         <xsl:when test="string-length($generic-type) != 0">
           <xsl:value-of
             select="concat($type, '&lt;', $generic-type, '&gt;')" />
