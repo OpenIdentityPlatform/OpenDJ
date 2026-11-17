@@ -118,7 +118,7 @@ abstract class LoadBalancer implements ConnectionFactory {
         public Connection getConnectionWithContext(ConnectionRoutingContext context) throws LdapException {
             final Connection connection;
             try {
-                connection = factory.getConnectionWithContext(context);
+                connection = context == null ? factory.getConnection() : factory.getConnectionWithContext(context);
             } catch (LdapException e) {
                 if (e.getResult().getResultCode().equals(ResultCode.BUSY)
                         || e.getResult().getResultCode().equals(ResultCode.CLIENT_SIDE_USER_CANCELLED)) {
@@ -140,7 +140,9 @@ abstract class LoadBalancer implements ConnectionFactory {
 
         @Override
         public Promise<Connection, LdapException> getConnectionAsyncWithContext(ConnectionRoutingContext context) {
-            return factory.getConnectionAsyncWithContext(context).thenAsync(
+            final Promise<Connection, LdapException> connectionPromise = context == null
+                    ? factory.getConnectionAsync() : factory.getConnectionAsyncWithContext(context);
+            return connectionPromise.thenAsync(
                 new AsyncFunction<Connection, Connection, LdapException>() {
                     @Override
                     public Promise<Connection, LdapException> apply(Connection value) throws LdapException {
