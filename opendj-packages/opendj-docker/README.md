@@ -349,17 +349,21 @@ files at `SECRET_VOLUME`.
 - `admin-keystore` is a JKS or PKCS12 keystore containing the private key and its
   certificate chain. Use the default alias `admin-cert` and include the DNS names that
   administrative clients use in the certificate's subject alternative names.
-- `admin-keystore.pin` contains the keystore password on its first line. Use the same
-  password for the private key entry.
+- `admin-keystore.pin` contains the keystore password on its first line. Use that
+  password for every private key entry in the keystore.
 
-The image copies the pair to `/opt/opendj/data/config` with mode 0600 before the server
-starts, both on a fresh instance and on a reused persistent volume. The clients trust the
-issuing CA through their own truststore. Replication uses its own `ads-truststore`.
+Before the server starts, the image checks for an `admin-cert` private key and verifies
+that the PIN opens the keystore and its private keys. It installs the validated pair in
+`/opt/opendj/data/config` with mode 0600 on both fresh and reused volumes. If the mounted pair fails validation,
+the image logs a warning and keeps the current files. On a fresh volume those files
+contain the self-signed certificate created by setup. Clients trust the issuing CA
+through their own truststore. Replication uses its own `ads-truststore`.
 
 For a [cert-manager Certificate](https://cert-manager.io/docs/reference/api-docs/#cert-manager.io/v1.JKSKeystore),
-request a JKS keystore with the required alias. The pod template projects the generated
-keystore and the password from its Secret into the same directory. If the pod already has
-a projected `SECRET_VOLUME`, add these sources to it.
+request a JKS keystore with the required alias. Put the password in its Secret without a
+trailing newline. The pod template projects the generated keystore and the password
+into the same directory. If the pod already has a projected `SECRET_VOLUME`, add these
+sources to it.
 
 ```yaml
 # Certificate spec
@@ -389,11 +393,18 @@ containers:
       - { name: secrets, mountPath: /var/secrets/opendj, readOnly: true }
 ```
 
-After Kubernetes projects a renewed Secret, the image copies the changed files on the
-next `SECRET_VOLUME_REFRESH` check. New TLS connections use the renewed certificate
-without a rollout. Keep the `admin-cert` alias across renewals and update the PIN file
-if the password changes. With `SECRET_VOLUME_REFRESH=0`, roll the pods to apply the
-renewal.
+Keep the `admin-cert` alias and the same keystore password for routine certificate
+renewals. After Kubernetes projects the renewed Secret, the next `SECRET_VOLUME_REFRESH`
+check validates and installs the pair. New TLS connections use the renewed certificate
+without a rollout.
+
+To rotate the password in this two-Secret setup, update the password Secret and trigger
+reissuance with [`cmctl renew`](https://cert-manager.io/docs/reference/cmctl/#renew).
+The pod can see the new password before cert-manager publishes the matching JKS.
+OpenDJ keeps the installed pair during that interval. Wait for cert-manager to publish
+the new JKS and Kubernetes to project both files, then verify the renewed certificate.
+With `SECRET_VOLUME_REFRESH=0`, roll the pods after both files are ready, then verify
+the certificate.
 
 To verify the renewal, compare the served serial number with the renewed certificate and
 run a read-only administrative command. The example uses the issuing CA certificate

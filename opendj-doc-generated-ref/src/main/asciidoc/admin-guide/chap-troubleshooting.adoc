@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024-2026 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
@@ -439,9 +439,9 @@ $ grep ds-cfg-replication-server: config/config.ldif | sort | uniq
 
 [source, console]
 ----
-# Examine the certificates used for the administration connector.
-$ keytool -list -v -keystore config/admin-truststore \
- -storepass `cat config/admin-keystore.pin` |grep "^Owner:"
+# Examine the certificate configured for the administration connector.
+$ keytool -list -v -alias admin-cert -keystore config/admin-keystore \
+ -storepass:file config/admin-keystore.pin | grep "^Owner:"
 
 # Examine the certificates used for replication.
 $ keytool -list -v -keystore config/ads-truststore \
@@ -456,8 +456,8 @@ $ grep ds-cfg-replication-server: config/config.ldif |sort | uniq
 ds-cfg-replication-server: opendj.example.com:8989
 ds-cfg-replication-server: opendj.example.com:9989
 
-$ keytool -list -v -keystore config/admin-truststore
--storepass `cat config/admin-keystore.pin` | grep "^Owner:"
+$ keytool -list -v -alias admin-cert -keystore config/admin-keystore \
+ -storepass:file config/admin-keystore.pin | grep "^Owner:"
 Owner: CN=opendj.example.com, O=Administration Connector Self-Signed Certificate
 
 $ keytool -list -v -keystore config/ads-truststore \
@@ -541,8 +541,8 @@ $ dsreplication \
 
 [source, console]
 ----
-$ keytool -list -v -keystore config/admin-truststore \
- -storepass `cat config/admin-keystore.pin` |grep "^Owner:"
+$ keytool -list -v -alias admin-cert -keystore config/admin-keystore \
+ -storepass:file config/admin-keystore.pin | grep "^Owner:"
 ----
 
 . Stop each server, and then fix the remaining admin connector certificate as described in xref:chap-change-certs.adoc#replace-key-pair["To Replace a Server Key Pair"].

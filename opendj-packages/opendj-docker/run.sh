@@ -110,18 +110,13 @@ SECRET_VOLUME=${SECRET_VOLUME:-/var/secrets/opendj}
 # checked again every that many seconds; 0 checks it on start only
 SECRET_VOLUME_REFRESH=${SECRET_VOLUME_REFRESH:-60}
 
-# Copies the keystores, truststores and PIN files that differ from those in ./data/config.
-# Each one is written next to its target and renamed over it, so the server never reads a
-# file half copied. Only the server's user can read the private keys and passwords.
+# Copies the LDAP keystores, truststores and PIN files that differ from those in ./data/config.
+# Each file is written next to its target and renamed over it, with mode 0600.
 # Succeeds when it copied a file.
 copy_secrets() {
   local src dst tmp copied=1
   [ -d "$SECRET_VOLUME" ] || return 1
-  local -a sources=("$SECRET_VOLUME"/key* "$SECRET_VOLUME"/trust*)
-  if [ -f "$SECRET_VOLUME/admin-keystore" ] && [ -f "$SECRET_VOLUME/admin-keystore.pin" ]; then
-    sources+=("$SECRET_VOLUME/admin-keystore" "$SECRET_VOLUME/admin-keystore.pin")
-  fi
-  for src in "${sources[@]}"; do
+  for src in "$SECRET_VOLUME"/key* "$SECRET_VOLUME"/trust*; do
     [ -f "$src" ] || continue
     dst=./data/config/$(basename -- "$src")
     cmp -s "$src" "$dst" && continue
@@ -136,12 +131,82 @@ copy_secrets() {
   return $copied
 }
 
+# A pending directory contains a validated pair. Moving each file out of it records progress
+# on the same volume, so a restart between the two renames can finish the installation.
+ADMIN_SECRET_PENDING=./data/config/.admin-secret-pending
+
+install_pending_admin_secret() {
+  local name
+  [ -d "$ADMIN_SECRET_PENDING" ] || return 0
+  for name in admin-keystore admin-keystore.pin; do
+    if [ -f "$ADMIN_SECRET_PENDING/$name" ] &&
+        ! mv -fT -- "$ADMIN_SECRET_PENDING/$name" "./data/config/$name"; then
+      echo "Could not install $name from the staged administration Secret" >&2
+      return 1
+    fi
+  done
+  rmdir -- "$ADMIN_SECRET_PENDING"
+}
+
+valid_admin_keystore() {
+  local store=$1 pin=$2 listing line alias admin_key=false
+  listing=$(keytool -J-Duser.language=en -J-Duser.country=US -list -rfc \
+    -keystore "$store" -storepass:file "$pin" </dev/null 2>/dev/null) || return 1
+
+  # The server initializes the key manager with the whole store and one PIN.
+  # A listing shows the private key entries without checking their passwords.
+  while IFS= read -r line; do
+    case "$line" in
+      "Alias name: "*) alias=${line#Alias name: } ;;
+      "Entry type: PrivateKeyEntry")
+        keytool -certreq -alias "$alias" -keystore "$store" -storepass:file "$pin" \
+          -keypass:file "$pin" -file /dev/null </dev/null >/dev/null 2>&1 || return 1
+        if [ "$alias" = admin-cert ]; then
+          admin_key=true
+        fi
+        ;;
+    esac
+  done <<< "$listing"
+  [ "$admin_key" = true ]
+}
+
+sync_admin_secret() {
+  local store="$SECRET_VOLUME/admin-keystore" pin="$SECRET_VOLUME/admin-keystore.pin" staged
+  install_pending_admin_secret || return 1
+  [ -f "$store" ] && [ -f "$pin" ] || return 0
+  if cmp -s "$store" ./data/config/admin-keystore && cmp -s "$pin" ./data/config/admin-keystore.pin; then
+    return 0
+  fi
+
+  if ! staged=$(mktemp -d ./data/config/.admin-secret.XXXXXX); then
+    echo "Could not stage the administration Secret" >&2
+    return 0
+  fi
+
+  # The mounted files can change independently. Validate the exact bytes to be installed.
+  if ! install -m 600 -- "$store" "$staged/admin-keystore" ||
+      ! install -m 600 -- "$pin" "$staged/admin-keystore.pin"; then
+    echo "Could not stage the administration keystore and PIN" >&2
+  elif ! valid_admin_keystore "$staged/admin-keystore" "$staged/admin-keystore.pin"; then
+    echo "Ignoring the mounted administration keystore and PIN: the store must contain admin-cert and its private keys must open with that PIN" >&2
+  elif mv -T -- "$staged" "$ADMIN_SECRET_PENDING"; then
+    install_pending_admin_secret || return 1
+    echo "Copied the administration keystore and PIN from the secret volume"
+    return 0
+  fi
+
+  rm -f -- "$staged/admin-keystore" "$staged/admin-keystore.pin"
+  rmdir -- "$staged"
+  return 0
+}
+
 # The files are compared one at a time, so a Secret updated in the middle of a pass can leave
 # a keystore of one version next to the .pin of the other. Passes are repeated until one finds
-# nothing left to copy, which puts the files of a single version back together.
+# nothing left to copy, which puts the LDAP files of a single version back together.
 sync_secrets() {
   local passes=0
   while copy_secrets && [ $((passes += 1)) -lt 5 ]; do :; done
+  sync_admin_secret
 }
 
 # The server loads a keystore or truststore again, together with its .pin file, on the first
@@ -161,7 +226,7 @@ watch_secrets() {
 start_server() {
   if [ -d "$SECRET_VOLUME" ]; then
     echo "Secret volume is present. Will copy any keystores and truststore"
-    sync_secrets
+    sync_secrets || exit 1
     if [[ $SECRET_VOLUME_REFRESH =~ ^[0-9]+$ ]] && [ "$SECRET_VOLUME_REFRESH" -gt 0 ]; then
       watch_secrets &
     elif ! [[ $SECRET_VOLUME_REFRESH =~ ^0+$ ]]; then
@@ -180,6 +245,7 @@ fi
 
 # Instance dir does exist? We start opendj without detach
 if [ -d ./data/config ]; then
+  install_pending_admin_secret || exit 1
   # nothing is bootstrapped here, the instance is already there - but a half-migrated one
   # is not ready to serve either, so the marker follows the upgrade
   if [ -f "$BOOTSTRAP_PENDING" ]; then
