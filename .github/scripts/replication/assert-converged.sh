@@ -212,6 +212,8 @@ since_mark() { # <node>
 # dns:<hostname> for ERROR 51 naming exactly that temporarily unavailable host, or
 # cert:<DS>:<RS> for that DS's transient bad-certificate handshake with the rebuilt RS, or
 # cert-peer:<RS>:<DS IP> for the corresponding RS-side warning after the DS restarts.
+# scale-cert-return keeps the certificate window for RS312/313. The scale
+# disturbance separately records exact DS119 and RS105 lines after proving recovery.
 # timeout:<DS>:<RS> is recorded on one startup error line only after that DS reconnects to
 # that RS in the same domain, as confirmed by scale_record_reconnected_timeouts.
 # window_close records "<lines before> <lines after> [<allowance>...]" in logs/<node>.windows.
@@ -291,13 +293,22 @@ replication_errors() { # <node>
   [ ! -f "$OUT/logs/$1.windows" ] || windows=$(tr '\n' ';' <"$OUT/logs/$1.windows")
   since_mark $1 | awk -v first=$(($(cat "$OUT/logs/$1.mark") + 1)) -v windows="$windows" \
                       -v expected="$OUT/logs/$1.expected" -v node="$1" -v base_dn="$BASE_DN" \
-                      -v startup_timeouts="$OUT/logs/$1.startup-timeouts" '
+                      -v startup_timeouts="$OUT/logs/$1.startup-timeouts" \
+                      -v scale_certificates="$OUT/logs/scale-certificates" '
     BEGIN {
       while ((getline proof < startup_timeouts) > 0) {
         separator = index(proof, "\t")
         if (separator > 1) startup[substr(proof, 1, separator - 1)] = substr(proof, separator + 1)
       }
       close(startup_timeouts)
+      while ((getline proof < scale_certificates) > 0) {
+        separator = index(proof, "\t")
+        if (substr(proof, 1, separator - 1) != node) continue
+        proof = substr(proof, separator + 1)
+        separator = index(proof, "\t")
+        if (separator > 1) scale_cert[substr(proof, 1, separator - 1)] = substr(proof, separator + 1)
+      }
+      close(scale_certificates)
       n = split(windows, w, ";")
       for (i = 1; i <= n; i++) {
         k = split(w[i], f, " ")
@@ -338,7 +349,9 @@ replication_errors() { # <node>
         }
       }
       for (i = 1; i <= n; i++) {
-        cert = timeout = disconnect = 0
+        scale_return = index(ids[i], " scale-cert-return ")
+        cert = scale_return && scale_cert[line] == $0 && /category=SYNC severity=WARNING msgID=(105|119) /
+        timeout = disconnect = 0
         if (id == "180" && index($0, "msg=Directory server DS(") \
             && index($0, " changes for domain \"" base_dn "\" from replication server RS(")) {
           count = split(ids[i], tokens, " ")
@@ -355,7 +368,8 @@ replication_errors() { # <node>
                 && index($0, " timed out while connecting to replication server " part[3] ":8989 for domain \"" base_dn "\"")) timeout = 1
           }
         }
-        if (/category=SYNC severity=WARNING msgID=119 / && /SSLHandshakeException/ && /bad_certificate/) {
+        if (!scale_return \
+            && /category=SYNC severity=WARNING msgID=119 / && /SSLHandshakeException/ && /bad_certificate/) {
           count = split(ids[i], tokens, " ")
           for (j = 1; j <= count; j++) {
             if (split(tokens[j], part, ":") == 3 && part[1] == "cert" && part[2] == node \
@@ -376,7 +390,8 @@ replication_errors() { # <node>
             }
           }
         }
-        if (/category=SYNC severity=WARNING msgID=105 / && /The error was: (\(bad_certificate\) )?Received fatal alert: bad_certificate$/) {
+        if (!scale_return && /category=SYNC severity=WARNING msgID=105 / \
+            && /The error was: (\(bad_certificate\) )?Received fatal alert: bad_certificate$/) {
           count = split(ids[i], tokens, " ")
           for (j = 1; j <= count; j++) {
             if (split(tokens[j], part, ":") != 3 || part[1] != "cert-peer" || part[2] != node) continue

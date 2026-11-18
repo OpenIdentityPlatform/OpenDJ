@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyrighted 2026 3A Systems, LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -1701,13 +1701,9 @@ public class ReplicationServer
     {
       domain.stopDirectoryServers();
     }
-    final long forwardingDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
     try
     {
-      for (ReplicationServerDomain domain : getReplicationServerDomains())
-      {
-        domain.awaitDirectUpdatesForwarded(forwardingDeadline);
-      }
+      awaitDirectUpdatesForwarded(TimeUnit.SECONDS.toNanos(30));
     }
     catch (InterruptedException e)
     {
@@ -1732,6 +1728,16 @@ public class ReplicationServer
 
     // Remove this instance from the global instance list
     allInstances.remove(this);
+  }
+
+  /** Waits for all domains within one direct-update forwarding budget. */
+  void awaitDirectUpdatesForwarded(long timeoutNanos) throws InterruptedException
+  {
+    final long deadline = System.nanoTime() + timeoutNanos;
+    for (ReplicationServerDomain domain : getReplicationServerDomains())
+    {
+      domain.awaitDirectUpdatesForwarded(deadline);
+    }
   }
 
   /**

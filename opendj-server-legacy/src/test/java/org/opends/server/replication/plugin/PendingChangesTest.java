@@ -12,7 +12,6 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2026 3A Systems, LLC.
- * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -36,6 +35,7 @@ import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ReplicaOfflineMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.service.DSRSShutdownSync;
+import org.opends.server.replication.service.DSRSShutdownSync.ForwardingPeer;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.operation.PluginOperation;
 import org.testng.annotations.BeforeClass;
@@ -505,7 +505,7 @@ public class PendingChangesTest extends DirectoryServerTestCase
       {
         assertFalse(shutdownSync.canShutdown(baseDN),
             "the message must be announced before it is published");
-        shutdownSync.replicaOfflineMsgForwarded(baseDN, msg.getCSN(), RS_ID);
+        shutdownSync.replicaOfflineMsgForwarded(baseDN, msg.getCSN(), new ForwardingPeer(RS_ID));
       }
       return true;
     }).when(domain).publish(any(UpdateMsg.class));

@@ -215,6 +215,7 @@ case_ new-cert-other-category   1 0 '[ cert:n0:cv-r1' "${WBAD_RS/category=SYNC/c
 WRSCERT='[t] category=SYNC severity=WARNING msgID=312 msg=Replication server RS(31897) could not connect to replication server cv-c3:8989 for domain "cn=admin data": SSLHandshakeException((bad_certificate) PKIX path validation failed). This is reported once: the next message comes when it can be reached again'
 NRSCERT='[t] category=SYNC severity=NOTICE msgID=313 msg=Replication server RS(31897) connected to replication server cv-c3:8989 for domain "cn=admin data", which it had reported it had no replication session with'
 case_ rs-cert-recovered        0 1 '[ cert:n0:cv-c3' "$WRSCERT" "$NRSCERT" ']'
+case_ scale-rs-cert-recovered  0 1 '[ cert:n0:cv-c3 scale-cert-return' "$WRSCERT" "$NRSCERT" ']'
 case_ rs-cert-not-recovered    1 0 '[ cert:n0:cv-c3' "$WRSCERT" ']'
 case_ rs-cert-recovered-before 1 0 '[ cert:n0:cv-c3' "$NRSCERT" "$WRSCERT" ']'
 case_ rs-cert-recovered-after  1 0 '[ cert:n0:cv-c3' "$WRSCERT" ']' "$NRSCERT"
@@ -235,6 +236,99 @@ case_ new-cert-rs-other-ip      1 0 '[ cert-peer:n0:172.18.0.8' "$WBAD_PEER" ']'
 case_ new-cert-rs-other-node    1 0 '[ cert-peer:n1:172.18.0.9' "$WBAD_PEER" ']'
 case_ new-cert-rs-outside       1 0 "$WBAD_PEER" '[ cert-peer:n0:172.18.0.9' ']'
 case_ new-cert-rs-other-fault   1 0 '[ cert-peer:n0:172.18.0.9' "${WBAD_PEER/Received fatal alert: bad_certificate/unexpected bad_certificate}" ']'
+# Scale may verify recovery during the roll after the narrow return window closes.
+# Use separate DS and RS logs so warning 105 can only inherit correlated DS evidence.
+SCALE_WARNING="[18/Nov/2026:12:00:01 +0000]${WBAD_RS:3}"
+SCALE_PEER="[18/Nov/2026:12:00:01 +0000]${WBAD_PEER:3}"
+SCALE_CONNECTED='[18/Nov/2026:12:00:02 +0000] category=SYNC severity=NOTICE msgID=62 msg=Directory server DS(1) has connected to replication server RS(42) for domain "dc=example,dc=com" at 172.18.0.2:8989 with generation ID 3'
+SCALE_LATE_PEER=${SCALE_PEER/12:00:01/12:00:03}
+SCALE_SCHEMA_WARNING=${SCALE_WARNING/dc=example,dc=com/cn=schema}
+SCALE_ADMIN_WARNING=${SCALE_WARNING/dc=example,dc=com/cn=admin data}
+SCALE_ADMIN_CONNECTED=${SCALE_CONNECTED/dc=example,dc=com/cn=admin data}
+
+scale_cert_result() ( # <return DS log> <return RS log> <scale-out DS log> [<post-scale DS log>] [<window change>]
+  rm -rf "$OUT/logs"
+  ALL_NODES='n0 n1 cv-r1'
+  DS_NODES='n0 n1' RS_ONLY=cv-r1 RS_NODES=cv-r1 PEERS=n0,n1,cv-r1 TOPOLOGY=rs534 SCALE_VOLUME=empty
+  . "$HERE/disturb-scale.sh"
+  docker() {
+    case "$1 $3" in
+      "exec sh") wc -l <"$OUT/errors-$2" ;;
+      "exec tail") tail -n "$5" "$OUT/errors-$2" ;;
+      *) return 1 ;;
+    esac
+  }
+  printf '%s\n' "$E106" >"$OUT/errors-n0"
+  printf '%s\n' "$E106" >"$OUT/errors-cv-r1"
+  printf '%s\n' "$E106" >"$OUT/errors-n1"
+  mark_logs
+  window_open dns:cv-r1 cert:n0:cv-r1 cert-peer:cv-r1:172.18.0.9 scale-cert-return
+  [ -z "$1" ] || printf '%s\n' "$1" >>"$OUT/errors-n0"
+  [ -z "$2" ] || printf '%s\n' "$2" >>"$OUT/errors-cv-r1"
+  window_close
+  [ -z "$3" ] || printf '%s\n' "$3" >>"$OUT/errors-n0"
+  printf '%s\n' "$SCALE_CONNECTED" >>"$OUT/errors-n1"
+  scale_record_certificate_recoveries 172.18.0.2 n0=172.18.0.9 n1=172.18.0.8 || exit 1
+  [ -z "${4:-}" ] || printf '%s\n' "$4" >>"$OUT/errors-n0"
+  case ${5:-} in
+    move-window)
+      printf '1 1 scale-cert-return\n' >"$OUT/logs/n0.windows"
+      printf '1 1 scale-cert-return\n' >"$OUT/logs/cv-r1.windows"
+      ;;
+    ordinary-window)
+      printf '1 2 dns:cv-r1\n' >"$OUT/logs/n0.windows"
+      printf '1 2 dns:cv-r1\n' >"$OUT/logs/cv-r1.windows"
+      ;;
+  esac
+  local ds rs
+  ds=$(replication_errors n0) || exit 1
+  rs=$(replication_errors cv-r1) || exit 1
+  for errors in "$ds" "$rs"; do
+    if [ -n "$errors" ]; then printf '%s\n' "$errors"; fi
+    printf '%s\n' ---
+  done
+)
+
+scale_cert_case() { # <name> <unexpected DS lines> <unexpected RS lines> <logs...>
+  local name=$1 want_ds=$2 want_rs=$3 result
+  shift 3
+  if result=$(scale_cert_result "$@") && [ "$result" = "$(for errors in "$want_ds" "$want_rs"; do
+    if [ -n "$errors" ]; then printf '%s\n' "$errors"; fi
+    printf '%s\n' ---
+  done)" ]; then
+    passed=$((passed + 1))
+  else
+    failed=$((failed + 1))
+    echo "::error::$name: unexpected certificate classification"
+    printf '%s\n' "$result"
+  fi
+}
+
+scale_cert_case scale-cert-no-recovery "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" ''
+scale_cert_case scale-cert-recovered '' '' "$SCALE_WARNING"$'\n'"$SCALE_CONNECTED" "$SCALE_PEER" ''
+scale_cert_case scale-cert-peer-jdk-prefix '' '' "$SCALE_WARNING" "${SCALE_PEER/The error was: Received/The error was: (bad_certificate) Received}" "$SCALE_CONNECTED"
+scale_cert_case scale-cert-recovered-on-roll '' '' "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED"
+scale_cert_case scale-cert-admin-domain '' '' "$SCALE_ADMIN_WARNING" "$SCALE_PEER" "$SCALE_ADMIN_CONNECTED"
+scale_cert_case scale-cert-recovery-after-roll "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" '' "$SCALE_CONNECTED"
+scale_cert_case scale-cert-repeated-after-roll "$SCALE_WARNING" '' "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED" "$SCALE_WARNING"
+scale_cert_case scale-cert-warnings-after-return "$SCALE_WARNING" '' '' '' "$SCALE_WARNING"$'\n'"$SCALE_CONNECTED"
+scale_cert_case scale-cert-before-warning "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED"$'\n'"$SCALE_WARNING" "$SCALE_PEER" ''
+scale_cert_case scale-cert-peer-order-ambiguous '' "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" "${SCALE_CONNECTED/12:00:02/12:00:01}"
+scale_cert_case scale-cert-peer-unrelated-time '' "${SCALE_PEER/12:00:01/11:59:30}" "$SCALE_WARNING" "${SCALE_PEER/12:00:01/11:59:30}" "$SCALE_CONNECTED"
+scale_cert_case scale-cert-proof-outside-window "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED" '' move-window
+scale_cert_case scale-cert-proof-in-ordinary-window "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED" '' ordinary-window
+scale_cert_case scale-cert-peer-after-recovery '' "$SCALE_LATE_PEER" "$SCALE_WARNING"$'\n'"$SCALE_CONNECTED" "$SCALE_LATE_PEER" ''
+scale_cert_case scale-cert-peer-without-ds-warning '' "$SCALE_PEER" '' "$SCALE_PEER" "$SCALE_CONNECTED"
+scale_cert_case scale-cert-ambiguous-domain "$SCALE_SCHEMA_WARNING" "$SCALE_PEER" "$SCALE_WARNING"$'\n'"$SCALE_SCHEMA_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED"
+scale_cert_case scale-cert-all-domains-recovered '' '' "$SCALE_WARNING"$'\n'"$SCALE_ADMIN_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED"$'\n'"$SCALE_ADMIN_CONNECTED"
+scale_cert_case scale-cert-unrelated-domain-time "${SCALE_SCHEMA_WARNING/12:00:01/12:00:02}" '' "$SCALE_WARNING"$'\n'"${SCALE_SCHEMA_WARNING/12:00:01/12:00:02}" "$SCALE_PEER" "$SCALE_CONNECTED"
+for notice in "${SCALE_CONNECTED/172.18.0.2/172.18.0.3}" "${SCALE_CONNECTED/dc=example,dc=com/cn=schema}" \
+              "${SCALE_CONNECTED/DS(1)/DS(2)}" "${SCALE_CONNECTED/msgID=62/msgID=96}"; do
+  scale_cert_case scale-cert-wrong-recovery "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" "$notice"
+done
+for peer in "${SCALE_PEER/172.18.0.9/172.18.0.8}" "${SCALE_PEER/172.18.0.2/172.18.0.3}"; do
+  scale_cert_case scale-cert-wrong-ip '' "$peer" "$SCALE_WARNING" "$peer" "$SCALE_CONNECTED"
+done
 case_ startup-timeout-exact     0 1 '[ timeout:n0:cv-r1' "$E212" ']'
 case_ startup-timeout-other-ds  1 0 '[ timeout:n1:cv-r1' "$E212" ']'
 case_ startup-timeout-other-rs  1 0 '[ timeout:n0:cv-r0' "$E212" ']'
