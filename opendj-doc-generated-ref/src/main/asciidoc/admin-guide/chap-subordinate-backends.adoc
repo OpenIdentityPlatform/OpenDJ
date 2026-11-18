@@ -1,0 +1,91 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+[#chap-subordinate-backends]
+== Subordinate Backends
+
+A subordinate backend serves a base DN below the base DN of another backend. This arrangement is also called overlapping or nested backends. The overlap is in the directory namespace: each backend has its own registered base DN and its own data.
+
+[source,text]
+----
+dc=example,dc=com                       LDIF parent backend: namespace
+|-- ou=People,dc=example,dc=com         PDB backend: people
+|   `-- uid=alice,ou=People,dc=example,dc=com
+|-- ou=Groups,dc=example,dc=com         PDB backend: groups
+`-- ou=Scratch,dc=example,dc=com        Memory backend: scratch
+----
+
+OpenDJ routes an operation for `ou=People` or an entry below it to `people`, the backend with the most specific matching base DN. A subtree search based at `dc=example,dc=com` can include entries from the parent and the subordinate backends. The registered base DNs must be distinct; a backend cannot register a base DN already registered by another backend. In this example, the LDIF backend stores the parent entry, the PDB backends store persistent branches, and the Memory backend holds disposable test data. Memory entries must be populated again after a restart or backend reset.
+
+A backend can have multiple base DNs if its implementation permits it, but its own base DNs cannot be ancestors or descendants of each other. If one base DN of a backend is subordinate to another backend's base DN, the other base DNs of that backend must also be subordinate to the same parent base DN. Check the properties and restrictions of the backend type you choose in the https://doc.openidentityplatform.org/opendj/reference/dsconfig-subcommands-ref[dsconfig reference].
+
+[#subordinate-backends-uses]
+=== When to Use Subordinate Backends
+
+Splitting a directory tree can be useful when different branches need different storage or operational treatment:
+
+* Store a branch in a separate database backend so it can have its own indexes, cache settings, and administrative operations. Indexes are configured per backend; see xref:./chap-indexing.adoc[Configuring Indexes].
+* Replicate a subtree separately from the rest of the suffix. Each replicated part needs its own replication configuration; see xref:./chap-replication.adoc#repl-per-suffix[Replication Per Suffix] and xref:./chap-replication.adoc#repl-subtree[Subtree Replication].
+* Publish a small local namespace root in an LDIF backend while separate local backends serve child suffixes. See xref:./chap-ldif-backend.adoc#ldif-backend-subordinate-suffixes[Publish a Parent Suffix for Local Backends].
+* Use a disposable Memory backend for an isolated test branch. Its entries disappear on restart or backend disablement; see xref:./chap-memory-backend.adoc#chap-memory-backend[Using the Memory Backend].
+
+These choices add configuration and operational work. A single backend can be simpler when all branches share the same storage, replication, and maintenance needs. A subordinate backend is not a replica or a failover mechanism merely because it is nested beneath another backend.
+
+[#subordinate-backends-create]
+=== Creating a Subordinate Backend
+
+The following example creates an empty persistent PDB backend below an existing `dc=example,dc=com` suffix. Run it on a test instance first. The parent backend must already be configured and contain the parent entry. Choose a child base DN that is not already registered and a branch that does not already contain data in the parent backend; for an existing branch, follow xref:#subordinate-backends-migrate[Moving an Existing Branch] instead.
+
+[source,bash]
+----
+bin/dsconfig create-backend \
+  --hostname localhost --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPassword password \
+  --backend-name people --type pdb \
+  --set base-dn:ou=People,dc=example,dc=com \
+  --set enabled:true --set db-cache-percent:10 \
+  --trustAll --no-prompt
+----
+
+Adjust connection settings, credentials, backend type, and cache allocation for your installation. `--trustAll` is appropriate only for a controlled test environment. Account for the caches of all database backends when sizing the JVM; see xref:./chap-import-export.adoc#create-database-backend[Creating a New Database Backend].
+
+Registering a base DN does not populate the backend. Add its base entry and data using the method appropriate for its type, then verify the result. For a database backend, see xref:./chap-import-export.adoc#create-database-backend[Creating a New Database Backend] and xref:./chap-import-export.adoc[Managing Directory Data]. Search both from the parent and from the child base DN, checking expected entries and the final LDAP result code. Also test the actual application identities and controls.
+
+[#subordinate-backends-migrate]
+=== Moving an Existing Branch
+
+Creating the subordinate backend does not move existing entries from the parent. If the parent already contains the new base entry, OpenDJ can register the new backend and log a warning; conflicting data can cause incorrect or unexpected search results. Routing to the new backend does not clean up the old data. Do not treat successful creation as a completed migration.
+
+Plan a maintenance window and a tested rollback before changing an existing tree:
+
+. Back up the affected backends and export the data. Record the expected entries and configuration, including replication, indexes, and access controls. Account for writes during the migration so they are not lost.
+. Prepare separate datasets: the parent must not retain entries in the child branch, and the child dataset must include its base entry and descendants. Follow the import procedure for the backend type and its `includeBranch` and `excludeBranch` options. Import can replace existing data: read xref:./chap-import-export.adoc[Managing Directory Data] before running it.
+. Create and populate the subordinate backend, and reinitialize the affected parent and child data as required by the chosen migration procedure. Configure replication for each part that must be replicated. Coordinate the change across replicas and verify their contents before restoring traffic.
+. Compare parent and child searches with the saved dataset, test writes and application access, inspect the server logs, and verify backups and recovery procedures for both backends.
+
+The exact import, initialization, and rollback sequence depends on the backend types and replication topology. Rehearse it on a representative copy of the deployment.
+
+[#subordinate-backends-operations]
+=== Operational Considerations
+
+* *Searches:* A search can cross backend boundaries. OpenDJ searches the parent and subordinate backends separately, so do not assume that paging, server-side sorting, or virtual list view produces a single globally ordered or paged result across them. Test the actual clients, controls, and backend types, and check the complete results and final LDAP result code, including when a backend is unavailable.
+* *Updates:* Modify DN operations cannot move an entry between backends. An entry above a subordinate backend cannot be deleted while the subordinate base DN remains below it. Plan branch moves and removal as administrative data migrations.
+* *Replication:* Configure replication separately for each replicated backend's part of the tree. Plan initialization, monitoring, and recovery for each part, and check that clients see a consistent tree during changes.
+* *Backup and restore:* Include every backend in backup and disaster recovery plans. Coordinate backups and restores of related branches so the resulting tree is consistent. Test recovery; a backup of the parent alone does not back up the child backend.
+* *Resources and indexes:* Each database backend has its own cache and indexes. Size the combined caches within the available JVM memory, configure and rebuild the indexes required by each branch, and monitor search performance.
+* *Availability and access:* Backend types differ in persistence, supported operations, and failure behavior. Test access controls and write policies on each branch, including searches that cross the boundary. Do not rely on a parent backend as an automatic fallback for an unavailable child.
+
+For instructions on configuring the backend types in the example, see xref:./chap-ldif-backend.adoc#chap-ldif-backend[Configure an LDIF Backend], xref:./chap-import-export.adoc#create-database-backend[Creating a New Database Backend], and xref:./chap-memory-backend.adoc#chap-memory-backend[Using the Memory Backend].

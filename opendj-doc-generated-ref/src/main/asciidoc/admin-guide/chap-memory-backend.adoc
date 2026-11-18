@@ -145,8 +145,6 @@ Repeat the search from the previous section. It now returns `No Such Entry` (LDA
 |Cassandra
 |Directory data stored in a Cassandra cluster. See xref:../how-to/cassandra-backend.adoc[Store Directory Data in Cassandra].
 
-|Proxy
-|Routing LDAP operations to remote directories. Data durability depends on the remote directories' storage. A local Memory backend does not automatically replace an unavailable proxy suffix.
 |===
 
-For JDBC and Cassandra, configure the database or cluster's persistence and availability to meet your requirements. For a local parent suffix above subordinate proxy suffixes, Memory can publish temporary parent entries, but those entries disappear on reset and do not provide failover for operations routed to a child proxy backend. Use durable storage for parent entries that must survive a restart.
+For JDBC and Cassandra, configure the database or cluster's persistence and availability to meet your requirements. A Memory backend can hold a temporary branch beneath a local parent backend, but its entries disappear on reset. Use durable storage for entries that must survive a restart. See xref:./chap-subordinate-backends.adoc#chap-subordinate-backends[Subordinate Backends].
