@@ -1274,3 +1274,43 @@ The OpenDJ DSML gateway functions as a web application in a web application cont
 
 ====
 
+[#install-helm]
+=== Installing OpenDJ with Helm
+
+The OpenDJ release publishes the `opendj-helm` chart in Docker Hub and GitHub Container Registry under the OpenDJ release version. Use Helm 3 or 4 with a Kubernetes cluster that supports the chart's Kubernetes 1.34 API floor. The cluster also needs a StorageClass that provisions `ReadWriteOnce` volumes. The chart defaults to the cluster's default StorageClass and allocates one claim per server.
+
+Set `OPENDJ_VERSION` to a release that publishes the chart. Prepare a file containing a non-empty Directory Manager password with no line terminator and create the namespace and Secret before installing.
+
+[source,bash]
+----
+kubectl create namespace directory
+kubectl -n directory create secret generic directory-root --from-file=password=root-password.txt
+----
+
+Choose one registry. For GitHub Container Registry, run the following command.
+
+[source,bash]
+----
+helm install directory oci://ghcr.io/openidentityplatform/charts/opendj-helm \
+  --version "$OPENDJ_VERSION" --namespace directory \
+  --set auth.existingSecret=directory-root --wait --timeout 15m
+----
+
+For Docker Hub, run the following command.
+
+[source,bash]
+----
+helm install directory oci://registry-1.docker.io/openidentityplatform/opendj-helm \
+  --version "$OPENDJ_VERSION" --namespace directory \
+  --set auth.existingSecret=directory-root --wait --timeout 15m
+----
+
+Check the installation with `helm test directory --namespace directory`. The chart uses the OpenDJ image with the selected release tag by default. Set `persistence.storageClass` and `persistence.size` when you need a particular class or size. Set `directory.baseDn` and `auth.rootDn` before creating an instance. These values apply during initial setup.
+
+The default values install one directory server. For more than one replica, set `replication.enabled=true` and `replicaCount`. The chart configures the peer addresses for the image. On OpenShift, use `--set securityContext.profile=openshift` to let the restricted SCC assign the pod UID and volume group. Use storage that the assigned group can write to. Confirm the SCC and storage behavior in your OpenShift environment.
+
+The client Service listens on 1389 and 1636. Use pod DNS names for commands that target an individual instance, and allow the pods to reach each other on ports 4444 and 8989. Set `service.admin.enabled=true` when an internal Service on port 4444 is needed. See xref:../admin-guide/chap-change-certs.adoc#helm-certificates[TLS Secrets for the Helm chart] for certificate configuration.
+
+The startup and readiness probes and the Helm test use an anonymous root DSE search. Keep this search available when restricting anonymous access.
+
+For a worked example with two replicas and a resize, see xref:../how-to/kubernetes.adoc#how-to-kubernetes[Run OpenDJ in Kubernetes].

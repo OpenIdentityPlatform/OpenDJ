@@ -20,110 +20,88 @@ Copyright 2026 3A Systems, LLC.
 
 [#how-to-kubernetes]
 == Run OpenDJ in Kubernetes
-:opendj-version: 5.2.0
 
-This recipe runs one directory server with persistent storage in a local Minikube cluster. It requires `minikube`, `kubectl`, and a default StorageClass that supports dynamic volume provisioning. It does not configure replication; increasing the replica count alone does not create a replicated directory.
+Run a two-replica OpenDJ directory with the official Helm chart. The cluster needs Helm, `kubectl`, and a StorageClass that can provision one volume per server. Set `OPENDJ_VERSION` to a version that publishes the chart, and create `root-password.txt` with a non-empty password with no line terminator. See xref:../install-guide/chap-install.adoc#install-helm[Installing OpenDJ with Helm] for the available registries and OpenShift settings.
 
 [source,bash]
 ----
-minikube start --cpus=4 --memory=8g
-kubectl create namespace opendj-demo
-kubectl -n opendj-demo create secret generic opendj-root \
-  --from-literal=password='DemoPassword123!'
+CHART=oci://ghcr.io/openidentityplatform/charts/opendj-helm
+kubectl create namespace directory
+kubectl -n directory create secret generic directory-root --from-file=password=root-password.txt
 ----
 
-=== Create the Service and StatefulSet
+Save `directory-values.yaml` with the following settings.
 
-Save the following as `opendj.yaml`. The root password comes from the Secret. A PersistentVolumeClaim keeps the instance under `/opt/opendj/data`, the same location described in xref:../install-guide/chap-install.adoc#install-docker[Running OpenDJ in Docker]. `fsGroup` lets the non-root server write to the mounted volume on storage that supports Kubernetes volume ownership management.
-
-[source,yaml,subs="+attributes"]
+[source,yaml]
 ----
-apiVersion: v1
-kind: Service
-metadata:
-  name: opendj
-spec:
-  clusterIP: None
-  selector:
-    app: opendj
-  ports:
-    - name: ldap
-      port: 1389
-    - name: ldaps
-      port: 1636
-    - name: admin
-      port: 4444
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: opendj
-spec:
-  serviceName: opendj
-  replicas: 1
-  selector:
-    matchLabels:
-      app: opendj
-  template:
-    metadata:
-      labels:
-        app: opendj
-    spec:
-      terminationGracePeriodSeconds: 60
-      securityContext:
-        fsGroup: 1001
-      containers:
-        - name: opendj
-          image: openidentityplatform/opendj:{opendj-version}
-          env:
-            - name: ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: opendj-root
-                  key: password
-            - name: ADD_BASE_ENTRY
-              value: --addBaseEntry
-          ports:
-            - containerPort: 1389
-            - containerPort: 1636
-            - containerPort: 4444
-          readinessProbe:
-            exec:
-              command: [/opt/opendj/healthcheck.sh]
-            periodSeconds: 10
-            timeoutSeconds: 30
-          volumeMounts:
-            - name: data
-              mountPath: /opt/opendj/data
-  volumeClaimTemplates:
-    - metadata:
-        name: data
-      spec:
-        accessModes: [ReadWriteOnce]
-        resources:
-          requests:
-            storage: 1Gi
+auth:
+  existingSecret: directory-root
+replication:
+  enabled: true
+replicaCount: 2
 ----
 
 [source,bash]
 ----
-kubectl -n opendj-demo apply -f opendj.yaml
-kubectl -n opendj-demo rollout status statefulset/opendj --timeout=600s
-kubectl -n opendj-demo get pods,pvc
+helm install directory "$CHART" --version "$OPENDJ_VERSION" --namespace directory \
+  -f directory-values.yaml --wait --timeout 15m
+helm test directory --namespace directory
+kubectl -n directory get pods,pvc
 ----
 
-Wait for the pod to be Ready. The readiness probe checks completed bootstrap and LDAP availability; a listening TCP port alone is insufficient during first startup. If the claim stays Pending, check the StorageClass. If the pod does not become Ready, inspect `kubectl -n opendj-demo logs opendj-0` and `kubectl -n opendj-demo describe pod opendj-0`.
+=== Verify writes on both replicas
 
-=== Verify the Directory and Persistence
+Open two port forwards in separate terminals.
 
 [source,bash]
 ----
-kubectl -n opendj-demo exec opendj-0 -- /opt/opendj/bin/ldapsearch \
-  --hostname localhost --port 1389 \
-  --bindDN 'cn=Directory Manager' --bindPassword 'DemoPassword123!' \
-  --baseDN dc=example,dc=com --searchScope base '(objectClass=*)' dn
+kubectl -n directory port-forward pod/opendj-directory-0 11389:1389
+kubectl -n directory port-forward pod/opendj-directory-1 21389:1389
 ----
 
-Expect `dn: dc=example,dc=com`. Entries added to this instance remain on the claim when the pod is replaced. To verify, add a test entry, delete only the pod with `kubectl -n opendj-demo delete pod opendj-0`, wait for the replacement to become Ready, and search for the entry again. Do not delete the claim during this check.
+Use the tools from the OpenDJ LDAP toolkit. Write an entry through port 11389, then look for it through port 21389. The update is asynchronous, so repeat the search until the entry arrives.
 
-Deleting the StatefulSet normally retains its claim. Deleting the demonstration namespace with `kubectl delete namespace opendj-demo` also deletes its claims and can delete the backing storage, depending on its reclaim policy.
+[source,bash]
+----
+ldapmodify --hostname localhost --port 11389 --bindDN 'cn=Directory Manager' \
+  --bindPasswordFile root-password.txt <<'LDIF'
+dn: ou=kubernetes,dc=example,dc=com
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: kubernetes
+
+LDIF
+ldapsearch --hostname localhost --port 21389 --bindDN 'cn=Directory Manager' \
+  --bindPasswordFile root-password.txt --baseDN ou=kubernetes,dc=example,dc=com \
+  --searchScope base '(objectClass=*)' dn
+----
+
+=== Add and remove a replica
+
+Keep the same chart version and values file. First add the planned peer to the list, then start its pod.
+
+[source,bash]
+----
+helm upgrade directory "$CHART" --version "$OPENDJ_VERSION" -n directory \
+  -f directory-values.yaml --set replicaCount=2,replication.peerCount=3 --wait --timeout 15m
+kubectl -n directory rollout status statefulset/opendj-directory --timeout=15m
+helm upgrade directory "$CHART" --version "$OPENDJ_VERSION" -n directory \
+  -f directory-values.yaml --set replicaCount=3 --set-json replication.peerCount=null --wait --timeout 15m
+kubectl -n directory rollout status statefulset/opendj-directory --timeout=15m
+----
+
+Forward the LDAP port of `opendj-directory-2` and verify that it has the earlier entry. Add a second entry there and confirm that it reaches the two original replicas. Stop writes to the third replica, wait for its last updates to reach the other servers, then reduce the StatefulSet before shortening the peer list.
+
+[source,bash]
+----
+helm upgrade directory "$CHART" --version "$OPENDJ_VERSION" -n directory \
+  -f directory-values.yaml --set replicaCount=2,replication.peerCount=3 --wait --timeout 15m
+kubectl -n directory wait --for=delete pod/opendj-directory-2 --timeout=15m
+helm upgrade directory "$CHART" --version "$OPENDJ_VERSION" -n directory \
+  -f directory-values.yaml --set replicaCount=2 --set-json replication.peerCount=null --wait --timeout 15m
+kubectl -n directory rollout status statefulset/opendj-directory --timeout=15m
+helm test directory --namespace directory
+----
+
+Confirm that the two running replicas still hold both entries, and that `data-opendj-directory-2` is still present. For membership verification and how to return a retained replica, see xref:../admin-guide/chap-replication.adoc#helm-replica-resize[Resizing an OpenDJ Helm Release].

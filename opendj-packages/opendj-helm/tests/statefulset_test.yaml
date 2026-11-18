@@ -1,0 +1,219 @@
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions copyright [year] [name of copyright owner]".
+#
+# Copyright 2026 3A Systems, LLC.
+
+suite: StatefulSet and Services
+templates:
+  - templates/statefulset.yaml
+  - templates/services.yaml
+release:
+  name: directory
+capabilities:
+  majorVersion: 1
+  minorVersion: 34
+tests:
+  - it: installs one standalone instance and retains its volume
+    template: templates/statefulset.yaml
+    asserts:
+      - equal:
+          path: apiVersion
+          value: apps/v1
+      - equal:
+          path: metadata.name
+          value: opendj-directory
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: spec.serviceName
+          value: opendj-directory-headless
+      - equal:
+          path: spec.podManagementPolicy
+          value: Parallel
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "REPLICATION_PEERS")]
+      - equal:
+          path: spec.volumeClaimTemplates[0].metadata.name
+          value: data
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.accessModes[0]
+          value: ReadWriteOnce
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /opt/opendj/data
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy
+          value:
+            whenDeleted: Retain
+            whenScaled: Retain
+      - notExists:
+          path: spec.volumeClaimTemplates[0].spec.storageClassName
+  - it: uses the named storage class and requested size
+    template: templates/statefulset.yaml
+    set:
+      persistence.storageClass: fast
+      persistence.size: 20Gi
+    asserts:
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.storageClassName
+          value: fast
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.resources.requests.storage
+          value: 20Gi
+  - it: constructs exact per-pod addresses for replicated installs
+    template: templates/statefulset.yaml
+    set:
+      replicaCount: 2
+      replication.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[?(@.name == "OPENDJ_REPLICATION_TYPE")].value
+          value: simple
+      - equal:
+          path: spec.template.spec.containers[0].env[?(@.name == "REPLICATION_ROLE")].value
+          value: combined
+      - equal:
+          path: spec.template.spec.containers[0].env[?(@.name == "REPLICATION_PEERS")].value
+          value: opendj-directory-0.opendj-directory-headless,opendj-directory-1.opendj-directory-headless
+      - equal:
+          path: spec.template.spec.containers[0].env[?(@.name == "MYHOSTNAME")].value
+          value: $(POD_NAME).opendj-directory-headless
+  - it: prepares the longer peer list before scaling out
+    template: templates/statefulset.yaml
+    set:
+      replicaCount: 2
+      replication.enabled: true
+      replication.peerCount: 3
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+      - equal:
+          path: spec.template.spec.containers[0].env[?(@.name == "REPLICATION_PEERS")].value
+          value: opendj-directory-0.opendj-directory-headless,opendj-directory-1.opendj-directory-headless,opendj-directory-2.opendj-directory-headless
+  - it: keeps peer management enabled on the last replica
+    template: templates/statefulset.yaml
+    set:
+      replication.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[?(@.name == "REPLICATION_PEERS")].value
+          value: opendj-directory-0.opendj-directory-headless
+  - it: rejects a peer count below the number of pods
+    template: templates/statefulset.yaml
+    set:
+      replicaCount: 3
+      replication.enabled: true
+      replication.peerCount: 2
+    asserts:
+      - failedTemplate:
+          errorMessage: replication.peerCount must be at least replicaCount
+  - it: rejects multiple standalone pods
+    template: templates/statefulset.yaml
+    set:
+      replicaCount: 2
+    asserts:
+      - failedTemplate:
+          errorMessage: replicaCount greater than one requires replication.enabled
+  - it: publishes unready pod addresses only in the headless Service
+    template: templates/services.yaml
+    documentSelector:
+      path: metadata.name
+      value: opendj-directory-headless
+    asserts:
+      - equal:
+          path: apiVersion
+          value: v1
+      - equal:
+          path: spec.clusterIP
+          value: None
+      - equal:
+          path: spec.publishNotReadyAddresses
+          value: true
+      - equal:
+          path: spec.ports[?(@.name == "replication")].port
+          value: 8989
+  - it: sends LDAP clients to this release's ready pods
+    template: templates/services.yaml
+    documentSelector:
+      path: metadata.name
+      value: opendj-directory
+    asserts:
+      - notExists:
+          path: spec.publishNotReadyAddresses
+      - equal:
+          path: spec.selector
+          value:
+            app.kubernetes.io/name: opendj
+            app.kubernetes.io/instance: directory
+      - equal:
+          path: spec.ports[?(@.name == "ldaps")].port
+          value: 1636
+      - notExists:
+          path: spec.ports[?(@.name == "admin")]
+  - it: exposes administration through a separate optional ClusterIP
+    template: templates/services.yaml
+    set:
+      service.admin.enabled: true
+    documentSelector:
+      path: metadata.name
+      value: opendj-directory-admin
+    asserts:
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports[0].port
+          value: 4444
+  - it: uses the image override without changing the workload identity
+    template: templates/statefulset.yaml
+    set:
+      image.repository: opendj-helm-ci
+      image.tag: test-commit
+      image.pullPolicy: Never
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: opendj-helm-ci:test-commit
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Never
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app.kubernetes.io/name: opendj
+            app.kubernetes.io/instance: directory
+  - it: keeps a valid distinct hostname for directory.test
+    template: templates/statefulset.yaml
+    release:
+      name: directory.test
+    asserts:
+      - equal:
+          path: metadata.name
+          value: opendj-directory-test-82fe1130
+  - it: keeps a valid distinct hostname for directory-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaax
+    template: templates/statefulset.yaml
+    release:
+      name: directory-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaax
+    asserts:
+      - equal:
+          path: metadata.name
+          value: opendj-directory-aaaaaaaaaaaaaaaaaaaaaaaaaa-ea4bf74e
+  - it: keeps a valid distinct hostname for directory-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaay
+    template: templates/statefulset.yaml
+    release:
+      name: directory-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaay
+    asserts:
+      - equal:
+          path: metadata.name
+          value: opendj-directory-aaaaaaaaaaaaaaaaaaaaaaaaaa-e07eeadb

@@ -116,7 +116,6 @@ jobs:
             target/checkout/opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb
             target/checkout/opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm
             target/checkout/opendj-packages/opendj-docker/target/Dockerfile.zip
-            target/checkout/opendj-packages/opendj-openshift-template/*.yaml
             target/checkout/opendj-doc-generated-ref/target/*.zip
             target/checkout/opendj-dsml-servlet/target/*.war
             target/checkout/opendj-rest2ldap-servlet/target/*.war
@@ -277,6 +276,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push image
+        id: push-image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         continue-on-error: true
         with:
@@ -288,6 +288,33 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      - name: Set up Helm for the release chart
+        if: steps.push-image.outcome == 'success'
+        uses: Azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
+        with:
+          version: v3.22.1
+      # Use a public Docker Hub repository for the chart. Set the GHCR package to public
+      # after its first push so users can install from either registry without credentials.
+      - name: Package and publish the Helm chart
+        if: steps.push-image.outcome == 'success'
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ inputs.releaseVersion }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          app_version=$(python3 -c 'from xml.etree.ElementTree import parse; print(parse("pom.xml").getroot().find("{*}version").text)')
+          printf '%s' "$DOCKER_PASSWORD" |
+            helm registry login registry-1.docker.io --username "$DOCKER_USERNAME" --password-stdin
+          printf '%s' "$GHCR_TOKEN" |
+            helm registry login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          helm package opendj-packages/opendj-helm --destination "$RUNNER_TEMP" \
+            --version "$RELEASE_VERSION" --app-version "$app_version"
+          chart="$RUNNER_TEMP/opendj-helm-$RELEASE_VERSION.tgz"
+          helm push "$chart" "oci://registry-1.docker.io/${GITHUB_REPOSITORY_OWNER,,}"
+          helm push "$chart" "oci://ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/charts"
+
   release-docker-alpine:
     name: Docker release
     runs-on: 'ubuntu-latest'

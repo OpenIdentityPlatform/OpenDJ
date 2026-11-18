@@ -1,0 +1,50 @@
+{{- /*
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+*/ -}}
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "opendj.fullname" . }}-ldap-test
+  labels:
+    app.kubernetes.io/name: opendj-test
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+  annotations:
+    helm.sh/hook: test
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  automountServiceAccountToken: false
+  restartPolicy: Never
+  securityContext:
+    {{- include "opendj.podSecurityContext" . | nindent 4 }}
+  containers:
+    - name: ldapsearch
+      image: {{ include "opendj.image" . | quote }}
+      imagePullPolicy: {{ .Values.image.pullPolicy }}
+      securityContext:
+        {{- include "opendj.containerSecurityContext" . | nindent 8 }}
+      command: ["/opt/opendj/bin/ldapsearch"]
+      args:
+        - --noPropertiesFile
+        - --hostname
+        - {{ include "opendj.fullname" . | quote }}
+        - --port
+        - "1389"
+        - --baseDN
+        - ""
+        - --searchScope
+        - base
+        - "(objectClass=*)"
+        - "1.1"
