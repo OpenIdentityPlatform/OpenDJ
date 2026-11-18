@@ -16,6 +16,7 @@
 package org.opends.server.replication.server;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.opends.messages.ReplicationMessages.WARN_IGNORING_UPDATE_UNSUPPORTED_BY_PEER;
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 import static org.opends.server.util.CollectionUtils.newArrayList;
@@ -71,6 +72,7 @@ import org.opends.server.replication.protocol.StopMsg;
 import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.WindowMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.replication.service.DSRSShutdownSync.ForwardingPeer;
@@ -1103,6 +1105,148 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       handler.updatePublishedState(last);
       assertThat(handler.awaitPublished(target, System.nanoTime()))
           .as("a later socket write must not conceal an earlier discarded record").isFalse();
+    }
+    finally
+    {
+      removeQuietly(server);
+    }
+  }
+
+  @Test
+  public void exactReceiptsReleaseOnlyMatchingDiscardedWrites() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final ReplicationServer server = newReplicationServer(new DSRSShutdownSync(), "exactDiscardedReceiptDb", 8263);
+    try
+    {
+      final ReplicationServerHandler handler = new ReplicationServerHandler(null, 2, server, 100);
+      handler.setBaseDNAndDomain(baseDN, false);
+      handler.setInitialServerState(new ServerState());
+      server.getReplicationServerDomain(baseDN, false).initGenerationID(1);
+      handler.setGenerationId(2);
+      final List<DeleteMsg> updates = new ArrayList<>();
+      final long time = System.currentTimeMillis();
+      for (int i = 0; i < 4; i++)
+      {
+        final DeleteMsg update = new DeleteMsg(baseDN, new CSN(time, i + 1, REMOTE_DS_ID),
+            "22222222-2222-2222-2222-222222222222");
+        updates.add(update);
+        assertThat(handler.updateServerState(update)).isTrue();
+      }
+      final DeleteMsg pending = updates.get(0);
+      final DeleteMsg firstDiscard = updates.get(1);
+      final DeleteMsg secondDiscard = updates.get(2);
+      final DeleteMsg delayedDiscard = updates.get(3);
+      handler.updateDiscardedState(firstDiscard.getCSN());
+      handler.updateDiscardedState(secondDiscard.getCSN());
+      handler.recordReceivedUpdate(firstDiscard); // Wrong generation.
+      handler.setGenerationId(1);
+      handler.recordReceivedUpdate(delayedDiscard);
+
+      final ServerState target = new ServerState();
+      target.update(pending.getCSN());
+      assertThat(handler.awaitPublished(target, System.nanoTime()))
+          .as("an exact receipt cannot release an earlier pending write").isFalse();
+      target.update(firstDiscard.getCSN());
+      handler.updatePublishedState(pending.getCSN());
+      assertThat(handler.awaitPublished(target, System.nanoTime()))
+          .as("a receipt from another generation cannot release the first discard").isFalse();
+      handler.recordReceivedUpdate(firstDiscard);
+      assertThat(handler.awaitPublished(target, System.nanoTime())).isTrue();
+      target.update(delayedDiscard.getCSN());
+      assertThat(handler.awaitPublished(target, System.nanoTime()))
+          .as("the other discarded write from the same origin is still missing").isFalse();
+      handler.recordReceivedUpdate(secondDiscard);
+      // The two intervening receipts evicted this CSN from the ordinary catch-up cache.
+      handler.updateDiscardedState(delayedDiscard.getCSN());
+      assertThat(handler.awaitPublished(target, System.nanoTime()))
+          .as("the last exact receipt preceded its discard callback").isTrue();
+    }
+    finally
+    {
+      removeQuietly(server);
+    }
+  }
+
+  @DataProvider
+  public Object[][] overflowDiscards()
+  {
+    // Confirm the first two CSNs in either order, with or without a third missing discard.
+    return new Object[][] { { 2, 0 }, { 2, 1 }, { 3, 1 } };
+  }
+
+  @Test(dataProvider = "overflowDiscards")
+  public void exactOverflowReceiptDoesNotHideAnotherDiscard(int discardCount, int firstReceipt) throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final ReplicationServer server = newReplicationServer(new DSRSShutdownSync(), "overflowDiscardDb", 8265);
+    try
+    {
+      final ReplicationServerHandler handler = new ReplicationServerHandler(null, 1, server, 100);
+      handler.setBaseDNAndDomain(baseDN, false);
+      handler.setInitialServerState(new ServerState());
+      server.getReplicationServerDomain(baseDN, false).initGenerationID(1);
+      handler.setGenerationId(1);
+      final List<DeleteMsg> updates = new ArrayList<>();
+      final long time = System.currentTimeMillis();
+      for (int i = 0; i < discardCount; i++)
+      {
+        final DeleteMsg update = new DeleteMsg(baseDN, new CSN(time, i + 1, REMOTE_DS_ID),
+            "22222222-2222-2222-2222-222222222222");
+        updates.add(update);
+        assertThat(handler.updateServerState(update)).isTrue();
+        handler.updateDiscardedState(update.getCSN());
+      }
+      final ServerState target = new ServerState();
+      target.update(updates.get(discardCount - 1).getCSN());
+      handler.recordReceivedUpdate(updates.get(firstReceipt));
+      assertThat(handler.awaitPublished(target, System.nanoTime())).isFalse();
+      handler.recordReceivedUpdate(updates.get(1 - firstReceipt));
+      assertThat(handler.awaitPublished(target, System.nanoTime()))
+          .as("the first two exact receipts cover the target only if no third discard is missing")
+          .isEqualTo(discardCount == 2);
+    }
+    finally
+    {
+      removeQuietly(server);
+    }
+  }
+
+  @DataProvider
+  public Object[][] changelogFailureSources()
+  {
+    return new Object[][] { { true }, { false } };
+  }
+
+  @Test(dataProvider = "changelogFailureSources")
+  public void changelogFailureShutsDownAfterReleasingDirectAdmission(boolean fromDS) throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final ReplicationServer server = newReplicationServer(new DSRSShutdownSync(), "failedDirectPublishDb", 8264);
+    try
+    {
+      final ReplicationServerDomain domain = server.getReplicationServerDomain(baseDN, true);
+      domain.initGenerationID(1);
+      final ServerHandler source = mock(ServerHandler.class);
+      when(source.isDataServer()).thenReturn(fromDS);
+      when(source.getGenerationId()).thenReturn(1L);
+      final Field dbField = ReplicationServerDomain.class.getDeclaredField("domainDB");
+      dbField.setAccessible(true);
+      final ReplicationDomainDB failing = mock(ReplicationDomainDB.class);
+      final DeleteMsg update = new DeleteMsg(baseDN, new CSN(System.currentTimeMillis(), 1, REMOTE_DS_ID),
+          "22222222-2222-2222-2222-222222222222");
+      when(failing.publishUpdateMsg(baseDN, update)).thenThrow(new ChangelogException(new IOException("injected")));
+      dbField.set(domain, failing);
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        domain.put(update, source);
+        return null;
+      });
+      assertThat(records.stream().anyMatch(line -> line.contains("RS shutdown timed out waiting for direct DS updates")))
+          .as("the failed publisher can cross its own domain's shutdown barrier").isFalse();
+      when(source.isDataServer()).thenReturn(true);
+      assertThatThrownBy(() -> domain.put(update, source)).isInstanceOf(IOException.class)
+          .hasMessageContaining("closing its directory connections");
     }
     finally
     {

@@ -152,12 +152,15 @@ echo 'join batch quoting and failure fallback passed'
 
 # Recovery is explicit: ordinary joins must retain their peer order and update
 # the DS endpoint lists. Recovery must never fall back to a DS on unknown RS state.
-sed -n '/^join_candidates() {/,/^}/p' "$HERE/../../../opendj-packages/opendj-docker/bootstrap/join.sh" >"$OUT/candidates.sh"
+SOURCE="$HERE/../../../opendj-packages/opendj-docker/bootstrap/join.sh"
+sed -n '/^join_candidates() {/,/^}/p; /^trusted() {/,/^}/p' "$SOURCE" >"$OUT/candidates.sh"
 . "$OUT/candidates.sh"
 ROLE=replication PEERS=(self d0 r0 r1) REPLICATION_RECOVER_FROM_RS=1
 is_self() { [ "$1" = self ]; }
-peer_state() { case " ${STATE_FAIL:-} " in *" $1 "*) return 1 ;; esac; echo ready; }
-trusted() { [ "$1" = ready ]; }
+peer_state() {
+  case " ${STATE_FAIL:-} " in *" $1 "*) return 1 ;; esac
+  if [ "${STATE_ABSENT:-}" = "$1" ]; then echo absent; else echo ready; fi
+}
 replication_config() {
   case " ${CONFIG_FAIL:-} " in *" $1 "*) return 1 ;; esac
   case $1 in r0|r1) printf 'server\npublished replication\n' ;; *) echo domain ;; esac
@@ -185,40 +188,63 @@ PEERS=(self d0 r0 r1)
 expect_candidates ordinary-rs-order $'d0\nr0\nr1'
 ROLE=directory REPLICATION_RECOVER_FROM_RS=1
 expect_candidates directory-order $'d0\nr0\nr1'
+# MASTER_SERVER alone preserves legacy trust for an ordinary join only.
+ROLE=replication MASTER_SERVER=r0 PEERS_ARE_EXPLICIT= STATE_ABSENT=r0
+PEERS=("$MASTER_SERVER")
+expect_candidates recovery-master-without-state ''
+REPLICATION_RECOVER_FROM_RS=0
+expect_candidates ordinary-master-without-state r0
+trusted absent || { echo 'ordinary MASTER_SERVER join rejected an older peer' >&2; exit 1; }
+STATE_ABSENT=
 
-sed -n '/^enable_through() {/,/^}/p' "$HERE/../../../opendj-packages/opendj-docker/bootstrap/join.sh" >"$OUT/enable.sh"
-sed -n '/^role_arguments() {/,/^}/p' "$HERE/../../../opendj-packages/opendj-docker/bootstrap/join.sh" >>"$OUT/enable.sh"
+sed -n '/^enable_through() {/,/^}/p; /^role_arguments() {/,/^}/p' "$SOURCE" >"$OUT/enable.sh"
 . "$OUT/enable.sh"
 # The image uses Bash 4+; keep this harness usable with macOS Bash 3 too.
 if ! type mapfile >/dev/null 2>&1; then
   mapfile() { local value; local -a values=(); while IFS= read -r value; do values+=("$value"); done; eval "$2=(\"\${values[@]}\")"; }
 fi
 ROLE=replication BASE_DN=dc=example,dc=com REPLICATION_PORT=8989
-take_join_lock() { JOIN_LOCK_VALUE=lock; }; release_join_lock() { :; }
+take_join_lock() {
+  JOIN_LOCK_VALUE=lock
+  if [ "${STATE_LOST_ON_LOCK:-}" = "$1" ]; then STATE_ABSENT=$1; fi
+}
+release_join_lock() { :; }
 peer_role() { case $1 in *server*) echo replication ;; *) echo directory ;; esac; }
 bounded() { printf '%s\n' "$@" >"$OUT/enable-args"; }
-expect_enable_dn() {
-  local actual
+expect_enable_args() {
+  local actual schema_flag=no
   enable_through "$1"
   actual=$(awk 'previous=="--baseDN" {print;exit} {previous=$0}' "$OUT/enable-args")
   if [ "$actual" != "$2" ]; then
     echo "::error::enable $1 used [$actual], expected [$2]" >&2
     join_failures=$((join_failures + 1))
   fi
+  if grep -Fxq -- --noSchemaReplication "$OUT/enable-args"; then schema_flag=yes; fi
+  if [ "$schema_flag" != "$3" ]; then
+    echo "::error::enable $1: --noSchemaReplication present [$schema_flag], expected [$3]" >&2
+    join_failures=$((join_failures + 1))
+  fi
 }
 REPLICATION_RECOVER_FROM_RS=1
-expect_enable_dn r0 'cn=admin data'
+expect_enable_args r0 'cn=admin data' yes
 REPLICATION_RECOVER_FROM_RS=0
-expect_enable_dn r0 "$BASE_DN"
-expect_enable_dn d0 "$BASE_DN"
+STATE_ABSENT=r0
+expect_enable_args r0 "$BASE_DN" no
+expect_enable_args d0 "$BASE_DN" no
+STATE_ABSENT=
 REPLICATION_RECOVER_FROM_RS=1
-for unavailable in changed-role changed-state; do
+expect_candidates recovery-master-ready-before-lock r0
+for unavailable in changed-role changed-state absent-state-under-lock; do
   rm -f "$OUT/enable-args"
-  peer=r0 STATE_FAIL=
-  [ "$unavailable" != changed-role ] || peer=d0
-  [ "$unavailable" != changed-state ] || STATE_FAIL=r0
-  if enable_through "$peer"; then
-    echo "::error::recovery enabled through $unavailable" >&2
+  peer=r0 STATE_FAIL= STATE_LOST_ON_LOCK= rc=0
+  case $unavailable in
+    changed-role) peer=d0 ;;
+    changed-state) STATE_FAIL=r0 ;;
+    absent-state-under-lock) STATE_LOST_ON_LOCK=r0 ;;
+  esac
+  enable_through "$peer" || rc=$?
+  if [ "$rc" -ne 75 ]; then
+    echo "::error::recovery returned $rc through $unavailable, expected 75" >&2
     join_failures=$((join_failures + 1))
   fi
   if [ -e "$OUT/enable-args" ]; then

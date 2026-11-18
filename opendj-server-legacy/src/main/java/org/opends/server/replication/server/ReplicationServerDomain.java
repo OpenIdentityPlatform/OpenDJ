@@ -335,11 +335,28 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public void put(UpdateMsg updateMsg, ServerHandler sourceHandler) throws IOException
   {
-    if (!sourceHandler.isDataServer())
+    try
     {
-      putUpdate(updateMsg, sourceHandler);
-      return;
+      if (sourceHandler.isDataServer())
+      {
+        putDirectUpdate(updateMsg, sourceHandler);
+      }
+      else
+      {
+        putUpdate(updateMsg, sourceHandler);
+      }
     }
+    catch (ChangelogException e)
+    {
+      // A fatal changelog failure closes every connection. The shutdown drain needs
+      // the write lock on this domain, so the publisher must release its read lock first.
+      logger.error(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR, stackTraceToSingleLineString(e));
+      localReplicationServer.shutdown();
+    }
+  }
+
+  private void putDirectUpdate(UpdateMsg updateMsg, ServerHandler sourceHandler) throws IOException, ChangelogException
+  {
     directUpdateLock.readLock().lock();
     try
     {
@@ -356,7 +373,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
   }
 
-  private void putUpdate(UpdateMsg updateMsg, ServerHandler sourceHandler) throws IOException
+  private void putUpdate(UpdateMsg updateMsg, ServerHandler sourceHandler) throws IOException, ChangelogException
   {
     final long sourceGenerationId = sourceHandler.getGenerationId();
     sourceHandler.recordReceivedUpdate(updateMsg);
@@ -405,10 +422,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
     }
 
-    if (!publishUpdateMsg(updateMsg))
-    {
-      return;
-    }
+    publishUpdateMsg(updateMsg);
 
     final List<Integer> assuredServers = getAssuredServers(updateMsg, preparedAssuredInfo);
 
@@ -638,48 +652,32 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return expectedServers != null ? expectedServers : Collections.<Integer> emptyList();
   }
 
-  private boolean publishUpdateMsg(UpdateMsg updateMsg)
+  private void publishUpdateMsg(UpdateMsg updateMsg) throws ChangelogException
   {
-    try
+    if (updateMsg instanceof ReplicaOfflineMsg)
     {
-      if (updateMsg instanceof ReplicaOfflineMsg)
-      {
-        final ReplicaOfflineMsg offlineMsg = (ReplicaOfflineMsg) updateMsg;
-        this.domainDB.notifyReplicaOffline(baseDN, offlineMsg.getCSN());
-        return true;
-      }
-
-      if (this.domainDB.publishUpdateMsg(baseDN, updateMsg))
-      {
-        /*
-         * JNR: Matt and I had a hard time figuring out where to put this
-         * synchronized block. We elected to put it here, but without a strong
-         * conviction.
-         */
-        synchronized (generationIDLock)
-        {
-          /*
-           * JNR: I think the generationIdSavedStatus is set to true because
-           * method above created a ReplicaDB which assumes the generationId was
-           * communicated to another server. Hence setting true on this field
-           * prevent the generationId from being reset.
-           */
-          generationIdSavedStatus = true;
-        }
-      }
-      return true;
+      final ReplicaOfflineMsg offlineMsg = (ReplicaOfflineMsg) updateMsg;
+      this.domainDB.notifyReplicaOffline(baseDN, offlineMsg.getCSN());
+      return;
     }
-    catch (ChangelogException e)
+
+    if (this.domainDB.publishUpdateMsg(baseDN, updateMsg))
     {
       /*
-       * Because of database problem we can't save any more changes from at
-       * least one LDAP server. This replicationServer therefore can't do it's
-       * job properly anymore and needs to close all its connections and
-       * shutdown itself.
+       * JNR: Matt and I had a hard time figuring out where to put this
+       * synchronized block. We elected to put it here, but without a strong
+       * conviction.
        */
-      logger.error(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR, stackTraceToSingleLineString(e));
-      localReplicationServer.shutdown();
-      return false;
+      synchronized (generationIDLock)
+      {
+        /*
+         * JNR: I think the generationIdSavedStatus is set to true because
+         * method above created a ReplicaDB which assumes the generationId was
+         * communicated to another server. Hence setting true on this field
+         * prevent the generationId from being reset.
+         */
+        generationIdSavedStatus = true;
+      }
     }
   }
 

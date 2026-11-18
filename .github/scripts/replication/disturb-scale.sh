@@ -65,12 +65,13 @@ scale_checkpoint_query() { # <node> <output> <error> <role>
 }
 
 scale_caught_up() { # <survivor RS> <departing RS>
-  local survivor=$1 departing=$2 dir="$SCALE_CHECKPOINT_DIR" prefix rc reference_new=0
+  local survivor=$1 departing=$2 dir="$SCALE_CHECKPOINT_DIR" prefix rc reference reference_new=0
   SCALE_CHECKPOINT_ATTEMPT=$((SCALE_CHECKPOINT_ATTEMPT + 1))
   prefix="$dir/attempt-$(printf '%04d' "$SCALE_CHECKPOINT_ATTEMPT")"
-  if [ ! -f "$dir/reference.ldif" ]; then
-    if scale_checkpoint_query "$departing" "$prefix.reference.ldif" "$prefix.reference.err" reference; then
-      cp "$prefix.reference.ldif" "$dir/reference.ldif" || return 1
+  reference="$dir/reference.ldif"
+  if [ ! -f "$reference" ]; then
+    reference="$prefix.reference.ldif"
+    if scale_checkpoint_query "$departing" "$reference" "$prefix.reference.err" reference; then
       reference_new=1
     else
       rc=$?; printf 'checkpoint query of %s failed (exit %s)\n' "$departing" "$rc" >"$OUT/scale-checkpoint/check.txt"; return 1
@@ -82,9 +83,13 @@ scale_caught_up() { # <survivor RS> <departing RS>
   fi
   rc=0
   python3 -I "$HERE/changelog-checkpoint.py" "$BASE_DN" "$OUT/server-ids.txt" \
-    "$dir/reference.ldif" "$prefix.observer.ldif" >"$prefix.compare" 2>&1 || rc=$?
+    "$reference" "$prefix.observer.ldif" >"$prefix.compare" 2>&1 || rc=$?
   printf 'attempt=%s comparison-exit=%s\n' "$SCALE_CHECKPOINT_ATTEMPT" "$rc" >>"$dir/history.txt" || return 1
   cp "$prefix.compare" "$OUT/scale-checkpoint/check.txt" || return 1
+  # Freeze only a usable reference. A newly added origin may not have a position yet.
+  if [ "$reference_new" -eq 1 ] && [ "$rc" -le 1 ]; then
+    cp "$reference" "$dir/reference.ldif" || return 1
+  fi
   [ "$rc" -eq 0 ] || return "$rc"
   # The first successful comparison already sampled the departing node immediately
   # before the observer. Only a reference retained across retries needs refreshing.
@@ -798,6 +803,10 @@ disturb() {
   if is_directory_node "$REMOVED"; then
     scale_wait "the replica id of $REMOVED appears" record_rejoined_id "$REMOVED" || return 1
     rolling_resume "$REMOVED" || return 1
+    if [ "$SCALE_VOLUME" = empty ]; then
+      # The first roll can pause this worker before its first write with the new ID.
+      scale_wait "$REMOVED accepts a write after rejoining" scale_probe "$REMOVED" "$REMOVED" rejoined || return 1
+    fi
   fi
   scale_roll_batch "$FULL_PEERS" up || return 1
   scale_capture_offline_states up $RS_NODES || return 1

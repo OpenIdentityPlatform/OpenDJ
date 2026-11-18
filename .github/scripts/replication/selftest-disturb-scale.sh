@@ -90,6 +90,10 @@ run_case() (
     [ "${FAIL_PAIR_PROBE:-0}" != 1 ] || { [ "${3:-}" != scale_probe ] && [ "${3:-}" != scale_probe_batch ]; } || return 1
     [ "${FAIL_ACTIVE:-0}" != 1 ] || [ "${3:-}" != rolling_clients_running ] || return 1
     if [ "${3:-}" = record_rejoined_id ]; then record_rejoined_id "$4"; fi
+    if [ "${3:-} ${4:-} ${5:-} ${6:-}" = 'scale_probe d3 d3 rejoined' ]; then
+      FAIL_PROBE=${FAIL_REJOINED_WRITE:-0} scale_probe "$4" "$5" "$6" || return 1
+      record 'rejoined write confirmed'
+    fi
     return 0
   }
   date() { echo 400; }
@@ -182,6 +186,16 @@ run_case() (
   fi
   : >"$OUT/calls"
   rm -f "$OUT/logs/$target.offline" "$OUT/logs/$target.previous"
+  if [ "$topology" = combined ] && [ "$mode" = empty ]; then
+    if (FAIL_REJOINED_WRITE=1; disturb) >/dev/null 2>&1; then
+      echo 'failed write from the rebuilt DS was accepted' >&2; exit 1
+    fi
+    if grep -Fx 'request-pause d3' "$OUT/calls" >/dev/null; then
+      echo 'rebuilt writer was held before its first write' >&2; exit 1
+    fi
+    : >"$OUT/calls"
+    rm -f "$OUT/logs/$target.offline" "$OUT/logs/$target.previous"
+  fi
   disturb
   # A recreated container loses its log: retain both rolling generations as well as
   # the final logs that a successful run will otherwise remove during cleanup.
@@ -374,6 +388,16 @@ run_case() (
       stopped && $0 == "resume d3" && !released {released=NR}
       END {if (!returned || !held || !stopped || !released || !(returned < held && held < stopped && stopped < released)) exit 1}
     ' "$OUT/calls" || { echo 'returned writer was not held during scale-out checkpoint' >&2; exit 1; }
+    if [ "$mode" = empty ]; then
+      awk '
+        /^identity d3$/ { identity=NR }
+        identity && /^resume d3$/ && !resumed { resumed=NR }
+        /^rejoined write confirmed$/ { written=NR }
+        /^request-pause d3$/ && !held { held=NR }
+        END { if (!(identity && identity < resumed && resumed < written && written < held)) exit 1 }
+      ' "$OUT/calls" || { echo 'rebuilt DS did not write after recording its ID and before being held' >&2; exit 1; }
+      grep -Fx 'dn: uid=scale-rejoined-d3,ou=People,dc=example,dc=com' "$OUT/probe.ldif" >/dev/null
+    fi
   fi
   [ ! -e "$OUT/logs/$target.offline" ]
   # A failed observer query identifies the node and status in the checkpoint diagnostic.
@@ -450,6 +474,28 @@ done
   ROLLING_END=$SECONDS
   if scale_caught_up observer departing; then echo 'load deadline accepted' >&2; exit 1; fi
   grep -F 'timeout=load' "$SCALE_CHECKPOINT_DIR/history.txt" >/dev/null || { echo 'load deadline not distinguished' >&2; exit 1; }
+)
+# A new origin can be absent on both RSs when a checkpoint first samples them.
+(
+  OUT="$OUT/checkpoint-new-origin"; mkdir -p "$OUT/scale-checkpoint"
+  TOPOLOGY=combined SCALE_VOLUME=empty DS_NODES='d0 d1 d2' RS_NODES=$DS_NODES RS_ONLY=
+  ALL_NODES=$DS_NODES PEERS=d0,d1,d2 BASE_DN=dc=example,dc=com
+  DISTURB_TIMEOUT=900 ROLLING_END=$((SECONDS + 900))
+  . "$HERE/disturb-scale.sh"
+  printf '1 d0\n9 d2\n' >"$OUT/server-ids.txt"
+  scale_monitor_search() {
+    printf 'dn: cn=one,cn=monitor\ndomain-name: %s\nreplicationServer-database: 1\nlast-change: 000001a1a1e836e400010000000a\n\n' "$BASE_DN"
+    if [ -f "$OUT/$1-new-origin" ]; then
+      printf 'dn: cn=nine,cn=monitor\ndomain-name: %s\nreplicationServer-database: 9\nlast-change: 000001a1a1e836e4000900000001\n\n' "$BASE_DN"
+    fi
+  }
+  scale_checkpoint_init observer departing
+  if scale_caught_up observer departing; then echo 'missing new origin was accepted' >&2; exit 1; fi
+  touch "$OUT/departing-new-origin"
+  if scale_caught_up observer departing; then echo 'observer without new origin was accepted' >&2; exit 1; fi
+  grep -F 'DS(9): needs' "$SCALE_CHECKPOINT_DIR/attempt-0002.compare" >/dev/null || { echo 'departing node was not resampled for the new origin' >&2; exit 1; }
+  touch "$OUT/observer-new-origin"
+  scale_caught_up observer departing || { echo 'checkpoint did not recover when both new positions appeared' >&2; exit 1; }
 )
 # A caught-up old checkpoint cannot authorize stopping a server whose current position advanced.
 (
