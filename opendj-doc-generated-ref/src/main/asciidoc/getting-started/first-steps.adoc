@@ -30,32 +30,32 @@ This exercise uses the published OpenDJ {opendj-example-version} ZIP distributio
 
 === Prepare the Environment
 
-Install Java 11 or later, `curl` and `unzip`. Run `java -version` to check the Java runtime. If several runtimes are installed, set `OPENDJ_JAVA_HOME` to the Java installation you want OpenDJ to use. Run the commands below in Bash; on macOS, enter `bash` first if your terminal uses another shell, such as zsh.
+Install Java 11 or later, `curl` and `unzip`. Check Java with `java -version`. If needed, export `OPENDJ_JAVA_HOME` to select another Java installation. Run the commands below in Bash.
 
-Use a host reserved for local evaluation and keep the listener ports inaccessible from other hosts. Ports 1389 (LDAP), 1636 (LDAPS) and 4444 (administration) must be free. The example connects to `localhost`; the setup host name does not restrict listeners to the loopback interface.
+Use an isolated test host with ports 1389 (LDAP), 1636 (LDAPS) and 4444 (administration) available. Setup listens on all interfaces by default, even with `--hostname localhost`.
 
-Download and unpack the server in a new directory:
+Create a private `opendj-quickstart` directory and unpack the ZIP there.
 
 [source,bash,subs="+attributes"]
 ----
-mkdir opendj-quickstart
-cd opendj-quickstart
+mkdir -m 700 opendj-quickstart &&
+cd opendj-quickstart &&
 curl --fail --location --output opendj.zip \
-  https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/{opendj-example-version}/opendj-{opendj-example-version}.zip
+  https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/{opendj-example-version}/opendj-{opendj-example-version}.zip &&
 unzip -q opendj.zip
 ----
 
 === Set Up and Start the Server
 
-Read the link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/{opendj-example-version}/LICENSE.md[license] before accepting it with the setup command below. Choose a nonempty administrator password. Save it in a file readable only by your account so it does not appear in command arguments or shell history:
+Read the link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/{opendj-example-version}/LICENSE.md[license] before accepting it with the setup command below. Enter a nonempty administrator password. The command block saves it in a private file for setup and the LDAP commands.
 
 [source,bash]
 ----
-read -r -s -p 'Directory Manager password: ' quickstart_password
+IFS= read -r -s -p 'Directory Manager password: ' quickstart_password
 printf '\n'
 (umask 077; printf '%s\n' "$quickstart_password" > quickstart-password.txt)
 unset quickstart_password
-cd opendj
+cd opendj &&
 ./setup --cli --no-prompt --acceptLicense \
   --hostname localhost --ldapPort 1389 --ldapsPort 1636 \
   --adminConnectorPort 4444 --generateSelfSignedCertificate \
@@ -66,7 +66,7 @@ cd opendj
 
 Setup creates the base entry and starts the server. Keep this terminal in the `opendj` directory for the remaining commands.
 
-Verify that the base entry exists:
+Verify that the base entry exists.
 
 [source,bash]
 ----
@@ -75,7 +75,7 @@ Verify that the base entry exists:
   --baseDN 'dc=example,dc=com' --searchScope base '(objectClass=*)' dn
 ----
 
-The output should contain `dn: dc=example,dc=com`. The `--trustAll` option accepts the evaluation certificate without validating its identity. For a deployed service, configure a trusted certificate and client trust instead; see xref:../admin-guide/chap-connection-handlers.adoc#setup-server-cert[Preparing For Secure Communications].
+The output should contain `dn: dc=example,dc=com`. Use `--trustAll` only for this local exercise. It accepts any server certificate. For a deployed service, see xref:../admin-guide/chap-connection-handlers.adoc#setup-server-cert[Preparing For Secure Communications].
 
 === Add a Person
 
@@ -115,7 +115,7 @@ Search below the base DN for Alice, requesting only her name and email address:
   --baseDN 'dc=example,dc=com' '(uid=alice)' cn mail
 ----
 
-The result includes Alice's DN, `cn: Alice Jensen` and `mail: alice@example.com`.
+The search covers the whole subtree under the base DN. The filter selects entries by `uid`, and the trailing attribute names select the fields to return. The result includes Alice's DN, name and email address.
 
 Replace the email address using an LDIF change record:
 
@@ -132,7 +132,7 @@ LDIF
   --filename update-alice.ldif
 ----
 
-Repeat the search. It should now return `mail: alice.jensen@example.com`.
+Repeat the search. It should now return `mail: alice.jensen@example.com`. In scripts, check the LDAP tool’s exit status before continuing.
 
 === Restart and Remove the Sample Data
 
@@ -140,21 +140,21 @@ Stop and restart the server as the same operating-system user who ran setup:
 
 [source,bash]
 ----
-./bin/stop-ds
+./bin/stop-ds &&
 ./bin/start-ds
 ----
 
 Repeat the search to verify that Alice's changed email address survives the restart.
 
-Delete the child entry before its parent:
+While Alice’s entry is still present, you can xref:../admin-guide/chap-tuning.adoc#perf-local-example[measure search and modification rates].
+
+Pass one DN per line to `ldapdelete`, with the child entry before its parent.
 
 [source,bash]
 ----
-for dn in 'uid=alice,ou=People,dc=example,dc=com' 'ou=People,dc=example,dc=com'; do
+printf '%s\n' 'uid=alice,ou=People,dc=example,dc=com' 'ou=People,dc=example,dc=com' |
   ./bin/ldapdelete --hostname localhost --port 1636 --useSSL --trustAll \
-    --bindDN 'cn=Directory Manager' --bindPasswordFile ../quickstart-password.txt \
-    "$dn"
-done
+    --bindDN 'cn=Directory Manager' --bindPasswordFile ../quickstart-password.txt
 ----
 
 Repeat the search once more. It should return no entries. The base entry remains available for another exercise.
@@ -171,8 +171,10 @@ The installation and its database remain on disk. To use it again, run `./bin/st
 
 === Next Steps
 
-* xref:../admin-guide/chap-privileges-acis.adoc[Configuring Privileges and Access Control] explains how to give application accounts the access they need.
+* See more xref:../server-dev-guide/chap-ldap-operations.adoc#search-ldap[LDAP search] and xref:../server-dev-guide/chap-ldap-operations.adoc#modify-ldap[update] examples.
+* xref:../admin-guide/chap-privileges-acis.adoc#aci-local-exercise[Try Delegating Access Control] checks what a user can do before and after you grant access.
+* xref:../how-to/rest-access.adoc[Access Directory Entries Over REST] uses a separate HTTPS listener.
 * xref:../admin-guide/chap-backup-restore.adoc[Backing Up and Restoring Data] and xref:../admin-guide/chap-monitoring.adoc[Monitoring] cover routine operations.
-* xref:../admin-guide/chap-replication.adoc[Managing Data Replication] covers multiple servers.
+* xref:../admin-guide/chap-replication.adoc#repl-local-exercise[Try Replication on Two Local Servers] verifies that changes reach a second replica.
 * xref:../how-to/tasks.adoc[Find a Procedure] links deployment and integration recipes.
 * xref:../release-notes/release-5.2.0.adoc[OpenDJ 5.2.0 Release Notes] describes this release and links the complete change list.

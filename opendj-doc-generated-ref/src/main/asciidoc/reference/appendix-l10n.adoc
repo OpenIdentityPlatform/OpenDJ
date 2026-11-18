@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
@@ -21,8 +21,14 @@
 
 
 [appendix]
+ifndef::env-site[]
 [#appendix-l10n]
+endif::[]
 == Localization
+
+ifdef::env-site[]
+anchor:appendix-l10n[]
+endif::[]
 
 OpenDJ software stores data in UTF-8 format. It enables you to store and to search for attribute values according to a variety of language specific locales. OpenDJ software is also itself localized for a smaller variety of languages.
 

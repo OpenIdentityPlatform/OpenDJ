@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024-2026 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
@@ -43,11 +43,13 @@ This chapter includes the following procedures and examples:
 
 * xref:#upgrade-zip["To Upgrade to OpenDJ {opendj-version-short}"]
 
-* xref:#upgrade-zip-example["Upgrading to OpenDJ {opendj-version-short}"]
+* xref:#upgrade-zip-example["Example ZIP Upgrade"]
 
 * xref:#upgrade-msi["To Upgrade the Windows MSI Installation"]
 
 * xref:#upgrade-docker["To Upgrade a Docker Container"]
+
+* xref:#upgrade-dn-parsing["To Check Stored DNs When Upgrading From a Release Before 5.2.0"]
 
 * xref:#upgrade-repl["To Upgrade Replicated Servers"]
 
@@ -62,17 +64,15 @@ This chapter includes the following procedures and examples:
 .Before You Upgrade
 ====
 
-. Prepare to perform the upgrade procedure as the user who owns the OpenDJ server files.
-+
-Make sure you have the credentials to run commands as the user who owns the server.
+. Run the upgrade as the account that owns the server files.
 
-. (Optional) If OpenDJ directory server runs with Java 7, move to a newer version, at least Java 11, before continuing the upgrade process.
+. Use Java 11 or later for the new server. If the old server needs an earlier runtime, stop it before switching Java.
 +
-To move to a newer version, edit the `default.java-home` setting in the `opendj/config/java.properties` file, and then run the `dsjavaproperties` command.
+For ZIP installations, see xref:chap-install.adoc#chap-jvm-opts["To Configure Java Runtime Options"]. Linux packages use their Java dependency or service environment. Docker supplies Java in the image.
 
 . Download the latest release from the link:https://github.com/OpenIdentityPlatform/OpenDJ/releases[GitHub, window=\_blank] site.
 
-. (Optional)  If you are upgrading OpenDJ directory server on Windows, and OpenDJ is registered as a Windows service, disable OpenDJ as a Windows service before upgrade, as in the following example:
+. For a ZIP installation on Windows registered as a service, disable the service before replacing files. For an MSI installation, follow the service instructions in xref:#upgrade-msi["To Upgrade the Windows MSI Installation"].
 +
 
 [source, console]
@@ -82,36 +82,26 @@ C:\path\to\opendj\bat> windows-service.bat --disableService
 +
 After upgrade, you can enable OpenDJ as a Windows service again.
 
-. Make sure you perform a full backup of your current OpenDJ installation to revert if the upgrade fails.
-+
-Due to changes to the backup archive format, make sure you stop OpenDJ directory server and back up the file system directory where the current OpenDJ directory server is installed rather than creating a backup archive with the `backup` command.
+. Stop the server. Back up the installation directory, the instance directory named by `instance.loc`, and any configuration or data stored elsewhere. Store the file-system backup outside these directories so you can restore the binaries and data.
 
 ====
 
 [#upgrade-zip]
 .To Upgrade to OpenDJ {opendj-version-short}
 ====
-Before starting this procedure, follow the steps in xref:#before-you-upgrade["Before You Upgrade"].
+Follow xref:#before-you-upgrade["Before You Upgrade"] first.
 
-To upgrade OpenDJ directory server installed from native packages (.deb, .rpm), install the newer package with the system package manager (`sudo apt-get install ./opendj_{opendj-version}-1_all.deb` or `sudo dnf install ./opendj-{opendj-version}-1.noarch.rpm`). The package stops the running server, runs the `upgrade` tool as the dedicated `opendj` user, migrates file ownership under `/opt/opendj` to that user, and restarts the service (systemd, with a SysV init fallback) if it was running before the upgrade. Back up the installation directory first, as described in xref:#before-you-upgrade["Before You Upgrade"].
+For a native package, install the new package with `sudo apt-get install ./opendj_{opendj-version}-1_all.deb` or `sudo dnf install ./opendj-{opendj-version}-1.noarch.rpm`. The package updates file ownership and runs `upgrade` as `opendj`. If the service is stopped after the upgrade, start it with `sudo systemctl start opendj` or `sudo /etc/init.d/opendj start` on SysV.
 
 After the upgrade the server runs as the non-root `opendj` user. An instance that listens on privileged ports such as LDAP 389 or LDAPS 636 keeps working under systemd, where the service is granted `CAP_NET_BIND_SERVICE`. On non-systemd hosts that use the SysV init script, grant the capability another way (for example `authbind` or an `iptables` redirect) or use ports above 1024, as described in the installation chapter.
 
 [NOTE]
 ======
-OpenDJ directory server backend storage options have changed since OpenDJ 2.6. The underlying implementation is based on an extensible architecture, allowing you to choose the backend storage type when you create a persistent backend for directory data.
-
-This procedure applies when you upgrade from OpenDJ 2.6, retaining the same underlying backend storage. The configuration changes from a Local DB backend to a JE Backend, and the upgrade procedure migrates the underlying backend database. There is no need to export data to LDIF when following this procedure.
+Upgrading a standard OpenDJ 2.6 installation migrates the Local DB backend to JE in place.
 ======
-The following steps describe how to upgrade OpenDJ directory server installed from the cross-platform (.zip) delivery:
+For a ZIP installation, follow these steps with the server stopped and backed up.
 
-. Log in as the user who owns the current OpenDJ server.
-
-. Stop the current OpenDJ server.
-
-. (Optional) If you have not already backed up the current OpenDJ server, make a back up copy of the directory where OpenDJ is installed.
-
-. Unpack the new files from the .zip delivery over the current server files.
+. Unpack the new ZIP archive over the existing server files. The archive expands into `opendj`. If your installation uses a different directory name, unpack into a staging directory and copy its contents over the installation, replacing read-only templates as in the example below.
 +
 [NOTE]
 ======
@@ -120,13 +110,7 @@ When upgrading from a release before 5.1.2, first delete the stale `lib/org.open
 That file is a duplicate library that shipped in older distributions and is no longer part of the delivery, so unpacking the new archive over the existing installation neither overwrites nor removes it. Because the server builds its classpath from `lib/*`, the leftover jar makes the runtime report the old binary version, and the server fails to start after the upgrade with an error such as `The OpenDJ binary version '5.1.1...' does not match the installed version '5.1.2...'. Please run upgrade before continuing`.
 ======
 
-. Run the `upgrade` command, described in xref:../reference/admin-tools-ref.adoc#upgrade-1[upgrade(1)] in the __Reference__, to bring OpenDJ configuration and application data up to date with the new binary and script files that you copied over the current server files.
-+
-By default, the `upgrade` command requests confirmation before making important configuration changes. For some potentially long-duration tasks, such as rebuilding indexes, the default choice is to defer the tasks until after upgrade. Tasks that are not performed during upgrade must generally be performed after upgrade but before you restart the server.
-+
-You can use the `--no-prompt` option to run the command non-interactively, with the `--acceptLicense` option to accept the license terms non-interactively.
-+
-When using the `--no-prompt` option, if the `upgrade` command cannot complete because it requires confirmation for a potentially very long or critical task, then it exits with an error and a message about how to finish making the changes. You can add the `--force` option to force a non-interactive upgrade to continue in this case, also performing long running and critical tasks.
+. Run xref:../reference/admin-tools-ref.adoc#upgrade-1[upgrade(1)] to update configuration and data. For an unattended run, use `--no-prompt --acceptLicense`. Add `--force` to run tasks that require confirmation. Complete any deferred tasks before restarting.
 
 . Start the upgraded OpenDJ server.
 +
@@ -135,8 +119,7 @@ At this point the upgrade process is complete. See the resulting `upgrade.log` f
 
 [NOTE]
 ======
-When you upgrade to OpenDJ 5.0 from an OpenDJ 3 or earlier, the upgrade procedure leaves the HTTP connection handler disabled.
-The newer configuration supports inheritance and subsresources, but is not compatible with the previous configuration.
+When you upgrade from a release older than 3.5, the upgrade procedure disables the HTTP connection handler by default. The newer configuration supports inheritance and subresources and uses a different format.
 You must rewrite your configuration to the version described in xref:../reference/appendix-rest2ldap.adoc#appendix-rest2ldap["REST to LDAP Configuration"] in the __Reference__, and then reconfigure the server to use the new configuration. For details, see xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap["RESTful Client Access Over HTTP"] in the __Administration Guide__.
 ======
 
@@ -151,109 +134,33 @@ C:\path\to\opendj\bat> windows-service.bat --enableService
 ====
 
 [#upgrade-zip-example]
-.Upgrading to OpenDJ 5.0
+.Example ZIP Upgrade
 ====
-The following example upgrades an OpenDJ 2.6.3 directory server, backing up the current server directory in case the upgrade process fails. In this example, the server properties are updated to use Java 11, and the Local DB backend is migrated to a JE backend:
+This UNIX example upgrades 5.1.2 to 5.2.0 with the tools in `renamed-opendj` and data in the sibling directory `instance`. Adjust the paths and review the xref:#upgrade-dn-parsing[stored DN and index checks] first.
 
-[source, console, subs="+attributes"]
+[source, console]
 ----
-$ cd /path/to/
-$ sed -e "s/default.java-home=.*/default.java-home=\/path\/to\/jdk11/" \
- opendj/config/java.properties \
- > opendj/config/java.properties.new ; \
- mv opendj/config/java.properties.new opendj/config/java.properties
-$ /path/to/opendj/bin/dsjavaproperties
-$ /path/to/opendj/bin/stop-ds --quiet
-... msg=The Directory Server is now stopped
-$ zip -rq OpenDJ-backup.zip opendj/
-$ unzip -o ~/Downloads/opendj-{opendj-version}.zip
-$ /path/to/opendj/upgrade --acceptLicense
-
->>>> OpenDJ Upgrade Utility
-
- * OpenDJ will be upgraded from version 2.6.3.12667 to
- {opendj-version}.build-hash
- * See '/path/to/opendj/upgrade.log' for a detailed log of this operation
-
->>>> Preparing to upgrade
-
-  OpenDJ {opendj-version} introduced changes to the JE backend configuration and database
-  format. The upgrade will update all JE backend configurations, but will only
-  migrate JE backend databases which are associated with *enabled* JE
-  backends. It is very strongly recommended that any existing data has been
-  backed up and that you have read the upgrade documentation before
-  proceeding. Do you want to proceed with the upgrade? (yes/no) [no]: yes
-
-  OpenDJ {opendj-version} changed the matching rule implementations. All indexes have to
-  be rebuilt. This could take a long time to proceed. Do you want to launch
-  this process automatically at the end of the upgrade? (yes/no) [no]: yes
-
-  OpenDJ {opendj-version} improved the replication changelog storage format. As a
-  consequence, the old changelog content of the current replication server
-  will be erased by the upgrade. The new changelog content will be
-  automatically reconstructed from the changelog of other replication servers
-  in the topology. After the upgrade, dsreplication reset-change-number can be
-  used to reset the changelog change-number of the current replication server
-  to match another replication server. Do you want to proceed with the
-  upgrade? (yes/no) [no]: yes
-
-  The upgrade is ready to proceed. Do you wish to continue? (yes/no) [yes]:
-
-
->>>> Performing upgrade
-
-  Changing matching rule for 'userCertificate' and 'caCertificate' to
-  CertificateExactMatch...............................................   100%
-  Configuring 'CertificateExactMatch' matching rule...................   100%
-  Replacing schema file '03-pwpolicyextension.ldif'...................   100%
-  Removing 'dc=replicationchanges' backend............................   100%
-  Removing ACI for 'dc=replicationchanges'............................   100%
-  Adding default privilege 'changelog-read' to all root DNs...........   100%
-  Adding PKCS5S2 password storage scheme configuration................   100%
-  Rerunning dsjavaproperties..........................................   100%
-  Updating ds-cfg-java-class attribute in File-Based Debug Logger.....   100%
-  Deleting ds-cfg-default-debug-level attribute in File-Based Debug
-  Logger..............................................................   100%
-  Updating ds-cfg-default-severity attribute in File-Based Error
-  Logger..............................................................   100%
-  Updating ds-cfg-override-severity attribute in Replication Repair
-  Logger..............................................................   100%
-  Removing config for 'Network Groups'................................   100%
-  Removing config for 'Workflows'.....................................   100%
-  Removing config for 'Workflow Elements'.............................   100%
-  Removing config for 'Network Group Plugin'..........................   100%
-  Removing config for 'Extensions'....................................   100%
-  Removing config for 'File System Entry Cache'.......................   100%
-  Removing config for 'Entry Cache Preload'...........................   100%
-  Removing file '/path/to/opendj/bin/dsframework'.....................   100%
-  Removing file '/path/to/opendj/bat/dsframework.bat'.................   100%
-  Migrating JE backend 'userRoot'.....................................   100%
-  Convert local DB backends to JE backends............................   100%
-  Convert local DB indexes to backend indexes.........................   100%
-  Convert local DB VLV indexes to backend VLV indexes.................   100%
-  Removing file '/path/to/opendj/bin/dbtest'..........................   100%
-  Removing file '/path/to/opendj/bat/dbtest.bat'......................   100%
-  Removing content of changelog in '/path/to/opendj/./changelogDb'
-  directory...........................................................   100%
-  Enable log file based replication changelog storage.................   100%
-  Replacing schema file '02-config.ldif'..............................   100%
-  Archiving concatenated schema.......................................   100%
-
->>>> OpenDJ was successfully upgraded from version 2.6.3.12667 to
-5.0.0.build-hash
-
-
->>>> Performing post upgrade tasks
-
-...
-
->>>> Post upgrade tasks complete
-
- * See '/path/to/opendj/upgrade.log' for a detailed log of this operation
-
-$ /path/to/opendj/bin/start-ds --quiet
-$
+$ cd /path/to
+$ ./renamed-opendj/bin/stop-ds
+$ backup_dir=$(mktemp -d "$PWD/opendj-backup.XXXXXX")
+$ (umask 077; tar -czf "$backup_dir/opendj-backup.tar.gz" renamed-opendj instance)
+$ staging=$(mktemp -d)
+$ unzip -q ~/Downloads/opendj-5.2.0.zip -d "$staging"
+$ cp -fpR "$staging"/opendj/. renamed-opendj/
+$ export OPENDJ_JAVA_HOME=/path/to/jdk
+$ ./renamed-opendj/upgrade --no-prompt --acceptLicense --force
 ----
+
+Review the upgrade output and any details in `instance/logs/upgrade.log` before starting the server.
+
+[source, console]
+----
+$ ./renamed-opendj/bin/start-ds
+$ ./renamed-opendj/bin/status
+----
+
+After startup, verify that the server serves the intended data and that applications can connect before directing traffic to it.
+
 ====
 
 [#upgrade-msi]
@@ -366,10 +273,14 @@ Images before 5.2.0 ran their health check bound as the root user, while the cur
 
 [source, console]
 ----
-$ timeout 5m bash -c 'until [ "$(docker inspect -f "{{.State.Health.Status}}" opendj)" = healthy ]; do sleep 5; done'
+$ docker inspect --format '{{.State.Health.Status}}' opendj
 ----
 +
-The upgrade tasks that take long, such as verifying or rebuilding indexes, are performed before the server starts, since nobody is there to run them afterwards. On a large instance they can take longer than the start period of the health check, so the container may report `unhealthy` until the upgrade is over, and the command above may give up before: `docker logs opendj` shows which task is running, and the command can be run again. A container whose upgrade fails does not report itself healthy: `docker logs opendj` shows why, and the upgrade log `/opt/opendj/data/logs/upgrade.log` has the details. Starting it again does not get past the failure either: the volume carries the file `/opt/opendj/data/.upgrade-pending` from before the upgrade until the upgrade, the tasks that run after it included, has succeeded. An upgrade that failed before it recorded the new version is run again on the next start. When a task that runs after the upgrade fails, such as an index rebuild, the new version is already recorded, and the upgrade would find nothing left to do: a container started over the volume then starts the server, logs that the upgrade did not complete, and does not report itself healthy. Revert as follows, or rebuild the indexes that `upgrade.log` names, as described in xref:../admin-guide/chap-indexing.adoc#rebuild-index["Rebuilding Indexes"] in the __Administration Guide__, then remove the file with `docker exec opendj rm /opt/opendj/data/.upgrade-pending` and restart the container with `docker restart opendj`.
+Index verification and rebuilds can leave a large instance `unhealthy` while they run. Check `docker logs opendj` and `/opt/opendj/data/logs/upgrade.log` for progress or errors. The volume retains `/opt/opendj/data/.upgrade-pending` until the upgrade and its post-upgrade tasks finish.
++
+If the upgrade fails before recording the new version, the next start retries it.
++
+If a post-upgrade task fails after the new version is recorded, the next start opens the server for recovery and leaves it `unhealthy`. Restore the backup as shown below or xref:../admin-guide/chap-indexing.adoc#rebuild-index[rebuild the indexes named in the log]. After a successful rebuild, remove the marker with `docker exec opendj rm /opt/opendj/data/.upgrade-pending` and run `docker restart opendj`.
 
 To revert, remove the new container, replace the volume with one restored from the backup, and start a container from the older image over it, with the options of the old container. Restore into an empty volume: files that the upgrade added would be left behind in a volume that the archive is extracted over.
 

@@ -1,0 +1,102 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+:table-caption!:
+:opendj-sdk-example-version: 5.2.0
+:opendj-sdk-javadoc: https://doc.openidentityplatform.org/opendj/apidocs/org/forgerock/opendj
+:opendj-sdk-examples: https://github.com/OpenIdentityPlatform/OpenDJ/blob/{opendj-sdk-example-version}/opendj-ldap-sdk-examples/src/main/java/org/forgerock/opendj/examples
+
+ifndef::env-site[]
+[#chap-ldap-sdk]
+endif::[]
+== Developing Java LDAP Clients
+
+ifdef::env-site[]
+anchor:chap-ldap-sdk[]
+endif::[]
+
+This example uses the OpenDJ LDAP SDK {opendj-sdk-example-version} to check which LDAP versions a server supports.
+
+[#ldap-sdk-maven]
+=== Add the SDK to a Maven Project
+
+Use Java 11 or later and Maven 3. Save this `pom.xml`. The `opendj-grizzly` dependency brings in the `opendj-core` SDK and provides its LDAP network transport.
+
+[source,xml,subs="+attributes"]
+----
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.example</groupId>
+  <artifactId>ldap-client</artifactId>
+  <version>1.0.0</version>
+  <properties>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.openidentityplatform.opendj</groupId>
+      <artifactId>opendj-grizzly</artifactId>
+      <version>{opendj-sdk-example-version}</version>
+    </dependency>
+  </dependencies>
+</project>
+----
+
+[#ldap-sdk-search]
+=== Read the Root DSE
+
+Start the evaluation server from xref:../getting-started/first-steps.adoc#getting-started-first-directory[Your First Directory]. The example reads the root DSE, an entry with public server information, from its LDAP listener on port 1389.
+
+Save this class as `src/main/java/ReadCapabilities.java`.
+
+[source,java]
+----
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.RootDSE;
+
+public final class ReadCapabilities {
+    public static void main(String[] args) throws Exception {
+        try (LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", 1389);
+             Connection connection = factory.getConnection()) {
+            RootDSE rootDse = RootDSE.readRootDSE(connection);
+            var versions = rootDse.getSupportedLDAPVersions();
+            System.out.println("LDAPv3 supported = " + versions.contains(3));
+        }
+    }
+}
+----
+
+Run this command from the Maven project directory.
+
+[source,bash]
+----
+mvn -q compile exec:java -Dexec.mainClass=ReadCapabilities
+----
+
+The program prints `LDAPv3 supported = true`. The link:{opendj-sdk-javadoc}/ldap/RootDSE.html[`RootDSE`] class also exposes naming contexts, supported controls, and extended operations.
+
+[#ldap-sdk-next-steps]
+=== Use the SDK in an Application
+
+* For simple authentication, call `Connection.bind` after connecting over LDAPS or StartTLS. Configure link:{opendj-sdk-javadoc}/ldap/LDAPConnectionFactory.html[`LDAPConnectionFactory`] with `SSL_CONTEXT` and a trust configuration that validates the server certificate and identity. Set `SSL_USE_STARTTLS` to `true` to negotiate TLS on an LDAP listener. See the link:{opendj-sdk-examples}/SimpleAuth.java[simple bind] and link:{opendj-sdk-examples}/SASLAuth.java[SASL bind] examples.
+* Use `Connection.search` to read multiple entries. Set a specific base DN, scope and filter, and request the attributes you need. See xref:chap-ldap-operations.adoc#search-ldap[Searching the Directory] for equivalent command-line examples and link:{opendj-sdk-examples}/Search.java[`Search`] for an SDK example that handles entries and continuation references. Follow referrals only to servers your application trusts. Use `Connection.compare` to compare an attribute value and check the LDAP result code for the outcome.
+* Use a connection factory or a pool for repeated operations. Close connections when finished with them and close the factory at application shutdown. Use separate connections for binds as different users. For concurrent operations, see link:{opendj-sdk-examples}/SearchAsync.java[`SearchAsync`] and link:{opendj-sdk-examples}/ModifyAsync.java[`ModifyAsync`]. SDK methods report LDAP failures through `LdapException`, whose result carries the LDAP result code and diagnostic details.
+* Use link:{opendj-sdk-javadoc}/ldap/requests/Requests.html[`Requests`] to construct add, modify, modify DN, delete, and extended operation requests. See link:{opendj-sdk-examples}/Modify.java[`Modify`], link:{opendj-sdk-examples}/UpdateGroup.java[`UpdateGroup`], and link:{opendj-sdk-examples}/ExtendedOperations.java[`ExtendedOperations`]. For request controls, check `supportedControl` before depending on a control and see link:{opendj-sdk-examples}/Controls.java[`Controls`] and link:{opendj-sdk-examples}/UseGenericControl.java[`UseGenericControl`].
+* For schema discovery, read `subschemaSubentry` or use the link:{opendj-sdk-examples}/ReadSchema.java[`ReadSchema`] example. For files in LDAP Data Interchange Format (LDIF), use the link:{opendj-sdk-javadoc}/ldif/package-summary.html[`org.forgerock.opendj.ldif`] readers and writers. Use an entry reader for entries and a change record reader for LDIF files that describe updates.
+* The SDK uses localized messages. Handle errors by result code and use `getLocalizedMessage()` for messages presented to users.
+* A proxy can reuse connections and distribute them among servers with link:{opendj-sdk-javadoc}/ldap/Connections.html[`Connections`]. For listener and request handler examples, see link:{opendj-sdk-examples}/Proxy.java[`Proxy`] and link:{opendj-sdk-examples}/RewriterProxy.java[`RewriterProxy`].

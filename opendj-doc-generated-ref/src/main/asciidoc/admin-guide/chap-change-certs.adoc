@@ -20,8 +20,14 @@
 :table-caption!:
 
 
+ifndef::env-site[]
 [#chap-change-certs]
+endif::[]
 == Changing Server Certificates
+
+ifdef::env-site[]
+anchor:chap-change-certs[]
+endif::[]
 
 This chapter covers how to replace OpenDJ key pairs and public key certificates. In this chapter you will learn to:
 
@@ -141,7 +147,7 @@ $ keytool \
 [source, console]
 ----
 $ keytool \
- -genkey \
+ -genkeypair \
  -alias admin-cert \
  -keyalg RSA \
  -validity 7300 \
@@ -153,28 +159,7 @@ $ keytool \
  -keypass `cat admin-keystore.pin`
 ----
 +
-Notice that the `-alias` option takes the same alias as before. This is because the `ssl-cert-nickname` for the Administration Connector is configured as `admin-cert`. Also, the `-dname` option has a CN value corresponding to the fully qualified domain name of the host where OpenDJ directory server is running.
-
-. Get the new key pair's certificate signed, using one of the following alternatives:
-+
-
-* Self-sign the certificate:
-+
-
-[source, console]
-----
-$ keytool \
- -selfcert \
- -alias admin-cert \
- -validity 7300 \
- -keystore admin-keystore \
- -storepass `cat admin-keystore.pin`
-----
-
-* Create a certificate signing request, have it signed by a CA, and import the signed certificate from the CA reply.
-+
-For examples of the `keytool` commands to use, see xref:chap-connection-handlers.adoc#new-ca-signed-cert["To Request and Install a CA-Signed Certificate"].
-
+Keep the configured alias, `admin-cert`, and set the server DNS name in `-ext`. The generated certificate is self-signed. To use a CA-signed certificate, follow the signing and import steps in xref:chap-connection-handlers.adoc#new-ca-signed-cert[Request and Install a CA-Signed Certificate] with the same alias and DNS name.
 
 . Export a copy of the certificate from the keystore:
 +

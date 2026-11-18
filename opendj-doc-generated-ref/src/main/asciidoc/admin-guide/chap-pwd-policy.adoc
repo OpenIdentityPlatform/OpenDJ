@@ -20,8 +20,14 @@
 :table-caption!:
 
 
+ifndef::env-site[]
 [#chap-pwd-policy]
+endif::[]
 == Configuring Password Policy
+
+ifdef::env-site[]
+anchor:chap-pwd-policy[]
+endif::[]
 
 This chapter covers password policy including examples for common use cases. In this chapter you will learn to:
 
