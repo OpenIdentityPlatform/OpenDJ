@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2026 3A Systems, LLC
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -85,9 +86,13 @@ public class ReplicationServerHandler extends ServerHandler
   private final Set<CSN> receivedUpdates = new LinkedHashSet<>();
   /** Selected updates and their local generation, awaiting a socket write. Guarded by publishedState. */
   private final Map<CSN, Long> pendingWrites = new HashMap<>();
-  /** A filtered update cannot be certified by traversing the cursor. Guarded by publishedState. */
-  private final Map<Integer, CSN> firstDiscardedWrites = new HashMap<>();
-  /** Local changelog generation to which firstDiscardedWrites belongs. Guarded by publishedState. */
+  /** Filtered writes still awaiting an exact receipt. Guarded by publishedState. */
+  private final Set<CSN> discardedWrites = new HashSet<>();
+  /** Earliest discard per origin beyond the exact tracking capacity. Guarded by publishedState. */
+  private final Map<Integer, CSN> firstOverflowDiscards = new HashMap<>();
+  /** Origins with multiple distinct overflow discards whose individual CSNs were forgotten. */
+  private final Set<Integer> ambiguousDiscardOrigins = new HashSet<>();
+  /** Local changelog generation of the discarded writes. Guarded by publishedState. */
   private long discardedGenerationId = -1;
 
   @Override
@@ -101,6 +106,16 @@ public class ReplicationServerHandler extends ServerHandler
       {
         final CSN csn = update.getCSN();
         receivedState.update(csn);
+        final long localGenerationId = replicationServerDomain.getGenerationId();
+        if (generationId != -1 && generationId == localGenerationId)
+        {
+          // The reader can confirm an exact CSN before or after the writer reports its drop.
+          final boolean confirmedDiscard = discardedGenerationId == localGenerationId && confirmDiscard(csn);
+          if (pendingWrites.remove(csn, localGenerationId) || confirmedDiscard)
+          {
+            publishedState.notifyAll();
+          }
+        }
         receivedUpdates.remove(csn);
         receivedUpdates.add(csn);
         if (receivedUpdates.size() > Math.max(1, maxQueueSize))
@@ -164,8 +179,7 @@ public class ReplicationServerHandler extends ServerHandler
       receivedState.clear();
       receivedUpdates.clear();
       pendingWrites.clear();
-      firstDiscardedWrites.clear();
-      discardedGenerationId = -1;
+      clearDiscardedWrites(-1);
       publishedState.clear();
       publishedState.update(state);
     }
@@ -195,14 +209,46 @@ public class ReplicationServerHandler extends ServerHandler
       {
         if (discardedGenerationId != localGenerationId)
         {
-          firstDiscardedWrites.clear();
-          discardedGenerationId = localGenerationId;
+          clearDiscardedWrites(localGenerationId);
         }
-        firstDiscardedWrites.merge(csn.getServerId(), csn,
-            (first, next) -> first.isNewerThan(next) ? next : first);
+        if (discardedWrites.size() < Math.max(1, maxQueueSize))
+        {
+          discardedWrites.add(csn);
+        }
+        else
+        {
+          // One overflow CSN per origin is still exact. After a second distinct one,
+          // retain the earliest barrier until reset: its receipt alone cannot prove the rest.
+          final int origin = csn.getServerId();
+          final CSN first = firstOverflowDiscards.putIfAbsent(origin, csn);
+          if (first != null && !first.equals(csn))
+          {
+            ambiguousDiscardOrigins.add(origin);
+            if (first.isNewerThan(csn))
+            {
+              firstOverflowDiscards.put(origin, csn);
+            }
+          }
+        }
       }
       publishedState.notifyAll();
     }
+  }
+
+  private void clearDiscardedWrites(long localGenerationId)
+  {
+    discardedWrites.clear();
+    firstOverflowDiscards.clear();
+    ambiguousDiscardOrigins.clear();
+    discardedGenerationId = localGenerationId;
+  }
+
+  /** Called under publishedState for a receipt in the generation of the discarded writes. */
+  private boolean confirmDiscard(CSN csn)
+  {
+    final int origin = csn.getServerId();
+    return discardedWrites.remove(csn)
+        || (!ambiguousDiscardOrigins.contains(origin) && firstOverflowDiscards.remove(origin, csn));
   }
 
   /** Must be called under publishedState, like selecting a record and completing its write. */
@@ -210,18 +256,17 @@ public class ReplicationServerHandler extends ServerHandler
   {
     for (CSN csn : target)
     {
-      final CSN discarded = discardedGenerationId == replicationServerDomain.getGenerationId()
-          ? firstDiscardedWrites.get(csn.getServerId()) : null;
-      if (discarded != null && !discarded.isNewerThan(csn))
+      if (discardedGenerationId == replicationServerDomain.getGenerationId())
       {
-        return false;
-      }
-      for (CSN pending : pendingWrites.keySet())
-      {
-        if (pending.getServerId() == csn.getServerId() && !pending.isNewerThan(csn))
+        final CSN firstOverflow = firstOverflowDiscards.get(csn.getServerId());
+        if ((firstOverflow != null && !firstOverflow.isNewerThan(csn)) || blocksDelivery(discardedWrites, csn))
         {
           return false;
         }
+      }
+      if (blocksDelivery(pendingWrites.keySet(), csn))
+      {
+        return false;
       }
       if (!publishedState.cover(csn) && !super.getServerState().cover(csn))
       {
@@ -229,6 +274,18 @@ public class ReplicationServerHandler extends ServerHandler
       }
     }
     return true;
+  }
+
+  private static boolean blocksDelivery(Set<CSN> outstanding, CSN target)
+  {
+    for (CSN csn : outstanding)
+    {
+      if (csn.getServerId() == target.getServerId() && !csn.isNewerThan(target))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /** Waits within a shared monotonic deadline for this peer's outstanding direct updates. */

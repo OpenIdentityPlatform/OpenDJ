@@ -602,7 +602,7 @@ join_candidates() {
     for peer in "${PEERS[@]}"; do
       is_self "$peer" && continue
       state=$(peer_state "$peer") || continue
-      trusted "$state" || continue
+      [ "$state" = ready ] || continue
       config=$(replication_config "$peer") || continue
       grep -qx server <<<"$config" && servers+=("$peer")
     done
@@ -621,7 +621,8 @@ join_candidates() {
 # dsreplication enable refuses it. The peer is read under its lock, which an enable through
 # it by another server holds while it changes what the peer runs.
 enable_through() {
-  local rc own peer_lock config role state peer_args own_args enable_dn="$BASE_DN"
+  local rc own peer_lock config role state peer_args own_args
+  local -a enable_args=(--baseDN "$BASE_DN")
   take_join_lock localhost || return 75
   own=$JOIN_LOCK_VALUE
   if ! take_join_lock "$1"; then
@@ -633,7 +634,7 @@ enable_through() {
     echo "join: could not read how $1 replicates"
     rc=75
   elif [ "$ROLE" = replication ] && [ "${REPLICATION_RECOVER_FROM_RS:-0}" = 1 ] \
-      && { ! grep -qx server <<<"$config" || ! state=$(peer_state "$1") || ! trusted "$state"; }; then
+      && { ! grep -qx server <<<"$config" || ! state=$(peer_state "$1") || [ "$state" != ready ]; }; then
     # Recheck under the peer lock: discovery is not permission to use a peer
     # which has since reset its replication or become unavailable.
     echo "join: $1 is not a ready replication server, retained-history recovery will retry"
@@ -649,7 +650,8 @@ enable_through() {
     # allowing lossy DS recovery to overtake the retained RS history. Directory
     # peers discover the joined RS when their own bootstrap repairs their lists.
     if [ "$ROLE" = replication ] && [ "${REPLICATION_RECOVER_FROM_RS:-0}" = 1 ]; then
-      enable_dn='cn=admin data'
+      # Suppress the schema domain that dsreplication enables by default.
+      enable_args=(--baseDN 'cn=admin data' --noSchemaReplication)
     fi
     mapfile -t peer_args < <(role_arguments 1 "$role")
     mapfile -t own_args < <(role_arguments 2 "$ROLE")
@@ -659,7 +661,7 @@ enable_through() {
       --host2 "$MYHOSTNAME" --port2 "$ADMIN_PORT" --bindDN2 "$ROOT_USER_DN" \
       --bindPasswordFile2 "$PASSWORD_FILE" "${own_args[@]}" \
       --adminUID admin --adminPasswordFile "$PASSWORD_FILE" \
-      --baseDN "$enable_dn" -X -n
+      "${enable_args[@]}" -X -n
     rc=$?
   fi
   release_join_lock "$1" "$peer_lock"

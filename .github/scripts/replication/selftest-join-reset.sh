@@ -91,7 +91,8 @@ sed -n '/^run_join() {/,/^}/p' "$HERE/../../../opendj-packages/opendj-docker/run
 function /opt/opendj/bootstrap/join.sh { return "$JOIN_RESULT"; }
 BOOTSTRAP_FAILED="$OUT/bootstrap-failed" BOOTSTRAP_FINISHED="$OUT/bootstrap-finished" JOIN_RESULT=8
 rc=0; run_join || rc=$?
-[ "$rc" -eq 8 ] && [ "$(cat "$BOOTSTRAP_FAILED")" = join:8 ]
+[ "$rc" -eq 8 ] || { echo "failed join returned $rc, expected 8" >&2; exit 1; }
+[ "$(cat "$BOOTSTRAP_FAILED")" = join:8 ] || { echo 'failed join did not publish join:8' >&2; exit 1; }
 [ ! -f "$BOOTSTRAP_FINISHED" ] || { echo 'failed join published completion' >&2; exit 1; }
 rm "$BOOTSTRAP_FAILED"
 JOIN_RESULT=0

@@ -5149,6 +5149,9 @@ public class ReplicationCliMain extends ConsoleApplication
       filter.addBaseDNsToSearch(uData.getBaseDNs());
     }
     ServerDescriptor server = createStandalone(conn, filter);
+    Set<DN> suffixesToDisable = uData.disableAll()
+        ? getConfiguredReplicationBaseDNs(conn)
+        : new HashSet<>(uData.getBaseDNs());
 
     ADSContext adsCtx = new ADSContext(conn);
 
@@ -5364,15 +5367,8 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    Set<DN> suffixesToDisable;
-    if (uData.disableAll())
+    if (!uData.disableAll())
     {
-      suffixesToDisable = findAllReplicatedSuffixDNs(server.getReplicas());
-    }
-    else
-    {
-      suffixesToDisable = new HashSet<>(uData.getBaseDNs());
-
       if (disableAllBaseDns &&
           (disableReplicationServer || !server.isReplicationServer()))
       {
@@ -7145,6 +7141,43 @@ public class ReplicationCliMain extends ConsoleApplication
         LocalizableMessage msg = ERR_REPLICATION_ERROR_READING_CONFIGURATION.get(hostPort, ode.getMessage());
         throw new ReplicationCliException(msg, ERROR_CONNECTING, ode);
       }
+    }
+  }
+
+  /**
+   * Reads configured domains directly: a domain base DN can be below a backend's base DN
+   * and will not appear in the server descriptor's replicas.
+   */
+  private Set<DN> getConfiguredReplicationBaseDNs(ConnectionWrapper conn) throws ReplicationCliException
+  {
+    try
+    {
+      final ReplicationSynchronizationProviderCfgClient sync;
+      try
+      {
+        sync = getMultimasterSynchronization(conn);
+      }
+      catch (ManagedObjectNotFoundException e)
+      {
+        return Collections.emptySet();
+      }
+
+      final Set<DN> baseDNs = new LinkedHashSet<>();
+      final String[] domainNames = sync.listReplicationDomains();
+      if (domainNames != null)
+      {
+        for (String domainName : domainNames)
+        {
+          baseDNs.add(sync.getReplicationDomain(domainName).getBaseDN());
+        }
+      }
+      return baseDNs;
+    }
+    catch (OperationsException | LdapException e)
+    {
+      throw new ReplicationCliException(
+          ERR_REPLICATION_ERROR_READING_CONFIGURATION.get(conn.getHostPort(), e.getMessage()),
+          ERROR_READING_CONFIGURATION, e);
     }
   }
 
