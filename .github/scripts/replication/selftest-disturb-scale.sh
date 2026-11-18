@@ -204,6 +204,24 @@ run_case() (
         [ -s "$OUT/scale-checkpoint/offline-$phase-$n.txt" ] || { echo "missing $phase offline state of $n" >&2; exit 1; }
       done
     done
+    # Exercise the real filter with the allowances passed by disturb() for the return.
+    (
+      . "$HERE/assert-converged.sh"
+      local allowances warning recovery unexpected
+      allowances=$(sed -n 's/^window \(.* scale-cert-return\)$/\1/p' "$OUT/calls")
+      warning='[t] category=SYNC severity=WARNING msgID=312 msg=Replication server RS(31897) could not connect to replication server r2:8989 for domain "cn=admin data": SSLHandshakeException((bad_certificate) PKIX path validation failed)'
+      recovery='[t] category=SYNC severity=NOTICE msgID=313 msg=Replication server RS(31897) connected to replication server r2:8989 for domain "cn=admin data", which it had reported it had no replication session with'
+      since_mark() { printf '%s\n' "$warning" "$recovery"; }
+      for n in r0 r1; do
+        printf '0\n' >"$OUT/logs/$n.mark"
+        printf '0 2 %s\n' "$allowances" >"$OUT/logs/$n.windows"
+        unexpected=$(replication_errors "$n")
+        if [ -n "$unexpected" ] || ! grep -Fxq "$warning" "$OUT/logs/$n.expected"; then
+          echo "$n: recovered RS312 rejected by the scale return window" >&2
+          exit 1
+        fi
+      done
+    )
     [ -s "$OUT/scale-checkpoint/offline-return-r2.txt" ] || { echo 'missing return offline state of r2' >&2; exit 1; }
     [ -s "$OUT/scale-checkpoint/removed-r2-changelog.tar" ] || { echo 'missing original removed RS changelog' >&2; exit 1; }
     awk '
