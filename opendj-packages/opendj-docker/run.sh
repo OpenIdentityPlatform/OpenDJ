@@ -11,7 +11,7 @@
 # Header, with the fields enclosed by brackets [] replaced by your own identifying
 # information: "Portions copyright [year] [name of copyright owner]".
 #
-# Portions copyright 2026 3A Systems, LLC.
+# Portions Copyright 2026 3A Systems, LLC.
 
 # Run the OpenDJ server
 # The idea is to consolidate all of the writable DJ directories to
@@ -110,14 +110,18 @@ SECRET_VOLUME=${SECRET_VOLUME:-/var/secrets/opendj}
 # checked again every that many seconds; 0 checks it on start only
 SECRET_VOLUME_REFRESH=${SECRET_VOLUME_REFRESH:-60}
 
-# Copies the key* and trust* files of the secret volume that differ from those in
-# ./data/config. Each one is written next to its target and renamed over it, so the server
-# never reads a file half copied, and it is readable by the server's user only: a keystore
-# holds the private key, a .pin file its password. Succeeds when it copied a file.
+# Copies the keystores, truststores and PIN files that differ from those in ./data/config.
+# Each one is written next to its target and renamed over it, so the server never reads a
+# file half copied. Only the server's user can read the private keys and passwords.
+# Succeeds when it copied a file.
 copy_secrets() {
   local src dst tmp copied=1
   [ -d "$SECRET_VOLUME" ] || return 1
-  for src in "$SECRET_VOLUME"/key* "$SECRET_VOLUME"/trust*; do
+  local -a sources=("$SECRET_VOLUME"/key* "$SECRET_VOLUME"/trust*)
+  if [ -f "$SECRET_VOLUME/admin-keystore" ] && [ -f "$SECRET_VOLUME/admin-keystore.pin" ]; then
+    sources+=("$SECRET_VOLUME/admin-keystore" "$SECRET_VOLUME/admin-keystore.pin")
+  fi
+  for src in "${sources[@]}"; do
     [ -f "$src" ] || continue
     dst=./data/config/$(basename -- "$src")
     cmp -s "$src" "$dst" && continue

@@ -306,8 +306,7 @@ its key under an alias the previous one used as well - cert-manager keeps the al
 one renewal to the next. A keystore with only new aliases is served from the next restart,
 and until then the server logs that it could not load it. So does a keystore caught by a
 handshake between its copy and that of its `.pin` file, until the second file is copied as
-well. The administration connector and replication keep keys of their own and are not
-affected.
+well. The administration connector uses a separate keystore described below.
 
 On Kubernetes, the PEM files of a `kubernetes.io/tls` Secret cannot be used as they are:
 OpenDJ reads keystores, not PEM. cert-manager can add a PKCS12 keystore to the Secret it
@@ -342,6 +341,75 @@ containers:
 Mount the volume as a whole, not with `subPath`: Kubernetes does not update files mounted
 with `subPath` when the Secret changes.
 
+### Administration connector certificate
+
+For the default administration connector configuration (port 4444), mount both of these
+files at `SECRET_VOLUME`.
+
+- `admin-keystore` is a JKS or PKCS12 keystore containing the private key and its
+  certificate chain. Use the default alias `admin-cert` and include the DNS names that
+  administrative clients use in the certificate's subject alternative names.
+- `admin-keystore.pin` contains the keystore password on its first line. Use the same
+  password for the private key entry.
+
+The image copies the pair to `/opt/opendj/data/config` with mode 0600 before the server
+starts, both on a fresh instance and on a reused persistent volume. The clients trust the
+issuing CA through their own truststore. Replication uses its own `ads-truststore`.
+
+For a [cert-manager Certificate](https://cert-manager.io/docs/reference/api-docs/#cert-manager.io/v1.JKSKeystore),
+request a JKS keystore with the required alias. The pod template projects the generated
+keystore and the password from its Secret into the same directory. If the pod already has
+a projected `SECRET_VOLUME`, add these sources to it.
+
+```yaml
+# Certificate spec
+spec:
+  secretName: opendj-admin-tls
+  dnsNames: [opendj.example.com]
+  keystores:
+    jks:
+      create: true
+      alias: admin-cert
+      passwordSecretRef: { name: opendj-admin-password, key: password }
+---
+# StatefulSet pod template spec
+volumes:
+  - name: secrets
+    projected:
+      sources:
+        - secret:
+            name: opendj-admin-tls
+            items: [{ key: keystore.jks, path: admin-keystore }]
+        - secret:
+            name: opendj-admin-password
+            items: [{ key: password, path: admin-keystore.pin }]
+containers:
+  - name: opendj
+    volumeMounts:
+      - { name: secrets, mountPath: /var/secrets/opendj, readOnly: true }
+```
+
+After Kubernetes projects a renewed Secret, the image copies the changed files on the
+next `SECRET_VOLUME_REFRESH` check. New TLS connections use the renewed certificate
+without a rollout. Keep the `admin-cert` alias across renewals and update the PIN file
+if the password changes. With `SECRET_VOLUME_REFRESH=0`, roll the pods to apply the
+renewal.
+
+To verify the renewal, compare the served serial number with the renewed certificate and
+run a read-only administrative command. The example uses the issuing CA certificate
+(`ca.pem`), a client JKS truststore (`admin-ca.jks`) containing that CA, and local
+password files for the bind account and client truststore.
+
+```bash
+openssl s_client -connect opendj.example.com:4444 -servername opendj.example.com \
+  -verify_hostname opendj.example.com -verify_return_error -CAfile ca.pem </dev/null |
+  openssl x509 -noout -serial -dates
+
+dsconfig get-administration-connector-prop --hostname opendj.example.com --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile root-password \
+  --trustStorePath admin-ca.jks --trustStorePasswordFile truststore.pin --no-prompt
+```
+
 ## Environment Variables
 
 | Variable                | Default Value                   | Description                                                                                                                                                                                                                                             |
@@ -353,7 +421,7 @@ with `subPath` when the Secret changes.
 | BASE_DN                 | dc=example,dc=com               | OpenDJ Base DN                                                                                                                                                                                                                                          |
 | ROOT_USER_DN            | cn=Directory Manager            | Initial root user DN                                                                                                                                                                                                                                    |
 | ROOT_PASSWORD           | password                        | Initial root user password; the bootstrap fails if it contains a line break (CR or LF)                                                                                                                                                                  |
-| SECRET_VOLUME           | /var/secrets/opendj             | Mounted keystore volume, if present its `key*` and `trust*` files are copied into the instance on every start, see [Certificates](#certificates)                                                                                                        |
+| SECRET_VOLUME           | /var/secrets/opendj             | Mounted volume for LDAP and administration keystores, see [Certificates](#certificates) |
 | SECRET_VOLUME_REFRESH   | 60                              | While the server runs, `SECRET_VOLUME` is checked again every that many seconds and changed files are copied again; `0` copies them on start only                                                                                                       |
 | MASTER_SERVER           | -                               | Replication master server; with `simple` it works as a one-element `REPLICATION_PEERS`                                                                                                                                                                  |
 | REPLICATION_PEERS       | value of MASTER_SERVER          | every server of the replication topology by DNS name, comma separated; the first entry may seed a new topology, and servers no longer listed are removed from it, see [Replication](#replication) |

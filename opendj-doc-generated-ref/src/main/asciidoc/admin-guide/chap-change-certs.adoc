@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024-2026 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
@@ -35,7 +35,7 @@ This chapter covers how to replace OpenDJ key pairs and public key certificates.
 
 [NOTE]
 ======
-When a volume is mounted at `SECRET_VOLUME` (`/var/secrets/opendj` by default), a container started from the Docker image copies the `key*` and `trust*` files of that volume, such as `keystore`, `keystore.pin`, `truststore` and `truststore.pin`, into its instance on every start, and by default also while the server runs, when they change. Replace the key pair that secures connections with client applications on that volume rather than in the instance, where the next copy would overwrite it. Only these files are copied: the `admin-keystore`, `admin-truststore` and `ads-truststore` of the administration connector and of replication stay in the instance, and are replaced there as described in this chapter. A renewed keystore is served without a restart only if it holds the key under an alias that the previous one used as well. See the link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/opendj-packages/opendj-docker/README.md#certificates[Certificates section of the README of the image, window=\_blank].
+When a volume is mounted at `SECRET_VOLUME` (`/var/secrets/opendj` by default), the Docker image copies its `key*` and `trust*` files into the instance on every start. It also copies `admin-keystore` and `admin-keystore.pin` when both files are present. Update these files on the mounted volume. By default, the image checks the volume for changes while the server runs. Keep the existing key alias for a renewal to take effect on new TLS connections without a restart. The procedures in this chapter cover updating `admin-truststore` and `ads-truststore` directly in the instance. For the Secret layout and verification commands, see the link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/opendj-packages/opendj-docker/README.md#certificates[Docker image certificate documentation, window=\_blank].
 ======
 
 OpenDJ uses keystores (for private keys) and truststores (for public, signed certificates). Up to three sets of keystores are used, as shown in the following illustration.
@@ -54,7 +54,7 @@ By default the keystores are located in the `/path/to/opendj/config` directory:
 Each keystore has a specific purpose:
 
 `admin-keystore`::
-This Java Keystore holds the private key and administrative certificate for the server, `admin-cert`. This key pair is used to protect communications on the administration port. The password, stored in `admin-keystore.pin`, is also the key password for `admin-cert`.
+This keystore holds the private key and certificate chain for the administration port under the default alias `admin-cert`. It can be JKS or PKCS12. The password in `admin-keystore.pin` must match the private key password.
 
 `admin-truststore`::
 This Java Keystore holds a copy of the administrative certificate, `admin-cert`. The password is the same as for the `admin-keystore`, in other words the string in `admin-keystore.pin`.
