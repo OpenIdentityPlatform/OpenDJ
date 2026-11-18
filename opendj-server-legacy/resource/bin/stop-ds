@@ -14,6 +14,7 @@
 #
 # Copyright 2006-2009 Sun Microsystems, Inc.
 # Portions Copyright 2011-2014 ForgeRock AS.
+# Portions Copyright 2026 3A Systems, LLC.
 
 
 # This script may be used to request that the Directory Server shut down.
@@ -165,11 +166,11 @@ then
     then
       if test ${QUIET_OPTION} -eq 0
       then
-        "${OPENDJ_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
+        "${OPENDJ_JAVA_BIN}" -client -Xmx16m org.opends.server.tools.WaitForFileDelete \
             --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
             --logFile "${INSTANCE_ROOT}/logs/errors"
       else
-        "${OPENDJ_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
+        "${OPENDJ_JAVA_BIN}" -client -Xmx16m org.opends.server.tools.WaitForFileDelete \
             --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
             --logFile "${INSTANCE_ROOT}/logs/errors"  --quiet
       fi

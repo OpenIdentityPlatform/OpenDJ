@@ -40,5 +40,7 @@ if [ -n "${HEALTHCHECK_BIND_DN}" ]; then
   BIND_ARGS=(--bindDN "${HEALTHCHECK_BIND_DN}" --bindPasswordFile "${HEALTHCHECK_BIND_PASSWORD_FILE}")
 fi
 
-/opt/opendj/bin/ldapsearch --noPropertiesFile --hostname localhost --port "${LDAPS_PORT:-1636}" --useSsl --trustAll \
-  "${BIND_ARGS[@]}" --baseDN "" --searchScope base "(objectClass=*)" 1.1 || exit 1
+# Apply the probe heap limits after the JVM arguments configured for the instance.
+_JAVA_OPTIONS="${_JAVA_OPTIONS:+${_JAVA_OPTIONS} }-Xms8m -Xmx64m" \
+  /opt/opendj/bin/ldapsearch --noPropertiesFile --hostname localhost --port "${LDAPS_PORT:-1636}" --useSsl --trustAll \
+    "${BIND_ARGS[@]}" --baseDN "" --searchScope base "(objectClass=*)" 1.1 || exit 1

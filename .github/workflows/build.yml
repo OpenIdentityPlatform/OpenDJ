@@ -1002,7 +1002,10 @@ jobs:
           RELEASED=openidentityplatform/opendj:${{ env.release_version }}${{ matrix.suffix }}
           MEMORY=512m
           trap 'code=$?; echo "::group::container logs (test_upgrade)"; docker logs test_upgrade 2>&1 || true; docker inspect --format="{{json .State.Health}}" test_upgrade 2>&1 || true; echo "::endgroup::"; docker rm -f test_upgrade >/dev/null 2>&1 || true; docker volume rm test_upgrade_data >/dev/null 2>&1 || true; exit $code' ERR
-          search() { docker exec test_upgrade /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword password "$@"; }
+          search() {
+            docker exec -e "_JAVA_OPTIONS=-Xms8m -Xmx64m" test_upgrade /opt/opendj/bin/ldapsearch \
+              --hostname localhost --port 1636 --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword password "$@"
+          }
           # release.yml publishes the GitHub release before it pushes the images of it: in between,
           # and while a failed push stays unfixed, the latest release has no image to start from.
           # Only that skips the test - a tag the registry does not have, which the classic image
