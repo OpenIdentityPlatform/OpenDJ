@@ -270,6 +270,27 @@ jobs:
         with:
          name: OpenDJ Docker Packages
          path: opendj-packages/opendj-docker/target/Dockerfile.zip
+      - name: Set up Helm for the OpenDJ chart
+        if: hashFiles('opendj-packages/opendj-helm/Chart.yaml') != ''
+        uses: Azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
+        with:
+          version: v3.22.1
+      - name: Package the OpenDJ Helm chart
+        id: package-chart
+        if: hashFiles('opendj-packages/opendj-helm/Chart.yaml') != ''
+        shell: bash
+        run: |
+          app_version=$(python3 -c 'from xml.etree.ElementTree import parse; print(parse("pom.xml").getroot().find("{*}version").text)')
+          helm package opendj-packages/opendj-helm --destination "$RUNNER_TEMP" \
+            --version "$app_version" --app-version "$app_version"
+          printf 'path=%s/opendj-helm-%s.tgz\n' "$RUNNER_TEMP" "$app_version" >> "$GITHUB_OUTPUT"
+      - name: Upload the OpenDJ Helm chart
+        if: steps.package-chart.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          path: ${{ steps.package-chart.outputs.path }}
+          if-no-files-found: error
+          archive: false
       - name: Upload artifacts OpenDJ Doc Generated Reference
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

@@ -240,9 +240,9 @@ jobs:
     runs-on: 'ubuntu-latest'
     needs:
       - release-maven
-    # packages: write is required for the GHCR login that authenticates with GITHUB_TOKEN.
+    # contents: write attaches the chart to the GitHub release; packages: write publishes to GHCR.
     permissions:
-      contents: read
+      contents: write
       packages: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -293,27 +293,41 @@ jobs:
         uses: Azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
         with:
           version: v3.22.1
-      # Use a public Docker Hub repository for the chart. Set the GHCR package to public
-      # after its first push so users can install from either registry without credentials.
-      - name: Package and publish the Helm chart
+      - name: Package the Helm chart
+        id: package-chart
         if: steps.push-image.outcome == 'success'
         shell: bash
         env:
           RELEASE_VERSION: ${{ inputs.releaseVersion }}
+        run: |
+          app_version=$(python3 -c 'from xml.etree.ElementTree import parse; print(parse("pom.xml").getroot().find("{*}version").text)')
+          helm package opendj-packages/opendj-helm --destination "$RUNNER_TEMP" \
+            --version "$RELEASE_VERSION" --app-version "$app_version"
+          printf 'path=%s/opendj-helm-%s.tgz\n' "$RUNNER_TEMP" "$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+      # Use a public Docker Hub repository for the chart. Set the GHCR package to public
+      # after its first push so users can install from either registry without credentials.
+      - name: Publish the Helm chart to OCI registries
+        if: steps.package-chart.outcome == 'success'
+        shell: bash
+        env:
+          CHART_PATH: ${{ steps.package-chart.outputs.path }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           GHCR_TOKEN: ${{ github.token }}
         run: |
-          app_version=$(python3 -c 'from xml.etree.ElementTree import parse; print(parse("pom.xml").getroot().find("{*}version").text)')
           printf '%s' "$DOCKER_PASSWORD" |
             helm registry login registry-1.docker.io --username "$DOCKER_USERNAME" --password-stdin
           printf '%s' "$GHCR_TOKEN" |
             helm registry login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
-          helm package opendj-packages/opendj-helm --destination "$RUNNER_TEMP" \
-            --version "$RELEASE_VERSION" --app-version "$app_version"
-          chart="$RUNNER_TEMP/opendj-helm-$RELEASE_VERSION.tgz"
-          helm push "$chart" "oci://registry-1.docker.io/${GITHUB_REPOSITORY_OWNER,,}"
-          helm push "$chart" "oci://ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/charts"
+          helm push "$CHART_PATH" "oci://registry-1.docker.io/${GITHUB_REPOSITORY_OWNER,,}"
+          helm push "$CHART_PATH" "oci://ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/charts"
+      - name: Attach the Helm chart to the GitHub release
+        if: ${{ !cancelled() && steps.package-chart.outcome == 'success' }}
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
+        with:
+          tag_name: ${{ inputs.releaseVersion }}
+          fail_on_unmatched_files: true
+          files: ${{ steps.package-chart.outputs.path }}
 
   release-docker-alpine:
     name: Docker release
