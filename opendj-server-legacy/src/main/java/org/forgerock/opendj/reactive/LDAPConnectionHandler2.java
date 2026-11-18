@@ -952,7 +952,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                             @Override
                             public void handleProxyProtocolHeader(final LDAPClientContext context,
                                     final ProxyProtocolHeader header) {
-                                finishProxyAdmission(conn);
+                                finishProxyAdmission(conn, context.getTcpPeerAddress().getAddress());
                             }
                             @Override
                             public void handleConnectionError(final LDAPClientContext context, final Throwable error) {
@@ -1228,18 +1228,19 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     }
 
     /** Performs the address-dependent admission checks before any bytes following the header are consumed. */
-    private void finishProxyAdmission(LDAPClientConnection2 connection) {
+    private void finishProxyAdmission(LDAPClientConnection2 connection, InetAddress tcpPeer) {
+        final boolean notice;
         synchronized (connection) {
             if (!connection.isConnectionValid() || !clientConnections.contains(connection)) {
                 return;
             }
             InetAddress address = connection.getRemoteAddress();
-            if (DirectoryServer.lockdownMode() && address != null && !address.isLoopbackAddress()) {
+            if (DirectoryServer.lockdownMode() && (!tcpPeer.isLoopbackAddress() || !address.isLoopbackAddress())) {
                 connection.disconnect(DisconnectReason.CONNECTION_REJECTED, false,
-                        ERR_PROXY_PROTOCOL_LOCKDOWN_REJECTED.get(connection.getClientHostPort()));
+                        ERR_PROXY_PROTOCOL_LOCKDOWN_REJECTED.get(tcpPeer.getHostAddress(), connection.getClientHostPort()));
                 return;
             }
-            boolean notice = !useSSL() && currentConfig.isSendRejectionNotice();
+            notice = !useSSL() && currentConfig.isSendRejectionNotice();
             if (!deniedClients.isEmpty() && AddressMask.matchesAny(deniedClients, address)) {
                 connection.disconnect(DisconnectReason.CONNECTION_REJECTED, notice,
                         ERR_CONNHANDLER_DENIED_CLIENT.get(connection.getClientHostPort(), connection.getServerHostPort()));
@@ -1258,23 +1259,29 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                 return;
             }
             addressPlaces.put(connection, address);
-            try {
-                PluginResult.PostConnect result = DirectoryServer.getPluginConfigManager()
-                        .invokePostConnectPlugins(connection);
-                if (!result.continueProcessing()) {
-                    connection.disconnect(result.getDisconnectReason(), !useSSL() && result.sendDisconnectNotification(),
-                            result.getErrorMessage());
-                    return;
-                }
+        }
+        if (!connection.isConnectionValid()) {
+            return;
+        }
+        try {
+            PluginResult.PostConnect result = DirectoryServer.getPluginConfigManager()
+                    .invokePostConnectPlugins(connection);
+            if (!result.continueProcessing()) {
+                connection.disconnect(result.getDisconnectReason(), !useSSL() && result.sendDisconnectNotification(),
+                        result.getErrorMessage());
+                return;
+            }
+            synchronized (connection) {
+                // Order CONNECT against the disconnect path's connectionClosed callback.
                 if (connection.isConnectionValid()) {
                     logConnect(connection);
                 }
-            } catch (Exception e) {
-                logger.traceException(e);
-                connection.disconnect(DisconnectReason.SERVER_ERROR, notice,
-                        INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(connection.getClientHostPort(),
-                                connection.getServerHostPort(), getExceptionMessage(e)));
             }
+        } catch (Exception e) {
+            logger.traceException(e);
+            connection.disconnect(DisconnectReason.SERVER_ERROR, notice,
+                    INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(connection.getClientHostPort(),
+                            connection.getServerHostPort(), getExceptionMessage(e)));
         }
     }
 

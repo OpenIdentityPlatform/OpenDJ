@@ -17,6 +17,7 @@ package org.opends.server.protocols.ldap;
 
 import static org.testng.Assert.*;
 
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
@@ -125,6 +126,34 @@ public class LDAPProxyProtocolTestCase extends DirectoryServerTestCase {
             try (Socket loopback = connect(port, "127.0.0.1")) {
                 assertEquals(loopback.getInputStream().read(), 0x30, "loopback must reach the LDAP handler");
             }
+        } finally {
+            DirectoryServer.setLockdownMode(original);
+            stop(handler);
+        }
+    }
+
+    @Test
+    public void lockdownAlsoChecksTcpPeerOfPendingProxyConnection() throws Exception {
+        InetAddress address = TestCaseUtils.getNonLoopbackAddress();
+        int port = TestCaseUtils.findFreePort();
+        LDAPConnectionHandler2 handler = start(configuration(port,
+                "ds-cfg-listen-address: " + address.getHostAddress(),
+                "ds-cfg-proxy-protocol-allowed-client: " + address.getHostAddress(),
+                "ds-cfg-first-request-time-limit: 30 seconds"));
+        boolean original = DirectoryServer.lockdownMode();
+        DirectoryServer.setLockdownMode(false);
+        try (Socket client = new Socket(address, port, address, 0)) {
+            client.setSoTimeout(5000);
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+            while (handler.getClientConnections().isEmpty() && System.nanoTime() < deadline) {
+                Thread.sleep(25);
+            }
+            assertFalse(handler.getClientConnections().isEmpty(), "TCP peer was not accepted before lockdown");
+            DirectoryServer.setLockdownMode(true);
+            client.getOutputStream().write("PROXY TCP4 127.0.0.1 127.0.0.1 12345 389\r\n"
+                    .getBytes(StandardCharsets.US_ASCII));
+            client.getOutputStream().flush();
+            assertClosed(client);
         } finally {
             DirectoryServer.setLockdownMode(original);
             stop(handler);
@@ -658,19 +687,11 @@ public class LDAPProxyProtocolTestCase extends DirectoryServerTestCase {
         DirectoryServer.registerInternalPlugin(plugin);
         try (Socket first = connect(port, "192.0.2.4")) {
             assertTrue(entered.await(5, TimeUnit.SECONDS), "post-connect plugin was not invoked");
-            CountDownLatch disconnectStarted = new CountDownLatch(1);
-            CompletableFuture<Void> close = CompletableFuture.runAsync(() -> {
-                disconnectStarted.countDown();
-                accepted.get().disconnect(DisconnectReason.CLOSED_BY_PLUGIN, false, null);
-            });
-            assertTrue(disconnectStarted.await(5, TimeUnit.SECONDS));
-            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
-            while (accepted.get().isConnectionValid() && System.nanoTime() < deadline) {
-                Thread.yield();
-            }
-            assertFalse(accepted.get().isConnectionValid(), "disconnect did not overlap post-connect");
-            release.countDown();
+            CompletableFuture<Void> close = CompletableFuture.runAsync(
+                    () -> accepted.get().disconnect(DisconnectReason.CLOSED_BY_PLUGIN, false, null));
+            // The timeout thread also needs to be able to finish closing a connection while its plugin is blocked.
             close.get(5, TimeUnit.SECONDS);
+            release.countDown();
             assertClosed(first);
             try (Socket next = connect(port, "192.0.2.4")) {
                 assertEquals(next.getInputStream().read(), 0x30, "address slot leaked during disconnect");

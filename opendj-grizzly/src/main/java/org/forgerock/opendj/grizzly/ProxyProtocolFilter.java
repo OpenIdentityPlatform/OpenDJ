@@ -49,30 +49,34 @@ final class ProxyProtocolFilter extends BaseFilter {
             return ctx.getInvokeAction();
         }
         Buffer input = ctx.getMessage();
+        boolean releaseInput = true;
         try {
             int length = frameLength(input);
             if (length < 0) {
+                releaseInput = false;
                 return ctx.getStopAction(input);
             }
             byte[] prefix = new byte[length];
-            input.duplicate().get(prefix);
-            ByteBuffer bytes = ByteBuffer.wrap(prefix);
-            ProxyProtocolHeader header = ProxyProtocolDecoder.decode(bytes);
+            input.get(prefix);
+            ProxyProtocolHeader header = ProxyProtocolDecoder.decode(ByteBuffer.wrap(prefix));
             if (header == null) {
                 throw new ProxyProtocolDecoder.InvalidHeaderException("incomplete frame");
             }
-            input.position(input.position() + bytes.position());
             complete = true;
             onHeader.accept(header);
-            if (!active.getAsBoolean()) {
-                return ctx.getStopAction();
+            if (active.getAsBoolean() && input.hasRemaining()) {
+                releaseInput = false;
+                return ctx.getInvokeAction();
             }
-            return input.hasRemaining() ? ctx.getInvokeAction() : ctx.getStopAction();
         } catch (IOException | RuntimeException e) {
             onError.accept(e);
             ctx.getConnection().closeSilently();
-            return ctx.getStopAction();
+        } finally {
+            if (releaseInput) {
+                input.tryDispose();
+            }
         }
+        return ctx.getStopAction();
     }
 
     /** Finds a complete frame without repeatedly copying an incomplete header. */

@@ -21,15 +21,16 @@ import static org.testng.Assert.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
+import org.forgerock.opendj.io.ProxyProtocolDecoder.InvalidHeaderException;
 import org.forgerock.opendj.io.ProxyProtocolHeader;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPClientContextEventListener;
@@ -46,8 +47,8 @@ import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
-import org.glassfish.grizzly.memory.Buffers;
-import org.glassfish.grizzly.memory.MemoryManager;
+import org.glassfish.grizzly.memory.MemoryProbe;
+import org.glassfish.grizzly.memory.PooledMemoryManager;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.testng.annotations.DataProvider;
@@ -195,17 +196,30 @@ public class GrizzlyProxyProtocolTestCase extends SdkTestCase {
     }
 
     @DataProvider
-    public Object[][] headerCallbackStates() {
-        return new Object[][] { { false, 0 }, { true, 1 } };
+    public Object[][] headerReadCases() {
+        return new Object[][] {
+                { "PROXY UNKNOWN\r\n", BIND, false, true, 0 },
+                { "PROXY UNKNOWN\r\n", BIND, true, true, 1 },
+                { "PROXY UNKNOWN\r\n", new byte[0], true, true, 0 },
+                { "invalid", new byte[0], true, false, 0 }
+        };
     }
 
-    @Test(dataProvider = "headerCallbackStates")
-    public void headerCallbackControlsDeliveryOfCoalescedRequest(boolean remainActive, int expectedReads)
-            throws Exception {
+    @Test(dataProvider = "headerReadCases")
+    public void headerReadReleasesPooledBufferAndDeliversTrailingRequestWhenActive(
+            String headerText, byte[] trailing, boolean remainActive, boolean valid, int expectedReads) throws Exception {
         AtomicBoolean active = new AtomicBoolean(true);
         AtomicReference<ProxyProtocolHeader> observedHeader = new AtomicReference<>();
         AtomicReference<Throwable> error = new AtomicReference<>();
         AtomicInteger downstreamReads = new AtomicInteger();
+        AtomicInteger poolReturns = new AtomicInteger();
+        PooledMemoryManager memory = new PooledMemoryManager(4096, 1, 0, 1, 0.01f, 0.0f, true);
+        memory.getMonitoringConfig().addProbes(new MemoryProbe.Adapter() {
+            @Override
+            public void onBufferReleaseToPoolEvent(int size) {
+                poolReturns.incrementAndGet();
+            }
+        });
         FilterChain chain = FilterChainBuilder.stateless()
                 .add(new ProxyProtocolFilter(header -> {
                     observedHeader.set(header);
@@ -214,25 +228,38 @@ public class GrizzlyProxyProtocolTestCase extends SdkTestCase {
                 .add(new BaseFilter() {
                     @Override
                     public NextAction handleRead(FilterChainContext ctx) {
+                        Buffer payload = ctx.getMessage();
+                        try {
+                            assertEquals(payload.toByteBuffer(), ByteBuffer.wrap(BIND));
+                        } finally {
+                            payload.tryDispose();
+                        }
                         downstreamReads.incrementAndGet();
                         return ctx.getStopAction();
                     }
                 }).build();
-        byte[] header = "PROXY UNKNOWN\r\n".getBytes(StandardCharsets.US_ASCII);
-        byte[] coalesced = ByteBuffer.allocate(header.length + BIND.length).put(header).put(BIND).array();
-        Buffer input = Buffers.wrap(MemoryManager.DEFAULT_MEMORY_MANAGER, coalesced);
+        byte[] header = headerText.getBytes(StandardCharsets.US_ASCII);
+        Buffer input = memory.allocate(header.length + trailing.length);
+        input.put(header).put(trailing).flip();
         try (SocketChannel channel = SocketChannel.open()) {
             TCPNIOConnection connection = new TCPNIOConnection(TCPNIOTransportBuilder.newInstance().build(), channel);
             FilterChainContext ctx = chain.obtainFilterChainContext(connection);
             ctx.getInternalContext().setIoEvent(IOEvent.READ);
             ctx.setMessage(input);
             assertEquals(chain.process(ctx.getInternalContext()).getStatus(), ProcessorResult.Status.COMPLETE);
-            assertNull(error.get(), "PROXY header decoding failed");
-            assertNotNull(observedHeader.get(), "Header callback was not invoked");
-            assertEquals(input.toByteBuffer(), ByteBuffer.wrap(BIND), "The complete BIND must remain after the header");
-            assertEquals(downstreamReads.get(), expectedReads, "Callback state must control downstream delivery");
+            if (valid) {
+                assertNull(error.get(), "PROXY header decoding failed");
+                assertNotNull(observedHeader.get(), "Header callback was not invoked");
+            } else {
+                assertTrue(error.get() instanceof InvalidHeaderException, "Invalid header was not rejected");
+                assertNull(observedHeader.get(), "An invalid header reached the callback");
+            }
+            assertEquals(downstreamReads.get(), expectedReads, "Unexpected downstream LDAP delivery");
+            assertEquals(poolReturns.get(), 1, "The input buffer must be returned to the pool exactly once");
         } finally {
-            input.dispose();
+            if (poolReturns.get() == 0) {
+                input.tryDispose();
+            }
         }
     }
 
