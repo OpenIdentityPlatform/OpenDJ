@@ -32,10 +32,10 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
  * property definition's accept method, the corresponding visit method most
  * applicable to that property definition is invoked.
  * <p>
- * Each <code>visitXXX</code> method is provided with a default implementation
- * which calls {@link #visitUnknown(PropertyDefinition, Object, Object)}.
- * Sub-classes can override any or all of the methods to provide their own
- * type-specific behavior.
+ * The default implementations call {@link #visitUnknown(PropertyDefinition, Object, Object)},
+ * except that {@link #visitPassword(PasswordPropertyDefinition, String, Object)} delegates
+ * to {@link #visitString(StringPropertyDefinition, String, Object)}. Subclasses can
+ * override the methods to provide their own type-specific behavior.
  *
  * @param <R>
  *            The return type of this visitor's methods. Use
@@ -255,7 +255,7 @@ public abstract class PropertyValueVisitor<R, P> {
      * @return Returns a visitor specified result.
      */
     public R visitPassword(PasswordPropertyDefinition pd, String v, P p) {
-        return visitUnknown(pd, v, p);
+        return visitString(pd, v, p);
     }
 
     /**

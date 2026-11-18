@@ -27,6 +27,8 @@ import java.nio.file.Path;
 import java.lang.reflect.Field;
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,8 +53,11 @@ import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.config.server.spi.ConfigAddListener;
 import org.forgerock.opendj.config.server.spi.ConfigChangeListener;
+import org.forgerock.opendj.config.server.spi.ConfigDeleteListener;
+import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
 import org.forgerock.opendj.server.config.meta.LDAPPassThroughAuthenticationPolicyCfgDefn;
 import org.forgerock.opendj.server.config.meta.GlobalCfgDefn;
 import org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer;
@@ -709,12 +714,41 @@ public class ConfigurationPasswordTestCase extends DirectoryServerTestCase {
                 LDAPPassThroughAuthenticationPolicyCfgDefn.getInstance(), "test-scheme-override");
         builder.setEncryptionScheme("3DES");
         PasswordPropertyDefinition definition = builder.getInstance();
-        Field field = ConfigurationHandler.class.getDeclaredField("PASSWORD_CODEC");
-        field.setAccessible(true);
-        PasswordPropertyDefinition.Codec codec = (PasswordPropertyDefinition.Codec) field.get(null);
+        PasswordPropertyDefinition.Codec codec = passwordCodec();
         String encoded = definition.encodeForStorage("non-default-secret", codec);
         assertTrue(encoded.startsWith("{3DES}"));
         assertEquals(definition.decodeFromStorage(encoded, codec), "non-default-secret");
+    }
+
+    @Test
+    public void enabledNonReversibleSchemeIsRejected() throws Exception {
+        PasswordStorageScheme<?> scheme = DirectoryServer.getPasswordStorageScheme("sha");
+        assertNotNull(scheme, "The SHA storage scheme must be enabled for this test");
+        assertFalse(scheme.isReversible());
+        PasswordPropertyDefinition.Builder builder = PasswordPropertyDefinition.createPasswordBuilder(
+                LDAPPassThroughAuthenticationPolicyCfgDefn.getInstance(), "test-one-way-scheme");
+        builder.setEncryptionScheme("SHA");
+        PasswordPropertyDefinition definition = builder.getInstance();
+        PasswordPropertyDefinition.Codec codec = passwordCodec();
+        try {
+            definition.encodeForStorage("one-way-scheme-test-value", codec);
+            fail("An enabled one-way storage scheme must reject configuration password encoding");
+        } catch (IllegalStateException expected) {
+            assertEquals(expected.getMessage(), "Password storage scheme is unavailable or not reversible: SHA");
+        }
+    }
+
+    @Test
+    public void existingRepositoryReturnsUnprefixedPassword() throws Exception {
+        assertEquals(configurationFromExistingRepository("legacy-test-value").getMappedSearchBindPassword(),
+                "legacy-test-value");
+    }
+
+    @Test(expectedExceptions = IllegalStateException.class,
+            expectedExceptionsMessageRegExp = "Password decoding is unavailable in this configuration repository")
+    public void existingRepositoryRejectsPrefixedPassword() throws Exception {
+        LDAPPassThroughAuthenticationPolicyCfg config = configurationFromExistingRepository("{AES}test-value");
+        config.getMappedSearchBindPassword();
     }
 
     @Test
@@ -969,6 +1003,20 @@ public class ConfigurationPasswordTestCase extends DirectoryServerTestCase {
                 .getServerManagementContext().getRootConfiguration().getPasswordPolicy(name);
     }
 
+    private static LDAPPassThroughAuthenticationPolicyCfg configurationFromExistingRepository(String value)
+            throws Exception {
+        String name = "External Repository Password Test";
+        Entry entry = policy(DN.valueOf("cn=" + name + ",cn=Password Policies,cn=config"), value);
+        ServerManagementContext context = new ServerManagementContext(new ExistingRepository(entry));
+        return (LDAPPassThroughAuthenticationPolicyCfg) context.getRootConfiguration().getPasswordPolicy(name);
+    }
+
+    private static PasswordPropertyDefinition.Codec passwordCodec() throws ReflectiveOperationException {
+        Field field = ConfigurationHandler.class.getDeclaredField("PASSWORD_CODEC");
+        field.setAccessible(true);
+        return (PasswordPropertyDefinition.Codec) field.get(null);
+    }
+
     private static String password(ConfigurationHandler handler, DN dn) throws Exception {
         return handler.getEntry(dn).getAttribute("ds-cfg-mapped-search-bind-password").firstValueAsString();
     }
@@ -982,5 +1030,75 @@ public class ConfigurationPasswordTestCase extends DirectoryServerTestCase {
         Field field = ConfigurationHandler.class.getDeclaredField("backend");
         field.setAccessible(true);
         return (MemoryBackend) field.get(handler);
+    }
+
+    /** Read-only provider that implements the SPI from before password decoding was added. */
+    private static final class ExistingRepository implements ConfigurationRepository {
+        private final Entry entry;
+
+        private ExistingRepository(Entry entry) {
+            this.entry = entry;
+        }
+
+        @Override
+        public Set<DN> getChildren(DN dn) {
+            return entry.getName().parent().equals(dn) ? Collections.singleton(entry.getName())
+                    : Collections.emptySet();
+        }
+
+        @Override
+        public Entry getEntry(DN dn) {
+            return hasEntry(dn) ? entry : null;
+        }
+
+        @Override
+        public boolean hasEntry(DN dn) {
+            return entry.getName().equals(dn);
+        }
+
+        @Override
+        public void registerAddListener(DN dn, ConfigAddListener listener) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void registerDeleteListener(DN dn, ConfigDeleteListener listener) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void registerChangeListener(DN dn, ConfigChangeListener listener) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void deregisterAddListener(DN dn, ConfigAddListener listener) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void deregisterDeleteListener(DN dn, ConfigDeleteListener listener) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean deregisterChangeListener(DN dn, ConfigChangeListener listener) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<ConfigAddListener> getAddListeners(DN dn) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<ConfigDeleteListener> getDeleteListeners(DN dn) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<ConfigChangeListener> getChangeListeners(DN dn) {
+            return Collections.emptyList();
+        }
     }
 }

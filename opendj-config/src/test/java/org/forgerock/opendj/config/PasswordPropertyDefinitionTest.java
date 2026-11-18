@@ -45,6 +45,20 @@ public class PasswordPropertyDefinitionTest extends ConfigTestCase {
     }
 
     @Test
+    public void existingStringValueVisitorHandlesPasswordProperty() {
+        StringPropertyDefinition definition = LDAPPassThroughAuthenticationPolicyCfgDefn.getInstance()
+                .getMappedSearchBindPasswordPropertyDefinition();
+        PropertyValueVisitor<String, String> visitor = new PropertyValueVisitor<String, String>() {
+            @Override
+            public String visitString(StringPropertyDefinition property, String value, String prefix) {
+                assertEquals(property, definition);
+                return prefix + value;
+            }
+        };
+        assertEquals(definition.accept(visitor, "test-value", "visited: "), "visited: test-value");
+    }
+
+    @Test
     public void passwordDeclarationsHavePasswordDefinitions() {
         assertEquals(LDAPPassThroughAuthenticationPolicyCfgDefn.getInstance()
                 .getMappedSearchBindPasswordPropertyDefinition().getClass().getSimpleName(),
