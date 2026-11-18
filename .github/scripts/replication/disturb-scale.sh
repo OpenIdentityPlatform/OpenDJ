@@ -765,6 +765,11 @@ disturb() {
       certificate_ds+=("$node=$address")
       return_window+=("cert:$node:$REMOVED")
     done
+    # Surviving dedicated RSs can reconnect to the rebuilt RS during this window.
+    for node in $RS_ONLY; do
+      [ "$node" != "$REMOVED" ] || continue
+      return_window+=("cert:$node:$REMOVED")
+    done
     return_window+=("scale-cert-return")
   fi
   window_open "${return_window[@]}" || return 1
