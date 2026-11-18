@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2026 3A Systems, LLC
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -26,6 +26,7 @@ import java.util.Random;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -55,6 +56,7 @@ import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.protocol.WindowMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.service.DSRSShutdownSync.ForwardingPeer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
@@ -82,6 +84,8 @@ public abstract class ServerHandler extends MessageHandler
    * The session opened with the remote server.
    */
   protected final Session session;
+
+  private final AtomicReference<ForwardingPeer> offlineForwarder = new AtomicReference<>();
 
   /**
    * The serverURL of the remote server.
@@ -656,6 +660,12 @@ public abstract class ServerHandler extends MessageHandler
   public int getServerId()
   {
     return serverId;
+  }
+
+  /** Returns this connection's offline-forwarding token after the peer ID is known. */
+  final ForwardingPeer offlineForwarder()
+  {
+    return offlineForwarder.updateAndGet(peer -> peer != null ? peer : new ForwardingPeer(serverId));
   }
 
   /**

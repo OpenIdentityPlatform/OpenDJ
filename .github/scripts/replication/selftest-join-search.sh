@@ -35,8 +35,12 @@ for line in sys.stdin:
     if args == ['bad-frame']:
         print('0 cGFydGlhbA==!', flush=True)
         continue
-    status = 49 if args == ['refused'] else 0
-    print(str(status) + ' ' + base64.b64encode('|'.join(args).encode()).decode(), flush=True)
+    status = 0
+    output = '|'.join(args)
+    if args == ['size-limited']:
+        status = 4
+        output = 'dn: cn=partial,dc=example\ncn: partial\n\n'
+    print(str(status) + ' ' + base64.b64encode(output.encode()).decode(), flush=True)
 WORKER
 chmod +x "$OUT/worker"
 JOIN_INSTALL_ROOT=$OUT
@@ -49,8 +53,10 @@ join_search_init
 ldapsearch() { printf 'fallback'; }
 [ "$(join_search 'a b' '' $'unicode-тест\nnext')" = $'a b||unicode-тест\nnext' ]
 rc=0
-result=$(join_search refused) || rc=$?
-[ "$rc" = 49 ] && [ "$result" = refused ]
+join_search size-limited >"$OUT/partial.ldif" || rc=$?
+[ "$rc" = 4 ]
+printf 'dn: cn=partial,dc=example\ncn: partial\n\n' >"$OUT/expected.ldif"
+cmp "$OUT/expected.ldif" "$OUT/partial.ldif"
 [ "$(join_search next)" = next ]
 [ "$(wc -l <"$OUT/starts" | tr -d ' ')" = 1 ] || { echo 'worker started more than once' >&2; exit 1; }
 [ "$(join_search die)" = fallback ]

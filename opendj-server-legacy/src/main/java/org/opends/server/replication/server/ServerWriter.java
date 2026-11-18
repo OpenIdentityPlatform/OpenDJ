@@ -30,6 +30,7 @@ import org.opends.server.replication.protocol.ReplicaOfflineMsg;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.service.DSRSShutdownSync;
+import org.opends.server.replication.service.DSRSShutdownSync.ForwardingPeer;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.common.ServerStatus.*;
@@ -129,7 +130,7 @@ public class ServerWriter extends DirectoryThread
           if (updateMsg instanceof ReplicaOfflineMsg && !handler.isDataServer())
           {
             dsrsShutdownSync.replicaOfflineMsgNotForwarded(
-                replicationServerDomain.getBaseDN(), handler.getServerId());
+                replicationServerDomain.getBaseDN(), handler.offlineForwarder());
           }
         }
         else
@@ -229,12 +230,12 @@ public class ServerWriter extends DirectoryThread
   private void forwardReplicaOfflineMsg(final ReplicaOfflineMsg msg) throws IOException
   {
     final DN baseDN = replicationServerDomain.getBaseDN();
-    final int serverId = handler.getServerId();
+    final ForwardingPeer peer = handler.offlineForwarder();
     final boolean accepted = session.publish(msg,
-        () -> dsrsShutdownSync.replicaOfflineMsgForwarded(baseDN, msg.getCSN(), serverId));
+        () -> dsrsShutdownSync.replicaOfflineMsgForwarded(baseDN, msg.getCSN(), peer));
     if (!accepted)
     {
-      dsrsShutdownSync.replicaOfflineMsgNotForwarded(baseDN, serverId);
+      dsrsShutdownSync.replicaOfflineMsgNotForwarded(baseDN, peer);
     }
   }
 

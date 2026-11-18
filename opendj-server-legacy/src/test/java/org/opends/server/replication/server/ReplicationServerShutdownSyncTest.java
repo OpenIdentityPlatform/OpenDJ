@@ -73,6 +73,7 @@ import org.opends.server.replication.protocol.WindowMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.replication.service.DSRSShutdownSync;
+import org.opends.server.replication.service.DSRSShutdownSync.ForwardingPeer;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Modification;
@@ -508,6 +509,96 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
       {
         old.shutdown(); // Also clears remote-replica monitors created by a failing implementation.
       }
+      removeQuietly(server);
+    }
+  }
+
+  @Test
+  public void stoppingPeerCannotCancelOfflineForwardForItsReplacement() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final RecordingShutdownSync shutdownSync = new RecordingShutdownSync();
+    final CountDownLatch releaseOld = new CountDownLatch(1);
+    final CountDownLatch oldIsClosing = new CountDownLatch(1);
+    final ExecutorService stopping = Executors.newSingleThreadExecutor();
+    ReplicationServer server = null;
+    ReplicationBroker broker = null;
+    FakePeerReplicationServer replacement = null;
+    try (ServerSocket listen = TestCaseUtils.bindFreePort())
+    {
+      final int port = TestCaseUtils.findFreePort();
+      server = newReplicationServer(shutdownSync, "offlineForwardReplacementDb", 8261, port);
+      broker = openReplicationSession(baseDN, LOCAL_DS_ID, 100, port, 5000, EMPTY_DN_GENID);
+      final ReplicationServerDomain domain = server.getReplicationServerDomain(baseDN, true);
+      final Session[] oldPair = connectSessionPair(listen, getReplSessionSecurity());
+      try (Session oldRemote = oldPair[0]; Session oldLocal = oldPair[1])
+      {
+        final ReplicationServerHandler old = new ReplicationServerHandler(oldLocal, 100, server, 100)
+        {
+          @Override
+          void awaitShutdown()
+          {
+            oldIsClosing.countDown();
+            try
+            {
+              assertThat(releaseOld.await(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+            }
+            catch (InterruptedException e)
+            {
+              Thread.currentThread().interrupt();
+            }
+            super.awaitShutdown();
+          }
+        };
+        registerConnectedReplicationServer(domain, baseDN, old, REMOTE_RS_ID);
+        final Future<?> stopped = stopping.submit(() -> domain.stopServer(old, false));
+        try
+        {
+          assertThat(oldIsClosing.await(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+          replacement = FakePeerReplicationServer.connected(
+              port, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID, HELD_BACK_PEER_WINDOW);
+          waitForConnectedReplicationServer(domain, REMOTE_RS_ID);
+
+          final CSNGenerator csns = new CSNGenerator(LOCAL_DS_ID, 0);
+          final Future<DeleteMsg> windowFiller = replacement.receive(DeleteMsg.class);
+          broker.publish(new DeleteMsg(DN.valueOf("uid=offline," + baseDN),
+              csns.newCSN(), "offline-entry-uuid"));
+          assertThat(windowFiller.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isNotNull();
+
+          final CSN offlineCSN = csns.newCSN();
+          shutdownSync.replicaOfflineMsgSent(baseDN, offlineCSN);
+          broker.publish(new ReplicaOfflineMsg(offlineCSN));
+          shutdownSync.awaitDispatch();
+          assertThat(shutdownSync.dispatchedTo()).containsExactly(REMOTE_RS_ID);
+          assertThat(shutdownSync.canShutdown(baseDN)).isFalse();
+
+          releaseOld.countDown();
+          stopped.get(WRITER_REACTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+          assertThat(shutdownSync.canShutdown(baseDN))
+              .as("the old session cannot cancel the new session's forward").isFalse();
+
+          final Future<ReplicaOfflineMsg> received = replacement.receive(ReplicaOfflineMsg.class);
+          replacement.openSendWindow(1);
+          final ReplicaOfflineMsg forwarded = received.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+          assertThat(forwarded).isNotNull();
+          assertThat(forwarded.getCSN()).isEqualTo(offlineCSN);
+          newConnectionTimer().repeatUntilSuccess(() -> {
+            assertThat(shutdownSync.forwardedBy()).contains(REMOTE_RS_ID);
+            assertThat(shutdownSync.canShutdown(baseDN)).isTrue();
+          });
+        }
+        finally
+        {
+          releaseOld.countDown();
+        }
+      }
+    }
+    finally
+    {
+      closeQuietly(replacement);
+      stop(broker);
+      stopping.shutdownNow();
+      stopping.awaitTermination(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
       removeQuietly(server);
     }
   }
@@ -1631,7 +1722,8 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
        * released by the first forward reported for it, so end the wait now rather than sit out
        * the rest of its grace period in the join below.
        */
-      shutdownSync.replicaOfflineMsgForwarded(baseDN, unreachableCSN, HANDSHAKING_RS_ID);
+      shutdownSync.replicaOfflineMsgForwarded(
+          baseDN, unreachableCSN, domain.getConnectedRSs().get(HANDSHAKING_RS_ID).offlineForwarder());
     }
     finally
     {
@@ -2568,6 +2660,66 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     }
   }
 
+  @Test
+  public void undeliveredDirectUpdatesShareOneDeadlineAcrossDomains() throws Exception
+  {
+    final DN baseDN1 = DN.valueOf(TEST_ROOT_DN_STRING);
+    final DN baseDN2 = DN.valueOf("dc=world,dc=company");
+    final List<ReplicationBroker> brokers = new ArrayList<>();
+    final List<FakePeerReplicationServer> peers = new ArrayList<>();
+    final int port = TestCaseUtils.findFreePort();
+    final ReplicationServer server = newReplicationServer(
+        new DSRSShutdownSync(), "directUpdatesSharedDeadlineDb", 8262, port);
+    try
+    {
+      for (DN baseDN : Arrays.asList(baseDN1, baseDN2))
+      {
+        final ReplicationBroker broker =
+            openReplicationSession(baseDN, REMOTE_DS_ID, 100, port, 5000, EMPTY_DN_GENID);
+        brokers.add(broker);
+        final FakePeerReplicationServer peer = FakePeerReplicationServer.connected(
+            port, REMOTE_RS_ID, baseDN, EMPTY_DN_GENID, HELD_BACK_PEER_WINDOW);
+        peers.add(peer);
+        final ReplicationServerDomain domain = server.getReplicationServerDomain(baseDN, true);
+        waitForConnectedReplicationServer(domain, REMOTE_RS_ID);
+
+        final Future<DeleteMsg> windowFiller = peer.receive(DeleteMsg.class);
+        final CSNGenerator csns = new CSNGenerator(REMOTE_DS_ID, 0);
+        broker.publish(new DeleteMsg(DN.valueOf("uid=first," + baseDN), csns.newCSN(),
+            "11111111-1111-1111-1111-111111111111"));
+        assertThat(windowFiller.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isNotNull();
+
+        final CSN blockedCSN = csns.newCSN();
+        broker.publish(new DeleteMsg(DN.valueOf("uid=blocked," + baseDN), blockedCSN,
+            "22222222-2222-2222-2222-222222222222"));
+        newConnectionTimer().repeatUntilSuccess(() ->
+            assertThat(domain.getLatestServerState().getCSN(REMOTE_DS_ID)).isEqualTo(blockedCSN));
+      }
+
+      final long budgetMillis = 2000;
+      final List<String> records = errorLogRecordsOf(() -> {
+        final long start = System.nanoTime();
+        server.awaitDirectUpdatesForwarded(TimeUnit.MILLISECONDS.toNanos(budgetMillis));
+        assertThat(elapsedMillis(start))
+            .as("both domains share one deadline")
+            .isBetween(budgetMillis, budgetMillis + 1500);
+        return null;
+      });
+      for (DN baseDN : Arrays.asList(baseDN1, baseDN2))
+      {
+        final String warning = "RS shutdown could not forward all direct DS updates for "
+            + baseDN + " to RS " + REMOTE_RS_ID + ";";
+        assertThat(records.stream().filter(line -> line.contains(warning)).count()).isEqualTo(1);
+      }
+    }
+    finally
+    {
+      peers.forEach(this::closeQuietly);
+      brokers.forEach(this::stop);
+      removeQuietly(server);
+    }
+  }
+
   private ReplicationServer newReplicationServer(DSRSShutdownSync shutdownSync, String dbDirName,
       int serverId) throws Exception
   {
@@ -2599,6 +2751,13 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     final ReplicationServerDomain domain = replicationServer.getReplicationServerDomain(baseDN, true);
     final ReplicationServerHandler rsHandler =
         new ReplicationServerHandler(session, 100, replicationServer, 100);
+    registerConnectedReplicationServer(domain, baseDN, rsHandler, serverId);
+    return rsHandler;
+  }
+
+  private void registerConnectedReplicationServer(ReplicationServerDomain domain, DN baseDN,
+      ReplicationServerHandler rsHandler, int serverId) throws Exception
+  {
     rsHandler.serverId = serverId;
     rsHandler.serverURL = "127.0.0.1:1636";
     rsHandler.setBaseDNAndDomain(baseDN, false);
@@ -2611,7 +2770,6 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
     {
       domain.release();
     }
-    return rsHandler;
   }
 
   /** Waits for the barrier to have been told that this peer will not forward the message. */
@@ -2767,7 +2925,7 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
         {
           return;
         }
-        shutdownSync.replicaOfflineMsgForwarded(baseDN, offlineCSN, REMOTE_RS_ID);
+        shutdownSync.replicaOfflineMsgForwarded(baseDN, offlineCSN, new ForwardingPeer(REMOTE_RS_ID));
       }
     });
   }
@@ -3149,30 +3307,33 @@ public class ReplicationServerShutdownSyncTest extends ReplicationTestCase
 
     @Override
     public void replicaOfflineMsgDispatched(
-        DN baseDN, CSN offlineCSN, Collection<Integer> replicationServerIds)
+        DN baseDN, CSN offlineCSN, Collection<ForwardingPeer> peers)
     {
       final Runnable action = whileDispatching.getAndSet(null);
       if (action != null)
       {
         action.run();
       }
-      dispatchedTo.addAll(replicationServerIds);
-      super.replicaOfflineMsgDispatched(baseDN, offlineCSN, replicationServerIds);
+      for (ForwardingPeer peer : peers)
+      {
+        dispatchedTo.add(peer.getServerId());
+      }
+      super.replicaOfflineMsgDispatched(baseDN, offlineCSN, peers);
       dispatched.countDown();
     }
 
     @Override
-    public void replicaOfflineMsgForwarded(DN baseDN, CSN forwardedCSN, int replicationServerId)
+    public void replicaOfflineMsgForwarded(DN baseDN, CSN forwardedCSN, ForwardingPeer peer)
     {
-      forwardedBy.add(replicationServerId);
-      super.replicaOfflineMsgForwarded(baseDN, forwardedCSN, replicationServerId);
+      forwardedBy.add(peer.getServerId());
+      super.replicaOfflineMsgForwarded(baseDN, forwardedCSN, peer);
     }
 
     @Override
-    public void replicaOfflineMsgNotForwarded(DN baseDN, int replicationServerId)
+    public void replicaOfflineMsgNotForwarded(DN baseDN, ForwardingPeer peer)
     {
-      gaveUpOn.add(replicationServerId);
-      super.replicaOfflineMsgNotForwarded(baseDN, replicationServerId);
+      gaveUpOn.add(peer.getServerId());
+      super.replicaOfflineMsgNotForwarded(baseDN, peer);
     }
 
     /** Waits for put() to have pushed a ReplicaOfflineMsg to the peers of its domain. */

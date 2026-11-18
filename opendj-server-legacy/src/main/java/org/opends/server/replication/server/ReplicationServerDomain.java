@@ -41,6 +41,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.MonitorData;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
@@ -64,7 +65,7 @@ import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
-import org.forgerock.opendj.ldap.DN;
+import org.opends.server.replication.service.DSRSShutdownSync.ForwardingPeer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.HostPort;
 
@@ -485,18 +486,18 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       NotAssuredUpdateMsg notAssuredUpdateMsg, List<Integer> assuredServers)
   {
     final List<ReplicationServerHandler> recipients = new ArrayList<>(connectedRSs.size());
-    final List<Integer> recipientIds = new ArrayList<>(connectedRSs.size());
+    final List<ForwardingPeer> forwarders = new ArrayList<>(connectedRSs.size());
     for (ReplicationServerHandler rsHandler : connectedRSs.values())
     {
       // Ignore updates to RS with bad gen id (no system managed status for a RS)
       if (!isDifferentGenerationId(rsHandler, offlineMsg))
       {
         recipients.add(rsHandler);
-        recipientIds.add(rsHandler.getServerId());
+        forwarders.add(rsHandler.offlineForwarder());
       }
     }
     localReplicationServer.getDSRSShutdownSync()
-        .replicaOfflineMsgDispatched(baseDN, offlineMsg.getCSN(), recipientIds);
+        .replicaOfflineMsgDispatched(baseDN, offlineMsg.getCSN(), forwarders);
     for (ReplicationServerHandler rsHandler : recipients)
     {
       /*
@@ -1372,7 +1373,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   void noLongerAwaitTheForwardOf(ServerHandler rsHandler)
   {
     localReplicationServer.getDSRSShutdownSync()
-        .replicaOfflineMsgNotForwarded(baseDN, rsHandler.getServerId());
+        .replicaOfflineMsgNotForwarded(baseDN, rsHandler.offlineForwarder());
   }
 
   private void unregisterServerHandler(ServerHandler sHandler, boolean shutdown,

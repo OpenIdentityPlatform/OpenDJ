@@ -15,7 +15,9 @@
 
 set -e -o pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
-OUT=$(mktemp -d); trap 'rm -rf "$OUT"' EXIT
+OUT=$(mktemp -d)
+LIVE_CHILD=
+trap '[ -z "$LIVE_CHILD" ] || kill "$LIVE_CHILD" 2>/dev/null || :; rm -rf "$OUT"' EXIT
 ROOT="$OUT/instance with spaces"
 mkdir -p "$ROOT/bin" "$ROOT/lib" "$ROOT/logs" "$ROOT/config"
 cp "$HERE/../../opendj-server-legacy/resource/bin/start-ds" "$ROOT/bin/start-ds"
@@ -32,17 +34,22 @@ case " $* " in
       touch "$INSTANCE_ROOT/probed"
       exit 99
     fi
+    touch "$INSTANCE_ROOT/final-probe"
     echo fixture-probe-diagnostic >&2
     exit "$PROBE_RESULT"
     ;;
   *org.opends.server.tools.WaitForFileDelete*)
+    [ "${WAITER_RESULT:-0}" -eq 0 ] || exit "$WAITER_RESULT"
     # The server child has exited before the final probe reports its failure.
     while kill -0 "$(cat "$INSTANCE_ROOT/logs/server.pid")" 2>/dev/null; do sleep 0.01; done
     exit 0 ;;
-  *) exit 42 ;;
+  *)
+    if [ "${WAITER_RESULT:-0}" -ne 0 ]; then exec sleep 15; fi
+    exit 42 ;;
 esac
 JAVA
 chmod +x "$ROOT/java"
+WAITER_RESULT=0; export WAITER_RESULT
 PROBE_RESULT=137; export PROBE_RESULT
 rc=0
 sh "$ROOT/bin/start-ds" >"$OUT/output" 2>&1 || rc=$?
@@ -64,4 +71,17 @@ rm "$ROOT/probed"
 PROBE_RESULT=99
 rc=0; sh "$ROOT/bin/start-ds" >"$OUT/output" 2>&1 || rc=$?
 [ "$rc" -eq 1 ]
-echo 'launcher preserves failed probe output/status without changing start results'
+# A failed waiter must return while its child is still alive, without a final probe.
+rmdir "$ROOT/logs/start-ds.log"
+rm "$ROOT/probed" "$ROOT/final-probe"
+WAITER_RESULT=2
+started=$SECONDS
+rc=0
+sh "$ROOT/bin/start-ds" >"$OUT/output" 2>&1 || rc=$?
+LIVE_CHILD=$(cat "$ROOT/logs/server.pid")
+[ "$rc" -eq 2 ]
+[ "$((SECONDS - started))" -lt 10 ]
+kill -0 "$LIVE_CHILD"
+grep -Fq "WaitForFileDelete exited with status 2; server pid $LIVE_CHILD, status running" "$ROOT/logs/start-ds.log"
+[ ! -e "$ROOT/final-probe" ]
+echo 'launcher preserves failed probe output/status and returns a failed waiter status with a live child'

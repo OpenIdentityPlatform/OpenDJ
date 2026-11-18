@@ -24,7 +24,7 @@ if [ ! -f "$HERE/disturb-scale.sh" ]; then
 fi
 
 run_case() (
-  local topology=$1 mode=$2 target n
+  local topology=$1 mode=$2 target n mappings
   mkdir -p "$OUT/$topology-$mode/logs" "$OUT/$topology-$mode/scale-checkpoint"
   OUT="$OUT/$topology-$mode"
   if [ "$topology" = combined ]; then
@@ -52,7 +52,14 @@ run_case() (
         fi
         ;;
       logs) echo 'old container log' ;;
-      inspect) echo 172.18.0.9 ;;
+      inspect)
+        case ${*: -1} in
+          d0) echo 172.18.0.9 ;;
+          d1) echo 172.18.0.10 ;;
+          d2) echo 172.18.0.11 ;;
+          d3) echo 172.18.0.12 ;;
+          *) echo 172.18.0.20 ;;
+        esac ;;
       exec)
         if [ "${3:-}" = sh ]; then
           [ "${FAIL_OFFLINE_SNAPSHOT:-0}" = 0 ] || return 1
@@ -68,6 +75,7 @@ run_case() (
   window_close_key() { record "window-close $1"; }
   dns_window_open() { record "dns-open $*"; }; dns_window_close() { record dns-close; }
   errors_lines() { echo 10; }
+  scale_record_certificate_recoveries() { record "certificate-proof $*"; }
   rolling_request_pause() { record "request-pause $1"; }
   rolling_pause() { record "pause $1"; }
   rolling_resume() { record "resume $1"; }
@@ -312,9 +320,19 @@ run_case() (
     grep -Fx "docker volume rm vol-$target" "$OUT/calls" >/dev/null
     [ -s "$OUT/logs/$target.previous" ]
     grep -F "cert:d0:$target" "$OUT/calls" >/dev/null || { echo 'missing exact certificate window' >&2; exit 1; }
-    grep -F "cert-peer:$target:172.18.0.9" "$OUT/calls" >/dev/null || { echo 'missing peer certificate window' >&2; exit 1; }
+    grep -E '^window .* scale-cert-return$' "$OUT/calls" >/dev/null || { echo 'missing scale certificate window' >&2; exit 1; }
+    mappings='172.18.0.12 d0=172.18.0.9 d1=172.18.0.10 d2=172.18.0.11'
+    if [ "$topology" = rs534 ]; then mappings="172.18.0.20 ${mappings#* } d3=172.18.0.12"; fi
+    grep -Fx "certificate-proof $mappings" "$OUT/calls" >/dev/null || { echo 'wrong certificate proof addresses' >&2; exit 1; }
+    awk '
+      /^wait peer_present / { checked=NR }
+      /^certificate-proof / { proof=NR }
+      END { if (!checked || !proof || checked >= proof) exit 1 }
+    ' "$OUT/calls" || { echo 'certificate recovery checked before scale-out membership settled' >&2; exit 1; }
   else
-    if grep -F 'docker volume rm' "$OUT/calls" >/dev/null; then echo 'kept volume was removed' >&2; exit 1; fi
+    if grep -E 'docker volume rm|scale-cert-return|certificate-proof' "$OUT/calls" >/dev/null; then
+      echo 'kept volume was treated as a rebuild' >&2; exit 1
+    fi
   fi
   if [ "$topology" = combined ]; then
     grep -Fx "identity $target" "$OUT/calls" >/dev/null
