@@ -245,11 +245,25 @@ SCALE_LATE_PEER=${SCALE_PEER/12:00:01/12:00:03}
 SCALE_SCHEMA_WARNING=${SCALE_WARNING/dc=example,dc=com/cn=schema}
 SCALE_ADMIN_WARNING=${SCALE_WARNING/dc=example,dc=com/cn=admin data}
 SCALE_ADMIN_CONNECTED=${SCALE_CONNECTED/dc=example,dc=com/cn=admin data}
+SCALE_SAME_SECOND=${SCALE_CONNECTED/12:00:02/12:00:01}
+SCALE_RS_WARNING="[18/Nov/2026:12:00:01 +0000]${WRSCERT:3}"
+SCALE_RS_WARNING=${SCALE_RS_WARNING/cv-c3/cv-r1}
+SCALE_RS_RECOVERY="[18/Nov/2026:12:00:02 +0000]${NRSCERT:3}"
+SCALE_RS_RECOVERY=${SCALE_RS_RECOVERY/cv-c3/cv-r1}
+SCALE_RS_ACCEPTOR=${SCALE_PEER/172.18.0.9/172.18.0.7}
 
-scale_cert_result() ( # <return DS log> <return RS log> <scale-out DS log> [<post-scale DS log>] [<window change>]
+# <return DS log> <acceptor log> <scale-out DS log> [<post-scale DS log>]
+# [<window change>] [<in-window RS caller log>] [<scale-out RS caller log>]
+scale_cert_result() (
   rm -rf "$OUT/logs"
-  ALL_NODES='n0 n1 cv-r1'
-  DS_NODES='n0 n1' RS_ONLY=cv-r1 RS_NODES=cv-r1 PEERS=n0,n1,cv-r1 TOPOLOGY=rs534 SCALE_VOLUME=empty
+  ALL_NODES='n0 n1 cv-r0 cv-r1'
+  DS_NODES='n0 n1' RS_ONLY='cv-r0 cv-r1' TOPOLOGY=rs534 SCALE_VOLUME=empty
+  RS_NODES=$RS_ONLY PEERS=n0,n1,cv-r0,cv-r1
+  local caller=cv-r0
+  if [ "${5:-}" = combined-peer ]; then
+    TOPOLOGY=combined DS_NODES=$ALL_NODES RS_ONLY= RS_NODES=$ALL_NODES
+    caller=n0
+  fi
   . "$HERE/disturb-scale.sh"
   docker() {
     case "$1 $3" in
@@ -261,14 +275,17 @@ scale_cert_result() ( # <return DS log> <return RS log> <scale-out DS log> [<pos
   printf '%s\n' "$E106" >"$OUT/errors-n0"
   printf '%s\n' "$E106" >"$OUT/errors-cv-r1"
   printf '%s\n' "$E106" >"$OUT/errors-n1"
+  printf '%s\n' "$E106" >"$OUT/errors-cv-r0"
   mark_logs
-  window_open dns:cv-r1 cert:n0:cv-r1 cert-peer:cv-r1:172.18.0.9 scale-cert-return
+  window_open dns:cv-r1 cert:n0:cv-r1 cert:cv-r0:cv-r1 cert-peer:cv-r1:172.18.0.9 scale-cert-return
   [ -z "$1" ] || printf '%s\n' "$1" >>"$OUT/errors-n0"
   [ -z "$2" ] || printf '%s\n' "$2" >>"$OUT/errors-cv-r1"
+  [ -z "${6:-}" ] || printf '%s\n' "$6" >>"$OUT/errors-$caller"
   window_close
   [ -z "$3" ] || printf '%s\n' "$3" >>"$OUT/errors-n0"
+  [ -z "${7:-}" ] || printf '%s\n' "$7" >>"$OUT/errors-$caller"
   printf '%s\n' "$SCALE_CONNECTED" >>"$OUT/errors-n1"
-  scale_record_certificate_recoveries 172.18.0.2 n0=172.18.0.9 n1=172.18.0.8 || exit 1
+  scale_record_certificate_recoveries 172.18.0.2 n0=172.18.0.9 n1=172.18.0.8 cv-r0=172.18.0.7 || exit 1
   [ -z "${4:-}" ] || printf '%s\n' "$4" >>"$OUT/errors-n0"
   case ${5:-} in
     move-window)
@@ -280,10 +297,11 @@ scale_cert_result() ( # <return DS log> <return RS log> <scale-out DS log> [<pos
       printf '1 2 dns:cv-r1\n' >"$OUT/logs/cv-r1.windows"
       ;;
   esac
-  local ds rs
-  ds=$(replication_errors n0) || exit 1
-  rs=$(replication_errors cv-r1) || exit 1
-  for errors in "$ds" "$rs"; do
+  [ -z "$(sort "$OUT/logs/scale-certificates" | uniq -d)" ] || { echo 'duplicate certificate proof' >&2; exit 1; }
+  local caller_errors acceptor_errors
+  caller_errors=$(replication_errors n0) || exit 1
+  acceptor_errors=$(replication_errors cv-r1) || exit 1
+  for errors in "$caller_errors" "$acceptor_errors"; do
     if [ -n "$errors" ]; then printf '%s\n' "$errors"; fi
     printf '%s\n' ---
   done
@@ -313,7 +331,28 @@ scale_cert_case scale-cert-recovery-after-roll "$SCALE_WARNING" "$SCALE_PEER" "$
 scale_cert_case scale-cert-repeated-after-roll "$SCALE_WARNING" '' "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED" "$SCALE_WARNING"
 scale_cert_case scale-cert-warnings-after-return "$SCALE_WARNING" '' '' '' "$SCALE_WARNING"$'\n'"$SCALE_CONNECTED"
 scale_cert_case scale-cert-before-warning "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED"$'\n'"$SCALE_WARNING" "$SCALE_PEER" ''
-scale_cert_case scale-cert-peer-order-ambiguous '' "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" "${SCALE_CONNECTED/12:00:02/12:00:01}"
+scale_cert_case scale-cert-peer-order-ambiguous '' "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_SAME_SECOND"
+scale_cert_case scale-cert-peer-same-then-later '' '' "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_SAME_SECOND"$'\n'"$SCALE_CONNECTED"
+scale_cert_case scale-rs-peer-recovered '' '' '' "$SCALE_RS_ACCEPTOR" '' '' '' "$SCALE_RS_WARNING"$'\n'"$SCALE_RS_RECOVERY"
+scale_cert_case scale-rs-peer-without-warning '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' "$SCALE_RS_RECOVERY"
+scale_cert_case scale-rs-peer-without-recovery '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' "$SCALE_RS_WARNING"
+scale_cert_case scale-rs-peer-late-recovery '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' "$SCALE_RS_WARNING" "$SCALE_RS_RECOVERY"
+for notice in "${SCALE_RS_RECOVERY/RS(31897)/RS(31898)}" "${SCALE_RS_RECOVERY/cv-r1/cv-r2}" \
+              "${SCALE_RS_RECOVERY/cn=admin data/cn=schema}" "${SCALE_RS_RECOVERY/12:00:02/12:00:01}"; do
+  scale_cert_case scale-rs-peer-wrong-recovery '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' "$SCALE_RS_WARNING"$'\n'"$notice"
+done
+scale_cert_case scale-rs-peer-wrong-source '' "$SCALE_PEER" '' "$SCALE_PEER" '' '' '' "$SCALE_RS_WARNING"$'\n'"$SCALE_RS_RECOVERY"
+scale_cert_case scale-rs-peer-wrong-second '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' "${SCALE_RS_WARNING/12:00:01/11:59:59}"$'\n'"$SCALE_RS_RECOVERY"
+# A combined caller can log both paths from the same IP in the same second.
+# Even when the IDs and domain agree, both roles must establish their own session.
+SCALE_COMBINED_RS_WARNING=${SCALE_RS_WARNING/RS(31897)/RS(1)}
+SCALE_COMBINED_RS_RECOVERY=${SCALE_RS_RECOVERY/RS(31897)/RS(1)}
+scale_cert_case scale-combined-peer-unrecovered-rs "$SCALE_COMBINED_RS_WARNING" "$SCALE_PEER" \
+  "$SCALE_ADMIN_WARNING" "$SCALE_PEER" "$SCALE_ADMIN_CONNECTED" '' combined-peer "$SCALE_COMBINED_RS_WARNING"
+scale_cert_case scale-combined-peer-unrecovered-ds "$SCALE_ADMIN_WARNING" "$SCALE_PEER" "$SCALE_ADMIN_WARNING" "$SCALE_PEER" \
+  '' '' combined-peer "$SCALE_COMBINED_RS_WARNING"$'\n'"$SCALE_COMBINED_RS_RECOVERY"
+scale_cert_case scale-combined-peer-recovered '' '' "$SCALE_ADMIN_WARNING" "$SCALE_PEER" \
+  "$SCALE_ADMIN_CONNECTED" '' combined-peer "$SCALE_COMBINED_RS_WARNING"$'\n'"$SCALE_COMBINED_RS_RECOVERY"
 scale_cert_case scale-cert-peer-unrelated-time '' "${SCALE_PEER/12:00:01/11:59:30}" "$SCALE_WARNING" "${SCALE_PEER/12:00:01/11:59:30}" "$SCALE_CONNECTED"
 scale_cert_case scale-cert-proof-outside-window "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED" '' move-window
 scale_cert_case scale-cert-proof-in-ordinary-window "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED" '' ordinary-window

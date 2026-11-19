@@ -624,31 +624,35 @@ scale_certificate_log() { # <node>
   [ "$mark" -le "$before" ] && [ "$before" -le "$warning_end" ] && [ "$warning_end" -le "$last" ] || return 1
   printf '@ %s %s\n' "$node" "$warning_end" || return 1
   since_mark "$node" | awk -v mark="$mark" -v before="$before" -v last="$last" '
-    NR + mark > before && NR + mark <= last && /category=SYNC severity=(WARNING msgID=(105|119)|NOTICE msgID=62) / {
+    NR + mark > before && NR + mark <= last && /category=SYNC severity=(WARNING msgID=(105|119|312)|NOTICE msgID=(62|313)) / {
       printf "%d\t%s\n", NR + mark, $0
     }
     END { if (NR + mark < last) exit 1 }'
 }
 
-# A DS warning needs a later same-DS-ID/domain session with the rebuilt RS.
-# Warning 105 has no domain or DS ID. Look up the DS at its pre-roll IP and match
-# its 119 warnings for this RS in the same logged second. Every matching path
-# must recover after the second in which the RS logged 105.
-scale_record_certificate_recoveries() { # <rebuilt RS address> <DS=address>...
+# A warning on the caller needs a later session with the rebuilt RS in the same
+# domain and for the same caller ID. Match acceptor warning 105 by the callers'
+# pre-roll IP and the second of a DS119 or RS312. Each matching path must recover
+# in a later second. RS312 and RS313 must both be inside the return window.
+scale_record_certificate_recoveries() { # <rebuilt RS address> <node=address>...
   local address=$1 mapping proof="$OUT/logs/scale-certificates"
   shift
   {
     for mapping in "$@"; do scale_certificate_log "${mapping%%=*}" || exit 1; done
     scale_certificate_log "$REMOVED" || exit 1
-  } | awk -v rs="$REMOVED" -v address="$address" -v mappings="$*" '
+  } | awk -v rs="$REMOVED" -v address="$address" -v mappings="$*" -v ds_nodes="$DS_NODES" -v rs_nodes="$RS_NODES" '
     BEGIN {
       split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec", months, " ")
       for (i in months) month[months[i]] = i
       count = split(mappings, pairs, " ")
       for (i = 1; i <= count; i++) {
         split(pairs[i], pair, "=")
-        ds_at[pair[2]] = pair[2] in ds_at ? "" : pair[1]
+        peer_at[pair[2]] = pair[2] in peer_at ? "" : pair[1]
       }
+      count = split(ds_nodes, nodes, " ")
+      for (i = 1; i <= count; i++) directory_node[nodes[i]] = 1
+      count = split(rs_nodes, nodes, " ")
+      for (i = 1; i <= count; i++) replication_node[nodes[i]] = 1
     }
     function log_time(record, stamp, date) {
       stamp = substr(record, 2, index(record, "]") - 2)
@@ -666,6 +670,28 @@ scale_record_certificate_recoveries() { # <rebuilt RS address> <DS=address>...
     function prove(line, record) {
       printf "%s\t%d\t%s\n", node, line, record
     }
+    function remember_warning(key, line, record, emit,     i) {
+      i = ++warnings[node]
+      path[node, i] = key
+      warned_at[node, i] = log_time(record)
+      if (emit) {
+        position[node, i] = line
+        warning[node, i] = record
+      }
+    }
+    function record_recovery(key, record,     i, stamp) {
+      stamp = log_time(record)
+      for (i = 1; i <= warnings[node]; i++) {
+        if (path[node, i] != key) continue
+        # Local log order proves DS119 recovery even within the same second.
+        # Keep checking subsequent notices for the cross-node proof of RS105.
+        if ((node, i) in warning) {
+          prove(position[node, i], warning[node, i])
+          delete warning[node, i]
+        }
+        if (after_time(stamp, warned_at[node, i])) recovered_later[node, i] = 1
+      }
+    }
     $1 == "@" { node = $2; warning_end = $3; next }
     {
       line = $1 + 0
@@ -682,42 +708,50 @@ scale_record_certificate_recoveries() { # <rebuilt RS address> <DS=address>...
         remote = words[7]; sub(/^.*\//, "", remote)
         local_address = words[11]; sub(/^.*\//, "", local_address)
         if (split(remote, socket, ":") != 2 || socket[2] !~ /^[0-9]+$/ || local_address != address ":8989") next
-        ds = ds_at[socket[1]]
-        if (ds == "" || !warnings[ds]) next
+        caller = peer_at[socket[1]]
+        if (caller == "" || !warnings[caller]) next
         peer_time = log_time(record)
         if (peer_time == "") next
         matched = 0
-        for (i = 1; i <= warnings[ds]; i++) {
-          if (warned_at[ds, i] != peer_time) continue
-          if (!after_time(recovered[ds, i], peer_time)) break
+        for (i = 1; i <= warnings[caller]; i++) {
+          if (warned_at[caller, i] != peer_time) continue
+          if (!recovered_later[caller, i]) break
           matched = 1
         }
-        if (matched && i > warnings[ds]) prove(line, record)
+        if (matched && i > warnings[caller]) prove(line, record)
         next
       }
 
-      if (message !~ /^Directory server DS\([0-9]+\) / || !match(message, / for domain "[^"]+"/)) next
+      if (!match(message, / for domain "[^"]+"/)) next
       domain = substr(message, RSTART, RLENGTH)
       prefix = substr(message, 1, RSTART - 1)
       suffix = substr(message, RSTART + RLENGTH)
-      id = prefix; sub(/^Directory server DS\(/, "", id); sub(/\).*/, "", id)
-      key = id SUBSEP domain
-      if (line <= warning_end && header ~ /category=SYNC severity=WARNING msgID=119$/ &&
-          prefix == "Directory server DS(" id ") encountered an unexpected error while connecting to replication server " rs ":8989" &&
-          suffix ~ /^: .*SSLHandshakeException.*bad_certificate/) {
-        i = ++warnings[node]
-        path[node, i] = key
-        position[node, i] = line
-        warning[node, i] = record
-        warned_at[node, i] = log_time(record)
+      if (node in directory_node && prefix ~ /^Directory server DS\([0-9]+\) /) {
+        id = prefix; sub(/^Directory server DS\(/, "", id); sub(/\).*/, "", id)
+        key = "DS" SUBSEP id SUBSEP domain
+        if (line <= warning_end && header ~ /category=SYNC severity=WARNING msgID=119$/ &&
+            prefix == "Directory server DS(" id ") encountered an unexpected error while connecting to replication server " rs ":8989" &&
+            suffix ~ /^: .*SSLHandshakeException.*bad_certificate/) {
+          remember_warning(key, line, record, 1)
+        }
+        if (header ~ /category=SYNC severity=NOTICE msgID=62$/ &&
+            prefix ~ /^Directory server DS\([0-9]+\) has connected to replication server RS\([0-9]+\)$/ &&
+            index(suffix, " at " address ":8989 with generation ID ") == 1) {
+          record_recovery(key, record)
+        }
       }
-      if (header ~ /category=SYNC severity=NOTICE msgID=62$/ &&
-          prefix ~ /^Directory server DS\([0-9]+\) has connected to replication server RS\([0-9]+\)$/ &&
-          index(suffix, " at " address ":8989 with generation ID ") == 1) {
-        for (i = 1; i <= warnings[node]; i++) {
-          if (path[node, i] != key || ((node, i) in recovered)) continue
-          prove(position[node, i], warning[node, i])
-          recovered[node, i] = log_time(record)
+      if (node in replication_node && line <= warning_end && prefix ~ /^Replication server RS\([0-9]+\) /) {
+        id = prefix; sub(/^Replication server RS\(/, "", id); sub(/\).*/, "", id)
+        key = "RS" SUBSEP id SUBSEP domain
+        if (header ~ /category=SYNC severity=WARNING msgID=312$/ &&
+            prefix == "Replication server RS(" id ") could not connect to replication server " rs ":8989" &&
+            suffix ~ /^: SSLHandshakeException\(\(bad_certificate\)/) {
+          remember_warning(key, line, record, 0)
+        }
+        if (header ~ /category=SYNC severity=NOTICE msgID=313$/ &&
+            prefix == "Replication server RS(" id ") connected to replication server " rs ":8989" &&
+            suffix == ", which it had reported it had no replication session with") {
+          record_recovery(key, record)
         }
       }
     }' >"$proof.partial" || return 1
@@ -725,8 +759,8 @@ scale_record_certificate_recoveries() { # <rebuilt RS address> <DS=address>...
 }
 
 disturb() {
-  local node from end address surviving_rs=
-  local -a return_window=("dns:$REMOVED" 180) recovery=() certificate_ds=()
+  local node from end address surviving_rs= REJOINED_WITH_NEW_ID=0
+  local -a return_window=("dns:$REMOVED" 180) recovery=() certificate_peers=()
   from=$(date +%s) || return 1
   SCALE_HELD_WRITERS=
   if [ "$TOPOLOGY" = combined ]; then
@@ -768,16 +802,10 @@ disturb() {
   # back before rolling survivors to the longer list, or an early join can finish before
   # it exists and leave it out of that survivor's local lists.
   if [ "$SCALE_VOLUME" = empty ]; then
-    for node in $DS_NODES; do
-      [ "$node" != "$REMOVED" ] || continue
+    for node in $SURVIVORS; do
       address=$(docker inspect -f "{{(index .NetworkSettings.Networks \"$NETWORK\").IPAddress}}" "$node") || return 1
       case $address in ''|*[!0-9.]*) return 1 ;; esac
-      certificate_ds+=("$node=$address")
-      return_window+=("cert:$node:$REMOVED")
-    done
-    # Surviving dedicated RSs can reconnect to the rebuilt RS during this window.
-    for node in $RS_ONLY; do
-      [ "$node" != "$REMOVED" ] || continue
+      certificate_peers+=("$node=$address")
       return_window+=("cert:$node:$REMOVED")
     done
     return_window+=("scale-cert-return")
@@ -808,7 +836,7 @@ disturb() {
   if is_directory_node "$REMOVED"; then
     scale_wait "the replica id of $REMOVED appears" record_rejoined_id "$REMOVED" || return 1
     rolling_resume "$REMOVED" || return 1
-    if [ "$SCALE_VOLUME" = empty ]; then
+    if [ "$SCALE_VOLUME" = empty ] || [ "$REJOINED_WITH_NEW_ID" = 1 ]; then
       # The first roll can pause this worker before its first write with the new ID.
       scale_wait "$REMOVED accepts a write after rejoining" scale_probe "$REMOVED" "$REMOVED" rejoined || return 1
     fi
@@ -819,7 +847,7 @@ disturb() {
   if [ "$SCALE_VOLUME" = empty ]; then
     address=$(docker inspect -f "{{(index .NetworkSettings.Networks \"$NETWORK\").IPAddress}}" "$REMOVED") || return 1
     case $address in ''|*[!0-9.]*) return 1 ;; esac
-    scale_record_certificate_recoveries "$address" "${certificate_ds[@]}" || return 1
+    scale_record_certificate_recoveries "$address" "${certificate_peers[@]}" || return 1
   fi
   end=$(date +%s) || return 1
   echo "$((from * 1000)) $((end * 1000)) $REMOVED scale-$SCALE_VOLUME" >>"$OUT/disturbances.txt" || return 1

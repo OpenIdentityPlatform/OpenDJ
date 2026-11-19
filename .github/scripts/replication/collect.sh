@@ -109,8 +109,8 @@ record_server_ids() {
     || fail "the server id of a directory server is missing, see server-ids.txt"
 }
 
-# A combined server on a fresh volume can return with a new replica id. Preserve both
-# identities, since each can have made changes during the load and must be checked.
+# A combined server can return with a new replica ID after a bootstrap reset,
+# including on a retained volume. Keep every ID for the changelog checks.
 record_rejoined_id() { # <directory server>
   local node=$1 result ids id owner
   result=$(admin_search "$node" "$MONITOR_DOMAIN" one '(objectClass=*)' 1.1) || return 1
@@ -119,7 +119,11 @@ record_rejoined_id() { # <directory server>
   id=$ids
   owner=$(awk -v id="$id" '$1 == id { print $2 }' "$OUT/server-ids.txt") || return 1
   [ -z "$owner" ] || [ "$owner" = "$node" ] || return 1
-  [ "$owner" = "$node" ] || printf '%s %s\n' "$id" "$node" >>"$OUT/server-ids.txt"
+  REJOINED_WITH_NEW_ID=0
+  if [ -z "$owner" ]; then
+    printf '%s %s\n' "$id" "$node" >>"$OUT/server-ids.txt" || return 1
+    REJOINED_WITH_NEW_ID=1
+  fi
 }
 
 # CLI failures carry the detailed cause in tmp/opendj-*.log. Read Docker archive
