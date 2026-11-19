@@ -24,6 +24,11 @@ start_server() { # <name> <role> [<docker run option>...]
   shift 2
   # Scale checkpoints use a lightweight host client; the admin listener remains loopback-only.
   case ${DISTURBANCE:-none} in scale-*) monitor_port=(-p 127.0.0.1::4444); timing=(-e JOIN_TIMING=1) ;; esac
+  case ${DISTURBANCE:-none} in
+    scale-empty|scale-rs-empty)
+      java_args="$java_args -Dorg.opends.server.replication.traceTlsFailures=true"
+      ;;
+  esac
   if [ "${CSN_TRACE:-0}" = 1 ] && [ "$role" != replication ]; then
     token=$(python3 -c 'import uuid; print(uuid.uuid4().hex)') || return 1
     java_args="$java_args -Dorg.opends.server.replication.csnTraceDirectory=/opt/opendj/data/csn-trace -Dorg.opends.server.replication.csnTraceToken=$token -Dorg.opends.server.replication.csnTraceTokenFile=/opt/opendj/data/csn-trace-token-$token"

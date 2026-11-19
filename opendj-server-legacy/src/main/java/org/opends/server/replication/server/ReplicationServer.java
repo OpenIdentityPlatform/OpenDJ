@@ -718,7 +718,7 @@ public class ReplicationServer
         throw new ConnectException("Connection to " + remoteServerAddress
             + " is a TCP self-connect, no replication server is listening");
       }
-      session = replSessionSecurity.createClientSession(socket, timeoutMS);
+      session = replSessionSecurity.createClientSession(socket, timeoutMS, "RS", getServerId(), baseDN);
 
       ReplicationServerHandler rsHandler = new ReplicationServerHandler(
           session, config.getQueueSize(), this, config.getWindowSize());

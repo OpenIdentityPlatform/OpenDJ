@@ -25,10 +25,13 @@ import static org.opends.server.util.StaticUtils.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.opendj.ldap.DN;
@@ -86,6 +89,78 @@ public class ReplicationServerConnectFailureTest extends ReplicationTestCase
 
   private static final int RS_ID = 8241;
   private static final int PEER_RS_ID = 8242;
+
+  @Test
+  public void tracesEveryFailedTlsAttemptWhenEnabled() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    final DN baseDN = DN.valueOf("cn=admin data");
+    final int[] ports = TestCaseUtils.findFreePorts(2);
+    final HostPort peerAddress = HostPort.valueOf("127.0.0.1:" + ports[1]);
+    final String property = "org.opends.server.replication.traceTlsFailures";
+    final String previous = System.getProperty(property);
+    final ExecutorService peerThread = Executors.newSingleThreadExecutor();
+    ReplicationServer rs = null;
+    try (ServerSocket listener = bindPeerPort(ports[1]))
+    {
+      listener.setSoTimeout(SOCKET_TIMEOUT_MS);
+      final Future<List<Integer>> clients = peerThread.submit(() -> {
+        final List<Integer> sourcePorts = new ArrayList<>();
+        for (int i = 0; i < 3; i++)
+        {
+          try (Socket socket = listener.accept())
+          {
+            socket.setSoTimeout(SOCKET_TIMEOUT_MS);
+            sourcePorts.add(socket.getPort());
+            assertThat(socket.getInputStream().read()).isNotEqualTo(-1);
+            // A fatal TLS alert with description bad_certificate.
+            socket.getOutputStream().write(new byte[] { 21, 3, 3, 0, 2, 2, 42 });
+          }
+        }
+        return sourcePorts;
+      });
+      rs = new ReplicationServer(new ReplServerFakeConfiguration(
+          ports[0], "replicationServerTlsAttemptDb", 0, RS_ID, 0, 100, newTreeSet()));
+      final ReplicationServer caller = rs;
+      final List<String> records = errorLogRecordsOf(() -> {
+        System.clearProperty(property);
+        assertThat(caller.connect(peerAddress, baseDN)).isFalse();
+        System.setProperty(property, "true");
+        assertThat(caller.connect(peerAddress, baseDN)).isFalse();
+        assertThat(caller.connect(peerAddress, baseDN)).isFalse();
+        return null;
+      });
+
+      final List<Integer> sourcePorts = clients.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      final String diagnostic = "Replication TLS client handshake failed for RS(" + RS_ID
+          + ") for domain \"cn=admin data\" from ";
+      assertThat(countRecordsOf(records, connectErrorPrefix(peerAddress, baseDN))).isEqualTo(1);
+      assertThat(countRecordsOf(records, diagnostic)).isEqualTo(2);
+      for (int sourcePort : sourcePorts.subList(1, 3))
+      {
+        // A dual-stack socket on macOS can render the IPv4 loopback source as IPv6-compatible.
+        assertThat(records).anySatisfy(record -> {
+          assertThat(record).contains(diagnostic).endsWith("/127.0.0.1:" + ports[1]);
+          assertThat(record).containsAnyOf(
+              "/127.0.0.1:" + sourcePort + " to ", "/[0:0:0:0:0:0:7f00:1]:" + sourcePort + " to ");
+        });
+      }
+    }
+    finally
+    {
+      if (previous == null)
+      {
+        System.clearProperty(property);
+      }
+      else
+      {
+        System.setProperty(property, previous);
+      }
+      peerThread.shutdownNow();
+      remove(rs);
+    }
+  }
 
   /**
    * Tests that a replication server reports a peer it cannot connect to once, and reports
