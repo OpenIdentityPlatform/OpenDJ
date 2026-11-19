@@ -17,12 +17,17 @@ package org.opends.server.protocols.ldap;
 
 import static org.testng.Assert.*;
 
+import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -57,6 +62,7 @@ import org.opends.server.tools.LDAPReader;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
+import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -134,15 +140,19 @@ public class LDAPProxyProtocolTestCase extends DirectoryServerTestCase {
 
     @Test
     public void lockdownAlsoChecksTcpPeerOfPendingProxyConnection() throws Exception {
-        InetAddress address = TestCaseUtils.getNonLoopbackAddress();
+        InetAddress address = findReachableNonLoopbackAddress();
+        // A scoped IPv6 address needs its scope for binding, while the peer mask uses only the address bytes.
+        String trustedAddress = InetAddress.getByAddress(address.getAddress()).getHostAddress();
         int port = TestCaseUtils.findFreePort();
         LDAPConnectionHandler2 handler = start(configuration(port,
                 "ds-cfg-listen-address: " + address.getHostAddress(),
-                "ds-cfg-proxy-protocol-allowed-client: " + address.getHostAddress(),
+                "ds-cfg-proxy-protocol-allowed-client: " + trustedAddress,
                 "ds-cfg-first-request-time-limit: 30 seconds"));
         boolean original = DirectoryServer.lockdownMode();
         DirectoryServer.setLockdownMode(false);
-        try (Socket client = new Socket(address, port, address, 0)) {
+        try (Socket client = new Socket()) {
+            client.bind(new InetSocketAddress(address, 0));
+            client.connect(new InetSocketAddress(address, port), 5000);
             client.setSoTimeout(5000);
             long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
             while (handler.getClientConnections().isEmpty() && System.nanoTime() < deadline) {
@@ -548,7 +558,7 @@ public class LDAPProxyProtocolTestCase extends DirectoryServerTestCase {
                 assertClosed(failed);
             }
             try (Socket next = connect(port, "192.0.2.4")) {
-                assertEquals(next.getInputStream().read(), 0x30);
+                assertSuccessfulBind(next);
                 assertEquals(seenAddress.get(), "192.0.2.4");
             }
         } finally {
@@ -694,12 +704,39 @@ public class LDAPProxyProtocolTestCase extends DirectoryServerTestCase {
             release.countDown();
             assertClosed(first);
             try (Socket next = connect(port, "192.0.2.4")) {
-                assertEquals(next.getInputStream().read(), 0x30, "address slot leaked during disconnect");
+                assertSuccessfulBind(next);
             }
         } finally {
             release.countDown();
             DirectoryServer.deregisterInternalPlugin(plugin);
             stop(handler);
+        }
+    }
+
+    private static InetAddress findReachableNonLoopbackAddress() throws SocketException {
+        for (NetworkInterface network : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+            if (!network.isUp() || network.isLoopback()) {
+                continue;
+            }
+            for (InetAddress address : Collections.list(network.getInetAddresses())) {
+                if (!address.isLoopbackAddress() && acceptsLocalConnection(address)) {
+                    return address;
+                }
+            }
+        }
+        throw new SkipException("No non-loopback address accepts a local TCP connection");
+    }
+
+    private static boolean acceptsLocalConnection(InetAddress address) {
+        try (ServerSocket listener = new ServerSocket(0, 1, address); Socket client = new Socket()) {
+            listener.setSoTimeout(1000);
+            client.bind(new InetSocketAddress(address, 0));
+            client.connect(listener.getLocalSocketAddress(), 1000);
+            try (Socket accepted = listener.accept()) {
+                return address.equals(accepted.getInetAddress());
+            }
+        } catch (IOException e) {
+            return false;
         }
     }
 

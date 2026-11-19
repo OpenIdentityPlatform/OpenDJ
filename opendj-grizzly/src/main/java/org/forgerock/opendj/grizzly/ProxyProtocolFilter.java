@@ -17,6 +17,7 @@ package org.forgerock.opendj.grizzly;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
@@ -31,11 +32,18 @@ import org.glassfish.grizzly.filterchain.NextAction;
 final class ProxyProtocolFilter extends BaseFilter {
     private static final byte[] V1 = { 'P', 'R', 'O', 'X', 'Y', ' ' };
     private static final byte[] V2 = { 13, 10, 13, 10, 0, 13, 10, 81, 85, 73, 84, 10 };
+    private static final int V1_MAX_LENGTH = 107;
+    private static final int V2_PREFIX_LENGTH = 16;
+    private static final int MAX_HEADER_LENGTH = V2_PREFIX_LENGTH + 0xffff;
+
     private final Consumer<ProxyProtocolHeader> onHeader;
     private final Consumer<Throwable> onError;
     private final BooleanSupplier active;
     private boolean complete;
     private int scanned;
+    // Retain only header bytes between reads so that receive buffers can go back to the pool.
+    private byte[] pendingHeader;
+    private int pendingLength;
 
     ProxyProtocolFilter(Consumer<ProxyProtocolHeader> onHeader, Consumer<Throwable> onError, BooleanSupplier active) {
         this.onHeader = onHeader;
@@ -53,12 +61,20 @@ final class ProxyProtocolFilter extends BaseFilter {
         try {
             int length = frameLength(input);
             if (length < 0) {
-                releaseInput = false;
-                return ctx.getStopAction(input);
+                int remaining = input.remaining();
+                if (remaining > 0) {
+                    // An incomplete frame contains only header bytes and is bounded by MAX_HEADER_LENGTH.
+                    pendingHeader = headerBuffer(pendingLength + remaining);
+                    input.get(pendingHeader, pendingLength, remaining);
+                    pendingLength += remaining;
+                }
+                return ctx.getStopAction();
             }
-            byte[] prefix = new byte[length];
-            input.get(prefix);
-            ProxyProtocolHeader header = ProxyProtocolDecoder.decode(ByteBuffer.wrap(prefix));
+            byte[] prefix = headerBuffer(length);
+            input.get(prefix, pendingLength, length - pendingLength);
+            pendingHeader = null;
+            pendingLength = 0;
+            ProxyProtocolHeader header = ProxyProtocolDecoder.decode(ByteBuffer.wrap(prefix, 0, length));
             if (header == null) {
                 throw new ProxyProtocolDecoder.InvalidHeaderException("incomplete frame");
             }
@@ -69,6 +85,8 @@ final class ProxyProtocolFilter extends BaseFilter {
                 return ctx.getInvokeAction();
             }
         } catch (IOException | RuntimeException e) {
+            pendingHeader = null;
+            pendingLength = 0;
             onError.accept(e);
             ctx.getConnection().closeSilently();
         } finally {
@@ -79,17 +97,31 @@ final class ProxyProtocolFilter extends BaseFilter {
         return ctx.getStopAction();
     }
 
+    private byte[] headerBuffer(int length) {
+        if (pendingHeader == null) {
+            return new byte[length];
+        }
+        if (pendingHeader.length >= length) {
+            return pendingHeader;
+        }
+        int capacity = Math.min(MAX_HEADER_LENGTH, Math.max(length, pendingHeader.length * 2));
+        return Arrays.copyOf(pendingHeader, capacity);
+    }
+
+    private byte headerByte(Buffer input, int index) {
+        return index < pendingLength ? pendingHeader[index] : input.get(input.position() + index - pendingLength);
+    }
+
     /** Finds a complete frame without repeatedly copying an incomplete header. */
     private int frameLength(Buffer input) throws ProxyProtocolDecoder.InvalidHeaderException {
-        int count = input.remaining();
-        int start = input.position();
+        int count = pendingLength + Math.min(input.remaining(), MAX_HEADER_LENGTH - pendingLength);
         if (count == 0) {
             return -1;
         }
-        byte first = input.get(start);
+        byte first = headerByte(input, 0);
         byte[] signature = first == V1[0] ? V1 : V2;
         while (scanned < signature.length && scanned < count) {
-            if (input.get(start + scanned) != signature[scanned]) {
+            if (headerByte(input, scanned) != signature[scanned]) {
                 throw new ProxyProtocolDecoder.InvalidHeaderException("invalid signature");
             }
             scanned++;
@@ -98,27 +130,27 @@ final class ProxyProtocolFilter extends BaseFilter {
             return -1;
         }
         if (signature == V1) {
-            while (scanned < count && scanned < 107) {
-                if (input.get(start + scanned++) == '\n') {
+            while (scanned < count && scanned < V1_MAX_LENGTH) {
+                if (headerByte(input, scanned++) == '\n') {
                     return scanned;
                 }
             }
-            if (scanned == 107) {
+            if (scanned == V1_MAX_LENGTH) {
                 throw new ProxyProtocolDecoder.InvalidHeaderException("text header too long");
             }
             return -1;
         }
-        if (count < 16) {
+        if (count < V2_PREFIX_LENGTH) {
             return -1;
         }
-        int command = input.get(start + 12) & 0xff;
+        int command = headerByte(input, 12) & 0xff;
         if ((command & 0xf0) != 0x20 || (command & 0x0f) > 1) {
             throw new ProxyProtocolDecoder.InvalidHeaderException("invalid version or command");
         }
-        int payloadLength = ((input.get(start + 14) & 0xff) << 8) + (input.get(start + 15) & 0xff);
+        int payloadLength = ((headerByte(input, 14) & 0xff) << 8) + (headerByte(input, 15) & 0xff);
         if ((command & 0x0f) == 1) {
-            int family = (input.get(start + 13) & 0xff) >>> 4;
-            int transport = input.get(start + 13) & 0x0f;
+            int family = (headerByte(input, 13) & 0xff) >>> 4;
+            int transport = headerByte(input, 13) & 0x0f;
             if (family > 3 || transport > 2) {
                 throw new ProxyProtocolDecoder.InvalidHeaderException("invalid address family or transport");
             }
@@ -127,7 +159,7 @@ final class ProxyProtocolFilter extends BaseFilter {
                 throw new ProxyProtocolDecoder.InvalidHeaderException("short address block");
             }
         }
-        int length = 16 + payloadLength;
+        int length = V2_PREFIX_LENGTH + payloadLength;
         return count >= length ? length : -1;
     }
 }

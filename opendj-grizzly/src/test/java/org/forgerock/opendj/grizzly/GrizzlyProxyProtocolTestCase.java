@@ -213,13 +213,7 @@ public class GrizzlyProxyProtocolTestCase extends SdkTestCase {
         AtomicReference<Throwable> error = new AtomicReference<>();
         AtomicInteger downstreamReads = new AtomicInteger();
         AtomicInteger poolReturns = new AtomicInteger();
-        PooledMemoryManager memory = new PooledMemoryManager(4096, 1, 0, 1, 0.01f, 0.0f, true);
-        memory.getMonitoringConfig().addProbes(new MemoryProbe.Adapter() {
-            @Override
-            public void onBufferReleaseToPoolEvent(int size) {
-                poolReturns.incrementAndGet();
-            }
-        });
+        PooledMemoryManager memory = trackPoolReturns(poolReturns);
         FilterChain chain = FilterChainBuilder.stateless()
                 .add(new ProxyProtocolFilter(header -> {
                     observedHeader.set(header);
@@ -243,10 +237,7 @@ public class GrizzlyProxyProtocolTestCase extends SdkTestCase {
         input.put(header).put(trailing).flip();
         try (SocketChannel channel = SocketChannel.open()) {
             TCPNIOConnection connection = new TCPNIOConnection(TCPNIOTransportBuilder.newInstance().build(), channel);
-            FilterChainContext ctx = chain.obtainFilterChainContext(connection);
-            ctx.getInternalContext().setIoEvent(IOEvent.READ);
-            ctx.setMessage(input);
-            assertEquals(chain.process(ctx.getInternalContext()).getStatus(), ProcessorResult.Status.COMPLETE);
+            process(chain, connection, IOEvent.READ, input);
             if (valid) {
                 assertNull(error.get(), "PROXY header decoding failed");
                 assertNotNull(observedHeader.get(), "Header callback was not invoked");
@@ -261,6 +252,47 @@ public class GrizzlyProxyProtocolTestCase extends SdkTestCase {
                 input.tryDispose();
             }
         }
+    }
+
+    @Test
+    public void closingWithIncompleteHeaderReturnsPooledBuffer() throws Exception {
+        AtomicInteger poolReturns = new AtomicInteger();
+        PooledMemoryManager memory = trackPoolReturns(poolReturns);
+        FilterChain chain = FilterChainBuilder.stateless()
+                .add(new ProxyProtocolFilter(header -> fail("Incomplete header was delivered"),
+                        error -> fail("Incomplete header was rejected", error), () -> true))
+                .build();
+        byte[] fragment = "PROXY UN".getBytes(StandardCharsets.US_ASCII);
+        Buffer input = memory.allocate(fragment.length);
+        input.put(fragment).flip();
+        try (SocketChannel channel = SocketChannel.open()) {
+            TCPNIOConnection connection = new TCPNIOConnection(TCPNIOTransportBuilder.newInstance().build(), channel);
+            process(chain, connection, IOEvent.READ, input);
+            process(chain, connection, IOEvent.CLOSED, null);
+            assertEquals(poolReturns.get(), 1, "The incomplete header's buffer must return to the pool");
+        } finally {
+            if (poolReturns.get() == 0) {
+                input.tryDispose();
+            }
+        }
+    }
+
+    private static PooledMemoryManager trackPoolReturns(AtomicInteger poolReturns) {
+        PooledMemoryManager memory = new PooledMemoryManager(4096, 1, 0, 1, 0.01f, 0.0f, true);
+        memory.getMonitoringConfig().addProbes(new MemoryProbe.Adapter() {
+            @Override
+            public void onBufferReleaseToPoolEvent(int size) {
+                poolReturns.incrementAndGet();
+            }
+        });
+        return memory;
+    }
+
+    private static void process(FilterChain chain, TCPNIOConnection connection, IOEvent event, Buffer input) {
+        FilterChainContext ctx = chain.obtainFilterChainContext(connection);
+        ctx.getInternalContext().setIoEvent(event);
+        ctx.setMessage(input);
+        assertEquals(chain.process(ctx.getInternalContext()).getStatus(), ProcessorResult.Status.COMPLETE);
     }
 
     private void assertProxyTls(String cipher, boolean ssl, int expectedStrength) throws Exception {
