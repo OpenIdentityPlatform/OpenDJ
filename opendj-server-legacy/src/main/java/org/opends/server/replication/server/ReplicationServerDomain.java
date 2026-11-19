@@ -1257,14 +1257,20 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public boolean isAlreadyConnectedToDS(DataServerHandler dsHandler)
   {
-    if (connectedDSs.containsKey(dsHandler.getServerId()))
+    final DataServerHandler existing = connectedDSs.get(dsHandler.getServerId());
+    if (existing == null)
     {
-      // looks like two connected LDAP servers have the same serverId
-      logger.error(ERR_DUPLICATE_SERVER_ID, localReplicationServer.getMonitorInstanceName(),
-          connectedDSs.get(dsHandler.getServerId()), dsHandler, dsHandler.getServerId());
-      return true;
+      return false;
     }
-    return false;
+
+    // A closing handler still owns its ID until teardown unregisters it. The session
+    // can start closing before stopServer marks the handler as shutting down.
+    if (!existing.shuttingDown() && !existing.session.closeInitiated())
+    {
+      logger.error(ERR_DUPLICATE_SERVER_ID, localReplicationServer.getMonitorInstanceName(),
+          existing, dsHandler, dsHandler.getServerId());
+    }
+    return true;
   }
 
   /**

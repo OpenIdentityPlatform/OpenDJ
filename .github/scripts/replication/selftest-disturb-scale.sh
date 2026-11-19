@@ -77,7 +77,7 @@ run_case() (
   errors_lines() { echo 10; }
   scale_record_certificate_recoveries() { record "certificate-proof $*"; }
   rolling_request_pause() { record "request-pause $1"; }
-  rolling_pause() { record "pause $1"; }
+  rolling_pause() { record "pause $1"; [ "$1" != "${FAIL_PAUSE:-}" ]; }
   rolling_resume() { record "resume $1"; }
   record_rejoined_id() { record "identity $1"; }
   scale_backlog() { record "fill $REMOVED"; }
@@ -176,6 +176,15 @@ run_case() (
     grep -Fx 'resume d1' "$OUT/calls" >/dev/null || { echo 'first held writer not resumed on failure' >&2; exit 1; }
     grep -Fx 'resume d2' "$OUT/calls" >/dev/null || { echo 'second held writer not resumed on failure' >&2; exit 1; }
     : >"$OUT/calls"
+    # A failed drain also releases the surviving writers whose pauses were already requested.
+    if (FAIL_PAUSE="$target"; disturb) >/dev/null 2>&1; then
+      echo 'failed combined pause accepted' >&2; exit 1
+    fi
+    if grep '^docker stop' "$OUT/calls" >/dev/null; then echo 'stopped a node after a failed pause' >&2; exit 1; fi
+    for n in d1 d2; do
+      grep -Fx "resume $n" "$OUT/calls" >/dev/null || { echo "$n not resumed after a failed pause" >&2; exit 1; }
+    done
+    : >"$OUT/calls"
   fi
   # A failed join must prevent membership assertions and backlog creation.
   if (FAIL_JOIN=1; disturb) >/dev/null 2>&1; then
@@ -190,7 +199,7 @@ run_case() (
     if (FAIL_REJOINED_WRITE=1; disturb) >/dev/null 2>&1; then
       echo 'failed write from the rebuilt DS was accepted' >&2; exit 1
     fi
-    if grep -Fx 'request-pause d3' "$OUT/calls" >/dev/null; then
+    if sed -n '/^start d3 /,$p' "$OUT/calls" | grep -Fx 'request-pause d3' >/dev/null; then
       echo 'rebuilt writer was held before its first write' >&2; exit 1
     fi
     : >"$OUT/calls"
@@ -262,6 +271,33 @@ run_case() (
     END { for (node in started) if (!joined[node]) exit 1 }
   ' "$OUT/calls" || { echo 'restarted writer resumed before bootstrap completed' >&2; exit 1; }
   if [ "$topology" = combined ]; then
+    # Each checkpoint drains all present writers except its observer. Request their
+    # pauses before waiting on any one of them so the segment ends can overlap.
+    awk -v nodes="$DS_NODES" -v target="$target" '
+      BEGIN { count=split(nodes, writers, " ") }
+      $1 == "start" && $2 == target { returned=1 }
+      $1 == "request-pause" { if (waiting) exit 1; requested[$2]=1 }
+      $1 == "pause" { if (!requested[$2]) exit 1; waiting=1; drained[$2]=1 }
+      $1 == "wait" && $2 == "rolling_clients_running" {
+        for (i=1; i<=count; i++) {
+          node=writers[i]
+          needed=node != $3 && (node != target || !removed || returned)
+          if (needed != (node in drained) || needed != (node in requested)) exit 1
+        }
+        observed=1
+      }
+      $1 == "wait" && $2 == "scale_caught_up" {
+        if (!observed) exit 1
+        checked=1
+      }
+      $1 == "docker" && $2 == "stop" {
+        if (!checked || !drained[$NF]) exit 1
+        if ($NF == target) removed=1
+        for (node in requested) delete requested[node]
+        for (node in drained) delete drained[node]
+        waiting=observed=checked=0
+      }
+    ' "$OUT/calls" || { echo 'combined pauses were not requested together before draining checkpoint writers' >&2; exit 1; }
     # A combined node must serve again before another is stopped.
     awk -v target="$target" '
       $1 == "docker" && $2 == "stop" && $NF != target { if (down) exit 1; down=$NF }
@@ -390,10 +426,11 @@ run_case() (
     ' "$OUT/calls" || { echo 'returned writer was not held during scale-out checkpoint' >&2; exit 1; }
     if [ "$mode" = empty ]; then
       awk '
+        /^start d3 / { returned=1 }
         /^identity d3$/ { identity=NR }
         identity && /^resume d3$/ && !resumed { resumed=NR }
         /^rejoined write confirmed$/ { written=NR }
-        /^request-pause d3$/ && !held { held=NR }
+        returned && /^request-pause d3$/ && !held { held=NR }
         END { if (!(identity && identity < resumed && resumed < written && written < held)) exit 1 }
       ' "$OUT/calls" || { echo 'rebuilt DS did not write after recording its ID and before being held' >&2; exit 1; }
       grep -Fx 'dn: uid=scale-rejoined-d3,ou=People,dc=example,dc=com' "$OUT/probe.ldif" >/dev/null
