@@ -36,6 +36,8 @@ Save `directory-values.yaml` with the following settings.
 ----
 auth:
   existingSecret: directory-root
+image:
+  repository: ghcr.io/openidentityplatform/opendj/opendj
 replication:
   enabled: true
 replicaCount: 2
@@ -79,7 +81,7 @@ ldapsearch --hostname localhost --port 21389 --bindDN 'cn=Directory Manager' \
 
 === Add and remove a replica
 
-Keep the same chart version and values file. First add the planned peer to the list, then start its pod.
+Keep the same chart version and values file. First add the planned peer to the list, then start its pod. If that pod will reuse a retained PVC, follow the xref:../admin-guide/chap-replication.adoc#helm-replica-resize[client traffic procedure] before starting it.
 
 [source,bash]
 ----

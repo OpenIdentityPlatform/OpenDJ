@@ -273,12 +273,13 @@ test_topology() {
 
 update_tls_secret() {
   local connector=$1 serial=$2 host="$server-0.$peer_service"
-  local alias=server-cert key=keystore.p12
+  local alias=server-cert name=keystore key=keystore.p12
   if [ "$connector" = admin ]; then
     alias=admin-cert
+    name=admin-keystore
     key=keystore.jks
   fi
-  printf 'opendj-ci-pin-%s\n' "$serial" > "$scratch/store.pin"
+  printf 'opendj-ci-pin-%s\n' "$serial" > "$scratch/$name.pin"
   printf 'extendedKeyUsage=serverAuth\nsubjectAltName=DNS:%s' "$host" > "$scratch/leaf.ext"
   # Make this certificate alone larger than the handshake flight that failed in 5.2.0.
   for ((i = 0; i < 170; i++)); do
@@ -290,16 +291,25 @@ update_tls_secret() {
     -CA "$scratch/ca.pem" -CAkey "$scratch/ca.key" -extfile "$scratch/leaf.ext" -out "$scratch/leaf.pem"
   [ "$(openssl x509 -in "$scratch/leaf.pem" -outform DER | wc -c)" -gt 6144 ]
   openssl pkcs12 -export -name "$alias" -inkey "$scratch/leaf.key" -in "$scratch/leaf.pem" \
-    -certfile "$scratch/ca.pem" -out "$scratch/keystore.p12" -passout "file:$scratch/store.pin"
+    -certfile "$scratch/ca.pem" -out "$scratch/leaf.p12" -passout "file:$scratch/$name.pin"
   if [ "$connector" = admin ]; then
-    rm -f "$scratch/keystore.jks"
+    rm -f "$scratch/$name"
     keytool -importkeystore -noprompt -srcalias "$alias" -srcstoretype PKCS12 \
-      -srckeystore "$scratch/keystore.p12" -srcstorepass:file "$scratch/store.pin" \
-      -deststoretype JKS -destkeystore "$scratch/keystore.jks" \
-      -deststorepass:file "$scratch/store.pin" -destkeypass:file "$scratch/store.pin"
+      -srckeystore "$scratch/leaf.p12" -srcstorepass:file "$scratch/$name.pin" \
+      -deststoretype JKS -destkeystore "$scratch/$name" \
+      -deststorepass:file "$scratch/$name.pin" -destkeypass:file "$scratch/$name.pin"
+  else
+    mv "$scratch/leaf.p12" "$scratch/$name"
   fi
-  k create secret generic "$connector-tls" --from-file="$key=$scratch/$key" \
-    --from-file="password=$scratch/store.pin" --dry-run=client -o yaml | k apply -f -
+  k create secret generic "$connector-tls" --from-file="$key=$scratch/$name" \
+    --from-file="password=$scratch/$name.pin" --dry-run=client -o yaml | k apply -f -
+}
+
+projected_tls_pairs_match() {
+  local file
+  for file in keystore keystore.pin admin-keystore admin-keystore.pin; do
+    k exec "$server-0" -- cat "/var/secrets/opendj/$file" | cmp -s "$scratch/$file" - || return 1
+  done
 }
 
 forward_ports() {
@@ -382,11 +392,18 @@ EOF
 
   stop_forwarding
   upgrade --values "$scratch/tls-values.yaml" --set tls.refreshSeconds=0
+  original_pod=$(uid pod "$server-0")
   forward_ports
   wait_for 60 'the LDAPS certificate after rollout' serves_serial "$ldap_port" 111
   wait_for 60 'the admin certificate after rollout' serves_serial "$admin_port" 112
   update_tls_secret ldap 121
   update_tls_secret admin 122
+  wait_for 240 'both replacement keystore and PIN pairs to be projected' projected_tls_pairs_match
+  [ "$(uid pod "$server-0")" = "$original_pod" ]
+  if ! k exec "$server-0" -- sh -ec 'test "${SECRET_VOLUME_REFRESH-}" = 0'; then
+    echo 'Expected SECRET_VOLUME_REFRESH=0 in the OpenDJ container' >&2
+    exit 1
+  fi
   serves_serial "$ldap_port" 111
   serves_serial "$admin_port" 112
   stop_forwarding

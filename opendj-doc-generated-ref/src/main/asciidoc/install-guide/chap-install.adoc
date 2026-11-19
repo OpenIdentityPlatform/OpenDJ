@@ -1293,7 +1293,8 @@ Choose one registry. For GitHub Container Registry, run the following command.
 ----
 helm install directory oci://ghcr.io/openidentityplatform/charts/opendj-helm \
   --version "$OPENDJ_VERSION" --namespace directory \
-  --set auth.existingSecret=directory-root --wait --timeout 15m
+  --set auth.existingSecret=directory-root \
+  --set image.repository=ghcr.io/openidentityplatform/opendj/opendj --wait --timeout 15m
 ----
 
 For Docker Hub, run the following command.
@@ -1306,6 +1307,8 @@ helm install directory oci://registry-1.docker.io/openidentityplatform/opendj-he
 ----
 
 Check the installation with `helm test directory --namespace directory`. The chart uses the OpenDJ image with the selected release tag by default. Set `persistence.storageClass` and `persistence.size` when you need a particular class or size. Set `directory.baseDn` and `auth.rootDn` before creating an instance. These values apply during initial setup.
+
+For a `-SNAPSHOT` chart archive downloaded from Package/Deploy, supply an OpenDJ image built from the same snapshot sources. See the chart's `README.md` inside the archive (`helm show readme <archive>`), which shows how to set the image repository and tag.
 
 The default values install one directory server. For more than one replica, set `replication.enabled=true` and `replicaCount`. The chart configures the peer addresses for the image. On OpenShift, use `--set securityContext.profile=openshift` to let the restricted SCC assign the pod UID and volume group. Use storage that the assigned group can write to. Confirm the SCC and storage behavior in your OpenShift environment.
 

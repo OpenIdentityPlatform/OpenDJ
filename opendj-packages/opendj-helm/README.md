@@ -25,10 +25,23 @@ kubectl create namespace directory
 kubectl -n directory create secret generic directory-root --from-file=password=root-password.txt
 helm install directory oci://ghcr.io/openidentityplatform/charts/opendj-helm \
   --version "$OPENDJ_VERSION" --namespace directory \
-  --set auth.existingSecret=directory-root --wait --timeout 15m
+  --set auth.existingSecret=directory-root \
+  --set image.repository=ghcr.io/openidentityplatform/opendj/opendj --wait --timeout 15m
 helm test directory --namespace directory
 ```
 
-The Docker Hub URL is `oci://registry-1.docker.io/openidentityplatform/opendj-helm`. Set `--set replication.enabled=true,replicaCount=2` for two replicas. In OpenShift set `securityContext.profile=openshift` to allow the SCC to assign the UID and volume group. The default StorageClass provisions one `ReadWriteOnce` claim per pod. Claims are retained after scale-in or uninstall.
+For Docker Hub, use `oci://registry-1.docker.io/openidentityplatform/opendj-helm` with the default `image.repository`. Set `--set replication.enabled=true,replicaCount=2` for two replicas. In OpenShift set `securityContext.profile=openshift` to allow the SCC to assign the UID and volume group. The default StorageClass provisions one `ReadWriteOnce` claim per pod. Claims are retained after scale-in or uninstall.
 
 See the [Installation Guide](https://doc.openidentityplatform.org/opendj/install-guide/chap-install#install-helm), [replication and resize procedure](https://doc.openidentityplatform.org/opendj/admin-guide/chap-replication#helm-replica-resize), [TLS Secret settings](https://doc.openidentityplatform.org/opendj/admin-guide/chap-change-certs#helm-certificates), and [Kubernetes walkthrough](https://doc.openidentityplatform.org/opendj/how-to/kubernetes#how-to-kubernetes).
+
+## Install a snapshot archive
+
+Package/Deploy uploads an `opendj-helm-<version>-SNAPSHOT.tgz` chart. Its `appVersion` identifies the snapshot, and the default public image repository carries release tags. Use an image built with the server ZIP and Docker files from the same snapshot sources, and tag it in a registry accessible to the cluster. Set `SNAPSHOT_CHART` to the downloaded archive path and `SNAPSHOT_IMAGE_REPOSITORY` and `SNAPSHOT_IMAGE_TAG` to that image's repository and tag. Use the namespace and password Secret from the release installation example above.
+
+```sh
+helm install directory "$SNAPSHOT_CHART" --namespace directory \
+  --set auth.existingSecret=directory-root \
+  --set-string image.repository="$SNAPSHOT_IMAGE_REPOSITORY" \
+  --set-string image.tag="$SNAPSHOT_IMAGE_TAG" --wait --timeout 15m
+helm test directory --namespace directory
+```
