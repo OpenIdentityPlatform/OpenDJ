@@ -24,9 +24,9 @@ if [ ! -f "$HERE/disturb-scale.sh" ]; then
 fi
 
 run_case() (
-  local topology=$1 mode=$2 target n mappings
-  mkdir -p "$OUT/$topology-$mode/logs" "$OUT/$topology-$mode/scale-checkpoint"
-  OUT="$OUT/$topology-$mode"
+  local topology=$1 mode=$2 new_id=${3:-0} target n mappings
+  OUT="$OUT/$topology-$mode-$new_id"
+  mkdir -p "$OUT/logs" "$OUT/scale-checkpoint"
   if [ "$topology" = combined ]; then
     DS_NODES='d0 d1 d2 d3'; RS_ONLY=; RS_NODES=$DS_NODES; target=d3
   else
@@ -58,7 +58,10 @@ run_case() (
           d1) echo 172.18.0.10 ;;
           d2) echo 172.18.0.11 ;;
           d3) echo 172.18.0.12 ;;
-          *) echo 172.18.0.20 ;;
+          r0) echo 172.18.0.18 ;;
+          r1) echo 172.18.0.19 ;;
+          r2) echo 172.18.0.20 ;;
+          *) return 1 ;;
         esac ;;
       exec)
         if [ "${3:-}" = sh ]; then
@@ -79,7 +82,7 @@ run_case() (
   rolling_request_pause() { record "request-pause $1"; }
   rolling_pause() { record "pause $1"; [ "$1" != "${FAIL_PAUSE:-}" ]; }
   rolling_resume() { record "resume $1"; }
-  record_rejoined_id() { record "identity $1"; }
+  record_rejoined_id() { REJOINED_WITH_NEW_ID=$new_id; record "identity $1"; }
   scale_backlog() { record "fill $REMOVED"; }
   wait_until() {
     record "wait ${*:3}"
@@ -195,7 +198,7 @@ run_case() (
   fi
   : >"$OUT/calls"
   rm -f "$OUT/logs/$target.offline" "$OUT/logs/$target.previous"
-  if [ "$topology" = combined ] && [ "$mode" = empty ]; then
+  if [ "$topology" = combined ] && { [ "$mode" = empty ] || [ "$new_id" = 1 ]; }; then
     if (FAIL_REJOINED_WRITE=1; disturb) >/dev/null 2>&1; then
       echo 'failed write from the rebuilt DS was accepted' >&2; exit 1
     fi
@@ -390,7 +393,9 @@ run_case() (
     grep -F "cert:d0:$target" "$OUT/calls" >/dev/null || { echo 'missing exact certificate window' >&2; exit 1; }
     grep -E '^window .* scale-cert-return$' "$OUT/calls" >/dev/null || { echo 'missing scale certificate window' >&2; exit 1; }
     mappings='172.18.0.12 d0=172.18.0.9 d1=172.18.0.10 d2=172.18.0.11'
-    if [ "$topology" = rs534 ]; then mappings="172.18.0.20 ${mappings#* } d3=172.18.0.12"; fi
+    if [ "$topology" = rs534 ]; then
+      mappings="172.18.0.20 ${mappings#* } d3=172.18.0.12 r0=172.18.0.18 r1=172.18.0.19"
+    fi
     grep -Fx "certificate-proof $mappings" "$OUT/calls" >/dev/null || { echo 'wrong certificate proof addresses' >&2; exit 1; }
     awk '
       /^wait peer_present / { checked=NR }
@@ -424,7 +429,7 @@ run_case() (
       stopped && $0 == "resume d3" && !released {released=NR}
       END {if (!returned || !held || !stopped || !released || !(returned < held && held < stopped && stopped < released)) exit 1}
     ' "$OUT/calls" || { echo 'returned writer was not held during scale-out checkpoint' >&2; exit 1; }
-    if [ "$mode" = empty ]; then
+    if [ "$mode" = empty ] || [ "$new_id" = 1 ]; then
       awk '
         /^start d3 / { returned=1 }
         /^identity d3$/ { identity=NR }
@@ -434,6 +439,8 @@ run_case() (
         END { if (!(identity && identity < resumed && resumed < written && written < held)) exit 1 }
       ' "$OUT/calls" || { echo 'rebuilt DS did not write after recording its ID and before being held' >&2; exit 1; }
       grep -Fx 'dn: uid=scale-rejoined-d3,ou=People,dc=example,dc=com' "$OUT/probe.ldif" >/dev/null
+    elif grep -Fxq 'rejoined write confirmed' "$OUT/calls"; then
+      echo 'kept replica with the same ID ran a rejoin write probe' >&2; exit 1
     fi
   fi
   [ ! -e "$OUT/logs/$target.offline" ]
@@ -461,6 +468,7 @@ run_case() (
 for topology in rs534 combined; do
   for mode in kept empty; do run_case "$topology" "$mode"; done
 done
+run_case combined kept 1
 # The fast monitor connects only to a numeric port published on IPv4 loopback.
 (
   OUT="$OUT/loopback"; mkdir -p "$OUT/scale-checkpoint"

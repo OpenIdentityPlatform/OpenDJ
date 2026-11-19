@@ -25,10 +25,14 @@ fail() { echo "$*" >&2; return 1; }
 printf '1 d0\n2 d1\n' >"$OUT/server-ids.txt"
 RESPONSE='dn: cn=Directory server DS(2) test'
 record_rejoined_id d1 || exit 1
+[ "${REJOINED_WITH_NEW_ID:-}" = 0 ] || { echo 'same ID reported as new' >&2; exit 1; }
 [ "$(wc -l <"$OUT/server-ids.txt")" -eq 2 ] || { echo 'same id appended twice' >&2; exit 1; }
 RESPONSE='dn: cn=Directory server DS(3) test'
 record_rejoined_id d1 || exit 1
 grep -Fx '3 d1' "$OUT/server-ids.txt" >/dev/null
+[ "$REJOINED_WITH_NEW_ID" = 1 ] || { echo 'new ID was not reported' >&2; exit 1; }
+record_rejoined_id d1 || exit 1
+[ "$REJOINED_WITH_NEW_ID" = 0 ] || { echo 'already recorded ID reported as new' >&2; exit 1; }
 RESPONSE='dn: cn=Directory server DS(1) test'
 if record_rejoined_id d1; then echo 'duplicate id of another node accepted' >&2; exit 1; fi
 RESPONSE=''
