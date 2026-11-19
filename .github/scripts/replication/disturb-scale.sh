@@ -268,12 +268,14 @@ scale_probe_batch() { # <writer DS> <down|up> <rolling node>...
       ' sh "$((ROLLING_END_MS / 1000))" "$ROOT_PASSWORD" >"$OUT/scale-progress/$direction-$name.txt" 2>&1
 }
 
-# During a combined-node checkpoint, pause other load writers while keeping the
-# observer's clients running. This makes their high-water marks finite while an actual
-# write still succeeds. Held writers remain paused until the departing node is stopped.
+# During a combined-node checkpoint, request every pause before waiting for
+# the departing node and the other writers to finish their segments. Keep the
+# observer's clients running while the others' high-water marks become finite.
+# The other writers resume after the stop, and the departing writer after its join.
 scale_hold_writers() { # <observer DS> <departing DS> <down|up>
   local observer=$1 departing=$2 direction=$3 node
   SCALE_HELD_WRITERS=
+  rolling_request_pause "$departing" || return 1
   for node in $DS_NODES; do
     [ "$node" != "$observer" ] && [ "$node" != "$departing" ] || continue
     # The removed node is absent during scale-in, but is a writer again during scale-out.
@@ -281,6 +283,7 @@ scale_hold_writers() { # <observer DS> <departing DS> <down|up>
     rolling_request_pause "$node" || return 1
     SCALE_HELD_WRITERS="$SCALE_HELD_WRITERS $node"
   done
+  rolling_pause "$departing" || return 1
   for node in $SCALE_HELD_WRITERS; do rolling_pause "$node" || return 1; done
   scale_wait "$observer has active load clients" rolling_clients_running "$observer" || return 1
   mkdir -p "$OUT/scale-progress" || return 1
@@ -358,10 +361,11 @@ scale_roll() { # <node> <peer list>
   [ -n "$writer" ] || { fail "no directory server remains while rolling $node"; return 1; }
   [ "$TOPOLOGY" != combined ] || role=combined
   case " $RS_ONLY " in *" $node "*) role=replication ;; esac
-  if is_directory_node "$node"; then rolling_pause "$node" || return 1; fi
   SCALE_HELD_WRITERS=
   if [ "$TOPOLOGY" = combined ]; then
     scale_hold_writers "$observer" "$node" "$direction" || { scale_release_writers || :; return 1; }
+  elif is_directory_node "$node"; then
+    rolling_pause "$node" || return 1
   fi
   case " $RS_NODES " in
     *" $node "*) scale_checkpoint_wait "$observer reaches a checkpoint of $node" "$observer" "$node" || { scale_release_writers || :; return 1; } ;;
@@ -724,10 +728,11 @@ disturb() {
   local node from end address surviving_rs=
   local -a return_window=("dns:$REMOVED" 180) recovery=() certificate_ds=()
   from=$(date +%s) || return 1
-  if is_directory_node "$REMOVED"; then rolling_pause "$REMOVED" || return 1; fi
   SCALE_HELD_WRITERS=
   if [ "$TOPOLOGY" = combined ]; then
     scale_hold_writers "$SURVIVING_RS" "$REMOVED" down || { scale_release_writers || :; return 1; }
+  elif is_directory_node "$REMOVED"; then
+    rolling_pause "$REMOVED" || return 1
   fi
   scale_checkpoint_wait "$SURVIVING_RS reaches the departing RS checkpoint" "$SURVIVING_RS" "$REMOVED" || { scale_release_writers || :; return 1; }
   dns_window_open "$REMOVED" || { scale_release_writers || :; return 1; }
