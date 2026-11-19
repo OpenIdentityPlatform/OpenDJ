@@ -344,7 +344,10 @@ with `subPath` when the Secret changes.
 ### Administration connector certificate
 
 For the default administration connector configuration (port 4444), mount both of these
-files at `SECRET_VOLUME`.
+files at `SECRET_VOLUME`. The image leaves the persisted files in place when the instance
+uses a custom administration key manager, keystore configuration, or certificate nickname.
+If startup configuration changes are queued in `config-changes.ldif`, the image defers
+installation. A later refresh or restart checks the resulting configuration.
 
 - `admin-keystore` is a JKS or PKCS12 keystore containing the private key and its
   certificate chain. Use the default alias `admin-cert` and include the DNS names that
@@ -360,10 +363,11 @@ contain the self-signed certificate created by setup. Clients trust the issuing 
 through their own truststore. Replication uses its own `ads-truststore`.
 
 For a [cert-manager Certificate](https://cert-manager.io/docs/reference/api-docs/#cert-manager.io/v1.JKSKeystore),
-request a JKS keystore with the required alias. Put the password in its Secret without a
-trailing newline. The pod template projects the generated keystore and the password
-into the same directory. If the pod already has a projected `SECRET_VOLUME`, add these
-sources to it.
+request a JKS keystore with the required alias. This example requires cert-manager 1.15
+or later and its matching CRDs. For this JKS example, use a single-line ASCII password
+with no carriage return or line feed in the Secret. The pod template projects the generated
+keystore and the password into the same directory. If the pod already has a projected
+`SECRET_VOLUME`, add these sources to it.
 
 ```yaml
 # Certificate spec

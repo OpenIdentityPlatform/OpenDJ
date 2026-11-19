@@ -434,14 +434,14 @@ Follow these steps on each OpenDJ server to check whether the problem lies with 
 $ grep ds-cfg-replication-server: config/config.ldif | sort | uniq
 ----
 
-. Make sure that the host names in OpenDJ certificates also contain fully qualified host names, and correspond to the host names found in the previous step:
+. Make sure that the host names in the OpenDJ certificates are fully qualified and match the host names found in the previous step. For the administration connector, check the DNS subject alternative names (SANs) in the endpoint certificate. If the certificate has no DNS SANs, check the common name in its subject. Use the configured certificate alias in the command below.
 +
 
 [source, console]
 ----
-# Examine the certificate configured for the administration connector.
-$ keytool -list -v -alias admin-cert -keystore config/admin-keystore \
- -storepass:file config/admin-keystore.pin | grep "^Owner:"
+# Examine the end-entity certificate configured for the administration connector.
+$ keytool -exportcert -rfc -alias admin-cert -keystore config/admin-keystore \
+ -storepass:file config/admin-keystore.pin | keytool -printcert -v
 
 # Examine the certificates used for replication.
 $ keytool -list -v -keystore config/ads-truststore \
@@ -456,9 +456,13 @@ $ grep ds-cfg-replication-server: config/config.ldif |sort | uniq
 ds-cfg-replication-server: opendj.example.com:8989
 ds-cfg-replication-server: opendj.example.com:9989
 
-$ keytool -list -v -alias admin-cert -keystore config/admin-keystore \
- -storepass:file config/admin-keystore.pin | grep "^Owner:"
-Owner: CN=opendj.example.com, O=Administration Connector Self-Signed Certificate
+$ keytool -exportcert -rfc -alias admin-cert -keystore config/admin-keystore \
+ -storepass:file config/admin-keystore.pin | keytool -printcert -v
+Owner: CN=OpenDJ Administration
+...
+SubjectAlternativeName [
+  DNSName: opendj.example.com
+]
 
 $ keytool -list -v -keystore config/ads-truststore \
  -storepass `cat config/ads-truststore.pin`| grep "^Owner:"
@@ -536,13 +540,13 @@ $ dsreplication \
  --no-prompt
 ----
 
-. Check that the host names are correct in the configuration and in the keystores by following the steps you used to check for host name problems. The only broken host name remaining should be in the key and truststores for the administration connector:
+. Follow the earlier steps to check host names in the configuration and keystores, including the DNS SANs in the administration connector's certificate.
 +
 
 [source, console]
 ----
-$ keytool -list -v -alias admin-cert -keystore config/admin-keystore \
- -storepass:file config/admin-keystore.pin | grep "^Owner:"
+$ keytool -exportcert -rfc -alias admin-cert -keystore config/admin-keystore \
+ -storepass:file config/admin-keystore.pin | keytool -printcert -v
 ----
 
 . Stop each server, and then fix the remaining admin connector certificate as described in xref:chap-change-certs.adoc#replace-key-pair["To Replace a Server Key Pair"].

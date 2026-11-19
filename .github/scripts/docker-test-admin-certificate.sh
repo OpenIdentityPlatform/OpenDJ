@@ -19,6 +19,7 @@ image=${1:?usage: $0 <image>}
 work=$(mktemp -d)
 container="test-admin-certificate-${work##*.}"
 volume="$container-data"
+secret_mount=(-v "$work/secret":/var/secrets/opendj:ro)
 
 cleanup() {
   local status=$?
@@ -52,12 +53,12 @@ make_secret() {
   openssl pkcs12 -export -name admin-cert -inkey "$work/leaf.key" -in "$work/leaf-$serial.pem" \
     -certfile "$work/client/ca.pem" -out "$generation/admin-keystore" \
     -passout "file:$generation/admin-keystore.pin"
-  if [ "$format" = JKS ]; then
+  if [ "$format" != PKCS12 ]; then
     docker run --rm --user "$(id -u):$(id -g)" --entrypoint keytool -v "$generation":/keys "$image" \
       -importkeystore -noprompt -srcalias admin-cert -srcstoretype PKCS12 -srckeystore /keys/admin-keystore \
-      -srcstorepass:file /keys/admin-keystore.pin -deststoretype JKS -destkeystore /keys/keystore.jks \
+      -srcstorepass:file /keys/admin-keystore.pin -deststoretype "$format" -destkeystore /keys/converted-keystore \
       -deststorepass:file /keys/admin-keystore.pin -destkeypass:file /keys/admin-keystore.pin
-    mv -f "$generation/keystore.jks" "$generation/admin-keystore"
+    mv -f "$generation/converted-keystore" "$generation/admin-keystore"
   fi
   chmod 644 "$generation/admin-keystore"
 }
@@ -70,9 +71,10 @@ project_secret() {
 }
 
 start_container() {
-  docker run -d --memory=512m -e "SECRET_VOLUME_REFRESH=$1" -p 127.0.0.1::4444 --name "$container" \
-    -v "$work/secret":/var/secrets/opendj:ro -v "$work/client":/certs:ro \
-    -v "$volume":/opt/opendj/data "$image"
+  local refresh=$1
+  shift
+  docker run -d --memory=512m -e "SECRET_VOLUME_REFRESH=$refresh" -p 127.0.0.1::4444 --name "$container" \
+    -v "$work/client":/certs:ro -v "$volume":/opt/opendj/data "$@" "$image"
   address=$(docker port "$container" 4444/tcp)
   timeout 3m bash -ec '
     until [ "$(docker inspect -f "{{.State.Health.Status}}" "$1")" = healthy ]; do
@@ -80,6 +82,16 @@ start_container() {
       sleep 2
     done
   ' _ "$container"
+}
+
+stop_container() {
+  docker stop "$container"
+  docker rm "$container"
+}
+
+edit_stopped_volume() {
+  docker run --rm --entrypoint bash -v "$volume":/opt/opendj/data \
+    -v "$work/secret":/fixtures:ro "$image" -ec "$1"
 }
 
 dsconfig() {
@@ -105,20 +117,19 @@ ln -s ..data/admin-keystore.pin "$work/secret/admin-keystore.pin"
 echo 'Check a fresh instance with the mounted administration certificate'
 make_secret 130701 initial-password JKS
 project_secret 130701
-start_container 5
+start_container 5 "${secret_mount[@]}"
 verify_admin_certificate 130701
 test "$(docker exec "$container" stat -c %a /opt/opendj/data/config/admin-keystore)" = 600
 test "$(docker exec "$container" stat -c %a /opt/opendj/data/config/admin-keystore.pin)" = 600
 
 echo 'Check that the instance restarts with the previous certificate when the PIN arrives first'
 make_secret 130702 renewed-password PKCS12
-docker stop "$container"
-docker rm "$container"
+stop_container
 mkdir "$work/secret/..pin-first"
 cp "$work/secret/..130701/admin-keystore" "$work/secret/..pin-first/"
 cp "$work/secret/..130702/admin-keystore.pin" "$work/secret/..pin-first/"
 project_secret pin-first
-start_container 5
+start_container 5 "${secret_mount[@]}"
 verify_admin_certificate 130701
 
 echo 'Check that the running instance serves a renewed certificate with a new password'
@@ -134,9 +145,58 @@ if dsconfig 127.0.0.1 --quiet; then
 fi
 
 echo 'Check a replacement container with a JKS keystore, the existing data volume and the watcher disabled'
-docker stop "$container"
-docker rm "$container"
+stop_container
 make_secret 130703 replacement-password JKS
 project_secret 130703
-start_container 0
+start_container 0 "${secret_mount[@]}"
 verify_admin_certificate 130703
+
+echo 'Check that an incompatible JCEKS preserves the installed pair on a reused volume'
+stop_container
+make_secret 130704 incompatible-password JCEKS
+project_secret 130704
+start_container 0 "${secret_mount[@]}"
+verify_admin_certificate 130703
+
+echo 'Check interrupted installation and staging cleanup without a Secret mount'
+stop_container
+make_secret 130705 recovered-password JKS
+edit_stopped_volume '
+  cd /opt/opendj/data/config
+  mkdir -m 700 .admin-secret-pending .admin-secret.stale1
+  install -m 600 /fixtures/..130705/admin-keystore admin-keystore
+  install -m 600 /fixtures/..130705/admin-keystore.pin .admin-secret-pending/admin-keystore.pin
+  install -m 600 /fixtures/..130704/admin-keystore /fixtures/..130704/admin-keystore.pin .admin-secret.stale1/
+'
+start_container 0
+verify_admin_certificate 130705
+docker exec "$container" sh -ec '
+  cd /opt/opendj/data/config
+  test ! -e .admin-secret-pending
+  test ! -e .admin-secret.stale1
+'
+
+echo 'Check that a queued administration certificate nickname change preserves the installed pair'
+stop_container
+edit_stopped_volume '
+  cd /opt/opendj/data/config
+  keytool -changealias -alias admin-cert -destalias custom-admin -storetype JKS \
+    -keystore admin-keystore -storepass:file admin-keystore.pin -keypass:file admin-keystore.pin
+  cat > config-changes.ldif <<EOF
+dn: cn=Administration Connector,cn=config
+changetype: modify
+replace: ds-cfg-ssl-cert-nickname
+ds-cfg-ssl-cert-nickname: custom-admin
+-
+EOF
+'
+project_secret 130703
+start_container 0 "${secret_mount[@]}"
+verify_admin_certificate 130705
+
+docker exec "$container" test ! -e /opt/opendj/data/config/config-changes.ldif
+
+echo 'Check that a reused volume keeps its configured administration certificate nickname'
+stop_container
+start_container 0 "${secret_mount[@]}"
+verify_admin_certificate 130705

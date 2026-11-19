@@ -135,6 +135,16 @@ copy_secrets() {
 # on the same volume, so a restart between the two renames can finish the installation.
 ADMIN_SECRET_PENDING=./data/config/.admin-secret-pending
 
+clean_admin_secret_staging() {
+  local staged
+  for staged in ./data/config/.admin-secret.??????; do
+    [ -d "$staged" ] && [ ! -L "$staged" ] || continue
+    if ! rm -f -- "$staged/admin-keystore" "$staged/admin-keystore.pin" || ! rmdir -- "$staged"; then
+      echo "Could not remove abandoned administration Secret staging directory $staged" >&2
+    fi
+  done
+}
+
 install_pending_admin_secret() {
   local name
   [ -d "$ADMIN_SECRET_PENDING" ] || return 0
@@ -148,10 +158,41 @@ install_pending_admin_secret() {
   rmdir -- "$ADMIN_SECRET_PENDING"
 }
 
+# Only manage the files used by the default administration key manager and nickname.
+uses_default_admin_keystore() {
+  local config connector provider
+  connector='(&(objectClass=ds-cfg-administration-connector)(ds-cfg-key-manager-provider=cn=Administration,cn=Key Manager Providers,cn=config))'
+  provider='(&(objectClass=ds-cfg-file-based-key-manager-provider)(ds-cfg-enabled=true)(ds-cfg-key-store-type=JKS)'
+  provider+='(ds-cfg-java-class=org.opends.server.extensions.FileBasedKeyManagerProvider)'
+  provider+='(!(ds-cfg-key-store-pin-property=*))(!(ds-cfg-key-store-pin-environment-variable=*)))'
+
+  # Read both entries from the same snapshot of the instance configuration.
+  config=$(./bin/ldifsearch -b cn=config ./data/config/config.ldif "(|$connector$provider)" \
+    ds-cfg-ssl-cert-nickname ds-cfg-key-store-file ds-cfg-key-store-pin-file 2>/dev/null) || return 1
+  awk '
+    BEGIN {
+      connector = "dn: cn=administration connector,cn=config"
+      provider = "dn: cn=administration,cn=key manager providers,cn=config"
+    }
+    /^dn: / { dn = tolower($0) }
+    dn == connector && /^ds-cfg-ssl-cert-nickname:/ {
+      nicknames++
+      nickname = $0
+    }
+    dn == provider && /^ds-cfg-key-store-file:/ { store = $0 }
+    dn == provider && /^ds-cfg-key-store-pin-file:/ { pin = $0 }
+    END {
+      exit !(nicknames == 1 && nickname == "ds-cfg-ssl-cert-nickname: admin-cert" &&
+        store == "ds-cfg-key-store-file: config/admin-keystore" &&
+        pin == "ds-cfg-key-store-pin-file: config/admin-keystore.pin")
+    }
+  ' <<< "$config"
+}
+
 valid_admin_keystore() {
   local store=$1 pin=$2 listing line alias admin_key=false
   listing=$(keytool -J-Duser.language=en -J-Duser.country=US -list -rfc \
-    -keystore "$store" -storepass:file "$pin" </dev/null 2>/dev/null) || return 1
+    -storetype JKS -keystore "$store" -storepass:file "$pin" </dev/null 2>/dev/null) || return 1
 
   # The server initializes the key manager with the whole store and one PIN.
   # A listing shows the private key entries without checking their passwords.
@@ -159,7 +200,7 @@ valid_admin_keystore() {
     case "$line" in
       "Alias name: "*) alias=${line#Alias name: } ;;
       "Entry type: PrivateKeyEntry")
-        keytool -certreq -alias "$alias" -keystore "$store" -storepass:file "$pin" \
+        keytool -certreq -storetype JKS -alias "$alias" -keystore "$store" -storepass:file "$pin" \
           -keypass:file "$pin" -file /dev/null </dev/null >/dev/null 2>&1 || return 1
         if [ "$alias" = admin-cert ]; then
           admin_key=true
@@ -188,7 +229,11 @@ sync_admin_secret() {
       ! install -m 600 -- "$pin" "$staged/admin-keystore.pin"; then
     echo "Could not stage the administration keystore and PIN" >&2
   elif ! valid_admin_keystore "$staged/admin-keystore" "$staged/admin-keystore.pin"; then
-    echo "Ignoring the mounted administration keystore and PIN: the store must contain admin-cert and its private keys must open with that PIN" >&2
+    echo "Ignoring the mounted administration keystore and PIN: the store must open as JKS or PKCS12, contain admin-cert, and use that PIN for every private key" >&2
+  elif [ -e ./data/config/config-changes.ldif ]; then
+    echo "Deferring the mounted administration keystore and PIN until OpenDJ applies config-changes.ldif" >&2
+  elif ! uses_default_admin_keystore; then
+    echo "Ignoring the mounted administration keystore and PIN: the default administration key manager and nickname are required" >&2
   elif mv -T -- "$staged" "$ADMIN_SECRET_PENDING"; then
     install_pending_admin_secret || return 1
     echo "Copied the administration keystore and PIN from the secret volume"
@@ -245,6 +290,7 @@ fi
 
 # Instance dir does exist? We start opendj without detach
 if [ -d ./data/config ]; then
+  clean_admin_secret_staging
   install_pending_admin_secret || exit 1
   # nothing is bootstrapped here, the instance is already there - but a half-migrated one
   # is not ready to serve either, so the marker follows the upgrade
