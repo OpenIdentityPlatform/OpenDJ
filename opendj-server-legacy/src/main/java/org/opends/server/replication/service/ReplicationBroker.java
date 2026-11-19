@@ -1217,7 +1217,7 @@ public class ReplicationBroker
         throw new ConnectException("Connection to " + serverURL
             + " is a TCP self-connect, no replication server is listening");
       }
-      newSession = replSessionSecurity.createClientSession(socket, timeoutMS);
+      newSession = replSessionSecurity.createClientSession(socket, timeoutMS, "DS", getServerId(), getBaseDN());
       boolean isSslEncryption = replSessionSecurity.isSslEncryption();
 
       // Send our ServerStartMsg.

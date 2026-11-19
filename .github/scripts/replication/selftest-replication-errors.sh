@@ -237,11 +237,10 @@ case_ new-cert-rs-other-node    1 0 '[ cert-peer:n1:172.18.0.9' "$WBAD_PEER" ']'
 case_ new-cert-rs-outside       1 0 "$WBAD_PEER" '[ cert-peer:n0:172.18.0.9' ']'
 case_ new-cert-rs-other-fault   1 0 '[ cert-peer:n0:172.18.0.9' "${WBAD_PEER/Received fatal alert: bad_certificate/unexpected bad_certificate}" ']'
 # Scale may verify recovery during the roll after the narrow return window closes.
-# Use separate DS and RS logs so warning 105 can only inherit correlated DS evidence.
+# A WARN105 must match the client-side TLS failure on the same TCP connection.
 SCALE_WARNING="[18/Nov/2026:12:00:01 +0000]${WBAD_RS:3}"
 SCALE_PEER="[18/Nov/2026:12:00:01 +0000]${WBAD_PEER:3}"
 SCALE_CONNECTED='[18/Nov/2026:12:00:02 +0000] category=SYNC severity=NOTICE msgID=62 msg=Directory server DS(1) has connected to replication server RS(42) for domain "dc=example,dc=com" at 172.18.0.2:8989 with generation ID 3'
-SCALE_LATE_PEER=${SCALE_PEER/12:00:01/12:00:03}
 SCALE_SCHEMA_WARNING=${SCALE_WARNING/dc=example,dc=com/cn=schema}
 SCALE_ADMIN_WARNING=${SCALE_WARNING/dc=example,dc=com/cn=admin data}
 SCALE_ADMIN_CONNECTED=${SCALE_CONNECTED/dc=example,dc=com/cn=admin data}
@@ -251,6 +250,21 @@ SCALE_RS_WARNING=${SCALE_RS_WARNING/cv-c3/cv-r1}
 SCALE_RS_RECOVERY="[18/Nov/2026:12:00:02 +0000]${NRSCERT:3}"
 SCALE_RS_RECOVERY=${SCALE_RS_RECOVERY/cv-c3/cv-r1}
 SCALE_RS_ACCEPTOR=${SCALE_PEER/172.18.0.9/172.18.0.7}
+
+scale_tls_attempt() { # <second> <role and ID> <domain> <source IP:port> [<destination IP:port>]
+  printf '[18/Nov/2026:12:00:%s +0000] category=SYNC severity=NOTICE msgID=341 msg=Replication TLS client handshake failed for %s for domain "%s" from /%s to cv-r1/%s' \
+    "$1" "$2" "$3" "$4" "${5:-172.18.0.2:8989}"
+}
+
+SCALE_DS_ATTEMPT=$(scale_tls_attempt 01 'DS(1)' dc=example,dc=com 172.18.0.9:43210)
+SCALE_DS_FAILURE="$SCALE_DS_ATTEMPT"$'\n'"$SCALE_WARNING"
+SCALE_ADMIN_FAILURE="${SCALE_DS_ATTEMPT/dc=example,dc=com/cn=admin data}"$'\n'"$SCALE_ADMIN_WARNING"
+SCALE_SCHEMA_FAILURE=$(scale_tls_attempt 01 'DS(1)' cn=schema 172.18.0.9:43212)
+SCALE_SCHEMA_FAILURE="$SCALE_SCHEMA_FAILURE"$'\n'"$SCALE_SCHEMA_WARNING"
+SCALE_RS_ATTEMPT=$(scale_tls_attempt 01 'RS(31897)' 'cn=admin data' 172.18.0.7:43210)
+SCALE_RS_FAILURE="$SCALE_RS_ATTEMPT"$'\n'"$SCALE_RS_WARNING"
+SCALE_RS_NEXT_SECOND=${SCALE_RS_ACCEPTOR/12:00:01/12:00:02}
+SCALE_RS_RECOVERED_ON_RETRY=${SCALE_RS_RECOVERY/12:00:02/12:00:03}
 
 # <return DS log> <acceptor log> <scale-out DS log> [<post-scale DS log>]
 # [<window change>] [<in-window RS caller log>] [<scale-out RS caller log>]
@@ -293,13 +307,13 @@ scale_cert_result() (
       printf '1 1 scale-cert-return\n' >"$OUT/logs/cv-r1.windows"
       ;;
     ordinary-window)
-      printf '1 2 dns:cv-r1\n' >"$OUT/logs/n0.windows"
+      printf '1 3 dns:cv-r1\n' >"$OUT/logs/n0.windows"
       printf '1 2 dns:cv-r1\n' >"$OUT/logs/cv-r1.windows"
       ;;
   esac
   [ -z "$(sort "$OUT/logs/scale-certificates" | uniq -d)" ] || { echo 'duplicate certificate proof' >&2; exit 1; }
   local caller_errors acceptor_errors
-  caller_errors=$(replication_errors n0) || exit 1
+  caller_errors=$(replication_errors "${SCALE_CERT_CALLER:-n0}") || exit 1
   acceptor_errors=$(replication_errors cv-r1) || exit 1
   for errors in "$caller_errors" "$acceptor_errors"; do
     if [ -n "$errors" ]; then printf '%s\n' "$errors"; fi
@@ -307,10 +321,10 @@ scale_cert_result() (
   done
 )
 
-scale_cert_case() { # <name> <unexpected DS lines> <unexpected RS lines> <logs...>
-  local name=$1 want_ds=$2 want_rs=$3 result
+scale_cert_case() { # <name> <unexpected caller lines> <unexpected acceptor lines> <logs...>
+  local name=$1 want_caller=$2 want_acceptor=$3 result
   shift 3
-  if result=$(scale_cert_result "$@") && [ "$result" = "$(for errors in "$want_ds" "$want_rs"; do
+  if result=$(scale_cert_result "$@") && [ "$result" = "$(for errors in "$want_caller" "$want_acceptor"; do
     if [ -n "$errors" ]; then printf '%s\n' "$errors"; fi
     printf '%s\n' ---
   done)" ]; then
@@ -322,51 +336,80 @@ scale_cert_case() { # <name> <unexpected DS lines> <unexpected RS lines> <logs..
   fi
 }
 
-scale_cert_case scale-cert-no-recovery "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" ''
-scale_cert_case scale-cert-recovered '' '' "$SCALE_WARNING"$'\n'"$SCALE_CONNECTED" "$SCALE_PEER" ''
-scale_cert_case scale-cert-peer-jdk-prefix '' '' "$SCALE_WARNING" "${SCALE_PEER/The error was: Received/The error was: (bad_certificate) Received}" "$SCALE_CONNECTED"
-scale_cert_case scale-cert-recovered-on-roll '' '' "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED"
-scale_cert_case scale-cert-admin-domain '' '' "$SCALE_ADMIN_WARNING" "$SCALE_PEER" "$SCALE_ADMIN_CONNECTED"
-scale_cert_case scale-cert-recovery-after-roll "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" '' "$SCALE_CONNECTED"
-scale_cert_case scale-cert-repeated-after-roll "$SCALE_WARNING" '' "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED" "$SCALE_WARNING"
-scale_cert_case scale-cert-warnings-after-return "$SCALE_WARNING" '' '' '' "$SCALE_WARNING"$'\n'"$SCALE_CONNECTED"
-scale_cert_case scale-cert-before-warning "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED"$'\n'"$SCALE_WARNING" "$SCALE_PEER" ''
-scale_cert_case scale-cert-peer-order-ambiguous '' "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_SAME_SECOND"
-scale_cert_case scale-cert-peer-same-then-later '' '' "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_SAME_SECOND"$'\n'"$SCALE_CONNECTED"
-scale_cert_case scale-rs-peer-recovered '' '' '' "$SCALE_RS_ACCEPTOR" '' '' '' "$SCALE_RS_WARNING"$'\n'"$SCALE_RS_RECOVERY"
-scale_cert_case scale-rs-peer-without-warning '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' "$SCALE_RS_RECOVERY"
-scale_cert_case scale-rs-peer-without-recovery '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' "$SCALE_RS_WARNING"
-scale_cert_case scale-rs-peer-late-recovery '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' "$SCALE_RS_WARNING" "$SCALE_RS_RECOVERY"
+scale_rs_cert_case() {
+  SCALE_CERT_CALLER=cv-r0 scale_cert_case "$@"
+}
+
+scale_cert_case scale-cert-no-recovery "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_DS_FAILURE" "$SCALE_PEER" ''
+scale_cert_case scale-cert-recovered '' '' "$SCALE_DS_FAILURE"$'\n'"$SCALE_CONNECTED" "$SCALE_PEER" ''
+scale_cert_case scale-cert-peer-jdk-prefix '' '' "$SCALE_DS_FAILURE" "${SCALE_PEER/The error was: Received/The error was: (bad_certificate) Received}" "$SCALE_CONNECTED"
+scale_cert_case scale-cert-recovered-on-roll '' '' "$SCALE_DS_FAILURE" "$SCALE_PEER" "$SCALE_CONNECTED"
+scale_cert_case scale-cert-admin-domain '' '' "$SCALE_ADMIN_FAILURE" "$SCALE_PEER" "$SCALE_ADMIN_CONNECTED"
+scale_cert_case scale-cert-recovery-after-roll "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_DS_FAILURE" "$SCALE_PEER" '' "$SCALE_CONNECTED"
+scale_cert_case scale-cert-repeated-after-roll "$SCALE_WARNING" '' "$SCALE_DS_FAILURE" "$SCALE_PEER" "$SCALE_CONNECTED" "$SCALE_WARNING"
+scale_cert_case scale-cert-warnings-after-return "$SCALE_WARNING" '' '' '' "$SCALE_DS_FAILURE"$'\n'"$SCALE_CONNECTED"
+scale_cert_case scale-cert-before-warning "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED"$'\n'"$SCALE_DS_FAILURE" "$SCALE_PEER" ''
+scale_cert_case scale-cert-peer-same-second '' '' "$SCALE_DS_FAILURE" "$SCALE_PEER" "$SCALE_SAME_SECOND"
+scale_cert_case scale-cert-peer-two-notices '' '' "$SCALE_DS_FAILURE" "$SCALE_PEER" "$SCALE_SAME_SECOND"$'\n'"$SCALE_CONNECTED"
+scale_cert_case scale-cert-warning-without-attempt '' "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED"
+
+# Assert both logs. The acceptor's rejected handshake and the caller's outage are separate records.
+scale_rs_cert_case scale-rs-peer-recovered '' '' '' "$SCALE_RS_ACCEPTOR" '' '' '' "$SCALE_RS_FAILURE"$'\n'"$SCALE_RS_RECOVERY"
+scale_rs_cert_case scale-rs-peer-adjacent-seconds '' '' '' "$SCALE_RS_NEXT_SECOND" '' '' '' \
+  "$SCALE_RS_FAILURE"$'\n'"$SCALE_RS_RECOVERED_ON_RETRY"
+scale_rs_cert_case scale-rs-peer-retry-without-warn312 '' '' '' "$SCALE_RS_NEXT_SECOND" '' '' '' \
+  "$SCALE_RS_ATTEMPT"$'\n'"$SCALE_RS_RECOVERED_ON_RETRY"
+scale_rs_cert_case scale-rs-peer-without-attempt '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' \
+  "$SCALE_RS_WARNING"$'\n'"$SCALE_RS_RECOVERY"
+scale_rs_cert_case scale-rs-peer-without-recovery "$SCALE_RS_WARNING" "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' "$SCALE_RS_FAILURE"
+scale_rs_cert_case scale-rs-peer-late-recovery "$SCALE_RS_WARNING" "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' \
+  "$SCALE_RS_FAILURE" "$SCALE_RS_RECOVERY"
+scale_rs_cert_case scale-rs-peer-recovery-before-attempt "$SCALE_RS_WARNING" "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' \
+  "$SCALE_RS_RECOVERY"$'\n'"$SCALE_RS_FAILURE"
 for notice in "${SCALE_RS_RECOVERY/RS(31897)/RS(31898)}" "${SCALE_RS_RECOVERY/cv-r1/cv-r2}" \
-              "${SCALE_RS_RECOVERY/cn=admin data/cn=schema}" "${SCALE_RS_RECOVERY/12:00:02/12:00:01}"; do
-  scale_cert_case scale-rs-peer-wrong-recovery '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' "$SCALE_RS_WARNING"$'\n'"$notice"
+              "${SCALE_RS_RECOVERY/cn=admin data/cn=schema}"; do
+  scale_rs_cert_case scale-rs-peer-wrong-recovery "$SCALE_RS_WARNING" "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' \
+    "$SCALE_RS_FAILURE"$'\n'"$notice"
 done
-scale_cert_case scale-rs-peer-wrong-source '' "$SCALE_PEER" '' "$SCALE_PEER" '' '' '' "$SCALE_RS_WARNING"$'\n'"$SCALE_RS_RECOVERY"
-scale_cert_case scale-rs-peer-wrong-second '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' "${SCALE_RS_WARNING/12:00:01/11:59:59}"$'\n'"$SCALE_RS_RECOVERY"
-# A combined caller can log both paths from the same IP in the same second.
-# Even when the IDs and domain agree, both roles must establish their own session.
+for attempt in "${SCALE_RS_ATTEMPT/43210/43211}" "${SCALE_RS_ATTEMPT/172.18.0.7/172.18.0.8}" \
+               "${SCALE_RS_ATTEMPT/172.18.0.2/172.18.0.3}" "${SCALE_RS_ATTEMPT/8989/8990}" \
+               "${SCALE_RS_ATTEMPT/RS(31897)/DS(31897)}"; do
+  scale_rs_cert_case scale-rs-peer-wrong-attempt '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' \
+    "$attempt"$'\n'"$SCALE_RS_WARNING"$'\n'"$SCALE_RS_RECOVERY"
+done
+scale_rs_cert_case scale-rs-peer-ambiguous-attempt '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' \
+  "$SCALE_RS_FAILURE"$'\n'"${SCALE_RS_ATTEMPT/cn=admin data/cn=schema}"$'\n'"$SCALE_RS_RECOVERY"
+scale_rs_cert_case scale-rs-peer-attempt-after-window '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' \
+  "$SCALE_RS_WARNING"$'\n'"$SCALE_RS_RECOVERY" "$SCALE_RS_ATTEMPT"
+
+# A combined node can fail as both DS and RS, even with the same ID and domain.
+# Their accepted sockets have different source ports and each needs its own recovery.
 SCALE_COMBINED_RS_WARNING=${SCALE_RS_WARNING/RS(31897)/RS(1)}
 SCALE_COMBINED_RS_RECOVERY=${SCALE_RS_RECOVERY/RS(31897)/RS(1)}
-scale_cert_case scale-combined-peer-unrecovered-rs "$SCALE_COMBINED_RS_WARNING" "$SCALE_PEER" \
-  "$SCALE_ADMIN_WARNING" "$SCALE_PEER" "$SCALE_ADMIN_CONNECTED" '' combined-peer "$SCALE_COMBINED_RS_WARNING"
-scale_cert_case scale-combined-peer-unrecovered-ds "$SCALE_ADMIN_WARNING" "$SCALE_PEER" "$SCALE_ADMIN_WARNING" "$SCALE_PEER" \
-  '' '' combined-peer "$SCALE_COMBINED_RS_WARNING"$'\n'"$SCALE_COMBINED_RS_RECOVERY"
-scale_cert_case scale-combined-peer-recovered '' '' "$SCALE_ADMIN_WARNING" "$SCALE_PEER" \
-  "$SCALE_ADMIN_CONNECTED" '' combined-peer "$SCALE_COMBINED_RS_WARNING"$'\n'"$SCALE_COMBINED_RS_RECOVERY"
-scale_cert_case scale-cert-peer-unrelated-time '' "${SCALE_PEER/12:00:01/11:59:30}" "$SCALE_WARNING" "${SCALE_PEER/12:00:01/11:59:30}" "$SCALE_CONNECTED"
-scale_cert_case scale-cert-proof-outside-window "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED" '' move-window
-scale_cert_case scale-cert-proof-in-ordinary-window "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED" '' ordinary-window
-scale_cert_case scale-cert-peer-after-recovery '' "$SCALE_LATE_PEER" "$SCALE_WARNING"$'\n'"$SCALE_CONNECTED" "$SCALE_LATE_PEER" ''
-scale_cert_case scale-cert-peer-without-ds-warning '' "$SCALE_PEER" '' "$SCALE_PEER" "$SCALE_CONNECTED"
-scale_cert_case scale-cert-ambiguous-domain "$SCALE_SCHEMA_WARNING" "$SCALE_PEER" "$SCALE_WARNING"$'\n'"$SCALE_SCHEMA_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED"
-scale_cert_case scale-cert-all-domains-recovered '' '' "$SCALE_WARNING"$'\n'"$SCALE_ADMIN_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED"$'\n'"$SCALE_ADMIN_CONNECTED"
-scale_cert_case scale-cert-unrelated-domain-time "${SCALE_SCHEMA_WARNING/12:00:01/12:00:02}" '' "$SCALE_WARNING"$'\n'"${SCALE_SCHEMA_WARNING/12:00:01/12:00:02}" "$SCALE_PEER" "$SCALE_CONNECTED"
+SCALE_COMBINED_RS_ATTEMPT=$(scale_tls_attempt 01 'RS(1)' 'cn=admin data' 172.18.0.9:43211)
+SCALE_COMBINED_RS_FAILURE="$SCALE_COMBINED_RS_ATTEMPT"$'\n'"$SCALE_COMBINED_RS_WARNING"
+SCALE_COMBINED_RS_ACCEPTOR=${SCALE_PEER/43210/43211}
+scale_cert_case scale-combined-peer-unrecovered-rs "$SCALE_COMBINED_RS_WARNING" "$SCALE_COMBINED_RS_ACCEPTOR" \
+  "$SCALE_ADMIN_FAILURE" "$SCALE_PEER"$'\n'"$SCALE_COMBINED_RS_ACCEPTOR" "$SCALE_ADMIN_CONNECTED" '' combined-peer "$SCALE_COMBINED_RS_FAILURE"
+scale_cert_case scale-combined-peer-unrecovered-ds "$SCALE_ADMIN_WARNING" "$SCALE_PEER" \
+  "$SCALE_ADMIN_FAILURE" "$SCALE_PEER"$'\n'"$SCALE_COMBINED_RS_ACCEPTOR" \
+  '' '' combined-peer "$SCALE_COMBINED_RS_FAILURE"$'\n'"$SCALE_COMBINED_RS_RECOVERY"
+scale_cert_case scale-combined-peer-recovered '' '' "$SCALE_ADMIN_FAILURE" "$SCALE_PEER"$'\n'"$SCALE_COMBINED_RS_ACCEPTOR" \
+  "$SCALE_ADMIN_CONNECTED" '' combined-peer "$SCALE_COMBINED_RS_FAILURE"$'\n'"$SCALE_COMBINED_RS_RECOVERY"
+
+scale_cert_case scale-cert-proof-outside-window "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_DS_FAILURE" "$SCALE_PEER" "$SCALE_CONNECTED" '' move-window
+scale_cert_case scale-cert-proof-in-ordinary-window "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_DS_FAILURE" "$SCALE_PEER" "$SCALE_CONNECTED" '' ordinary-window
+scale_cert_case scale-cert-peer-without-ds-warning '' '' "$SCALE_DS_ATTEMPT" "$SCALE_PEER" "$SCALE_CONNECTED"
+scale_cert_case scale-cert-unrelated-domain "$SCALE_SCHEMA_WARNING" '' "$SCALE_DS_FAILURE"$'\n'"$SCALE_SCHEMA_FAILURE" "$SCALE_PEER" "$SCALE_CONNECTED"
+scale_cert_case scale-cert-all-domains-recovered '' '' "$SCALE_DS_FAILURE"$'\n'"$SCALE_SCHEMA_FAILURE" \
+  "$SCALE_PEER"$'\n'"${SCALE_PEER/43210/43212}" \
+  "$SCALE_CONNECTED"$'\n'"${SCALE_CONNECTED/dc=example,dc=com/cn=schema}"
 for notice in "${SCALE_CONNECTED/172.18.0.2/172.18.0.3}" "${SCALE_CONNECTED/dc=example,dc=com/cn=schema}" \
               "${SCALE_CONNECTED/DS(1)/DS(2)}" "${SCALE_CONNECTED/msgID=62/msgID=96}"; do
-  scale_cert_case scale-cert-wrong-recovery "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" "$notice"
+  scale_cert_case scale-cert-wrong-recovery "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_DS_FAILURE" "$SCALE_PEER" "$notice"
 done
 for peer in "${SCALE_PEER/172.18.0.9/172.18.0.8}" "${SCALE_PEER/172.18.0.2/172.18.0.3}"; do
-  scale_cert_case scale-cert-wrong-ip '' "$peer" "$SCALE_WARNING" "$peer" "$SCALE_CONNECTED"
+  scale_cert_case scale-cert-wrong-ip '' "$peer" "$SCALE_DS_FAILURE" "$peer" "$SCALE_CONNECTED"
 done
 case_ startup-timeout-exact     0 1 '[ timeout:n0:cv-r1' "$E212" ']'
 case_ startup-timeout-other-ds  1 0 '[ timeout:n1:cv-r1' "$E212" ']'

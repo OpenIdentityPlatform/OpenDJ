@@ -624,16 +624,16 @@ scale_certificate_log() { # <node>
   [ "$mark" -le "$before" ] && [ "$before" -le "$warning_end" ] && [ "$warning_end" -le "$last" ] || return 1
   printf '@ %s %s\n' "$node" "$warning_end" || return 1
   since_mark "$node" | awk -v mark="$mark" -v before="$before" -v last="$last" '
-    NR + mark > before && NR + mark <= last && /category=SYNC severity=(WARNING msgID=(105|119|312)|NOTICE msgID=(62|313)) / {
+    NR + mark > before && NR + mark <= last && /category=SYNC severity=(WARNING msgID=(105|119|312)|NOTICE msgID=(62|313|341)) / {
       printf "%d\t%s\n", NR + mark, $0
     }
     END { if (NR + mark < last) exit 1 }'
 }
 
-# A warning on the caller needs a later session with the rebuilt RS in the same
-# domain and for the same caller ID. Match acceptor warning 105 by the callers'
-# pre-roll IP and the second of a DS119 or RS312. Each matching path must recover
-# in a later second. RS312 and RS313 must both be inside the return window.
+# Match WARN105 to the failed client's exact socket endpoints inside the return
+# window. A later notice in that client's log must show a session for the same
+# role, ID and domain on the rebuilt RS. A DS can recover during the roll, while
+# an RS must recover within the return window.
 scale_record_certificate_recoveries() { # <rebuilt RS address> <node=address>...
   local address=$1 mapping proof="$OUT/logs/scale-certificates"
   shift
@@ -642,8 +642,6 @@ scale_record_certificate_recoveries() { # <rebuilt RS address> <node=address>...
     scale_certificate_log "$REMOVED" || exit 1
   } | awk -v rs="$REMOVED" -v address="$address" -v mappings="$*" -v ds_nodes="$DS_NODES" -v rs_nodes="$RS_NODES" '
     BEGIN {
-      split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec", months, " ")
-      for (i in months) month[months[i]] = i
       count = split(mappings, pairs, " ")
       for (i = 1; i <= count; i++) {
         split(pairs[i], pair, "=")
@@ -654,45 +652,20 @@ scale_record_certificate_recoveries() { # <rebuilt RS address> <node=address>...
       count = split(rs_nodes, nodes, " ")
       for (i = 1; i <= count; i++) replication_node[nodes[i]] = 1
     }
-    function log_time(record, stamp, date) {
-      stamp = substr(record, 2, index(record, "]") - 2)
-      if (split(stamp, date, /[\/: ]/) != 7 || !(date[2] in month)) return ""
-      return sprintf("%s%02d%s%s%s%s %s", date[3], month[date[2]], date[1],
-                     date[4], date[5], date[6], date[7])
-    }
-    function after_time(later, earlier) {
-      # Containers share a clock. With second-resolution logs a tie between
-      # different nodes cannot establish order.
-      return length(later) == 20 && length(earlier) == 20 &&
-             substr(later, 16) == substr(earlier, 16) &&
-             substr(later, 1, 14) + 0 > substr(earlier, 1, 14) + 0
+    function numeric_endpoint(endpoint) {
+      sub(/^.*\//, "", endpoint)
+      return endpoint
     }
     function prove(line, record) {
       printf "%s\t%d\t%s\n", node, line, record
     }
-    function remember_warning(key, line, record, emit,     i) {
-      i = ++warnings[node]
-      path[node, i] = key
-      warned_at[node, i] = log_time(record)
-      if (emit) {
-        position[node, i] = line
-        warning[node, i] = record
-      }
+    $1 == "@" {
+      node = $2
+      warning_end = $3
+      for (position in warning) delete warning[position]
+      for (position in warning_key) delete warning_key[position]
+      next
     }
-    function record_recovery(key, record,     i, stamp) {
-      stamp = log_time(record)
-      for (i = 1; i <= warnings[node]; i++) {
-        if (path[node, i] != key) continue
-        # Local log order proves DS119 recovery even within the same second.
-        # Keep checking subsequent notices for the cross-node proof of RS105.
-        if ((node, i) in warning) {
-          prove(position[node, i], warning[node, i])
-          delete warning[node, i]
-        }
-        if (after_time(stamp, warned_at[node, i])) recovered_later[node, i] = 1
-      }
-    }
-    $1 == "@" { node = $2; warning_end = $3; next }
     {
       line = $1 + 0
       record = substr($0, index($0, "\t") + 1)
@@ -705,20 +678,13 @@ scale_record_certificate_recoveries() { # <rebuilt RS address> <node=address>...
             message !~ /^Replication server accepted a connection from [^ ]+ to local address [^ ]+ but the SSL handshake failed\./ ||
             message !~ /The error was: (\(bad_certificate\) )?Received fatal alert: bad_certificate$/) next
         split(message, words, " ")
-        remote = words[7]; sub(/^.*\//, "", remote)
-        local_address = words[11]; sub(/^.*\//, "", local_address)
-        if (split(remote, socket, ":") != 2 || socket[2] !~ /^[0-9]+$/ || local_address != address ":8989") next
+        source = numeric_endpoint(words[7])
+        destination = numeric_endpoint(words[11])
+        if (split(source, socket, ":") != 2 || socket[2] !~ /^[0-9]+$/ || destination != address ":8989") next
         caller = peer_at[socket[1]]
-        if (caller == "" || !warnings[caller]) next
-        peer_time = log_time(record)
-        if (peer_time == "") next
-        matched = 0
-        for (i = 1; i <= warnings[caller]; i++) {
-          if (warned_at[caller, i] != peer_time) continue
-          if (!recovered_later[caller, i]) break
-          matched = 1
-        }
-        if (matched && i > warnings[caller]) prove(line, record)
+        tuple = source SUBSEP destination
+        if (caller != "" && attempts[caller, tuple] == 1 &&
+            recovered_at[caller, attempt_path[caller, tuple]] > attempt_line[caller, tuple]) prove(line, record)
         next
       }
 
@@ -726,32 +692,50 @@ scale_record_certificate_recoveries() { # <rebuilt RS address> <node=address>...
       domain = substr(message, RSTART, RLENGTH)
       prefix = substr(message, 1, RSTART - 1)
       suffix = substr(message, RSTART + RLENGTH)
+      if (header ~ /category=SYNC severity=NOTICE msgID=341$/ && line <= warning_end &&
+          prefix ~ /^Replication TLS client handshake failed for (DS|RS)\([0-9]+\)$/ &&
+          suffix ~ /^ from [^ ]+ to [^ ]+$/) {
+        client = prefix
+        sub(/^Replication TLS client handshake failed for /, "", client)
+        role = substr(client, 1, 2)
+        if ((role == "DS" && !(node in directory_node)) || (role == "RS" && !(node in replication_node))) next
+        split(suffix, words, " ")
+        source = numeric_endpoint(words[2])
+        destination = numeric_endpoint(words[4])
+        if (split(source, socket, ":") != 2 || peer_at[socket[1]] != node || socket[2] !~ /^[0-9]+$/ ||
+            destination != address ":8989") next
+        tuple = source SUBSEP destination
+        attempts[node, tuple]++
+        attempt_path[node, tuple] = client SUBSEP domain
+        attempt_line[node, tuple] = line
+      }
       if (node in directory_node && prefix ~ /^Directory server DS\([0-9]+\) /) {
-        id = prefix; sub(/^Directory server DS\(/, "", id); sub(/\).*/, "", id)
-        key = "DS" SUBSEP id SUBSEP domain
+        client = prefix; sub(/^Directory server /, "", client); sub(/ .*/, "", client)
+        key = client SUBSEP domain
         if (line <= warning_end && header ~ /category=SYNC severity=WARNING msgID=119$/ &&
-            prefix == "Directory server DS(" id ") encountered an unexpected error while connecting to replication server " rs ":8989" &&
+            prefix == "Directory server " client " encountered an unexpected error while connecting to replication server " rs ":8989" &&
             suffix ~ /^: .*SSLHandshakeException.*bad_certificate/) {
-          remember_warning(key, line, record, 1)
+          warning_key[line] = key
+          warning[line] = record
         }
         if (header ~ /category=SYNC severity=NOTICE msgID=62$/ &&
             prefix ~ /^Directory server DS\([0-9]+\) has connected to replication server RS\([0-9]+\)$/ &&
             index(suffix, " at " address ":8989 with generation ID ") == 1) {
-          record_recovery(key, record)
+          recovered_at[node, key] = line
+          for (position in warning) {
+            if (warning_key[position] != key) continue
+            prove(position, warning[position])
+            delete warning[position]
+            delete warning_key[position]
+          }
         }
       }
-      if (node in replication_node && line <= warning_end && prefix ~ /^Replication server RS\([0-9]+\) /) {
-        id = prefix; sub(/^Replication server RS\(/, "", id); sub(/\).*/, "", id)
-        key = "RS" SUBSEP id SUBSEP domain
-        if (header ~ /category=SYNC severity=WARNING msgID=312$/ &&
-            prefix == "Replication server RS(" id ") could not connect to replication server " rs ":8989" &&
-            suffix ~ /^: SSLHandshakeException\(\(bad_certificate\)/) {
-          remember_warning(key, line, record, 0)
-        }
-        if (header ~ /category=SYNC severity=NOTICE msgID=313$/ &&
-            prefix == "Replication server RS(" id ") connected to replication server " rs ":8989" &&
-            suffix == ", which it had reported it had no replication session with") {
-          record_recovery(key, record)
+      if (node in replication_node && line <= warning_end && header ~ /category=SYNC severity=NOTICE msgID=313$/ &&
+          prefix ~ /^Replication server RS\([0-9]+\) connected to replication server / &&
+          suffix == ", which it had reported it had no replication session with") {
+        client = prefix; sub(/^Replication server /, "", client); sub(/ .*/, "", client)
+        if (prefix == "Replication server " client " connected to replication server " rs ":8989") {
+          recovered_at[node, client SUBSEP domain] = line
         }
       }
     }' >"$proof.partial" || return 1
