@@ -850,11 +850,12 @@ The endpoint also accepts `X-OpenIDM-Username` and `X-OpenIDM-Password` headers 
 [#rest-default-mapping]
 === Default REST Resources
 
-The default mapping uses the LDAP `uid` as the resource `_id`. Use the configured JSON field names, such as `displayName` for LDAP `cn`.
+The default mapping uses LDAP `uid` as the resource `_id` for users and LDAP `cn` for groups. Use the configured JSON field names, such as `displayName` for LDAP `cn`.
 
 * `/api/users` reads and changes entries directly under `ou=People,dc=example,dc=com`.
 * `/api/read-only-users` reads and queries the same entries. Writes are rejected.
 * `/api/all-users` includes nested users in collection queries. For a nested user, query the collection with `_queryFilter`. A direct `/api/all-users/<id>` read looks under the collection’s base DN.
+* `/api/groups` maps groups under `ou=Groups,dc=example,dc=com`. Read an individual group at `/api/groups/<cn>`.
 
 To inspect the configured routes and resource fields, send an authenticated GET to `/api?_api`. OpenDJ returns a Swagger 2.0 description. For custom mappings and standalone gateway authentication, see xref:../reference/appendix-rest2ldap.adoc#appendix-rest2ldap[REST to LDAP Configuration].
 

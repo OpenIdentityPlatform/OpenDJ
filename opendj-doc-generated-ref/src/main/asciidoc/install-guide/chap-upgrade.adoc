@@ -138,20 +138,22 @@ C:\path\to\opendj\bat> windows-service.bat --enableService
 ====
 This UNIX example upgrades 5.1.2 to 5.2.0 with the tools in `renamed-opendj` and data in the sibling directory `instance`. Adjust the paths and review the xref:#upgrade-dn-parsing[stored DN and index checks] first.
 
-[source, console]
+The commands stop at the first failure. File replacement starts only after the server stops, the backup is written, and the ZIP is extracted.
+
+[source,bash]
 ----
-$ cd /path/to
-$ ./renamed-opendj/bin/stop-ds
-$ backup_dir=$(mktemp -d "$PWD/opendj-backup.XXXXXX")
-$ (umask 077; tar -czf "$backup_dir/opendj-backup.tar.gz" renamed-opendj instance)
-$ staging=$(mktemp -d)
-$ unzip -q ~/Downloads/opendj-5.2.0.zip -d "$staging"
-$ cp -fpR "$staging"/opendj/. renamed-opendj/
-$ export OPENDJ_JAVA_HOME=/path/to/jdk
-$ ./renamed-opendj/upgrade --no-prompt --acceptLicense --force
+cd /path/to &&
+./renamed-opendj/bin/stop-ds &&
+backup_dir=$(mktemp -d "$PWD/opendj-backup.XXXXXX") &&
+(umask 077 && tar -czf "$backup_dir/opendj-backup.tar.gz" renamed-opendj instance) &&
+staging=$(mktemp -d) &&
+unzip -q ~/Downloads/opendj-5.2.0.zip -d "$staging" &&
+cp -fpR "$staging"/opendj/. renamed-opendj/ &&
+export OPENDJ_JAVA_HOME=/path/to/jdk &&
+./renamed-opendj/upgrade --no-prompt --acceptLicense --force
 ----
 
-Review the upgrade output and any details in `instance/logs/upgrade.log` before starting the server.
+Review the upgrade output and `instance/logs/upgrade.log`. Start the server only after the upgrade succeeds and any deferred tasks are complete.
 
 [source, console]
 ----
@@ -280,7 +282,21 @@ Index verification and rebuilds can leave a large instance `unhealthy` while the
 +
 If the upgrade fails before recording the new version, the next start retries it.
 +
-If a post-upgrade task fails after the new version is recorded, the next start opens the server for recovery and leaves it `unhealthy`. Restore the backup as shown below or xref:../admin-guide/chap-indexing.adoc#rebuild-index[rebuild the indexes named in the log]. After a successful rebuild, remove the marker with `docker exec opendj rm /opt/opendj/data/.upgrade-pending` and run `docker restart opendj`.
+If a post-upgrade task fails or is interrupted after the new version is recorded, the next start attempts to open the server for recovery and leaves the container `unhealthy`. Complete all outstanding post-upgrade tasks or restore the backup as shown below.
++
+For DN equality index verification, use the backend and index definitions in `/opt/opendj/data/config/config.ldif` to identify every affected base DN and index. An interrupted run can leave base DNs absent from `upgrade.log`. Stop the server and use the new image to run xref:../admin-guide/chap-indexing.adoc#verify-index[`verify-index`] for each affected base DN and index. For example, open a temporary shell with the same volumes to verify the `member` index for `dc=example,dc=com`. Include any runtime settings the backends need, such as network access to an external database.
++
+
+[source, console, subs="+attributes"]
+----
+$ docker stop -t 60 opendj
+$ docker run --rm -it --volumes-from opendj --workdir /opt/opendj \
+  --entrypoint /bin/sh openidentityplatform/opendj:{opendj-version}
+$ printf '%s\n' /opt/opendj/data > instance.loc
+$ ./bin/verify-index --baseDN dc=example,dc=com --index member --countErrors
+----
++
+If verification finds inconsistencies, xref:../admin-guide/chap-indexing.adoc#rebuild-index[rebuild the index] in the same shell, for example with `./bin/rebuild-index --offline --baseDN dc=example,dc=com --index member`, then verify it again. Once all affected indexes are verified and all outstanding tasks are complete, remove `/opt/opendj/data/.upgrade-pending` from the temporary shell, exit the shell, and run `docker start opendj` from the host. Restore the backup if you cannot determine or complete the outstanding work.
 
 To revert, remove the new container, replace the volume with one restored from the backup, and start a container from the older image over it, with the options of the old container. Restore into an empty volume: files that the upgrade added would be left behind in a volume that the archive is extracted over.
 

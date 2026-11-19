@@ -542,9 +542,9 @@ The instance lives under `/opt/opendj/data`. The image declares no volume of its
 $ docker inspect --format '{{.State.Health.Status}}' opendj
 ----
 +
-The first start reports `healthy` after creating the backend, importing the requested data, and restarting the server. If setup fails, check `docker logs opendj`. The volume retains `/opt/opendj/data/.bootstrap-pending`. Later starts open the server for recovery and keep it `unhealthy`.
+The first start reports `healthy` after creating the backend, importing the requested data, and restarting the server. If setup fails, check `docker logs opendj`. When `/opt/opendj/data/config` is absent, the next start retries bootstrap after you correct the cause. If the directory exists and the volume still contains `/opt/opendj/data/.bootstrap-pending`, the next start attempts to open the partially configured server for recovery and keeps the container `unhealthy`.
 +
-To start over with an empty instance, run `docker rm -f opendj` and `docker volume rm opendj-data`, then repeat the installation. To keep the volume, finish setup, remove the marker with `docker exec opendj rm /opt/opendj/data/.bootstrap-pending`, and run `docker restart opendj`.
+For a partially configured instance, finish setup by hand, remove the marker with `docker exec opendj rm /opt/opendj/data/.bootstrap-pending`, and run `docker restart opendj`. To discard the incomplete instance and start over with an empty volume, run `docker rm -f opendj` and `docker volume rm opendj-data`, then repeat the installation.
 
 . (Optional) Check that the server serves the base entry:
 +
@@ -749,7 +749,7 @@ Use `status` and an LDAP search to check the backend and its data. Keep the back
 ====
 For REST access through the directory server itself, see xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap-endpoint["To Set Up REST Access to User Data"].
 
-. Deploy `org.openidentityplatform.opendj.opendj-rest2ldap-servlet.war` in your servlet container. The example below uses the `/rest2ldap` context.
+. Deploy `org.openidentityplatform.opendj.opendj-rest2ldap-servlet.war` with the context path `/rest2ldap`. For Tomcat automatic deployment, copy the archive into the `webapps` directory as `rest2ldap.war`.
 
 . In `WEB-INF/classes/config.json`, set `ldapConnectionFactories.bind.primaryLdapServers` to the LDAP host and port. Set `ldapConnectionFactories.root.authentication.simple` to a dedicated LDAP account with the `proxied-auth` privilege and an ACI scoped to the users it may represent. HTTP Basic and OAuth 2.0 both require this account. See xref:../server-dev-guide/chap-ldap-operations.adoc#proxied-authz["Configuring Proxied Authorization"].
 +
@@ -852,13 +852,13 @@ If you generated example data, Babs Jensen's entry is not included. Instead, try
 [#install-dsml-gateway]
 .To Install OpenDJ DSML Gateway
 ====
-. Deploy `org.openidentityplatform.opendj.opendj-dsml-servlet.war` according to the instructions for your application server.
+. Deploy `org.openidentityplatform.opendj.opendj-dsml-servlet.war` with the context path `/dsml`. For Tomcat automatic deployment, copy the archive into the `webapps` directory as `dsml.war`.
 
 . Set `ldap.host` and `ldap.port` in the deployed `WEB-INF/web.xml` to match the LDAP server. To secure the LDAP connection, configure `ldap.usessl` or `ldap.usestarttls` and the gateway's truststore settings.
 
 . Assign the `dsml-user` role in the servlet container’s security realm. The gateway forwards HTTP Basic credentials to LDAP. With the default settings, use the LDAP bind DN and password as the HTTPS credentials.
 
-. Restart the gateway. The example uses the `/dsml` context and a user from `Example.ldif` with the `dsml-user` role. Enter `hifalutin` when prompted.
+. Restart the gateway. Test with a user from `Example.ldif` who has the `dsml-user` role. Enter `hifalutin` when prompted.
 +
 [source, console]
 ----
