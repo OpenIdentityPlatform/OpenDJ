@@ -95,9 +95,22 @@ logs_count() { # <container> <text>
 # Not right after the start: until this start logs <since> itself, the last such line and the
 # text after it are those of the start before - run.sh prints "Starting OpenDJ" only after
 # the upgrade
+# Return 1 for a missing match and 2 when the log could not be read.
 logs_have_since() { # <container> <since> <text>
-  docker logs "$1" 2>&1 | awk -v s="$2" 'index($0, s) { buf = ""; next } { buf = buf $0 "\n" } END { printf "%s", buf }' \
-    | grep -F -- "$3" >/dev/null
+  local log
+  log=$(docker logs "$1" 2>&1 |
+    awk -v s="$2" 'index($0, s) { buf = ""; next } { buf = buf $0 "\n" } END { printf "%s", buf }') || return 2
+  grep -F -- "$3" <<<"$log" >/dev/null
+}
+
+assert_no_replication_reset() { # <container>
+  local status=0
+  logs_have_since "$1" "Starting OpenDJ" "taking its replication configuration down" || status=$?
+  case "$status" in
+    0) fail "$1 reset its replication on a plain restart" ;;
+    1) return 0 ;;
+    *) fail "could not read the current startup log for $1" ;;
+  esac
 }
 
 # Only nodes explicitly required by this wait are checked: other scenarios stop
@@ -412,9 +425,7 @@ wait_has dj-0 "ou=replicated2,dc=example,dc=com"
 # peer registers any more does that, or one that its own cn=admin data does not register,
 # and a reset followed by a new enable passes every check above
 for n in dj-0 dj-1; do
-  if logs_have_since "$n" "Starting OpenDJ" "taking its replication configuration down"; then
-    fail "$n reset its replication on a plain restart"
-  fi
+  assert_no_replication_reset "$n"
 done
 
 phase "seed without a domain"
@@ -1009,9 +1020,7 @@ for n in dj-r0 dj-d1; do
   docker restart $n >/dev/null
   wait_until 300 "the restarted $n is a member again" logs_have_since $n "Starting OpenDJ" "already a member of the replication topology"
   wait_healthy $n
-  if logs_have_since "$n" "Starting OpenDJ" "taking its replication configuration down"; then
-    fail "$n reset its replication on a plain restart"
-  fi
+  assert_no_replication_reset "$n"
 done
 roles_hold
 phase "roles: role-less volumes"

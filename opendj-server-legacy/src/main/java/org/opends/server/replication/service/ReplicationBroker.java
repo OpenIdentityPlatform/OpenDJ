@@ -2439,11 +2439,9 @@ public class ReplicationBroker
    * @param msg the message to publish
    * @param session the session the recovery publishes on, as {@link #getSession()} returned it
    *        when the recovery was started for it
-   * @return {@code false} if the broker refused the message: no replication
-   *         server was reachable, the session is not the one the broker publishes
-   *         on anymore, or the broker was stopped; {@code true} once the session
-   *         took it - which still drops it if it is closing, as it does any
-   *         message the broker publishes.
+   * @return {@code true} if the session accepted the message, or {@code false} if
+   *         the broker no longer publishes on that session, was stopped, or the
+   *         session refused the message.
    */
   public boolean publishRecovery(ReplicationMsg msg, Session session)
   {
@@ -2453,17 +2451,15 @@ public class ReplicationBroker
   /**
    * Publish a message to the other servers.
    * @param msg the message to publish
-   * @param recoveryMsg the message is a recovery LocalizableMessage
+   * @param recoveryMsg whether the message belongs to recovery
    * @param retryOnFailure whether retry should be done on failure
    * @param recoverySession the only session a recovery message may be published on
-   * @return whether the message was successfully sent.
+   * @return whether the session accepted the message.
    */
   private boolean publish(ReplicationMsg msg, boolean recoveryMsg,
       boolean retryOnFailure, Session recoverySession)
   {
-    boolean done = false;
-
-    while (!done && !shutdown && !permanentlyStopped && !gaveUpForTheStop())
+    while (!shutdown && !permanentlyStopped && !gaveUpForTheStop())
     {
       if (connectionError)
       {
@@ -2570,8 +2566,13 @@ public class ReplicationBroker
             final Session session = connectedRS.get().session;
             if (session != null && session == currentSession)
             {
-              session.publish(msg);
-              done = true;
+              final boolean published = session.publish(msg, null);
+              if (!published && msg instanceof UpdateMsg)
+              {
+                // A refused update cannot be acknowledged by the peer.
+                currentWindowSemaphore.release();
+              }
+              return published;
             }
           }
         }
@@ -2654,12 +2655,7 @@ public class ReplicationBroker
         }
       }
     }
-    /*
-     * The loop also ends when the broker is stopped, or gave a message up for the stop, and then
-     * nothing was written to any session: a caller told the message was published would report as
-     * sent a message which never reached the wire.
-     */
-    return done;
+    return false;
   }
 
   /** Tells whether a publish gave its message up for the stop in progress, if there is one. */
