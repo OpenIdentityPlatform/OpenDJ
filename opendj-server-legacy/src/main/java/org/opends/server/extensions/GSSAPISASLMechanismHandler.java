@@ -85,6 +85,9 @@ public class GSSAPISASLMechanismHandler extends
 
   /** The login context used to perform server-side authentication. */
   private volatile LoginContext loginContext;
+
+  /** The JAAS login configuration file currently in use, deleted when the properties are cleared. */
+  private File loginConfFile;
   private final Object loginContextLock = new Object();
 
   /**
@@ -253,15 +256,7 @@ public class GSSAPISASLMechanismHandler extends
   private String configureLoginConfFile(
       GSSAPISASLMechanismHandlerCfg configuration)
   throws IOException, InitializationException {
-    File tempFile = File.createTempFile("login", ".conf",
-        getFileForPath(CONFIG_DIR_NAME));
-    String configFileName = tempFile.getAbsolutePath();
-    tempFile.deleteOnExit();
-    BufferedWriter w = new BufferedWriter(new FileWriter(tempFile, false));
-    w.write(getClass().getName() + " {");
-    w.newLine();
-    w.write("  com.sun.security.auth.module.Krb5LoginModule required "
-        + "storeKey=true useKeyTab=true doNotPrompt=true ");
+    // Validate the keytab before creating anything, so a missing keytab leaves no file behind.
     String keyTabFilePath = configuration.getKeytab();
     if(keyTabFilePath == null) {
       String home = System.getProperty("user.home");
@@ -273,7 +268,6 @@ public class GSSAPISASLMechanismHandler extends
       LocalizableMessage msg = ERR_SASL_GSSAPI_KEYTAB_INVALID.get(keyTabFilePath);
       throw new InitializationException(msg);
     }
-    w.write("keyTab=\"" + keyTabFile + "\" ");
     StringBuilder principal = new StringBuilder();
     String principalName = configuration.getPrincipalName();
     String realm = configuration.getRealm();
@@ -289,15 +283,42 @@ public class GSSAPISASLMechanismHandler extends
     {
       principal.append("@").append(realm);
     }
-    w.write(principal.toString());
     logger.error(INFO_GSSAPI_PRINCIPAL_NAME, principal);
-    w.write("\" isInitiator=false;");
-    w.newLine();
-    w.write("};");
-    w.newLine();
-    w.flush();
-    w.close();
-    return configFileName;
+
+    /*
+     * Not File.deleteOnExit(): its registry only grows, and a file was created on every
+     * configuration change. The file is deleted when it is replaced or the handler is finalized.
+     */
+    File tempFile = File.createTempFile("login", ".conf",
+        getFileForPath(CONFIG_DIR_NAME));
+    try (BufferedWriter w = new BufferedWriter(new FileWriter(tempFile, false)))
+    {
+      w.write(getClass().getName() + " {");
+      w.newLine();
+      w.write("  com.sun.security.auth.module.Krb5LoginModule required "
+          + "storeKey=true useKeyTab=true doNotPrompt=true ");
+      w.write("keyTab=\"" + keyTabFile + "\" ");
+      w.write(principal.toString());
+      w.write("\" isInitiator=false;");
+      w.newLine();
+      w.write("};");
+      w.newLine();
+    }
+    catch (IOException | RuntimeException e)
+    {
+      deleteLoginConfFile(tempFile);
+      throw e;
+    }
+    return tempFile.getAbsolutePath();
+  }
+
+  /** Deletes a login configuration file written by {@link #configureLoginConfFile}. */
+  private static void deleteLoginConfFile(File file)
+  {
+    if (file != null && !file.delete() && file.exists())
+    {
+      logger.traceException(new IOException("Unable to delete " + file));
+    }
   }
 
   @Override
@@ -317,6 +338,8 @@ private void clearProperties() {
   System.clearProperty(KRBV_PROPERTY_REALM);
   System.clearProperty(JAAS_PROPERTY_CONFIG_FILE);
   System.clearProperty(JAAS_PROPERTY_SUBJECT_CREDS_ONLY);
+  deleteLoginConfFile(loginConfFile);
+  loginConfFile = null;
 }
 
   @Override
@@ -514,6 +537,7 @@ throws UnknownHostException, IOException, InitializationException
     saslProps.put(Sasl.QOP, getQOP(config));
     saslProps.put(Sasl.REUSE, "false");
     String configFileName = configureLoginConfFile(config);
+    loginConfFile = new File(configFileName);
     System.setProperty(JAAS_PROPERTY_CONFIG_FILE, configFileName);
     System.setProperty(JAAS_PROPERTY_SUBJECT_CREDS_ONLY, "false");
     getKdcRealm(config);
