@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -95,6 +96,12 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
      * connection request arrives when the queue is full, the connection is refused.
      */
     public static final Option<Integer> CONNECT_MAX_BACKLOG = Option.withDefault(50);
+
+    /**
+     * Requires a PROXY protocol header before the first LDAP or TLS message.
+     * A listener using this option must restrict connections to trusted PROXY senders before accepting their headers.
+     */
+    public static final Option<Boolean> PROXY_PROTOCOL_ENABLED = Option.withDefault(false);
 
     /**
      * Specifies the maximum request size in bytes for incoming LDAP requests.

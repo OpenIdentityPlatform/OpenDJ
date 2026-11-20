@@ -1,0 +1,327 @@
+/*
+ * The contents of this file are subject to the terms of the Common Development and
+ * Distribution License (the License). You may not use this file except in compliance with the
+ * License.
+ *
+ * You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+ * specific language governing permission and limitations under the License.
+ *
+ * When distributing Covered Software, include this CDDL Header Notice in each file and include
+ * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+ * Header, with the fields enclosed by brackets [] replaced by your own identifying
+ * information: "Portions copyright [year] [name of copyright owner]".
+ *
+ * Copyright 2026 3A Systems, LLC.
+ */
+package org.forgerock.opendj.grizzly;
+
+import static com.forgerock.reactive.RxJavaStreams.emptyStream;
+import static org.testng.Assert.*;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.forgerock.opendj.io.ProxyProtocolDecoder.InvalidHeaderException;
+import org.forgerock.opendj.io.ProxyProtocolHeader;
+import org.forgerock.opendj.ldap.LDAPClientContext;
+import org.forgerock.opendj.ldap.LDAPClientContextEventListener;
+import org.forgerock.opendj.ldap.LDAPListener;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SdkTestCase;
+import org.forgerock.opendj.ldap.requests.UnbindRequest;
+import org.forgerock.util.Options;
+import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.IOEvent;
+import org.glassfish.grizzly.ProcessorResult;
+import org.glassfish.grizzly.filterchain.BaseFilter;
+import org.glassfish.grizzly.filterchain.FilterChain;
+import org.glassfish.grizzly.filterchain.FilterChainBuilder;
+import org.glassfish.grizzly.filterchain.FilterChainContext;
+import org.glassfish.grizzly.filterchain.NextAction;
+import org.glassfish.grizzly.memory.MemoryProbe;
+import org.glassfish.grizzly.memory.PooledMemoryManager;
+import org.glassfish.grizzly.nio.transport.TCPNIOConnection;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+/** Tests PROXY header filtering and a listener with real TCP sockets. */
+@SuppressWarnings("javadoc")
+public class GrizzlyProxyProtocolTestCase extends SdkTestCase {
+    private static final byte[] BIND = { 0x30, 0x0c, 0x02, 0x01, 0x01, 0x60, 0x07,
+            0x02, 0x01, 0x03, 0x04, 0x00, (byte) 0x80, 0x00 };
+
+    @Test(timeOut = 15000)
+    public void proxyHeaderIsAppliedBeforeARequestInTheSameWrite() throws Exception {
+        CountDownLatch requestSeen = new CountDownLatch(1);
+        AtomicReference<InetSocketAddress> observedAddress = new AtomicReference<>();
+        AtomicReference<InetSocketAddress> tcpPeer = new AtomicReference<>();
+        AtomicReference<String> ordering = new AtomicReference<>("");
+        Options options = Options.defaultOptions().set(LDAPListener.PROXY_PROTOCOL_ENABLED, true);
+        try (LDAPListener listener = new LDAPListener(0, context -> {
+            context.addListener(new LDAPClientContextEventListener() {
+                @Override
+                public void handleProxyProtocolHeader(LDAPClientContext ctx, ProxyProtocolHeader header) {
+                    observedAddress.set(ctx.getPeerAddress());
+                    tcpPeer.set(ctx.getTcpPeerAddress());
+                    ordering.set(ordering.get() + "H");
+                }
+                @Override public void handleConnectionError(LDAPClientContext ctx, Throwable error) { }
+                @Override public void handleConnectionClosed(LDAPClientContext ctx, UnbindRequest req) { }
+                @Override public void handleConnectionDisconnected(LDAPClientContext ctx, ResultCode code, String msg) { }
+            });
+            return (ctx, request) -> {
+                ordering.set(ordering.get() + "R");
+                requestSeen.countDown();
+                return emptyStream();
+            };
+        }, options); Socket socket = new Socket(InetAddress.getLoopbackAddress(), listener.firstSocketAddress().getPort())) {
+            socket.getOutputStream().write("PROXY TCP4 192.0.2.4 198.51.100.2 12345 389\r\n".getBytes(StandardCharsets.US_ASCII));
+            socket.getOutputStream().write(BIND);
+            socket.getOutputStream().flush();
+            assertTrue(requestSeen.await(5, TimeUnit.SECONDS), "LDAP request was not processed");
+            assertEquals(ordering.get(), "HR");
+            assertEquals(observedAddress.get(), new InetSocketAddress(InetAddress.getByName("192.0.2.4"), 12345));
+            assertTrue(tcpPeer.get().getAddress().isLoopbackAddress());
+        }
+    }
+
+    @Test(timeOut = 15000)
+    public void sslTlvContributesKnownCipherStrengthWithoutCreatingAnSslSession() throws Exception {
+        assertProxyTls("ECDHE-RSA-AES128-GCM-SHA256", true, 128);
+        assertProxyTls("ECDHE-RSA-AES128-SHA256", true, 128);
+        assertProxyTls("TLS_AES_256_GCM_SHA384", true, 256);
+        assertProxyTls("TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", true, 256);
+        assertProxyTls("NOT-A-KNOWN-CIPHER", true, 0);
+        assertProxyTls(null, true, 0);
+        assertProxyTls("ECDHE-RSA-AES128-GCM-SHA256", false, 0);
+    }
+
+    @Test(timeOut = 15000)
+    public void fragmentedHeaderIsConsumedBeforeTheLdapRequest() throws Exception {
+        CountDownLatch requestSeen = new CountDownLatch(1);
+        AtomicReference<InetSocketAddress> peer = new AtomicReference<>();
+        Options options = Options.defaultOptions().set(LDAPListener.PROXY_PROTOCOL_ENABLED, true);
+        try (LDAPListener listener = new LDAPListener(0, ctx -> (c, request) -> {
+            peer.set(c.getPeerAddress());
+            requestSeen.countDown();
+            return emptyStream();
+        }, options); Socket socket = new Socket(InetAddress.getLoopbackAddress(), listener.firstSocketAddress().getPort())) {
+            byte[] header = "PROXY TCP4 192.0.2.4 198.51.100.2 12345 389\r\n".getBytes(StandardCharsets.US_ASCII);
+            for (byte b : header) {
+                socket.getOutputStream().write(b);
+                socket.getOutputStream().flush();
+            }
+            socket.getOutputStream().write(BIND);
+            socket.getOutputStream().flush();
+            assertTrue(requestSeen.await(5, TimeUnit.SECONDS));
+            assertEquals(peer.get(), new InetSocketAddress(InetAddress.getByName("192.0.2.4"), 12345));
+        }
+    }
+
+    @Test(timeOut = 15000)
+    public void maximumBinaryHeaderCanArriveInFragmentsWithAnLdapRequest() throws Exception {
+        CountDownLatch requestSeen = new CountDownLatch(1);
+        Options options = Options.defaultOptions().set(LDAPListener.PROXY_PROTOCOL_ENABLED, true);
+        try (LDAPListener listener = new LDAPListener(0, ctx -> (c, request) -> {
+            requestSeen.countDown();
+            return emptyStream();
+        }, options); Socket socket = new Socket(InetAddress.getLoopbackAddress(), listener.firstSocketAddress().getPort())) {
+            ByteBuffer frame = ByteBuffer.allocate(16 + 65535 + BIND.length);
+            frame.put(new byte[] { 13, 10, 13, 10, 0, 13, 10, 81, 85, 73, 84, 10 });
+            frame.put((byte) 0x21).put((byte) 0).putShort((short) 65535);
+            frame.put((byte) 4).putShort((short) 65532).put(new byte[65532]).put(BIND);
+            byte[] bytes = frame.array();
+            for (int i = 0; i < bytes.length; i += 128) {
+                socket.getOutputStream().write(bytes, i, Math.min(128, bytes.length - i));
+                socket.getOutputStream().flush();
+            }
+            assertTrue(requestSeen.await(5, TimeUnit.SECONDS));
+        }
+    }
+
+    @Test(timeOut = 15000)
+    public void invalidBinaryPrefixIsRejectedWithoutWaitingForClaimedPayload() throws Exception {
+        Options options = Options.defaultOptions().set(LDAPListener.PROXY_PROTOCOL_ENABLED, true);
+        byte[][] invalid = { { 0x31, 0x11, (byte) 0xff, (byte) 0xff },
+                { 0x22, 0x11, (byte) 0xff, (byte) 0xff },
+                { 0x21, 0x41, (byte) 0xff, (byte) 0xff }, { 0x21, 0x11, 0, 0 } };
+        try (LDAPListener listener = new LDAPListener(0, ctx -> (c, request) -> emptyStream(), options)) {
+            for (byte[] prefix : invalid) {
+                try (Socket socket = new Socket(InetAddress.getLoopbackAddress(), listener.firstSocketAddress().getPort())) {
+                    socket.setSoTimeout(5000);
+                    socket.getOutputStream().write(new byte[] { 13, 10, 13, 10, 0, 13, 10, 81, 85, 73, 84, 10 });
+                    socket.getOutputStream().write(prefix);
+                    socket.getOutputStream().flush();
+                    assertEquals(socket.getInputStream().read(), -1, "invalid binary prefix was not rejected");
+                }
+            }
+        }
+    }
+
+    @Test(timeOut = 15000)
+    public void disconnectDuringHeaderCallbackPreventsDeliveryOfCoalescedRequest() throws Exception {
+        AtomicInteger requests = new AtomicInteger();
+        Options options = Options.defaultOptions().set(LDAPListener.PROXY_PROTOCOL_ENABLED, true);
+        try (LDAPListener listener = new LDAPListener(0, ctx -> {
+            ctx.addListener(new LDAPClientContextEventListener() {
+                @Override public void handleProxyProtocolHeader(LDAPClientContext c, ProxyProtocolHeader h) {
+                    c.disconnect();
+                }
+                @Override public void handleConnectionError(LDAPClientContext c, Throwable error) { }
+                @Override public void handleConnectionClosed(LDAPClientContext c, UnbindRequest r) { }
+                @Override public void handleConnectionDisconnected(LDAPClientContext c, ResultCode r, String m) { }
+            });
+            return (c, request) -> {
+                requests.incrementAndGet();
+                return emptyStream();
+            };
+        }, options); Socket socket = new Socket(InetAddress.getLoopbackAddress(), listener.firstSocketAddress().getPort())) {
+            socket.setSoTimeout(5000);
+            socket.getOutputStream().write("PROXY UNKNOWN\r\n".getBytes(StandardCharsets.US_ASCII));
+            socket.getOutputStream().write(BIND);
+            socket.getOutputStream().flush();
+            assertEquals(socket.getInputStream().read(), -1);
+            assertEquals(requests.get(), 0);
+        }
+    }
+
+    @DataProvider
+    public Object[][] headerReadCases() {
+        return new Object[][] {
+                { "PROXY UNKNOWN\r\n", BIND, false, true, 0 },
+                { "PROXY UNKNOWN\r\n", BIND, true, true, 1 },
+                { "PROXY UNKNOWN\r\n", new byte[0], true, true, 0 },
+                { "invalid", new byte[0], true, false, 0 }
+        };
+    }
+
+    @Test(dataProvider = "headerReadCases")
+    public void headerReadReleasesPooledBufferAndDeliversTrailingRequestWhenActive(
+            String headerText, byte[] trailing, boolean remainActive, boolean valid, int expectedReads) throws Exception {
+        AtomicBoolean active = new AtomicBoolean(true);
+        AtomicReference<ProxyProtocolHeader> observedHeader = new AtomicReference<>();
+        AtomicReference<Throwable> error = new AtomicReference<>();
+        AtomicInteger downstreamReads = new AtomicInteger();
+        AtomicInteger poolReturns = new AtomicInteger();
+        PooledMemoryManager memory = trackPoolReturns(poolReturns);
+        FilterChain chain = FilterChainBuilder.stateless()
+                .add(new ProxyProtocolFilter(header -> {
+                    observedHeader.set(header);
+                    active.set(remainActive);
+                }, error::set, active::get))
+                .add(new BaseFilter() {
+                    @Override
+                    public NextAction handleRead(FilterChainContext ctx) {
+                        Buffer payload = ctx.getMessage();
+                        try {
+                            assertEquals(payload.toByteBuffer(), ByteBuffer.wrap(BIND));
+                        } finally {
+                            payload.tryDispose();
+                        }
+                        downstreamReads.incrementAndGet();
+                        return ctx.getStopAction();
+                    }
+                }).build();
+        byte[] header = headerText.getBytes(StandardCharsets.US_ASCII);
+        Buffer input = memory.allocate(header.length + trailing.length);
+        input.put(header).put(trailing).flip();
+        try (SocketChannel channel = SocketChannel.open()) {
+            TCPNIOConnection connection = new TCPNIOConnection(TCPNIOTransportBuilder.newInstance().build(), channel);
+            process(chain, connection, IOEvent.READ, input);
+            if (valid) {
+                assertNull(error.get(), "PROXY header decoding failed");
+                assertNotNull(observedHeader.get(), "Header callback was not invoked");
+            } else {
+                assertTrue(error.get() instanceof InvalidHeaderException, "Invalid header was not rejected");
+                assertNull(observedHeader.get(), "An invalid header reached the callback");
+            }
+            assertEquals(downstreamReads.get(), expectedReads, "Unexpected downstream LDAP delivery");
+            assertEquals(poolReturns.get(), 1, "The input buffer must be returned to the pool exactly once");
+        } finally {
+            if (poolReturns.get() == 0) {
+                input.tryDispose();
+            }
+        }
+    }
+
+    @Test
+    public void closingWithIncompleteHeaderReturnsPooledBuffer() throws Exception {
+        AtomicInteger poolReturns = new AtomicInteger();
+        PooledMemoryManager memory = trackPoolReturns(poolReturns);
+        FilterChain chain = FilterChainBuilder.stateless()
+                .add(new ProxyProtocolFilter(header -> fail("Incomplete header was delivered"),
+                        error -> fail("Incomplete header was rejected", error), () -> true))
+                .build();
+        byte[] fragment = "PROXY UN".getBytes(StandardCharsets.US_ASCII);
+        Buffer input = memory.allocate(fragment.length);
+        input.put(fragment).flip();
+        try (SocketChannel channel = SocketChannel.open()) {
+            TCPNIOConnection connection = new TCPNIOConnection(TCPNIOTransportBuilder.newInstance().build(), channel);
+            process(chain, connection, IOEvent.READ, input);
+            assertEquals(poolReturns.get(), 1, "The incomplete read must return its buffer to the pool");
+            process(chain, connection, IOEvent.CLOSED, null);
+            assertEquals(poolReturns.get(), 1, "Closing must leave the pool return count unchanged");
+        } finally {
+            if (poolReturns.get() == 0) {
+                input.tryDispose();
+            }
+        }
+    }
+
+    private static PooledMemoryManager trackPoolReturns(AtomicInteger poolReturns) {
+        PooledMemoryManager memory = new PooledMemoryManager(4096, 1, 0, 1, 0.01f, 0.0f, true);
+        memory.getMonitoringConfig().addProbes(new MemoryProbe.Adapter() {
+            @Override
+            public void onBufferReleaseToPoolEvent(int size) {
+                poolReturns.incrementAndGet();
+            }
+        });
+        return memory;
+    }
+
+    private static void process(FilterChain chain, TCPNIOConnection connection, IOEvent event, Buffer input) {
+        FilterChainContext ctx = chain.obtainFilterChainContext(connection);
+        ctx.getInternalContext().setIoEvent(event);
+        ctx.setMessage(input);
+        assertEquals(chain.process(ctx.getInternalContext()).getStatus(), ProcessorResult.Status.COMPLETE);
+    }
+
+    private void assertProxyTls(String cipher, boolean ssl, int expectedStrength) throws Exception {
+        CountDownLatch received = new CountDownLatch(1);
+        AtomicReference<LDAPClientContext> context = new AtomicReference<>();
+        Options options = Options.defaultOptions().set(LDAPListener.PROXY_PROTOCOL_ENABLED, true);
+        try (LDAPListener listener = new LDAPListener(0, ctx -> (c, request) -> {
+            context.set(c);
+            received.countDown();
+            return emptyStream();
+        }, options); Socket socket = new Socket(InetAddress.getLoopbackAddress(), listener.firstSocketAddress().getPort())) {
+            byte[] name = cipher == null ? null : cipher.getBytes(StandardCharsets.US_ASCII);
+            int extra = name == null ? 0 : 3 + name.length;
+            ByteBuffer bytes = ByteBuffer.allocate(16 + 12 + 3 + 5 + extra + BIND.length);
+            bytes.put(new byte[] { 13, 10, 13, 10, 0, 13, 10, 81, 85, 73, 84, 10 });
+            bytes.put((byte) 0x21).put((byte) 0x11).putShort((short) (12 + 3 + 5 + extra));
+            bytes.put(new byte[] { (byte) 192, 0, 2, 4, (byte) 198, 51, 100, 2, 0x30, 0x39, 1, (byte) 0x85 });
+            bytes.put((byte) 0x20).putShort((short) (5 + extra)).put((byte) (ssl ? 1 : 0)).putInt(1);
+            if (name != null) {
+                bytes.put((byte) 0x23).putShort((short) name.length).put(name);
+            }
+            bytes.put(BIND);
+            socket.getOutputStream().write(bytes.array());
+            socket.getOutputStream().flush();
+            assertTrue(received.await(5, TimeUnit.SECONDS));
+            assertEquals(context.get().isProxyClientSecure(), ssl);
+            assertEquals(context.get().getSecurityStrengthFactor(), expectedStrength);
+            assertNull(context.get().getSSLSession());
+        }
+    }
+}
