@@ -12,6 +12,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2008 Sun Microsystems, Inc.
+  Portions Copyright 2026 3A Systems, LLC.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -22,6 +23,16 @@
     <xsl:value-of select="'String'" />
   </xsl:template>
   <xsl:template match="adm:password" mode="java-definition-type">
-    <xsl:value-of select="'StringPropertyDefinition'" />
+    <xsl:value-of select="'PasswordPropertyDefinition'" />
+  </xsl:template>
+  <xsl:template match="adm:password" mode="java-definition-imports">
+    <import>org.forgerock.opendj.config.PasswordPropertyDefinition</import>
+    <import>org.forgerock.opendj.config.StringPropertyDefinition</import>
+  </xsl:template>
+  <xsl:template match="adm:password" mode="java-definition-ctor">
+    <xsl:if test="@encryption-scheme">
+      <xsl:value-of select="concat('      builder.setEncryptionScheme(&quot;',
+          @encryption-scheme, '&quot;);&#xa;')" />
+    </xsl:if>
   </xsl:template>
 </xsl:stylesheet>

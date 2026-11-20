@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.config;
@@ -29,7 +30,7 @@ import java.util.regex.PatternSyntaxException;
 import org.forgerock.i18n.LocalizableMessage;
 
 /** String property definition. */
-public final class StringPropertyDefinition extends PropertyDefinition<String> {
+public class StringPropertyDefinition extends PropertyDefinition<String> {
 
     /** An interface for incrementally constructing string property definitions. */
     public static final class Builder extends AbstractBuilder<String, StringPropertyDefinition> {
@@ -119,8 +120,8 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
     /** Pattern usage which provides a user-friendly summary of the pattern if present. */
     private final String patternUsage;
 
-    /** Private constructor. */
-    private StringPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
+    /** Package-private constructor for specialized string definitions. */
+    StringPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options, AdministratorAction adminAction,
         DefaultBehaviorProvider<String> defaultBehavior, boolean isCaseInsensitive, Pattern pattern,
         String patternUsage) {

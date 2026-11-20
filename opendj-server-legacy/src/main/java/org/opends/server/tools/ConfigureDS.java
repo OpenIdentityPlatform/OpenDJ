@@ -1247,25 +1247,29 @@ public class ConfigureDS
   private void updateConfigEntryWithAttribute(String entryDn, String attributeName, Syntax syntax, Object...values)
       throws DirectoryException, ConfigException
   {
-    org.forgerock.opendj.ldap.Entry configEntry = configHandler.getEntry(DN.valueOf(entryDn));
+    org.forgerock.opendj.ldap.Entry configEntry = configHandler.getEntryPreservingPasswordValues(DN.valueOf(entryDn));
     final org.forgerock.opendj.ldap.Entry newEntry = putAttribute(configEntry, attributeName, syntax, values);
-    configHandler.replaceEntry(configEntry, newEntry);
+    configHandler.replaceEntry(configEntry, newEntry, false,
+        java.util.Collections.singleton(AttributeDescription.valueOf(attributeName,
+            DirectoryServer.getInstance().getServerContext().getSchema())));
   }
 
   /** Update a config entry by removing the provided attribute. */
   private void updateConfigEntryByRemovingAttribute(String entryDn, String attributeName)
       throws DirectoryException, ConfigException
   {
-    final org.forgerock.opendj.ldap.Entry configEntry = configHandler.getEntry(DN.valueOf(entryDn));
+    final org.forgerock.opendj.ldap.Entry configEntry = configHandler.getEntryPreservingPasswordValues(DN.valueOf(entryDn));
     final Entry newEntry = removeAttribute(Converters.to(configEntry), attributeName);
-    configHandler.replaceEntry(configEntry, Converters.from(newEntry));
+    configHandler.replaceEntry(configEntry, Converters.from(newEntry), false,
+        java.util.Collections.singleton(AttributeDescription.valueOf(attributeName,
+            DirectoryServer.getInstance().getServerContext().getSchema())));
   }
 
   /** Update a config entry with the provided objectCLass parameters. */
   private void updateConfigEntryWithObjectClasses(String entryDn, Object...objectCLasses)
       throws DirectoryException, ConfigException
   {
-    org.forgerock.opendj.ldap.Entry configEntry = configHandler.getEntry(DN.valueOf(entryDn));
+    org.forgerock.opendj.ldap.Entry configEntry = configHandler.getEntryPreservingPasswordValues(DN.valueOf(entryDn));
     final org.forgerock.opendj.ldap.Entry newEntry = putAttribute(configEntry, ATTR_OBJECTCLASS, CoreSchema.getOIDSyntax(), objectCLasses);
     configHandler.replaceEntry(configEntry, newEntry, true);
   }

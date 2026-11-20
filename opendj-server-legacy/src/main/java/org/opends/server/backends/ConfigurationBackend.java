@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.backends;
 
@@ -37,6 +38,7 @@ import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -275,7 +277,7 @@ public class ConfigurationBackend extends LocalBackend<ConfigurationBackendCfg> 
   {
     try
     {
-      org.forgerock.opendj.ldap.Entry entry = configurationHandler.getEntry(entryDN);
+      org.forgerock.opendj.ldap.Entry entry = configurationHandler.getEntryPreservingPasswordValues(entryDN);
       if (entry != null)
       {
         Entry serverEntry = Converters.to(entry);
@@ -494,9 +496,17 @@ public class ConfigurationBackend extends LocalBackend<ConfigurationBackendCfg> 
     // Only one configuration update may be in progress at any given time.
     synchronized (configLock)
     {
+      final Set<AttributeDescription> modifiedAttributes = new HashSet<>();
+      if (modifyOperation != null)
+      {
+        for (Modification modification : modifyOperation.getModifications())
+        {
+          modifiedAttributes.add(modification.getAttribute().getAttributeDescription());
+        }
+      }
       configurationHandler.replaceEntry(
           Converters.from(copyWithoutVirtualAttributes(oldEntry)),
-          Converters.from(copyWithoutVirtualAttributes(newEntry)));
+          Converters.from(copyWithoutVirtualAttributes(newEntry)), false, modifiedAttributes);
     }
   }
 

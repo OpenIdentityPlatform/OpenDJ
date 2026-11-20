@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.config;
@@ -31,10 +32,10 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
  * property definition's accept method, the corresponding visit method most
  * applicable to that property definition is invoked.
  * <p>
- * Each <code>visitXXX</code> method is provided with a default implementation
- * which calls {@link #visitUnknown(PropertyDefinition, Object, Object)}.
- * Sub-classes can override any or all of the methods to provide their own
- * type-specific behavior.
+ * The default implementations call {@link #visitUnknown(PropertyDefinition, Object, Object)},
+ * except that {@link #visitPassword(PasswordPropertyDefinition, String, Object)} delegates
+ * to {@link #visitString(StringPropertyDefinition, String, Object)}. Subclasses can
+ * override the methods to provide their own type-specific behavior.
  *
  * @param <R>
  *            The return type of this visitor's methods. Use
@@ -243,15 +244,26 @@ public abstract class PropertyValueVisitor<R, P> {
     }
 
     /**
-     * Visit a string.
+     * Visit a password.
      *
      * @param pd
-     *            The string property definition.
+     *            The password property definition.
      * @param v
      *            The property value to visit.
      * @param p
      *            A visitor specified parameter.
      * @return Returns a visitor specified result.
+     */
+    public R visitPassword(PasswordPropertyDefinition pd, String v, P p) {
+        return visitString(pd, v, p);
+    }
+
+    /**
+     * Visit a string.
+     * @param pd The property definition.
+     * @param v The value.
+     * @param p The visitor parameter.
+     * @return The visitor result.
      */
     public R visitString(StringPropertyDefinition pd, String v, P p) {
         return visitUnknown(pd, v, p);

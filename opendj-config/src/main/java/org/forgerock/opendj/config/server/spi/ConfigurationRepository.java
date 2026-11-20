@@ -12,18 +12,41 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.config.server.spi;
 
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.opendj.config.PasswordPropertyDefinition;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 
 /** Provides configuration entries and listener registration on the entries. */
 public interface ConfigurationRepository {
+
+    /**
+     * Resolves a password value for a server-side configuration consumer.
+     * <p>
+     * The default returns legacy values without a reserved scheme prefix unchanged.
+     * Repositories that store encrypted passwords must override this method to decode them.
+     * The default neither migrates legacy values nor protects password writes.
+     *
+     * @param dn The configuration entry's DN, if available.
+     * @param attributeName The LDAP attribute that stores the password.
+     * @param definition The property's password definition.
+     * @param value The value to resolve.
+     * @return The plaintext password.
+     * @throws IllegalStateException If the value has a scheme prefix and cannot be decoded.
+     */
+    default String decodePassword(DN dn, String attributeName, PasswordPropertyDefinition definition, String value) {
+        if (PasswordPropertyDefinition.hasSchemePrefix(value)) {
+            throw new IllegalStateException("Password decoding is unavailable in this configuration repository");
+        }
+        return value;
+    }
 
     /**
      * Returns the set of DNs of children of the entry corresponding to the

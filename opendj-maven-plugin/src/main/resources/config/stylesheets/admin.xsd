@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Portions Copyright 2026 3A Systems, LLC. -->
 <xsd:schema targetNamespace="http://opendj.forgerock.org/admin"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   elementFormDefault="qualified"
@@ -1633,7 +1634,15 @@
             creation).
           </xsd:documentation>
         </xsd:annotation>
-        <xsd:complexType />
+        <xsd:complexType>
+          <xsd:attribute name="encryption-scheme" use="optional">
+            <xsd:simpleType>
+              <xsd:restriction base="xsd:string">
+                <xsd:pattern value="[A-Za-z0-9_-]+" />
+              </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+        </xsd:complexType>
       </xsd:element>
       <xsd:element name="enumeration">
         <xsd:annotation>

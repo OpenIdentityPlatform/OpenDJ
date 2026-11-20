@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
@@ -1267,6 +1268,67 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         "uid: aduser"
         /* @formatter:on */
     );
+  }
+
+  @Test
+  public void encryptedConfigurationSuppliesPlaintextToMappedSearchBind() throws Exception
+  {
+    DN configDN = DN.valueOf("cn=Encrypted PTA Test,cn=Password Policies,cn=config");
+    org.opends.server.config.ConfigurationHandler handler = TestCaseUtils.getServerContext().getConfigurationHandler();
+    org.forgerock.opendj.ldap.Entry configEntry = new org.forgerock.opendj.ldap.LinkedHashMapEntry(
+        "dn: " + configDN,
+        "objectClass: top",
+        "objectClass: ds-cfg-authentication-policy",
+        "objectClass: ds-cfg-ldap-pass-through-authentication-policy",
+        "cn: Encrypted PTA Test",
+        "ds-cfg-java-class: org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory",
+        "ds-cfg-primary-remote-ldap-server: " + phost1,
+        "ds-cfg-mapping-policy: mapped-search",
+        "ds-cfg-mapped-attribute: uid",
+        "ds-cfg-mapped-search-base-dn: o=ad",
+        "ds-cfg-mapped-search-bind-dn: " + searchBindDNString,
+        "ds-cfg-mapped-search-bind-password: searchPassword",
+        "ds-cfg-use-password-caching: false");
+    try
+    {
+      handler.addEntry(configEntry);
+      assertTrue(handler.getEntry(configDN).getAttribute("ds-cfg-mapped-search-bind-password")
+          .firstValueAsString().startsWith("{AES}"));
+      LDAPPassThroughAuthenticationPolicyCfg cfg = (LDAPPassThroughAuthenticationPolicyCfg)
+          TestCaseUtils.getServerContext().getRootConfig().getPasswordPolicy("Encrypted PTA Test");
+      GetLDAPConnectionFactoryEvent factoryEvent = new GetLDAPConnectionFactoryEvent(phost1, cfg);
+      GetConnectionEvent searchConnection = new GetConnectionEvent(factoryEvent);
+      GetConnectionEvent bindConnection = new GetConnectionEvent(factoryEvent);
+      MockProvider provider = new MockProvider()
+          .expectEvent(factoryEvent)
+          .expectEvent(searchConnection)
+          .expectEvent(new SimpleBindEvent(searchConnection, searchBindDNString, "searchPassword", ResultCode.SUCCESS))
+          .expectEvent(new SearchEvent(searchConnection, "o=ad", SearchScope.WHOLE_SUBTREE,
+              "(uid=aduser)", adDNString))
+          .expectEvent(bindConnection)
+          .expectEvent(new SimpleBindEvent(bindConnection, adDNString, userPassword, ResultCode.SUCCESS));
+      LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory(provider);
+      AuthenticationPolicy policy = factory.createAuthenticationPolicy(cfg);
+      try
+      {
+        AuthenticationPolicyState state = policy.createAuthenticationPolicyState(userEntry);
+        assertTrue(state.passwordMatches(ByteString.valueOfUtf8(userPassword)));
+        state.finalizeStateAfterBind();
+        provider.expectEvent(new CloseEvent(searchConnection)).expectEvent(new CloseEvent(bindConnection));
+      }
+      finally
+      {
+        policy.finalizeAuthenticationPolicy();
+      }
+      provider.assertAllExpectedEventsReceived();
+    }
+    finally
+    {
+      if (handler.hasEntry(configDN))
+      {
+        handler.deleteEntry(configDN);
+      }
+    }
   }
 
   /**
