@@ -58,3 +58,40 @@ calls=0
 if wait_until 0 'a false predicate' pending >"$OUT/result" 2>&1; then exit 1; fi
 [ "$calls" -eq 1 ] || { echo 'wait continued past its deadline' >&2; exit 1; }
 echo 'Docker fixture waits stop on exited targets, retry transport failures and respect their deadline'
+
+# Exercise the real restart assertions with the log from before and after a restart.
+for function in logs_have logs_have_since; do
+  sed -n "/^$function() {/,/^}/p" "$HERE/docker-test-replication.sh"
+done >"$OUT/log-functions.sh"
+sed -n '/^phase "roles: restarts"$/,/^roles_hold$/p' "$HERE/docker-test-replication.sh" >"$OUT/restart-case.sh"
+run_restart_case() {
+  bash -e -o pipefail -c '
+    OUT=$1
+    . "$OUT/functions.sh"
+    . "$OUT/log-functions.sh"
+    phase() { :; }
+    wait_healthy() { :; }
+    roles_hold() { :; }
+    docker() {
+      case "$1" in
+        restart) : ;;
+        logs) cat "$OUT/container.log" ;;
+        *) return 1 ;;
+      esac
+    }
+    . "$OUT/restart-case.sh"
+  ' restart "$OUT"
+}
+cat >"$OUT/container.log" <<'LOG'
+Starting OpenDJ
+join: taking its replication configuration down to enable it anew
+Starting OpenDJ
+join: already a member of the replication topology
+LOG
+run_restart_case
+echo 'join: taking its replication configuration down to enable it anew' >>"$OUT/container.log"
+rc=0
+run_restart_case >"$OUT/result" 2>&1 || rc=$?
+[ "$rc" -ne 0 ]
+grep -F 'dj-r0 reset its replication on a plain restart' "$OUT/result" >/dev/null
+echo 'Docker fixture reports resets from the current start'

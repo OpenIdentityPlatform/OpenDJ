@@ -20,6 +20,7 @@ package org.opends.server.replication.service;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toSet;
+import static org.mockito.Mockito.mock;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
@@ -27,6 +28,7 @@ import static org.testng.Assert.*;
 import java.net.SocketTimeoutException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ExecutionException;
 import java.util.Collections;
@@ -41,6 +43,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.mockito.stubbing.Answer;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.Task;
 import org.opends.server.replication.ReplicationTestCase;
@@ -682,6 +685,60 @@ public class ReplicationDomainTest extends ReplicationTestCase
   private boolean initializeFromRemote(ReplicationDomain domain) throws DirectoryException
   {
     return initializeFromRemote(domain, NO_INIT_TASK);
+  }
+
+  /** A request sent on the new session must complete even if the broker was just disconnected. */
+  @Test
+  public void initializeRequestSentDuringReconnectCompletes() throws Exception
+  {
+    DN baseDN = DN.valueOf("o=test");
+    ReplicationServer server = null;
+    RecordingExportDomain exporter = null;
+    FakeReplicationDomain importer = null;
+    ReplicationBroker originalBroker = null;
+    try
+    {
+      int port = TestCaseUtils.findFreePort();
+      server = createReplicationServer(11, port, "initializeDuringReconnect", 100);
+      SortedSet<String> servers = newTreeSet("localhost:" + port);
+      String exportedData = buildExportedData(10);
+      StringBuffer importedData = new StringBuffer();
+      exporter = new RecordingExportDomain(baseDN, 1, servers, 0, exportedData, 10);
+      importer = new FakeReplicationDomain(baseDN, 2, servers, 0, null, importedData, 0);
+      waitTopologyKnowsReplica(importer, 1);
+      waitTopologyKnowsReplica(exporter, 2);
+
+      originalBroker = importer.broker;
+      Thread initiatingThread = Thread.currentThread();
+      ReplicationBroker connected = originalBroker;
+      importer.broker = mock(ReplicationBroker.class, (Answer<Object>) call -> {
+        if ("isConnected".equals(call.getMethod().getName()) && Thread.currentThread() == initiatingThread)
+        {
+          return false;
+        }
+        try
+        {
+          return call.getMethod().invoke(connected, call.getArguments());
+        }
+        catch (InvocationTargetException e)
+        {
+          throw e.getCause();
+        }
+      });
+
+      RecordingInitializeTask task = new RecordingInitializeTask();
+      importer.initializeFromRemote(1, task);
+      assertExportSuccessful(exporter, importer, task, exportedData, importedData);
+    }
+    finally
+    {
+      if (originalBroker != null)
+      {
+        importer.broker = originalBroker;
+      }
+      disable(exporter, importer);
+      remove(server);
+    }
   }
 
   private boolean initializeFromRemote(ReplicationDomain domain, Task task) throws DirectoryException
