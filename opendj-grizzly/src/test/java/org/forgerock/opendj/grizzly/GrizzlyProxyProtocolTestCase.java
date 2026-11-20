@@ -268,8 +268,9 @@ public class GrizzlyProxyProtocolTestCase extends SdkTestCase {
         try (SocketChannel channel = SocketChannel.open()) {
             TCPNIOConnection connection = new TCPNIOConnection(TCPNIOTransportBuilder.newInstance().build(), channel);
             process(chain, connection, IOEvent.READ, input);
+            assertEquals(poolReturns.get(), 1, "The incomplete read must return its buffer to the pool");
             process(chain, connection, IOEvent.CLOSED, null);
-            assertEquals(poolReturns.get(), 1, "The incomplete header's buffer must return to the pool");
+            assertEquals(poolReturns.get(), 1, "Closing must leave the pool return count unchanged");
         } finally {
             if (poolReturns.get() == 0) {
                 input.tryDispose();

@@ -55,7 +55,7 @@ Wait until the container is healthy before configuring it. Initial setup can tak
 docker inspect -f '{{.State.Health.Status}}' opendj-proxy-demo-opendj
 ----
 
-Write the nginx configuration. The `stream` module forwards TCP traffic to port `2389` on OpenDJ and sends a v2 PROXY header before the LDAP bytes. The pinned nginx image supports `proxy_protocol v2`; v2 upstream support requires nginx 1.31.4 or later.
+Write the nginx configuration. The `stream` module forwards TCP traffic to port `2389` on OpenDJ and sends a v2 PROXY header before the LDAP bytes. Sending v2 headers upstream requires nginx 1.31.4 or later.
 
 [source,bash]
 ----
@@ -73,7 +73,7 @@ stream {
 EOF
 docker run -d --name opendj-proxy-demo-nginx \
   --network opendj-proxy-demo --network-alias nginx \
-  -v "$DEMO_DIR/nginx.conf:/etc/nginx/nginx.conf:ro" nginx:1.31.4
+  -v "$DEMO_DIR/nginx.conf:/etc/nginx/nginx.conf:ro" nginx:latest
 docker exec opendj-proxy-demo-nginx nginx -t
 ----
 

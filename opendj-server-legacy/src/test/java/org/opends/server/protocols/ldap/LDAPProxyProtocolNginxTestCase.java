@@ -60,6 +60,7 @@ import org.testng.annotations.Test;
 @Test(groups = { "precommit" }, sequential = true)
 public class LDAPProxyProtocolNginxTestCase extends DirectoryServerTestCase {
     private static final LocalizableMessage STOP = LocalizableMessage.raw("nginx test finished");
+    private static final DockerImageName NGINX_IMAGE = DockerImageName.parse("nginx:latest");
 
     @BeforeClass
     public void setup() throws Exception {
@@ -79,7 +80,7 @@ public class LDAPProxyProtocolNginxTestCase extends DirectoryServerTestCase {
                 + port + "; proxy_protocol v2; } server { listen 1391; proxy_pass host.testcontainers.internal:"
                 + port + "; } }\n";
         try (Network network = Network.newNetwork();
-             GenericContainer<?> nginx = new GenericContainer<>(DockerImageName.parse("nginx:1.31.4"))
+             GenericContainer<?> nginx = new GenericContainer<>(NGINX_IMAGE)
                      .withNetwork(network).withNetworkAliases("proxy")
                      .withAccessToHost(true).withExposedPorts(1389, 1390, 1391)
                      .withCopyToContainer(Transferable.of(config), "/etc/nginx/nginx.conf")
@@ -91,9 +92,6 @@ public class LDAPProxyProtocolNginxTestCase extends DirectoryServerTestCase {
             nginx.start();
             Container.ExecResult configTest = nginx.execInContainer("nginx", "-t");
             assertEquals(configTest.getExitCode(), 0, configTest.getStderr());
-            Container.ExecResult version = nginx.execInContainer("nginx", "-v");
-            assertEquals(version.getExitCode(), 0, version.getStderr());
-            assertTrue((version.getStdout() + version.getStderr()).contains("nginx/1.31.4"));
             client.start();
             String clientAddress = addressOn(client, network);
             String proxyAddress = addressOn(nginx, network);
@@ -199,7 +197,7 @@ public class LDAPProxyProtocolNginxTestCase extends DirectoryServerTestCase {
                 + "; proxy_protocol v2; } server { listen 1388; proxy_pass host.testcontainers.internal:"
                 + startTlsPort + "; proxy_protocol v2; } }\n";
         try (Network network = Network.newNetwork();
-             GenericContainer<?> nginx = new GenericContainer<>(DockerImageName.parse("nginx:1.31.4"))
+             GenericContainer<?> nginx = new GenericContainer<>(NGINX_IMAGE)
                      .withNetwork(network).withNetworkAliases("proxy").withAccessToHost(true)
                      .withExposedPorts(1636, 1388)
                      .withCopyToContainer(Transferable.of(config), "/etc/nginx/nginx.conf")

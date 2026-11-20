@@ -18,6 +18,7 @@ package org.opends.server.protocols.ldap;
 import static org.testng.Assert.*;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -670,6 +672,8 @@ public class LDAPProxyProtocolTestCase extends DirectoryServerTestCase {
     @Test
     public void disconnectDuringPostConnectReleasesTheReservedAddress() throws Exception {
         int port = TestCaseUtils.findFreePort();
+        String clientIp = "192.0.2.4";
+        InetAddress clientAddress = InetAddress.getByName(clientIp);
         LDAPConnectionHandler2 handler = start(configuration(port,
                 "ds-cfg-proxy-protocol-allowed-client: 127.0.0.1",
                 "ds-cfg-max-client-connections-per-address: 1"));
@@ -695,15 +699,21 @@ public class LDAPProxyProtocolTestCase extends DirectoryServerTestCase {
             }
         };
         DirectoryServer.registerInternalPlugin(plugin);
-        try (Socket first = connect(port, "192.0.2.4")) {
+        try (Socket first = connect(port, clientIp)) {
             assertTrue(entered.await(5, TimeUnit.SECONDS), "post-connect plugin was not invoked");
+            Field field = LDAPConnectionHandler2.class.getDeclaredField("connectionsPerAddress");
+            field.setAccessible(true);
+            Map<?, ?> reservations = (Map<?, ?>) field.get(handler);
+            assertEquals(reservations.get(clientAddress), Integer.valueOf(1), "Expected one reserved address slot");
+
             CompletableFuture<Void> close = CompletableFuture.runAsync(
                     () -> accepted.get().disconnect(DisconnectReason.CLOSED_BY_PLUGIN, false, null));
             // The timeout thread also needs to be able to finish closing a connection while its plugin is blocked.
             close.get(5, TimeUnit.SECONDS);
+            assertFalse(reservations.containsKey(clientAddress), "Close must release the slot while the plugin is blocked");
             release.countDown();
             assertClosed(first);
-            try (Socket next = connect(port, "192.0.2.4")) {
+            try (Socket next = connect(port, clientIp)) {
                 assertSuccessfulBind(next);
             }
         } finally {
