@@ -59,8 +59,10 @@ import org.opends.server.replication.protocol.ByteArrayBuilder;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ErrorMsg;
 import org.opends.server.replication.protocol.ProtocolVersion;
+import org.opends.server.replication.protocol.ReplicaOfflineMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.ResetGenerationIdMsg;
+import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
@@ -84,6 +86,41 @@ public class ReplicationDomainTest extends ReplicationTestCase
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private static final Task NO_INIT_TASK = null;
+
+  @Test
+  public void reportsARefusedPublicationAndRestoresTheSendWindowCredit() throws Exception
+  {
+    final DN baseDN = DN.valueOf(TestCaseUtils.TEST_ROOT_DN_STRING);
+    final int port = TestCaseUtils.findFreePort();
+    final int dsId = 17;
+    final ReplicationServer rs = createReplicationServer(18, port, "refusedPublicationDb", 100);
+    ReplicationBroker broker = null;
+    try
+    {
+      broker = openReplicationSession(baseDN, dsId, 100, port, 1000, EMPTY_DN_GENID);
+      final Session session = broker.getSession();
+      final short negotiatedVersion = session.getProtocolVersion();
+      final int credit = broker.getCurrentSendWindow();
+      assertTrue(credit > 0);
+      try
+      {
+        // A version 7 peer cannot receive a ReplicaOfflineMsg, so the session must reject it.
+        session.setProtocolVersion(ProtocolVersion.REPLICATION_PROTOCOL_V7);
+        final ReplicaOfflineMsg offline = new ReplicaOfflineMsg(new CSNGenerator(dsId, 0).newCSN());
+        assertFalse(broker.publish(offline, true), "the broker reported a rejected message as published");
+        assertEquals(broker.getCurrentSendWindow(), credit, "a rejected update consumed send-window credit");
+      }
+      finally
+      {
+        session.setProtocolVersion(negotiatedVersion);
+      }
+    }
+    finally
+    {
+      stop(broker);
+      remove(rs);
+    }
+  }
 
   @DataProvider(name = "publishAndReceiveData")
   public Object[][] createpublishAndReceiveData()

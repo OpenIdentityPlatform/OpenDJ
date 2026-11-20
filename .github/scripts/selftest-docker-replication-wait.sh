@@ -60,27 +60,60 @@ if wait_until 0 'a false predicate' pending >"$OUT/result" 2>&1; then exit 1; fi
 echo 'Docker fixture waits stop on exited targets, retry transport failures and respect their deadline'
 
 # Exercise the real restart assertions with the log from before and after a restart.
-for function in logs_have logs_have_since; do
+for function in logs_have_since assert_no_replication_reset; do
   sed -n "/^$function() {/,/^}/p" "$HERE/docker-test-replication.sh"
-done >"$OUT/log-functions.sh"
-sed -n '/^phase "roles: restarts"$/,/^roles_hold$/p' "$HERE/docker-test-replication.sh" >"$OUT/restart-case.sh"
+done | sed 's/^assert_no_replication_reset()/check_reset_in_logs()/' >"$OUT/log-functions.sh"
+sed -n '/^phase "roles: restarts"$/,/^roles_hold$/p' "$HERE/docker-test-replication.sh" >"$OUT/separate.sh"
+sed -n '/^phase "restart of a member"$/,/^phase "seed without a domain"$/p' \
+  "$HERE/docker-test-replication.sh" >"$OUT/combined.sh"
 run_restart_case() {
   bash -e -o pipefail -c '
     OUT=$1
+    topology=$2
+    log_status=$3
     . "$OUT/functions.sh"
     . "$OUT/log-functions.sh"
     phase() { :; }
+    is_healthy() { :; }
     wait_healthy() { :; }
     roles_hold() { :; }
+    recorded_role_of() { echo combined; }
+    wait_has() { :; }
+    add_ou() { :; }
+    assert_no_replication_reset() {
+      if [ "$topology/$1" = combined/dj-0 ]; then
+        [ -f "$OUT/dj-0-member" ] || fail "checked dj-0 for a reset before it rejoined"
+        touch "$OUT/dj-0-reset-checked"
+      elif [ "$log_status" -ne 0 ]; then
+        touch "$OUT/reset-check-$1"
+      fi
+      check_reset_in_logs "$@"
+    }
+    sleep() {
+      SECONDS=$((SECONDS + 2))
+      if [ "$topology" = combined ] && [ ! -f "$OUT/dj-0-member" ]; then
+        echo "join: already a member of the replication topology" >>"$OUT/dj-0.log"
+        touch "$OUT/dj-0-member"
+      fi
+    }
     docker() {
       case "$1" in
-        restart) : ;;
-        logs) cat "$OUT/container.log" ;;
+        exec|restart|start|stop) : ;;
+        logs)
+          if [ "$topology" = combined ]; then
+            cat "$OUT/$2.log"
+          elif [ "$log_status" -ne 0 ] && [ -f "$OUT/reset-check-$2" ]; then
+            echo "Docker transport error" >&2
+            return "$log_status"
+          else
+            cat "$OUT/container.log"
+          fi
+          ;;
         *) return 1 ;;
       esac
     }
-    . "$OUT/restart-case.sh"
-  ' restart "$OUT"
+    . "$OUT/$topology.sh"
+  ' restart "$OUT" "$1" "${2:-0}"
 }
 cat >"$OUT/container.log" <<'LOG'
 Starting OpenDJ
@@ -88,10 +121,25 @@ join: taking its replication configuration down to enable it anew
 Starting OpenDJ
 join: already a member of the replication topology
 LOG
-run_restart_case
+run_restart_case separate
+rc=0
+run_restart_case separate 1 >"$OUT/result" 2>&1 || rc=$?
+[ "$rc" -ne 0 ] || { echo 'restart accepted an unreadable Docker log' >&2; exit 1; }
+grep -F 'could not read the current startup log for dj-r0' "$OUT/result" >/dev/null
+
 echo 'join: taking its replication configuration down to enable it anew' >>"$OUT/container.log"
 rc=0
-run_restart_case >"$OUT/result" 2>&1 || rc=$?
+run_restart_case separate >"$OUT/result" 2>&1 || rc=$?
 [ "$rc" -ne 0 ]
 grep -F 'dj-r0 reset its replication on a plain restart' "$OUT/result" >/dev/null
-echo 'Docker fixture reports resets from the current start'
+echo 'Docker fixture reports resets and unreadable logs from the current start'
+
+cat >"$OUT/dj-0.log" <<'LOG'
+Starting OpenDJ
+join: already a member of the replication topology
+Starting OpenDJ
+LOG
+sed '$d' "$OUT/container.log" >"$OUT/dj-1.log"
+run_restart_case combined
+[ -f "$OUT/dj-0-reset-checked" ] || { echo "combined restart did not check dj-0 for a reset" >&2; exit 1; }
+echo 'Docker fixture waits for current membership of the restarted combined seed'
