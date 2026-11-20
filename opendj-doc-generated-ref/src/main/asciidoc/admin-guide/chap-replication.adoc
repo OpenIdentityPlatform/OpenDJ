@@ -185,7 +185,9 @@ kubectl -n directory rollout status statefulset/opendj-directory --timeout=15m
 
 Check `dsreplication status` and query each surviving server's configuration to confirm that the departed address is absent from its replication-server lists and `cn=admin data`. Write and read an entry in both directions. Kubernetes readiness reports whether a pod can serve LDAP; use these checks to verify the membership changes and the data.
 
-A later scale-out at the same ordinal mounts its retained PVC. Bind directly to the returning pod as Directory Manager with the password from the current Secret. If the password changed during its absence, update that pod's local Directory Manager password using its previous credentials, then restart it to retry the join. The replication administrator password also needs to match the password used by the join.
+A later scale-out at the same ordinal mounts its retained PVC. Bind directly to the returning pod as Directory Manager with the password from the current Secret. If the password changed during its absence, update that pod's local Directory Manager password using its previous credentials.
+
+On the same pod, verify that the replication administrator (`cn=admin,cn=Administrators,cn=admin data`) can bind with the password from the current Secret. If the account missed the rotation, reset it to that password as Directory Manager. Follow the xref:chap-troubleshooting.adoc#reset-repl-admin-password[global administrator password reset procedure] on the returning pod and verify the bind again. If you changed either password, restart the pod to retry the join after both binds succeed.
 
 Check membership with `dsreplication status`. Query the returning pod directly for changes made while it was away and verify that test writes replicate in both directions. If the replica cannot catch up from its retained data, restore or initialize it and repeat the checks. After they pass, reconnect clients to the shared Service or resume client traffic, then remove the temporary Service if you created one.
 
