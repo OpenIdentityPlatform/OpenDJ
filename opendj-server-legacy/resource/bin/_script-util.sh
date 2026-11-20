@@ -177,6 +177,12 @@ test_java_args() {
   fi
 }
 
+# Give the lifecycle waiter its own heap without changing other Java launches.
+wait_for_file_delete() (
+  unset JAVA_TOOL_OPTIONS JDK_JAVA_OPTIONS _JAVA_OPTIONS
+  exec "${OPENDJ_JAVA_BIN}" -client -Xmx16m org.opends.server.tools.WaitForFileDelete "$@"
+)
+
 print_error_message() {
   if test -z "${OPENDJ_JAVA_BIN}"
   then

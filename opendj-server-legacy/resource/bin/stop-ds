@@ -166,11 +166,11 @@ then
     then
       if test ${QUIET_OPTION} -eq 0
       then
-        "${OPENDJ_JAVA_BIN}" -client -Xmx16m org.opends.server.tools.WaitForFileDelete \
+        wait_for_file_delete \
             --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
             --logFile "${INSTANCE_ROOT}/logs/errors"
       else
-        "${OPENDJ_JAVA_BIN}" -client -Xmx16m org.opends.server.tools.WaitForFileDelete \
+        wait_for_file_delete \
             --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
             --logFile "${INSTANCE_ROOT}/logs/errors"  --quiet
       fi
