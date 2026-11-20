@@ -355,10 +355,11 @@ installation. A later refresh or restart checks the resulting configuration.
 - `admin-keystore.pin` contains the keystore password on its first line. Use that
   password for every private key entry in the keystore.
 
-Before the server starts, the image checks for an `admin-cert` private key and verifies
-that the PIN opens the keystore and its private keys. It installs the validated pair in
-`/opt/opendj/data/config` with mode 0600 on both fresh and reused volumes. If the mounted pair fails validation,
-the image logs a warning and keeps the current files. On a fresh volume those files
+Before the server starts, the image verifies that the PIN opens the keystore and its
+private keys and that the `admin-cert` key can sign and matches its certificate.
+It installs the validated pair in `/opt/opendj/data/config` with mode 0600 on both
+fresh and reused volumes. If the mounted pair fails validation, the image logs a
+warning and keeps the current files. On a fresh volume those files
 contain the self-signed certificate created by setup. Clients trust the issuing CA
 through their own truststore. Replication uses its own `ads-truststore`.
 

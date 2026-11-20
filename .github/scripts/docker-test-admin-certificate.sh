@@ -205,7 +205,33 @@ project_secret 130708
 start_container 0 "${secret_mount[@]}"
 verify_admin_certificate 130708
 
-echo 'Check interrupted installation and staging cleanup without a Secret mount'
+echo 'Check that an administration key without signature support preserves the installed pair'
+stop_container
+cp -R "$work/secret/..130708" "$work/secret/..non-signing-admin"
+docker run --rm --user "$(id -u):$(id -g)" --entrypoint sh \
+  -v "$work/secret/..non-signing-admin":/keys "$image" -ec '
+    cd /keys
+    keytool -changealias -alias admin-cert -destalias rsa-backup -storetype JKS \
+      -keystore admin-keystore -storepass:file admin-keystore.pin -keypass:file admin-keystore.pin
+    keytool -changealias -alias auxiliary -destalias admin-cert -storetype JKS \
+      -keystore admin-keystore -storepass:file admin-keystore.pin -keypass:file admin-keystore.pin
+  '
+project_secret non-signing-admin
+start_container 0 "${secret_mount[@]}"
+verify_admin_certificate 130708
+
+echo 'Check that an intact pending pair is validated before recovery'
+stop_container
+edit_stopped_volume '
+  cd /opt/opendj/data/config
+  mkdir -m 700 .admin-secret-pending
+  install -m 600 /fixtures/..non-signing-admin/admin-keystore /fixtures/..non-signing-admin/admin-keystore.pin .admin-secret-pending/
+'
+start_container 0
+verify_admin_certificate 130708
+docker exec "$container" test ! -e /opt/opendj/data/config/.admin-secret-pending
+
+echo 'Check interrupted installation with a queued change and without a Secret mount'
 stop_container
 make_secret 130705 recovered-password JKS
 edit_stopped_volume '
@@ -214,6 +240,13 @@ edit_stopped_volume '
   install -m 600 /fixtures/..130705/admin-keystore admin-keystore
   install -m 600 /fixtures/..130705/admin-keystore.pin .admin-secret-pending/admin-keystore.pin
   install -m 600 /fixtures/..130704/admin-keystore /fixtures/..130704/admin-keystore.pin .admin-secret.stale1/
+  cat > config-changes.ldif <<EOF
+dn: cn=Administration Connector,cn=config
+changetype: modify
+replace: ds-cfg-ssl-cert-nickname
+ds-cfg-ssl-cert-nickname: admin-cert
+-
+EOF
 '
 start_container 0
 verify_admin_certificate 130705
@@ -221,6 +254,7 @@ docker exec "$container" sh -ec '
   cd /opt/opendj/data/config
   test ! -e .admin-secret-pending
   test ! -e .admin-secret.stale1
+  test ! -e config-changes.ldif
 '
 
 echo 'Check that a queued administration certificate nickname change preserves the installed pair'

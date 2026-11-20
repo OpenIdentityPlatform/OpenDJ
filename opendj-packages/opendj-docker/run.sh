@@ -131,8 +131,9 @@ copy_secrets() {
   return $copied
 }
 
-# A pending directory contains a validated pair. Moving each file out of it records progress
-# on the same volume, so a restart between the two renames can finish the installation.
+# A pending directory contains a staged pair. Validate it before either file moves.
+# Moving each file out of the directory records progress on the same volume, so a
+# restart between the two renames can finish the installation.
 ADMIN_SECRET_PENDING=./data/config/.admin-secret-pending
 
 clean_admin_secret_staging() {
@@ -146,14 +147,21 @@ clean_admin_secret_staging() {
 }
 
 install_pending_admin_secret() {
-  local name discarded
+  local name discarded rejection=
   [ -d "$ADMIN_SECRET_PENDING" ] || return 0
 
   # Both files still staged means the live pair is intact. Once the keystore
   # has moved, finish installing its PIN even if the configuration has changed.
   if [ -f "$ADMIN_SECRET_PENDING/admin-keystore" ] && [ -f "$ADMIN_SECRET_PENDING/admin-keystore.pin" ]; then
-    if [ -e ./data/config/config-changes.ldif ] || ! uses_default_admin_keystore; then
-      echo "Discarding the staged administration Secret because it no longer matches the instance configuration" >&2
+    if ! java -cp ./bootstrap AdminSecretValidator \
+        "$ADMIN_SECRET_PENDING/admin-keystore" "$ADMIN_SECRET_PENDING/admin-keystore.pin" \
+        </dev/null >/dev/null 2>&1; then
+      rejection="the store must open as JKS or PKCS12, use that PIN for every private key, and contain a signing key and matching certificate for admin-cert"
+    elif [ -e ./data/config/config-changes.ldif ] || ! uses_default_admin_keystore; then
+      rejection="it no longer matches the instance configuration"
+    fi
+    if [ -n "$rejection" ]; then
+      echo "Discarding the staged administration Secret: $rejection" >&2
       # Remove the transaction marker before deleting either staged file.
       if ! discarded=$(mktemp -d ./data/config/.admin-secret.XXXXXX) ||
           ! mv -fT -- "$ADMIN_SECRET_PENDING" "$discarded"; then
@@ -220,13 +228,10 @@ sync_admin_secret() {
     return 0
   fi
 
-  # The mounted files can change independently. Validate the exact bytes to be installed.
+  # The mounted files can change independently. Stage the exact bytes to be validated and installed.
   if ! install -m 600 -- "$store" "$staged/admin-keystore" ||
       ! install -m 600 -- "$pin" "$staged/admin-keystore.pin"; then
     echo "Could not stage the administration keystore and PIN" >&2
-  elif ! java -cp ./bootstrap AdminSecretValidator "$staged/admin-keystore" "$staged/admin-keystore.pin" \
-      </dev/null >/dev/null 2>&1; then
-    echo "Ignoring the mounted administration keystore and PIN: the store must open as JKS or PKCS12, contain admin-cert, and use that PIN for every private key" >&2
   elif mv -T -- "$staged" "$ADMIN_SECRET_PENDING"; then
     install_pending_admin_secret
     return $?
