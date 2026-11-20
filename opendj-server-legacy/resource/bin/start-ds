@@ -14,7 +14,7 @@
 #
 # Copyright 2006-2009 Sun Microsystems, Inc.
 # Portions Copyright 2011-2014 ForgeRock AS.
-# Portions Copyright 2025-2026 3A Systems LLC.
+# Portions Copyright 2025-2026 3A Systems, LLC.
 
 
 # Capture the current working directory so that we can change to it later.
@@ -73,6 +73,100 @@ PID_FILE=${INSTANCE_ROOT}/logs/server.pid
 LOG_FILE=${INSTANCE_ROOT}/logs/server.out
 STARTING_FILE=${INSTANCE_ROOT}/logs/server.starting
 
+stop_start_timer()
+{
+  if [ -n "${TIMER_PID}" ]
+  then
+    kill "${TIMER_PID}" 2>/dev/null
+    wait "${TIMER_PID}" 2>/dev/null
+    TIMER_PID=
+  fi
+}
+
+cleanup_start()
+{
+  if [ -n "${STARTUP_TIMEOUT_FILE}" ]
+  then
+    rm -f "${STARTUP_TIMEOUT_FILE}"
+  fi
+  stop_start_timer
+}
+
+report_start_failure()
+{
+  CHILD_STATUS=running
+  if ! kill -0 "${SERVER_PID}" 2>/dev/null
+  then
+    wait "${SERVER_PID}"
+    CHILD_STATUS=$?
+  fi
+  START_FAILURE="start-ds: $1; server pid ${SERVER_PID}, status ${CHILD_STATUS}"
+  if [ -n "${2:-}" ]
+  then
+    START_FAILURE="${START_FAILURE}
+$2"
+  fi
+  printf '%s\n' "${START_FAILURE}" >&2
+  {
+    date -u '+%Y-%m-%dT%H:%M:%SZ'
+    printf '%s\n' "${START_FAILURE}"
+  } 2>/dev/null >> "${INSTANCE_ROOT}/logs/start-ds.log" || :
+}
+
+wait_for_startup()
+{
+  if [ "${START_TIMEOUT}" -gt 0 ]
+  then
+    sleep "${START_TIMEOUT}" > /dev/null &
+    TIMER_PID=$!
+  fi
+
+  START_RESULT=0
+  POLL_INTERVAL=0.1
+  while [ -e "${STARTING_FILE}" ] && kill -0 "${SERVER_PID}" 2>/dev/null
+  do
+    if [ -n "${TIMER_PID}" ] && ! kill -0 "${TIMER_PID}" 2>/dev/null
+    then
+      wait "${TIMER_PID}" 2>/dev/null
+      TIMER_PID=
+      if [ -e "${STARTING_FILE}" ]
+      then
+        START_RESULT=2
+      fi
+      break
+    fi
+    if [ "$1" -eq 99 ]
+    then
+      # Bounded reads advance the same descriptor and allow rechecking startup.
+      dd bs=8192 count=128 <&3 2>/dev/null
+    fi
+    if ! sleep "${POLL_INTERVAL}" 2>/dev/null
+    then
+      # Some Unix sleep implementations only accept whole seconds.
+      POLL_INTERVAL=1
+      sleep "${POLL_INTERVAL}"
+    fi
+  done
+  if ! kill -0 "${SERVER_PID}" 2>/dev/null
+  then
+    START_RESULT=1
+  fi
+  stop_start_timer
+
+  if [ "$1" -eq 99 ]
+  then
+    # Drain the startup log without following a server that keeps writing.
+    LOG_SIZE=$(wc -c < "${LOG_FILE}")
+    dd bs=8192 count=$(( (LOG_SIZE + 8191) / 8192 )) <&3 2>/dev/null
+  fi
+
+  case "${START_RESULT}" in
+    1) report_start_failure "server exited before startup completed (see ${LOG_FILE})" ;;
+    2) report_start_failure "startup timed out after ${START_TIMEOUT} seconds (use --timeout to increase it)" ;;
+  esac
+  return "${START_RESULT}"
+}
+
 # Remove the native libraries the BC FIPS loader extracts into the tmp directory
 # on every start, so that they do not pile up. Nothing else in there is ours to
 # remove: the tmp directory is java.io.tmpdir for every tool, and a tool may
@@ -91,39 +185,63 @@ fi
 # means that the server is already running and we shouldn't try to start it.
 # An exit code of anything else means that we're not trying to start the server
 # and we can just exit with that exit code.
+TIMER_PID=
+START_TIMEOUT=
+STARTUP_TIMEOUT_FILE=
+trap cleanup_start 0
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+STARTUP_TIMEOUT_FILE=$(mktemp "${OPENDJ_TMP_DIR}/opendj-start-ds.XXXXXXXX" 2>/dev/null) ||
+  STARTUP_TIMEOUT_FILE=$(mktemp /tmp/opendj-start-ds.XXXXXXXX 2>/dev/null) ||
+  STARTUP_TIMEOUT_FILE=
+if [ -n "${STARTUP_TIMEOUT_FILE}" ]
+then
+  set -- --startupTimeoutFile "${STARTUP_TIMEOUT_FILE}" "${@}"
+fi
 "${OPENDJ_JAVA_BIN}" -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
             --configFile "${CONFIG_FILE}" --checkStartability "${@}"
 EC=${?}
+if [ -n "${STARTUP_TIMEOUT_FILE}" ]
+then
+  shift 2
+  IFS= read -r START_TIMEOUT < "${STARTUP_TIMEOUT_FILE}" || START_TIMEOUT=
+  rm -f "${STARTUP_TIMEOUT_FILE}"
+  STARTUP_TIMEOUT_FILE=
+fi
+
 if test ${EC} -eq 99 -o ${EC} -eq 103
 then
-  #
-  # run detach
-  #
-  touch "${STARTING_FILE}"
+  if [ -z "${START_TIMEOUT}" ]
+  then
+    printf '%s\n' 'start-ds: could not read the startup timeout' >&2
+    exit 1
+  fi
+  : > "${LOG_FILE}" || exit 1
+  touch "${STARTING_FILE}" || exit 1
   nohup "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
        org.opends.server.core.DirectoryServer \
-       --configFile "${CONFIG_FILE}" "${@}" > "${LOG_FILE}" 2>&1 &
-  echo $! > "${PID_FILE}"
+       --configFile "${CONFIG_FILE}" "${@}" >> "${LOG_FILE}" 2>&1 &
+  SERVER_PID=$!
+  echo "${SERVER_PID}" > "${PID_FILE}"
   if test ${EC} -eq 99
   then
-    wait_for_file_delete \
-         --targetFile "${STARTING_FILE}" --logFile "${LOG_FILE}" "${@}"
+    wait_for_startup "${EC}" 3< "${LOG_FILE}"
   else
-    wait_for_file_delete \
-         --targetFile "${STARTING_FILE}" "${@}"
+    wait_for_startup "${EC}"
   fi
   EC=${?}
   if test ${EC} -eq 0
   then
     # An exit code of 98 means that the server is already running.
-  	"${OPENDJ_JAVA_BIN}" -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
-            --configFile "${CONFIG_FILE}" --checkStartability > /dev/null 2>&1
+    START_CHECK_OUTPUT=$("${OPENDJ_JAVA_BIN}" -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
+            --configFile "${CONFIG_FILE}" --checkStartability 2>&1)
     EC=${?}
     if test ${EC} -eq 98
     then
     	exit 0
     else
-      # Could not start the server
+      report_start_failure "checkStartability exited with status ${EC}" "${START_CHECK_OUTPUT}"
       exit 1
     fi
   fi

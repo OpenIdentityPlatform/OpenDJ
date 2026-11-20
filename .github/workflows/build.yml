@@ -70,6 +70,10 @@ jobs:
       if: runner.os == 'Linux' && matrix.java == '11'
       shell: bash
       run: dash .github/scripts/test-script-util.sh
+    - name: Check detached startup on Unix
+      if: runner.os == 'Linux' && matrix.java == '11'
+      shell: bash
+      run: bash .github/scripts/selftest-detached-start.sh /bin/dash
     - name: Java ${{ matrix.Java }} (${{ matrix.os }})
       uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
       with:
