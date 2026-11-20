@@ -146,8 +146,25 @@ clean_admin_secret_staging() {
 }
 
 install_pending_admin_secret() {
-  local name
+  local name discarded
   [ -d "$ADMIN_SECRET_PENDING" ] || return 0
+
+  # Both files still staged means the live pair is intact. Once the keystore
+  # has moved, finish installing its PIN even if the configuration has changed.
+  if [ -f "$ADMIN_SECRET_PENDING/admin-keystore" ] && [ -f "$ADMIN_SECRET_PENDING/admin-keystore.pin" ]; then
+    if [ -e ./data/config/config-changes.ldif ] || ! uses_default_admin_keystore; then
+      echo "Discarding the staged administration Secret because it no longer matches the instance configuration" >&2
+      # Remove the transaction marker before deleting either staged file.
+      if ! discarded=$(mktemp -d ./data/config/.admin-secret.XXXXXX) ||
+          ! mv -fT -- "$ADMIN_SECRET_PENDING" "$discarded"; then
+        echo "Could not move the rejected administration Secret out of the pending directory" >&2
+        return 1
+      fi
+      clean_admin_secret_staging
+      return 0
+    fi
+  fi
+
   for name in admin-keystore admin-keystore.pin; do
     if [ -f "$ADMIN_SECRET_PENDING/$name" ] &&
         ! mv -fT -- "$ADMIN_SECRET_PENDING/$name" "./data/config/$name"; then
@@ -155,7 +172,8 @@ install_pending_admin_secret() {
       return 1
     fi
   done
-  rmdir -- "$ADMIN_SECRET_PENDING"
+  rmdir -- "$ADMIN_SECRET_PENDING" || return 1
+  echo "Installed the administration keystore and PIN from the staged Secret"
 }
 
 # Only manage the files used by the default administration key manager and nickname.
@@ -189,28 +207,6 @@ uses_default_admin_keystore() {
   ' <<< "$config"
 }
 
-valid_admin_keystore() {
-  local store=$1 pin=$2 listing line alias admin_key=false
-  listing=$(keytool -J-Duser.language=en -J-Duser.country=US -list -rfc \
-    -storetype JKS -keystore "$store" -storepass:file "$pin" </dev/null 2>/dev/null) || return 1
-
-  # The server initializes the key manager with the whole store and one PIN.
-  # A listing shows the private key entries without checking their passwords.
-  while IFS= read -r line; do
-    case "$line" in
-      "Alias name: "*) alias=${line#Alias name: } ;;
-      "Entry type: PrivateKeyEntry")
-        keytool -certreq -storetype JKS -alias "$alias" -keystore "$store" -storepass:file "$pin" \
-          -keypass:file "$pin" -file /dev/null </dev/null >/dev/null 2>&1 || return 1
-        if [ "$alias" = admin-cert ]; then
-          admin_key=true
-        fi
-        ;;
-    esac
-  done <<< "$listing"
-  [ "$admin_key" = true ]
-}
-
 sync_admin_secret() {
   local store="$SECRET_VOLUME/admin-keystore" pin="$SECRET_VOLUME/admin-keystore.pin" staged
   install_pending_admin_secret || return 1
@@ -228,16 +224,12 @@ sync_admin_secret() {
   if ! install -m 600 -- "$store" "$staged/admin-keystore" ||
       ! install -m 600 -- "$pin" "$staged/admin-keystore.pin"; then
     echo "Could not stage the administration keystore and PIN" >&2
-  elif ! valid_admin_keystore "$staged/admin-keystore" "$staged/admin-keystore.pin"; then
+  elif ! java -cp ./bootstrap AdminSecretValidator "$staged/admin-keystore" "$staged/admin-keystore.pin" \
+      </dev/null >/dev/null 2>&1; then
     echo "Ignoring the mounted administration keystore and PIN: the store must open as JKS or PKCS12, contain admin-cert, and use that PIN for every private key" >&2
-  elif [ -e ./data/config/config-changes.ldif ]; then
-    echo "Deferring the mounted administration keystore and PIN until OpenDJ applies config-changes.ldif" >&2
-  elif ! uses_default_admin_keystore; then
-    echo "Ignoring the mounted administration keystore and PIN: the default administration key manager and nickname are required" >&2
   elif mv -T -- "$staged" "$ADMIN_SECRET_PENDING"; then
-    install_pending_admin_secret || return 1
-    echo "Copied the administration keystore and PIN from the secret volume"
-    return 0
+    install_pending_admin_secret
+    return $?
   fi
 
   rm -f -- "$staged/admin-keystore" "$staged/admin-keystore.pin"

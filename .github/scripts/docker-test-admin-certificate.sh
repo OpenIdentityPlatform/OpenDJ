@@ -158,6 +158,53 @@ project_secret 130704
 start_container 0 "${secret_mount[@]}"
 verify_admin_certificate 130703
 
+echo 'Check that a second private key with a different PIN preserves the installed pair'
+stop_container
+make_secret 130706 shared-password JKS
+docker run --rm --user "$(id -u):$(id -g)" --entrypoint keytool \
+  -v "$work/secret/..130706":/keys "$image" \
+  -genkeypair -alias auxiliary -keyalg RSA -dname CN=auxiliary -storetype JKS \
+  -keystore /keys/admin-keystore -storepass:file /keys/admin-keystore.pin -keypass different-password
+project_secret 130706
+start_container 0 "${secret_mount[@]}"
+verify_admin_certificate 130703
+
+echo 'Check that a zero-byte PIN preserves the installed pair'
+stop_container
+make_secret 130707 '' PKCS12
+mkdir "$work/secret/..empty-pin"
+cp "$work/secret/..130707/admin-keystore" "$work/secret/..empty-pin/"
+: > "$work/secret/..empty-pin/admin-keystore.pin"
+project_secret empty-pin
+start_container 0 "${secret_mount[@]}"
+verify_admin_certificate 130703
+
+echo 'Check that an empty first PIN line still works'
+stop_container
+project_secret 130707
+start_container 0 "${secret_mount[@]}"
+verify_admin_certificate 130707
+
+echo 'Check that an auxiliary key without signature support permits installation'
+stop_container
+make_secret 130708 shared-password JKS
+openssl genpkey -algorithm X25519 -out "$work/auxiliary.key"
+openssl pkey -in "$work/auxiliary.key" -pubout -out "$work/auxiliary.pub"
+openssl x509 -req -days 2 -set_serial 130709 -in "$work/leaf.csr" \
+  -force_pubkey "$work/auxiliary.pub" -CA "$work/client/ca.pem" -CAkey "$work/ca.key" \
+  -out "$work/auxiliary.pem"
+openssl pkcs12 -export -name auxiliary -inkey "$work/auxiliary.key" -in "$work/auxiliary.pem" \
+  -out "$work/secret/..130708/auxiliary.p12" -passout "file:$work/secret/..130708/admin-keystore.pin"
+docker run --rm --user "$(id -u):$(id -g)" --entrypoint keytool \
+  -v "$work/secret/..130708":/keys "$image" \
+  -importkeystore -noprompt -srcalias auxiliary -srcstoretype PKCS12 -srckeystore /keys/auxiliary.p12 \
+  -srcstorepass:file /keys/admin-keystore.pin -deststoretype JKS -destkeystore /keys/admin-keystore \
+  -deststorepass:file /keys/admin-keystore.pin -destkeypass:file /keys/admin-keystore.pin
+rm "$work/secret/..130708/auxiliary.p12"
+project_secret 130708
+start_container 0 "${secret_mount[@]}"
+verify_admin_certificate 130708
+
 echo 'Check interrupted installation and staging cleanup without a Secret mount'
 stop_container
 make_secret 130705 recovered-password JKS
@@ -182,6 +229,8 @@ edit_stopped_volume '
   cd /opt/opendj/data/config
   keytool -changealias -alias admin-cert -destalias custom-admin -storetype JKS \
     -keystore admin-keystore -storepass:file admin-keystore.pin -keypass:file admin-keystore.pin
+  mkdir -m 700 .admin-secret-pending
+  install -m 600 /fixtures/..130703/admin-keystore /fixtures/..130703/admin-keystore.pin .admin-secret-pending/
   cat > config-changes.ldif <<EOF
 dn: cn=Administration Connector,cn=config
 changetype: modify
@@ -194,7 +243,11 @@ project_secret 130703
 start_container 0 "${secret_mount[@]}"
 verify_admin_certificate 130705
 
-docker exec "$container" test ! -e /opt/opendj/data/config/config-changes.ldif
+docker exec "$container" sh -ec '
+  cd /opt/opendj/data/config
+  test ! -e config-changes.ldif
+  test ! -e .admin-secret-pending
+'
 
 echo 'Check that a reused volume keeps its configured administration certificate nickname'
 stop_container

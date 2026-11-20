@@ -1,6 +1,6 @@
 # How-to:
 
-Build docker image:
+Build the Docker image with BuildKit enabled so the keystore validator can be compiled on the build host.
 
 ```bash
 docker build -t openidentityplatform/opendj .

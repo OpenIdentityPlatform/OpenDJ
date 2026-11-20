@@ -12,6 +12,11 @@
 #
 # Copyright 2018-2026 3A Systems, LLC.
 
+FROM --platform=$BUILDPLATFORM eclipse-temurin:25-jdk-noble AS admin-secret-validator
+WORKDIR /build
+COPY AdminSecretValidator.java .
+RUN javac --release 11 AdminSecretValidator.java
+
 FROM eclipse-temurin:25-jre-noble
 
 LABEL org.opencontainers.image.authors="Open Identity Platform Community"
@@ -82,6 +87,7 @@ RUN  printf 'Acquire::ForceIPv4 "true";\nAcquire::Retries "5";\n' > /etc/apt/apt
 # that is only in group 0, and that uid still has to write instance.loc and the instance
 # root. The scripts copied below are only read and run, so they just keep the same group.
 COPY --chown=$OPENDJ_USER:0 bootstrap/ /opt/opendj/bootstrap/
+COPY --from=admin-secret-validator /build/AdminSecretValidator.class /opt/opendj/bootstrap/
 COPY --chown=$OPENDJ_USER:0 run.sh /opt/opendj/run.sh
 COPY --chown=$OPENDJ_USER:0 healthcheck.sh /opt/opendj/healthcheck.sh
 
