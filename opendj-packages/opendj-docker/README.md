@@ -61,14 +61,28 @@ start period allows for. If bootstrap fails, check `docker logs`. The volume ret
 next start retries bootstrap after you correct the cause.
 
 If the directory and marker both exist, the next start attempts to open the server for
-recovery and the container stays `unhealthy`. The image first upgrades the instance if needed.
-Replication join stays paused until bootstrap is complete. For a partially configured
-instance, finish setup by hand, then remove the marker and restart.
+recovery. The image first upgrades the instance if needed. If the server starts, the
+container stays `unhealthy` and replication join stays paused until bootstrap is complete.
+
+If the container remains running, finish setup by hand, then remove the marker and restart.
 
 ```bash
 docker exec opendj rm /opt/opendj/data/.bootstrap-pending
 docker restart opendj
 ```
+
+If the container exits, for example because `config.ldif` is missing, open a temporary shell
+from the same image with the existing volume mounted.
+
+```bash
+opendj_image=$(docker inspect --format '{{.Image}}' opendj)
+docker run --rm -it --volumes-from opendj --workdir /opt/opendj \
+  --entrypoint /bin/sh "$opendj_image"
+```
+
+In the temporary shell, run `printf '%s\n' /opt/opendj/data > instance.loc` and finish setup.
+Once complete, remove `/opt/opendj/data/.bootstrap-pending` there, exit the shell, and run
+`docker start opendj` from the host.
 
 A volume configured for background join then joins and takes the data of the topology as
 on its first start. You can also discard the incomplete volume and start over.
@@ -84,12 +98,18 @@ The next start retries an upgrade that failed before recording the new version. 
 or was interrupted after recording the version, the next start attempts to open the server
 for recovery and the container stays `unhealthy`.
 
-Use `/opt/opendj/data/config/config.ldif` and `/opt/opendj/data/logs/upgrade.log` to determine
-the outstanding work. The log can omit base DNs when the upgrade is interrupted. With the
-server stopped, verify the relevant indexes for every affected base DN, rebuild as needed,
-and verify again. Remove the marker and start the container only after all outstanding tasks
-are complete. Restore the pre-upgrade backup if you cannot determine or complete the outstanding
-work. [Docker upgrade and recovery procedure](../../opendj-doc-generated-ref/src/main/asciidoc/install-guide/chap-upgrade.adoc#upgrade-docker)
+Check `/opt/opendj/data/logs/upgrade.log` for outstanding work. An interruption can leave base
+DNs absent from the log. For the DN equality index check, list enabled pluggable backends,
+base DNs, and equality-indexed attributes from `/opt/opendj/data/config/config.ldif`. Resolve
+their effective equality rules using the instance schema in `/opt/opendj/data/config/schema/`,
+including rules inherited through `SUP`. Check indexes that use `distinguishedNameMatch` or
+`uniqueMemberMatch`.
+
+With the server stopped, require `Valid=true` in `backendstat show-index-status` and a
+successful `verify-index --countErrors` for each affected index and base DN. Rebuild invalid
+or inconsistent indexes and repeat both checks. Remove the marker and start the container
+only after all outstanding tasks are complete. Restore the pre-upgrade backup if you cannot
+identify all the affected indexes or complete the outstanding work. [Docker upgrade and recovery procedure](../../opendj-doc-generated-ref/src/main/asciidoc/install-guide/chap-upgrade.adoc#upgrade-docker)
 
 The server runs as PID 1 of the container, and a JVM does not reap the processes left
 behind to it - those of a health check that ran past its timeout, say. Run the container

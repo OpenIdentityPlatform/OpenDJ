@@ -138,12 +138,12 @@ C:\path\to\opendj\bat> windows-service.bat --enableService
 ====
 This UNIX example upgrades 5.1.2 to 5.2.0 with the tools in `renamed-opendj` and data in the sibling directory `instance`. Adjust the paths and review the xref:#upgrade-dn-parsing[stored DN and index checks] first.
 
-The commands stop at the first failure. File replacement starts only after the server stops, the backup is written, and the ZIP is extracted.
+The commands stop at the first failure. `stop-ds --noPropertiesFile` stops the local instance. File replacement starts only after the server stops, the backup is written, and the ZIP is extracted.
 
 [source,bash]
 ----
 cd /path/to &&
-./renamed-opendj/bin/stop-ds &&
+./renamed-opendj/bin/stop-ds --noPropertiesFile &&
 backup_dir=$(mktemp -d "$PWD/opendj-backup.XXXXXX") &&
 (umask 077 && tar -czf "$backup_dir/opendj-backup.tar.gz" renamed-opendj instance) &&
 staging=$(mktemp -d) &&
@@ -284,7 +284,11 @@ If the upgrade fails before recording the new version, the next start retries it
 +
 If a post-upgrade task fails or is interrupted after the new version is recorded, the next start attempts to open the server for recovery and leaves the container `unhealthy`. Complete all outstanding post-upgrade tasks or restore the backup as shown below.
 +
-For DN equality index verification, use the backend and index definitions in `/opt/opendj/data/config/config.ldif` to identify every affected base DN and index. An interrupted run can leave base DNs absent from `upgrade.log`. Stop the server and use the new image to run xref:../admin-guide/chap-indexing.adoc#verify-index[`verify-index`] for each affected base DN and index. For example, open a temporary shell with the same volumes to verify the `member` index for `dc=example,dc=com`. Include any runtime settings the backends need, such as network access to an external database.
+For an interrupted DN equality index check, read `/opt/opendj/data/config/config.ldif` to list every enabled pluggable backend, its base DNs, and the attributes it indexes for equality (`ds-cfg-index-type: equality`). An interrupted run can leave base DNs absent from `upgrade.log`.
++
+For each indexed attribute, resolve its effective equality matching rule using the instance schema in `/opt/opendj/data/config/schema/`. Use the attribute type's `EQUALITY` rule if declared, otherwise follow its `SUP` chain to resolve the inherited rule. If no rule is inherited, use the default equality rule of the attribute's syntax. Include the attributes whose rule is `distinguishedNameMatch` (`2.5.13.1`) or `uniqueMemberMatch` (`2.5.13.23`). For example, a custom attribute `myManager` declared with `SUP distinguishedName` inherits `distinguishedNameMatch`.
++
+Stop the server and open a temporary shell from the new image with the same volumes. Include any runtime settings the backends need, such as network access to an external database. For every affected backend and base DN, run `backendstat show-index-status` and check the `Valid` column for each affected index. The following example checks the `member.distinguishedNameMatch` index in `userRoot`.
 +
 
 [source, console, subs="+attributes"]
@@ -293,10 +297,20 @@ $ docker stop -t 60 opendj
 $ docker run --rm -it --volumes-from opendj --workdir /opt/opendj \
   --entrypoint /bin/sh openidentityplatform/opendj:{opendj-version}
 $ printf '%s\n' /opt/opendj/data > instance.loc
+$ ./bin/backendstat show-index-status --backendID userRoot --baseDN dc=example,dc=com
+----
++
+If the index is valid, check its contents in the same shell with xref:../admin-guide/chap-indexing.adoc#verify-index[`verify-index`].
++
+
+[source, console]
+----
 $ ./bin/verify-index --baseDN dc=example,dc=com --index member --countErrors
 ----
 +
-If verification finds inconsistencies, xref:../admin-guide/chap-indexing.adoc#rebuild-index[rebuild the index] in the same shell, for example with `./bin/rebuild-index --offline --baseDN dc=example,dc=com --index member`, then verify it again. Once all affected indexes are verified and all outstanding tasks are complete, remove `/opt/opendj/data/.upgrade-pending` from the temporary shell, exit the shell, and run `docker start opendj` from the host. Restore the backup if you cannot determine or complete the outstanding work.
+If `Valid` is `false` or verification reports index errors, xref:../admin-guide/chap-indexing.adoc#rebuild-index[rebuild the index] in the same shell, for example with `./bin/rebuild-index --offline --baseDN dc=example,dc=com --index member`. After the rebuild, check both the index status and its contents again. An untrusted index can pass `verify-index --countErrors`, so require `Valid` to be `true` and verification to pass for every affected index.
++
+Once all outstanding tasks are complete, remove `/opt/opendj/data/.upgrade-pending` from the temporary shell, exit the shell, and run `docker start opendj` from the host. Restore the backup if you cannot identify all the affected indexes or complete the outstanding work.
 
 To revert, remove the new container, replace the volume with one restored from the backup, and start a container from the older image over it, with the options of the old container. Restore into an empty volume: files that the upgrade added would be left behind in a volume that the archive is extracted over.
 
@@ -320,7 +334,7 @@ Before 5.2.0, the server read a DN only up to the first `;`, up to the end of a 
 
 . A value with DN syntax that a client wrote with `;`, such as `member: cn=a;dc=example,dc=com`, was indexed under the key of `cn=a`. It now reads as `cn=a,dc=example,dc=com`, so an indexed equality search for that DN misses the entry until the index is rebuilt. The same holds for a value that was stored while its syntax was not enforced, and that only now parses.
 +
-The `upgrade` command therefore offers to verify the equality indexes of the attributes that hold DNs, such as `member`, `uniqueMember`, `owner` or `seeAlso`, in every enabled backend at the end of the upgrade, and rebuilds them under each base DN where they do not match the entries. The verification reads every entry of these backends, so on a large backend it takes a while; the indexes are only rebuilt where it finds a missing key. The default answer is yes, so `upgrade --no-prompt` performs the verification too, as do the Docker image (see xref:#upgrade-docker["To Upgrade a Docker Container"]) and the native packages, which run `upgrade --no-prompt --force`. If you declined it, run `verify-index` on these indexes with the server stopped, and rebuild them where it reports errors, as described in xref:../admin-guide/chap-indexing.adoc#rebuild-index["Rebuilding Indexes"] in the __Administration Guide__. Do the same for a backend that the upgrade could not read, such as a JDBC or Cassandra backend whose database was unreachable: the upgrade then warns, names the indexes and the base DN, and goes on, leaving these indexes as they were. A rebuild that the upgrade started and that fails, for instance because the temporary directory is full, fails the upgrade, as the index rebuilds of other upgrade tasks do: such indexes may be left untrusted, so that searches cannot use them, until they are rebuilt. The upgrade then neither verifies nor rebuilds the indexes of the base DNs that come after, as the same cause would most likely make their rebuild fail too: it names them, and you verify them and rebuild them where needed once the cause is fixed.
+The `upgrade` command therefore offers to verify the equality indexes of the attributes that hold DNs, such as `member`, `uniqueMember`, `owner` or `seeAlso`, in every enabled backend at the end of the upgrade, and rebuilds them under each base DN where they do not match the entries. The verification reads every entry of these backends, so on a large backend it takes a while; the indexes are only rebuilt where it finds a missing key. The default answer is yes, so `upgrade --no-prompt` performs the verification too, as do the Docker image (see xref:#upgrade-docker["To Upgrade a Docker Container"]) and the native packages, which run `upgrade --no-prompt --force`. If you declined it, stop the server and check both the index status with `backendstat show-index-status` and the contents with `verify-index`. Rebuild any invalid or inconsistent indexes and repeat both checks, as described in xref:../admin-guide/chap-indexing.adoc#rebuild-index["Rebuilding Indexes"] in the __Administration Guide__. Do the same for a backend that the upgrade could not read, such as a JDBC or Cassandra backend whose database was unreachable: the upgrade then warns, names the indexes and the base DN, and goes on, leaving these indexes as they were. A rebuild that the upgrade started and that fails, for instance because the temporary directory is full, fails the upgrade, as the index rebuilds of other upgrade tasks do: such indexes may be left untrusted, so that searches cannot use them, until they are rebuilt. The upgrade then neither verifies nor rebuilds the indexes of the base DNs that come after, as the same cause would most likely make their rebuild fail too: it names them, and you verify them and rebuild them where needed once the cause is fixed.
 +
 A stored DN value with other content after an RDN, such as `cn="a"x,dc=example,dc=com`, no longer parses: replace it with the DN that was meant.
 

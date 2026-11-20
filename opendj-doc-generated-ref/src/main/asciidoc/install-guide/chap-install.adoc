@@ -542,9 +542,24 @@ The instance lives under `/opt/opendj/data`. The image declares no volume of its
 $ docker inspect --format '{{.State.Health.Status}}' opendj
 ----
 +
-The first start reports `healthy` after creating the backend, importing the requested data, and restarting the server. If setup fails, check `docker logs opendj`. When `/opt/opendj/data/config` is absent, the next start retries bootstrap after you correct the cause. If the directory exists and the volume still contains `/opt/opendj/data/.bootstrap-pending`, the next start attempts to open the partially configured server for recovery and keeps the container `unhealthy`.
+The first start reports `healthy` after creating the backend, importing the requested data, and restarting the server. If setup fails, check `docker logs opendj`. When `/opt/opendj/data/config` is absent, the next start retries bootstrap after you correct the cause. If the directory exists and the volume still contains `/opt/opendj/data/.bootstrap-pending`, the next start attempts to open the partially configured server for recovery. If the server starts, the container stays `unhealthy`.
 +
-For a partially configured instance, finish setup by hand, remove the marker with `docker exec opendj rm /opt/opendj/data/.bootstrap-pending`, and run `docker restart opendj`. To discard the incomplete instance and start over with an empty volume, run `docker rm -f opendj` and `docker volume rm opendj-data`, then repeat the installation.
+If the container remains running, finish setup by hand, remove the marker with `docker exec opendj rm /opt/opendj/data/.bootstrap-pending`, and run `docker restart opendj`.
++
+If the container exits, for example because `config.ldif` is missing, open a temporary shell from the same image with the existing volume mounted.
++
+
+[source, console]
+----
+$ opendj_image=$(docker inspect --format '{{.Image}}' opendj)
+$ docker run --rm -it --volumes-from opendj --workdir /opt/opendj \
+  --entrypoint /bin/sh "$opendj_image"
+$ printf '%s\n' /opt/opendj/data > instance.loc
+----
++
+Finish setup from that shell. Once complete, remove `/opt/opendj/data/.bootstrap-pending` there, exit the shell, and run `docker start opendj` from the host.
++
+To discard the incomplete instance and start over with an empty volume, run `docker rm -f opendj` and `docker volume rm opendj-data`, then repeat the installation.
 
 . (Optional) Check that the server serves the base entry:
 +
@@ -750,6 +765,8 @@ Use `status` and an LDAP search to check the backend and its data. Keep the back
 For REST access through the directory server itself, see xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap-endpoint["To Set Up REST Access to User Data"].
 
 . Deploy `org.openidentityplatform.opendj.opendj-rest2ldap-servlet.war` with the context path `/rest2ldap`. For Tomcat automatic deployment, copy the archive into the `webapps` directory as `rest2ldap.war`.
++
+The gateway needs `WEB-INF/classes/config.json` as a file on disk. Tomcat unpacks WARs by default. If your Host uses `unpackWARs=false`, unpack the archive and deploy the resulting `webapps/rest2ldap/` directory.
 
 . In `WEB-INF/classes/config.json`, set `ldapConnectionFactories.bind.primaryLdapServers` to the LDAP host and port. Set `ldapConnectionFactories.root.authentication.simple` to a dedicated LDAP account with the `proxied-auth` privilege and an ACI scoped to the users it may represent. HTTP Basic and OAuth 2.0 both require this account. See xref:../server-dev-guide/chap-ldap-operations.adoc#proxied-authz["Configuring Proxied Authorization"].
 +
