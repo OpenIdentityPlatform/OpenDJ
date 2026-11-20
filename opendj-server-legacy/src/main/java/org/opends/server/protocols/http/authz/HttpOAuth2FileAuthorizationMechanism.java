@@ -19,7 +19,9 @@ import static org.forgerock.opendj.rest2ldap.authz.Authorization.newFileAccessTo
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_OAUTH2_NON_EXISTING_DIRECTORY;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.forgerock.http.oauth2.AccessTokenResolver;
@@ -41,9 +43,10 @@ final class HttpOAuth2FileAuthorizationMechanism extends
   AccessTokenResolver newAccessTokenResolver() throws ConfigException
   {
     final String absoluteTokenDir = getFileForPath(config.getAccessTokenDirectory()).getAbsolutePath();
-    try
+    // Opened only to check the directory is readable, then closed.
+    try (DirectoryStream<Path> ignored = Files.newDirectoryStream(Paths.get(absoluteTokenDir)))
     {
-      Files.newDirectoryStream(Paths.get(absoluteTokenDir));
+      // Nothing to do.
     }
     catch (Exception e)
     {
