@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024-2026 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
@@ -75,36 +75,7 @@ You can set global ACIs on the Access Control Handler if you want to limit read 
 
 OpenDJ lets you monitor the server over SNMP with support for the Management Information Base described in link:http://tools.ietf.org/html/rfc2605[RFC 2605: Directory Server Monitoring MIB, window=\_top].
 
-SNMP is not enabled by default. SNMP-based monitoring depends on OpenDMK, which you must link:https://github.com/OpenIdentityPlatform/OpenDJ/raw/master/opendj-server-legacy/opendmk/jdmkrt.jar[download separately, window=\_blank]. OpenDJ directory server that you download from GitHub is built with OpenDMK, but due to licensing OpenDMK is not part of OpenDJ. SNMP is therefore not enabled by default.
-
-To run the OpenDMK installer, use the self-extracting .jar:
-
-[source, console, subs="+attributes"]
-----
-$ java -jar ~/Downloads/opendmk-1.0-b02-*.jar
-$ cd ~/Downloads/
-$ unzip opendj-{opendj-version}.zip
-$ java -jar opendj/snmp/opendmk.jar
-----
-If you install under `/path/to`, then the runtime library needed for SNMP is `/path/to/OpenDMK-bin/lib/jdmkrt.jar`.
-
-Once you have installed OpenDMK, you can set up a connection handler for SNMP by enabling the connection handler, and pointing OpenDJ to your installation of the OpenDMK `jdmkrt.jar` library:
-
-[source, console]
-----
-$ dsconfig \
- set-connection-handler-prop \
- --port 4444 \
- --hostname opendj.example.com \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --handler-name "SNMP Connection Handler" \
- --set enabled:true \
- --set opendmk-jarfile:/path/to/OpenDMK-bin/lib/jdmkrt.jar \
- --trustAll \
- --no-prompt
-----
-By default, the SNMP connection handler listens on port 161 and uses port 162 for traps. On UNIX and Linux systems, only root can normally open these ports. Therefore if you install as a normal user, you might want to change the listen and trap ports:
+The SNMP extension in the server ZIP needs the link:https://github.com/OpenIdentityPlatform/OpenDJ/raw/master/opendj-server-legacy/opendmk/jdmkrt.jar[OpenDMK runtime JAR]. Download it to a location the OpenDJ account can read, then enable SNMP on an unprivileged port.
 
 [source, console]
 ----
@@ -116,38 +87,13 @@ $ dsconfig \
  --bindPassword password \
  --handler-name "SNMP Connection Handler" \
  --set listen-port:11161 \
- --set trap-port:11162 \
- --trustAll \
- --no-prompt
-----
-Restart the SNMP connection handler to take the port number changes into account.
-
-To restart the connection handler, you disable it, then enable it again:
-
-[source, console]
-----
-$ dsconfig \
- set-connection-handler-prop \
- --port 4444 \
- --hostname opendj.example.com \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --handler-name "SNMP Connection Handler" \
- --set enabled:false \
- --trustAll \
- --no-prompt
-
-$ dsconfig \
- set-connection-handler-prop \
- --port 4444 \
- --hostname opendj.example.com \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --handler-name "SNMP Connection Handler" \
+ --set opendmk-jarfile:/path/to/jdmkrt.jar \
  --set enabled:true \
  --trustAll \
  --no-prompt
 ----
+The default listen port is 161 and the default trap destination port is 162. If you change the listen port after enabling SNMP, disable and re-enable the handler.
+
 Use a command such as `snmpwalk` to check that the SNMP listen port works:
 
 [source, console, subs="+attributes"]
@@ -162,83 +108,52 @@ SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/opendj"
 [#jmx-monitoring]
 === JMX-Based Monitoring
 
-OpenDJ provides JMX-based monitoring. A number of tools support JMX, including `jconsole` and `jvisualvm`, which are bundled with the Sun/Oracle Java platform. JMX is not configured by default. Use the `dsconfig` command to configure the JMX connection handler:
-
-Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["Product Interface Stability"] in the __Reference__)
-
-Configure the server to activate JMX access. The following example uses the reserved port number, 1689:
+Enable the JMX listener on the loopback interface for local monitoring. See xref:chap-connection-handlers.adoc#jmx-access[JMX Client Access] for other connection settings.
 
 [source, console]
 ----
 $ dsconfig \
  set-connection-handler-prop \
  --port 4444 \
- --hostname opendj.example.com \
+ --hostname localhost \
  --bindDN "cn=Directory Manager" \
  --bindPassword password \
  --handler-name "JMX Connection Handler" \
+ --set listen-address:127.0.0.1 \
  --set enabled:true \
  --trustAll \
  --no-prompt
 ----
-Add appropriate privileges to access JMX monitoring information. By default, no users have privileges to access the JMX connection. The following commands create a user with JMX privileges, who can authenticate over an insecure connection:
 
-[source, console]
-----
-$ bin/dsconfig
-   create-password-policy
-   --policy-name "Allow insecure authentication"
-   --type password-policy
-   --set default-password-storage-scheme:PBKDF2-HMAC-SHA256
-   --set password-attribute:userPassword
-   --trustAll --no-prompt
-   --hostname opendj.example.com
-   --port 4444
-   --bindDN "cn=Directory Manager"
-   --bindPassword passwordt
-----
+If the JMX handler was already enabled when you changed its listen address, run `stop-ds --restart` before connecting. Until then, both RMI listeners keep their previous address.
 
-[source, console]
-----
-$ bin/ldapmodify --port 1389 --bindDN "cn=Directory Manager" --bindPassword password
-   dn: uid=JMX Monitor,dc=example,dc=com
-   objectClass: top
-   objectClass: person
-   objectClass: organizationalPerson
-   objectClass: inetOrgPerson
-   cn: JMX Monitor
-   sn: User
-   uid: JMX Monitor
-   userPassword: password
-   ds-privilege-name: monitor-read
-   ds-privilege-name: jmx-notify
-   ds-privilege-name: jmx-read
-   ds-privilege-name: jmx-write
-   ds-pwp-password-policy-dn: cn=Allow insecure authentication,cn=Password Policies,cn=config
+Create an account with the `jmx-read` privilege. This example uses a local test server with StartTLS and a self-signed certificate.
 
-   Processing ADD request for uid=JMX Monitor,dc=example,dc=com
-   ADD operation successful for DN uid=JMX Monitor,dc=example,dc=com
-   ^C
+[source,bash]
 ----
-Connect remotely.
-
-[source, console]
-----
-$ jconsole &
+ldapmodify --hostname localhost --port 1389 --useStartTLS --trustAll \
+ --bindDN "cn=Directory Manager" --bindPassword password <<'LDIF'
+dn: uid=jmx-monitor,dc=example,dc=com
+changetype: add
+objectClass: inetOrgPerson
+cn: JMX Monitor
+sn: Monitor
+uid: jmx-monitor
+userPassword: sample-monitor-password
+ds-privilege-name: jmx-read
+LDIF
 ----
 
-Remote process::
-`service:jmx:rmi:///jndi/rmi://localhost:1689/org.opends.server.protocols.jmx.client-unknown`
+If your default password policy requires secure authentication, xref:chap-pwd-policy.adoc#assign-pwp[assign the monitoring account a policy] with `require-secure-authentication:false` for this loopback setup.
 
-Username::
-`uid=JMX Monitor,dc=example,dc=com`
+On the server host, start `jconsole` and select *Remote Process*. Use `uid=jmx-monitor,dc=example,dc=com` and `sample-monitor-password` to connect to this service.
 
-Password::
-`password`
+[source,text]
+----
+service:jmx:rmi:///jndi/rmi://127.0.0.1:1689/org.opends.server.protocols.jmx.client-unknown
+----
 
-Connect::
-Insecure connection
-
+If prompted, allow the unencrypted loopback connection. The *MBeans* tab requires a query that the server's RMI filter rejects. To read the monitoring data, xref:#ldap-monitoring[query `cn=monitor` over LDAP].
 
 
 [#monitoring-status-and-tasks]
@@ -481,7 +396,7 @@ $ dsconfig \
  --port 4444 \
  --hostname opendj.example.com \
  --bindDN "cn=Directory Manager" \
- --bindPassword password
+ --bindPassword password \
  --publisher-name "Common Audit Csv File Access Logger" \
  --set tamper-evident:true \
  --set key-store-file:config/audit-keystore \
@@ -565,7 +480,7 @@ $ dsconfig \
  --port 4444 \
  --hostname opendj.example.com \
  --bindDN "cn=Directory Manager" \
- --bindPassword password
+ --bindPassword password \
  --publisher-name "Common Audit Csv File HTTP Access Logger" \
  --set tamper-evident:true \
  --set key-store-file:config/audit-keystore \
@@ -1752,7 +1667,7 @@ The following `errors` log excerpt shows log entries for a backup task, with lin
 [#log-http-access]
 ==== HTTP Access Logs
 
-For the HTTP Connection Handler, OpenDJ maintains a separate access log in `logs/http-access`. This access log, by default configured as the File Based HTTP Access Log Publisher, uses a different format than the LDAP access log. This HTTP access log uses link:http://www.w3.org/TR/WD-logfile.html[Extended Log File Format, window=\_blank] with fields described in link:http://www.microsoft.com/technet/prodtechnol/WindowsServer2003/Library/IIS/676400bc-8969-4aa7-851a-9319490a9bbb.mspx?mfr=true[Microsoft's implementation, window=\_blank] as well.
+For the HTTP Connection Handler, OpenDJ maintains a separate access log in `logs/http-access`. This access log, by default configured as the File Based HTTP Access Log Publisher, uses a different format than the LDAP access log. This HTTP access log uses link:https://www.w3.org/TR/WD-logfile.html[Extended Log File Format, window=\_blank] with fields described in link:https://learn.microsoft.com/en-us/iis/configuration/system.applicationhost/sites/sitedefaults/logfile#attributes[Microsoft's implementation, window=\_blank] as well.
 
 Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["Product Interface Stability"] in the __Reference__)
 --

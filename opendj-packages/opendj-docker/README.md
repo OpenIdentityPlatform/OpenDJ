@@ -6,10 +6,12 @@ Build docker image:
 docker build -t openidentityplatform/opendj .
 ```
 
-Run image
+Run OpenDJ with a named volume at `/opt/opendj/data` so the instance can be reused when you
+replace the container.
 
 ```bash
-docker run -d -p 1389:1389 -p 1636:1636 -p 4444:4444 --name opendj openidentityplatform/opendj
+docker run -d -p 1389:1389 -p 1636:1636 -p 4444:4444 --name opendj \
+  -v opendj-data:/opt/opendj/data openidentityplatform/opendj
 ```
 
 ## Health check
@@ -19,10 +21,11 @@ bootstrap has succeeded - the instance, the `userRoot` backend over `BASE_DN`, w
 `ADD_BASE_ENTRY` and `SAMPLE_DATA` asked to be imported into it, and, where replication is
 asked for, the join of the replication topology (see [Replication](#replication)). Waiting
 for that status is therefore enough before the first search of what the bootstrap was told
-to create:
+to create. To try the following example, start with an empty `opendj-data` volume.
 
 ```bash
-docker run -d --name opendj -e ADD_BASE_ENTRY=--addBaseEntry openidentityplatform/opendj
+docker run -d --name opendj -v opendj-data:/opt/opendj/data \
+  -e ADD_BASE_ENTRY=--addBaseEntry openidentityplatform/opendj
 timeout 5m bash -c 'until [ "$(docker inspect -f "{{.State.Health.Status}}" opendj)" = healthy ]; do sleep 5; done'
 ```
 
@@ -40,7 +43,8 @@ probe may bind as and `HEALTHCHECK_BIND_PASSWORD_FILE` to a file in the containe
 password - the probe reads it from there, so it never shows on a command line:
 
 ```bash
-docker run -d --name opendj -v /path/to/secrets:/var/secrets/healthcheck:ro \
+docker run -d --name opendj -v opendj-data:/opt/opendj/data \
+  -v /path/to/secrets:/var/secrets/healthcheck:ro \
   -e HEALTHCHECK_BIND_DN="uid=monitor,ou=people,dc=example,dc=com" \
   -e HEALTHCHECK_BIND_PASSWORD_FILE=/var/secrets/healthcheck/password \
   openidentityplatform/opendj
@@ -56,23 +60,43 @@ once it is done that server is stopped and started again in the foreground, so a
 that only waits for the port can have its first requests fail in between.
 
 A bootstrap that imports `SAMPLE_DATA` can take minutes on a small container, which is what the
-start period allows for. A bootstrap that fails - or an upgrade that fails when starting over
-an instance that is already there - never reports healthy: what failed is in `docker logs`, and
-where the server is up at all the container is left running to be looked at, turning
-`unhealthy` once the start period is over. Nor does any later start over the same volume: a
-volume carries `.bootstrap-pending` in its data directory from before its bootstrap until the
-bootstrap succeeded, and a container started over a volume that still carries it upgrades the
-instance when it is of another version, starts the server, logs that the bootstrap did not
-complete, and stays `unhealthy`. This holds for a volume of the background join as well: it
-runs no join, since an initialize from the topology would bring the data of the topology but
-nothing else the bootstrap was to configure. Remove the volume and start over, or finish the
-setup by hand and remove the file; a volume of the background join then joins on the restart
-and takes the data of the topology, as on its first start:
+start period allows for. If bootstrap fails, check `docker logs`. The volume retains
+`.bootstrap-pending` until bootstrap succeeds. If `/opt/opendj/data/config` is absent, the
+next start retries bootstrap after you correct the cause.
+
+If the directory and marker both exist, the next start attempts to open the server for
+recovery. The image first upgrades the instance if needed. If the server starts, the
+container stays `unhealthy` and replication join stays paused until bootstrap is complete.
+
+If the container remains running, finish setup by hand, then remove the marker and restart.
 
 ```bash
 docker exec opendj rm /opt/opendj/data/.bootstrap-pending
 docker restart opendj
 ```
+
+If the container exits, for example because `config.ldif` is missing, keep it stopped and
+open a temporary shell from the same image. Use `--volumes-from opendj` if the original
+container has a mount at `/opt/opendj/data`. If its data is in the writable layer, follow the
+[upgrade guide to copy the instance to a new volume](../../opendj-doc-generated-ref/src/main/asciidoc/install-guide/chap-upgrade.adoc#upgrade-docker).
+For the copied instance, set the mount option in the command below to
+`-v opendj-data:/opt/opendj/data`, using the name of the new volume.
+
+```bash
+opendj_image=$(docker inspect --format '{{.Image}}' opendj)
+docker run --rm -it --volumes-from opendj --workdir /opt/opendj \
+  --entrypoint /bin/sh "$opendj_image"
+```
+
+In the temporary shell, run `printf '%s\n' /opt/opendj/data > instance.loc` and finish setup.
+If OpenDJ started in the temporary container, run `./bin/stop-ds --noPropertiesFile` there
+and wait for it to succeed. Then remove `/opt/opendj/data/.bootstrap-pending` and exit the
+shell. If you shared the original data mount, run `docker start opendj` from the host. If
+you copied the instance, rename the original container to free its name. Create a replacement
+container from the same image with the original settings and the new data volume.
+
+A volume configured for background join then joins and takes the data of the topology as
+on its first start. You can also discard the incomplete volume and start over.
 
 Started over an instance of an older version, the container runs `upgrade --no-prompt --force`
 before the server: the upgrade tasks that take long, such as verifying or rebuilding indexes,
@@ -80,23 +104,23 @@ are performed then, since nobody is there to run them afterwards. On a large ins
 take longer than the start period, so the container may report `unhealthy` until the upgrade
 is over; `docker logs` shows which task is running.
 
-An upgrade that fails never reports healthy, and neither does any later start over the same
-volume, even though the upgrade records the new version before its post-upgrade tasks - the
-index rebuilds and verifications - and a second run would find nothing left to do: the volume
-carries `.upgrade-pending` in its data directory from before the upgrade until the upgrade,
-post-upgrade tasks included, succeeded. An upgrade that failed before it recorded the new
-version is run again on the next start. Once it has recorded it, a container started over the
-marked volume starts the server, logs that the upgrade did not complete, and stays `unhealthy`:
-`/opt/opendj/data/logs/upgrade.log` names the task that failed. Rebuild the indexes it names
-and remove the file, or restore the backup taken before the upgrade:
+The volume carries `.upgrade-pending` until the upgrade and its post-upgrade tasks complete.
+The next start retries an upgrade that failed before recording the new version. If it failed
+or was interrupted after recording the version, the next start attempts to open the server
+for recovery and the container stays `unhealthy`.
 
-```bash
-docker exec opendj /opt/opendj/bin/rebuild-index --hostname localhost --port 4444 \
-  --bindDN "cn=Directory Manager" --bindPassword password --trustAll \
-  --baseDN dc=example,dc=com --index <index>
-docker exec opendj rm /opt/opendj/data/.upgrade-pending
-docker restart opendj
-```
+Check `/opt/opendj/data/logs/upgrade.log` for outstanding work. An interruption can leave base
+DNs absent from the log. For the DN equality index check, list enabled pluggable backends,
+base DNs, and equality-indexed attributes from `/opt/opendj/data/config/config.ldif`. Resolve
+their effective equality rules using the instance schema in `/opt/opendj/data/config/schema/`,
+including rules inherited through `SUP`. Check indexes that use `distinguishedNameMatch` or
+`uniqueMemberMatch`.
+
+With the server stopped, require `Valid=true` in `backendstat show-index-status` and a
+successful `verify-index --countErrors` for each affected index and base DN. Rebuild invalid
+or inconsistent indexes and repeat both checks. Remove the marker and start the container
+only after all outstanding tasks are complete. Restore the pre-upgrade backup if you cannot
+identify all the affected indexes or complete the outstanding work. [Docker upgrade and recovery procedure](../../opendj-doc-generated-ref/src/main/asciidoc/install-guide/chap-upgrade.adoc#upgrade-docker)
 
 The server runs as PID 1 of the container, and a JVM does not reap the processes left
 behind to it - those of a health check that ran past its timeout, say. Run the container

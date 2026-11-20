@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
@@ -77,6 +77,8 @@ $ dsconfig \
  --trustAll \
  --no-prompt
 ----
+
+. Check replication with `dsreplication status`. Before disabling replication, wait for the replica that will supply the data after the move to receive all changes from the server you are moving. If you cannot confirm convergence, resolve the replication issue before continuing.
 
 . Disable replication for the server:
 +
@@ -148,7 +150,7 @@ $ start-ds
 ... The Directory Server has started successfully
 ----
 
-. Enable and initialize replication:
+. Enable replication between the existing replica (`opendj.example.com`) and the moved server (`opendj2.example.com`).
 +
 
 [source, console]
@@ -156,7 +158,7 @@ $ start-ds
 $ dsreplication \
  enable \
  --adminUID admin \
- --bindPassword password \
+ --adminPassword password \
  --baseDN dc=example,dc=com \
  --host1 opendj.example.com \
  --port1 4444 \
@@ -171,68 +173,31 @@ $ dsreplication \
  --trustAll \
  --no-prompt
 
-Establishing connections ..... Done.
-Checking registration information ..... Done.
-Configuring Replication port on server opendj.example.com:4444 ..... Done.
-Updating remote references on server opendj2.example.com:4444 ..... Done.
-Updating replication configuration for baseDN dc=example,dc=com on server
- opendj.example.com:4444 ..... Done.
-Updating replication configuration for baseDN dc=example,dc=com on server
- opendj2.example.com:4444 ..... Done.
-Updating registration configuration on server
- opendj.example.com:4444 ..... Done.
-Updating registration configuration on server
- opendj2.example.com:4444 ..... Done.
-Updating replication configuration for baseDN cn=schema on server
- opendj.example.com:4444 ..... Done.
-Updating replication configuration for baseDN cn=schema on server
- opendj2.example.com:4444 ..... Done.
-Initializing registration information on server opendj.example.com:4444 with
- the contents of server opendj2.example.com:4444 ..... Done.
-Initializing schema on server opendj2.example.com:4444 with the contents of
- server opendj.example.com:4444 ..... Done.
+Replication has been successfully enabled.
 
-Replication has been successfully enabled.  Note that for replication to work
- you must initialize the contents of the base DN's that are being replicated
- (use dsreplication initialize to do so).
-
-See /tmp/opends-replication-1476402020764482023.log for a detailed log of this
-operation.
-
-$ dsreplication \
- pre-external-initialization \
- --adminUID admin \
- --bindPassword password \
- --port 4444 \
- --baseDN dc=example,dc=com \
- --trustAll \
- --no-prompt
-
-Preparing base DN dc=example,dc=com to be initialized externally ..... Done.
-
-Now you can proceed to the initialization of the contents of the base DN's on
- all the replicated servers.  You can use the command import-ldif or the binary
- copy to do so.  You must use the same LDIF file or binary copy on each server.
-
-When the initialization is completed you must use the subcommand
- 'post-external-initialization' for replication to work with the new base DN's
- contents.
-
-$ dsreplication \
- post-external-initialization \
- --adminUID admin \
- --bindPassword password \
- --port 4444 \
- --baseDN dc=example,dc=com \
- --trustAll \
- --no-prompt
-
-Updating replication information on base DN dc=example,dc=com ..... Done.
-
-Post initialization procedure completed successfully.
 ----
 
-. Accept updates from client applications:
+. Initialize the moved server from the existing replica. This replaces the moved server's data.
++
+
+[source, console]
+----
+$ dsreplication \
+ initialize \
+ --adminUID admin \
+ --adminPassword password \
+ --baseDN dc=example,dc=com \
+ --hostSource opendj.example.com \
+ --portSource 4444 \
+ --hostDestination opendj2.example.com \
+ --portDestination 4444 \
+ --trustAll \
+ --no-prompt
+----
++
+Check both replicas with `dsreplication status`.
+
+. Allow the moved server to accept updates from client applications:
 +
 
 [source, console]
@@ -240,7 +205,7 @@ Post initialization procedure completed successfully.
 $ dsconfig \
  set-global-configuration-prop \
  --port 4444 \
- --hostname opendj.example.com \
+ --hostname opendj2.example.com \
  --bindDN "cn=Directory Manager" \
  --bindPassword password \
  --set writability-mode:enabled \

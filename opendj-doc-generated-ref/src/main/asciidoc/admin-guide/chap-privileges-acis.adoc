@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
@@ -20,8 +20,14 @@
 :table-caption!:
 
 
+ifndef::env-site[]
 [#chap-privileges-acis]
+endif::[]
 == Configuring Privileges and Access Control
+
+ifdef::env-site[]
+anchor:chap-privileges-acis[]
+endif::[]
 
 OpenDJ supports two mechanisms to protect access to the directory, __access control instructions__ and administrative __privileges__. Access control instructions apply to directory data, providing fine-grained control over what a user or group member is authorized to do in terms of LDAP operations. Most access control instructions specify scopes (targets) to which they apply such that an administrative user who has all access to `dc=example,dc=com` need not have any access to `dc=example,dc=org`. Privileges control the administrative tasks that users can perform, such as bypassing the access control mechanism, performing backup and restore operations, making changes to the configuration, and other tasks.
 
@@ -792,7 +798,7 @@ reset operations
 [#configure-acis]
 === Configuring Access Control
 
-Access control instructions are defined in the data as values for `aci` attributes. They can be imported in LDIF and modified over LDAP. Yet in order to make changes to ACIs users first need the `modify-acl` privilege described previously. By default, only the root DN user has the `modify-acl` privilege.
+Access control instructions are defined in the data as values for `aci` attributes. They can be imported in LDIF and modified over LDAP. To change an ACI on a directory entry, an account needs both the `modify-acl` privilege and permission to write that entry's `aci` attribute. By default, the root DN user has the privilege and can bypass access checks.
 
 Global ACIs on `cn=Access Control Handler,cn=config` can be set using the `dsconfig` command. Global ACIs have attribute type `ds-cfg-global-aci`. For a list, see xref:#table-global-acis["Default Global ACIs"].
 You can modify global ACIs from the Access Control Handler menu in `dsconfig`. Modifying and removing global ACIs can have deleterious effects. Generally the impact depends on your deployment requirements.
@@ -928,7 +934,7 @@ a|User-Visible Schema Operational Attributes
 a|Anonymous and authenticated users can read LDAP schema definitions. Modification or removal may affect applications.
 a|`(target="ldap:///cn=schema")(targetscope="base")(targetattr="objectClass\|\|attributeTypes\|\|dITContentRules\|\|dITStructureRules\|\|ldapSyntaxes\|\|matchingRules\|\|matchingRuleUse\|\|nameForms\|\|objectClasses")(version 3.0; acl "User-Visible Schema Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)`
 |===
-Users with write access to add ACIs and with the `modify-acl` privilege can use the `ldapmodify` command to change ACIs located in user data.
+The default `User-Visible Operational Attributes` ACI lets clients read `subschemaSubentry` on entries they can read. That attribute points to the entry that publishes their schema. See xref:chap-schema.adoc#about-schema[About Directory Schema].
 
 This section therefore focuses on ACI examples, rather than demonstrating how to update the directory for each example. To update ACIs, either change them using the `ldapmodify` command, or using OpenDJ control panel.
 
@@ -939,7 +945,7 @@ For hints on updating directory entries with the `ldapmodify` command, see xref:
 [#access-control-anonymous-reads]
 .ACI: Anonymous Reads and Searches
 ====
-This works when the only attributes you do not want world-readable are password attributes:
+This example exposes user attributes other than passwords. The global `reject-unauthenticated-requests` setting must be `false`, the default.
 
 [source, ldif]
 ----
@@ -1106,6 +1112,75 @@ aci: (target = "ldap:///dc=example,dc=com")(targetattr =
 ----
 When you use TLS but have not configured a cipher, `ssf` is one. Packets are checksummed for integrity checking, but all content is sent in cleartext.
 ====
+
+
+[#aci-local-exercise]
+=== Try Delegating Access Control
+
+Use a disposable server with base entry `dc=example,dc=com` and LDAPS on port 1636. Run the commands in Bash from the OpenDJ installation directory. Replace the example administrator password with the password you chose at setup. The `--trustAll` option is for the local test certificate.
+
+Create a test branch and two accounts. The editor can change ACIs in this branch because the account has `modify-acl` and the branch ACI permits writes to `aci`. This lets the editor grant access to data in the branch.
+
+[source,bash]
+----
+bin/ldapmodify --hostname localhost --port 1636 --useSSL --trustAll \
+  --bindDN 'cn=Directory Manager' --bindPassword password <<'LDIF'
+dn: ou=Workshop,dc=example,dc=com
+changetype: add
+objectClass: organizationalUnit
+ou: Workshop
+aci: (targetattr="aci")(version 3.0; acl "Workshop access editor";
+ allow (write) userdn="ldap:///uid=access-editor,ou=Workshop,dc=example,dc=com";)
+
+dn: uid=access-editor,ou=Workshop,dc=example,dc=com
+changetype: add
+objectClass: inetOrgPerson
+uid: access-editor
+cn: Workshop Editor
+sn: Editor
+userPassword: workshop-editor-password
+ds-privilege-name: modify-acl
+
+dn: uid=member,ou=Workshop,dc=example,dc=com
+changetype: add
+objectClass: inetOrgPerson
+uid: member
+cn: Workshop Member
+sn: Member
+userPassword: workshop-member-password
+LDIF
+----
+
+Try adding a title as the member. On a fresh OpenDJ configuration, this operation fails with `Insufficient Access Rights`.
+
+[source,bash]
+----
+bin/ldapmodify --hostname localhost --port 1636 --useSSL --trustAll \
+  --bindDN 'uid=member,ou=Workshop,dc=example,dc=com' \
+  --bindPassword workshop-member-password <<'LDIF'
+dn: uid=member,ou=Workshop,dc=example,dc=com
+changetype: modify
+replace: title
+title: Workshop participant
+LDIF
+----
+
+Now bind as the editor and add a rule that lets users change their own title within the branch.
+
+[source,bash]
+----
+bin/ldapmodify --hostname localhost --port 1636 --useSSL --trustAll \
+  --bindDN 'uid=access-editor,ou=Workshop,dc=example,dc=com' \
+  --bindPassword workshop-editor-password <<'LDIF'
+dn: ou=Workshop,dc=example,dc=com
+changetype: modify
+add: aci
+aci: (targetattr="title")(version 3.0; acl "Edit your workshop title";
+ allow (write) userdn="ldap:///self";)
+LDIF
+----
+
+Repeat the member's title change. It should succeed. Use xref:#get-effective-rights[Viewing Effective Rights] to inspect the permissions for a specific user.
 
 
 [#get-effective-rights]

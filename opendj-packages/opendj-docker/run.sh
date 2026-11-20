@@ -90,7 +90,10 @@ upgrade_instance() {
   fi
   sh ./upgrade -n --force || return 1
   if [ "$from" = "$to" ] && [ -f "$UPGRADE_PENDING" ]; then
-    echo "The upgrade of this volume from $(cat "$UPGRADE_PENDING") did not complete on an earlier start: its post-upgrade tasks failed or were cut off, which /opt/opendj/data/logs/upgrade.log tells. Rebuild the indexes it names with rebuild-index and remove $UPGRADE_PENDING, or restore the backup taken before the upgrade"
+    echo "The upgrade of this volume from $(cat "$UPGRADE_PENDING") did not complete on an earlier start." \
+      "Check /opt/opendj/data/logs/upgrade.log and the backend configuration." \
+      "With the server stopped, verify the indexes for every affected base DN and rebuild as needed." \
+      "Remove $UPGRADE_PENDING only after all outstanding tasks are complete, or restore the pre-upgrade backup."
     return 1
   fi
   rm -f "$UPGRADE_PENDING"

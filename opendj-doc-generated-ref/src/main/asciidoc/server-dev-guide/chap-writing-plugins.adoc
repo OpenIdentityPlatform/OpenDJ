@@ -12,13 +12,12 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024-2026 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
 :example-caption!:
 :table-caption!:
-:opendj-version: x.y.z
 
 
 [#chap-writing-plugins]
@@ -117,139 +116,62 @@ A complete plugin project, such as the example plugin, therefore includes LDAP s
 [#try-example-plugin]
 === Trying the Example Server Plugin
 
-The example plugin is bundled with OpenDJ directory server as `example-plugin.zip`, which holds a Maven-based project. The example plugin is a startup plugin that displays a "Hello World" message when the directory server starts. For general information about OpenDJ directory server plugins, read xref:#about-server-plugins["About OpenDJ Directory Server Plugins"]. For more specific information, read xref:#about-example-plugin["About the Example Plugin Project Files"].
-
-[NOTE]
-====
-This version of the example plugin is new in OpenDJ directory server 3.5.
-====
+The server ZIP distribution includes `example-plugin.zip`, a Maven project for a plugin that writes `HELLO WORLD` at startup. Use an evaluation installation, Apache Maven 3, and a JDK supported by the server release.
 
 ====
-Follow these steps to try the example plugin:
-
-. Install OpenDJ directory server as described in xref:../install-guide/chap-install.adoc#chap-install["Installing OpenDJ Servers"] in the __Installation Guide__.
-
-. Install Apache Maven 3.0.5 or later.
+. From the OpenDJ installation directory, extract the project.
 +
-When you finish, make sure `mvn` is on your PATH:
-+
-
 [source, console]
 ----
-$ mvn -version
-Apache Maven version
-Maven home: /path/to/maven
-Java version: ...
+$ unzip -q example-plugin.zip
+$ cd opendj-server-example-plugin
 ----
 
-. Unpack the example plugin project sources:
+. In the extracted `pom.xml`, make sure `<build>` includes both resources below. Add the `<resources>` block if it is missing. The generated resources let `dsconfig` find the `example` plugin type.
 +
+[source,xml]
+----
+<resources>
+  <resource>
+    <directory>src/main/resources</directory>
+  </resource>
+  <resource>
+    <directory>${project.build.directory}/generated-resources</directory>
+  </resource>
+</resources>
+----
 
+. Build and unpack the plugin, then copy its `config/` and `lib/` files into the stopped server. The example assumes that the administration connector listens on port 4444. Use your Directory Manager password in place of `password`.
++
 [source, console]
 ----
-$ unzip /path/to/opendj/example-plugin.zip
-Archive:  /path/to/opendj/example-plugin.zip
-   creating: opendj-server-example-plugin/
-...
-----
-
-. Build the example plugin:
-+
-
-[source, console]
-----
-$ cd opendj-server-example-plugin/
-$ mvn install
-...
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-...
-----
-
-. Install the example plugin in OpenDJ directory server:
-+
-
-[source, console, subs="+attributes"]
-----
-$ cd /path/to/opendj
-
-# Stop the server before installing the example plugin:
+$ mvn clean package
+$ unzip -q target/org.openidentityplatform.opendj.opendj-server-example-plugin.zip -d target
+$ cd ..
 $ bin/stop-ds
-
-# Unpack the plugin files into the proper locations of the server layout,
-# skipping the base directory.
-# The following example works with bsdtar,
-# which might require installing a bsdtar package.
-$ bsdtar -xvf \
- /path/to/opendj-server-example-plugin/target/opendj-server-example-plugin-{opendj-version}.zip \
- -s'|[^/]*/||'
-x README.example.plugin
-x config/
-x config/schema/
-x config/example-plugin.ldif
-x config/schema/99-example-plugin.ldif
-x lib/
-x lib/extensions/
-x lib/extensions/opendj-server-example-plugin-{opendj-version}.jar
-x lib/extensions/...
-
-# Start the server and create the plugin configuration:
+$ plugin_files=opendj-server-example-plugin/target/org.openidentityplatform.opendj.opendj-server-example-plugin
+$ cp -R "$plugin_files/config" "$plugin_files/lib" .
 $ bin/start-ds
-$ bin/dsconfig \
- create-plugin \
- --hostname opendj.example.com \
- --port 4444 \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --plugin-name "Example Plugin" \
- --type example \
- --set enabled:true \
- --set plugin-type:startup \
- --trustAll \
- --no-prompt
-...
-INFO: Loaded extension from file
- '/path/to/opendj/lib/extensions/opendj-server-example-plugin-{opendj-version}.jar'
- (build <unknown>, revision <unknown>)
+$ bin/dsconfig create-plugin \
+ --hostname localhost --port 4444 \
+ --bindDN "cn=Directory Manager" --bindPassword password \
+ --plugin-name "Example Plugin" --type example \
+ --set enabled:true --set plugin-type:startup --trustAll --no-prompt
 ----
+
+. Restart the server and check the message in the error log.
 +
-Notice the locations where the example plugin files are unpacked. The locations must follow the server conventions in order for OpenDJ directory server to recognize the plugin.
-+
-For the example plugin, you see that:
-
-* Schema definitions are unpacked into `config/schema/`.
-
-* Plugin .jar files and the .jar files they depend on are unpacked into `lib/extensions/`.
-
-+
-Also notice that after the plugin configuration is created OpenDJ directory server has loaded the plugin as an extension.
-
-. Restart OpenDJ directory server to see the startup message from the plugin:
-+
-
 [source, console]
 ----
 $ bin/stop-ds --restart
-...
-... msg=Example plugin message 'HELLO WORLD'.
-...
+$ grep "Example plugin message 'HELLO WORLD'" logs/errors
 ----
-
-. Now that you have seen the example plugin display its message, see xref:#about-example-plugin["About the Example Plugin Project Files"] to understand the key parts of the example plugin project.
-
 ====
-
 
 [#about-example-plugin]
 === About the Example Plugin Project Files
 
-The example plugin project builds a server plugin that displays a "Hello World" message when OpenDJ directory server starts, as shown in xref:#try-example-plugin["Trying the Example Server Plugin"]. This section describes the example plugin project. For general information about OpenDJ directory server plugins, read xref:#about-server-plugins["About OpenDJ Directory Server Plugins"] instead.
-
-[NOTE]
-====
-This version of the example plugin project is new in OpenDJ directory server 3.5.
-====
+The project combines the plugin’s Java code, configuration definition, LDAP schema, and message bundles.
 
 [#example-plugin-maven]
 ==== Maven Project
@@ -259,7 +181,7 @@ The OpenDJ example server plugin is an Apache Maven project.
 As you can see in the `pom.xml` file for the project, the plugin depends on the OpenDJ directory server module.
 The plugin project uses these Open Identity Platform Maven plugins:
 
-* The `i18n-maven-plugin` generates message source files from properties files in the resource bundle.
+* The `org.openidentityplatform.commons.i18n-framework:maven-plugin` plugin generates message source files from properties files in the resource bundle.
 +
 This plugin must run in order to resolve static imports from `com.example.opendj.ExamplePluginMessages`.
 
@@ -314,7 +236,7 @@ The `extends` property identifies a parent definition that the current definitio
 +
 If a longer description is required, add a `<description>`, which can include XHTML markup. The `<description>` is used in addition to the synopsis, so there is no need to duplicate the synopsis in the description.
 
-* The `<property>` element defines a property specific to this example plugin, including its purpose, its the default value, its type, and how the property maps to an LDAP attribute in the configuration entry.
+* The `<property>` element defines a property specific to this example plugin, including its purpose, its default value, its type, and how the property maps to an LDAP attribute in the configuration entry.
 +
 The `name` attribute is used to identify the property in the configuration.
 
@@ -343,7 +265,7 @@ The OpenDJ server Java API has interface stability: Evolving, as described in xr
 
 This means that a server plugin built with one version of OpenDJ directory server will not necessarily work or even compile with a different version of the server.
 ====
-`ExamplePlugin` statically imports everything from the generated message implementation sources. Resolution of `ExamplePluginMessages.*` fails until the implementation is generated by the `i18n-maven-plugin`.
+`ExamplePlugin` statically imports everything from the generated message implementation sources. Resolution of `ExamplePluginMessages.*` fails until the implementation is generated by the i18n Maven plugin.
 
 `ExamplePlugin` extends link:https://doc.openidentityplatform.org/opendj/apidocs/org/opends/server/api/plugin/DirectoryServerPlugin.html[DirectoryServerPlugin, window=\_blank] with its own type of configuration, `ExamplePluginCfg`. The implementation for `ExamplePluginCfg` is generated from the configuration declared in XML. Therefore, resolution of `ExamplePluginCfg` fails until the sources are generated by the `opendj-maven-plugin`.
 
