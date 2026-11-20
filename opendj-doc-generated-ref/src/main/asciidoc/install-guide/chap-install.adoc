@@ -546,7 +546,7 @@ The first start reports `healthy` after creating the backend, importing the requ
 +
 If the container remains running, finish setup by hand, remove the marker with `docker exec opendj rm /opt/opendj/data/.bootstrap-pending`, and run `docker restart opendj`.
 +
-If the container exits, for example because `config.ldif` is missing, open a temporary shell from the same image with the existing volume mounted.
+If the container exits, for example because `config.ldif` is missing, keep it stopped and open a temporary shell from the same image. Use `--volumes-from opendj` if the original container has a mount at `/opt/opendj/data`. If its data is in the writable layer, follow the xref:chap-upgrade.adoc#upgrade-docker[upgrade procedure to copy the instance to a new volume]. For the copied instance, set the mount option in the command below to `-v opendj-data:/opt/opendj/data`, using the name of the new volume.
 +
 
 [source, console]
@@ -557,7 +557,7 @@ $ docker run --rm -it --volumes-from opendj --workdir /opt/opendj \
 $ printf '%s\n' /opt/opendj/data > instance.loc
 ----
 +
-Finish setup from that shell. Once complete, remove `/opt/opendj/data/.bootstrap-pending` there, exit the shell, and run `docker start opendj` from the host.
+Finish setup from that shell. If OpenDJ started in the temporary container, run `./bin/stop-ds --noPropertiesFile` there and wait for it to succeed. Then remove `/opt/opendj/data/.bootstrap-pending` and exit the shell. If you shared the original data mount, run `docker start opendj` from the host. If you copied the instance, rename the original container to free its name. Create a replacement container from the same image with the original settings and the new data volume.
 +
 To discard the incomplete instance and start over with an empty volume, run `docker rm -f opendj` and `docker volume rm opendj-data`, then repeat the installation.
 
@@ -764,9 +764,11 @@ Use `status` and an LDAP search to check the backend and its data. Keep the back
 ====
 For REST access through the directory server itself, see xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap-endpoint["To Set Up REST Access to User Data"].
 
-. Deploy `org.openidentityplatform.opendj.opendj-rest2ldap-servlet.war` with the context path `/rest2ldap`. For Tomcat automatic deployment, copy the archive into the `webapps` directory as `rest2ldap.war`.
+. Deploy `org.openidentityplatform.opendj.opendj-rest2ldap-servlet.war` with the context path `/rest2ldap`. The gateway needs `WEB-INF/classes/config.json` as a file on disk.
 +
-The gateway needs `WEB-INF/classes/config.json` as a file on disk. Tomcat unpacks WARs by default. If your Host uses `unpackWARs=false`, unpack the archive and deploy the resulting `webapps/rest2ldap/` directory.
+On a Tomcat Host with `unpackWARs=true` (the default), copy the archive into the Host's `appBase` directory (usually `webapps`) as `rest2ldap.war`.
++
+On a Host with `unpackWARs=false`, keep the archive outside `appBase`. Move any previously deployed `rest2ldap.war` out of `appBase` before unpacking the archive into the `rest2ldap/` directory under `appBase`.
 
 . In `WEB-INF/classes/config.json`, set `ldapConnectionFactories.bind.primaryLdapServers` to the LDAP host and port. Set `ldapConnectionFactories.root.authentication.simple` to a dedicated LDAP account with the `proxied-auth` privilege and an ACI scoped to the users it may represent. HTTP Basic and OAuth 2.0 both require this account. See xref:../server-dev-guide/chap-ldap-operations.adoc#proxied-authz["Configuring Proxied Authorization"].
 +

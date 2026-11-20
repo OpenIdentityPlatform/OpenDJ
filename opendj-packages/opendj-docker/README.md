@@ -6,10 +6,12 @@ Build docker image:
 docker build -t openidentityplatform/opendj .
 ```
 
-Run image
+Run OpenDJ with a named volume at `/opt/opendj/data` so the instance can be reused when you
+replace the container.
 
 ```bash
-docker run -d -p 1389:1389 -p 1636:1636 -p 4444:4444 --name opendj openidentityplatform/opendj
+docker run -d -p 1389:1389 -p 1636:1636 -p 4444:4444 --name opendj \
+  -v opendj-data:/opt/opendj/data openidentityplatform/opendj
 ```
 
 ## Health check
@@ -19,10 +21,11 @@ bootstrap has succeeded - the instance, the `userRoot` backend over `BASE_DN`, w
 `ADD_BASE_ENTRY` and `SAMPLE_DATA` asked to be imported into it, and, where replication is
 asked for, the join of the replication topology (see [Replication](#replication)). Waiting
 for that status is therefore enough before the first search of what the bootstrap was told
-to create:
+to create. To try the following example, start with an empty `opendj-data` volume.
 
 ```bash
-docker run -d --name opendj -e ADD_BASE_ENTRY=--addBaseEntry openidentityplatform/opendj
+docker run -d --name opendj -v opendj-data:/opt/opendj/data \
+  -e ADD_BASE_ENTRY=--addBaseEntry openidentityplatform/opendj
 timeout 5m bash -c 'until [ "$(docker inspect -f "{{.State.Health.Status}}" opendj)" = healthy ]; do sleep 5; done'
 ```
 
@@ -40,7 +43,8 @@ probe may bind as and `HEALTHCHECK_BIND_PASSWORD_FILE` to a file in the containe
 password - the probe reads it from there, so it never shows on a command line:
 
 ```bash
-docker run -d --name opendj -v /path/to/secrets:/var/secrets/healthcheck:ro \
+docker run -d --name opendj -v opendj-data:/opt/opendj/data \
+  -v /path/to/secrets:/var/secrets/healthcheck:ro \
   -e HEALTHCHECK_BIND_DN="uid=monitor,ou=people,dc=example,dc=com" \
   -e HEALTHCHECK_BIND_PASSWORD_FILE=/var/secrets/healthcheck/password \
   openidentityplatform/opendj
@@ -71,8 +75,12 @@ docker exec opendj rm /opt/opendj/data/.bootstrap-pending
 docker restart opendj
 ```
 
-If the container exits, for example because `config.ldif` is missing, open a temporary shell
-from the same image with the existing volume mounted.
+If the container exits, for example because `config.ldif` is missing, keep it stopped and
+open a temporary shell from the same image. Use `--volumes-from opendj` if the original
+container has a mount at `/opt/opendj/data`. If its data is in the writable layer, follow the
+[upgrade guide to copy the instance to a new volume](../../opendj-doc-generated-ref/src/main/asciidoc/install-guide/chap-upgrade.adoc#upgrade-docker).
+For the copied instance, set the mount option in the command below to
+`-v opendj-data:/opt/opendj/data`, using the name of the new volume.
 
 ```bash
 opendj_image=$(docker inspect --format '{{.Image}}' opendj)
@@ -81,8 +89,11 @@ docker run --rm -it --volumes-from opendj --workdir /opt/opendj \
 ```
 
 In the temporary shell, run `printf '%s\n' /opt/opendj/data > instance.loc` and finish setup.
-Once complete, remove `/opt/opendj/data/.bootstrap-pending` there, exit the shell, and run
-`docker start opendj` from the host.
+If OpenDJ started in the temporary container, run `./bin/stop-ds --noPropertiesFile` there
+and wait for it to succeed. Then remove `/opt/opendj/data/.bootstrap-pending` and exit the
+shell. If you shared the original data mount, run `docker start opendj` from the host. If
+you copied the instance, rename the original container to free its name. Create a replacement
+container from the same image with the original settings and the new data volume.
 
 A volume configured for background join then joins and takes the data of the topology as
 on its first start. You can also discard the incomplete volume and start over.
