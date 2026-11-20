@@ -22,9 +22,11 @@ import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPrivateCrtKey;
+import java.security.spec.MGF1ParameterSpec;
+import java.security.spec.PSSParameterSpec;
 import java.security.spec.RSAPrivateCrtKeySpec;
 
-/** Re-encodes the fixture's RSA private key as RSA-PSS while retaining its RSA certificate. */
+/** Re-encodes the fixture's RSA private key as RSA-PSS while retaining its certificate. */
 public final class ReencodeAdminSecretKey
 {
   public static void main(String[] args) throws Exception
@@ -38,10 +40,22 @@ public final class ReencodeAdminSecretKey
       store.load(input, pin);
     }
 
+    final PSSParameterSpec params;
+    if (args.length > 2)
+    {
+      final String digest = args[2];
+      params = new PSSParameterSpec(digest, "MGF1", new MGF1ParameterSpec(digest),
+          Integer.parseInt(args[3]), PSSParameterSpec.TRAILER_FIELD_BC);
+    }
+    else
+    {
+      params = null;
+    }
+
     final RSAPrivateCrtKey rsa = (RSAPrivateCrtKey) store.getKey(alias, pin);
     final RSAPrivateCrtKeySpec spec = new RSAPrivateCrtKeySpec(rsa.getModulus(), rsa.getPublicExponent(),
         rsa.getPrivateExponent(), rsa.getPrimeP(), rsa.getPrimeQ(), rsa.getPrimeExponentP(),
-        rsa.getPrimeExponentQ(), rsa.getCrtCoefficient());
+        rsa.getPrimeExponentQ(), rsa.getCrtCoefficient(), params);
     final PrivateKey pss = KeyFactory.getInstance("RSASSA-PSS").generatePrivate(spec);
     store.setKeyEntry(alias, pss, pin, store.getCertificateChain(alias));
     try (OutputStream output = Files.newOutputStream(storePath))

@@ -20,14 +20,13 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
+import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAKey;
-import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.MGF1ParameterSpec;
 import java.security.spec.PSSParameterSpec;
 import java.util.Arrays;
@@ -44,6 +43,11 @@ public final class AdminSecretValidator
   private static final Set<String> TLS_SERVER_USAGES = Set.of(
       "1.3.6.1.5.5.7.3.1", "2.5.29.37.0", // serverAuth and anyExtendedKeyUsage
       "1.3.6.1.4.1.311.10.3.3", "2.16.840.1.113730.4.1"); // Legacy server-gated cryptography, accepted by JSSE.
+  // JSSE's TLS 1.2 and 1.3 RSA-PSS schemes use a salt exactly as long as the digest.
+  private static final List<PSSParameterSpec> TLS_PSS_PARAMETERS = List.of(
+      new PSSParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256, 32, PSSParameterSpec.TRAILER_FIELD_BC),
+      new PSSParameterSpec("SHA-384", "MGF1", MGF1ParameterSpec.SHA384, 48, PSSParameterSpec.TRAILER_FIELD_BC),
+      new PSSParameterSpec("SHA-512", "MGF1", MGF1ParameterSpec.SHA512, 64, PSSParameterSpec.TRAILER_FIELD_BC));
 
   public static void main(String[] args) throws Exception
   {
@@ -106,17 +110,51 @@ public final class AdminSecretValidator
       throw new CertificateException("The admin-cert certificate does not allow TLS server authentication");
     }
 
-    final Signature signature = signatureFor(key);
+    if ("RSASSA-PSS".equals(key.getAlgorithm()))
+    {
+      if (!matchesTlsPssSignature(key, certificateKey))
+      {
+        throw new GeneralSecurityException("The admin-cert key and certificate do not match a TLS RSA-PSS scheme");
+      }
+    }
+    else if (!matchesSignature(signatureFor(key), key, certificateKey))
+    {
+      throw new GeneralSecurityException("The admin-cert private key does not match its certificate");
+    }
+  }
+
+  private static boolean matchesTlsPssSignature(PrivateKey key, PublicKey certificateKey)
+      throws GeneralSecurityException
+  {
+    for (PSSParameterSpec parameters : TLS_PSS_PARAMETERS)
+    {
+      final Signature signature = Signature.getInstance("RSASSA-PSS");
+      signature.setParameter(parameters);
+      try
+      {
+        if (matchesSignature(signature, key, certificateKey))
+        {
+          return true;
+        }
+      }
+      catch (InvalidKeyException e)
+      {
+        // Either key can restrict the digest or the minimum salt length. Try the next TLS scheme.
+      }
+    }
+    return false;
+  }
+
+  private static boolean matchesSignature(Signature signature, PrivateKey key, PublicKey certificateKey)
+      throws GeneralSecurityException
+  {
     signature.initSign(key);
     signature.update((byte) 0);
     final byte[] signed = signature.sign();
 
     signature.initVerify(certificateKey);
     signature.update((byte) 0);
-    if (!signature.verify(signed))
-    {
-      throw new GeneralSecurityException("The admin-cert private key does not match its certificate");
-    }
+    return signature.verify(signed);
   }
 
   private static Signature signatureFor(PrivateKey key) throws GeneralSecurityException
@@ -125,12 +163,6 @@ public final class AdminSecretValidator
     {
     case "RSA":
       return Signature.getInstance("SHA256withRSA");
-    case "RSASSA-PSS":
-      final Signature signature = Signature.getInstance("RSASSA-PSS");
-      final AlgorithmParameterSpec params = ((RSAKey) key).getParams();
-      signature.setParameter(params != null ? params
-          : new PSSParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256, 32, 1));
-      return signature;
     case "EC":
       return Signature.getInstance("SHA256withECDSA");
     case "DSA":

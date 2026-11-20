@@ -44,9 +44,13 @@ docker run --rm --user "$(id -u):$(id -g)" --entrypoint keytool -v "$work/client
 make_secret() {
   local serial=$1 password=$2 format=$3 generation="$work/secret/..$1"
   local usage=${4:-extendedKeyUsage=serverAuth}
+  local key_options=(-newkey rsa:2048)
+  if [ "$#" -gt 4 ]; then
+    key_options=("${@:5}")
+  fi
   mkdir "$generation"
   printf '%s\n' "$password" > "$generation/admin-keystore.pin"
-  openssl req -new -newkey rsa:2048 -nodes -subj '/CN=OpenDJ admin' \
+  openssl req -new "${key_options[@]}" -nodes -subj '/CN=OpenDJ admin' \
     -keyout "$work/leaf.key" -out "$work/leaf.csr" 2>/dev/null
   openssl x509 -req -days 2 -set_serial "$serial" -in "$work/leaf.csr" -out "$work/leaf-$serial.pem" \
     -CA "$work/client/ca.pem" -CAkey "$work/ca.key" \
@@ -62,6 +66,13 @@ make_secret() {
     mv -f "$generation/converted-keystore" "$generation/admin-keystore"
   fi
   chmod 644 "$generation/admin-keystore"
+}
+
+make_pss_secret() {
+  local serial=$1 digest=$2 salt_length=$3
+  make_secret "$serial" shared-password JKS extendedKeyUsage=serverAuth -newkey rsa-pss:2048 "-$digest" \
+    -pkeyopt "rsa_pss_keygen_md:$digest" -pkeyopt "rsa_pss_keygen_mgf1_md:$digest" \
+    -pkeyopt "rsa_pss_keygen_saltlen:$salt_length" -sigopt "rsa_pss_saltlen:$salt_length"
 }
 
 project_secret() {
@@ -104,8 +115,9 @@ dsconfig() {
 verify_admin_certificate() {
   local expected served
   expected=$(openssl x509 -in "$work/leaf-$1.pem" -noout -serial)
+  shift
   served=$(timeout 10 openssl s_client -connect "$address" -servername localhost -verify_hostname localhost \
-    -verify_return_error -CAfile "$work/client/ca.pem" </dev/null | openssl x509 -noout -serial)
+    -verify_return_error -CAfile "$work/client/ca.pem" "$@" </dev/null | openssl x509 -noout -serial)
   if [ "$served" != "$expected" ]; then
     echo "Expected $expected on port 4444, got $served" >&2
     return 1
@@ -254,6 +266,35 @@ java "$(dirname -- "${BASH_SOURCE[0]}")/ReencodeAdminSecretKey.java" \
 project_secret 130712
 start_container 0 "${secret_mount[@]}"
 verify_admin_certificate 130708
+
+echo 'Check that an RSA-PSS pair with a compatible TLS signature scheme can be installed'
+stop_container
+make_pss_secret 130713 sha384 48
+# The TLS scheme uses 48 bytes even though the private key permits a shorter salt.
+java "$(dirname -- "${BASH_SOURCE[0]}")/ReencodeAdminSecretKey.java" \
+  "$work/secret/..130713/admin-keystore" "$work/secret/..130713/admin-keystore.pin" SHA-384 32
+project_secret 130713
+start_container 0 "${secret_mount[@]}"
+verify_admin_certificate 130713 -tls1_2
+verify_admin_certificate 130713 -tls1_3
+
+echo 'Check that an RSA-PSS pair without a compatible TLS signature scheme preserves the installed pair'
+stop_container
+make_pss_secret 130714 sha256 48
+project_secret 130714
+start_container 0 "${secret_mount[@]}"
+verify_admin_certificate 130713
+
+echo 'Check that pending recovery also rejects an RSA-PSS pair without a compatible TLS signature scheme'
+stop_container
+edit_stopped_volume '
+  cd /opt/opendj/data/config
+  mkdir -m 700 .admin-secret-pending
+  install -m 600 /fixtures/..130714/admin-keystore /fixtures/..130714/admin-keystore.pin .admin-secret-pending/
+'
+start_container 0
+verify_admin_certificate 130713
+docker exec "$container" test ! -e /opt/opendj/data/config/.admin-secret-pending
 
 echo 'Check interrupted installation with a queued change and without a Secret mount'
 stop_container
