@@ -402,7 +402,8 @@ docker restart dj-0 >/dev/null
 wait_until 120 "dj-0 is healthy while dj-1 is down" is_healthy dj-0
 docker start dj-1 >/dev/null
 wait_healthy dj-1
-# a member is healthy before its join runs: the role is recorded once the join found it a member
+# A member can be healthy before its join checks membership and records the role.
+wait_until 300 "the restarted dj-0 is a member again" logs_have_since dj-0 "Starting OpenDJ" "already a member of the replication topology"
 wait_until 300 "the restarted dj-1 is a member again" logs_have_since dj-1 "Starting OpenDJ" "already a member of the replication topology"
 [ "$(recorded_role_of dj-1)" = combined ] || fail "dj-1 was recorded $(recorded_role_of dj-1) from its combined replication configuration"
 add_ou dj-1 replicated2
@@ -411,7 +412,9 @@ wait_has dj-0 "ou=replicated2,dc=example,dc=com"
 # peer registers any more does that, or one that its own cn=admin data does not register,
 # and a reset followed by a new enable passes every check above
 for n in dj-0 dj-1; do
-  if logs_have $n "taking its replication configuration down"; then fail "$n reset its replication on a plain restart"; fi
+  if logs_have_since "$n" "Starting OpenDJ" "taking its replication configuration down"; then
+    fail "$n reset its replication on a plain restart"
+  fi
 done
 
 phase "seed without a domain"
@@ -1006,7 +1009,9 @@ for n in dj-r0 dj-d1; do
   docker restart $n >/dev/null
   wait_until 300 "the restarted $n is a member again" logs_have_since $n "Starting OpenDJ" "already a member of the replication topology"
   wait_healthy $n
-  if logs_have $n "taking its replication configuration down"; then fail "$n reset its replication on a plain restart"; fi
+  if logs_have_since "$n" "Starting OpenDJ" "taking its replication configuration down"; then
+    fail "$n reset its replication on a plain restart"
+  fi
 done
 roles_hold
 phase "roles: role-less volumes"
