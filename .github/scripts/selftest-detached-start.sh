@@ -39,6 +39,19 @@ case " $* " in
       printf 'probe output\n' >&2
       exit "${FIXTURE_PROBE_STATUS:-98}"
     fi
+    if [ -n "${FIXTURE_TIMEOUT_ARG:-}" ]; then
+      found_timeout=false
+      for arg do
+        if [ "$arg" = "$FIXTURE_TIMEOUT_ARG" ]; then
+          found_timeout=true
+          break
+        fi
+      done
+      if [ "$found_timeout" = false ]; then
+        printf 'Expected preflight argument %s\n' "$FIXTURE_TIMEOUT_ARG" >&2
+        exit 1
+      fi
+    fi
     touch "$INSTANCE_ROOT/checked"
     while [ "$#" -gt 0 ]; do
       case "$1" in
@@ -58,11 +71,11 @@ case " $* " in
 esac
 printf 'first line\n'
 case "$FIXTURE_CASE" in
-  early|quiet-failure)
+  early|quiet-failure|write-only-early)
     printf 'startup failed\n' >&2
     exit 42
     ;;
-  timeout)
+  timeout|write-only-timeout)
     exec sleep 30
     ;;
   *)
@@ -82,10 +95,15 @@ run_case() {
   export INSTANCE_ROOT="$FIXTURES/$FIXTURE_CASE instance"
   mkdir -p "$INSTANCE_ROOT/logs" "$INSTANCE_ROOT/tmp"
   printf 'stale log\n' > "$INSTANCE_ROOT/logs/server.out"
+  if [[ "$FIXTURE_CASE" == write-only-* ]]; then
+    chmod 200 "$INSTANCE_ROOT/logs/server.out"
+  fi
   status=0
   timeout 8 "$SHELL_UNDER_TEST" "$FIXTURES/bin/start-ds" "$@" \
     > "$INSTANCE_ROOT/stdout" 2> "$INSTANCE_ROOT/stderr" || status=$?
-  read -r LIVE_PID < "$INSTANCE_ROOT/logs/server.pid"
+  if [ -f "$INSTANCE_ROOT/logs/server.pid" ]; then
+    read -r LIVE_PID < "$INSTANCE_ROOT/logs/server.pid"
+  fi
   if [ "$status" -ne "$expected" ] || [ -e "$INSTANCE_ROOT/waiter-jvm" ]; then
     echo "$FIXTURE_CASE: expected exit $expected with no waiter JVM, got $status" >&2
     cat "$INSTANCE_ROOT/stderr" >&2
@@ -125,13 +143,40 @@ grep -Fxq 'startup failed' "$INSTANCE_ROOT/logs/server.out"
 grep -Fq 'status 42' "$INSTANCE_ROOT/stderr"
 LIVE_PID=
 
-run_case timeout 1 99 2 -t1
+FIXTURE_TIMEOUT_ARG=-t1 run_case timeout 1 99 2 -t1
 [ ! -e "$INSTANCE_ROOT/final-check" ]
 [ -e "$INSTANCE_ROOT/logs/server.starting" ]
 kill -0 "$LIVE_PID"
 grep -Fq 'timed out after 1' "$INSTANCE_ROOT/stderr"
 kill "$LIVE_PID"
 LIVE_PID=
+
+touch "$FIXTURES/write-only"
+chmod 200 "$FIXTURES/write-only"
+if [ -r "$FIXTURES/write-only" ]; then
+  echo 'Skipping write-only log scenarios because the test user can read mode 0200 files'
+else
+  run_case write-only-success 200 99 0
+  [ -e "$INSTANCE_ROOT/final-check" ]
+  [ ! -e "$INSTANCE_ROOT/logs/server.starting" ]
+  [ ! -s "$INSTANCE_ROOT/stdout" ]
+  kill "$LIVE_PID"
+  LIVE_PID=
+
+  run_case write-only-early 0 99 1 --timeout 0
+  [ ! -e "$INSTANCE_ROOT/final-check" ]
+  [ -e "$INSTANCE_ROOT/logs/server.starting" ]
+  grep -Eq 'server pid [0-9]+, status 42' "$INSTANCE_ROOT/stderr"
+  LIVE_PID=
+
+  FIXTURE_TIMEOUT_ARG=-t1 run_case write-only-timeout 1 99 2 -t1
+  [ ! -e "$INSTANCE_ROOT/final-check" ]
+  [ -e "$INSTANCE_ROOT/logs/server.starting" ]
+  kill -0 "$LIVE_PID"
+  grep -Fq 'timed out after 1' "$INSTANCE_ROOT/stderr"
+  kill "$LIVE_PID"
+  LIVE_PID=
+fi
 
 export FIXTURE_PROBE_STATUS=99
 run_case failed-probe 3 99 1 --timeout 3
