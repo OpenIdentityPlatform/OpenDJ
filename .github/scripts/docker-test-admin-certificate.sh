@@ -43,13 +43,14 @@ docker run --rm --user "$(id -u):$(id -g)" --entrypoint keytool -v "$work/client
 
 make_secret() {
   local serial=$1 password=$2 format=$3 generation="$work/secret/..$1"
+  local usage=${4:-extendedKeyUsage=serverAuth}
   mkdir "$generation"
   printf '%s\n' "$password" > "$generation/admin-keystore.pin"
   openssl req -new -newkey rsa:2048 -nodes -subj '/CN=OpenDJ admin' \
     -keyout "$work/leaf.key" -out "$work/leaf.csr" 2>/dev/null
   openssl x509 -req -days 2 -set_serial "$serial" -in "$work/leaf.csr" -out "$work/leaf-$serial.pem" \
     -CA "$work/client/ca.pem" -CAkey "$work/ca.key" \
-    -extfile /dev/stdin <<< $'subjectAltName=DNS:localhost\nextendedKeyUsage=serverAuth'
+    -extfile /dev/stdin <<< $'subjectAltName=DNS:localhost\n'"$usage"
   openssl pkcs12 -export -name admin-cert -inkey "$work/leaf.key" -in "$work/leaf-$serial.pem" \
     -certfile "$work/client/ca.pem" -out "$generation/admin-keystore" \
     -passout "file:$generation/admin-keystore.pin"
@@ -230,6 +231,29 @@ edit_stopped_volume '
 start_container 0
 verify_admin_certificate 130708
 docker exec "$container" test ! -e /opt/opendj/data/config/.admin-secret-pending
+
+echo 'Check that a certificate without digital signature usage preserves the installed pair'
+stop_container
+make_secret 130710 shared-password PKCS12 $'keyUsage=keyAgreement\nextendedKeyUsage=serverAuth'
+project_secret 130710
+start_container 0 "${secret_mount[@]}"
+verify_admin_certificate 130708
+
+echo 'Check that a client certificate preserves the installed pair'
+stop_container
+make_secret 130711 shared-password PKCS12 'extendedKeyUsage=clientAuth'
+project_secret 130711
+start_container 0 "${secret_mount[@]}"
+verify_admin_certificate 130708
+
+echo 'Check that different private key and certificate algorithms preserve the installed pair'
+stop_container
+make_secret 130712 shared-password JKS
+java "$(dirname -- "${BASH_SOURCE[0]}")/ReencodeAdminSecretKey.java" \
+  "$work/secret/..130712/admin-keystore" "$work/secret/..130712/admin-keystore.pin"
+project_secret 130712
+start_container 0 "${secret_mount[@]}"
+verify_admin_certificate 130708
 
 echo 'Check interrupted installation with a queued change and without a Secret mount'
 stop_container

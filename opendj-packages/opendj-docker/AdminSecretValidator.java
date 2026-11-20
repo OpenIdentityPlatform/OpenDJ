@@ -24,11 +24,16 @@ import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAKey;
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.MGF1ParameterSpec;
 import java.security.spec.PSSParameterSpec;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import javax.net.ssl.KeyManagerFactory;
 
@@ -36,6 +41,9 @@ import javax.net.ssl.KeyManagerFactory;
 public final class AdminSecretValidator
 {
   private static final String ADMIN_ALIAS = "admin-cert";
+  private static final Set<String> TLS_SERVER_USAGES = Set.of(
+      "1.3.6.1.5.5.7.3.1", "2.5.29.37.0", // serverAuth and anyExtendedKeyUsage
+      "1.3.6.1.4.1.311.10.3.3", "2.16.840.1.113730.4.1"); // Legacy server-gated cryptography, accepted by JSSE.
 
   public static void main(String[] args) throws Exception
   {
@@ -70,8 +78,7 @@ public final class AdminSecretValidator
       // The key manager loads every key with the same PIN. Only the configured alias
       // needs to sign, since it is the one selected for administration TLS.
       final PrivateKey key = (PrivateKey) store.getKey(ADMIN_ALIAS, pin);
-      final PublicKey certificateKey = store.getCertificate(ADMIN_ALIAS).getPublicKey();
-      verifySigningKey(key, certificateKey);
+      verifyAdminCertificate(key, (X509Certificate) store.getCertificate(ADMIN_ALIAS));
     }
     finally
     {
@@ -79,9 +86,26 @@ public final class AdminSecretValidator
     }
   }
 
-  private static void verifySigningKey(PrivateKey key, PublicKey certificateKey)
+  private static void verifyAdminCertificate(PrivateKey key, X509Certificate certificate)
       throws GeneralSecurityException
   {
+    final PublicKey certificateKey = certificate.getPublicKey();
+    // JSSE requires both keys to match the negotiated authentication type.
+    if (!key.getAlgorithm().equals(certificateKey.getAlgorithm()))
+    {
+      throw new GeneralSecurityException("The admin-cert private key and certificate use different algorithms");
+    }
+    final boolean[] keyUsage = certificate.getKeyUsage();
+    if (keyUsage != null && (keyUsage.length == 0 || !keyUsage[0])) // digitalSignature is the first bit.
+    {
+      throw new CertificateException("The admin-cert certificate does not allow digital signatures");
+    }
+    final List<String> extendedKeyUsage = certificate.getExtendedKeyUsage();
+    if (extendedKeyUsage != null && Collections.disjoint(extendedKeyUsage, TLS_SERVER_USAGES))
+    {
+      throw new CertificateException("The admin-cert certificate does not allow TLS server authentication");
+    }
+
     final Signature signature = signatureFor(key);
     signature.initSign(key);
     signature.update((byte) 0);

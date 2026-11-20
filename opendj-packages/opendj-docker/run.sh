@@ -156,7 +156,8 @@ install_pending_admin_secret() {
     if ! java -cp ./bootstrap AdminSecretValidator \
         "$ADMIN_SECRET_PENDING/admin-keystore" "$ADMIN_SECRET_PENDING/admin-keystore.pin" \
         </dev/null >/dev/null 2>&1; then
-      rejection="the store must open as JKS or PKCS12, use that PIN for every private key, and contain a signing key and matching certificate for admin-cert"
+      rejection="the store must open as JKS or PKCS12, use that PIN for every private key,"
+      rejection+=" and contain a signing key and matching TLS server certificate for admin-cert"
     elif [ -e ./data/config/config-changes.ldif ] || ! uses_default_admin_keystore; then
       rejection="it no longer matches the instance configuration"
     fi

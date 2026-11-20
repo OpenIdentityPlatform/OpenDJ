@@ -356,7 +356,8 @@ installation. A later refresh or restart checks the resulting configuration.
   password for every private key entry in the keystore.
 
 Before the server starts, the image verifies that the PIN opens the keystore and its
-private keys and that the `admin-cert` key can sign and matches its certificate.
+private keys, and that `admin-cert` has a signing key and a matching certificate whose
+usage permits TLS server authentication.
 It installs the validated pair in `/opt/opendj/data/config` with mode 0600 on both
 fresh and reused volumes. If the mounted pair fails validation, the image logs a
 warning and keeps the current files. On a fresh volume those files
