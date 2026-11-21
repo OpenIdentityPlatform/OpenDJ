@@ -31,6 +31,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -45,17 +46,22 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.DoneMsg;
 import org.opends.server.replication.protocol.EntryMsg;
 import org.opends.server.replication.protocol.HeartbeatMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
+import org.opends.server.replication.protocol.MonitorMsg;
+import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicaOfflineMsg;
@@ -1063,18 +1069,125 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     }
   }
 
+  @Test(timeOut = 120_000)
+  public void plannedRebalanceReplaysTheOldRsAndPublishesOnTheNewRs() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    final DN deleteDN = DN.valueOf("cn=before-switch," + baseDN);
+    TestCaseUtils.addEntry("dn: " + deleteDN, "objectClass: top", "objectClass: person",
+        "cn: before-switch", "sn: before-switch");
+    final String entryUUID = getEntryUUID(deleteDN);
+    final WithholdingReplicationServer oldRS = new WithholdingReplicationServer(LARGE_WINDOW);
+    final WithholdingReplicationServer nextRS = new WithholdingReplicationServer(LARGE_WINDOW, 4);
+    Thread writer = null;
+    try
+    {
+      final LDAPReplicationDomain domain = startDomain(oldRS, 100000, nextRS.getAddress());
+      assertEquals(domain.getRsServerId(), oldRS.serverId);
+      nextRS.start();
+      oldRS.advertiseRebalance(nextRS, domain);
+
+      newTimer().repeatUntilSuccess(() -> assertEquals(oldRS.count(StopMsg.class), 1));
+      assertEquals(domain.getRsServerId(), oldRS.serverId, "the old RS has not replied yet");
+
+      // The RS is still draining its side. Replay this update before replacing its session.
+      final CSN remoteCSN = new CSNGenerator(OTHER_DS_ID, 0).newCSN();
+      oldRS.session.get().publish(new DeleteMsg(deleteDN, remoteCSN, entryUUID));
+      newTimer().repeatUntilSuccess(() -> {
+        assertNull(DirectoryServer.getEntry(deleteDN));
+        assertEquals(domain.getServerState().getCSN(OTHER_DS_ID), remoteCSN);
+      });
+
+      final AtomicReference<ResultCode> result = new AtomicReference<>();
+      final Thread localWrite = startThread("write during planned switch",
+          () -> result.set(replaceDescription("during planned switch")));
+      writer = localWrite;
+      newTimer().repeatUntilSuccess(() -> assertTrue(Arrays.stream(localWrite.getStackTrace()).anyMatch(frame ->
+          frame.getClassName().equals(ReplicationBroker.class.getName()) && frame.getMethodName().equals("publish")),
+          "the local write did not wait for a session to publish on"));
+      // Leave the peer draining past the configured connection timeout.
+      localWrite.join(SHORT_CONNECTION_TIMEOUT_MS + 500);
+      assertEquals(domain.getRsServerId(), oldRS.serverId, "the old RS is still finishing its sends");
+      assertEquals(oldRS.receivedUpdateCSNs(), Collections.emptyList());
+      assertNull(result.get(), "the write completed before the session could publish it");
+
+      oldRS.goAway();
+      oldRS.closeTheSession();
+      new TestTimer.Builder().maxSleep(30, SECONDS).sleepTimes(50, MILLISECONDS).toTimer()
+          .repeatUntilSuccess(() -> assertEquals(domain.getRsServerId(), nextRS.serverId));
+      localWrite.join(10000);
+      assertEquals(result.get(), ResultCode.SUCCESS);
+      final CSN localCSN = domain.getServerState().getCSN(DS_ID);
+      assertNotNull(localCSN);
+      nextRS.waitForUpdates(1);
+      assertEquals(nextRS.receivedUpdateCSNs(), Collections.singletonList(localCSN));
+    }
+    finally
+    {
+      setConnectionTimeout(SHORT_CONNECTION_TIMEOUT_MS);
+      try
+      {
+        nextRS.shutdown();
+      }
+      finally
+      {
+        cleanUp(oldRS, writer);
+      }
+    }
+  }
+
+  @Test(timeOut = 120_000)
+  public void plannedRebalanceAbortsOnlyTheOldSessionWhenItDoesNotReply() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    final WithholdingReplicationServer oldRS = new WithholdingReplicationServer(LARGE_WINDOW);
+    final WithholdingReplicationServer nextRS = new WithholdingReplicationServer(LARGE_WINDOW, 4);
+    try
+    {
+      final LDAPReplicationDomain domain = startDomain(oldRS, 100000, nextRS.getAddress());
+      assertEquals(domain.getRsServerId(), oldRS.serverId);
+      nextRS.start();
+
+      final List<String> records = errorLogRecordsOf(() -> {
+        oldRS.advertiseRebalance(nextRS, domain);
+        newTimer().repeatUntilSuccess(() -> assertEquals(oldRS.count(StopMsg.class), 1));
+        // Keep the session open without answering the StopMsg or accepting a new connection.
+        oldRS.goAway();
+        new TestTimer.Builder().maxSleep(30, SECONDS).sleepTimes(50, MILLISECONDS).toTimer()
+            .repeatUntilSuccess(() -> assertEquals(domain.getRsServerId(), nextRS.serverId));
+        return null;
+      });
+      assertTrue(records.stream().anyMatch(record -> record.contains("Timed out switching from replication server")),
+          "the switch completed without the expected timeout diagnostic");
+      assertEquals(replaceDescription("after the old session timed out"), ResultCode.SUCCESS);
+      nextRS.waitForUpdates(1);
+    }
+    finally
+    {
+      try
+      {
+        nextRS.shutdown();
+      }
+      finally
+      {
+        cleanUp(oldRS);
+      }
+    }
+  }
+
   private LDAPReplicationDomain startDomain(WithholdingReplicationServer rs) throws Exception
   {
     // Heartbeats far apart: the session stays up whatever the replication server reads.
     return startDomain(rs, 100000);
   }
 
-  private LDAPReplicationDomain startDomain(WithholdingReplicationServer rs, long heartbeatIntervalMS)
-      throws Exception
+  private LDAPReplicationDomain startDomain(WithholdingReplicationServer rs, long heartbeatIntervalMS,
+      String... otherServers) throws Exception
   {
     rs.start();
-    final DomainFakeCfg conf = new DomainFakeCfg(baseDN, DS_ID,
-        new TreeSet<>(Collections.singleton("127.0.0.1:" + rs.getPort())));
+    final SortedSet<String> servers = new TreeSet<>(Arrays.asList(otherServers));
+    servers.add(rs.getAddress());
+    final DomainFakeCfg conf = new DomainFakeCfg(baseDN, DS_ID, servers);
     conf.setHeartbeatInterval(heartbeatIntervalMS);
     final LDAPReplicationDomain domain = MultimasterReplication.createNewDomain(conf);
     domain.start();
@@ -1326,6 +1439,7 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
   {
     private static final int RS_ID = 2;
 
+    private final int serverId;
     private final int window;
     private final ServerSocket listenSocket;
     /** The latest session started, until it ends. */
@@ -1353,8 +1467,14 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
 
     WithholdingReplicationServer(int window) throws IOException
     {
+      this(window, RS_ID);
+    }
+
+    WithholdingReplicationServer(int window, int serverId) throws IOException
+    {
       super(ReplicationBrokerStopTest.class.getSimpleName() + " replication server");
       setDaemon(true);
+      this.serverId = serverId;
       this.window = window;
       listenSocket = new ServerSocket(0, 50, InetAddress.getLoopbackAddress());
     }
@@ -1362,6 +1482,28 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     int getPort()
     {
       return listenSocket.getLocalPort();
+    }
+
+    String getAddress()
+    {
+      return "127.0.0.1:" + getPort();
+    }
+
+    void advertiseRebalance(WithholdingReplicationServer nextRS, LDAPReplicationDomain domain) throws IOException
+    {
+      final long generationId = domain.getGenerationID();
+      final byte groupId = domain.getGroupId();
+      final DSInfo otherDS = new DSInfo(OTHER_DS_ID, "", serverId, generationId, ServerStatus.NORMAL_STATUS,
+          false, AssuredMode.SAFE_DATA_MODE, (byte) 0, groupId, Collections.emptyList(), Collections.emptyList(),
+          Collections.emptyList(), ProtocolVersion.getCurrentVersion());
+      final Session current = session.get();
+      current.publish(new TopologyMsg(Collections.singletonList(otherDS), Arrays.asList(
+          new RSInfo(serverId, getAddress(), generationId, groupId, 1),
+          new RSInfo(nextRS.serverId, nextRS.getAddress(), generationId, groupId, 1))));
+      final MonitorMsg monitor = new MonitorMsg(serverId, DS_ID);
+      monitor.setReplServerDbState(state.duplicate());
+      assertTrue(current.publish(monitor, null));
+      assertTrue(current.publish(monitor, null));
     }
 
     @Override
@@ -1400,8 +1542,8 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
         s = new ReplSessionSecurity().createServerSession(socket, MultimasterReplication.getConnectionTimeoutMS());
         sessions.add(s);
         final ServerStartMsg start = (ServerStartMsg) s.receive();
-        final String url = "127.0.0.1:" + getPort();
-        s.publish(new ReplServerStartMsg(RS_ID, url, start.getBaseDN(), window, state.duplicate(),
+        final String url = getAddress();
+        s.publish(new ReplServerStartMsg(serverId, url, start.getBaseDN(), window, state.duplicate(),
             start.getGenerationId(), start.getSSLEncryption(), start.getGroupId(), 5000));
         if (!start.getSSLEncryption())
         {
@@ -1413,7 +1555,7 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
         }
         sessionsStarted.incrementAndGet();
         s.publish(new TopologyMsg(new ArrayList<DSInfo>(), Collections.singletonList(
-            new RSInfo(RS_ID, url, start.getGenerationId(), start.getGroupId(), 1))));
+            new RSInfo(serverId, url, start.getGenerationId(), start.getGroupId(), 1))));
         s.setSoTimeout(0);
         session.set(s);
         startHeartbeats(s, start.getHeartbeatInterval());

@@ -25,6 +25,9 @@ cat >"$ROOT/lib/_script-util.sh" <<'UTIL'
 INSTANCE_ROOT=$INSTALL_ROOT
 OPENDJ_JAVA_BIN="$INSTALL_ROOT/java"
 export INSTANCE_ROOT
+wait_for_file_delete() {
+  "$OPENDJ_JAVA_BIN" org.opends.server.tools.WaitForFileDelete "$@"
+}
 UTIL
 cat >"$ROOT/java" <<'JAVA'
 #!/bin/sh

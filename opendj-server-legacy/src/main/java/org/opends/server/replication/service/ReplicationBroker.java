@@ -38,6 +38,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -322,6 +323,21 @@ public class ReplicationBroker
    * (topology stabilization).
    */
   private int mustRunBestServerCheckingAlgorithm;
+
+  /** Owned by the receiver, which continues replay while the old session finishes writing. */
+  private PlannedSwitch plannedSwitch;
+
+  private static final class PlannedSwitch
+  {
+    private final Session session;
+    private final AtomicBoolean completed = new AtomicBoolean();
+    private ScheduledFuture<?> deadline;
+
+    PlannedSwitch(Session session)
+    {
+      this.session = session;
+    }
+  }
 
   /**
    * The monitor provider for this replication domain.
@@ -2526,6 +2542,15 @@ public class ReplicationBroker
               {
                 // A refused update cannot be acknowledged by the peer.
                 currentWindowSemaphore.release();
+                if (retryOnFailure && !recoveryMsg && ((UpdateMsg) msg).contributesToDomainState()
+                    && session.isClosingForSwitch())
+                {
+                  // The next RS can choose its recovery start before this publication
+                  // advances the local CSN. Retry on that session to keep this change
+                  // ahead of subsequent local writes.
+                  connectPhaseLock.wait(100);
+                  continue;
+                }
               }
               return published;
             }
@@ -2660,6 +2685,10 @@ public class ReplicationBroker
     while (!shutdown && !permanentlyStopped)
     {
       ConnectedRS rs = connectedRS.get();
+      if (plannedSwitch != null && plannedSwitch.session != rs.session)
+      {
+        finishPlannedSwitch(plannedSwitch.session);
+      }
       if (!rs.isConnected())
       {
         if (reconnectOnFailure)
@@ -2711,9 +2740,11 @@ public class ReplicationBroker
         }
         else if (msg instanceof StopMsg)
         {
-          // RS performs a proper disconnection
-          logger.warn(WARN_REPLICATION_SERVER_PROPERLY_DISCONNECTED, previousRsServerID, rs.replicationServer,
-              serverId, baseDN);
+          if (!finishPlannedSwitch(rs.session))
+          {
+            logger.warn(WARN_REPLICATION_SERVER_PROPERLY_DISCONNECTED, previousRsServerID, rs.replicationServer,
+                serverId, baseDN);
+          }
 
           // Try to find a suitable RS
           reStart(rs.session, true);
@@ -2756,7 +2787,7 @@ public class ReplicationBroker
           disconnect properly and let the connection algorithm re-connect to
           best replication server
           */
-          if (reconnectToTheBestRS)
+          if (reconnectToTheBestRS && plannedSwitch == null)
           {
             mustRunBestServerCheckingAlgorithm++;
             if (mustRunBestServerCheckingAlgorithm == 2)
@@ -2792,7 +2823,7 @@ public class ReplicationBroker
                 {
                   debugInfo("best replication servers evaluation results: " + evals);
                 }
-                reStart(true);
+                switchReplicationServer(rs.session);
               }
 
               // Reset wait time before next computation of best server
@@ -2807,15 +2838,30 @@ public class ReplicationBroker
       }
       catch (SocketTimeoutException e)
       {
-        throw e;
+        if (!finishPlannedSwitch(rs.session))
+        {
+          throw e;
+        }
+        abortPlannedSwitch(rs.session, e);
+        if (reconnectOnFailure)
+        {
+          reStart(rs.session, true);
+        }
+        else
+        {
+          break;
+        }
       }
       catch (Exception e)
       {
+        final boolean wasSwitching = finishPlannedSwitch(rs.session);
         logger.traceException(e);
 
         if (!shutdown)
         {
-          if (rs.session == null || !rs.session.closeInitiated())
+          final boolean locallyClosed = rs.session != null
+              && (wasSwitching ? rs.session.isSocketCloseRequested() : rs.session.closeInitiated());
+          if (!locallyClosed)
           {
             // We did not initiate the close on our side, log an error message.
             logger.error(WARN_REPLICATION_SERVER_BADLY_DISCONNECTED,
@@ -2831,7 +2877,62 @@ public class ReplicationBroker
         }
       }
     }
+    if (plannedSwitch != null)
+    {
+      finishPlannedSwitch(plannedSwitch.session);
+    }
     return null;
+  }
+
+  private void switchReplicationServer(Session session)
+  {
+    if (session.getProtocolVersion() < REPLICATION_PROTOCOL_V4)
+    {
+      reStart(session, true);
+      return;
+    }
+
+    final long timeout = Session.plannedSwitchTimeoutMillis(MultimasterReplication.getConnectionTimeoutMS());
+    final PlannedSwitch pending = new PlannedSwitch(session);
+    pending.deadline = DirectoryServer.getInstance().getServerContext().getCronExecutorService().schedule(() -> {
+      if (pending.completed.compareAndSet(false, true))
+      {
+        abortPlannedSwitch(session, new SocketTimeoutException("Timed out closing the old replication session"));
+      }
+    }, timeout, TimeUnit.MILLISECONDS);
+    plannedSwitch = pending;
+
+    // The old RS can be writing to this DS while it reads our final StopMsg.
+    // Keep the receiver running even if writing the StopMsg blocks.
+    if (!session.closeForSwitch(send -> {
+      final DirectoryThread sender = new DirectoryThread(send,
+          "Replication switch from " + session.getReadableRemoteAddress());
+      sender.setDaemon(true);
+      sender.start();
+    }))
+    {
+      finishPlannedSwitch(session);
+      reStart(session, true);
+    }
+  }
+
+  private boolean finishPlannedSwitch(Session session)
+  {
+    if (plannedSwitch == null || plannedSwitch.session != session)
+    {
+      return false;
+    }
+    plannedSwitch.completed.set(true);
+    plannedSwitch.deadline.cancel(false);
+    plannedSwitch = null;
+    return true;
+  }
+
+  private void abortPlannedSwitch(Session session, SocketTimeoutException cause)
+  {
+    logger.warn(LocalizableMessage.raw("Timed out switching from replication server %s for domain \"%s\".",
+        session.getReadableRemoteAddress(), getBaseDN()));
+    session.abort(cause);
   }
 
   /**
