@@ -1,0 +1,93 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+:table-caption!:
+
+ifndef::env-site[]
+[#chap-ldap-transactions]
+endif::[]
+== LDAP Transactions (RFC 5805)
+
+ifdef::env-site[]
+anchor:chap-ldap-transactions[]
+endif::[]
+
+An LDAP transaction lets a client submit related directory updates together and decide when to commit or discard them. The protocol defines two extended operations, a request control and an Aborted Transaction Notice (`1.3.6.1.1.21.4`) for server-initiated aborts. See link:https://www.rfc-editor.org/rfc/rfc5805.html[RFC 5805, Lightweight Directory Access Protocol (LDAP) Transactions].
+
+[#ldap-transactions-discover]
+=== Check Transaction Support
+
+OpenDJ enables the `Start Transaction` and `End Transaction` extended operation handlers by default on a fresh installation. Query the root DSE of the LDAP endpoint the client will use. This example uses LDAPS and assumes that the client trusts the server certificate and that the password file is readable only by the user running the command.
+
+[source,bash]
+----
+bin/ldapsearch --hostname opendj.example.com --port 1636 --useSSL \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /secure/directory-manager.pwd \
+  --baseDN '' --searchScope base '(objectClass=*)' supportedExtension
+----
+
+Look for both extended operations in the result.
+
+[source,ldif]
+----
+supportedExtension: 1.3.6.1.1.21.1
+supportedExtension: 1.3.6.1.1.21.3
+----
+
+[#ldap-transactions-use]
+=== Submit and Settle a Transaction
+
+Use the same bound LDAP connection from start to finish. Keep the connection out of the pool until settlement and keep its authentication and TLS state unchanged. Send the updates in order, waiting for each response before sending the next one.
+
+. Send the Start Transaction extended request (`1.3.6.1.1.21.1`) and save the returned transaction identifier.
+. Attach the critical Transaction Specification control (`1.3.6.1.1.21.2`) with that identifier to each Add, Delete, Modify, or Modify DN request in the transaction. A successful update response confirms that OpenDJ queued the request. OpenDJ processes the queued updates and checks write permissions when the client commits.
+. Send the End Transaction extended request (`1.3.6.1.1.21.3`) with the same identifier. Set `commit` to `true` to apply the queued updates in order, or to `false` to discard them. If a request fails while queuing updates, abort the transaction. If an update fails during commit, OpenDJ reports the failure and attempts to undo previously completed updates. After settlement, discard the identifier.
+
+In the following OpenDJ LDAP SDK example, `connection` is an already bound `org.forgerock.opendj.ldap.Connection` authorized to add entries under an existing `dc=example,dc=com` suffix. Run it on a test server with two unused target DNs. Use `commit = false` first to exercise abort, then `commit = true` to apply the batch.
+
+[source,java]
+----
+import com.forgerock.opendj.ldap.extensions.EndTransactionExtendedRequest;
+import com.forgerock.opendj.ldap.extensions.StartTransactionExtendedRequest;
+import org.forgerock.opendj.ldap.controls.TransactionSpecificationRequestControl;
+import org.forgerock.opendj.ldap.requests.Requests;
+
+// Run inside a method with access to the bound connection.
+boolean commit = false;
+String id = connection.extendedRequest(new StartTransactionExtendedRequest())
+        .getTransactionID();
+for (String ou : new String[] { "TxnPeople", "TxnGroups" }) {
+    connection.add(Requests.newAddRequest("ou=" + ou + ",dc=example,dc=com")
+            .addAttribute("objectClass", "top", "organizationalUnit")
+            .addAttribute("ou", ou)
+            .addControl(new TransactionSpecificationRequestControl(id)));
+}
+connection.extendedRequest(new EndTransactionExtendedRequest()
+        .setTransactionID(id)
+        .setCommit(commit));
+----
+
+Search the same server under `dc=example,dc=com` with the filter `(|(ou=TxnPeople)(ou=TxnGroups))`. The search returns neither entry after the abort and both entries after a successful commit.
+
+Keep related updates on one server. Replication can deliver the individual changes at different times, so applications reading another replica can observe a partial batch.
+
+[#ldap-transactions-troubleshoot]
+=== Troubleshoot Transaction Requests
+
+* If either extension OID is missing or OpenDJ returns `unwillingToPerform` (53) with a missing-handler diagnostic, use `dsconfig list-extended-operation-handlers` on that server's administration connector to check for `Start Transaction` and `End Transaction`. If an existing handler was disabled, review the server's configuration and enable it with `dsconfig set-extended-operation-handler-prop --handler-name 'Start Transaction' --set enabled:true` or the equivalent for `End Transaction`.
+* If the handlers are absent on an instance previously upgraded from a release before 4.10.0, run the supported upgrade to OpenDJ 5.2.0 or later. The upgrade task introduced in 5.2.0 installs missing handlers when upgrading from an older version. Existing handler settings are preserved. See link:https://github.com/OpenIdentityPlatform/OpenDJ/issues/851[OpenDJ issue #851].
+* If OpenDJ returns `canceled` (118) with `unknown transactionId`, check that the identifier came from Start Transaction on the same connection and that the transaction is still open. Start a new transaction if the connection changed or the previous transaction was settled.
+* If commit fails, inspect the LDAP result code and diagnostic message. The End Transaction response can identify the failed update by its LDAP message ID. A rollback error can leave earlier updates in place. If the server closes the connection during settlement, reconnect to the same server and check its error log. Read the affected entries to establish the outcome before retrying with a fresh transaction.

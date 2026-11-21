@@ -66,7 +66,10 @@ public class AntoraPageTitlesIT extends ForgeRockTestCase {
             { "getting-started", "first-steps", "Your First Directory",
               new String[] { "getting-started-first-directory", "_prepare_the_environment",
                              "_set_up_and_start_the_server", "_add_a_person", "_search_and_change_the_entry",
-                             "_restart_and_remove_the_sample_data", "_next_steps" } }
+                             "_restart_and_remove_the_sample_data", "_next_steps" } },
+            { "admin-guide", "chap-ldap-transactions", "LDAP Transactions (RFC 5805)",
+              new String[] { "chap-ldap-transactions", "ldap-transactions-discover", "ldap-transactions-use",
+                             "ldap-transactions-troubleshoot" } }
         };
     }
 

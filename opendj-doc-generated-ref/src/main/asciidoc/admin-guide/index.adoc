@@ -31,6 +31,7 @@ Hands-on guide to configuring and using OpenDJ features. The OpenDJ project offe
 
 include::./preface.adoc[]
 include::./chap-understanding-ldap.adoc[]
+include::./chap-ldap-transactions.adoc[]
 include::./chap-admin-tools.adoc[]
 include::./chap-server-process.adoc[]
 include::./chap-import-export.adoc[]
