@@ -1,0 +1,128 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+:table-caption!:
+
+ifndef::env-site[]
+[#chap-alias-dereferencing]
+endif::[]
+== Dereferencing LDAP Aliases in Searches
+
+ifdef::env-site[]
+anchor:chap-alias-dereferencing[]
+endif::[]
+
+An LDAP alias is an entry of object class `alias`. Its `aliasedObjectName` attribute holds the DN of another entry. An alias can give applications a stable DN for a target that moves, as long as you keep `aliasedObjectName` up to date. A search that dereferences the alias returns the target under the target's own DN.
+
+[#alias-dereferencing-policies]
+=== Search Dereferencing Policies
+
+The client sets the dereferencing policy for each LDAP search request. In OpenDJ's `ldapsearch`, use `-a` or `--dereferencePolicy`. See xref:../reference/admin-tools-ref.adoc#ldapsearch-1[ldapsearch(1)] and https://datatracker.ietf.org/doc/html/rfc4511#section-4.5.1.3[RFC 4511, Section 4.5.1.3].
+
+[cols="1,2,2",options="header"]
+|===
+| Policy
+| Alias at the search base DN
+| Aliases found below the search base
+
+| `never` (default)
+| Keep the alias as the base.
+| Return matching alias entries as stored.
+
+| `find`
+| Start the search at the target.
+| Return matching alias entries as stored.
+
+| `search`
+| For scope `sub`, start the search at the target. For scopes `base` and `one`, keep the alias as the base.
+| Dereference matching alias entries.
+
+| `always`
+| Start the search at the target.
+| Dereference matching alias entries.
+|===
+
+When OpenDJ dereferences the search base, it applies the requested scope at the target. When OpenDJ dereferences an alias it finds below the base, it can return the target entry even if its DN is outside the original search scope. To search the target's subtree through an alias, use the alias DN as the base with scope `sub` and policy `find` or `always`.
+
+[#alias-dereferencing-example]
+=== Create and Search an Alias
+
+On a test server with an existing `dc=example,dc=com` base entry, save the following entries in `aliases.ldif`. The example uses `extensibleObject` to allow `cn` as the alias entry's naming attribute.
+
+[source,ldif]
+----
+dn: cn=Alice Example,dc=example,dc=com
+objectClass: top
+objectClass: person
+cn: Alice Example
+sn: Example
+
+dn: ou=Aliases,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Aliases
+
+dn: cn=Support,ou=Aliases,dc=example,dc=com
+objectClass: top
+objectClass: alias
+objectClass: extensibleObject
+cn: Support
+aliasedObjectName: cn=Alice Example,dc=example,dc=com
+----
+
+Add the entries with `ldapmodify`. Adjust the port and password file for your test instance.
+
+[source,bash]
+----
+bin/ldapmodify --hostname localhost --port 1389 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /path/to/dm-password \
+  -a aliases.ldif
+----
+
+Read the alias entry itself with a base search using `never`. The result contains `dn: cn=Support,ou=Aliases,dc=example,dc=com` and its `aliasedObjectName` value.
+
+[source,bash]
+----
+bin/ldapsearch --hostname localhost --port 1389 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /path/to/dm-password \
+  --baseDN 'cn=Support,ou=Aliases,dc=example,dc=com' --searchScope base \
+  --dereferencePolicy never '(objectClass=*)' aliasedObjectName
+----
+
+Change the policy to `find` to read the target entry. This search returns `dn: cn=Alice Example,dc=example,dc=com` and its `cn` value.
+
+[source,bash]
+----
+bin/ldapsearch --hostname localhost --port 1389 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /path/to/dm-password \
+  --baseDN 'cn=Support,ou=Aliases,dc=example,dc=com' --searchScope base \
+  --dereferencePolicy find '(objectClass=*)' cn
+----
+
+Use `search` to dereference an alias found below a regular base entry. The following one-level search starts at `ou=Aliases` and returns Alice's entry, which is stored outside that branch.
+
+[source,bash]
+----
+bin/ldapsearch --hostname localhost --port 1389 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /path/to/dm-password \
+  --baseDN 'ou=Aliases,dc=example,dc=com' --searchScope one \
+  --dereferencePolicy search '(objectClass=*)' cn
+----
+
+[#alias-dereferencing-troubleshooting]
+=== Check Alias Targets
+
+If a search omits an expected target, read the alias with `--dereferencePolicy never` and look up its `aliasedObjectName` DN directly. OpenDJ skips an alias found below the search base when the target is missing. If a target is renamed or moved, verify that the alias points to its current DN. Repeat the search using the application's bind identity to check what it can read.
