@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import net.jcip.annotations.GuardedBy;
 
@@ -40,6 +41,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.MonitorData;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
@@ -63,7 +65,7 @@ import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
-import org.forgerock.opendj.ldap.DN;
+import org.opends.server.replication.service.DSRSShutdownSync.ForwardingPeer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.HostPort;
 
@@ -274,6 +276,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
   private final Object pendingStatusMessagesLock = new Object();
 
+  /** Changes accepted directly from DSs, which this RS owes to every peer in the mesh. */
+  private final ServerState directUpdates = new ServerState();
+  /** Peer history persisted without being queued to other RSs, including ones registering meanwhile. */
+  private final ServerState peerUpdates = new ServerState();
+  /** Covers puts whose DS handler may already have been removed by concurrent teardown. */
+  private final ReentrantReadWriteLock directUpdateLock = new ReentrantReadWriteLock();
+  private volatile boolean acceptDirectUpdates = true;
+
   @GuardedBy("pendingStatusMessagesLock")
   private PendingStatusMessages pendingStatusMessages = new PendingStatusMessages();
 
@@ -325,7 +335,48 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public void put(UpdateMsg updateMsg, ServerHandler sourceHandler) throws IOException
   {
-    sourceHandler.updateServerState(updateMsg);
+    try
+    {
+      if (sourceHandler.isDataServer())
+      {
+        putDirectUpdate(updateMsg, sourceHandler);
+      }
+      else
+      {
+        putUpdate(updateMsg, sourceHandler);
+      }
+    }
+    catch (ChangelogException e)
+    {
+      // A fatal changelog failure closes every connection. The shutdown drain needs
+      // the write lock on this domain, so the publisher must release its read lock first.
+      logger.error(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR, stackTraceToSingleLineString(e));
+      localReplicationServer.shutdown();
+    }
+  }
+
+  private void putDirectUpdate(UpdateMsg updateMsg, ServerHandler sourceHandler) throws IOException, ChangelogException
+  {
+    directUpdateLock.readLock().lock();
+    try
+    {
+      if (!acceptDirectUpdates)
+      {
+        // Do not advance the source state or accept a late read after the shutdown fence.
+        throw new IOException("Replication server is closing its directory connections");
+      }
+      putUpdate(updateMsg, sourceHandler);
+    }
+    finally
+    {
+      directUpdateLock.readLock().unlock();
+    }
+  }
+
+  private void putUpdate(UpdateMsg updateMsg, ServerHandler sourceHandler) throws IOException, ChangelogException
+  {
+    final long sourceGenerationId = sourceHandler.getGenerationId();
+    sourceHandler.recordReceivedUpdate(updateMsg);
     sourceHandler.incrementInCount();
     /*
      * A directory server which already has changes does not give its generation id at the handshake to a
@@ -358,10 +409,20 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
      */
     final PreparedAssuredInfo preparedAssuredInfo = getPreparedAssuredInfo(updateMsg, sourceHandler);
 
-    if (!publishUpdateMsg(updateMsg))
+    if (!sourceHandler.isDataServer() && updateMsg.contributesToDomainState())
     {
-      return;
+      // Record before publication, independently of the current handler set:
+      // a peer can register while this update is being written to the changelog.
+      synchronized (generationIDLock)
+      {
+        if (generationId == sourceGenerationId)
+        {
+          peerUpdates.update(updateMsg.getCSN());
+        }
+      }
     }
+
+    publishUpdateMsg(updateMsg);
 
     final List<Integer> assuredServers = getAssuredServers(updateMsg, preparedAssuredInfo);
 
@@ -383,6 +444,16 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     // Push the message to the replication servers
     if (sourceHandler.isDataServer())
     {
+      if (updateMsg.contributesToDomainState())
+      {
+        synchronized (generationIDLock)
+        {
+          if (generationId == sourceGenerationId)
+          {
+            directUpdates.update(updateMsg.getCSN());
+          }
+        }
+      }
       if (updateMsg instanceof ReplicaOfflineMsg)
       {
         pushReplicaOfflineMsgToReplicationServers(
@@ -429,18 +500,18 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       NotAssuredUpdateMsg notAssuredUpdateMsg, List<Integer> assuredServers)
   {
     final List<ReplicationServerHandler> recipients = new ArrayList<>(connectedRSs.size());
-    final List<Integer> recipientIds = new ArrayList<>(connectedRSs.size());
+    final List<ForwardingPeer> forwarders = new ArrayList<>(connectedRSs.size());
     for (ReplicationServerHandler rsHandler : connectedRSs.values())
     {
       // Ignore updates to RS with bad gen id (no system managed status for a RS)
       if (!isDifferentGenerationId(rsHandler, offlineMsg))
       {
         recipients.add(rsHandler);
-        recipientIds.add(rsHandler.getServerId());
+        forwarders.add(rsHandler.offlineForwarder());
       }
     }
     localReplicationServer.getDSRSShutdownSync()
-        .replicaOfflineMsgDispatched(baseDN, offlineMsg.getCSN(), recipientIds);
+        .replicaOfflineMsgDispatched(baseDN, offlineMsg.getCSN(), forwarders);
     for (ReplicationServerHandler rsHandler : recipients)
     {
       /*
@@ -581,48 +652,32 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return expectedServers != null ? expectedServers : Collections.<Integer> emptyList();
   }
 
-  private boolean publishUpdateMsg(UpdateMsg updateMsg)
+  private void publishUpdateMsg(UpdateMsg updateMsg) throws ChangelogException
   {
-    try
+    if (updateMsg instanceof ReplicaOfflineMsg)
     {
-      if (updateMsg instanceof ReplicaOfflineMsg)
-      {
-        final ReplicaOfflineMsg offlineMsg = (ReplicaOfflineMsg) updateMsg;
-        this.domainDB.notifyReplicaOffline(baseDN, offlineMsg.getCSN());
-        return true;
-      }
-
-      if (this.domainDB.publishUpdateMsg(baseDN, updateMsg))
-      {
-        /*
-         * JNR: Matt and I had a hard time figuring out where to put this
-         * synchronized block. We elected to put it here, but without a strong
-         * conviction.
-         */
-        synchronized (generationIDLock)
-        {
-          /*
-           * JNR: I think the generationIdSavedStatus is set to true because
-           * method above created a ReplicaDB which assumes the generationId was
-           * communicated to another server. Hence setting true on this field
-           * prevent the generationId from being reset.
-           */
-          generationIdSavedStatus = true;
-        }
-      }
-      return true;
+      final ReplicaOfflineMsg offlineMsg = (ReplicaOfflineMsg) updateMsg;
+      this.domainDB.notifyReplicaOffline(baseDN, offlineMsg.getCSN());
+      return;
     }
-    catch (ChangelogException e)
+
+    if (this.domainDB.publishUpdateMsg(baseDN, updateMsg))
     {
       /*
-       * Because of database problem we can't save any more changes from at
-       * least one LDAP server. This replicationServer therefore can't do it's
-       * job properly anymore and needs to close all its connections and
-       * shutdown itself.
+       * JNR: Matt and I had a hard time figuring out where to put this
+       * synchronized block. We elected to put it here, but without a strong
+       * conviction.
        */
-      logger.error(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR, stackTraceToSingleLineString(e));
-      localReplicationServer.shutdown();
-      return false;
+      synchronized (generationIDLock)
+      {
+        /*
+         * JNR: I think the generationIdSavedStatus is set to true because
+         * method above created a ReplicaDB which assumes the generationId was
+         * communicated to another server. Hence setting true on this field
+         * prevent the generationId from being reset.
+         */
+        generationIdSavedStatus = true;
+      }
     }
   }
 
@@ -1140,6 +1195,59 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
   }
 
+  /** Stops DS readers before the peer RS writers which forward their last changes. */
+  void stopDirectoryServers()
+  {
+    for (DataServerHandler handler : connectedDSs.values())
+    {
+      stopServer(handler, true);
+    }
+  }
+
+  /**
+   * Drains changes received directly from DSs before the peer sessions are closed. A peer
+   * does not relay third-party changes, so a newer CSN received after failover cannot repair
+   * a hole left here. The deadline is shared by every peer and domain of one shutdown.
+   */
+  void awaitDirectUpdatesForwarded(long deadline) throws InterruptedException
+  {
+    // A handler leaves connectedDSs before its reader finishes. Closing admission and
+    // crossing this barrier includes those readers too, without serializing live DS puts.
+    acceptDirectUpdates = false;
+    if (!directUpdateLock.writeLock().tryLock(Math.max(0, deadline - System.nanoTime()), TimeUnit.NANOSECONDS))
+    {
+      logger.warn(LocalizableMessage.raw("RS shutdown timed out waiting for direct DS updates for " + baseDN));
+      return;
+    }
+    final ServerState target;
+    final long targetGenerationId;
+    try
+    {
+      synchronized (generationIDLock)
+      {
+        target = directUpdates.duplicate();
+        targetGenerationId = generationId;
+      }
+    }
+    finally
+    {
+      directUpdateLock.writeLock().unlock();
+    }
+    for (ReplicationServerHandler handler : connectedRSs.values())
+    {
+      if (targetGenerationId != getGenerationId())
+      {
+        break; // A reset deliberately discarded the old generation's changelog.
+      }
+      if (handler.getGenerationId() == targetGenerationId
+          && !handler.awaitPublished(target, deadline))
+      {
+        logger.warn(LocalizableMessage.raw("RS shutdown could not forward all direct DS updates for "
+            + baseDN + " to RS " + handler.getServerId() + "; target state: " + target));
+      }
+    }
+  }
+
   /**
    * Checks whether it is already connected to a DS with same id.
    *
@@ -1149,14 +1257,20 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public boolean isAlreadyConnectedToDS(DataServerHandler dsHandler)
   {
-    if (connectedDSs.containsKey(dsHandler.getServerId()))
+    final DataServerHandler existing = connectedDSs.get(dsHandler.getServerId());
+    if (existing == null)
     {
-      // looks like two connected LDAP servers have the same serverId
-      logger.error(ERR_DUPLICATE_SERVER_ID, localReplicationServer.getMonitorInstanceName(),
-          connectedDSs.get(dsHandler.getServerId()), dsHandler, dsHandler.getServerId());
-      return true;
+      return false;
     }
-    return false;
+
+    // A closing handler still owns its ID until teardown unregisters it. The session
+    // can start closing before stopServer marks the handler as shutting down.
+    if (!existing.shuttingDown() && !existing.session.closeInitiated())
+    {
+      logger.error(ERR_DUPLICATE_SERVER_ID, localReplicationServer.getMonitorInstanceName(),
+          existing, dsHandler, dsHandler.getServerId());
+    }
+    return true;
   }
 
   /**
@@ -1263,14 +1377,36 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   void noLongerAwaitTheForwardOf(ServerHandler rsHandler)
   {
     localReplicationServer.getDSRSShutdownSync()
-        .replicaOfflineMsgNotForwarded(baseDN, rsHandler.getServerId());
+        .replicaOfflineMsgNotForwarded(baseDN, rsHandler.offlineForwarder());
   }
 
   private void unregisterServerHandler(ServerHandler sHandler, boolean shutdown,
       boolean isDirectoryServer)
   {
     unregisterServerHandler(sHandler);
-    sHandler.shutdown();
+    if (shutdown)
+    {
+      sHandler.shutdown();
+    }
+    else
+    {
+      // Stop accepting work and remove name-based monitors before a replacement
+      // can register. Both Session.close() and thread joins run unlocked: closing
+      // may drain writes to a slow peer, and the reader may need this lock for its
+      // last TopologyMsg. Neither may block another peer's failover handshake.
+      sHandler.shutdownWithoutWaiting();
+      release();
+      try
+      {
+        sHandler.awaitShutdown();
+      }
+      finally
+      {
+        // Include any new DS/replacement RS in the generation and topology decisions.
+        // Cleanup still owns this hold on return, including after an interrupt.
+        lock.lock();
+      }
+    }
 
     resetGenerationIdIfPossible();
     if (!shutdown)
@@ -1887,6 +2023,17 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return domainDB.getDomainNewestCSNs(baseDN);
   }
 
+  /**
+   * Returns peer history which an outgoing RS queue may not contain.
+   *
+   * @param serverId the replica which produced the history
+   * @return its newest peer update, or {@code null} when none is known
+   */
+  CSN getLatestPeerUpdate(int serverId)
+  {
+    return peerUpdates.getCSN(serverId);
+  }
+
   @Override
   public String toString()
   {
@@ -2002,6 +2149,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       if (this.generationId != generationId)
       {
         clearDbs();
+        directUpdates.clear();
+        peerUpdates.clear();
 
         this.generationId = generationId;
         this.generationIdSavedStatus = false;
@@ -2270,8 +2419,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
       catch (IOException e)
       {
-        logger.error(ERR_EXCEPTION_CHANGING_STATUS_FROM_STATUS_ANALYZER,
-            baseDN, dsHandler.getServerId(), e.getMessage());
+        logger.traceException(e);
+        // The reader can close the session before removing its handler from this domain.
+        if (!dsHandler.shuttingDown() && !dsHandler.session.closeInitiated())
+        {
+          logger.error(ERR_EXCEPTION_CHANGING_STATUS_FROM_STATUS_ANALYZER,
+              baseDN, dsHandler.getServerId(), e.getMessage());
+        }
       }
 
       if (newStatus == ServerStatus.INVALID_STATUS || newStatus == oldStatus)
@@ -2400,6 +2554,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     try
     {
+      // Teardown releases the domain lock while joining this reader. Its final
+      // message must not change the topology after its handler was removed or
+      // replaced by a new session with the same server id.
+      if (connectedRSs.get(rsHandler.getServerId()) != rsHandler)
+      {
+        return;
+      }
       // Store DS connected to remote RS & update information about the peer RS
       rsHandler.processTopoInfoFromRS(topoMsg);
 

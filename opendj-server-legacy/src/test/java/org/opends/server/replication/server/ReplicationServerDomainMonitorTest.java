@@ -17,6 +17,8 @@ package org.opends.server.replication.server;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
+import static org.opends.server.replication.common.ServerStatus.NORMAL_STATUS;
+import static org.opends.server.replication.common.StatusMachineEvent.TO_DEGRADED_STATUS_EVENT;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -36,12 +38,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.forgerock.opendj.ldap.DN;
 import org.mockito.invocation.InvocationOnMock;
 import org.opends.server.loggers.ConsoleDebugLogPublisher;
 import org.opends.server.loggers.DebugLogger;
 import org.opends.server.loggers.TraceSettings;
 import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.MonitorMsg;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
@@ -262,6 +267,73 @@ public class ReplicationServerDomainMonitorTest extends ReplicationTestCase
       assertThat(forwarding.failure.get()).isNull();
       verify(forwarding.domain, never()).stopServer(any(ServerHandler.class), anyBoolean());
       assertMonitorErrors(logged, 0);
+    }
+    finally
+    {
+      StaticUtils.close(pair);
+    }
+  }
+
+  @Test(dataProvider = "failedSends")
+  public void failedStatusChangeChecksLocalCloseAndHandlerShutdown(final boolean locallyClosed,
+      final boolean shuttingDown, final int expectedErrors) throws Exception
+  {
+    final Session[] pair = connectSessionPair();
+    try
+    {
+      final Session session = pair[1];
+      final DataServerHandler handler = mock(DataServerHandler.class);
+      final ReplicationServerDomain domain = mock(ReplicationServerDomain.class);
+      final ReplicationServer server = mock(ReplicationServer.class);
+      final AtomicReference<IOException> failure = new AtomicReference<>();
+      final DN baseDN = DN.valueOf("dc=example,dc=com");
+
+      setField(ReplicationServerDomain.class, domain, "baseDN", baseDN);
+      setField(ReplicationServerDomain.class, domain, "localReplicationServer", server);
+      setField(ReplicationServerDomain.class, domain, "connectedDSs", Collections.singletonMap(9302, handler));
+      setField(DataServerHandler.class, handler, "status", NORMAL_STATUS);
+      setField(MessageHandler.class, handler, "replicationServer", server);
+      setField(MessageHandler.class, handler, "replicationServerDomain", domain);
+      setField(ServerHandler.class, handler, "session", session);
+      final MsgQueue queue = new MsgQueue();
+      queue.add(new DeleteMsg(baseDN, new CSN(1, 1, 9302), "status-test-entry"));
+      setField(MessageHandler.class, handler, "msgQueue", queue);
+      setField(MessageHandler.class, handler, "following", true);
+      when(server.getDegradedStatusThreshold()).thenReturn(1);
+      when(handler.getStatus()).thenReturn(NORMAL_STATUS);
+      when(handler.getServerId()).thenReturn(9302);
+      when(handler.shuttingDown()).thenReturn(shuttingDown);
+      doCallRealMethod().when(domain).checkDSDegradedStatus();
+
+      doAnswer(invocation -> {
+        // Begin closing after the analyzer has chosen this DS.
+        if (locallyClosed)
+        {
+          session.close();
+        }
+        else
+        {
+          closeSocketsUnder(session);
+        }
+        try
+        {
+          return invocation.callRealMethod();
+        }
+        catch (IOException e)
+        {
+          failure.set(e);
+          throw e;
+        }
+      }).when(handler).changeStatus(TO_DEGRADED_STATUS_EVENT);
+
+      final List<String> logged = errorLogRecordsOf(() -> {
+        domain.checkDSDegradedStatus();
+        return null;
+      });
+      assertThat(failure.get()).as("status change reached the closed socket").isNotNull();
+      assertThat(logged).filteredOn(record -> record.contains("category=SYNC severity=ERROR msgID=139 "))
+          .hasSize(expectedErrors)
+          .allMatch(record -> record.contains("serverId: 9302"));
     }
     finally
     {

@@ -64,6 +64,8 @@ E211='[t] category=SYNC severity=ERROR msgID=211 msg=The connection from this re
 E66='[t] category=SYNC severity=ERROR msgID=66 msg=monitor reply failed'
 E108='[t] category=SYNC severity=ERROR msgID=108 msg=monitor request failed'
 E51='[05/Nov/2026:19:18:17 +0000] category=SYNC severity=ERROR msgID=51 msg=The hostname cv-r0 could not be resolved as an IP address'
+BASE_DN=dc=example,dc=com
+E212='[t] category=SYNC severity=ERROR msgID=212 msg=Directory server DS(23874) timed out while connecting to replication server cv-r1:8989 for domain "dc=example,dc=com"'
 E18='[t] category=SYNC severity=ERROR msgID=18 msg=an id that starts the first one a window lists'
 E80='[t] category=SYNC severity=ERROR msgID=80 msg=an id that ends the first one a window lists'
 E106KILL='[t] category=SYNC severity=ERROR msgID=106 msg=an id a window lists, 181, in the message'
@@ -200,6 +202,240 @@ case_ ds-disconnect-rs-kill      1 0 "$KILL" "$E211" ']'
 case_ ds-disconnect-before-after 2 1 "$E211" '[ 211' "$E211" ']' "$E211"
 case_ monitors-in-combined-kill  2 0 '[ dns:cv-c1 180 181 211 284' "$E66" "$E108" ']'
 
+# Only the restarted DS may temporarily reject the new RS certificate during its window.
+WBAD_RS='[t] category=SYNC severity=WARNING msgID=119 msg=Directory server DS(1) encountered an unexpected error while connecting to replication server cv-r1:8989 for domain "dc=example,dc=com": SSLHandshakeException((bad_certificate) PKIX path validation failed)'
+case_ new-cert-exact            0 1 '[ cert:n0:cv-r1' "$WBAD_RS" ']'
+case_ new-cert-wrong-rs         1 0 '[ cert:n0:cv-r0' "$WBAD_RS" ']'
+case_ new-cert-wrong-ds         1 0 '[ cert:n1:cv-r1' "$WBAD_RS" ']'
+case_ new-cert-outside          2 1 "$WBAD_RS" '[ cert:n0:cv-r1' "$WBAD_RS" ']' "$WBAD_RS"
+case_ new-cert-unknown          1 0 '[ cert:n0:cv-r1' "${WBAD_RS/bad_certificate/other_error}" ']'
+case_ new-cert-other-category   1 0 '[ cert:n0:cv-r1' "${WBAD_RS/category=SYNC/category=CORE}" ']'
+# An RS-to-RS certificate warning requires a later recovery of that exact session
+# in the same rebuild window, including its RS id and domain (which may contain spaces).
+WRSCERT='[t] category=SYNC severity=WARNING msgID=312 msg=Replication server RS(31897) could not connect to replication server cv-c3:8989 for domain "cn=admin data": SSLHandshakeException((bad_certificate) PKIX path validation failed). This is reported once: the next message comes when it can be reached again'
+NRSCERT='[t] category=SYNC severity=NOTICE msgID=313 msg=Replication server RS(31897) connected to replication server cv-c3:8989 for domain "cn=admin data", which it had reported it had no replication session with'
+case_ rs-cert-recovered        0 1 '[ cert:n0:cv-c3' "$WRSCERT" "$NRSCERT" ']'
+case_ scale-rs-cert-recovered  0 1 '[ cert:n0:cv-c3 scale-cert-return' "$WRSCERT" "$NRSCERT" ']'
+case_ rs-cert-not-recovered    1 0 '[ cert:n0:cv-c3' "$WRSCERT" ']'
+case_ rs-cert-recovered-before 1 0 '[ cert:n0:cv-c3' "$NRSCERT" "$WRSCERT" ']'
+case_ rs-cert-recovered-after  1 0 '[ cert:n0:cv-c3' "$WRSCERT" ']' "$NRSCERT"
+case_ rs-cert-outside          1 0 "$WRSCERT" '[ cert:n0:cv-c3' "$NRSCERT" ']'
+case_ rs-cert-wrong-node       1 0 '[ cert:n1:cv-c3' "$WRSCERT" "$NRSCERT" ']'
+case_ rs-cert-unknown-peer     1 0 '[ cert:n0:cv-c2' "$WRSCERT" "$NRSCERT" ']'
+for notice in "${NRSCERT/RS(31897)/RS(31898)}" "${NRSCERT/cv-c3/cv-c2}" "${NRSCERT/cn=admin data/cn=schema}" "${NRSCERT/msgID=313/msgID=62}"; do
+  case_ rs-cert-wrong-recovery 1 0 '[ cert:n0:cv-c3' "$WRSCERT" "$notice" ']'
+done
+case_ rs-cert-other-error      1 0 '[ cert:n0:cv-c3' "${WRSCERT/bad_certificate/certificate_unknown}" "$NRSCERT" ']'
+case_ rs-cert-next-window      1 0 '[ cert:n0:cv-c3' "$WRSCERT" ']' '[ cert:n0:cv-c3' "$NRSCERT" ']'
+
+# The RS also reports the rejected handshake, identifying the remote DS by IP and port.
+WBAD_PEER='[t] category=SYNC severity=WARNING msgID=105 msg=Replication server accepted a connection from /172.18.0.9:43210 to local address /172.18.0.2:8989 but the SSL handshake failed. The error was: Received fatal alert: bad_certificate'
+case_ new-cert-rs-side          0 1 '[ cert-peer:n0:172.18.0.9' "$WBAD_PEER" ']'
+case_ new-cert-rs-jdk-prefix    0 1 '[ cert-peer:n0:172.18.0.9' "${WBAD_PEER/The error was: Received/The error was: (bad_certificate) Received}" ']'
+case_ new-cert-rs-other-ip      1 0 '[ cert-peer:n0:172.18.0.8' "$WBAD_PEER" ']'
+case_ new-cert-rs-other-node    1 0 '[ cert-peer:n1:172.18.0.9' "$WBAD_PEER" ']'
+case_ new-cert-rs-outside       1 0 "$WBAD_PEER" '[ cert-peer:n0:172.18.0.9' ']'
+case_ new-cert-rs-other-fault   1 0 '[ cert-peer:n0:172.18.0.9' "${WBAD_PEER/Received fatal alert: bad_certificate/unexpected bad_certificate}" ']'
+# Scale may verify recovery during the roll after the narrow return window closes.
+# A WARN105 must match the client-side TLS failure on the same TCP connection.
+SCALE_WARNING="[18/Nov/2026:12:00:01 +0000]${WBAD_RS:3}"
+SCALE_PEER="[18/Nov/2026:12:00:01 +0000]${WBAD_PEER:3}"
+SCALE_CONNECTED='[18/Nov/2026:12:00:02 +0000] category=SYNC severity=NOTICE msgID=62 msg=Directory server DS(1) has connected to replication server RS(42) for domain "dc=example,dc=com" at 172.18.0.2:8989 with generation ID 3'
+SCALE_SCHEMA_WARNING=${SCALE_WARNING/dc=example,dc=com/cn=schema}
+SCALE_ADMIN_WARNING=${SCALE_WARNING/dc=example,dc=com/cn=admin data}
+SCALE_ADMIN_CONNECTED=${SCALE_CONNECTED/dc=example,dc=com/cn=admin data}
+SCALE_SAME_SECOND=${SCALE_CONNECTED/12:00:02/12:00:01}
+SCALE_RS_WARNING="[18/Nov/2026:12:00:01 +0000]${WRSCERT:3}"
+SCALE_RS_WARNING=${SCALE_RS_WARNING/cv-c3/cv-r1}
+SCALE_RS_RECOVERY="[18/Nov/2026:12:00:02 +0000]${NRSCERT:3}"
+SCALE_RS_RECOVERY=${SCALE_RS_RECOVERY/cv-c3/cv-r1}
+SCALE_RS_ACCEPTOR=${SCALE_PEER/172.18.0.9/172.18.0.7}
+
+scale_tls_attempt() { # <second> <role and ID> <domain> <source IP:port> [<destination IP:port>]
+  printf '[18/Nov/2026:12:00:%s +0000] category=SYNC severity=NOTICE msgID=341 msg=Replication TLS client handshake failed for %s for domain "%s" from /%s to cv-r1/%s' \
+    "$1" "$2" "$3" "$4" "${5:-172.18.0.2:8989}"
+}
+
+SCALE_DS_ATTEMPT=$(scale_tls_attempt 01 'DS(1)' dc=example,dc=com 172.18.0.9:43210)
+SCALE_DS_FAILURE="$SCALE_DS_ATTEMPT"$'\n'"$SCALE_WARNING"
+SCALE_ADMIN_FAILURE="${SCALE_DS_ATTEMPT/dc=example,dc=com/cn=admin data}"$'\n'"$SCALE_ADMIN_WARNING"
+SCALE_SCHEMA_FAILURE=$(scale_tls_attempt 01 'DS(1)' cn=schema 172.18.0.9:43212)
+SCALE_SCHEMA_FAILURE="$SCALE_SCHEMA_FAILURE"$'\n'"$SCALE_SCHEMA_WARNING"
+SCALE_RS_ATTEMPT=$(scale_tls_attempt 01 'RS(31897)' 'cn=admin data' 172.18.0.7:43210)
+SCALE_RS_FAILURE="$SCALE_RS_ATTEMPT"$'\n'"$SCALE_RS_WARNING"
+SCALE_RS_NEXT_SECOND=${SCALE_RS_ACCEPTOR/12:00:01/12:00:02}
+SCALE_RS_RECOVERED_ON_RETRY=${SCALE_RS_RECOVERY/12:00:02/12:00:03}
+
+# <return DS log> <acceptor log> <scale-out DS log> [<post-scale DS log>]
+# [<window change>] [<in-window RS caller log>] [<scale-out RS caller log>]
+scale_cert_result() (
+  rm -rf "$OUT/logs"
+  ALL_NODES='n0 n1 cv-r0 cv-r1'
+  DS_NODES='n0 n1' RS_ONLY='cv-r0 cv-r1' TOPOLOGY=rs534 SCALE_VOLUME=empty
+  RS_NODES=$RS_ONLY PEERS=n0,n1,cv-r0,cv-r1
+  local caller=cv-r0
+  if [ "${5:-}" = combined-peer ]; then
+    TOPOLOGY=combined DS_NODES=$ALL_NODES RS_ONLY= RS_NODES=$ALL_NODES
+    caller=n0
+  fi
+  . "$HERE/disturb-scale.sh"
+  docker() {
+    case "$1 $3" in
+      "exec sh") wc -l <"$OUT/errors-$2" ;;
+      "exec tail") tail -n "$5" "$OUT/errors-$2" ;;
+      *) return 1 ;;
+    esac
+  }
+  printf '%s\n' "$E106" >"$OUT/errors-n0"
+  printf '%s\n' "$E106" >"$OUT/errors-cv-r1"
+  printf '%s\n' "$E106" >"$OUT/errors-n1"
+  printf '%s\n' "$E106" >"$OUT/errors-cv-r0"
+  mark_logs
+  window_open dns:cv-r1 cert:n0:cv-r1 cert:cv-r0:cv-r1 cert-peer:cv-r1:172.18.0.9 scale-cert-return
+  [ -z "$1" ] || printf '%s\n' "$1" >>"$OUT/errors-n0"
+  [ -z "$2" ] || printf '%s\n' "$2" >>"$OUT/errors-cv-r1"
+  [ -z "${6:-}" ] || printf '%s\n' "$6" >>"$OUT/errors-$caller"
+  window_close
+  [ -z "$3" ] || printf '%s\n' "$3" >>"$OUT/errors-n0"
+  [ -z "${7:-}" ] || printf '%s\n' "$7" >>"$OUT/errors-$caller"
+  printf '%s\n' "$SCALE_CONNECTED" >>"$OUT/errors-n1"
+  scale_record_certificate_recoveries 172.18.0.2 n0=172.18.0.9 n1=172.18.0.8 cv-r0=172.18.0.7 || exit 1
+  [ -z "${4:-}" ] || printf '%s\n' "$4" >>"$OUT/errors-n0"
+  case ${5:-} in
+    move-window)
+      printf '1 1 scale-cert-return\n' >"$OUT/logs/n0.windows"
+      printf '1 1 scale-cert-return\n' >"$OUT/logs/cv-r1.windows"
+      ;;
+    ordinary-window)
+      printf '1 3 dns:cv-r1\n' >"$OUT/logs/n0.windows"
+      printf '1 2 dns:cv-r1\n' >"$OUT/logs/cv-r1.windows"
+      ;;
+  esac
+  [ -z "$(sort "$OUT/logs/scale-certificates" | uniq -d)" ] || { echo 'duplicate certificate proof' >&2; exit 1; }
+  local caller_errors acceptor_errors
+  caller_errors=$(replication_errors "${SCALE_CERT_CALLER:-n0}") || exit 1
+  acceptor_errors=$(replication_errors cv-r1) || exit 1
+  for errors in "$caller_errors" "$acceptor_errors"; do
+    if [ -n "$errors" ]; then printf '%s\n' "$errors"; fi
+    printf '%s\n' ---
+  done
+)
+
+scale_cert_case() { # <name> <unexpected caller lines> <unexpected acceptor lines> <logs...>
+  local name=$1 want_caller=$2 want_acceptor=$3 result
+  shift 3
+  if result=$(scale_cert_result "$@") && [ "$result" = "$(for errors in "$want_caller" "$want_acceptor"; do
+    if [ -n "$errors" ]; then printf '%s\n' "$errors"; fi
+    printf '%s\n' ---
+  done)" ]; then
+    passed=$((passed + 1))
+  else
+    failed=$((failed + 1))
+    echo "::error::$name: unexpected certificate classification"
+    printf '%s\n' "$result"
+  fi
+}
+
+scale_rs_cert_case() {
+  SCALE_CERT_CALLER=cv-r0 scale_cert_case "$@"
+}
+
+scale_cert_case scale-cert-no-recovery "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_DS_FAILURE" "$SCALE_PEER" ''
+scale_cert_case scale-cert-recovered '' '' "$SCALE_DS_FAILURE"$'\n'"$SCALE_CONNECTED" "$SCALE_PEER" ''
+scale_cert_case scale-cert-peer-jdk-prefix '' '' "$SCALE_DS_FAILURE" "${SCALE_PEER/The error was: Received/The error was: (bad_certificate) Received}" "$SCALE_CONNECTED"
+scale_cert_case scale-cert-recovered-on-roll '' '' "$SCALE_DS_FAILURE" "$SCALE_PEER" "$SCALE_CONNECTED"
+scale_cert_case scale-cert-admin-domain '' '' "$SCALE_ADMIN_FAILURE" "$SCALE_PEER" "$SCALE_ADMIN_CONNECTED"
+scale_cert_case scale-cert-recovery-after-roll "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_DS_FAILURE" "$SCALE_PEER" '' "$SCALE_CONNECTED"
+scale_cert_case scale-cert-repeated-after-roll "$SCALE_WARNING" '' "$SCALE_DS_FAILURE" "$SCALE_PEER" "$SCALE_CONNECTED" "$SCALE_WARNING"
+scale_cert_case scale-cert-warnings-after-return "$SCALE_WARNING" '' '' '' "$SCALE_DS_FAILURE"$'\n'"$SCALE_CONNECTED"
+scale_cert_case scale-cert-before-warning "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED"$'\n'"$SCALE_DS_FAILURE" "$SCALE_PEER" ''
+scale_cert_case scale-cert-peer-same-second '' '' "$SCALE_DS_FAILURE" "$SCALE_PEER" "$SCALE_SAME_SECOND"
+scale_cert_case scale-cert-peer-two-notices '' '' "$SCALE_DS_FAILURE" "$SCALE_PEER" "$SCALE_SAME_SECOND"$'\n'"$SCALE_CONNECTED"
+scale_cert_case scale-cert-warning-without-attempt '' "$SCALE_PEER" "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_CONNECTED"
+
+# Assert both logs. The acceptor's rejected handshake and the caller's outage are separate records.
+scale_rs_cert_case scale-rs-peer-recovered '' '' '' "$SCALE_RS_ACCEPTOR" '' '' '' "$SCALE_RS_FAILURE"$'\n'"$SCALE_RS_RECOVERY"
+scale_rs_cert_case scale-rs-peer-adjacent-seconds '' '' '' "$SCALE_RS_NEXT_SECOND" '' '' '' \
+  "$SCALE_RS_FAILURE"$'\n'"$SCALE_RS_RECOVERED_ON_RETRY"
+scale_rs_cert_case scale-rs-peer-retry-without-warn312 '' '' '' "$SCALE_RS_NEXT_SECOND" '' '' '' \
+  "$SCALE_RS_ATTEMPT"$'\n'"$SCALE_RS_RECOVERED_ON_RETRY"
+scale_rs_cert_case scale-rs-peer-without-attempt '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' \
+  "$SCALE_RS_WARNING"$'\n'"$SCALE_RS_RECOVERY"
+scale_rs_cert_case scale-rs-peer-without-recovery "$SCALE_RS_WARNING" "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' "$SCALE_RS_FAILURE"
+scale_rs_cert_case scale-rs-peer-late-recovery "$SCALE_RS_WARNING" "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' \
+  "$SCALE_RS_FAILURE" "$SCALE_RS_RECOVERY"
+scale_rs_cert_case scale-rs-peer-recovery-before-attempt "$SCALE_RS_WARNING" "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' \
+  "$SCALE_RS_RECOVERY"$'\n'"$SCALE_RS_FAILURE"
+for notice in "${SCALE_RS_RECOVERY/RS(31897)/RS(31898)}" "${SCALE_RS_RECOVERY/cv-r1/cv-r2}" \
+              "${SCALE_RS_RECOVERY/cn=admin data/cn=schema}"; do
+  scale_rs_cert_case scale-rs-peer-wrong-recovery "$SCALE_RS_WARNING" "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' \
+    "$SCALE_RS_FAILURE"$'\n'"$notice"
+done
+for attempt in "${SCALE_RS_ATTEMPT/43210/43211}" "${SCALE_RS_ATTEMPT/172.18.0.7/172.18.0.8}" \
+               "${SCALE_RS_ATTEMPT/172.18.0.2/172.18.0.3}" "${SCALE_RS_ATTEMPT/8989/8990}" \
+               "${SCALE_RS_ATTEMPT/RS(31897)/DS(31897)}"; do
+  scale_rs_cert_case scale-rs-peer-wrong-attempt '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' \
+    "$attempt"$'\n'"$SCALE_RS_WARNING"$'\n'"$SCALE_RS_RECOVERY"
+done
+scale_rs_cert_case scale-rs-peer-ambiguous-attempt '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' \
+  "$SCALE_RS_FAILURE"$'\n'"${SCALE_RS_ATTEMPT/cn=admin data/cn=schema}"$'\n'"$SCALE_RS_RECOVERY"
+scale_rs_cert_case scale-rs-peer-attempt-after-window '' "$SCALE_RS_ACCEPTOR" '' "$SCALE_RS_ACCEPTOR" '' '' '' \
+  "$SCALE_RS_WARNING"$'\n'"$SCALE_RS_RECOVERY" "$SCALE_RS_ATTEMPT"
+
+# A combined node can fail as both DS and RS, even with the same ID and domain.
+# Their accepted sockets have different source ports and each needs its own recovery.
+SCALE_COMBINED_RS_WARNING=${SCALE_RS_WARNING/RS(31897)/RS(1)}
+SCALE_COMBINED_RS_RECOVERY=${SCALE_RS_RECOVERY/RS(31897)/RS(1)}
+SCALE_COMBINED_RS_ATTEMPT=$(scale_tls_attempt 01 'RS(1)' 'cn=admin data' 172.18.0.9:43211)
+SCALE_COMBINED_RS_FAILURE="$SCALE_COMBINED_RS_ATTEMPT"$'\n'"$SCALE_COMBINED_RS_WARNING"
+SCALE_COMBINED_RS_ACCEPTOR=${SCALE_PEER/43210/43211}
+scale_cert_case scale-combined-peer-unrecovered-rs "$SCALE_COMBINED_RS_WARNING" "$SCALE_COMBINED_RS_ACCEPTOR" \
+  "$SCALE_ADMIN_FAILURE" "$SCALE_PEER"$'\n'"$SCALE_COMBINED_RS_ACCEPTOR" "$SCALE_ADMIN_CONNECTED" '' combined-peer "$SCALE_COMBINED_RS_FAILURE"
+scale_cert_case scale-combined-peer-unrecovered-ds "$SCALE_ADMIN_WARNING" "$SCALE_PEER" \
+  "$SCALE_ADMIN_FAILURE" "$SCALE_PEER"$'\n'"$SCALE_COMBINED_RS_ACCEPTOR" \
+  '' '' combined-peer "$SCALE_COMBINED_RS_FAILURE"$'\n'"$SCALE_COMBINED_RS_RECOVERY"
+scale_cert_case scale-combined-peer-recovered '' '' "$SCALE_ADMIN_FAILURE" "$SCALE_PEER"$'\n'"$SCALE_COMBINED_RS_ACCEPTOR" \
+  "$SCALE_ADMIN_CONNECTED" '' combined-peer "$SCALE_COMBINED_RS_FAILURE"$'\n'"$SCALE_COMBINED_RS_RECOVERY"
+
+scale_cert_case scale-cert-proof-outside-window "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_DS_FAILURE" "$SCALE_PEER" "$SCALE_CONNECTED" '' move-window
+scale_cert_case scale-cert-proof-in-ordinary-window "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_DS_FAILURE" "$SCALE_PEER" "$SCALE_CONNECTED" '' ordinary-window
+scale_cert_case scale-cert-peer-without-ds-warning '' '' "$SCALE_DS_ATTEMPT" "$SCALE_PEER" "$SCALE_CONNECTED"
+scale_cert_case scale-cert-unrelated-domain "$SCALE_SCHEMA_WARNING" '' "$SCALE_DS_FAILURE"$'\n'"$SCALE_SCHEMA_FAILURE" "$SCALE_PEER" "$SCALE_CONNECTED"
+scale_cert_case scale-cert-all-domains-recovered '' '' "$SCALE_DS_FAILURE"$'\n'"$SCALE_SCHEMA_FAILURE" \
+  "$SCALE_PEER"$'\n'"${SCALE_PEER/43210/43212}" \
+  "$SCALE_CONNECTED"$'\n'"${SCALE_CONNECTED/dc=example,dc=com/cn=schema}"
+for notice in "${SCALE_CONNECTED/172.18.0.2/172.18.0.3}" "${SCALE_CONNECTED/dc=example,dc=com/cn=schema}" \
+              "${SCALE_CONNECTED/DS(1)/DS(2)}" "${SCALE_CONNECTED/msgID=62/msgID=96}"; do
+  scale_cert_case scale-cert-wrong-recovery "$SCALE_WARNING" "$SCALE_PEER" "$SCALE_DS_FAILURE" "$SCALE_PEER" "$notice"
+done
+for peer in "${SCALE_PEER/172.18.0.9/172.18.0.8}" "${SCALE_PEER/172.18.0.2/172.18.0.3}"; do
+  scale_cert_case scale-cert-wrong-ip '' "$peer" "$SCALE_DS_FAILURE" "$peer" "$SCALE_CONNECTED"
+done
+case_ startup-timeout-exact     0 1 '[ timeout:n0:cv-r1' "$E212" ']'
+case_ startup-timeout-other-ds  1 0 '[ timeout:n1:cv-r1' "$E212" ']'
+case_ startup-timeout-other-rs  1 0 '[ timeout:n0:cv-r0' "$E212" ']'
+case_ startup-timeout-domain    1 0 '[ timeout:n0:cv-r1' "${E212/dc=example,dc=com/cn=schema}" ']'
+case_ startup-timeout-outside   1 0 "$E212" '[ timeout:n0:cv-r1' ']'
+
+# A long DNS-only window must not also hide the normally expected handshake errors.
+case_ dns-only-name           0 1 '[ dns-only dns:cv-r0' "$E51" ']'
+case_ dns-only-handshake      1 0 '[ dns-only dns:cv-r0' "$E178" ']'
+
+# Real long DNS window overlapping no ordinary restart window.
+rm -rf "$OUT/logs"
+printf '%s\n' "$E106" >"$LOG"
+mark_logs
+dns_window_open cv-r0
+printf '%s\n' "$E51" "$E178" >>"$LOG"
+dns_window_close
+errors=$(replication_errors n0 | grep -c . || true)
+expected=$(grep -c . "$OUT/logs/n0.expected" || true)
+if [ "$errors" = 1 ] && [ "$expected" = 1 ]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1)); echo '::error::DNS-only window accepted unrelated handshake or missed DNS error'
+fi
+
 # A log that cannot be read stops window_open, which would otherwise open a window from its first
 # line. In the background: errexit is off in a subshell on the left of ||, and on in a job
 code=0
@@ -212,6 +448,99 @@ else
   failed=$((failed + 1))
   echo "::error::window_open went on over an errors log that cannot be read"
 fi
+
+# The same failure must be fatal when the caller handles the return code itself: Bash
+# disables errexit throughout a function called from an if/|| condition.
+if window_open 180 >/dev/null 2>&1; then
+  failed=$((failed + 1)); echo '::error::conditional window_open accepted an unreadable log'
+else
+  passed=$((passed + 1))
+fi
+printf '0 180\n' >"$OUT/logs/n0.window"
+if window_close >/dev/null 2>&1; then
+  failed=$((failed + 1)); echo '::error::conditional window_close accepted an unreadable log'
+else
+  passed=$((passed + 1))
+fi
+
+# A replaced server has a new errors file. Preserve the old file as a prefix so marks and
+# window boundaries cover records on both volumes without accepting errors outside the window.
+rm -rf "$OUT/logs"
+printf '%s\n' "$E178" "$E106" >"$LOG"
+mark_logs
+printf '%s\n' "$E106" >>"$LOG"
+window_open 180
+printf '%s\n' "$E180" >>"$LOG"
+cp "$LOG" "$OUT/logs/n0.previous"
+printf '%s\n' "$E180" >"$LOG"
+window_close
+printf '%s\n' "$E106" >>"$LOG"
+errors=$(replication_errors n0 | grep -c . || true)
+expected=$(grep -c . "$OUT/logs/n0.expected" || true)
+if [ "$errors" = 2 ] && [ "$expected" = 2 ]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1))
+  echo "::error::replacement logs: $errors errors and $expected expected, wanted 2 each"
+fi
+
+# While a scaled-down container is absent, its captured line count keeps later windows
+# aligned; a different unreadable node still fails.
+printf '7\n' >"$OUT/logs/n0.offline"
+rm -f "$LOG"
+if [ "$(errors_lines n0 2>/dev/null || :)" = 7 ]; then
+  passed=$((passed + 1))
+else
+  failed=$((failed + 1)); echo '::error::offline node lost its captured line count'
+fi
+rm "$OUT/logs/n0.offline"
+if errors_lines n0 >/dev/null 2>&1; then
+  failed=$((failed + 1)); echo '::error::unreadable online log was accepted'
+else
+  passed=$((passed + 1))
+fi
+
+# Overlapping transitions retain separate bounds and exact hostname allowances.
+rm -rf "$OUT/logs"
+printf '%s\n' "$N62" >"$LOG"
+mark_logs
+window_open_key first dns:first
+printf '%s\n' "$E178" >>"$LOG"
+window_open_key second dns:second
+printf '%s\n' "$E180" >>"$LOG"
+window_close_key first
+printf '%s\n' "$E179" >>"$LOG"
+window_close_key second
+printf '%s\n' "$E178" >>"$LOG"
+errors=$(replication_errors n0 | grep -c . || true)
+expected=$(grep -c . "$OUT/logs/n0.expected" || true)
+[ "$errors" = 2 ] && [ "$expected" = 2 ] || { echo "overlapping windows misclassified records: $errors/$expected" >&2; exit 1; }
+[ ! -e "$OUT/logs/n0.window-first" ] && [ ! -e "$OUT/logs/n0.window-second" ] || { echo 'overlapping window left open' >&2; exit 1; }
+
+# DNS allowances stay scoped to their own overlapping node windows.
+rm -rf "$OUT/logs"
+printf '%s\n' "$N62" >"$LOG"
+mark_logs
+E51R1=${E51//cv-r0/cv-r1}
+window_open_key first dns:cv-r0
+printf '%s\n' "$E51" >>"$LOG"
+window_open_key second dns:cv-r1
+printf '%s\n' "$E51R1" >>"$LOG"
+window_close_key first
+printf '%s\n' "$E51" "$E51R1" >>"$LOG"
+window_close_key second
+printf '%s\n' "$E51R1" >>"$LOG"
+errors=$(replication_errors n0 | grep -c . || true)
+expected=$(grep -c . "$OUT/logs/n0.expected" || true)
+[ "$errors" = 2 ] && [ "$expected" = 3 ] || { echo "overlapping DNS windows misclassified records: $errors/$expected" >&2; exit 1; }
+
+D180=${E180/cv-r0/172.18.0.8}
+case_ scoped-failover 0 1 '[ disconnect:n0:172.18.0.8' "$D180" ']'
+case_ failover-outside-window 2 1 "$D180" '[ disconnect:n0:172.18.0.8' "$D180" ']' "$D180"
+case_ failover-wrong-node 1 0 '[ disconnect:n1:172.18.0.8' "$D180" ']'
+case_ failover-wrong-peer 1 0 '[ disconnect:n0:172.18.0.9' "$D180" ']'
+case_ failover-wrong-domain 1 0 '[ disconnect:n0:172.18.0.8' "${D180/dc=example,dc=com/cn=schema}" ']'
+case_ failover-wrong-id 1 0 '[ disconnect:n0:172.18.0.8' "${D180/msgID=180 /msgID=1800 }" ']'
 
 echo "replication_errors: $passed cases passed, $failed failed"
 [ "$failed" -eq 0 ]

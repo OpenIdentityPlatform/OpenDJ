@@ -14,7 +14,7 @@
 #
 # Copyright 2006-2009 Sun Microsystems, Inc.
 # Portions Copyright 2011-2014 ForgeRock AS.
-# Portions Copyright 2025-2026 3A Systems LLC.
+# Portions Copyright 2025-2026 3A Systems, LLC.
 
 
 # Capture the current working directory so that we can change to it later.
@@ -73,6 +73,25 @@ PID_FILE=${INSTANCE_ROOT}/logs/server.pid
 LOG_FILE=${INSTANCE_ROOT}/logs/server.out
 STARTING_FILE=${INSTANCE_ROOT}/logs/server.starting
 
+# Keep failed launcher checks apart from server.out, which a later foreground
+# start replaces. Capture the child result only when it has already exited;
+# diagnostics must neither wait for a live server nor alter the launch result.
+report_start_failure()
+{
+  CHILD_STATUS=running
+  if ! kill -0 "${SERVER_PID}" 2>/dev/null
+  then
+    wait "${SERVER_PID}"
+    CHILD_STATUS=$?
+  fi
+  START_FAILURE="start-ds: $1 exited with status $2; server pid ${SERVER_PID}, status ${CHILD_STATUS}"
+  printf '%s\n' "${START_FAILURE}" "${3:-}" >&2
+  {
+    date -u '+%Y-%m-%dT%H:%M:%SZ'
+    printf '%s\n' "${START_FAILURE}" "${3:-}"
+  } 2>/dev/null >> "${INSTANCE_ROOT}/logs/start-ds.log" || :
+}
+
 # Remove the native libraries the BC FIPS loader extracts into the tmp directory
 # on every start, so that they do not pile up. Nothing else in there is ours to
 # remove: the tmp directory is java.io.tmpdir for every tool, and a tool may
@@ -103,7 +122,8 @@ then
   nohup "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
        org.opends.server.core.DirectoryServer \
        --configFile "${CONFIG_FILE}" "${@}" > "${LOG_FILE}" 2>&1 &
-  echo $! > "${PID_FILE}"
+  SERVER_PID=$!
+  echo "${SERVER_PID}" > "${PID_FILE}"
   if test ${EC} -eq 99
   then
     wait_for_file_delete \
@@ -116,17 +136,18 @@ then
   if test ${EC} -eq 0
   then
     # An exit code of 98 means that the server is already running.
-  	"${OPENDJ_JAVA_BIN}" -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
-            --configFile "${CONFIG_FILE}" --checkStartability > /dev/null 2>&1
+    START_CHECK_OUTPUT=$("${OPENDJ_JAVA_BIN}" -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
+            --configFile "${CONFIG_FILE}" --checkStartability 2>&1)
     EC=${?}
     if test ${EC} -eq 98
     then
     	exit 0
     else
-      # Could not start the server
+      report_start_failure checkStartability "${EC}" "${START_CHECK_OUTPUT}"
       exit 1
     fi
   fi
+  report_start_failure WaitForFileDelete "${EC}"
   exit ${EC}
 else
   if test ${EC} -eq 100

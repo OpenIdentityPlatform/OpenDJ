@@ -33,12 +33,23 @@ command -v python3 >/dev/null || { echo "run.sh needs python3" >&2; exit 2; }
 . "$HERE/load.sh"
 . "$HERE/assert-converged.sh"
 . "$HERE/collect.sh"
+after_convergence() { :; }
 if [ "$DISTURBANCE" != none ]; then
-  [ -f "$HERE/disturb-$DISTURBANCE.sh" ] \
-    || { echo "unknown DISTURBANCE $DISTURBANCE: none, or the <name> of a disturb-<name>.sh in $HERE" >&2; exit 2; }
   [ "$DISTURB_AT" -gt 0 ] && [ "$DISTURB_AT" -lt "$DURATION" ] \
     || { echo "DISTURB_AT=$DISTURB_AT is not within the load of $DURATION s" >&2; exit 2; }
-  . "$HERE/disturb-$DISTURBANCE.sh"
+  case $DISTURBANCE in
+    scale-kept|scale-empty|scale-rs-kept|scale-rs-empty)
+      SCALE_VOLUME=${DISTURBANCE##*-}
+      . "$HERE/scale-membership.sh"
+      . "$HERE/rolling-load.sh"
+      . "$HERE/disturb-scale.sh"
+      ;;
+    *)
+      [ -f "$HERE/disturb-$DISTURBANCE.sh" ] \
+        || { echo "unknown DISTURBANCE $DISTURBANCE: none, or the <name> of a disturb-<name>.sh in $HERE" >&2; exit 2; }
+      . "$HERE/disturb-$DISTURBANCE.sh"
+      ;;
+  esac
 fi
 
 # the files of an earlier run would mix into this one's: the samples are appended to, and the
@@ -52,7 +63,7 @@ mkdir -p "$OUT"
 # the main shell decides. A run that fails before the online checks - a load check, a wait
 # that timed out, which a reconnection under load would explain - counts the reconnections
 # while the servers are still up
-trap 'code=$?; [ "$BASH_SUBSHELL" -eq 0 ] || exit $code; sampler_stop; [ -f "$OUT/reconnections.txt" ] || [ ! -f "$OUT/logs/${DS_NODES%% *}.mark" ] || record_reconnections || true; timings; collect; summarize failed; [ "$KEEP" = 1 ] || cleanup; exit $code' ERR
+trap 'code=$?; [ "$BASH_SUBSHELL" -eq 0 ] || exit $code; sampler_stop; [ -f "$OUT/reconnections.txt" ] || [ ! -f "$OUT/logs/${DS_NODES%% *}.mark" ] || record_reconnections || true; timings; case $DISTURBANCE in scale-*) collect_scale_bootstrap ;; esac; collect; finalize_failure_csn_traces; summarize failed; [ "$KEEP" = 1 ] || cleanup; exit $code' ERR
 cleanup
 
 phase "topology up ($TOPOLOGY)"
@@ -74,11 +85,18 @@ done
 mark_logs
 record_server_ids
 
-phase "load ($DURATION s${DISTURBED:+, $DISTURBANCE of $DISTURBED at $DISTURB_AT s})"
+case $DISTURBANCE in scale-*) load_limit='up to ' ;; *) load_limit= ;; esac
+phase "load (${load_limit}$DURATION s${DISTURBED:+, $DISTURBANCE of $DISTURBED at $DISTURB_AT s})"
 # the changes of the load: assert_changelogs looks for gaps among the changes made in between
 LOAD_START_MS=$(($(date +%s) * 1000))
+case $DISTURBANCE in
+  scale-kept|scale-empty|scale-rs-kept|scale-rs-empty) prepare_rolling_deadline ;;
+esac
 sampler_start
-run_load
+case $DISTURBANCE in
+  scale-kept|scale-empty|scale-rs-kept|scale-rs-empty) rolling_run_load ;;
+  *) run_load ;;
+esac
 sampler_stop
 
 phase "converge"
@@ -88,6 +106,7 @@ load_end=$SECONDS
 [ "$DISTURBANCE" = none ] || settle
 wait_converged $load_end
 echo "converged in $CONVERGED_IN s"
+after_convergence
 LOAD_END_MS=$(($(date +%s) * 1000))
 
 if [ "$INJECT_DIVERGENCE" = 1 ]; then
@@ -103,9 +122,12 @@ assert_online || checks="the online checks"
 
 phase "offline checks"
 stop_all
+check_csn_traces || checks="${checks:+$checks and }the CSN traces"
 assert_offline || checks="${checks:+$checks and }the offline checks"
+diagnose_csn_gaps || checks="${checks:+$checks and }the CSN trace diagnostics"
 [ -z "$checks" ] || fail "$checks failed"
 
 timings
+case $DISTURBANCE in scale-*) collect_scale_bootstrap ;; esac
 summarize passed
 cleanup

@@ -101,7 +101,13 @@ fi
   --acceptLicense \
   --no-prompt \
   --noPropertiesFile \
+  --doNotStart \
   $SETUP_ARGS || exit 1
+
+# Let the setup JVM exit before starting the server. Under a 512 MiB container
+# limit, setup, the server and the launcher's waiter can otherwise coexist and
+# the OOM killer can take the server just after it reported a successful start.
+/opt/opendj/bin/start-ds || exit 1
 
 BACKEND_TYPE=${BACKEND_TYPE:-je}
 BACKEND_DB_DIRECTORY=${BACKEND_DB_DIRECTORY:-db}

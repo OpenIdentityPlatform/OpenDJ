@@ -2471,9 +2471,7 @@ public abstract class ReplicationDomain
       logger.trace("[IE] Entering initializeFromRemote for " + this);
     }
 
-    LocalizableMessage errMsg = !broker.isConnected()
-        ? ERR_INITIALIZATION_FAILED_NOCONN.get(getBaseDN())
-        : null;
+    LocalizableMessage errMsg = null;
 
     /*
     We must not test here whether the remote source is connected to
@@ -2499,6 +2497,8 @@ public abstract class ReplicationDomain
       ieCtx.initReqMsgSent = new InitializeRequestMsg(
           getBaseDN(), getServerId(), source, getInitWindow());
       ieCtx.markInitRequestSent();
+      // A reconnect can finish before the request is sent. Keep the context when
+      // publish succeeds, even if the broker was disconnected on entry.
       // The broker silently drops the message when it is caught between two
       // sessions (connection error, recovery pending after a reconnect) and
       // only replays UpdateMsgs on reconnect: an unpublished request would

@@ -45,6 +45,37 @@ import org.opends.server.replication.common.CSN;
 public class DSRSShutdownSync
 {
   /**
+   * Identifies one connection to a peer RS without retaining the handler or session.
+   * Connections with the same server ID have distinct tokens.
+   */
+  public static final class ForwardingPeer
+  {
+    private final int serverId;
+
+    /**
+     * Creates the token for one connection.
+     *
+     * @param serverId the peer's server ID, for diagnostics
+     */
+    public ForwardingPeer(int serverId)
+    {
+      this.serverId = serverId;
+    }
+
+    /** Returns the peer's server ID. */
+    public int getServerId()
+    {
+      return serverId;
+    }
+
+    @Override
+    public String toString()
+    {
+      return "RS(" + serverId + ")";
+    }
+  }
+
+  /**
    * How long a ReplicaOfflineMsg may hold back the shutdown of the collocated
    * RS, in milliseconds, counted from the moment the message was announced.
    */
@@ -196,11 +227,11 @@ public class DSRSShutdownSync
    *          the domain for which the message has been sent
    * @param offlineCSN
    *          the CSN of the message which is being queued
-   * @param replicationServerIds
-   *          the server ids of the replication servers the message is being queued for
+   * @param peers
+   *          the peer connections the message is being queued for
    */
   public void replicaOfflineMsgDispatched(
-      DN baseDN, CSN offlineCSN, Collection<Integer> replicationServerIds)
+      DN baseDN, CSN offlineCSN, Collection<ForwardingPeer> peers)
   {
     final ConcurrentMap<Integer, PendingOfflineMsg> msgs = replicaOfflineMsgs.get(baseDN);
     if (msgs == null)
@@ -215,7 +246,7 @@ public class DSRSShutdownSync
      * nothing about the announcement the shutdown is waiting for.
      */
     if (pending != null && pending.csn.equals(offlineCSN)
-        && pending.awaitForwardsFrom(replicationServerIds))
+        && pending.awaitForwardsFrom(peers))
     {
       // queued for nobody: there is nothing to wait for
       msgs.remove(serverId, pending);
@@ -230,10 +261,10 @@ public class DSRSShutdownSync
    *          the domain for which the message has been sent
    * @param forwardedCSN
    *          the CSN of the forwarded message
-   * @param replicationServerId
-   *          the server id of the replication server the message has been forwarded to
+   * @param peer
+   *          the peer connection through which the message was forwarded
    */
-  public void replicaOfflineMsgForwarded(DN baseDN, CSN forwardedCSN, int replicationServerId)
+  public void replicaOfflineMsgForwarded(DN baseDN, CSN forwardedCSN, ForwardingPeer peer)
   {
     final ConcurrentMap<Integer, PendingOfflineMsg> msgs = replicaOfflineMsgs.get(baseDN);
     if (msgs != null)
@@ -248,7 +279,7 @@ public class DSRSShutdownSync
        * not consume its grace period.
        */
       if (pending != null && pending.csn.isOlderThanOrEqualTo(forwardedCSN)
-          && pending.forwardedBy(replicationServerId))
+          && pending.forwardedBy(peer))
       {
         msgs.remove(serverId, pending);
       }
@@ -265,10 +296,10 @@ public class DSRSShutdownSync
    *
    * @param baseDN
    *          the domain the replication server is connected to
-   * @param replicationServerId
-   *          the server id of the replication server which will not forward the message
+   * @param peer
+   *          the peer connection which will not forward the message
    */
-  public void replicaOfflineMsgNotForwarded(DN baseDN, int replicationServerId)
+  public void replicaOfflineMsgNotForwarded(DN baseDN, ForwardingPeer peer)
   {
     final ConcurrentMap<Integer, PendingOfflineMsg> msgs = replicaOfflineMsgs.get(baseDN);
     if (msgs != null)
@@ -276,7 +307,7 @@ public class DSRSShutdownSync
       for (Entry<Integer, PendingOfflineMsg> entry : msgs.entrySet())
       {
         final PendingOfflineMsg pending = entry.getValue();
-        if (pending.giveUpOn(replicationServerId))
+        if (pending.giveUpOn(peer))
         {
           msgs.remove(entry.getKey(), pending);
         }
@@ -448,7 +479,7 @@ public class DSRSShutdownSync
      * The replication servers the message was queued for and which have not forwarded it yet,
      * null as long as it has not been queued for anybody.
      */
-    private volatile Set<Integer> awaitedForwarders;
+    private volatile Set<ForwardingPeer> awaitedForwarders;
 
     private PendingOfflineMsg(CSN csn, long sentTime, PendingOfflineMsg displaced)
     {
@@ -461,10 +492,10 @@ public class DSRSShutdownSync
      * Records the replication servers the message is being queued for, and returns whether there
      * is none of them, i.e. nothing left to wait for.
      */
-    private boolean awaitForwardsFrom(Collection<Integer> replicationServerIds)
+    private boolean awaitForwardsFrom(Collection<ForwardingPeer> peers)
     {
-      final Set<Integer> awaited = ConcurrentHashMap.newKeySet();
-      awaited.addAll(replicationServerIds);
+      final Set<ForwardingPeer> awaited = ConcurrentHashMap.newKeySet();
+      awaited.addAll(peers);
       awaitedForwarders = awaited;
       return awaited.isEmpty();
     }
@@ -473,9 +504,9 @@ public class DSRSShutdownSync
      * Records the forward of one replication server, and returns whether nothing is left to wait
      * for.
      */
-    private boolean forwardedBy(int replicationServerId)
+    private boolean forwardedBy(ForwardingPeer peer)
     {
-      final Set<Integer> awaited = awaitedForwarders;
+      final Set<ForwardingPeer> awaited = awaitedForwarders;
       if (awaited == null)
       {
         /*
@@ -485,7 +516,7 @@ public class DSRSShutdownSync
          */
         return true;
       }
-      awaited.remove(replicationServerId);
+      awaited.remove(peer);
       return awaited.isEmpty();
     }
 
@@ -494,10 +525,10 @@ public class DSRSShutdownSync
      * wait for. Unlike a forward, this releases nothing while no recipient is known: a peer going
      * away says nothing about a message it was never given.
      */
-    private boolean giveUpOn(int replicationServerId)
+    private boolean giveUpOn(ForwardingPeer peer)
     {
-      final Set<Integer> awaited = awaitedForwarders;
-      return awaited != null && awaited.remove(replicationServerId) && awaited.isEmpty();
+      final Set<ForwardingPeer> awaited = awaitedForwarders;
+      return awaited != null && awaited.remove(peer) && awaited.isEmpty();
     }
 
     /**
@@ -506,14 +537,14 @@ public class DSRSShutdownSync
      */
     private boolean isFullyForwarded()
     {
-      final Set<Integer> awaited = awaitedForwarders;
+      final Set<ForwardingPeer> awaited = awaitedForwarders;
       return awaited != null && awaited.isEmpty();
     }
 
     @Override
     public String toString()
     {
-      final Set<Integer> awaited = awaitedForwarders;
+      final Set<ForwardingPeer> awaited = awaitedForwarders;
       return "PendingOfflineMsg(" + csn
           + (awaited != null ? ", awaiting the forward of " + awaited : "") + ")";
     }
