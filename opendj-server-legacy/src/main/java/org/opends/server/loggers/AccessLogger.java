@@ -13,9 +13,12 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.ClassPropertyDefinition;
@@ -24,6 +27,7 @@ import org.forgerock.opendj.server.config.server.AccessLogPublisherCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.*;
 import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.Operation;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 
@@ -40,6 +44,74 @@ public class AccessLogger extends AbstractLogger
   private static LoggerStorage
       <AccessLogPublisher<AccessLogPublisherCfg>, AccessLogPublisherCfg>
       loggerStorage = new LoggerStorage<>();
+
+  /** Publishes a proxied request. */
+  public static void logProxyRequest(Operation operation, long proxyId, String identityMode, String shard,
+      String target, String filter, String scope) {
+    for (AccessLogPublisher<?> publisher : getAccessLogPublishers()) {
+      publisher.logProxyRequest(operation, proxyId, identityMode, shard, target, filter, scope);
+    }
+  }
+
+  private static final String PROXY_RESPONSES = AccessLogger.class.getName() + ".proxyResponses";
+
+  private static final class ProxyResponse {
+    final long proxyId;
+    final String server;
+    final String selectedServer;
+    final org.forgerock.opendj.ldap.ResultCode remoteResult;
+    final org.forgerock.opendj.ldap.ResultCode attemptResult;
+    final String remoteAuthDN;
+    final String authorizationDN;
+    final int searchEntries;
+    final org.forgerock.opendj.ldap.ConnectionRoutingContext.PoolSnapshot poolSnapshot;
+    final long elapsedMillis;
+
+    ProxyResponse(long proxyId, String server, String selectedServer, org.forgerock.opendj.ldap.ResultCode remoteResult,
+        String remoteAuthDN, String authorizationDN, int searchEntries,
+        org.forgerock.opendj.ldap.ResultCode attemptResult, org.forgerock.opendj.ldap.ConnectionRoutingContext.PoolSnapshot poolSnapshot, long elapsedMillis) {
+      this.proxyId = proxyId;
+      this.server = server;
+      this.selectedServer = selectedServer;
+      this.remoteResult = remoteResult;
+      this.attemptResult = attemptResult;
+      this.remoteAuthDN = remoteAuthDN;
+      this.authorizationDN = authorizationDN;
+      this.searchEntries = searchEntries;
+      this.poolSnapshot = poolSnapshot;
+      this.elapsedMillis = elapsedMillis;
+    }
+  }
+
+  /** Retains proxy results until the outer response is ready for access-log filtering. */
+  public static void deferProxyResponse(Operation operation, long proxyId, String server, String selectedServer,
+      org.forgerock.opendj.ldap.ResultCode remoteResult, String remoteAuthDN, String authorizationDN, int searchEntries,
+      org.forgerock.opendj.ldap.ConnectionRoutingContext.PoolSnapshot poolSnapshot, long elapsedMillis) {
+    synchronized (operation) {
+      List<ProxyResponse> pending = operation.getAttachment(PROXY_RESPONSES);
+      if (pending == null) {
+        pending = new ArrayList<>();
+        operation.setAttachment(PROXY_RESPONSES, pending);
+      }
+      pending.add(new ProxyResponse(proxyId, server, selectedServer, remoteResult, remoteAuthDN, authorizationDN, searchEntries, operation.getResultCode(), poolSnapshot, elapsedMillis));
+    }
+  }
+
+  public static void logProxyResponses(Operation operation) {
+    List<ProxyResponse> pending;
+    synchronized (operation) {
+      pending = operation.removeAttachment(PROXY_RESPONSES);
+    }
+    if (pending != null) {
+      for (ProxyResponse response : pending) {
+        for (AccessLogPublisher<?> publisher : getAccessLogPublishers()) {
+          publisher.logProxyResponse(operation, response.proxyId, response.server, response.selectedServer, response.remoteResult,
+              response.remoteAuthDN, response.authorizationDN, response.searchEntries, response.poolSnapshot,
+              response.elapsedMillis, response.attemptResult);
+        }
+      }
+    }
+  }
 
   /** The singleton instance of this class. */
   private static final AccessLogger instance = new AccessLogger();
@@ -185,6 +257,7 @@ public class AccessLogger extends AbstractLogger
    */
   public static void logAddResponse(AddOperation addOperation)
   {
+    logProxyResponses(addOperation);
     for (AccessLogPublisher<?> publisher : getAccessLogPublishers())
     {
       publisher.logAddResponse(addOperation);
@@ -219,6 +292,7 @@ public class AccessLogger extends AbstractLogger
    */
   public static void logBindResponse(BindOperation bindOperation)
   {
+    logProxyResponses(bindOperation);
     for (AccessLogPublisher<?> publisher : getAccessLogPublishers())
     {
       publisher.logBindResponse(bindOperation);
@@ -253,6 +327,7 @@ public class AccessLogger extends AbstractLogger
    */
   public static void logCompareResponse(CompareOperation compareOperation)
   {
+    logProxyResponses(compareOperation);
     for (AccessLogPublisher<?> publisher : getAccessLogPublishers())
     {
       publisher.logCompareResponse(compareOperation);
@@ -287,6 +362,7 @@ public class AccessLogger extends AbstractLogger
    */
   public static void logDeleteResponse(DeleteOperation deleteOperation)
   {
+    logProxyResponses(deleteOperation);
     for (AccessLogPublisher<?> publisher : getAccessLogPublishers())
     {
       publisher.logDeleteResponse(deleteOperation);
@@ -321,6 +397,7 @@ public class AccessLogger extends AbstractLogger
    */
   public static void logExtendedResponse(ExtendedOperation extendedOperation)
   {
+    logProxyResponses(extendedOperation);
     for (AccessLogPublisher<?> publisher : getAccessLogPublishers())
     {
       publisher.logExtendedResponse(extendedOperation);
@@ -355,6 +432,7 @@ public class AccessLogger extends AbstractLogger
    */
   public static void logModifyResponse(ModifyOperation modifyOperation)
   {
+    logProxyResponses(modifyOperation);
     for (AccessLogPublisher<?> publisher : getAccessLogPublishers())
     {
       publisher.logModifyResponse(modifyOperation);
@@ -390,6 +468,7 @@ public class AccessLogger extends AbstractLogger
    */
   public static void logModifyDNResponse(ModifyDNOperation modifyDNOperation)
   {
+    logProxyResponses(modifyDNOperation);
     for (AccessLogPublisher<?> publisher : getAccessLogPublishers())
     {
       publisher.logModifyDNResponse(modifyDNOperation);
@@ -463,6 +542,7 @@ public class AccessLogger extends AbstractLogger
    */
   public static void logSearchResultDone(SearchOperation searchOperation)
   {
+    logProxyResponses(searchOperation);
     for (AccessLogPublisher<?> publisher : getAccessLogPublishers())
     {
       publisher.logSearchResultDone(searchOperation);

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Portions Copyright 2013-2016 ForgeRock AS.
- * Portions Copyrighted 2026 3A Systems, LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.tools.upgrade;
 
@@ -78,6 +78,12 @@ public final class Upgrade
   /** Developers should register upgrade tasks below. */
   private static final NavigableMap<BuildVersion, List<UpgradeTask>> TASKS = new TreeMap<>();
   private static final List<UpgradeTask> MANDATORY_TASKS = new LinkedList<>();
+
+  static final String[] SERVICE_DISCOVERY_CONTAINER_ENTRY = {
+      "dn: cn=Service Discovery Mechanisms,cn=config",
+      "objectClass: top",
+      "objectClass: ds-cfg-branch",
+      "cn: Service Discovery Mechanisms" };
 
   /* Payloads of the issue #851 upgrade task, mirroring the fresh-install config.ldif template.
    * Package-private so UpgradeUtilsTestCase applies exactly what the task applies. */
@@ -671,6 +677,9 @@ public final class Upgrade
      */
     register("5.1.2",
         deleteFile(new File(libDirectory, "org.openidentityplatform.opendj.opendj-server-legacy.jar")));
+
+    /* Install the discovery container on older instances without replacing existing configuration. */
+    register("5.2.1", addConfigEntry(SERVICE_DISCOVERY_CONTAINER_ENTRY));
 
     /* All upgrades will refresh the server configuration schema and generate a new upgrade folder. */
     registerLast(

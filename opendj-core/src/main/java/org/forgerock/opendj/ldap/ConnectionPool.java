@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.ldap;
@@ -45,6 +46,13 @@ public interface ConnectionPool extends ConnectionFactory {
      */
     @Override
     void close();
+
+    /** Returns a best-effort snapshot, or null if the implementation does not expose statistics.
+     * @return current pool statistics, or null if unavailable
+     */
+    default ConnectionPoolStatistics getStatistics() {
+        return null;
+    }
 
     /**
      * Asynchronously obtains a connection from this connection pool,

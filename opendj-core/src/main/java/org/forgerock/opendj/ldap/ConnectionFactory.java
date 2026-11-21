@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.ldap;
@@ -73,6 +74,23 @@ public interface ConnectionFactory extends Closeable {
      * @return A promise which can be used to retrieve the connection.
      */
     Promise<Connection, LdapException> getConnectionAsync();
+
+    /** Obtains a connection while propagating operation-specific routing information.
+     * @param context routing context for this acquisition
+     * @return the acquisition promise
+     */
+    default Promise<Connection, LdapException> getConnectionAsyncWithContext(ConnectionRoutingContext context) {
+        return getConnectionAsync();
+    }
+
+    /** Obtains a connection while propagating operation-specific routing information.
+     * @param context routing context for this acquisition
+     * @return the connection
+     * @throws LdapException if the connection cannot be obtained
+     */
+    default Connection getConnectionWithContext(ConnectionRoutingContext context) throws LdapException {
+        return getConnection();
+    }
 
     /**
      * Returns a connection to the Directory Server associated with this

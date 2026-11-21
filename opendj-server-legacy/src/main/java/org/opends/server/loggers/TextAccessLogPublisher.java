@@ -95,6 +95,29 @@ public final class TextAccessLogPublisher extends
     return startupPublisher;
   }
 
+  private static final java.util.concurrent.atomic.AtomicLong PROXY_PUBLISHER_IDS =
+      new java.util.concurrent.atomic.AtomicLong();
+  private final String proxyRequestAttachment = TextAccessLogPublisher.class.getName()
+      + ".proxyRequest." + PROXY_PUBLISHER_IDS.incrementAndGet() + ".";
+
+  private static final class ProxyRequestRecord
+  {
+    final String identityMode;
+    final String shard;
+    final String target;
+    final String filter;
+    final String scope;
+
+    ProxyRequestRecord(String identityMode, String shard, String target, String filter, String scope)
+    {
+      this.identityMode = identityMode;
+      this.shard = shard;
+      this.target = target;
+      this.filter = filter;
+      this.scope = scope;
+    }
+  }
+
   private TextWriter writer;
   private FileBasedAccessLogPublisherCfg cfg;
   private boolean isCombinedMode;
@@ -709,6 +732,99 @@ public final class TextAccessLogPublisher extends
     appendLabelIfNotNull(buffer, "authzDN", modifyOperation.getProxiedAuthorizationDN());
     appendEtime(buffer, modifyOperation);
     writer.writeRecord(buffer.toString());
+  }
+
+  @Override
+  public void logProxyRequest(final Operation operation, final long proxyId, final String identityMode, final String shard,
+      final String target, final String filter, final String scope)
+  {
+    final ProxyRequestRecord record = new ProxyRequestRecord(identityMode, shard, target, filter, scope);
+    if (isCombinedMode)
+    {
+      operation.setAttachment(proxyRequestAttachment + proxyId, record);
+      return;
+    }
+    if (!isRequestLoggable(operation)) return;
+    writeProxyRequest(operation, proxyId, record);
+  }
+
+  @Override
+  public void logProxyResponse(final Operation operation, final long proxyId, final String server, final String selectedServer,
+      final ResultCode remoteResult, final String remoteAuthDN, final String authorizationDN,
+      final int searchEntries, final org.forgerock.opendj.ldap.ConnectionRoutingContext.PoolSnapshot poolSnapshot,
+      final long elapsedMillis, final ResultCode attemptResult)
+  {
+    ProxyRequestRecord deferred = operation.removeAttachment(proxyRequestAttachment + proxyId);
+    if (!isResponseLoggable(operation)) return;
+    if (deferred != null) writeProxyRequest(operation, proxyId, deferred);
+    final StringBuilder buffer = new StringBuilder(128);
+    appendProxyHeader(operation, "PROXY_RES", proxyId, buffer);
+    appendProxyLabel(buffer, "server", server);
+    appendProxyLabel(buffer, "s_authdn", remoteAuthDN);
+    appendProxyLabel(buffer, "authzDN", authorizationDN);
+    if (remoteResult == null)
+    {
+      appendProxyLabel(buffer, "selectedServer", selectedServer);
+      buffer.append(" outcome=no-response");
+    }
+    if (poolSnapshot != null)
+    {
+      final org.forgerock.opendj.ldap.ConnectionPoolStatistics stats = poolSnapshot.getStatistics();
+      appendProxyLabel(buffer, "poolServer", poolSnapshot.getServer());
+      buffer.append(" poolSize=").append(stats.getSize());
+      buffer.append(" poolIdle=").append(stats.getIdle());
+      buffer.append(" poolInUse=").append(stats.getInUse());
+      buffer.append(" poolPending=").append(stats.getPending());
+      buffer.append(" poolWaiting=").append(stats.getWaiting());
+      buffer.append(" poolMax=").append(stats.getMaximum());
+      buffer.append(" poolClosed=").append(stats.isClosed());
+    }
+    buffer.append(" result=").append(remoteResult == null
+        ? (attemptResult == null ? operation.getResultCode() : attemptResult).intValue() : remoteResult.intValue());
+    if (searchEntries >= 0) buffer.append(" nentries=").append(searchEntries);
+    buffer.append(" etime=").append(elapsedMillis);
+    writer.writeRecord(buffer.toString());
+  }
+
+  private void writeProxyRequest(final Operation operation, final long proxyId, final ProxyRequestRecord record)
+  {
+    final StringBuilder buffer = new StringBuilder(128);
+    appendProxyHeader(operation, "PROXY_REQ", proxyId, buffer);
+    appendProxyLabel(buffer, "s_credmode", record.identityMode);
+    appendProxyLabel(buffer, "shard", record.shard);
+    appendProxyLabel(buffer, operation.getOperationType() == org.opends.server.types.OperationType.SEARCH
+        ? "base" : "dn", record.target);
+    appendProxyLabel(buffer, "scope", record.scope);
+    appendProxyLabel(buffer, "filter", record.filter);
+    writer.writeRecord(buffer.toString());
+  }
+
+  private void appendProxyLabel(final StringBuilder buffer, final String label, final String value)
+  {
+    if (value == null) return;
+    buffer.append(' ').append(label).append("=\"");
+    for (int i = 0; i < value.length(); i++)
+    {
+      char c = value.charAt(i);
+      if (c == '\\' || c == '\"') buffer.append('\\').append(c);
+      else if (c == '\n') buffer.append("\\n");
+      else if (c == '\r') buffer.append("\\r");
+      else buffer.append(c);
+    }
+    buffer.append('\"');
+  }
+
+  private void appendProxyHeader(final Operation operation, final String category, final long proxyId, final StringBuilder buffer)
+  {
+    buffer.append('[').append(TimeThread.getUserDefinedTime(timeStampFormat)).append("] ");
+    buffer.append(operation.getOperationType() == org.opends.server.types.OperationType.MODIFY_DN
+        ? "MODIFYDN" : operation.getOperationType().toString());
+    buffer.append(' ').append(category);
+    buffer.append(" conn=").append(operation.getConnectionID());
+    buffer.append(" op=").append(operation.getOperationID());
+    buffer.append(" msgID=").append(operation.getMessageID());
+    buffer.append(" proxyOp=").append(proxyId);
+    appendTransactionId(operation, buffer);
   }
 
   @Override

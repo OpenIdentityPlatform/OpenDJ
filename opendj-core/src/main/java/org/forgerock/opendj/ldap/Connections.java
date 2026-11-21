@@ -163,6 +163,22 @@ public final class Connections {
                 null);
     }
 
+    /** Creates a cached pool with a bounded wait for a free pool slot.
+     * @param factory underlying connection factory
+     * @param corePoolSize number of idle connections to retain
+     * @param maximumPoolSize maximum number of connections
+     * @param idleTimeout idle timeout
+     * @param unit unit of the idle timeout
+     * @param waitTimeoutMillis maximum slot wait in milliseconds
+     * @return the connection pool
+     */
+    public static ConnectionPool newCachedConnectionPool(final ConnectionFactory factory,
+            final int corePoolSize, final int maximumPoolSize, final long idleTimeout,
+            final TimeUnit unit, final long waitTimeoutMillis) {
+        return new CachedConnectionPool(factory, corePoolSize, maximumPoolSize, idleTimeout, unit,
+                null, waitTimeoutMillis);
+    }
+
     /**
      * Creates a new connection pool which creates new connections as needed
      * using the provided connection factory, but will reuse previously
@@ -571,6 +587,51 @@ public final class Connections {
             @Override
             public PartitionedRequest apply(final Request request) {
                 final int partitionId = computePartitionIdFromDN(dnOfRequest(request), maxPartitionId);
+                return new PartitionedRequest(request, partitionId);
+            }
+        };
+    }
+
+    /**
+     * Creates a request-level load balancer which uses consistent hashing of target DNs to select one of a set of
+     * fully replicated connection factories. Adding or removing a factory moves only a portion of target DNs to a
+     * different factory. Requests without a resolvable target DN are routed to a random factory.
+     * <p>
+     * This algorithm differs from {@link #newFixedSizeDistributionLoadBalancer(DN, ConsistentHashMap, Options)}:
+     * it does not partition data or broadcast searches. Every connection factory is expected to provide the same LDAP
+     * data.
+     * <p>
+     * This connection factory returns fake connections, since real connections are obtained for each request. Abandon
+     * requests are therefore ignored.
+     *
+     * @param factories
+     *         The connection factories.
+     * @param options
+     *         The configuration options for the load balancer.
+     * @return The new consistent-hash request load balancer.
+     * @see #newAffinityRequestLoadBalancer(Collection, Options)
+     * @see #newLeastRequestsLoadBalancer(Collection, Options)
+     * @see #newFixedSizeDistributionLoadBalancer(DN, ConsistentHashMap, Options)
+     */
+    public static ConnectionFactory newConsistentHashRequestLoadBalancer(
+            final Collection<? extends ConnectionFactory> factories, final Options options) {
+        return new RequestLoadBalancer("ConsistentHashRequestLoadBalancer", factories, options,
+                newConsistentHashRequestLoadBalancerNextFunction(factories), NOOP_END_OF_REQUEST_FUNCTION);
+    }
+
+    static Function<Request, PartitionedRequest, NeverThrowsException> newConsistentHashRequestLoadBalancerNextFunction(
+            final Collection<? extends ConnectionFactory> factories) {
+        final ConsistentHashMap<Integer> partitions = new ConsistentHashMap<>();
+        for (int index = 0, count = factories.size(); index < count; index++) {
+            partitions.put("factory-" + index, index);
+        }
+        return new Function<Request, PartitionedRequest, NeverThrowsException>() {
+            @Override
+            public PartitionedRequest apply(final Request request) {
+                final DN target = dnOfRequest(request);
+                final Integer selected = target != null ? partitions.get(target.toNormalizedUrlSafeString()) : null;
+                final int partitionId = selected != null ? selected
+                        : ThreadLocalRandom.current().nextInt(0, factories.size());
                 return new PartitionedRequest(request, partitionId);
             }
         };

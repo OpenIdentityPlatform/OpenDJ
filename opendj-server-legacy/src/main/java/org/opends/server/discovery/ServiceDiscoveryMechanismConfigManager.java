@@ -88,7 +88,7 @@ public class ServiceDiscoveryMechanismConfigManager implements
     }
   }
 
-  ServiceDiscoveryMechanism<?> getMechanism(String name)
+  public ServiceDiscoveryMechanism<?> getMechanism(String name)
   {
     return serviceDiscoveryMechanisms.get(name);
   }
@@ -99,7 +99,7 @@ public class ServiceDiscoveryMechanismConfigManager implements
   {
     try
     {
-      ServiceDiscoveryMechanism newMechanism = loadAndInitializeMechanism(configuration);
+      ServiceDiscoveryMechanism newMechanism = loadMechanism(configuration);
       return newMechanism.isConfigurationAcceptable(configuration, unacceptableReasons, serverContext);
     }
     catch (Exception e)
@@ -128,10 +128,27 @@ public class ServiceDiscoveryMechanismConfigManager implements
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
+  private ServiceDiscoveryMechanism loadMechanism(ServiceDiscoveryMechanismCfg cfg) throws Exception
+  {
+    try
+    {
+      return ((Class<ServiceDiscoveryMechanism>) DirectoryServer.loadClass(cfg.getJavaClass()))
+          .getDeclaredConstructor().newInstance();
+    }
+    catch (LinkageError e)
+    {
+      throw new ConfigException(LocalizableMessage.raw(
+          "Cannot link service discovery provider '%s' against this OpenDJ version. For providers built against "
+              + "the former interface, extend ServiceDiscoveryMechanism instead of implementing it, replace "
+              + "getPartitions(Collection<DN>) with getPartition(), and rebuild against this OpenDJ version.",
+          cfg.getJavaClass()), e);
+    }
+  }
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   private ServiceDiscoveryMechanism loadAndInitializeMechanism(ServiceDiscoveryMechanismCfg cfg) throws Exception
   {
-    final ServiceDiscoveryMechanism newMechanism =
-        ((Class<ServiceDiscoveryMechanism>) DirectoryServer.loadClass(cfg.getJavaClass())).getDeclaredConstructor().newInstance();
+    final ServiceDiscoveryMechanism newMechanism = loadMechanism(cfg);
     newMechanism.initializeMechanism(cfg, serverContext);
     return newMechanism;
   }
@@ -146,7 +163,11 @@ public class ServiceDiscoveryMechanismConfigManager implements
   @Override
   public ConfigChangeResult applyConfigurationDelete(ServiceDiscoveryMechanismCfg configuration)
   {
-    serviceDiscoveryMechanisms.remove(configuration.name()).finalizeMechanism();
+    final ServiceDiscoveryMechanism<?> mechanism = serviceDiscoveryMechanisms.remove(configuration.name());
+    if (mechanism != null)
+    {
+      mechanism.finalizeMechanism();
+    }
     return new ConfigChangeResult();
   }
 

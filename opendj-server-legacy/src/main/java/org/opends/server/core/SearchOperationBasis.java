@@ -63,7 +63,7 @@ import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
+import static org.opends.server.api.Backend.*;
 
 /**
  * This class defines an operation that may be used to locate entries in the
@@ -759,8 +759,6 @@ public class SearchOperationBasis
       try
       {
         sendSearchEntry(filteredSearchEntry);
-
-        entriesSent.incrementAndGet();
       }
       catch (DirectoryException de)
       {
@@ -1087,6 +1085,13 @@ public class SearchOperationBasis
       throws DirectoryException
   {
     getClientConnection().sendSearchEntry(this, searchEntry);
+    recordEntrySent();
+  }
+
+  /** Records an entry successfully sent by a specialized search operation. */
+  protected final void recordEntrySent()
+  {
+    entriesSent.incrementAndGet();
   }
 
   @Override
@@ -1178,6 +1183,7 @@ public class SearchOperationBasis
         }
         else
         {
+          logProxyResponses(this);
           setSizeLimit(0);
           setTimeLimit(0);
         }
@@ -1186,6 +1192,10 @@ public class SearchOperationBasis
           DirectoryServer.getCoreConfigManager().isNotifyAbandonedOperations())
       {
         sendSearchResultDone();
+      }
+      else
+      {
+        logProxyResponses(this);
       }
 
       // If no cancel result, set it

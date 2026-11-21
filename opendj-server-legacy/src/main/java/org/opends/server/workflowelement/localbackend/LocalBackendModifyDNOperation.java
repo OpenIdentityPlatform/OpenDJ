@@ -13,9 +13,8 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2026 3A Systems, LLC.
- * Portions copyright 2024-2025 3A Systems,LLC.
- */
+ * Portions Copyright 2024-2026 3A Systems, LLC.
+*/
 package org.opends.server.workflowelement.localbackend;
 
 import java.util.Collection;
@@ -65,7 +64,8 @@ import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.types.AbstractOperation.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
+import static org.opends.server.api.Backend.*;
+import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.findMatchedDN;
 
 /**
  * This class defines an operation used to move an entry in a local backend

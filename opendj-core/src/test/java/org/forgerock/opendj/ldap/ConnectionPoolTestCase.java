@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 
 package org.forgerock.opendj.ldap;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.forgerock.util.Options;
 
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
@@ -45,6 +47,306 @@ import static org.mockito.Mockito.*;
  */
 @SuppressWarnings("javadoc")
 public class ConnectionPoolTestCase extends SdkTestCase {
+
+    @Test(timeOut = 5000)
+    public void reportsPoolStateForBorrowedIdleWaitingAndClosedConnections() throws Exception {
+        final MemoryBackend backend = new MemoryBackend();
+        try (ConnectionPool pool = newCachedConnectionPool(newInternalConnectionFactory(backend),
+                0, 1, 60L, TimeUnit.SECONDS, 2000L)) {
+            ConnectionPoolStatistics empty = pool.getStatistics();
+            Assert.assertEquals(empty.getSize(), 0);
+            Assert.assertFalse(empty.isClosed());
+            Connection held = pool.getConnection();
+            ConnectionPoolStatistics borrowed = pool.getStatistics();
+            Assert.assertEquals(borrowed.getSize(), 1);
+            Assert.assertEquals(borrowed.getInUse(), 1);
+            Assert.assertEquals(borrowed.getIdle(), 0);
+            Promise<Connection, LdapException> waiting = pool.getConnectionAsync();
+            Assert.assertEquals(pool.getStatistics().getWaiting(), 1);
+            Assert.assertTrue(waiting.cancel(false));
+            Assert.assertEquals(pool.getStatistics().getWaiting(), 0);
+            held.close();
+            ConnectionPoolStatistics idle = pool.getStatistics();
+            Assert.assertEquals(idle.getSize(), 1);
+            Assert.assertEquals(idle.getIdle(), 1);
+            Assert.assertEquals(idle.getInUse(), 0);
+            Assert.assertEquals(idle.getMaximum(), 1);
+            pool.close();
+            ConnectionPoolStatistics closed = pool.getStatistics();
+            Assert.assertTrue(closed.isClosed());
+            Assert.assertEquals(closed.getSize(), 0);
+            Assert.assertEquals(closed.getIdle(), 0);
+        }
+    }
+
+    @Test(timeOut = 5000)
+    public void reportsPendingConnectionAttempts() throws Exception {
+        final PromiseImpl<Connection, LdapException> attempt = PromiseImpl.create();
+        final ConnectionFactory factory = mock(ConnectionFactory.class);
+        when(factory.getConnectionAsync()).thenReturn(attempt);
+        try (ConnectionPool pool = newCachedConnectionPool(factory, 0, 1, 60L, TimeUnit.SECONDS, 2000L);
+             ConnectionFactory physicalFactory = newInternalConnectionFactory(new MemoryBackend())) {
+            Promise<Connection, LdapException> waiting = pool.getConnectionAsync();
+            ConnectionPoolStatistics pending = pool.getStatistics();
+            Assert.assertEquals(pending.getSize(), 1);
+            Assert.assertEquals(pending.getPending(), 1);
+            Assert.assertEquals(pending.getWaiting(), 1);
+            Assert.assertEquals(pending.getInUse(), 0);
+            attempt.handleResult(physicalFactory.getConnection());
+            try (Connection acquired = waiting.getOrThrow(2, TimeUnit.SECONDS)) {
+                Assert.assertEquals(pool.getStatistics().getPending(), 0);
+                Assert.assertEquals(pool.getStatistics().getInUse(), 1);
+            }
+        }
+    }
+
+    @Test(timeOut = 5000)
+    public void saturatedPoolTimesOutWithoutLosingReturnedConnection() throws Exception {
+        final java.lang.reflect.Method boundedFactory;
+        try {
+            boundedFactory = Connections.class.getMethod("newCachedConnectionPool", ConnectionFactory.class,
+                    int.class, int.class, long.class, TimeUnit.class, long.class);
+        } catch (NoSuchMethodException e) {
+            Assert.fail("A bounded wait must be configurable for a cached pool", e);
+            return;
+        }
+        final org.forgerock.opendj.ldap.MemoryBackend backend = new org.forgerock.opendj.ldap.MemoryBackend();
+        try (ConnectionFactory factory = newInternalConnectionFactory(backend);
+             ConnectionPool pool = (ConnectionPool) boundedFactory.invoke(null, factory, 0, 1, 60L,
+                     TimeUnit.SECONDS, 100L)) {
+            final Connection held = pool.getConnection();
+            try {
+                pool.getConnectionAsync().getOrThrow(2, TimeUnit.SECONDS);
+                Assert.fail("A saturated pool must return BUSY after its wait timeout");
+            } catch (LdapException e) {
+                Assert.assertEquals(e.getResult().getResultCode(), ResultCode.BUSY);
+            } finally {
+                held.close();
+            }
+            try (Connection reused = pool.getConnectionAsync().getOrThrow(2, TimeUnit.SECONDS)) {
+                Assert.assertTrue(reused.isValid(), "The returned connection must not be lost to a timed-out waiter");
+            }
+        }
+    }
+
+    @Test(timeOut = 5000)
+    public void cancelledWaiterDoesNotConsumeReturnedConnection() throws Exception {
+        final org.forgerock.opendj.ldap.MemoryBackend backend = new org.forgerock.opendj.ldap.MemoryBackend();
+        try (ConnectionPool pool = newCachedConnectionPool(newInternalConnectionFactory(backend),
+                0, 1, 60L, TimeUnit.SECONDS, 2000L)) {
+            final Connection held = pool.getConnection();
+            final Promise<Connection, LdapException> waiting = pool.getConnectionAsync();
+            Assert.assertTrue(waiting.cancel(false), "A waiting acquisition must be cancellable");
+            held.close();
+            try (Connection connection = pool.getConnectionAsync().getOrThrow(2, TimeUnit.SECONDS)) {
+                Assert.assertTrue(connection.isValid());
+            }
+        }
+    }
+
+    @Test(timeOut = 15000)
+    public void cancellationAfterDequeueReturnsTheUndeliveredConnection() throws Exception {
+        final MemoryBackend backend = new MemoryBackend();
+        try (ConnectionPool pool = newCachedConnectionPool(newInternalConnectionFactory(backend),
+                0, 1, 60L, TimeUnit.SECONDS, 10000L); Connection held = pool.getConnection()) {
+            final Promise<Connection, LdapException> waiting = pool.getConnectionAsync();
+            final Thread publisher = new Thread(held::close, "return-pooled-connection");
+            synchronized (waiting) {
+                publisher.start();
+                awaitBlockedOn(publisher, waiting, Thread.State.BLOCKED);
+                Assert.assertTrue(waiting.cancel(false));
+            }
+            publisher.join(5000);
+            Assert.assertFalse(publisher.isAlive(), "The publisher must finish");
+            try (Connection reused = pool.getConnectionAsync().getOrThrow(1, TimeUnit.SECONDS)) {
+                Assert.assertTrue(reused.isValid(), "The undelivered connection must return to the pool");
+            }
+        }
+    }
+
+    @Test(timeOut = 15000)
+    public void interruptedWaiterReturnsAConnectionPublishedBeforeCancellation() throws Exception {
+        final MemoryBackend backend = new MemoryBackend();
+        try (ConnectionPool pool = newCachedConnectionPool(newInternalConnectionFactory(backend),
+                0, 1, 60L, TimeUnit.SECONDS, 10000L); Connection held = pool.getConnection()) {
+            final java.lang.reflect.Field queueField = CachedConnectionPool.class.getDeclaredField("queue");
+            queueField.setAccessible(true);
+            final LinkedList<?> observedQueue = (LinkedList<?>) queueField.get(pool);
+            final java.util.concurrent.atomic.AtomicReference<ResultCode> result = new java.util.concurrent.atomic.AtomicReference<>();
+            final java.util.concurrent.atomic.AtomicBoolean interrupted = new java.util.concurrent.atomic.AtomicBoolean();
+            final java.util.concurrent.atomic.AtomicReference<Throwable> failure = new java.util.concurrent.atomic.AtomicReference<>();
+            final Thread waiter = new Thread(() -> {
+                try (Connection ignored = pool.getConnection()) {
+                    failure.set(new AssertionError("An interrupted waiter must not receive a connection"));
+                } catch (LdapException e) {
+                    result.set(e.getResult().getResultCode());
+                    interrupted.set(Thread.currentThread().isInterrupted());
+                } catch (Throwable e) {
+                    failure.set(e);
+                }
+            }, "interrupted-pool-waiter");
+            waiter.start();
+            Object queued = null;
+            final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+            while (queued == null && System.nanoTime() < deadline) {
+                synchronized (observedQueue) {
+                    if (!observedQueue.isEmpty()) {
+                        final Object entry = observedQueue.getFirst();
+                        final java.lang.reflect.Field value = entry.getClass().getDeclaredField("value");
+                        value.setAccessible(true);
+                        queued = value.get(entry);
+                    }
+                }
+                Thread.yield();
+            }
+            Assert.assertNotNull(queued, "The acquisition must enter the pool queue");
+            final Object promise = queued;
+            awaitBlockedOn(waiter, promise, Thread.State.WAITING);
+            synchronized (promise) {
+                waiter.interrupt();
+                awaitBlockedOn(waiter, promise, Thread.State.BLOCKED);
+                held.close();
+            }
+            waiter.join(5000);
+            Assert.assertFalse(waiter.isAlive(), "The interrupted waiter must finish");
+            Assert.assertNull(failure.get());
+            Assert.assertEquals(result.get(), ResultCode.CLIENT_SIDE_USER_CANCELLED);
+            Assert.assertTrue(interrupted.get(), "The interrupt status must be retained");
+            try (Connection reused = pool.getConnectionAsync().getOrThrow(1, TimeUnit.SECONDS)) {
+                Assert.assertTrue(reused.isValid(), "The completed acquisition must not lose the connection");
+            }
+        }
+    }
+
+    private static void awaitBlockedOn(Thread thread, Object monitor, Thread.State expectedState) {
+        final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (System.nanoTime() < deadline) {
+            final java.lang.management.ThreadInfo info = java.lang.management.ManagementFactory.getThreadMXBean()
+                    .getThreadInfo(thread.getId());
+            if (info != null && info.getThreadState() == expectedState && info.getLockInfo() != null
+                    && info.getLockInfo().getIdentityHashCode() == System.identityHashCode(monitor)) {
+                return;
+            }
+            Thread.yield();
+        }
+        Assert.fail(thread.getName() + " did not reach " + expectedState + " on the expected monitor");
+    }
+
+    @Test(timeOut = 5000)
+    public void closingPoolFailsWaitingAcquisitions() throws Exception {
+        final org.forgerock.opendj.ldap.MemoryBackend backend = new org.forgerock.opendj.ldap.MemoryBackend();
+        final ConnectionPool pool = newCachedConnectionPool(newInternalConnectionFactory(backend),
+                0, 1, 60L, TimeUnit.SECONDS, 2000L);
+        final Connection held = pool.getConnection();
+        final Promise<Connection, LdapException> waiting = pool.getConnectionAsync();
+        pool.close();
+        try {
+            waiting.getOrThrow(500, TimeUnit.MILLISECONDS);
+            Assert.fail("Closing a pool must fail queued acquisitions");
+        } catch (LdapException e) {
+            Assert.assertEquals(e.getResult().getResultCode(), ResultCode.CLIENT_SIDE_USER_CANCELLED);
+        } finally {
+            held.close();
+        }
+    }
+
+    @Test(timeOut = 5000)
+    public void saturationDoesNotMarkServerOfflineOrFailOver() throws Exception {
+        final MemoryBackend backend = new MemoryBackend();
+        final ConnectionPool primary = newCachedConnectionPool(newInternalConnectionFactory(backend),
+                0, 1, 60L, TimeUnit.SECONDS, 100L);
+        final ConnectionFactory secondary = newInternalConnectionFactory(backend);
+        try (ConnectionFactory balancer = newFailoverLoadBalancer(
+                java.util.Arrays.asList(primary, secondary), Options.defaultOptions())) {
+            final Connection held = primary.getConnection();
+            try {
+                balancer.getConnectionAsync().getOrThrow(2, TimeUnit.SECONDS);
+                Assert.fail("A saturated primary must return BUSY without falling back");
+            } catch (LdapException e) {
+                Assert.assertEquals(e.getResult().getResultCode(), ResultCode.BUSY);
+            } finally {
+                held.close();
+            }
+            try (Connection connection = balancer.getConnectionAsync().getOrThrow(2, TimeUnit.SECONDS)) {
+                Assert.assertTrue(connection.isValid());
+            }
+        }
+    }
+
+    @Test(timeOut = 5000)
+    public void concurrentAcquisitionsBothHaveAConnectionOrBoundedWait() throws Exception {
+        final ConnectionFactory factory = mock(ConnectionFactory.class);
+        final PromiseImpl<Connection, LdapException> connecting = PromiseImpl.create();
+        when(factory.getConnectionAsync()).thenReturn(connecting);
+        final Connection physical = mock(Connection.class);
+        when(physical.isValid()).thenReturn(true);
+        final java.util.concurrent.CountDownLatch firstAttempt = new java.util.concurrent.CountDownLatch(1);
+        final java.util.concurrent.CountDownLatch secondAttempt = new java.util.concurrent.CountDownLatch(1);
+        final java.util.concurrent.atomic.AtomicInteger attempts = new java.util.concurrent.atomic.AtomicInteger();
+        final java.util.concurrent.Semaphore reordered = new java.util.concurrent.Semaphore(1) {
+            @Override
+            public boolean tryAcquire() {
+                if (attempts.incrementAndGet() == 1) {
+                    firstAttempt.countDown();
+                    try {
+                        secondAttempt.await(500, TimeUnit.MILLISECONDS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                } else {
+                    secondAttempt.countDown();
+                }
+                return super.tryAcquire();
+            }
+        };
+        final java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newFixedThreadPool(2);
+        try (ConnectionPool pool = newCachedConnectionPool(factory, 0, 1, 60L, TimeUnit.SECONDS, 500L)) {
+            final java.lang.reflect.Field permits = CachedConnectionPool.class.getDeclaredField("availableConnections");
+            permits.setAccessible(true);
+            permits.set(pool, reordered);
+            final java.util.concurrent.Future<Promise<Connection, LdapException>> first =
+                    executor.submit(pool::getConnectionAsync);
+            Assert.assertTrue(firstAttempt.await(2, TimeUnit.SECONDS));
+            final java.util.concurrent.Future<Promise<Connection, LdapException>> second =
+                    executor.submit(pool::getConnectionAsync);
+            final Promise<Connection, LdapException> firstResult = first.get(2, TimeUnit.SECONDS);
+            final Promise<Connection, LdapException> secondResult = second.get(2, TimeUnit.SECONDS);
+            connecting.handleResult(physical);
+            try (Connection held = firstResult.getOrThrow(2, TimeUnit.SECONDS)) {
+                try {
+                    secondResult.getOrThrow(2, TimeUnit.SECONDS);
+                    Assert.fail("The second acquisition must time out while the first holds the connection");
+                } catch (LdapException e) {
+                    Assert.assertEquals(e.getResult().getResultCode(), ResultCode.BUSY);
+                }
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test(timeOut = 5000)
+    public void interruptedAcquisitionDoesNotMarkServerOffline() throws Exception {
+        final MemoryBackend backend = new MemoryBackend();
+        final ConnectionPool pool = newCachedConnectionPool(newInternalConnectionFactory(backend),
+                0, 1, 60L, TimeUnit.SECONDS, 2000L);
+        try (ConnectionFactory balancer = newFailoverLoadBalancer(java.util.Collections.singletonList(pool),
+                Options.defaultOptions()); Connection held = pool.getConnection()) {
+            Thread.currentThread().interrupt();
+            try {
+                balancer.getConnection();
+                Assert.fail("An interrupted acquisition must return cancellation");
+            } catch (LdapException e) {
+                Assert.assertEquals(e.getResult().getResultCode(), ResultCode.CLIENT_SIDE_USER_CANCELLED);
+            } finally {
+                Thread.interrupted();
+            }
+            held.close();
+            try (Connection connection = balancer.getConnection()) {
+                Assert.assertTrue(connection.isValid());
+            }
+        }
+    }
 
     /**
      * A connection event listener registered against a pooled connection should

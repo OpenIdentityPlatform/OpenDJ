@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -70,6 +71,9 @@ import org.opends.server.types.OperationType;
 abstract class AbstractTextAccessLogPublisher
     <T extends AccessLogPublisherCfg> extends AccessLogPublisher<T>
 {
+  private static final java.util.concurrent.atomic.AtomicLong FILTER_IDS = new java.util.concurrent.atomic.AtomicLong();
+  private final String requestDecisionAttachment = getClass().getName() + ".requestDecision." + FILTER_IDS.incrementAndGet();
+
   /** Criteria based filter. */
   static final class CriteriaFilter implements Filter
   {
@@ -724,15 +728,13 @@ abstract class AbstractTextAccessLogPublisher
     @Override
     public boolean isRequestLoggable(final Operation operation)
     {
+      // Every criterion must cache its request decision for the eventual response.
+      boolean matches = false;
       for (final Filter filter : subFilters)
       {
-        if (filter.isRequestLoggable(operation))
-        {
-          // Succeed fast.
-          return true;
-        }
+        matches = filter.isRequestLoggable(operation) || matches;
       }
-      return false;
+      return matches;
     }
 
 
@@ -1209,7 +1211,13 @@ abstract class AbstractTextAccessLogPublisher
    */
   protected final boolean isRequestLoggable(final Operation o)
   {
-    return filter.isRequestLoggable(o);
+    Boolean decision = o.getAttachment(requestDecisionAttachment);
+    if (decision == null)
+    {
+      decision = filter.isRequestLoggable(o);
+      o.setAttachment(requestDecisionAttachment, decision);
+    }
+    return decision;
   }
 
 
