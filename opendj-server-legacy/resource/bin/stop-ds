@@ -105,9 +105,9 @@ STOP_TIMEOUT=200
 wait_for_shutdown()
 {
   STOP_LOG=$1
-  # Read the last byte on the open descriptor before signaling the server.
-  # This positions it at EOF without reopening the path during rotation.
-  if [ -n "${STOP_LOG}" ] && ! tail -c 1 <&3 > /dev/null 2>/dev/null
+  # Consume the existing log before signaling the server. Keep the same
+  # descriptor for new entries even if the log rotates.
+  if [ -n "${STOP_LOG}" ] && ! dd bs=65536 <&3 > /dev/null 2>/dev/null
   then
     STOP_LOG=
   fi
