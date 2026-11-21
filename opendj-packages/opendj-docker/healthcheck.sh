@@ -40,8 +40,9 @@ if [ -n "${HEALTHCHECK_BIND_DN}" ]; then
   BIND_ARGS=(--bindDN "${HEALTHCHECK_BIND_DN}" --bindPasswordFile "${HEALTHCHECK_BIND_PASSWORD_FILE}")
 fi
 
-# Give the LDAP probe its own heap and JVM arguments.
-unset JAVA_TOOL_OPTIONS JDK_JAVA_OPTIONS _JAVA_OPTIONS
-OPENDJ_JAVA_ARGS=-Xmx64m \
-  /opt/opendj/bin/ldapsearch --noPropertiesFile --hostname localhost --port "${LDAPS_PORT:-1636}" --useSsl --trustAll \
-    "${BIND_ARGS[@]}" --baseDN "" --searchScope base "(objectClass=*)" 1.1 || exit 1
+# Skip launching the LDAP client while the LDAPS listener is down.
+port=${LDAPS_PORT:-1636}
+: 2>/dev/null <"/dev/tcp/localhost/${port}" || exit 1
+
+/opt/opendj/bin/ldapsearch --noPropertiesFile --hostname localhost --port "${port}" --useSsl --trustAll \
+  "${BIND_ARGS[@]}" --baseDN "" --searchScope base "(objectClass=*)" 1.1 || exit 1
