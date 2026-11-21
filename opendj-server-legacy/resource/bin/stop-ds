@@ -97,6 +97,40 @@ then
   exit ${RETURN_CODE}
 fi
 
+PID_FILE=${INSTANCE_ROOT}/logs/server.pid
+LOG_FILE=${INSTANCE_ROOT}/logs/errors
+# Match DirectoryServer.DEFAULT_TIMEOUT, the timeout used by WaitForFileDelete.
+STOP_TIMEOUT=200
+
+wait_for_shutdown()
+{
+  STOP_LOG=$1
+  # Read the last byte on the open descriptor before signaling the server.
+  # This positions it at EOF without reopening the path during rotation.
+  if [ -n "${STOP_LOG}" ] && ! tail -c 1 <&3 > /dev/null 2>/dev/null
+  then
+    STOP_LOG=
+  fi
+
+  kill "${PID}" || return $?
+  wait_for_marker_removal "${PID_FILE}" "${STOP_TIMEOUT}" "${STOP_LOG}"
+  STOP_RESULT=$?
+  if [ -n "${STOP_LOG}" ]
+  then
+    if [ "${STOP_RESULT}" -eq 0 ]
+    then
+      # The server closes its log publishers before removing server.pid.
+      cat <&3 2>/dev/null
+    else
+      dd bs=8192 count=128 <&3 2>/dev/null
+    fi
+  fi
+  if [ "${STOP_RESULT}" -eq 2 ]
+  then
+    printf 'stop-ds: shutdown timed out after %s seconds\n' "${STOP_TIMEOUT}" >&2
+  fi
+  return "${STOP_RESULT}"
+}
 
 "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
   org.opends.server.tools.StopDS --checkStoppability "${@}"
@@ -157,28 +191,28 @@ fi
 
 if test ${MUST_STOP_USING_SYSTEM_CALL} -eq 0
 then
-  if test -f "${INSTANCE_ROOT}/logs/server.pid"
+  if test -f "${PID_FILE}"
   then
-    read PID < "${INSTANCE_ROOT}/logs/server.pid"
-    kill ${PID}
-    EXIT_CODE=${?}
+    read PID < "${PID_FILE}"
+    WAIT_TIMER_PID=
+    trap stop_wait_timer 0
+    trap 'exit 129' HUP
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    # Capture the status inside the group to distinguish a failed log open.
+    if [ "${QUIET_OPTION}" -eq 0 ] && [ -f "${LOG_FILE}" ] && {
+      wait_for_shutdown "${LOG_FILE}"
+      EXIT_CODE=$?
+    } 3< "${LOG_FILE}"
+    then
+      :
+    else
+      wait_for_shutdown ""
+      EXIT_CODE=${?}
+    fi
     if test ${EXIT_CODE} -eq 0
     then
-      if test ${QUIET_OPTION} -eq 0
-      then
-        wait_for_file_delete \
-            --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
-            --logFile "${INSTANCE_ROOT}/logs/errors"
-      else
-        wait_for_file_delete \
-            --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
-            --logFile "${INSTANCE_ROOT}/logs/errors"  --quiet
-      fi
-      EXIT_CODE=${?}
-      if test ${EXIT_CODE} -eq 0
-      then
-        STOPPED=0
-      fi
+      STOPPED=0
     fi
   else
     echo "ERROR:  Unable to find the server.pid file to determine the process"
@@ -191,9 +225,9 @@ fi
 # has been killed using kill -9).
 if test ${STOPPED} -eq 0
 then
-  if test -f "${INSTANCE_ROOT}/logs/server.pid"
+  if test -f "${PID_FILE}"
   then
-    rm "${INSTANCE_ROOT}/logs/server.pid"
+    rm "${PID_FILE}"
   fi
 fi
 

@@ -18,13 +18,32 @@ REPO=$(cd "$(dirname "$0")/../.." && pwd)
 SHELL_UNDER_TEST=${1:-/bin/sh}
 FIXTURES=$(mktemp -d)
 LIVE_PID=
-trap 'if [ -n "$LIVE_PID" ]; then kill "$LIVE_PID" 2>/dev/null || :; fi; rm -rf "$FIXTURES"' EXIT
+trap 'if [ -n "$LIVE_PID" ]; then
+        kill -KILL "$LIVE_PID" 2>/dev/null || :
+        wait "$LIVE_PID" 2>/dev/null || :
+      fi
+      rm -rf "$FIXTURES"' EXIT
 export TMPDIR="$FIXTURES"
 
 mkdir -p "$FIXTURES/bin" "$FIXTURES/lib"
-cp "$REPO/opendj-server-legacy/resource/bin/start-ds" "$FIXTURES/bin/"
+cp "$REPO/opendj-server-legacy/resource/bin/start-ds" \
+   "$REPO/opendj-server-legacy/resource/bin/stop-ds" "$FIXTURES/bin/"
+cp "$REPO/opendj-server-legacy/resource/bin/_script-util.sh" "$FIXTURES/lib/script-util-real.sh"
 cat > "$FIXTURES/lib/_script-util.sh" <<'UTIL'
+# Load the launcher helpers while using fixture Java and a shorter shutdown timer.
+SCRIPT_UTIL_CMD=
+. "$INSTALL_ROOT/lib/script-util-real.sh"
 OPENDJ_JAVA_BIN="$INSTALL_ROOT/java"
+sleep() {
+  case "${FIXTURE_CASE:-}:$1" in
+    stop-timeout:200) command sleep 1 ;;
+    stop-rotate:0.1)
+      touch "$INSTANCE_ROOT/waiting-for-shutdown"
+      while [ -e "$INSTANCE_ROOT/logs/server.pid" ]; do command sleep 0.05; done
+      ;;
+    *) command sleep "$@" ;;
+  esac
+}
 UTIL
 cat > "$FIXTURES/java" <<'JAVA'
 #!/bin/sh
@@ -66,7 +85,17 @@ case " $* " in
     ;;
   *org.opends.server.tools.WaitForFileDelete*)
     touch "$INSTANCE_ROOT/waiter-jvm"
+    if [ "${FIXTURE_CASE#stop-}" != "$FIXTURE_CASE" ]; then
+      exit 2
+    fi
     exec sleep 30
+    ;;
+  *' --checkStoppability '*)
+    exit "$FIXTURE_STOP_CODE"
+    ;;
+  *org.opends.server.tools.StopDS*)
+    touch "$INSTANCE_ROOT/ldap-stop"
+    exit 7
     ;;
 esac
 printf 'first line\n'
@@ -186,4 +215,85 @@ grep -Fxq 'probe output' "$INSTANCE_ROOT/logs/start-ds.log"
 kill "$LIVE_PID"
 LIVE_PID=
 
-echo "Detached startup scenarios passed with $SHELL_UNDER_TEST"
+cat > "$FIXTURES/bin/start-ds" <<'START'
+#!/bin/sh
+[ ! -e "$INSTANCE_ROOT/logs/server.pid" ] || exit 1
+printf '%s\n' "$@" > "$INSTANCE_ROOT/restart-args"
+START
+chmod +x "$FIXTURES/bin/start-ds"
+
+run_stop_case() {
+  export FIXTURE_CASE=$1 FIXTURE_STOP_CODE=$2
+  expected=$3
+  shift 3
+  export INSTANCE_ROOT="$FIXTURES/$FIXTURE_CASE instance"
+  mkdir -p "$INSTANCE_ROOT/logs"
+  awk 'BEGIN { for (i = 0; i < 8250; i++) printf "x"; print ""; }' > "$INSTANCE_ROOT/logs/errors"
+  if [ "$FIXTURE_CASE" = stop-write-only ]; then
+    chmod 200 "$INSTANCE_ROOT/logs/errors"
+  fi
+  (
+    trap 'printf "shutdown in progress\n" >> "$INSTANCE_ROOT/logs/errors"
+          if [ "$FIXTURE_CASE" != stop-timeout ]; then
+            if [ "$FIXTURE_CASE" = stop-rotate ]; then
+              while [ ! -e "$INSTANCE_ROOT/waiting-for-shutdown" ]; do sleep 0.05; done
+            else
+              sleep 0.2
+            fi
+            printf "shutdown complete" >> "$INSTANCE_ROOT/logs/errors"
+            if [ "$FIXTURE_CASE" = stop-rotate ]; then
+              mv "$INSTANCE_ROOT/logs/errors" "$INSTANCE_ROOT/logs/errors.1"
+              : > "$INSTANCE_ROOT/logs/errors"
+            fi
+            touch "$INSTANCE_ROOT/shutdown-complete"
+            rm "$INSTANCE_ROOT/logs/server.pid"
+            exit 0
+          fi' TERM
+    touch "$INSTANCE_ROOT/ready"
+    while :; do sleep 0.1; done
+  ) &
+  LIVE_PID=$!
+  printf '%s\n' "$LIVE_PID" > "$INSTANCE_ROOT/logs/server.pid"
+  timeout 5 sh -c 'while [ ! -e "$INSTANCE_ROOT/ready" ]; do sleep 0.1; done'
+
+  status=0
+  timeout 8 "$SHELL_UNDER_TEST" "$FIXTURES/bin/stop-ds" "$@" \
+    > "$INSTANCE_ROOT/stdout" 2> "$INSTANCE_ROOT/stderr" || status=$?
+  if [ "$status" -ne "$expected" ] || [ -e "$INSTANCE_ROOT/waiter-jvm" ]; then
+    echo "$FIXTURE_CASE: expected exit $expected with no waiter JVM, got $status" >&2
+    cat "$INSTANCE_ROOT/stderr" >&2
+    exit 1
+  fi
+  if [ "$FIXTURE_CASE" = stop-timeout ]; then
+    kill -KILL "$LIVE_PID"
+    wait "$LIVE_PID" 2>/dev/null || :
+  else
+    [ ! -e "$INSTANCE_ROOT/logs/server.pid" ]
+    [ -e "$INSTANCE_ROOT/shutdown-complete" ]
+    wait "$LIVE_PID"
+    [ ! -e "$INSTANCE_ROOT/ldap-stop" ]
+  fi
+  LIVE_PID=
+}
+
+run_stop_case stop-success 100 0
+printf 'shutdown in progress\nshutdown complete' | cmp - "$INSTANCE_ROOT/stdout"
+
+run_stop_case stop-rotate 100 0
+printf 'shutdown in progress\nshutdown complete' | cmp - "$INSTANCE_ROOT/stdout"
+
+run_stop_case stop-restart 106 0 --restart --quiet
+[ ! -s "$INSTANCE_ROOT/stdout" ]
+grep -Fxq -- '--quiet' "$INSTANCE_ROOT/restart-args"
+
+run_stop_case stop-timeout 100 7
+[ -e "$INSTANCE_ROOT/ldap-stop" ]
+[ -e "$INSTANCE_ROOT/logs/server.pid" ]
+grep -Fq 'timed out after 200' "$INSTANCE_ROOT/stderr"
+
+if [ ! -r "$FIXTURES/write-only" ]; then
+  run_stop_case stop-write-only 100 0
+  [ ! -s "$INSTANCE_ROOT/stdout" ]
+fi
+
+echo "Unix startup and shutdown scenarios passed with $SHELL_UNDER_TEST"

@@ -70,7 +70,7 @@ jobs:
       if: runner.os == 'Linux' && matrix.java == '11'
       shell: bash
       run: dash .github/scripts/test-script-util.sh
-    - name: Check detached startup on Unix
+    - name: Check Unix startup and shutdown
       if: runner.os == 'Linux' && matrix.java == '11'
       shell: bash
       run: bash .github/scripts/selftest-detached-start.sh /bin/dash

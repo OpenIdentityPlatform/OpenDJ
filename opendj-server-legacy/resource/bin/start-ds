@@ -73,23 +73,13 @@ PID_FILE=${INSTANCE_ROOT}/logs/server.pid
 LOG_FILE=${INSTANCE_ROOT}/logs/server.out
 STARTING_FILE=${INSTANCE_ROOT}/logs/server.starting
 
-stop_start_timer()
-{
-  if [ -n "${TIMER_PID}" ]
-  then
-    kill "${TIMER_PID}" 2>/dev/null
-    wait "${TIMER_PID}" 2>/dev/null
-    TIMER_PID=
-  fi
-}
-
 cleanup_start()
 {
   if [ -n "${STARTUP_TIMEOUT_FILE}" ]
   then
     rm -f "${STARTUP_TIMEOUT_FILE}"
   fi
-  stop_start_timer
+  stop_wait_timer
 }
 
 report_start_failure()
@@ -115,51 +105,13 @@ $2"
 
 wait_for_startup()
 {
-  if [ "${START_TIMEOUT}" -gt 0 ]
-  then
-    sleep "${START_TIMEOUT}" > /dev/null &
-    TIMER_PID=$!
-  fi
-
-  START_RESULT=0
-  POLL_INTERVAL=0.1
-  while [ -e "${STARTING_FILE}" ] && kill -0 "${SERVER_PID}" 2>/dev/null
-  do
-    if [ -n "${TIMER_PID}" ] && ! kill -0 "${TIMER_PID}" 2>/dev/null
-    then
-      wait "${TIMER_PID}" 2>/dev/null
-      TIMER_PID=
-      if [ -e "${STARTING_FILE}" ]
-      then
-        START_RESULT=2
-      fi
-      break
-    fi
-    if [ "$1" = with-log ]
-    then
-      # Bounded reads advance the same descriptor and allow rechecking startup.
-      dd bs=8192 count=128 <&3 2>/dev/null
-    fi
-    if ! sleep "${POLL_INTERVAL}" 2>/dev/null
-    then
-      # Some Unix sleep implementations only accept whole seconds.
-      POLL_INTERVAL=1
-      sleep "${POLL_INTERVAL}"
-    fi
-  done
-  if ! kill -0 "${SERVER_PID}" 2>/dev/null
-  then
-    START_RESULT=1
-  fi
-  stop_start_timer
-
-  if [ "$1" = with-log ]
+  wait_for_marker_removal "${STARTING_FILE}" "${START_TIMEOUT}" "$1" "${SERVER_PID}"
+  START_RESULT=$?
+  if [ -n "$1" ] && LOG_SIZE=$(wc -c 2>/dev/null < "$1")
   then
     # Drain the startup log without following a server that keeps writing.
-    LOG_SIZE=$(wc -c < "${LOG_FILE}")
     dd bs=8192 count=$(( (LOG_SIZE + 8191) / 8192 )) <&3 2>/dev/null
   fi
-
   case "${START_RESULT}" in
     1) report_start_failure "server exited before startup completed (see ${LOG_FILE})" ;;
     2) report_start_failure "startup timed out after ${START_TIMEOUT} seconds (use --timeout to increase it)" ;;
@@ -185,7 +137,7 @@ fi
 # means that the server is already running and we shouldn't try to start it.
 # An exit code of anything else means that we're not trying to start the server
 # and we can just exit with that exit code.
-TIMER_PID=
+WAIT_TIMER_PID=
 START_TIMEOUT=
 STARTUP_TIMEOUT_FILE=
 trap cleanup_start 0
@@ -226,13 +178,13 @@ then
   echo "${SERVER_PID}" > "${PID_FILE}"
   # Capture the wait status inside the group to distinguish it from a failed log open.
   if [ "${EC}" -eq 99 ] && {
-    wait_for_startup with-log
+    wait_for_startup "${LOG_FILE}"
     EC=$?
   } 3< "${LOG_FILE}"
   then
     :
   else
-    wait_for_startup without-log
+    wait_for_startup ""
     EC=$?
   fi
   if test ${EC} -eq 0
