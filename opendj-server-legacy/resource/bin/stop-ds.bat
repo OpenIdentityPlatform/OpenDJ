@@ -126,7 +126,12 @@ echo %SCRIPT%: restart as windows service, stopping >> %LOG%
 if not %errorlevel% == 0 goto end
 echo %SCRIPT%: restart as windows service, starting >> %LOG%
 "%OPENDJ_JAVA_BIN%" -client org.opends.server.tools.StartWindowsService
-"%OPENDJ_JAVA_BIN%" -client org.opends.server.tools.WaitForFileDelete --targetFile "%INSTANCE_ROOT%\logs\server.startingservice"
+setlocal
+set "JAVA_TOOL_OPTIONS="
+set "JDK_JAVA_OPTIONS="
+set "_JAVA_OPTIONS="
+"%OPENDJ_JAVA_BIN%" -client -Xmx16m org.opends.server.tools.WaitForFileDelete --targetFile "%INSTANCE_ROOT%\logs\server.startingservice"
+endlocal
 rem Type the contents the winwervice.out file and delete it.
 if exist "%INSTANCE_ROOT%\logs\winservice.out" type "%INSTANCE_ROOT%\logs\winservice.out"
 if exist "%INSTANCE_ROOT%\logs\winservice.out" erase "%INSTANCE_ROOT%\logs\winservice.out"

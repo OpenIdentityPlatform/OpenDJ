@@ -106,10 +106,10 @@ then
   echo $! > "${PID_FILE}"
   if test ${EC} -eq 99
   then
-    "${OPENDJ_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
+    wait_for_file_delete \
          --targetFile "${STARTING_FILE}" --logFile "${LOG_FILE}" "${@}"
   else
-    "${OPENDJ_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
+    wait_for_file_delete \
          --targetFile "${STARTING_FILE}" "${@}"
   fi
   EC=${?}
