@@ -81,6 +81,7 @@
 	      					<include name="Dockerfile*" />
 	      					<include name="../opendj-openshift-template/*.yaml" />
 	                      	<include name="bootstrap/**" />
+                            <include name="AdminSecretValidator.java" />
 	                      	<include name="run.sh" />
 	                      	<include name="healthcheck.sh" />
 	  					</fileset>
