@@ -854,6 +854,11 @@ jobs:
           docker exec test_secret sh -c '! cmp -s /var/secrets/opendj/keystore /opt/opendj/data/config/keystore'
           docker rm -f test_secret
           docker volume rm test_secret_data
+      - name: Docker test administration certificate
+        shell: bash
+        env:
+          IMAGE: localhost:5000/${{ env.image_repository }}:${{ env.release_version }}${{ matrix.suffix }}
+        run: .github/scripts/docker-test-admin-certificate.sh "$IMAGE"
       - name: Docker test bootstrap LDIFs
         shell: bash
         run: |
