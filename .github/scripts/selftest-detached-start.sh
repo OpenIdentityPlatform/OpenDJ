@@ -34,6 +34,22 @@ cat > "$FIXTURES/lib/_script-util.sh" <<'UTIL'
 SCRIPT_UTIL_CMD=
 . "$INSTALL_ROOT/lib/script-util-real.sh"
 OPENDJ_JAVA_BIN="$INSTALL_ROOT/java"
+dd() {
+  if [ "${FIXTURE_CASE:-}" = stop-sparse ]; then
+    case " $* " in
+      *' count='*) ;;
+      *)
+        touch "$INSTANCE_ROOT/unbounded-log-read"
+        return 1
+        ;;
+    esac
+  fi
+  command dd "$@"
+}
+stat() {
+  [ "${FIXTURE_CASE:-}" != stop-no-stat ] || return 1
+  command stat "$@"
+}
 sleep() {
   case "${FIXTURE_CASE:-}:$1" in
     stop-timeout:200) command sleep 1 ;;
@@ -228,7 +244,12 @@ run_stop_case() {
   shift 3
   export INSTANCE_ROOT="$FIXTURES/$FIXTURE_CASE instance"
   mkdir -p "$INSTANCE_ROOT/logs"
-  awk 'BEGIN { for (i = 0; i < 8250; i++) printf "x"; print ""; }' > "$INSTANCE_ROOT/logs/errors"
+  if [ "$FIXTURE_CASE" = stop-sparse ]; then
+    # Model a 64 GiB log without allocating or reading 64 GiB in the fixture.
+    printf x | dd of="$INSTANCE_ROOT/logs/errors" bs=1 seek=68719476742 count=1 2>/dev/null
+  else
+    awk 'BEGIN { for (i = 0; i < 8250; i++) printf "x"; print ""; }' > "$INSTANCE_ROOT/logs/errors"
+  fi
   if [ "$FIXTURE_CASE" = stop-write-only ]; then
     chmod 200 "$INSTANCE_ROOT/logs/errors"
   fi
@@ -264,6 +285,10 @@ run_stop_case() {
     cat "$INSTANCE_ROOT/stderr" >&2
     exit 1
   fi
+  if [ -e "$INSTANCE_ROOT/unbounded-log-read" ]; then
+    echo "$FIXTURE_CASE: stop-ds attempted a full scan of the existing log" >&2
+    exit 1
+  fi
   if [ "$FIXTURE_CASE" = stop-timeout ]; then
     kill -KILL "$LIVE_PID"
     wait "$LIVE_PID" 2>/dev/null || :
@@ -281,6 +306,12 @@ printf 'shutdown in progress\nshutdown complete' | cmp - "$INSTANCE_ROOT/stdout"
 
 run_stop_case stop-rotate 100 0
 printf 'shutdown in progress\nshutdown complete' | cmp - "$INSTANCE_ROOT/stdout"
+
+run_stop_case stop-sparse 100 0
+printf 'shutdown in progress\nshutdown complete' | cmp - "$INSTANCE_ROOT/stdout"
+
+run_stop_case stop-no-stat 100 0
+[ ! -s "$INSTANCE_ROOT/stdout" ]
 
 run_stop_case stop-restart 106 0 --restart --quiet
 [ ! -s "$INSTANCE_ROOT/stdout" ]

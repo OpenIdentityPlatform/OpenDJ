@@ -102,12 +102,24 @@ LOG_FILE=${INSTANCE_ROOT}/logs/errors
 # Match DirectoryServer.DEFAULT_TIMEOUT, the timeout used by WaitForFileDelete.
 STOP_TIMEOUT=200
 
+position_shutdown_log()
+{
+  # Get the size of the open file through procfs on Linux or stdin on BSD.
+  LOG_SIZE=$(stat -Lc '%s' /proc/self/fd/0 2>/dev/null <&3) ||
+    LOG_SIZE=$(stat -f '%z' 2>/dev/null <&3) ||
+    return 1
+  case "${LOG_SIZE}" in
+    ''|*[!0-9]*) return 1 ;;
+  esac
+  # Skip to the last byte and read it on the same descriptor.
+  [ "${LOG_SIZE}" -eq 0 ] ||
+    dd bs=1 skip=$(( LOG_SIZE - 1 )) count=1 2>/dev/null <&3 > /dev/null
+}
+
 wait_for_shutdown()
 {
   STOP_LOG=$1
-  # Consume the existing log before signaling the server. Keep the same
-  # descriptor for new entries even if the log rotates.
-  if [ -n "${STOP_LOG}" ] && ! dd bs=65536 <&3 > /dev/null 2>/dev/null
+  if [ -n "${STOP_LOG}" ] && ! position_shutdown_log
   then
     STOP_LOG=
   fi
