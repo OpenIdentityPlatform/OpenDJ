@@ -1,0 +1,226 @@
+{
+  "$comment": "The contents of this file are subject to the terms of the Common Development and\nDistribution License (the License). You may not use this file except in compliance with the\nLicense.\n\nYou can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the\nspecific language governing permission and limitations under the License.\n\nWhen distributing Covered Software, include this CDDL Header Notice in each file and include\nthe License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL\nHeader, with the fields enclosed by brackets [] replaced by your own identifying\ninformation: \"Portions copyright [year] [name of copyright owner]\".\n\nCopyright 2026 3A Systems, LLC.",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "definitions": {
+    "secret": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 253,
+          "pattern": "^([a-z0-9]([-.a-z0-9]*[a-z0-9])?)?$"
+        },
+        "key": {
+          "type": "string",
+          "pattern": "^[-._a-zA-Z0-9]+$"
+        }
+      },
+      "required": [
+        "name",
+        "key"
+      ]
+    },
+    "connector": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "keystoreSecret": {
+          "$ref": "#/definitions/secret"
+        },
+        "passwordSecret": {
+          "$ref": "#/definitions/secret"
+        }
+      },
+      "required": [
+        "enabled",
+        "keystoreSecret",
+        "passwordSecret"
+      ]
+    },
+    "probe": {
+      "type": "object",
+      "properties": {
+        "periodSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "failureThreshold": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  },
+  "properties": {
+    "replicaCount": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tag": {
+          "type": "string",
+          "minLength": 0
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": [
+            "IfNotPresent",
+            "Always",
+            "Never"
+          ]
+        }
+      }
+    },
+    "directory": {
+      "type": "object",
+      "properties": {
+        "baseDn": {
+          "type": "string",
+          "minLength": 1
+        },
+        "createBaseEntry": {
+          "type": "boolean"
+        }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "properties": {
+        "rootDn": {
+          "type": "string",
+          "minLength": 1
+        },
+        "existingSecret": {
+          "type": "string",
+          "maxLength": 253,
+          "pattern": "^([a-z0-9]([-.a-z0-9]*[a-z0-9])?)?$"
+        },
+        "passwordKey": {
+          "type": "string",
+          "pattern": "^[-._a-zA-Z0-9]+$"
+        }
+      },
+      "required": [
+        "rootDn",
+        "existingSecret",
+        "passwordKey"
+      ]
+    },
+    "persistence": {
+      "type": "object",
+      "properties": {
+        "size": {
+          "type": "string",
+          "minLength": 1
+        },
+        "storageClass": {
+          "type": "string",
+          "minLength": 0
+        }
+      }
+    },
+    "replication": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "peerCount": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "admin": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "securityContext": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "type": "string",
+          "enum": [
+            "kubernetes",
+            "openshift"
+          ]
+        }
+      }
+    },
+    "pdb": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "topologySpreadConstraints": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "probes": {
+      "type": "object",
+      "properties": {
+        "startup": {
+          "$ref": "#/definitions/probe"
+        },
+        "readiness": {
+          "$ref": "#/definitions/probe"
+        },
+        "liveness": {
+          "$ref": "#/definitions/probe"
+        }
+      }
+    },
+    "terminationGracePeriodSeconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "resources": {
+      "type": "object"
+    },
+    "tls": {
+      "type": "object",
+      "properties": {
+        "refreshSeconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ldap": {
+          "$ref": "#/definitions/connector"
+        },
+        "admin": {
+          "$ref": "#/definitions/connector"
+        }
+      }
+    }
+  }
+}

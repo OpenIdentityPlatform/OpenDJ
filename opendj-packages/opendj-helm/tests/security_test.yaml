@@ -1,0 +1,124 @@
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions copyright [year] [name of copyright owner]".
+#
+# Copyright 2026 3A Systems, LLC.
+
+suite: Pod security and checks
+templates:
+  - templates/statefulset.yaml
+  - templates/configmap.yaml
+  - templates/pdb.yaml
+  - templates/tests/ldap.yaml
+release:
+  name: directory
+capabilities:
+  majorVersion: 1
+  minorVersion: 34
+tests:
+  - it: requires the default Secret and runs with numeric non-root credentials
+    template: templates/statefulset.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[?(@.name == "ROOT_PASSWORD")].valueFrom.secretKeyRef
+          value:
+            name: opendj-directory-root
+            key: password
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1001
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 1001
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.capabilities.drop
+          value:
+            - ALL
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: false
+  - it: uses the named secret and lets OpenShift assign UID and volume group
+    template: templates/statefulset.yaml
+    set:
+      auth.existingSecret: directory-credentials
+      auth.passwordKey: root-password
+      securityContext.profile: openshift
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[?(@.name == "ROOT_PASSWORD")].valueFrom.secretKeyRef
+          value:
+            name: directory-credentials
+            key: root-password
+      - notExists:
+          path: spec.template.spec.securityContext.fsGroup
+      - notExists:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+  - it: separates bootstrap and readiness from liveness
+    template: templates/statefulset.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.exec.command[0]
+          value: /opt/opendj/healthcheck.sh
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.exec.command[0]
+          value: /opt/opendj/healthcheck.sh
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.tcpSocket.port
+          value: ldap
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.failureThreshold
+          value: 60
+  - it: records setup parameters as strings and supports omitting the base entry
+    template: templates/configmap.yaml
+    set:
+      directory.baseDn: dc=unit,dc=test
+      directory.createBaseEntry: false
+    asserts:
+      - equal:
+          path: data.BASE_DN
+          value: dc=unit,dc=test
+      - equal:
+          path: data.ADD_BASE_ENTRY
+          value: ""
+  - it: gives the hook a distinct selector identity and the same image override
+    template: templates/tests/ldap.yaml
+    set:
+      image.repository: opendj-helm-ci
+      image.tag: test
+      image.pullPolicy: Never
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: opendj-test
+      - equal:
+          path: spec.containers[0].image
+          value: opendj-helm-ci:test
+      - equal:
+          path: spec.automountServiceAccountToken
+          value: false
+  - it: creates a disruption budget for a replicated install
+    template: templates/pdb.yaml
+    set:
+      replicaCount: 2
+      replication.enabled: true
+      pdb.enabled: true
+    asserts:
+      - equal:
+          path: spec.maxUnavailable
+          value: 1
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app.kubernetes.io/name: opendj
+            app.kubernetes.io/instance: directory

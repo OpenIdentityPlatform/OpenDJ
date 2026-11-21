@@ -1,0 +1,70 @@
+{{- /*
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+*/ -}}
+
+{{- $name := include "opendj.fullname" . -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-headless
+  labels:
+    {{- include "opendj.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    {{- include "opendj.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: admin
+      port: 4444
+      targetPort: admin
+    - name: replication
+      port: 8989
+      targetPort: replication
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "opendj.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "opendj.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: ldap
+      port: 1389
+      targetPort: ldap
+    - name: ldaps
+      port: 1636
+      targetPort: ldaps
+{{- if .Values.service.admin.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-admin
+  labels:
+    {{- include "opendj.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "opendj.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: admin
+      port: 4444
+      targetPort: admin
+{{- end }}

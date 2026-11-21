@@ -1,0 +1,94 @@
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions copyright [year] [name of copyright owner]".
+#
+# Copyright 2026 3A Systems, LLC.
+
+replicaCount: 1
+
+image:
+  repository: openidentityplatform/opendj
+  tag: ""
+  pullPolicy: IfNotPresent
+
+directory:
+  baseDn: dc=example,dc=com
+  createBaseEntry: true
+
+auth:
+  rootDn: cn=Directory Manager
+  # Empty names use <fullname>-root. Create the Secret before installing.
+  existingSecret: ""
+  passwordKey: password
+
+persistence:
+  size: 10Gi
+  # Empty uses the default StorageClass.
+  storageClass: ""
+
+replication:
+  enabled: false
+  # Override during a two-step resize. Null tracks replicaCount.
+  peerCount: null
+
+service:
+  admin:
+    enabled: false
+
+securityContext:
+  profile: kubernetes
+
+pdb:
+  enabled: false
+
+topologySpreadConstraints: []
+
+probes:
+  startup:
+    periodSeconds: 10
+    timeoutSeconds: 30
+    failureThreshold: 60
+  readiness:
+    periodSeconds: 10
+    timeoutSeconds: 30
+    failureThreshold: 1
+  liveness:
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+terminationGracePeriodSeconds: 60
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    memory: 1Gi
+
+tls:
+  refreshSeconds: 60
+  ldap:
+    enabled: false
+    keystoreSecret:
+      name: ""
+      key: keystore.p12
+    passwordSecret:
+      name: ""
+      key: password
+  admin:
+    enabled: false
+    keystoreSecret:
+      name: ""
+      key: keystore.jks
+    passwordSecret:
+      name: ""
+      key: password

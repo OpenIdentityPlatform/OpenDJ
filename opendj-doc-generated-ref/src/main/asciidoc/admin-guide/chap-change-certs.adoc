@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024-2026 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
@@ -41,7 +41,7 @@ This chapter covers how to replace OpenDJ key pairs and public key certificates.
 
 [NOTE]
 ======
-When a volume is mounted at `SECRET_VOLUME` (`/var/secrets/opendj` by default), a container started from the Docker image copies the `key*` and `trust*` files of that volume, such as `keystore`, `keystore.pin`, `truststore` and `truststore.pin`, into its instance on every start, and by default also while the server runs, when they change. Replace the key pair that secures connections with client applications on that volume rather than in the instance, where the next copy would overwrite it. Only these files are copied: the `admin-keystore`, `admin-truststore` and `ads-truststore` of the administration connector and of replication stay in the instance, and are replaced there as described in this chapter. A renewed keystore is served without a restart only if it holds the key under an alias that the previous one used as well. See the link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/opendj-packages/opendj-docker/README.md#certificates[Certificates section of the README of the image, window=\_blank].
+When a volume is mounted at `SECRET_VOLUME` (`/var/secrets/opendj` by default), the Docker image copies its `key*` and `trust*` files into the instance on every start. It installs the mounted `admin-keystore` and `admin-keystore.pin` only after verifying that the PIN opens the `admin-cert` private key. Update these files on the mounted volume. By default, the image checks the volume for changes while the server runs. Keep the existing key alias for a renewal to take effect on new TLS connections without a restart. The procedures in this chapter cover updating `admin-truststore` and `ads-truststore` directly in the instance. For the Secret layout and verification commands, see the link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/opendj-packages/opendj-docker/README.md#certificates[Docker image certificate documentation, window=\_blank].
 ======
 
 OpenDJ uses keystores (for private keys) and truststores (for public, signed certificates). Up to three sets of keystores are used, as shown in the following illustration.
@@ -60,10 +60,10 @@ By default the keystores are located in the `/path/to/opendj/config` directory:
 Each keystore has a specific purpose:
 
 `admin-keystore`::
-This Java Keystore holds the private key and administrative certificate for the server, `admin-cert`. This key pair is used to protect communications on the administration port. The password, stored in `admin-keystore.pin`, is also the key password for `admin-cert`.
+This keystore holds the private key and certificate chain for the administration port under the default alias `admin-cert`. It can be JKS or PKCS12. Use the password in `admin-keystore.pin` for the keystore and all its private key entries.
 
 `admin-truststore`::
-This Java Keystore holds a copy of the administrative certificate, `admin-cert`. The password is the same as for the `admin-keystore`, in other words the string in `admin-keystore.pin`.
+Setup initializes this Java Keystore with a copy of the initial `admin-cert` and gives it the same password as the initial `admin-keystore`. For an existing `admin-truststore`, use its own password, set at creation or by its last password change. With a mounted Secret, `admin-keystore.pin` contains the password for the key pair supplied by the Secret.
 
 `ads-truststore`::
 This Java Keystore holds public key certificates of all servers replicating with the current server. It also includes the `ads-certificate` key pair of the current server. The password is stored in `ads-truststore.pin`.
@@ -91,6 +91,8 @@ When importing a certificate (`keytool -import`) signed by a well-known CA, use 
 ====
 This procedure shows how to replace a server key pair in the `admin-keystore` and copy of the administrative certificate in `admin-truststore`.
 
+For an administration key pair managed by `SECRET_VOLUME`, replace the pair in the mounted Secret and configure administrative clients to trust the issuing CA in a client truststore. To continue maintaining the existing `admin-truststore`, retain its password before mounting a replacement PIN. The commands below prompt for the password of `admin-truststore`.
+
 The examples also apply when replacing a key pair in the `keystore` and copy of the server certificate in `truststore`. Just adapt the commands to use the correct keystore, truststore, and PIN file names.
 
 This procedure does not apply for replication key pairs. Instead, see xref:#replace-ads-cert["To Replace the Key Pair Used for Replication"].
@@ -110,7 +112,8 @@ Your keystore contains 1 entry
 
 admin-cert, May 20, 2015, PrivateKeyEntry,
 Certificate fingerprint (SHA1): 21:9F:F0:E8:A3:22:A3:62:1D:C7:04:BD:12:44:A6:FA:0C:3F:3A:35
-$ keytool -list -keystore admin-truststore -storepass `cat admin-keystore.pin`
+$ keytool -list -keystore admin-truststore
+Enter keystore password:
 
 Keystore type: JKS
 Keystore provider: SUN
@@ -137,8 +140,7 @@ $ keytool \
 $ keytool \
  -delete \
  -alias admin-cert \
- -keystore admin-truststore \
- -storepass `cat admin-keystore.pin`
+ -keystore admin-truststore
 ----
 
 . Generate a new key pair in the keystore:
@@ -184,8 +186,8 @@ $ keytool \
  -import \
  -alias admin-cert \
  -keystore admin-truststore \
- -storepass `cat admin-keystore.pin` \
  -file admin-cert.crt
+Enter keystore password:
 Owner: CN=opendj.example.com, O=Administration Connector Self-Signed Certificate
 Issuer: CN=opendj.example.com, O=Administration Connector Self-Signed Certificate
 Serial number: 4cdd42a
@@ -643,3 +645,38 @@ The server does not check the host name presented in the replication certificate
 Trusting your CA on the replication port means trusting every certificate it issues, as the certificate is the only credential a peer presents and its subject is not checked. Use a CA dedicated to the replication topology, or one whose issuance you constrain, rather than a corporate CA which also signs certificates for unrelated hosts.
 ======
 ====
+
+[#helm-certificates]
+=== TLS Secrets for the Helm Chart
+
+LDAPS on 1636 and the administration connector on 4444 can use separate key pairs. Create Kubernetes Secrets that contain the keystore and its password, or use distinct Secrets for those two files. The chart projects both enabled pairs into the directory watched by the Docker image. Use PKCS12 for LDAP and JKS with the `admin-cert` alias for the administration connector when cert-manager generates the files. Include the DNS names used by clients as certificate SANs.
+
+[source,yaml]
+----
+tls:
+  refreshSeconds: 60
+  ldap:
+    enabled: true
+    keystoreSecret:
+      name: directory-ldap
+      key: keystore.p12
+    passwordSecret:
+      name: directory-ldap-pin
+      key: password
+  admin:
+    enabled: true
+    keystoreSecret:
+      name: directory-admin
+      key: keystore.jks
+    passwordSecret:
+      name: directory-admin-pin
+      key: password
+----
+
+The chart mounts whole Secret projections. When a controller renews a Secret, allow time for Kubernetes to project the change and for the image to copy the files. New connections then use the renewed certificate. Keep the alias stable across renewals. With `tls.refreshSeconds: 0`, roll the pods to apply a renewed Secret.
+
+Verify the served serial number and validate the CA and DNS name on both listeners. Run a read-only `dsconfig get-administration-connector-prop` command against the administration port with the client truststore and password files. See the link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/opendj-packages/opendj-docker/README.md#certificates[Docker certificate configuration] for examples.
+
+Disabling `tls.ldap.enabled` or `tls.admin.enabled` removes the corresponding Secret projection. OpenDJ keeps serving the certificate from the keystore and PIN it copied to each replica's PVC, including after rollout. To retire that certificate, first install its replacement through the current projection and verify the new certificate on every replica. With `tls.refreshSeconds: 0`, roll the pods to apply the replacement. Then disable the projection, wait for the rollout, and verify the certificate again on the affected listener of every replica.
+
+A pod that starts on a fresh PVC without the projection uses the self-signed certificate generated by setup for that listener. If clients require a certificate signed by a trusted CA with the expected DNS names, keep or re-enable the corresponding projection before scaling out onto fresh PVCs or starting a pod with a replacement PVC.
