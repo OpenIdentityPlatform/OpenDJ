@@ -101,7 +101,15 @@ fi
   --acceptLicense \
   --no-prompt \
   --noPropertiesFile \
+  --doNotStart \
   $SETUP_ARGS || exit 1
+
+# Let the setup JVM exit before starting the server needed by the online bootstrap steps.
+(
+  # Use the server's own JVM settings, as when setup invoked start-ds.
+  unset OPENDJ_JAVA_ARGS CLASSPATH
+  exec /opt/opendj/bin/start-ds --timeout 0
+) || exit 1
 
 BACKEND_TYPE=${BACKEND_TYPE:-je}
 BACKEND_DB_DIRECTORY=${BACKEND_DB_DIRECTORY:-db}
