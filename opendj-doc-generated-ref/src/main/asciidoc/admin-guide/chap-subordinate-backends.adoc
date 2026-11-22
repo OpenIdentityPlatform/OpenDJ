@@ -14,8 +14,16 @@ information: "Portions copyright [year] [name of copyright owner]".
 Copyright 2026 3A Systems, LLC.
 ////
 
+:table-caption!:
+
+ifndef::env-site[]
 [#chap-subordinate-backends]
+endif::[]
 == Subordinate Backends
+
+ifdef::env-site[]
+anchor:chap-subordinate-backends[]
+endif::[]
 
 A subordinate backend serves a base DN below the base DN of another backend. This arrangement is also called overlapping or nested backends. The overlap is in the directory namespace: each backend has its own registered base DN and its own data.
 
