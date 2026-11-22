@@ -69,7 +69,10 @@ public class AntoraPageTitlesIT extends ForgeRockTestCase {
                              "_restart_and_remove_the_sample_data", "_next_steps" } },
             { "admin-guide", "chap-subordinate-backends", "Subordinate Backends",
               new String[] { "chap-subordinate-backends", "subordinate-backends-uses", "subordinate-backends-create",
-                             "subordinate-backends-migrate", "subordinate-backends-operations" } }
+                             "subordinate-backends-migrate", "subordinate-backends-operations" } },
+            { "admin-guide", "chap-alias-dereferencing", "Dereferencing LDAP Aliases in Searches",
+              new String[] { "chap-alias-dereferencing", "alias-dereferencing-policies",
+                             "alias-dereferencing-example", "alias-dereferencing-troubleshooting" } }
         };
     }
 
