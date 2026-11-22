@@ -55,7 +55,11 @@ The client sets the dereferencing policy for each LDAP search request. In OpenDJ
 | Dereference matching alias entries.
 |===
 
-When OpenDJ dereferences the search base, it applies the requested scope at the target. When OpenDJ dereferences an alias it finds below the base, it can return the target entry even if its DN is outside the original search scope. To search the target's subtree through an alias, use the alias DN as the base with scope `sub` and policy `find` or `always`.
+When OpenDJ dereferences the search base, it searches from the target using the requested scope and filter.
+
+For aliases below the search base, OpenDJ applies the search filter to the alias before dereferencing it. OpenDJ can return the target entry even if it fails the filter or lies outside the original search scope. Dereferencing each matching alias returns only the target entry, even with scope `sub`.
+
+To search the target's subtree through an alias, use the alias DN as the base with scope `sub` and policy `find` or `always`.
 
 [#alias-dereferencing-example]
 === Create and Search an Alias
@@ -121,6 +125,8 @@ bin/ldapsearch --hostname localhost --port 1389 \
   --baseDN 'ou=Aliases,dc=example,dc=com' --searchScope one \
   --dereferencePolicy search '(objectClass=*)' cn
 ----
+
+With the same base and scope, changing the filter to `(objectClass=person)` returns no entries because Support is an alias. Changing it to `(cn=Support)` matches the alias and returns Alice's entry.
 
 [#alias-dereferencing-troubleshooting]
 === Check Alias Targets
