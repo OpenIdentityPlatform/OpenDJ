@@ -56,7 +56,7 @@ Use the same bound LDAP connection from start to finish. Keep the connection out
 . Attach the critical Transaction Specification control (`1.3.6.1.1.21.2`) with that identifier to each Add, Delete, Modify, or Modify DN request in the transaction. A successful update response confirms that OpenDJ queued the request. OpenDJ processes the queued updates and checks write permissions when the client commits.
 . Send the End Transaction extended request (`1.3.6.1.1.21.3`) with the same identifier. Set `commit` to `true` to apply the queued updates in order, or to `false` to discard them. If a request fails while queuing updates, abort the transaction. If an update fails during commit, OpenDJ reports the failure and attempts to undo previously completed updates. After settlement, discard the identifier.
 
-In the following OpenDJ LDAP SDK example, `connection` is an already bound `org.forgerock.opendj.ldap.Connection` authorized to add entries under an existing `dc=example,dc=com` suffix. Run it on a test server with two unused target DNs. Use `commit = false` first to exercise abort, then `commit = true` to apply the batch.
+The following OpenDJ LDAP SDK example assumes that both Add requests are queued successfully. In the example, `connection` is an already bound `org.forgerock.opendj.ldap.Connection` authorized to add entries under an existing `dc=example,dc=com` suffix. Run it on a test server with two unused target DNs. Use `commit = false` first to exercise abort, then `commit = true` to apply the batch.
 
 [source,java]
 ----
@@ -79,6 +79,8 @@ connection.extendedRequest(new EndTransactionExtendedRequest()
         .setTransactionID(id)
         .setCommit(commit));
 ----
+
+If `add()` throws, abort before reusing the connection. If the same connection is still usable, send an `EndTransactionExtendedRequest` with the same `id` and `setCommit(false)`. If you cannot confirm the abort, discard the connection.
 
 Search the same server under `dc=example,dc=com` with the filter `(|(ou=TxnPeople)(ou=TxnGroups))`. The search returns neither entry after the abort and both entries after a successful commit.
 
