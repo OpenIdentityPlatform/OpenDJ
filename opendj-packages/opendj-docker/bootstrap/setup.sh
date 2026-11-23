@@ -108,6 +108,7 @@ fi
 (
   # Use the server's own JVM settings, as when setup invoked start-ds.
   unset OPENDJ_JAVA_ARGS CLASSPATH
+  cd /opt/opendj/bin || exit 1
   exec /opt/opendj/bin/start-ds --timeout 0
 ) || exit 1
 
