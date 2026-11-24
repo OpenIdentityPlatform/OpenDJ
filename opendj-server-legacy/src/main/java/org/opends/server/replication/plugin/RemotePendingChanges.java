@@ -327,6 +327,7 @@ final class RemotePendingChanges
         final LDAPUpdateMsg accepted = listed.getLDAPUpdateMsg();
         accepted.setAssured(update.isAssured());
         accepted.setAssuredMode(update.getAssuredMode());
+        accepted.setAcknowledgementSender(update.getAcknowledgementSender());
         accepted.setSafeDataLevel(update.getSafeDataLevel());
         return Admission.QUEUED_DUPLICATE;
       }

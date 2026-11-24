@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -38,6 +39,17 @@ public class UpdateMsg extends ReplicationMsg
 
   /** True when the update must use assured replication. */
   protected boolean assuredFlag;
+
+  /** Sends a replay acknowledgement to the RS session that requested it. */
+  @FunctionalInterface
+  public interface AcknowledgementSender
+  {
+    /** Returns whether the session accepted the acknowledgement. */
+    boolean send(AckMsg acknowledgement);
+  }
+
+  /** Local to the receiving DS. Never encoded or forwarded. */
+  private AcknowledgementSender acknowledgementSender;
 
   /** When assuredFlag is true, defines the requested assured mode. */
   protected AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;
@@ -93,6 +105,18 @@ public class UpdateMsg extends ReplicationMsg
   public CSN getCSN()
   {
     return csn;
+  }
+
+  /** Returns the reply path for this delivery, or null if no reply was requested from this DS. */
+  public AcknowledgementSender getAcknowledgementSender()
+  {
+    return acknowledgementSender;
+  }
+
+  /** Records where this delivery must be acknowledged after replay. */
+  public void setAcknowledgementSender(AcknowledgementSender sender)
+  {
+    acknowledgementSender = sender;
   }
 
   /**

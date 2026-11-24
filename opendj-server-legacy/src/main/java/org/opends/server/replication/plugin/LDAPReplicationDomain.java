@@ -1007,8 +1007,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         {
           if (rsUpdater == this)
           {
-            rsUpdater = null;
-            broker.setRecoveryRequired(false);
+            releasePublisher();
             startTheSessionAgain = true;
           }
         }
@@ -1022,6 +1021,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            */
           sessionRestarts.request(SessionRestart.NOW);
         }
+      }
+    }
+
+    /** Called under recoveryLock. Leaving the publisher does not prove delivery. */
+    private void releasePublisher()
+    {
+      rsUpdater = null;
+      if (pendingChanges.isRecovering())
+      {
+        broker.recoveryAborted();
       }
     }
 
@@ -1065,12 +1074,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       {
         final RecoveryStart start = nextStart;
         nextStart = null;
-        if (start == null || shutdown.get())
+        if (start == null || stopRecoveryForShutdown())
         {
           // RSUpdater thread has finished its work, let's remove it from memory
           // so another RSUpdater thread can be started if needed.
-          rsUpdater = null;
-          broker.setRecoveryRequired(false);
+          releasePublisher();
           return null;
         }
         return start;
@@ -7444,6 +7452,12 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     }
   }
 
+  /** A shutdown still announcing this replica may drain the replacement within the broker stop deadline. */
+  private boolean stopRecoveryForShutdown()
+  {
+    return shutdown.get() && !pendingChanges.isPublishingOffline();
+  }
+
   /**
    * Has the changes of this replica which come after the provided CSN published on the session
    * which starts: starts the thread which publishes them, or hands the start over to the one which
@@ -7469,13 +7483,13 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       if (replServerMisses)
       {
         pendingChanges.setRecovering(true);
-        broker.setRecoveryRequired(true);
       }
       else if (!pendingChanges.isRecovering())
       {
         // The publisher of an earlier session ended it since it was checked.
         return;
       }
+      broker.setRecoveryRequired(true);
       if (rsUpdater == null)
       {
         rsUpdater = new RSUpdater(start);
@@ -7549,7 +7563,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     boolean holdBackLocalChanges = false;
     while (true)
     {
-      if (shutdown.get() || missingChanges.startHandedOver())
+      if (stopRecoveryForShutdown() || missingChanges.startHandedOver())
       {
         return false;
       }
@@ -7674,7 +7688,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       MissingChangesRound round = publish(fromCSN, true);
       while (round != null && round.succeeded && !round.caughtUp)
       {
-        if (shutdown.get())
+        if (stopRecoveryForShutdown())
         {
           return null;
         }
@@ -7763,7 +7777,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
     {
       for (LDAPUpdateMsg msg : recent.messages)
       {
-        if (shutdown.get())
+        if (stopRecoveryForShutdown())
         {
           return null;
         }
@@ -7908,7 +7922,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
 
       for (FakeOperation opToSend : opsToSend.values())
       {
-        if (shutdown.get())
+        if (stopRecoveryForShutdown())
         {
           return null;
         }
@@ -7953,7 +7967,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
       CSN publishedUpTo = fromCSN;
       for (LDAPUpdateMsg msg : kept)
       {
-        if (shutdown.get())
+        if (stopRecoveryForShutdown())
         {
           return null;
         }

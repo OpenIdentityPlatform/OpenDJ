@@ -2419,8 +2419,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
       catch (IOException e)
       {
-        logger.error(ERR_EXCEPTION_CHANGING_STATUS_FROM_STATUS_ANALYZER,
-            baseDN, dsHandler.getServerId(), e.getMessage());
+        logger.traceException(e);
+        // The reader can close the session before removing its handler from this domain.
+        if (!dsHandler.shuttingDown() && !dsHandler.session.closeInitiated())
+        {
+          logger.error(ERR_EXCEPTION_CHANGING_STATUS_FROM_STATUS_ANALYZER,
+              baseDN, dsHandler.getServerId(), e.getMessage());
+        }
       }
 
       if (newStatus == ServerStatus.INVALID_STATUS || newStatus == oldStatus)

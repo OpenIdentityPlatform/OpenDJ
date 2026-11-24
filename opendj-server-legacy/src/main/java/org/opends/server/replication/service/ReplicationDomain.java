@@ -971,9 +971,7 @@ public abstract class ReplicationDomain
     }
 
     numRcvdUpdates.incrementAndGet();
-    if (update.isAssured()
-        && broker.getRsGroupId() == getGroupId()
-        && update.getAssuredMode() == AssuredMode.SAFE_READ_MODE)
+    if (update.getAcknowledgementSender() != null)
     {
       assuredSrReceivedUpdates.incrementAndGet();
     }
@@ -3848,44 +3846,34 @@ public abstract class ReplicationDomain
   {
     broker.updateWindowAfterReplay();
 
-    /*
-    Send an ack if it was requested and the group id is the same of the RS
-    one. Only Safe Read mode makes sense in DS for returning an ack.
-    */
-    // Assured feature is supported starting from replication protocol V2
-    if (msg.isAssured()
-      && broker.getProtocolVersion() >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
+    if (msg.isAssured())
     {
-      if (msg.getAssuredMode() == AssuredMode.SAFE_READ_MODE)
+      // Eligibility and the return session belong to the delivery, even if replay
+      // finishes after a reconnect to another group or to the same RS on a new socket.
+      final UpdateMsg.AcknowledgementSender sender = msg.getAcknowledgementSender();
+      if (sender != null)
       {
-        if (broker.getRsGroupId() == getGroupId())
+        final AckMsg ackMsg = new AckMsg(msg.getCSN());
+        if (replayErrorMsg != null)
         {
-          // Send the ack
-          AckMsg ackMsg = new AckMsg(msg.getCSN());
-          if (replayErrorMsg != null)
-          {
-            // Mark the error in the ack
-            //   -> replay error occurred
-            ackMsg.setHasReplayError(true);
-            //   -> replay error occurred in our server
-            ackMsg.setFailedServers(newArrayList(getServerId()));
-          }
-          broker.publish(ackMsg);
-          if (replayErrorMsg != null)
-          {
-            assuredSrReceivedUpdatesNotAcked.incrementAndGet();
-          }
-          else
-          {
-            assuredSrReceivedUpdatesAcked.incrementAndGet();
-          }
+          ackMsg.setHasReplayError(true);
+          ackMsg.setFailedServers(newArrayList(getServerId()));
+        }
+        if (sender.send(ackMsg) && replayErrorMsg == null)
+        {
+          assuredSrReceivedUpdatesAcked.incrementAndGet();
+        }
+        else
+        {
+          assuredSrReceivedUpdatesNotAcked.incrementAndGet();
         }
       }
-      else if (getAssuredMode() != AssuredMode.SAFE_DATA_MODE)
+      else if (msg.getAssuredMode() != AssuredMode.SAFE_READ_MODE
+          && getAssuredMode() != AssuredMode.SAFE_DATA_MODE
+          && broker.getProtocolVersion() >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
       {
         logger.error(ERR_DS_UNKNOWN_ASSURED_MODE, getServerId(), msg.getAssuredMode(), getBaseDN(), msg);
       }
-        // Nothing to do in Assured safe data mode, only RS ack updates.
     }
 
     incProcessedUpdates();

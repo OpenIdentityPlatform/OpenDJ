@@ -123,11 +123,7 @@ final class HeartbeatMonitor extends DirectoryThread
         {
           if (gotOneFailure)
           {
-            // Heartbeat is well overdue so the server is assumed to be dead.
-            logger.warn(WARN_HEARTBEAT_FAILURE, serverID,
-                replicationServerID, session.getReadableRemoteAddress(), baseDN);
-
-            // Exit monitor and close session.
+            // Heartbeat is well overdue. Finish monitoring and let the session decide how to close.
             shutdown = true;
             heartbeatsStopped = true;
             break;
@@ -176,9 +172,14 @@ final class HeartbeatMonitor extends DirectoryThread
          * that write, nor the read of the listener, which neither data nor a reset ends: the
          * session is closed as a failed one, with no StopMsg the replication server would not read.
          */
-        session.abort(new IOException("No heartbeat came from replication server RS("
+        final IOException cause = new IOException("No heartbeat came from replication server RS("
             + replicationServerID + ") at " + session.getReadableRemoteAddress() + " for twice "
-            + heartbeatInterval + " ms"));
+            + heartbeatInterval + " ms");
+        if (session.abortOnHeartbeatTimeout(cause))
+        {
+          logger.warn(WARN_HEARTBEAT_FAILURE, serverID,
+              replicationServerID, session.getReadableRemoteAddress(), baseDN);
+        }
       }
       else
       {
