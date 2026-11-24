@@ -1047,6 +1047,7 @@ public final class LDAPConnectionHandler extends
             .bind(new InetSocketAddress(a, listenPort), backlog);
         channel.configureBlocking(false);
         channel.register(selector, SelectionKey.OP_ACCEPT);
+        channel = null;
         numRegistered++;
 
         logger.info(NOTE_CONNHANDLER_STARTED_LISTENING, handlerName);
