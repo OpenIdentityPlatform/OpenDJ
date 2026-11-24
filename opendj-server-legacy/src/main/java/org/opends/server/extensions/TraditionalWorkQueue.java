@@ -13,22 +13,21 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
- * Portions Copyright 2026 3A Systems, LLC
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.extensions;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -88,7 +87,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
   private boolean killThreads;
 
   /** Indicates whether the Directory Server is shutting down. */
-  private boolean shutdownRequested;
+  private volatile boolean shutdownRequested;
 
   /** The thread number used for the last worker thread that was created. */
   private int lastThreadNumber;
@@ -103,7 +102,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
    * The number of worker threads that should be active (or will be shortly if a
    * configuration change has not been completely applied).
    */
-  private int numWorkerThreads;
+  private volatile int numWorkerThreads;
 
   /**
    * The queue overflow policy: true indicates that operations will be blocked
@@ -115,19 +114,11 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
    */
   private final boolean isBlocking = true;
 
-  /** The queue that will be used to actually hold the pending operations. */
-  private LinkedBlockingQueue<Operation> opQueue;
-
-  /** The lock used to provide threadsafe access for the queue, used for non-config changes. */
-  private final ReadLock queueReadLock;
-
-  /** The lock used to provide threadsafe access for the queue, used for config changes. */
-  private final WriteLock queueWriteLock;
-  {
-    ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    queueReadLock = lock.readLock();
-    queueWriteLock = lock.writeLock();
-  }
+  /** Guards the queue, capacity, and worker pool. Condition waits release the lock. */
+  private final ReentrantLock queueLock = new ReentrantLock();
+  private final Condition workAvailable = queueLock.newCondition();
+  private final Condition spaceAvailable = queueLock.newCondition();
+  private final Deque<Operation> opQueue = new ArrayDeque<>();
 
   /**
    * Creates a new instance of this work queue. All initialization should be
@@ -142,7 +133,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
   public void initializeWorkQueue(TraditionalWorkQueueCfg configuration)
       throws ConfigException, InitializationException
   {
-    queueWriteLock.lock();
+    queueLock.lock();
     try
     {
       shutdownRequested = false;
@@ -159,17 +150,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
           computeNumWorkerThreads(configuration.getNumWorkerThreads());
       maxCapacity = configuration.getMaxWorkQueueCapacity();
 
-      // Create the actual work queue.
-      if (maxCapacity > 0)
-      {
-        opQueue = new LinkedBlockingQueue<>(maxCapacity);
-      }
-      else
-      {
-        // This will never be the case, since the configuration definition
-        // ensures that the capacity is always finite.
-        opQueue = new LinkedBlockingQueue<>();
-      }
+      opQueue.clear();
 
       // Create the set of worker threads that should be used to service the
       // work queue.
@@ -182,76 +163,87 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
         workerThreads.add(t);
       }
 
-      // Create and register a monitor provider for the work queue.
-      try
-      {
-        TraditionalWorkQueueMonitor monitor = new TraditionalWorkQueueMonitor(
-            this);
-        monitor.initializeMonitorProvider(null);
-        DirectoryServer.registerMonitorProvider(monitor);
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-        logger.error(ERR_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR, TraditionalWorkQueueMonitor.class, e);
-      }
+      registerQueueMonitor();
     }
     finally
     {
-      queueWriteLock.unlock();
+      queueLock.unlock();
+    }
+  }
+
+  void registerQueueMonitor()
+  {
+    try
+    {
+      TraditionalWorkQueueMonitor monitor = new TraditionalWorkQueueMonitor(this);
+      monitor.initializeMonitorProvider(null);
+      DirectoryServer.registerMonitorProvider(monitor);
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+      logger.error(ERR_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR, TraditionalWorkQueue.class, e);
     }
   }
 
   @Override
   public void finalizeWorkQueue(LocalizableMessage reason)
   {
-    queueWriteLock.lock();
+    List<Operation> pendingOperations;
+    List<TraditionalWorkerThread> workers;
+    queueLock.lock();
     try
     {
       shutdownRequested = true;
+      pendingOperations = new ArrayList<>(opQueue);
+      opQueue.clear();
+      workers = new ArrayList<>(workerThreads);
+      workAvailable.signalAll();
+      spaceAvailable.signalAll();
     }
     finally
     {
-      queueWriteLock.unlock();
+      queueLock.unlock();
     }
 
-    // From now on no more operations can be enqueued or dequeued.
-
-    // Send responses to any operations in the pending queue to indicate that
-    // they won't be processed because the server is shutting down.
     CancelRequest cancelRequest = new CancelRequest(true, reason);
-    ArrayList<Operation> pendingOperations = new ArrayList<>();
-    opQueue.drainTo(pendingOperations);
-    for (Operation o : pendingOperations)
+    for (Operation operation : pendingOperations)
     {
-      try
-      {
-        // The operation has no chance of responding to the cancel
-        // request so avoid waiting for a cancel response.
-        if (o.getCancelResult() == null)
-        {
-          o.abort(cancelRequest);
-        }
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-        logger.warn(WARN_QUEUE_UNABLE_TO_CANCEL, o, e);
-      }
+      abortPendingOperation(operation, cancelRequest);
     }
 
-    // Notify all the worker threads of the shutdown.
-    for (TraditionalWorkerThread t : workerThreads)
+    for (TraditionalWorkerThread worker : workers)
     {
       try
       {
-        t.shutDown();
+        worker.shutDown();
       }
       catch (Exception e)
       {
         logger.traceException(e);
-        logger.warn(WARN_QUEUE_UNABLE_TO_NOTIFY_THREAD, t.getName(), e);
+        logger.warn(WARN_QUEUE_UNABLE_TO_NOTIFY_THREAD, worker.getName(), e);
       }
+    }
+  }
+
+  void abortPendingOperation(Operation operation, CancelRequest cancelRequest)
+  {
+    try
+    {
+      // Pending operations have no worker to answer a cancel request.
+      if (operation.getCancelResult() == null)
+      {
+        operation.abort(cancelRequest);
+      }
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+      logger.warn(WARN_QUEUE_UNABLE_TO_CANCEL, operation, e);
+    }
+    finally
+    {
+      operationDone();
     }
   }
 
@@ -263,15 +255,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
    */
   public boolean shutdownRequested()
   {
-    queueReadLock.lock();
-    try
-    {
-      return shutdownRequested;
-    }
-    finally
-    {
-      queueReadLock.unlock();
-    }
+    return shutdownRequested;
   }
 
   /**
@@ -310,72 +294,40 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     }
   }
 
-  private void submitOperation(Operation operation,
-      boolean blockEnqueuingWhenFull) throws DirectoryException
+  private void submitOperation(Operation operation, boolean blockEnqueuingWhenFull) throws DirectoryException
   {
-    // Count the operation before enqueuing it so that isIdle() can never
-    // observe an empty queue while the operation is in the process of being
-    // submitted; the count is rolled back if the operation is rejected.
+    // Include the hand-off from the queue to a worker in the pending operation count.
     pendingOpsCount.incrementAndGet();
     boolean submitted = false;
-    queueReadLock.lock();
+    queueLock.lock();
     try
     {
-      if (shutdownRequested)
+      checkForShutdown();
+      if (blockEnqueuingWhenFull && Thread.interrupted())
       {
-        LocalizableMessage message = WARN_OP_REJECTED_BY_SHUTDOWN.get();
-        throw new DirectoryException(ResultCode.UNAVAILABLE, message);
+        throw new InterruptedException();
       }
-
-      if (blockEnqueuingWhenFull)
+      while (maxCapacity > 0 && opQueue.size() >= maxCapacity)
       {
-        try
-        {
-          // If the queue is full and there is an administrative change taking
-          // place then starvation could arise: this thread will hold the read
-          // lock, the admin thread will be waiting on the write lock, and the
-          // worker threads may be queued behind the admin thread. Since the
-          // worker threads cannot run, the queue will never empty and allow
-          // this thread to proceed. To help things out we can periodically
-          // yield the read lock when the queue is full.
-          while (!opQueue.offer(operation, 1, TimeUnit.SECONDS))
-          {
-            queueReadLock.unlock();
-            Thread.yield();
-            queueReadLock.lock();
-
-            if (shutdownRequested)
-            {
-              LocalizableMessage message = WARN_OP_REJECTED_BY_SHUTDOWN.get();
-              throw new DirectoryException(ResultCode.UNAVAILABLE, message);
-            }
-          }
-        }
-        catch (InterruptedException e)
-        {
-          // We cannot handle the interruption here. Reject the request and
-          // re-interrupt this thread.
-          Thread.currentThread().interrupt();
-
-          queueFullRejects.incrementAndGet();
-
-          LocalizableMessage message = WARN_OP_REJECTED_BY_QUEUE_INTERRUPT.get();
-          throw new DirectoryException(ResultCode.BUSY, message);
-        }
-      }
-      else
-      {
-        if (!opQueue.offer(operation))
+        if (!blockEnqueuingWhenFull)
         {
           queueFullRejects.incrementAndGet();
-
-          LocalizableMessage message = WARN_OP_REJECTED_BY_QUEUE_FULL.get(maxCapacity);
-          throw new DirectoryException(ResultCode.BUSY, message);
+          throw new DirectoryException(ResultCode.BUSY, WARN_OP_REJECTED_BY_QUEUE_FULL.get(maxCapacity));
         }
+        spaceAvailable.await();
+        checkForShutdown();
       }
 
+      opQueue.addLast(operation);
       opsSubmitted.incrementAndGet();
       submitted = true;
+      workAvailable.signal();
+    }
+    catch (InterruptedException e)
+    {
+      Thread.currentThread().interrupt();
+      queueFullRejects.incrementAndGet();
+      throw new DirectoryException(ResultCode.BUSY, WARN_OP_REJECTED_BY_QUEUE_INTERRUPT.get());
     }
     finally
     {
@@ -383,7 +335,15 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
       {
         pendingOpsCount.decrementAndGet();
       }
-      queueReadLock.unlock();
+      queueLock.unlock();
+    }
+  }
+
+  private void checkForShutdown() throws DirectoryException
+  {
+    if (shutdownRequested)
+    {
+      throw new DirectoryException(ResultCode.UNAVAILABLE, WARN_OP_REJECTED_BY_SHUTDOWN.get());
     }
   }
 
@@ -419,145 +379,70 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
    *         if the server is shutting down and no more operations will be
    *         processed, or if there have been too many consecutive failures.
    */
-  private Operation retryNextOperation(TraditionalWorkerThread workerThread,
-      int numFailures)
+  private Operation retryNextOperation(TraditionalWorkerThread workerThread, int numFailures)
   {
-    // See if we should kill off this thread. This could be necessary if the
-    // number of worker threads has been decreased with the server online. If
-    // so, then return null and the thread will exit.
-    queueReadLock.lock();
+    queueLock.lock();
     try
     {
-      if (shutdownRequested)
+      while (!shutdownRequested)
       {
-        return null;
-      }
-
-      if (killThreads && tryKillThisWorkerThread(workerThread))
-      {
-        return null;
-      }
-
-      if (numFailures > MAX_RETRY_COUNT)
-      {
-        logger.error(ERR_CONFIG_WORK_QUEUE_TOO_MANY_FAILURES, Thread
-            .currentThread().getName(), numFailures, MAX_RETRY_COUNT);
-
-        return null;
-      }
-
-      while (true)
-      {
-        Operation nextOperation = opQueue.poll(5, TimeUnit.SECONDS);
-        if (nextOperation != null)
-        {
-          return nextOperation;
-        }
-
-        // There was no work to do in the specified length of time. Release the
-        // read lock allowing shutdown or config changes to proceed and then see
-        // if we should give up or check again.
-        queueReadLock.unlock();
-        Thread.yield();
-        queueReadLock.lock();
-
-        if (shutdownRequested)
-        {
-          return null;
-        }
-
         if (killThreads && tryKillThisWorkerThread(workerThread))
         {
           return null;
         }
+        if (numFailures > MAX_RETRY_COUNT)
+        {
+          logger.error(ERR_CONFIG_WORK_QUEUE_TOO_MANY_FAILURES,
+              Thread.currentThread().getName(), numFailures, MAX_RETRY_COUNT);
+          return null;
+        }
+        if (Thread.interrupted())
+        {
+          throw new InterruptedException();
+        }
+        Operation nextOperation = opQueue.pollFirst();
+        if (nextOperation != null)
+        {
+          spaceAvailable.signal();
+          return nextOperation;
+        }
+        workAvailable.await();
       }
+      return null;
     }
-    catch (InterruptedException ie)
+    catch (InterruptedException e)
     {
-      // This is somewhat expected so don't log.
-      // assert debugException(CLASS_NAME, "retryNextOperation", ie);
-
-      // If this occurs, then the worker thread must have been interrupted for
-      // some reason. This could be because the Directory Server is shutting
-      // down, in which case we should return null.
       if (shutdownRequested)
       {
         return null;
       }
-
-      // If we've gotten here, then the worker thread was interrupted for some
-      // other reason. This should not happen, and we need to log a message.
-      logger.warn(WARN_WORKER_INTERRUPTED_WITHOUT_SHUTDOWN, Thread.currentThread().getName(), ie);
+      logger.warn(WARN_WORKER_INTERRUPTED_WITHOUT_SHUTDOWN, Thread.currentThread().getName(), e);
     }
     catch (Exception e)
     {
       logger.traceException(e);
-
-      // This should not happen. The only recourse we have is to log a message
-      // and try again.
       logger.warn(WARN_WORKER_WAITING_UNCAUGHT_EXCEPTION, Thread.currentThread().getName(), e);
     }
     finally
     {
-      queueReadLock.unlock();
+      queueLock.unlock();
     }
 
-    // An exception has occurred - retry.
     return retryNextOperation(workerThread, numFailures + 1);
   }
 
-  /**
-   * Kills this worker thread if needed. This method assumes that the read lock
-   * is already taken and ensure that it is taken on exit.
-   *
-   * @param workerThread
-   *          The worker thread associated with this thread.
-   * @return {@code true} if this thread was killed or is about to be killed as
-   *         a result of shutdown.
-   */
+  /** Retires an excess worker while holding the queue lock. */
   private boolean tryKillThisWorkerThread(TraditionalWorkerThread workerThread)
   {
-    queueReadLock.unlock();
-    queueWriteLock.lock();
-    try
+    if (workerThreads.size() <= numWorkerThreads)
     {
-      if (shutdownRequested)
-      {
-        // Shutdown may have been requested between unlock/lock. This thread is
-        // about to shutdown anyway, so return true.
-        return true;
-      }
-
-      int currentThreads = workerThreads.size();
-      if (currentThreads > numWorkerThreads)
-      {
-        if (workerThreads.remove(Thread.currentThread()))
-        {
-          currentThreads--;
-        }
-
-        if (currentThreads <= numWorkerThreads)
-        {
-          killThreads = false;
-        }
-
-        workerThread.setStoppedByReducedThreadNumber();
-        return true;
-      }
+      killThreads = false;
+      return false;
     }
-    finally
-    {
-      queueWriteLock.unlock();
-      queueReadLock.lock();
-
-      if (shutdownRequested)
-      {
-        // Shutdown may have been requested between unlock/lock. This thread is
-        // about to shutdown anyway, so return true.
-        return true;
-      }
-    }
-    return false;
+    workerThreads.remove(workerThread);
+    killThreads = workerThreads.size() > numWorkerThreads;
+    workerThread.setStoppedByReducedThreadNumber();
+    return true;
   }
 
   /**
@@ -588,23 +473,21 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
 
   /**
    * Retrieves the number of pending operations in the queue that have not yet
-   * been picked up for processing. Note that this method is not a constant-time
-   * operation and can be relatively inefficient, so it should be used
-   * sparingly.
+   * been picked up for processing.
    *
    * @return The number of pending operations in the queue that have not yet
    *         been picked up for processing.
    */
   public int size()
   {
-    queueReadLock.lock();
+    queueLock.lock();
     try
     {
       return opQueue.size();
     }
     finally
     {
-      queueReadLock.unlock();
+      queueLock.unlock();
     }
   }
 
@@ -616,121 +499,38 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
   }
 
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-      TraditionalWorkQueueCfg configuration)
+  public ConfigChangeResult applyConfigurationChange(TraditionalWorkQueueCfg configuration)
   {
-    int newNumThreads =
-        computeNumWorkerThreads(configuration.getNumWorkerThreads());
-    int newMaxCapacity = configuration.getMaxWorkQueueCapacity();
-
-    // Apply a change to the number of worker threads if appropriate.
-    int currentThreads = workerThreads.size();
-    if (newNumThreads != currentThreads)
+    int newNumThreads = computeNumWorkerThreads(configuration.getNumWorkerThreads());
+    queueLock.lock();
+    try
     {
-      queueWriteLock.lock();
-      try
+      if (shutdownRequested)
       {
-        int threadsToAdd = newNumThreads - currentThreads;
-        if (threadsToAdd > 0)
-        {
-          for (int i = 0; i < threadsToAdd; i++)
-          {
-            TraditionalWorkerThread t = new TraditionalWorkerThread(this,
-                lastThreadNumber++);
-            workerThreads.add(t);
-            t.start();
-          }
+        return new ConfigChangeResult();
+      }
+      int threadsToAdd = newNumThreads - workerThreads.size();
+      for (int i = 0; i < threadsToAdd; i++)
+      {
+        TraditionalWorkerThread worker = new TraditionalWorkerThread(this, lastThreadNumber++);
+        workerThreads.add(worker);
+        worker.start();
+      }
+      numWorkerThreads = newNumThreads;
+      killThreads = threadsToAdd < 0;
+      if (killThreads)
+      {
+        workAvailable.signalAll();
+      }
 
-          killThreads = false;
-        }
-        else
-        {
-          killThreads = true;
-        }
-
-        numWorkerThreads = newNumThreads;
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
-      finally
-      {
-        queueWriteLock.unlock();
-      }
+      // Keep queued work in FIFO order even when the new limit is below the backlog size.
+      maxCapacity = configuration.getMaxWorkQueueCapacity();
+      spaceAvailable.signalAll();
     }
-
-    // Apply a change to the maximum capacity if appropriate. Since we can't
-    // change capacity on the fly, then we'll have to create a new queue and
-    // transfer any remaining items into it. Any thread that is waiting on the
-    // original queue will time out after at most a few seconds and further
-    // checks will be against the new queue.
-    if (newMaxCapacity != maxCapacity)
+    finally
     {
-      // First switch the queue with the exclusive lock.
-      queueWriteLock.lock();
-      LinkedBlockingQueue<Operation> oldOpQueue;
-      try
-      {
-        LinkedBlockingQueue<Operation> newOpQueue = null;
-        if (newMaxCapacity > 0)
-        {
-          newOpQueue = new LinkedBlockingQueue<>(newMaxCapacity);
-        }
-        else
-        {
-          newOpQueue = new LinkedBlockingQueue<>();
-        }
-
-        oldOpQueue = opQueue;
-        opQueue = newOpQueue;
-
-        maxCapacity = newMaxCapacity;
-      }
-      finally
-      {
-        queueWriteLock.unlock();
-      }
-
-      // Now resubmit any pending requests - we'll need the shared lock.
-      Operation pendingOperation = null;
-      queueReadLock.lock();
-      try
-      {
-        // We have to be careful when adding any existing pending operations
-        // because the new capacity could be less than what was already
-        // backlogged in the previous queue. If that happens, we may have to
-        // loop a few times to get everything in there.
-        while ((pendingOperation = oldOpQueue.poll()) != null)
-        {
-          opQueue.put(pendingOperation);
-        }
-      }
-      catch (InterruptedException e)
-      {
-        // We cannot handle the interruption here. Cancel pending requests and
-        // re-interrupt this thread.
-        Thread.currentThread().interrupt();
-
-        LocalizableMessage message = WARN_OP_REJECTED_BY_QUEUE_INTERRUPT.get();
-        CancelRequest cancelRequest = new CancelRequest(true, message);
-        if (pendingOperation != null)
-        {
-          pendingOperation.abort(cancelRequest);
-          pendingOpsCount.decrementAndGet();
-        }
-        while ((pendingOperation = oldOpQueue.poll()) != null)
-        {
-          pendingOperation.abort(cancelRequest);
-          pendingOpsCount.decrementAndGet();
-        }
-      }
-      finally
-      {
-        queueReadLock.unlock();
-      }
+      queueLock.unlock();
     }
-
     return new ConfigChangeResult();
   }
 

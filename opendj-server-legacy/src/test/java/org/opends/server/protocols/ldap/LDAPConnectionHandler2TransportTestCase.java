@@ -133,6 +133,26 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
     }
   }
 
+  @Test
+  public void finalizeReleasesTheListeningPortForImmediateRestart() throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final LDAPConnectionHandler2 handler = start(configuration(port, true, true, true, 2));
+    try
+    {
+      handler.finalizeConnectionHandler(STOP_REASON);
+      try (ServerSocket replacement = new ServerSocket())
+      {
+        replacement.setReuseAddress(true);
+        replacement.bind(new InetSocketAddress("127.0.0.1", port));
+      }
+    }
+    finally
+    {
+      handler.join(TIMEOUT_MS);
+    }
+  }
+
   @DataProvider
   public Object[][] reuseAddress()
   {

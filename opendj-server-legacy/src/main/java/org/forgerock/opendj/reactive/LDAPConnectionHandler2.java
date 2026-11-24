@@ -43,6 +43,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -342,9 +343,8 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     private volatile boolean shutdownRequested;
 
     /**
-     * The server this handler was initialized for. The listener stops on the thread of the handler, up to a second
-     * after the handler is finalized: after an in-core restart the current server instance is by then the next one,
-     * so only this one tells whether the server of the connections is shutting down.
+     * The server this handler was initialized for. The transport may still be draining after an in-core restart,
+     * so only this instance tells whether the server of its connections is shutting down.
      */
     private DirectoryServer server;
 
@@ -378,8 +378,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     private final QueueingStrategy queueingStrategy;
 
     /**
-     * The condition variable that will be used by the start method to wait for the socket port to be opened and ready
-     * to process requests before returning.
+     * Coordinates the listener's startup and wakes the listener thread on shutdown.
      */
     private final Object waitListen = new Object();
 
@@ -389,6 +388,9 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
      * wakeups.
      */
     private boolean listenAttempted;
+
+    /** Allows finalization to wait for the listen socket to close before an in-core restart. */
+    private final CountDownLatch listenerClosed = new CountDownLatch(1);
 
     /** The friendly name of this connection handler. */
     private String friendlyName;
@@ -526,7 +528,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
 
     @Override
     public void finalizeConnectionHandler(LocalizableMessage finalizeReason) {
-        shutdownRequested = true;
+        processServerShutdown(finalizeReason);
         currentConfig.removeLDAPChangeListener(this);
 
         if (connMonitor != null) {
@@ -549,6 +551,16 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
             Runnable r = new ConnectionFinalizerRunnable();
             r.run(); // Flush active queue.
             r.run(); // Flush pending queue.
+        }
+
+        if (isAlive() && Thread.currentThread() != this) {
+            try {
+                if (!listenerClosed.await(LISTEN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+                    logger.warn(LocalizableMessage.raw("Timed out waiting for %s to close its listen socket", handlerName));
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
@@ -856,15 +868,26 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
 
     @Override
     public void processServerShutdown(LocalizableMessage reason) {
-        shutdownRequested = true;
+        synchronized (waitListen) {
+            shutdownRequested = true;
+            waitListen.notifyAll();
+        }
     }
 
     void stopListener() {
+        closeListener();
+        drainTransport();
+    }
+
+    private void closeListener() {
         if (listener != null) {
             listener.close();
             listener = null;
             logger.info(NOTE_CONNHANDLER_STOPPED_LISTENING, handlerName);
         }
+    }
+
+    private void drainTransport() {
         if (transport != null) {
             final TransportDrain drain = new TransportDrain(transport, transportConnections, transportOpenConnections);
             transport = null;
@@ -1036,13 +1059,13 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                     }
                 }
 
-                StaticUtils.sleep(1000);
+                waitForListenerChange();
                 continue;
             }
 
             if (listener != null) {
                 // If already listening, then sleep for a bit and check again.
-                StaticUtils.sleep(1000);
+                waitForListenerChange();
                 continue;
             }
 
@@ -1084,8 +1107,21 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
             }
         }
 
-        // Initiate shutdown
-        stopListener();
+        closeListener();
+        listenerClosed.countDown();
+        drainTransport();
+    }
+
+    private void waitForListenerChange() {
+        synchronized (waitListen) {
+            if (!shutdownRequested) {
+                try {
+                    waitListen.wait(1000);
+                } catch (InterruptedException e) {
+                    // Recheck the listener state.
+                }
+            }
+        }
     }
 
     private LDAPClientConnection2 canAccept(LDAPClientContext clientContext) throws LdapException {

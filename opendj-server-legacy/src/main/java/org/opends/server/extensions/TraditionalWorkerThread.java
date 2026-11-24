@@ -54,14 +54,11 @@ public class TraditionalWorkerThread
    */
   private boolean stoppedByReducedThreadNumber;
 
-  /** Indicates whether this thread is currently waiting for work. */
-  private boolean waitingForWork;
+  /** Serializes publication of an operation with the shutdown request. */
+  private final Object operationLock = new Object();
 
   /** The operation that this worker thread is currently processing. */
   private volatile Operation operation;
-
-  /** The handle to the actual thread for this worker thread. */
-  private Thread workerThread;
 
   /** The work queue that this worker thread will service. */
   private final TraditionalWorkQueue workQueue;
@@ -85,9 +82,7 @@ public class TraditionalWorkerThread
 
     stoppedByReducedThreadNumber = false;
     shutdownRequested            = false;
-    waitingForWork               = false;
     operation                    = null;
-    workerThread                 = null;
   }
 
 
@@ -127,22 +122,19 @@ public class TraditionalWorkerThread
   @Override
   public void run()
   {
-    workerThread = currentThread();
-
     while (! shutdownRequested)
     {
       try
       {
-        waitingForWork = true;
-        operation = null; // this line is necessary because next line can block
-        operation = workQueue.nextOperation(this);
-        waitingForWork = false;
-
-
-        if (operation == null)
+        operation = null;
+        Operation nextOperation = workQueue.nextOperation(this);
+        if (nextOperation == null)
         {
-          // The operation may be null if the server is shutting down.  If that
-          // is the case, then break out of the while loop.
+          break;
+        }
+        if (!startOperation(nextOperation))
+        {
+          workQueue.abortPendingOperation(nextOperation, new CancelRequest(true, INFO_CANCELED_BY_SHUTDOWN.get()));
           break;
         }
         else
@@ -264,51 +256,28 @@ public class TraditionalWorkerThread
       logger.trace(getName() + " being signaled to shut down.");
     }
 
-    // Set a flag that indicates that the thread should stop running.
-    shutdownRequested = true;
-
-
-    // Check to see if the thread is waiting for work.  If so, then interrupt
-    // it.
-    if (waitingForWork)
+    final Operation activeOperation;
+    synchronized (operationLock)
     {
-      try
-      {
-        workerThread.interrupt();
-      }
-      catch (Exception e)
-      {
-        if (logger.isTraceEnabled())
-        {
-          logger.trace(
-            "Caught an exception while trying to interrupt the worker " +
-                "thread waiting for work: %s", e);
-          logger.traceException(e);
-        }
-      }
+      shutdownRequested = true;
+      activeOperation = operation;
     }
-    else
+    if (activeOperation != null)
     {
-      try
+      activeOperation.cancel(new CancelRequest(true, INFO_CANCELED_BY_SHUTDOWN.get()));
+    }
+  }
+
+  private boolean startOperation(Operation nextOperation)
+  {
+    synchronized (operationLock)
+    {
+      if (shutdownRequested || workQueue.shutdownRequested())
       {
-        final Operation localOperation = operation;
-        if (localOperation != null)
-        {
-          CancelRequest cancelRequest = new CancelRequest(true,
-              INFO_CANCELED_BY_SHUTDOWN.get());
-          localOperation.cancel(cancelRequest);
-        }
+        return false;
       }
-      catch (Exception e)
-      {
-        if (logger.isTraceEnabled())
-        {
-          logger.trace(
-            "Caught an exception while trying to abandon the " +
-                "operation in progress for the worker thread: %s", e);
-          logger.traceException(e);
-        }
-      }
+      operation = nextOperation;
+      return true;
     }
   }
 

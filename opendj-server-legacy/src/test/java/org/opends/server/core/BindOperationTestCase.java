@@ -1906,31 +1906,23 @@ public class BindOperationTestCase
     }
   }
 
-  /**
-   * Tests the <CODE>cancel</CODE> method to ensure that it indicates that the
-   * operation cannot be cancelled.
-   * @param bindOperation The bind operation.
-   */
   @Test(dataProvider = "simpleBinds")
-  public void testCancel(BindOperation bindOperation)
+  public void testCancelCompletedBind(BindOperation bindOperation)
   {
-    CancelRequest cancelRequest =
-         new CancelRequest(false, LocalizableMessage.raw("Test Unbind Cancel"));
-
-    assertEquals(bindOperation.cancel(cancelRequest).getResultCode(),
-                 ResultCode.CANNOT_CANCEL);
+    bindOperation.operationCompleted();
+    assertBindCannotBeCancelled(bindOperation);
   }
 
-  /**
-   * Tests the <CODE>getCancelRequest</CODE> method to ensure that it always
-   * returns <CODE>null</CODE>.
-   * @param bindOperation The bind operation.
-   */
-  @Test(dataProvider = "simpleBinds")
-  public void testGetCancelRequest(BindOperation bindOperation)
+  @Test
+  public void testCancelUnfinishedBind()
+  {
+    assertBindCannotBeCancelled(newBindOp(null, ByteString.empty(), ByteString.empty()));
+  }
+
+  private void assertBindCannotBeCancelled(BindOperation bindOperation)
   {
     CancelRequest cancelRequest =
-         new CancelRequest(false, LocalizableMessage.raw("Test Unbind Cancel"));
+         new CancelRequest(false, LocalizableMessage.raw("Test Bind Cancel"));
 
     assertNull(bindOperation.getCancelRequest());
 

@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -50,6 +51,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
+import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.TestTimer;
 import org.opends.server.util.TestTimer.CallableVoid;
 import org.testng.annotations.BeforeClass;
@@ -480,11 +482,8 @@ public class HistoricalTest extends ReplicationTestCase
   /**
    * Test the task that purges the replication historical stored in the user
    * entry.
-   * Steps :
-   * - creates entry containing historical
-   * - wait for the purge delay
-   * - launch the purge task
-   * - verify that all historical has been purged
+   * Replay changes older than the configured purge delay, then verify
+   * that the scheduled task purges their history in one run.
    *
    * TODO: another test should be written that configures the task no NOT have
    * the time to purge everything in 1 run .. and thus to relaunch it to finish
@@ -494,21 +493,16 @@ public class HistoricalTest extends ReplicationTestCase
   @Test(enabled=true)
   public void testRecurringPurgeIn1Run() throws Exception
   {
+    TestCaseUtils.initializeTestBackend(true);
     int entryCount = 10;
-    addEntriesWithHistorical(1, entryCount);
+    addEntriesWithHistorical(entryCount);
 
-    // set the purge delay to 1 minute
-    // FIXME could we change this setting to also accept seconds?
-    // This way this test would not take one minute to run
-    // (and it could also fail less often in jenkins).
+    // Make the stored history eligible for the purge task.
     TestCaseUtils.dsconfig(
         "set-replication-domain-prop",
         "--provider-name","Multimaster Synchronization",
         "--domain-name", testName,
         "--set","conflicts-historical-purge-delay:1m");
-
-    // Let's go past the purge delay
-    Thread.sleep(90 * 1000);
 
     // launch the purge
     final int maxWaitTimeInSeconds = 120;
@@ -527,89 +521,66 @@ public class HistoricalTest extends ReplicationTestCase
     waitForSearchResult(TEST_ROOT_DN_STRING, WHOLE_SUBTREE, "(ds-sync-hist=*)", SUCCESS, expectedNumberOfEntries);
   }
 
-  /**
-   * Add a provided number of generated entries containing historical.
-   * @param dnSuffix A suffix to be added to the dn
-   * @param entryCnt The number of entries to create
-   */
-  private void addEntriesWithHistorical(final int dnSuffix, final int entryCnt) throws Exception
+  private void addEntriesWithHistorical(int entryCount) throws Exception
   {
-    for (int i=0; i<entryCnt;i++)
-    {
-      String sdn =  "dn: uid=user"+i+dnSuffix+"," + TEST_ROOT_DN_STRING;
+    DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    String parentUUID = LDAPReplicationDomain.findEntryUUID(baseDN);
+    int serverId = 5;
+    long changeTime = System.currentTimeMillis() - MINUTES.toMillis(2);
+    List<Modification> modifications = newArrayList(
+        new Modification(ModificationType.ADD, Attributes.create("cn;lang-en", "Aaccf Amar", "Aaccf A Amar")),
+        new Modification(ModificationType.REPLACE, Attributes.create("givenName", "new given")),
+        new Modification(ModificationType.REPLACE, Attributes.create("userPassword", "{CLEAR}new pass")),
+        new Modification(ModificationType.REPLACE, Attributes.create("description", "replaced description")),
+        new Modification(ModificationType.REPLACE, Attributes.create("sn", "replaced sn")),
+        new Modification(ModificationType.REPLACE, Attributes.create("displayName", "2")));
 
-        //  Add a test entry.
-        TestCaseUtils.addEntry(
-            sdn,
+    // Replay the aged changes while the domain still has its default retention.
+    ReplicationBroker broker = openReplicationSession(baseDN, serverId, 100, replServerPort, 3000);
+    try
+    {
+      int sequence = 0;
+      for (int i = 0; i < entryCount; i++)
+      {
+        String uid = "purge-user-" + i;
+        String entryUUID = UUID.randomUUID().toString();
+        Entry entry = TestCaseUtils.makeEntry(
+            "dn: uid=" + uid + "," + TEST_ROOT_DN_STRING,
             "objectClass: top",
             "objectClass: person",
             "objectClass: organizationalPerson",
             "objectClass: inetOrgPerson",
-            "uid: user"+i,
+            "uid: " + uid,
             "cn: Aaccf Amar",
             "sn: Amar",
             "givenName: Aaccf",
-            "userPassword: password",
+            "userPassword: {CLEAR}password",
             "description: Initial description",
-            "displayName: 1"
-        );
+            "displayName: 1",
+            "entryUUID: " + entryUUID);
 
-      // Modify the test entry to give it some history.
-      // Test both single and multi-valued attributes.
+        CSN addCSN = new CSN(changeTime, sequence++, serverId);
+        broker.publish(new AddMsg(addCSN, entry.getName(), entryUUID, parentUUID,
+            entry.getObjectClasses(), entry.getUserAttributes(), entry.getOperationalAttributes()));
+      }
 
-      String path = TestCaseUtils.createTempFile(
-          sdn,
-          "changetype: modify",
-          "add: cn;lang-en",
-          "cn;lang-en: Aaccf Amar",
-          "cn;lang-en: Aaccf A Amar",
-          "-",
-          "replace: givenName",
-          "givenName: new given",
-          "-",
-          "replace: userPassword",
-          "userPassword: new pass",
-          "-",
-          "replace: description",
-          "description: replaced description",
-          "-",
-          "replace: sn",
-          "sn: replaced sn",
-          "-",
-          "add: displayName",
-          "displayName: 2",
-          "-",
-          "delete: displayName",
-          "displayName: 1",
-          "-"
-      );
-
-      String[] args =
+      for (SearchResultEntry entry : waitForSearchResult(TEST_ROOT_DN_STRING, WHOLE_SUBTREE,
+          "(&(ds-sync-hist=*)(displayName=1))", SUCCESS, entryCount).getSearchEntries())
       {
-          "-h", "127.0.0.1",
-          "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-          "-D", "cn=Directory Manager",
-          "-w", "password",
-          "-f", path
-      };
+        CSN modifyCSN = new CSN(changeTime, sequence++, serverId);
+        broker.publish(new ModifyMsg(modifyCSN, entry.getName(), modifications, EntryHistorical.getEntryUUID(entry)));
+      }
 
-      ldapmodify(args);
-
-      args[9] = TestCaseUtils.createTempFile(
-          sdn,
-          "changetype: modify",
-          "replace: displayName",
-          "displayName: 2",
-          "-"
-      );
-
-      ldapmodify(args);
+      for (SearchResultEntry entry : waitForSearchResult(TEST_ROOT_DN_STRING, WHOLE_SUBTREE,
+          "(&(ds-sync-hist=*)(displayName=2))", SUCCESS, entryCount).getSearchEntries())
+      {
+        Attribute history = EntryHistorical.getHistoricalAttr(entry).iterator().next();
+        assertTrue(history.size() > 1, "Expected add and modify history for " + entry.getName());
+      }
     }
-
-    for (int i = 0; i < entryCnt; i++)
+    finally
     {
-      DN dn = DN.valueOf("uid=user" + i + dnSuffix + "," + TEST_ROOT_DN_STRING);
-      getEntry(dn, 1000, true);
+      broker.stop();
     }
   }
 

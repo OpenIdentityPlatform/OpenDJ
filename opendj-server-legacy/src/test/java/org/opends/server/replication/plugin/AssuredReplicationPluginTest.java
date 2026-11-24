@@ -132,6 +132,8 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   private final int RS_SERVER_ID = 90;
   /** Sleep time of the RS, before sending an ack. */
   private static final long NO_TIMEOUT_RS_SLEEP_TIME = 2000;
+  /** Read timeout for the final check that a replay did not send an ack. */
+  private static final int NO_ACK_READ_TIMEOUT = 5000;
   private final String testName = getClass().getSimpleName();
 
   /**
@@ -602,6 +604,23 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      */
     private AckMsg sendAssuredAddMsg(Entry entry, String parentUid) throws Exception
     {
+      publishAssuredAddMsg(entry, parentUid);
+      return waitForSpecificMsg(session, AckMsg.class);
+    }
+
+    private void assertNoAckForAssuredAdd(Entry entry, String parentUid) throws Exception
+    {
+      publishAssuredAddMsg(entry, parentUid);
+      // Confirm the DS replayed the add before checking whether it acknowledged it.
+      assertNotNull(getEntry(entry.getName(), NO_ACK_READ_TIMEOUT, true));
+
+      // This is the session's last read before the test closes it.
+      session.setSoTimeout(NO_ACK_READ_TIMEOUT);
+      assertThrows(SocketTimeoutException.class, () -> waitForSpecificMsg(session, AckMsg.class));
+    }
+
+    private void publishAssuredAddMsg(Entry entry, String parentUid) throws Exception
+    {
       AddMsg addMsg = new AddMsg(
           gen.newCSN(), entry.getName(), UUID.randomUUID().toString(),
           parentUid, entry.getObjectClassAttribute(), entry.getAllAttributes(), null);
@@ -611,8 +630,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       addMsg.setAssuredMode(assuredMode);
       addMsg.setSafeDataLevel(safeDataLevel);
       session.publish(addMsg);
-
-      return waitForSpecificMsg(session, AckMsg.class);
     }
 
     /** Read the coming update and check parameters are not assured. */
@@ -1138,50 +1155,36 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // Wait for connection of domain to RS
       waitForConnectionToRs(testcase, replicationServer);
 
-      /* Send an update from the RS and get the ack */
-
-      // Make the RS send an assured add message
       Entry entry = makeEntry(
-          "dn: ou=assured-sr-reply-entry," + SAFE_READ_DN,
+          "dn: ou=assured-sr-reply-entry-" + rsGroupId + "," + SAFE_READ_DN,
           "objectClass: top",
           "objectClass: organizationalUnit");
       String parentUid = getEntryUUID(DN.valueOf(SAFE_READ_DN));
 
-      try {
-        AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
-
-        if (rsGroupId == 2)
-        {
-          fail("Should only go here for RS with same group id as DS");
-        }
-
-        // Ack received, replay has occurred
-        assertNotNull(DirectoryServer.getEntry(entry.getName()));
-
-        // Check that DS replied an ack without errors anyway
-        assertFalse(ackMsg.hasTimeout());
-        assertFalse(ackMsg.hasReplayError());
-        assertFalse(ackMsg.hasWrongStatus());
-        assertEquals(ackMsg.getFailedServers().size(), 0);
-
-        // Check for monitoring data
-        DN baseDN = DN.valueOf(SAFE_READ_DN);
-        new MonitorAssertions(baseDN)
-          .assertValue("assured-sr-received-updates", 1)
-          .assertValue("assured-sr-received-updates-acked", 1)
-          .assertRemainingValuesAreZero();
-        assertNoServerErrors(baseDN);
-      }
-      catch (SocketTimeoutException e)
+      if (rsGroupId == 2)
       {
-        // Expected
-        if (rsGroupId == 1)
-        {
-          fail("Should only go here for RS with group id different from DS one");
-        }
-
+        replicationServer.assertNoAckForAssuredAdd(entry, parentUid);
         return;
       }
+
+      AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
+
+      // Ack received, replay has occurred
+      assertNotNull(DirectoryServer.getEntry(entry.getName()));
+
+      // Check that DS replied an ack without errors
+      assertFalse(ackMsg.hasTimeout());
+      assertFalse(ackMsg.hasReplayError());
+      assertFalse(ackMsg.hasWrongStatus());
+      assertEquals(ackMsg.getFailedServers().size(), 0);
+
+      // Check for monitoring data
+      DN baseDN = DN.valueOf(SAFE_READ_DN);
+      new MonitorAssertions(baseDN)
+        .assertValue("assured-sr-received-updates", 1)
+        .assertValue("assured-sr-received-updates-acked", 1)
+        .assertRemainingValuesAreZero();
+      assertNoServerErrors(baseDN);
     } finally
     {
       endTest(testcase);
@@ -1275,7 +1278,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
   /**
    * Tests that a DS receiving an update from a RS in safe data mode does not
-   * send back and ack (only safe read is taken into account in DS replay).
+   * send back an ack (only safe read is taken into account in DS replay).
    */
   @Test(dataProvider = "rsGroupIdProvider")
   public void testSafeDataModeReply(byte rsGroupId) throws Exception
@@ -1294,20 +1297,13 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // Wait for connection of domain to RS
       waitForConnectionToRs(testcase, replicationServer);
 
-      // Make the RS send an assured add message: we expect a read timeout as
-      // safe data should be ignored by DS
       Entry entry = makeEntry(
-          "dn: ou=assured-sd-reply-entry," + SAFE_DATA_DN,
+          "dn: ou=assured-sd-reply-entry-" + rsGroupId + "," + SAFE_DATA_DN,
           "objectClass: top",
           "objectClass: organizationalUnit");
       String parentUid = getEntryUUID(DN.valueOf(SAFE_DATA_DN));
 
-      AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
-      fail("DS should not reply an ack in safe data mode, however, it replied: " + ackMsg);
-    }
-    catch (SocketTimeoutException expected)
-    {
-      return;
+      replicationServer.assertNoAckForAssuredAdd(entry, parentUid);
     }
     finally
     {
