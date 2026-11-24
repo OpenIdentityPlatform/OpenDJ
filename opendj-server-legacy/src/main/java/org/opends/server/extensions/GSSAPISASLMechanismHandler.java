@@ -138,21 +138,30 @@ public class GSSAPISASLMechanismHandler extends
    * @throws InitializationException
    *           If the properties violate the requirements.
    */
-  private void getKdcRealm(GSSAPISASLMechanismHandlerCfg configuration)
+  private void checkKdcRealm(GSSAPISASLMechanismHandlerCfg configuration)
       throws InitializationException
   {
-    String kdcAddress = configuration.getKdcAddress();
-    String realm = configuration.getRealm();
-    if ((kdcAddress != null && realm == null)
-        || (kdcAddress == null && realm != null))
+    if ((configuration.getKdcAddress() == null) != (configuration.getRealm() == null))
     {
       LocalizableMessage message = ERR_SASLGSSAPI_KDC_REALM_NOT_DEFINED.get();
       throw new InitializationException(message);
     }
-    else if (kdcAddress != null)
+  }
+
+  /**
+   * Publishes the KDC address and realm as JVM properties, when both are
+   * defined. The pair must have been validated by {@link #checkKdcRealm}.
+   *
+   * @param configuration
+   *          The configuration to use.
+   */
+  private void setKdcRealm(GSSAPISASLMechanismHandlerCfg configuration)
+  {
+    String kdcAddress = configuration.getKdcAddress();
+    if (kdcAddress != null)
     {
       System.setProperty(KRBV_PROPERTY_KDC, kdcAddress);
-      System.setProperty(KRBV_PROPERTY_REALM, realm);
+      System.setProperty(KRBV_PROPERTY_REALM, configuration.getRealm());
     }
   }
 
@@ -536,11 +545,13 @@ throws UnknownHostException, IOException, InitializationException
     saslProps = new HashMap<>();
     saslProps.put(Sasl.QOP, getQOP(config));
     saslProps.put(Sasl.REUSE, "false");
+    // Validate everything before writing the JAAS file
+    checkKdcRealm(config);
     String configFileName = configureLoginConfFile(config);
     loginConfFile = new File(configFileName);
     System.setProperty(JAAS_PROPERTY_CONFIG_FILE, configFileName);
     System.setProperty(JAAS_PROPERTY_SUBJECT_CREDS_ONLY, "false");
-    getKdcRealm(config);
+    setKdcRealm(config);
 }
 
   /**
