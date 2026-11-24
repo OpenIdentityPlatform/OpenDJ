@@ -176,7 +176,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     }
 
     // Delete the previous report if it's there.
-    new File(testContext.getOutputDirectory(), REPORT_FILE_NAME).delete();
+    new File(getForkDirectory(new File(testContext.getOutputDirectory())), REPORT_FILE_NAME).delete();
   }
 
   @Override
@@ -199,19 +199,19 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
   @Override
   public void generateReport(List<XmlSuite> xmlSuites, List<ISuite> suites, String outputDirectory) {
-    File outputDir = new File(outputDirectory);
+    File outputDir = getForkDirectory(new File(outputDirectory));
     if (!outputDir.exists()) {
-      outputDir.mkdir();
+      outputDir.mkdirs();
     }
 
-    File reportFile = new File(outputDirectory, REPORT_FILE_NAME);
+    File reportFile = new File(outputDir, REPORT_FILE_NAME);
 
     writeReportToFile(reportFile);
     writeReportToScreen(reportFile);
-    writeAntTestsFailedMarker(outputDirectory);
+    writeAntTestsFailedMarker(outputDir);
   }
 
-  private void writeAntTestsFailedMarker(String outputDirectory) {
+  private void writeAntTestsFailedMarker(File outputDirectory) {
     // Signal 'ant' that all of the tests passed by removing this
     // special file.
     if (countTestsWithStatus(ITestResult.FAILURE) == 0

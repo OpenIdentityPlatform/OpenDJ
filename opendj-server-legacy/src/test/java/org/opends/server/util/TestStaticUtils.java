@@ -748,12 +748,9 @@ public final class TestStaticUtils extends UtilTestCase {
   @Test
   public void testRenameFileNonExistentTarget() throws Exception {
     File src = File.createTempFile("src", null);
-    File target = new File(src.getParentFile(), "target");
+    File target = File.createTempFile("target", null);
     try {
-      if (target.exists()) {
-        target.delete();
-        assertFalse(target.exists());
-      }
+      assertTrue(target.delete());
       StaticUtils.renameFile(src, target);
       assertFalse(src.exists());
       assertTrue(target.exists());
@@ -1077,24 +1074,16 @@ public final class TestStaticUtils extends UtilTestCase {
   @Test
   public void testIsSelfConnectionTrueForSelfConnectedSocket() throws Exception
   {
-    // find a free port
-    final int port;
-    try (ServerSocket tmp = new ServerSocket())
-    {
-      tmp.bind(new InetSocketAddress("127.0.0.1", 0));
-      port = tmp.getLocalPort();
-    }
-
     // Force the TCP self-connect (simultaneous open) that the kernel can
     // produce spontaneously when connecting to an unbound port from the
     // ephemeral range: bind the local end to the very port being connected.
     try (Socket socket = new Socket())
     {
       socket.setReuseAddress(true);
-      socket.bind(new InetSocketAddress("127.0.0.1", port));
+      socket.bind(new InetSocketAddress("127.0.0.1", 0));
       try
       {
-        socket.connect(new InetSocketAddress("127.0.0.1", port), 2000);
+        socket.connect(socket.getLocalSocketAddress(), 2000);
       }
       catch (IOException e)
       {

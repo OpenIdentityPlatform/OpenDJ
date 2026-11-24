@@ -14,7 +14,7 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2013 Manuel Gaupp
- * Portions Copyright 2018-2026 3A Systems, LLC
+ * Portions Copyright 2018-2026 3A Systems, LLC.
  */
 package org.opends.server;
 
@@ -886,47 +886,74 @@ public final class TestCaseUtils {
    *
    * @throws IOException in case of underlying exception.
    */
-  private static ServerSocket bindPort(int port)
-          throws IOException
+  private static ServerSocket bindPort(int port) throws IOException
   {
-	ServerSocket serverLdapSocket;
-    serverLdapSocket = new ServerSocket();
-    serverLdapSocket.setReuseAddress(true);
-    serverLdapSocket.bind(new InetSocketAddress(port));
-    return serverLdapSocket;
+    ServerSocket socket = new ServerSocket();
+    try
+    {
+      socket.setReuseAddress(true);
+      socket.bind(new InetSocketAddress(port));
+      return socket;
+    }
+    catch (IOException e)
+    {
+      close(socket);
+      throw e;
+    }
   }
 
-  static int port = 65535;
+  private static final int TEST_FORK_COUNT = Math.max(1,
+      Integer.parseInt(System.getProperty("org.opends.test.forkCount", "1")));
+  private static final int TEST_FORK_NUMBER = Integer.getInteger("org.opends.test.forkNumber", 0);
+  private static int nextTestPort = firstTestPort();
+
+  private static int firstTestPort()
+  {
+    if (TEST_FORK_COUNT == 1)
+    {
+      return 65535;
+    }
+    if (TEST_FORK_NUMBER < 1 || TEST_FORK_NUMBER > TEST_FORK_COUNT)
+    {
+      throw new IllegalStateException("Expected a Failsafe fork number between 1 and " + TEST_FORK_COUNT
+          + ", got " + System.getProperty("org.opends.test.forkNumber"));
+    }
+    // Concurrent forks start below the Linux ephemeral range and each walks its own sequence.
+    return 32768 - TEST_FORK_NUMBER;
+  }
+
   /**
-   * Find and binds to a free server socket port on the local host. Avoid allocating ephemeral ports since these may
-   * be used by client applications such as dsconfig. Instead scan through ports starting from a reasonably high number
-   * which avoids most reserved services (see /etc/services) and continues up to the beginning of the ephemeral port
-   * range. On most Linux OSes this is 32768, but may be higher.
+   * Finds and binds a free server socket port on the local host.
+   * In parallel precommit runs each fork allocates from a disjoint sequence below the Linux
+   * ephemeral range, so another fork cannot claim a port between discovery and server startup.
    *
-   * @return the bounded Server socket.
-   *
-   * @throws IOException in case of underlying exception.
+   * @return The bound server socket.
+   * @throws IOException If unable to bind to a free port.
    */
   public synchronized static ServerSocket bindFreePort() throws IOException
   {
-	  for (; port > 1024;)
-	  {
-         ServerSocket res=null;
-	     try
-	     {
-           res=bindPort(port--);
-	       return res;
-	     }
-	     catch (BindException e){
-             if (res!=null) {
-                 try {
-                     res.close();
-                 } catch (IOException ex) {}
-             }
-             res=null;
-         }
-	  }
-	  throw new BindException("Unable to bind to a free port");
+    while (nextTestPort > 1024)
+    {
+      int candidate = nextTestPort;
+      nextTestPort -= TEST_FORK_COUNT;
+      try
+      {
+        return bindPort(candidate);
+      }
+      catch (BindException e)
+      {
+        // The candidate is already in use. Try the next port assigned to this fork.
+      }
+    }
+    throw new BindException("Unable to bind to a free port");
+  }
+
+  /**
+   * Returns a fork-specific subdirectory when more than one test JVM is active.
+   */
+  public static File getForkDirectory(File directory)
+  {
+    return TEST_FORK_COUNT > 1 ? new File(directory, "fork-" + TEST_FORK_NUMBER) : directory;
   }
 
   /**
