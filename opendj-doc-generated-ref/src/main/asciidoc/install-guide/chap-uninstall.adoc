@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024-2026 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
@@ -47,9 +47,9 @@ This chapter includes the following procedures:
 +
 (UNIX) Run `/path/to/opendj/uninstall`.
 +
-(Windows) Double-click `/path/to/opendj\uninstall.bat`.
+(Windows) Double-click `C:\path\to\opendj\uninstall.bat`.
 +
-(Mac OS X) Double-click `/path/to/opendj/Uninstall.app`.
+(macOS) Double-click `/path/to/opendj/Uninstall.app`.
 +
 The Uninstall Options screen appears.
 
@@ -63,47 +63,18 @@ The Uninstall Options screen appears.
 .To Uninstall OpenDJ From the Command-Line
 ====
 
-. Login as the user who installed and runs the server.
+. Log in as the user who installed and runs the server. If you need to retain directory data or configuration, back up the installation and any separate instance directory first.
 
-. Run the `/path/to/opendj/uninstall --cli` command.
+. Run the uninstaller interactively. Select all components or the components to remove. If the server is running, the uninstaller asks whether to stop it.
 +
-This command starts the removal program in interactive mode on the command-line, prompting you for each option. Alternatively, use additional `uninstall` options to specify choices for the options. See `uninstall --help` for more information:
-+
-
 [source, console]
 ----
 $ /path/to/opendj/uninstall --cli
-Do you want to remove all components of the server or select the components to
-remove?
-
-    1)  Remove all components
-    2)  Select the components to be removed
-
-    q)  quit
-
-Enter choice [1]:
-
-The server is currently running and must be stopped before uninstallation can
-continue.
-Stop the Server and permanently delete the files? (yes / no) [yes]:
-
-Stopping Directory Server ..... Done.
-Deleting Files under the Installation Path ..... Done.
-
-The Uninstall Completed Successfully.
-To complete the uninstallation, you must delete manually the following files
-and directories:
-/path/to/opendj/lib
-See /var/....log for a detailed log of this operation.
 ----
-
-. If the command output tells you to delete files manually, then remove those remaining files to complete the process:
 +
+On Windows, run `uninstall.bat --cli` from the installation directory. To remove all components without prompts, run `uninstall --cli --remove-all --no-prompt`.
 
-[source, console]
-----
-$ rm -rf /path/to/opendj
-----
+. Review the list of files that the uninstaller could not remove. Delete those files manually when you no longer need them.
 
 ====
 
@@ -118,19 +89,9 @@ When you uninstall the Debian package from the command-line, OpenDJ directory se
 [source, console]
 ----
 $ sudo dpkg -r opendj
-(Reading database ... 185725 files and directories currently installed.)
-Removing opendj ...
-*Stopping OpenDJ server...
-Stopping Server...
-[03/Jun/2013:10:00:49 +0200] category=BACKEND severity=NOTICE
- msgID=9896306 msg=The backend userRoot is now taken offline
-[03/Jun/2013:10:00:49 +0200] category=CORE severity=NOTICE
- msgID=458955 msg=The Directory Server is now stopped
-
-$
 ----
 +
-Removing the package stops the server but does not remove your data or configuration, nor the dedicated `opendj` system user it created. Remove `/opt/opendj` manually to delete all files, and remove the `opendj` user if you no longer need it.
+Removal leaves the instance data and configuration under `/opt/opendj` and keeps the `opendj` account. Delete them when you no longer need them.
 
 ====
 
@@ -145,20 +106,9 @@ When you uninstall the RPM package from the command-line, OpenDJ directory serve
 [source, console]
 ----
 # rpm -e opendj
-Pre Uninstall - uninstall
-Stopping Server...
-[03/Jun/2013:10:42:46 +0200] category=BACKEND severity=NOTICE
- msgID=9896306 msg=The backend userRoot is now taken offline
-[03/Jun/2013:10:42:46 +0200] category=CORE severity=NOTICE
- msgID=458955 msg=The Directory Server is now stopped
-Post Uninstall - uninstall
-OpenDJ package removed. Server data (config, db, changelogDb, logs)
-and the opendj system account are kept; remove them manually if they
-are no longer needed.
-#
 ----
 +
-Removing the package stops the server but does not remove your data or configuration, nor the dedicated `opendj` system user it created. Remove `/opt/opendj` manually to delete all files, and remove the `opendj` user if you no longer need it.
+Removal leaves the instance data and configuration under `/opt/opendj` and keeps the `opendj` account. Delete them when you no longer need them.
 
 ====
 

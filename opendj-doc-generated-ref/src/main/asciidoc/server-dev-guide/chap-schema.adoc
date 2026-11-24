@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
@@ -81,7 +81,7 @@ The `person` object class is structural, for example.
 +
 The `posixAccount` object class is auxiliary, for example.
 
-* __Abstract__ object classes define base characteristics for other object classes to inherit, and cannot themselves inherit from other object classes.
+* __Abstract__ object classes define base characteristics for other object classes to inherit. An abstract class can inherit from other abstract classes.
 +
 The `top` object class from which others inherit is abstract, for example.
 
@@ -106,7 +106,7 @@ A __DIT structure rule__ defines a relationship between directory entries by ide
 [#example-reading-schema-definition]
 .Reading an Object Class Schema Definition
 ====
-The schema entry in OpenDJ directory server is large because it contains all of the schema definitions. Filter the results when reading a specific schema definition. As schema definitions themselves are long strings, pass the `--dontWrap` option to the `ldapsearch` command when reading one.
+Use `ldapsearch --wrapColumn 0` to print each schema definition on one line and filter the result with `grep`.
 
 The example below reads the definition for the `person` object class:
 
@@ -116,15 +116,14 @@ $ ldapsearch \
  --port 1389 \
  --baseDN "cn=schema" \
  --searchScope base \
- --dontWrap \
- "(&)" \
+ --wrapColumn 0 \
+ '(objectClass=*)' \
  objectClasses \
- | grep \'person\'
+ | grep -F "'person'"
  objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )
   MAY ( userPassword $ telephoneNumber $ seeAlso $ description )
   X-ORIGIN 'RFC 4519' )
 ----
-Notice the use of the object class name in `grep \'person\'` to filter search results. The actual result would not be wrapped.
 ====
 The object class defines which attributes an entry of that object class __must__ have and which attributes the entry __may__ optionally have. A `person` entry must have a `cn` and an `sn` attribute. A `person` entry may optionally have `userPassword`, `telephoneNumber`, `seeAlso`, and `description` attributes.
 
@@ -141,10 +140,10 @@ $ ldapsearch \
  --port 1389 \
  --baseDN "cn=schema" \
  --searchScope base \
- --dontWrap \
- "(&)" \
+ --wrapColumn 0 \
+ '(objectClass=*)' \
  attributeTypes \
- | grep \'cn\'
+ | grep -F "'cn'"
  attributeTypes: ( 2.5.4.3 NAME ( 'cn' 'commonName' ) SUP name X-ORIGIN 'RFC 4519' )
 ----
 The `cn` attribute inherits its definition from the `name` attribute. That attribute definition indicates attribute syntax and matching rules as shown in the following example:
@@ -155,10 +154,10 @@ $ ldapsearch \
  --port 1389 \
  --baseDN "cn=schema" \
  --searchScope base \
- --dontWrap \
- "(&)" \
+ --wrapColumn 0 \
+ '(objectClass=*)' \
  attributeTypes \
- | grep \'name\'
+ | grep -F "'name'"
 attributeTypes: ( 2.5.4.41 NAME 'name' EQUALITY caseIgnoreMatch
   SUBSTR caseIgnoreSubstringsMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{32768} X-ORIGIN 'RFC 4519' )
@@ -171,13 +170,13 @@ $ ldapsearch \
  --port 1389 \
  --baseDN "cn=schema" \
  --searchScope base \
- --dontWrap \
- "(&)" \
+ --wrapColumn 0 \
+ '(objectClass=*)' \
  ldapSyntaxes \
- | grep 1.3.6.1.4.1.1466.115.121.1.15
+ | grep -F ' 1.3.6.1.4.1.1466.115.121.1.15 '
 ldapSyntaxes: ( 1.3.6.1.4.1.1466.115.121.1.15 DESC 'Directory String' )
 ----
-Taken together with the information for the `name` attribute, the common name attribute value is a Directory String of at most 32,768 characters. For details about syntaxes, read link:http://tools.ietf.org/html/rfc4517[RFC 4517, Lightweight Directory Access Protocol (LDAP): Syntaxes and Matching Rules, window=\_blank]. That document describes a Directory String as one or more UTF-8 characters.
+The `cn` attribute inherits the link:https://www.rfc-editor.org/rfc/rfc4517.html#section-3.3.6[Directory String syntax] from `name`. The `32768` hint recommends support for strings up to that length. See link:https://www.rfc-editor.org/rfc/rfc4512.html#section-4.1.2[RFC 4512].
 ====
 
 
@@ -367,7 +366,7 @@ OpenDJ directory server provides many standard schema definitions in these LDIF 
 This file contains a core set of attribute type and object class definitions from the following Internet-Drafts, RFCs, and standards:
 +
 [none]
-* link:https://tools.ietf.org/html/draft-ietf-boreham-numsubordinates[draft-ietf-boreham-numsubordinates, window=\_blank]
+* link:https://datatracker.ietf.org/doc/html/draft-boreham-numsubordinates-01[numSubordinates draft, window=\_blank]
 * link:https://tools.ietf.org/html/draft-findlay-ldap-groupofentries[draft-findlay-ldap-groupofentries, window=\_blank]
 * link:https://tools.ietf.org/html/draft-furuseth-ldap-untypedobject[draft-furuseth-ldap-untypedobject, window=\_blank]
 * link:https://tools.ietf.org/html/draft-good-ldap-changelog[draft-good-ldap-changelog, window=\_blank]

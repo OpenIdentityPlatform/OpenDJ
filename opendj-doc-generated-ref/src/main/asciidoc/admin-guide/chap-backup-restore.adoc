@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
@@ -20,8 +20,14 @@
 :table-caption!:
 
 
+ifndef::env-site[]
 [#chap-backup-restore]
+endif::[]
 == Backing Up and Restoring Data
+
+ifdef::env-site[]
+anchor:chap-backup-restore[]
+endif::[]
 
 This chapter covers management of directory data backup archives. For information on managing directory data in an interoperable format that is portable between directory server products, see xref:chap-import-export.adoc#chap-import-export["Managing Directory Data"] instead. In this chapter you will learn to:
 

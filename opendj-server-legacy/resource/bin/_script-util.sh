@@ -272,6 +272,64 @@ set_environment_vars() {
   esac
 }
 
+stop_wait_timer()
+{
+  if [ -n "${WAIT_TIMER_PID}" ]
+  then
+    kill "${WAIT_TIMER_PID}" 2>/dev/null
+    wait "${WAIT_TIMER_PID}" 2>/dev/null
+    WAIT_TIMER_PID=
+  fi
+}
+
+# Wait for a marker to disappear. An optional log is already open on fd 3.
+# When a child PID is supplied, also fail if that child exits during the wait.
+wait_for_marker_removal()
+{
+  WAIT_FILE=$1
+  WAIT_TIMEOUT=$2
+  WAIT_LOG=$3
+  WAIT_CHILD=${4:-}
+  if [ "${WAIT_TIMEOUT}" -gt 0 ]
+  then
+    sleep "${WAIT_TIMEOUT}" > /dev/null &
+    WAIT_TIMER_PID=$!
+  fi
+
+  WAIT_RESULT=0
+  POLL_INTERVAL=0.1
+  while [ -e "${WAIT_FILE}" ] && { [ -z "${WAIT_CHILD}" ] || kill -0 "${WAIT_CHILD}" 2>/dev/null; }
+  do
+    if [ -n "${WAIT_TIMER_PID}" ] && ! kill -0 "${WAIT_TIMER_PID}" 2>/dev/null
+    then
+      wait "${WAIT_TIMER_PID}" 2>/dev/null
+      WAIT_TIMER_PID=
+      if [ -e "${WAIT_FILE}" ]
+      then
+        WAIT_RESULT=2
+      fi
+      break
+    fi
+    if [ -n "${WAIT_LOG}" ]
+    then
+      # Bounded reads advance the same descriptor and allow rechecking the marker.
+      dd bs=8192 count=128 <&3 2>/dev/null
+    fi
+    if ! sleep "${POLL_INTERVAL}" 2>/dev/null
+    then
+      # Some Unix sleep implementations only accept whole seconds.
+      POLL_INTERVAL=1
+      sleep "${POLL_INTERVAL}"
+    fi
+  done
+  if [ -n "${WAIT_CHILD}" ] && ! kill -0 "${WAIT_CHILD}" 2>/dev/null
+  then
+    WAIT_RESULT=1
+  fi
+  stop_wait_timer
+  return "${WAIT_RESULT}"
+}
+
 # Configure the appropriate CLASSPATH for server, using Opend DJ logger.
 set_opendj_logger_classpath() {
   CLASSPATH="${INSTANCE_ROOT}/classes"

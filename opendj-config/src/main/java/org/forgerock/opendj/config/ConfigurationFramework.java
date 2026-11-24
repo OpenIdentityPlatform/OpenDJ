@@ -439,6 +439,21 @@ public final class ConfigurationFramework {
     private void addExtension(final List<File> extensions) throws ConfigException {
         // First add the Jar files to the class loader.
         final List<JarFile> jars = new LinkedList<>();
+        try {
+            addExtension(extensions, jars);
+        } finally {
+            // Only read for their manifests: the class loader opens the jars on its own.
+            for (final JarFile jar : jars) {
+                try {
+                    jar.close();
+                } catch (final IOException e) {
+                    debugLogger.trace("Unable to close jar file: " + jar.getName(), e);
+                }
+            }
+        }
+    }
+
+    private void addExtension(final List<File> extensions, final List<JarFile> jars) throws ConfigException {
         for (final File extension : extensions) {
             if (jarFiles.contains(extension)) {
                 // Skip this file as it is already loaded.
@@ -546,8 +561,10 @@ public final class ConfigurationFramework {
         if (is == null) {
             throw new ConfigException(ERR_ADMIN_CANNOT_FIND_CORE_MANIFEST.get(MANIFEST_ABSOLUTE_PATH));
         }
-        try {
-            loadDefinitionClasses(is);
+        try (InputStream manifest = is) {
+            loadDefinitionClasses(manifest);
+        } catch (final IOException e) {
+            debugLogger.trace("Unable to close the core manifest", e);
         } catch (final ConfigException e) {
             debugLogger.trace("Unable to initialize core components", e);
             throw new ConfigException(ERR_CLASS_LOADER_CANNOT_LOAD_CORE.get(
@@ -580,8 +597,10 @@ public final class ConfigurationFramework {
                 throw new ConfigException(message);
             }
 
-            try {
-                loadDefinitionClasses(is);
+            try (InputStream manifest = is) {
+                loadDefinitionClasses(manifest);
+            } catch (final IOException e) {
+                debugLogger.trace("Unable to close the extension manifest", e);
             } catch (final ConfigException e) {
                 debugLogger.trace("Unable to load classes from input stream", e);
                 final LocalizableMessage message = ERR_CLASS_LOADER_CANNOT_LOAD_EXTENSION.get(

@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024-2025 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
@@ -20,47 +20,23 @@
 :table-caption!:
 
 
+ifndef::env-site[]
 [#chap-rest-operations]
+endif::[]
 == Performing RESTful Operations
 
-OpenDJ lets you access directory data as link:http://json.org[JSON, window=\_blank] resources over HTTP. OpenDJ maps JSON resources onto LDAP entries. As a result, REST clients perform many of the same operations as LDAP clients with directory data.
+ifdef::env-site[]
+anchor:chap-rest-operations[]
+endif::[]
 
-This chapter demonstrates RESTful client operations by using the default configuration and sample directory data imported into OpenDJ directory server as described in xref:../admin-guide/chap-import-export.adoc#import-ldif["To Import LDIF Data"] in the __Administration Guide__, from the LDIF file link:../attachments/Example.ldif[Example.ldif, window=\_blank].
+OpenDJ’s Rest2ldap endpoint maps LDAP entries to JSON resources under `/api`. To run the examples, import link:../attachments/Example.ldif[Example.ldif] and enable the HTTP connection handler. See xref:../admin-guide/chap-import-export.adoc#import-ldif[To Import LDIF Data] and xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap[RESTful Client Access Over HTTP]. Replace `opendj.example.com` with your evaluation server’s hostname. Use HTTPS for deployed client connections that carry credentials.
 
-[NOTE]
-====
-The default configuration has changed in OpenDJ 3.5.
-
-If you are using OpenDJ 3.0, see xref:chap-rest-operations-3-0.adoc#chap-rest-operations-3-0["Performing RESTful Operations (3.0)"] and xref:../reference/appendix-rest2ldap-3-0.adoc#appendix-rest2ldap-3-0["REST to LDAP Configuration (3.0)"] in the __Reference__.
-====
-In this chapter, you will learn how to use the OpenDJ REST API that provides access to directory data over HTTP. In particular, you will learn how to:
-
-* link:#create-rest[Create] a resource that does not yet exist
-
-* link:#read-rest[Read] a single resource
-
-* link:#update-rest[Update] an existing resource
-
-* link:#delete-rest[Delete] an existing resource
-
-* link:#patch-rest[Patch] part of an existing resource
-
-* Perform a predefined link:#action-rest[action]
-
-* link:#query-rest[Query] a set of resources
-
-* Work with other link:#mime-types-rest[MIME types] for resources like photos
-
-Before trying the examples, enable HTTP access to OpenDJ directory server as described in xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap-endpoint["To Set Up REST Access to User Data"] in the __Administration Guide__. (If you are using OpenDJ 3.0, see xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap-3-0["RESTful Client Access (3.0)"] in the __Administration Guide__ instead.) The examples in this chapter use HTTP, but the procedure also shows how to set up HTTPS access to the server.
-
-Interface stability: Evolving (See xref:../reference/appendix-interface-stability.adoc#interface-stability["Product Interface Stability"] in the __Reference__.)
-
-The OpenDJ REST API is built on a common Open Identity Platform HTTP-based REST API for interacting with JSON Resources. All APIs built on this common layer let you perform the following operations.
+For the original OpenDJ 3.0 handler and gateway, see xref:chap-rest-operations-3-0.adoc#chap-rest-operations-3-0[Performing RESTful Operations (3.0)]. See the xref:../reference/appendix-interface-stability.adoc#interface-stability[Product Interface Stability] reference for the current endpoint’s Evolving interface stability.
 
 [#sec-about-crest]
 === About Common REST
 
-For many REST APIs that are not defined by external standards, Open Identity Platform products provide common ways to access web resources and collections of resources. This section covers what is common across products. Adapt the examples to your types of resources and to your deployment.
+Open Identity Platform products share a set of Common REST conventions. Each endpoint implements the operations and parameters appropriate to its resources. See xref:#patch-rest["Patching Resources"] and xref:#query-rest["Querying Resource Collections"] for the options supported by the OpenDJ Rest2ldap endpoint.
 
 [#about-crest-resources]
 ==== Common REST Resources
@@ -202,7 +178,7 @@ A server can define __stored queries__ to call by ID. For example, `/groups?_que
 
 There are two ways to create a resource, either with an HTTP POST or with an HTTP PUT.
 
-To create a resource using POST, perform an HTTP POST with the query string parameter `_action=create` and the JSON resource as a payload. Accept a JSON response. The server creates the identifier if not specified:
+To create a resource using POST, perform an HTTP POST with the query string parameter `_action=create` and the JSON resource as a payload. Accept a JSON response. The collection’s naming strategy determines whether the client or server supplies the identifier. The example `/api/users` mapping requires an `_id` in the JSON body.
 
 [source, httprequest]
 ----
@@ -572,7 +548,7 @@ The second PATCH operation, a `replace`, is applied on the second member (`fruit
 ----
 [
   {
-    "fruits" : [ "orange", "pineapple", "lime" ],
+    "fruits" : [ "orange", "pineapple", "lime" ]
   }
 ]
 ----
@@ -605,7 +581,7 @@ The `transform` operation changes the value of a field based on a script or some
 
 Some HTTP client libraries do not support the HTTP PATCH operation. Make sure that the library you use supports HTTP PATCH before using this REST operation.
 
-For example, the Java Development Kit HTTP client does not support PATCH as a valid HTTP method. Instead, the method `HttpURLConnection.setRequestMethod("PATCH")` throws `ProtocolException`.
+In Java, use `java.net.http.HttpRequest.Builder.method("PATCH", bodyPublisher)` to build a PATCH request. The older `HttpURLConnection.setRequestMethod("PATCH")` throws `ProtocolException`.
 .Parameters
 --
 You can use the following parameters. Other parameters might depend on the specific action implementation:
@@ -742,7 +718,7 @@ When `_pageSize` is non-zero, use this as an index in the result set indicating 
 The `_pagedResultsCookie` and `_pagedResultsOffset` parameters are mutually exclusive, and not to be used together.
 
 `_pageSize=integer`::
-Return query results in pages of this size. After the initial request, use `_pagedResultsCookie` or `_pageResultsOffset` to page through the results.
+Return query results in pages of this size. After the initial request, use `_pagedResultsCookie` or `_pagedResultsOffset` to page through the results.
 
 `_totalPagedResultsPolicy=string`::
 When a `_pageSize` is specified, and non-zero, the server calculates the "totalPagedResults", in accordance with the `totalPagedResultsPolicy`, and provides the value as part of the response. The "totalPagedResults" is either an estimate of the total number of paged results (`_totalPagedResultsPolicy=ESTIMATE`), or the exact total result count (`_totalPagedResultsPolicy=EXACT`). If no count policy is specified in the query, or if `_totalPagedResultsPolicy=NONE`, result counting is disabled, and the server returns value of -1 for "totalPagedResults".
@@ -768,68 +744,12 @@ The `field` values are JSON pointers. For example if the resource is `{"parent":
 [#about-crest-modify-password]
 ==== Change Your Password
 
-
-[NOTE]
-====
-This action requires HTTPS to avoid sending the password over an insecure connection.
-====
-Perform an HTTPS POST with the header Content-Type: application/json, _action=modifyPassword in the query string, and the old and new passwords in JSON format as the POST data.
---
-
-oldPassword::
-The value of this field is the current password as a UTF-8 string.
-
-
-newPassword::
-The value of this field is the current password as a UTF-8 string.
-
---
-On success, the HTTP status code is 200 OK, and the response body is an empty JSON resource:
-
-[source, console]
-----
-$ curl \
---request POST \
---cacert ca-cert.pem \
---user bjensen:hifalutin \
---header "Content-Type: application/json" \
---data '{"oldPassword": "hifalutin", "newPassword": "chngthspwd"}' \
---silent \
-https://localhost:8443/api/users/bjensen?_action=modifyPassword
-
-{}
-----
-
+Use `modifyPassword` over HTTPS and supply the current and new passwords. See xref:#rest-action-modify-password[Changing Passwords] for the request and response.
 
 [#about-crest-reset-password]
 ==== Reset a Password
 
-Whenever one user changes another user’s password, DS servers consider it a password reset. Often, password policies specify that users must change their passwords again after a password reset.
-
-[NOTE]
-====
-This action requires HTTPS to avoid sending the password over an insecure connection.
-====
-Perform an HTTPS POST with the header Content-Type: application/json, _action=resetPassword in the query string, and an empty JSON document ({}) as the POST data.
-
-The JSON POST DATA must include the following fields:
-
-The following example demonstrates an administrator changing a user’s password. Before trying this example, make sure the password administrator has been given the password-reset privilege. Otherwise, the password administrator has insufficient access. On success, the HTTP status code is 200 OK, and the response body is a JSON resource with a generatedPassword containing the new password:
-
-[source, console]
-----
-$ curl \
---request POST \
---cacert ca-cert.pem \
---user kvaughan:bribery \
---header "Content-Type: application/json" \
---data '{}' \
---silent \
-https://localhost:8443/api/users/bjensen?_action=resetPassword
-{"generatedPassword":"new-password"}
-----
-As password administrator, provide the new, generated password to the user.
-
+Use `resetPassword` over HTTPS to generate a password for the target user. See xref:#rest-action-reset-password[Resetting Passwords] for the administrator permissions and request.
 
 [#about-crest-response-codes]
 ==== HTTP Status Codes
@@ -914,96 +834,30 @@ The default example configuration includes only one API, whose version is `1.0`.
 [#authenticate-rest]
 === Authenticating Over REST
 
-When you first try to read a resource that can be read as an LDAP entry with an anonymous search, you learn that you must authenticate as shown in the following example:
+The default `/api` endpoint uses HTTP Basic authentication and returns HTTP 401 if credentials are missing. With the example data, Babs Jensen authenticates as `bjensen`, the `uid` of her entry `uid=bjensen,ou=People,dc=example,dc=com`.
 
 [source, console]
 ----
-$ curl http://opendj.example.com:8080/api/users/bjensen
+$ curl --user bjensen:hifalutin http://opendj.example.com:8080/api/users/bjensen
 {
-  "code" : 401,
-  "reason" : "Unauthorized",
-  "message" : "Unauthorized"
-}
-----
-HTTP status code 401 indicates that the request requires user authentication.
-
-To prevent OpenDJ directory server from requiring authentication, set the Rest2ldap endpoint `authorization-mechanism` to map anonymous HTTP requests to LDAP requests performed by an authorized user, as in the following example that uses Kirsten Vaughan's identity:
-
-[source, console]
-----
-$ dsconfig \
- set-http-authorization-mechanism-prop \
- --hostname opendj.example.com \
- --port 4444 \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --mechanism-name "HTTP Anonymous" \
- --set enabled:true \
- --set user-dn:uid=kvaughan,ou=people,dc=example,dc=com \
- --no-prompt \
- --trustAll
-
-$ dsconfig \
- set-http-endpoint-prop \
- --hostname opendj.example.com \
- --port 4444 \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --endpoint-name "/api" \
- --set authorization-mechanism:"HTTP Anonymous" \
- --no-prompt \
- --trustAll
-----
-By default, both the Rest2ldap endpoint and also the REST to LDAP gateway allow HTTP Basic authentication and HTTP header-based authentication in the style of OpenIDM. The authentication mechanisms translate HTTP authentication to LDAP authentication to the directory server.
-
-When you install OpenDJ either with generated sample user entries or with data from link:../attachments/Example.ldif[Example.ldif, window=\_blank], the relative distinguished name (DN) attribute for sample user entries is the user ID (`uid`) attribute. For example, the DN and user ID for Babs Jensen are:
-
-[source, ldif]
-----
-dn: uid=bjensen,ou=People,dc=example,dc=com
-uid: bjensen
-----
-Given this pattern in the user entries, the default REST to LDAP configuration translates the HTTP user name to the LDAP user ID. User entries are found directly under `ou=People,dc=example,dc=com`.footnote:d0e1832[In general, REST to LDAP mappings require that LDAP entries mapped to JSON resources be immediate subordinates of the mapping's baseDN.] In other words, Babs Jensen authenticates as `bjensen` (password: `hifalutin`) over HTTP. The corresponding LDAP bind DN is `uid=bjensen,ou=People,dc=example,dc=com`.
-
-HTTP Basic authentication works as shown in the following example:
-
-[source, console]
-----
-$ curl \
- --user bjensen:hifalutin \
- http://opendj.example.com:8080/api/users/bjensen
-{
-  "_rev" : "000000009ce6c3c3",
+  "_id": "bjensen",
   ...
 }
 ----
-The alternative HTTP Basic __username__:__password__@ form in the URL works as shown in the following example:
 
-[source, console]
-----
-$ curl \
- http://bjensen:hifalutin@opendj.example.com:8080/api/users/bjensen
-{
-  "_rev" : "000000009ce6c3c3",
-  ...
-}
-----
-HTTP header based authentication works as shown in the following example:
+The endpoint also accepts `X-OpenIDM-Username` and `X-OpenIDM-Password` headers by default. To change authentication or allow anonymous access to public data, see xref:../admin-guide/chap-connection-handlers.adoc#setup-http-authorization[To Set Up HTTP Authorization].
 
-[source, console]
-----
-$ curl \
- --header "X-OpenIDM-Username: bjensen" \
- --header "X-OpenIDM-Password: hifalutin" \
- http://opendj.example.com:8080/api/users/bjensen
-{
-  "_rev" : "000000009ce6c3c3",
-  ...
-}
-----
-If the directory data is laid out differently or if the user names are email addresses rather than user IDs, for example, then you must update the configuration in order for authentication to work.
+[#rest-default-mapping]
+=== Default REST Resources
 
-The REST to LDAP gateway can also translate HTTP user name and password authentication to LDAP PLAIN SASL authentication. Likewise, the gateway falls back to proxied authorization as necessary, using a root DN authenticated connection to LDAP servers. See xref:../reference/appendix-rest2ldap.adoc#appendix-rest2ldap["REST to LDAP Configuration"] in the __Reference__ for details on all configuration choices.
+The default mapping uses LDAP `uid` as the resource `_id` for users and LDAP `cn` for groups. Use the configured JSON field names, such as `displayName` for LDAP `cn`.
+
+* `/api/users` reads and changes entries directly under `ou=People,dc=example,dc=com`.
+* `/api/read-only-users` reads and queries the same entries. Writes are rejected.
+* `/api/all-users` includes nested users in collection queries. For a nested user, query the collection with `_queryFilter`. A direct `/api/all-users/<id>` read looks under the collection’s base DN.
+* `/api/groups` maps groups under `ou=Groups,dc=example,dc=com`. Read an individual group at `/api/groups/<cn>`.
+
+To inspect the configured routes and resource fields, send an authenticated GET to `/api?_api`. OpenDJ returns a Swagger 2.0 description. For custom mappings and standalone gateway authentication, see xref:../reference/appendix-rest2ldap.adoc#appendix-rest2ldap[REST to LDAP Configuration].
 
 
 [#create-rest]
@@ -1065,7 +919,7 @@ $ curl \
 }
 ----
 
-* To create a resource and let the server choose the ID, perform an HTTP POST with `_action=create` as described in xref:#action-rest["Using Actions"].
+* To create a resource with POST, put the ID in the JSON body and send it to the collection. See xref:#rest-action-create[Using the Create Resource Action].
 
 
 
@@ -1108,9 +962,9 @@ $ curl \
 [#update-rest]
 === Updating Resources
 
-To update a resource, perform an HTTP PUT with the changes to the resource. Use an `If-Match` header to ensure the resource already exists. For read-only fields, either include unmodified versions, or omit them from your updated version.
+Use HTTP PUT to replace writable fields. In the default mapping, omitting an optional writable field can remove its LDAP value. Omitting a required field such as `displayName` causes the request to fail. Use xref:#patch-rest[PATCH] to update selected fields and keep the rest. You can omit read-only fields.
 
-To update a resource regardless of the revision, use an `If-Match: *` header. The following example writes a new entry with an additional display name for Sam Carter:
+Use `If-Match: *` to update the existing resource regardless of its revision. The following example adds a display name to Sam Carter’s resource:
 
 [source, console]
 ----
@@ -1173,7 +1027,7 @@ $ curl \
   }
 }
 ----
-To update a resource only if the resource matches a particular version, use an `If-Match: revision` header as shown in the following example:
+To update a specific revision, read `_rev` and pass it in `If-Match`. A stale revision returns HTTP 412 Precondition Failed.
 
 [source, console]
 ----
@@ -1399,7 +1253,7 @@ $ curl \
 [#patch-rest]
 === Patching Resources
 
-OpenDJ lets you patch JSON resources, updating part of the resource rather than replacing it. For example, you could change Babs Jensen's email address by issuing an HTTP PATCH request as in the following example:
+The Rest2ldap endpoint supports `add`, `remove`, `replace`, and `increment` patch operations. Use these operations to update individual mapped fields. For example, you could change Babs Jensen's email address by issuing an HTTP PATCH request as in the following example:
 
 [source, console]
 ----
@@ -1666,86 +1520,34 @@ OpenDJ REST to LDAP implements the actions described in this section.
 [#rest-action-create]
 ==== Using the Create Resource Action
 
-OpenDJ implements an action that lets the server set the resource ID on creation. To use this action, perform an HTTP POST with header `Content-Type: application/json`, and the JSON content of the resource.
-
-The `_action=create` in the query string is optional.
-
-The following example creates a new user entry:
+Send the JSON resource to `/api/users` with HTTP POST. In the default mapping, `_id` supplies the LDAP `uid` and `_schema` selects the resource type. The `_action=create` parameter is optional.
 
 [source, console]
 ----
-$ curl \
- --request POST \
- --user kvaughan:bribery \
- --header "Content-Type: application/json" \
+$ curl --user kvaughan:bribery \
+ --header 'Content-Type: application/json' \
  --data '{
-  "_id": "newuser",
-  "contactInformation": {
-    "telephoneNumber": "+1 408 555 1212",
-    "emailAddress": "newuser@example.com"
-  },
-  "name": {
-    "familyName": "New",
-    "givenName": "User"
-  },
-  "displayName": "New User",
-  "manager": [
-    {
-      "_id": "kvaughan",
-      "displayName": "Kirsten Vaughan"
-    }
-  ]
+   "_id": "newuser",
+   "_schema": "frapi:opendj:rest2ldap:user:1.0",
+   "displayName": ["New User"],
+   "name": {"familyName": "User"}
  }' \
  http://opendj.example.com:8080/api/users
-{
-  "_id": "newuser",
-  "_rev": "000000000ace733a",
-  "_schema": "frapi:opendj:rest2ldap:user:1.0",
-  "_meta": {
-    "created": "2016-06-24T12:51:25Z"
-  },
-  "userName": "newuser@example.com",
-  "displayName": ["New User"],
-  "name": {
-    "givenName": "User",
-    "familyName": "New"
-  },
-  "contactInformation": {
-    "telephoneNumber": "+1 408 555 1212",
-    "emailAddress": "newuser@example.com"
-  },
-  "manager": {
-    "_id": "kvaughan",
-    "displayName": "Kirsten Vaughan"
-  }
-}
 ----
 
+A successful response returns HTTP 201 with the created resource. Server-generated IDs require a mapping configured to supply them.
 
 [#rest-action-password-modify]
 ==== Using the Modify Password and Reset Password Actions
 
 OpenDJ implements actions for resetting and changing passwords.
 
-These actions require HTTPS to avoid sending passwords over insecure connections. Before trying the examples that follow, enable HTTPS on the HTTP connection handler as described in xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap["RESTful Client Access Over HTTP"] in the __Administration Guide__. Notice that the following examples use the exported server certificate, `server-cert.pem`, generated in that procedure. If the connection handler uses a certificate signed by a well-known CA, then you can omit the `--cacert` option.
+Enable HTTPS as described in xref:../admin-guide/chap-connection-handlers.adoc#setup-rest2ldap[RESTful Client Access Over HTTP]. The examples use the exported evaluation server certificate `server-cert.pem`. Omit `--cacert` if curl already trusts the issuing CA.
 
 [#rest-action-modify-password]
 ===== Changing Passwords
 
-The `modifyPassword` action lets a user modify their password given the old password and a new password.
-
-To use this action, perform an HTTP POST over HTTPS with header `Content-Type: application/json`, `_action=modifyPassword` in the query string, and the old and new passwords in JSON format as the POST data.
---
-The JSON must include the following fields:
-
-`oldPassword`::
-The value of this field is the current password as a UTF-8 string.
-
-`newPassword`::
-The value of this field is the new password as a UTF-8 string.
-
---
-The following example demonstrates a user changing their own password. On success, the HTTP status code is 200 OK, and the response body is an empty JSON resource:
+To change your password, POST `oldPassword` and `newPassword` to the `modifyPassword` action. The response is HTTP 200 with an empty JSON object.
 
 [source, console]
 ----
@@ -1755,7 +1557,7 @@ $ curl \
  --user bjensen:hifalutin \
  --header "Content-Type: application/json" \
  --data '{"oldPassword": "hifalutin", "newPassword": "password"}' \
- https://opendj.example.com:8443/users/bjensen?_action=modifyPassword
+ https://opendj.example.com:8443/api/users/bjensen?_action=modifyPassword
 {}
 ----
 
@@ -1763,20 +1565,20 @@ $ curl \
 [#rest-action-reset-password]
 ===== Resetting Passwords
 
-The `resetPassword` action lets a user or password administrator reset a password to a generated password value.
+The `resetPassword` action sets a generated password. An authenticated user can request it for their own entry when their password policy allows changing the password without supplying the current password in the request body. Resetting another user's password requires the `password-reset` privilege and permission to write that user's `userPassword` attribute.
 
 To use this action, perform an HTTP POST over HTTPS with header `Content-Type: application/json`, `_action=resetPassword` in the query string, and an empty JSON document (`{}`) as the POST data.
-The following example demonstrates an administrator changing a user's password. Before trying this example, make sure the password administrator user has been given the `password-reset` privilege as shown in xref:../admin-guide/chap-privileges-acis.adoc#change-individual-privileges["To Add Privileges on an Individual Entry"] in the __Administration Guide__. Otherwise, the password administrator has insufficient access. On success, the HTTP status code is 200 OK, and the response body is a JSON resource with a `generatedPassword` containing the new password:
+The following example uses the local `password-admin` account created in xref:../how-to/delegate-password-reset.adoc[Delegate Password Reset Permissions]. On success, the server returns HTTP 200 and the new password in `generatedPassword`.
 
 [source, console]
 ----
 $ curl \
  --request POST \
  --cacert server-cert.pem \
- --user kvaughan:bribery \
+ --user 'password-admin:AdminPassword123!' \
  --header "Content-Type: application/json" \
  --data '{}' \
- https://opendj.example.com:8443/users/bjensen?_action=passwordModify
+ 'https://localhost:8443/api/users/bjensen?_action=resetPassword'
 {"generatedPassword":"qno66vyz"}
 ----
 The password administrator communicates the new, generated password to the user.
@@ -1791,7 +1593,7 @@ This feature could be used in combination with a password policy that forces the
 
 To query resource collections, perform an HTTP GET with a `_queryFilter=expression` parameter in the query string. For details about the query filter __expression__, see xref:#about-crest-query["Query"].
 
-The `_queryId`, `_sortKeys`, and `_totalPagedResultsPolicy` parameters described in xref:#about-crest-query["Query"] are not used in OpenDJ software at present.
+The collection mapping sets the LDAP search scope. See xref:#rest-default-mapping[Default REST Resources] for the scopes of the built-in collections. The endpoint supports paging with `_pageSize` and `_pagedResultsCookie` or `_pagedResultsOffset`. The Common REST parameters `_queryExpression`, `_queryId`, `_sortKeys`, and `_totalPagedResultsPolicy` are unsupported by this endpoint.
 
 The following table shows some LDAP search filters with corresponding examples of query filter expressions.
 
@@ -1834,7 +1636,7 @@ a|_queryFilter=_id+ge+'jensen'
 --
 For query operations, the filter __expression__ is constructed from the following building blocks. Make sure you URL-encode the filter expressions, which are shown here without URL-encoding to make them easier to read.
 
-In filter expressions, the simplest __json-pointer__ is a field of the JSON resource, such as `userName` or `id`. A __json-pointer__ can also point to nested elements as described in the link:http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer[JSON Pointer, window=\_blank] Internet-Draft:
+In filter expressions, the simplest __json-pointer__ is a field of the JSON resource, such as `userName` or `id`. A __json-pointer__ can also point to nested elements as described in the link:https://www.rfc-editor.org/rfc/rfc6901[JSON Pointer (RFC 6901), window=\_blank] specification:
 
 Comparison expressions::
 [open]
@@ -2188,7 +1990,7 @@ You can page through search results using the following query string parameters 
 
 * `_pageSize=integer`
 
-The following example demonstrates how paged results are used:
+The following example demonstrates how paged results are used. Use the cookie from your previous response and URL-encode it for the next request. A numeric offset counts pages starting at zero.
 
 [source, console]
 ----
@@ -2259,7 +2061,7 @@ $ curl \
   "remainingPagedResults": -1
 }
 
-# Request the tenth page of five results.
+# Request the eleventh page of five results (offsets start at zero).
 $ curl \
  --user bjensen:hifalutin \
  "http://opendj.example.com:8080/api/users?_queryFilter=true&_fields=userName\

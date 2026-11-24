@@ -20,8 +20,14 @@
 :table-caption!:
 
 
+ifndef::env-site[]
 [#chap-tuning]
+endif::[]
 == Tuning Servers For Performance
+
+ifdef::env-site[]
+anchor:chap-tuning[]
+endif::[]
 
 This chapter suggests ways to measure and improve directory service performance. In this chapter you will learn to:
 
@@ -108,11 +114,9 @@ In order to avoid directory database file corruption after crashes or power fail
 [#perf-testing]
 === Testing Performance
 
-Even if you do not need high availability, you still need two of everything, because your test environment needs to mimic your production environment as closely as possible if you want to avoid unwelcome surprises.
+Use an isolated server for a first measurement. To estimate production performance, match the production topology, data, and client workload in the test environment.
 
-In your test environment, you set up OpenDJ as you will later in production, and then conduct experiments to determine how best to meet the requirements defined in the SLA.
-
-Use the `make-ldif` command, described in xref:../reference/admin-tools-ref.adoc#makeldif-1[makeldif(1)] in the __Reference__, to generate sample data that match what you expect to find in production.
+Use the `makeldif` command, described in xref:../reference/admin-tools-ref.adoc#makeldif-1[makeldif(1)] in the __Reference__, to generate sample data that match what you expect to find in production.
 
 The OpenDJ LDAP Toolkit provides command-line tools to help with basic performance testing:
 
@@ -126,7 +130,45 @@ The OpenDJ LDAP Toolkit provides command-line tools to help with basic performan
 
 All these commands show you information about the response time distributions, and allow you to perform tests at specific levels of throughput.
 
-If you need additional precision when evaluating response times, use the global configuration setting `etime-resolution`, to change elapsed processing time resolution from milliseconds (default) to nanoseconds:
+[#perf-local-example]
+==== Measure Searches and Modifications
+
+Run these commands from the `opendj` directory of the xref:../getting-started/first-steps.adoc#getting-started-first-directory[Getting Started instance], after adding Alice and before removing her entry. Both tools run for five seconds at a target of 20 operations per second. The modification test replaces the description on the sample entry.
+
+[source,bash]
+----
+./bin/searchrate --hostname localhost --port 1636 --useSSL --trustAll \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile ../quickstart-password.txt \
+  --maxDuration 5 --statInterval 1 --noRebind --targetThroughput 20 \
+  --baseDN 'dc=example,dc=com' '(uid=alice)' cn
+
+./bin/modrate --hostname localhost --port 1636 --useSSL --trustAll \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile ../quickstart-password.txt \
+  --maxDuration 5 --statInterval 1 --noRebind --targetThroughput 20 \
+  --targetDN 'uid=alice,ou=People,dc=example,dc=com' \
+  --argument 'randstr(12)' 'description:%s'
+----
+
+Check `err/sec` for errors. `Entries/Srch` reports the average number of entries per search. This query matches Alice. Throughput is in operations per second and response times are in milliseconds.
+
+To see the server-side totals for this listener, read its monitoring entry.
+
+[source,bash]
+----
+./bin/ldapsearch --hostname localhost --port 1636 --useSSL --trustAll \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile ../quickstart-password.txt \
+  --baseDN 'cn=monitor' '(&(cn=*1636*)(modifyRequests=*))' \
+  searchRequests modifyRequests
+----
+
+These totals include all requests of each type on that listener. Compare readings before and after a test to see how much they increased. The listener collects them when `keep-stats` is enabled, as it is by default.
+
+For a replicated test environment, also xref:chap-replication.adoc#repl-local-backlog[check for missing changes] after the write test.
+
+[#perf-elapsed-time]
+==== Server Processing Time
+
+The rate tools measure elapsed time at the client. To record finer server processing times, set `etime-resolution` to nanoseconds. The default is milliseconds.
 
 [source, console]
 ----
@@ -171,48 +213,14 @@ $ cat /proc/sys/fs/file-max
 [#perf-java]
 ==== Java Settings
 
-Default Java settings let you evaluate OpenDJ using limited system resources. If you need high performance for production system, test with the following JVM options. These apply to the Sun/Oracle JVM.
+Set `start-ds.java-args` in the instance's `config/java.properties` and restart the server. On UNIX, a nonempty `OPENDJ_JAVA_ARGS` takes precedence.
 
-[TIP]
-====
-To apply JVM settings for your server, edit `config/java.properties`, and apply the changes with the `dsjavaproperties` command, described in xref:../reference/admin-tools-ref.adoc#dsjavaproperties-1[dsjavaproperties(1)] in the __Reference__:
-====
---
+Use `-Xms` and `-Xmx` to set the initial and maximum heap size. Leave room for the database cache and other Java allocations within the heap and for the operating system and native allocations outside it. To measure the default garbage collector on HotSpot, add `-Xlog:gc*` with a writable log path.
 
-`-server`::
-Use the C2 compiler and optimizer (HotSpot Server VM).
-
-`-d64`::
-Use this option on 64-bit systems for heaps larger than 3.5 GB.
-
-`-Xms, -Xmx`::
-Set both minimum and maximum heap size to the same value to avoid resizing. Leave space for the entire DB cache and more.
-
-+
-Use at least a 2 GB heap (`-Xms2G -Xmx2G`) unless your data set is small.
-
-`-Xmn`::
-When using CMS garbage collection, consider using this option. Do not use it when using G1 garbage collection.
-
-+
-If a server handles high throughput, set the new generation size large enough for the JVM to avoid promoting short-lived objects into the old generation space (`-Xmn512M`).
-
-`-XX:MaxTenuringThreshold=1`::
-Force OpenDJ directory server to only create objects that have either a short lifetime, or a long lifetime.
-
-`-XX:+UseConcMarkSweepGC`::
-The CMS garbage collector tends to give the best performance characteristics with the lowest garbage collection pause times.
-
-+
-Consider using the G1 garbage collector only if CMS performance characteristics do not fit your deployment, and testing shows G1 performs better.
-
-`-XX:+UseCompressedOops`::
-Set this option when you have a 64-bit JVM, and `-Xmx` less than 32 GB. Java object pointers normally have the same size as native machine pointers. If you run a small 64-bit JVM, then compressed object pointers can save space.
-
-`-XX:+PrintGCDetails`,`-XX:+PrintGCTimeStamps`::
-Use these options when diagnosing JVM tuning problems. You can turn them off when everything is running smoothly.
-
---
+[source,properties]
+----
+start-ds.java-args=-Xms2g -Xmx2g -Xlog:gc*:file=/path/to/opendj/logs/gc.log:time,uptime,level,tags:filecount=5,filesize=20M
+----
 
 
 [#perf-data-storage]

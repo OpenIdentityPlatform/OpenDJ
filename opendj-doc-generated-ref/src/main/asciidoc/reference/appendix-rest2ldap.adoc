@@ -21,8 +21,14 @@
 
 
 [appendix]
+ifndef::env-site[]
 [#appendix-rest2ldap]
+endif::[]
 == REST to LDAP Configuration
+
+ifdef::env-site[]
+anchor:appendix-rest2ldap[]
+endif::[]
 
 OpenDJ offers two alternatives for access to directory data over HTTP:
 
