@@ -18,8 +18,14 @@ Copyright 2026 3A Systems, LLC.
 :example-caption!:
 :table-caption!:
 
+ifndef::env-site[]
 [#chap-memory-backend]
+endif::[]
 == Using the Memory Backend
+
+ifdef::env-site[]
+anchor:chap-memory-backend[]
+endif::[]
 
 The Memory backend stores directory entries only in the OpenDJ server process memory. Use it for small development datasets, isolated tests, disposable demonstrations, or temporary data that can be recreated.
 

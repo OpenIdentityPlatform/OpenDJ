@@ -11,7 +11,7 @@
 # Header, with the fields enclosed by brackets [] replaced by your own identifying
 # information: "Portions copyright [year] [name of copyright owner]".
 #
-# Portions copyright 2026 3A Systems, LLC.
+# Portions Copyright 2026 3A Systems, LLC.
 
 # Run the OpenDJ server
 # The idea is to consolidate all of the writable DJ directories to
@@ -90,7 +90,10 @@ upgrade_instance() {
   fi
   sh ./upgrade -n --force || return 1
   if [ "$from" = "$to" ] && [ -f "$UPGRADE_PENDING" ]; then
-    echo "The upgrade of this volume from $(cat "$UPGRADE_PENDING") did not complete on an earlier start: its post-upgrade tasks failed or were cut off, which /opt/opendj/data/logs/upgrade.log tells. Rebuild the indexes it names with rebuild-index and remove $UPGRADE_PENDING, or restore the backup taken before the upgrade"
+    echo "The upgrade of this volume from $(cat "$UPGRADE_PENDING") did not complete on an earlier start." \
+      "Check /opt/opendj/data/logs/upgrade.log and the backend configuration." \
+      "With the server stopped, verify the indexes for every affected base DN and rebuild as needed." \
+      "Remove $UPGRADE_PENDING only after all outstanding tasks are complete, or restore the pre-upgrade backup."
     return 1
   fi
   rm -f "$UPGRADE_PENDING"
@@ -110,10 +113,9 @@ SECRET_VOLUME=${SECRET_VOLUME:-/var/secrets/opendj}
 # checked again every that many seconds; 0 checks it on start only
 SECRET_VOLUME_REFRESH=${SECRET_VOLUME_REFRESH:-60}
 
-# Copies the key* and trust* files of the secret volume that differ from those in
-# ./data/config. Each one is written next to its target and renamed over it, so the server
-# never reads a file half copied, and it is readable by the server's user only: a keystore
-# holds the private key, a .pin file its password. Succeeds when it copied a file.
+# Copies the LDAP keystores, truststores and PIN files that differ from those in ./data/config.
+# Each file is written next to its target and renamed over it, with mode 0600.
+# Succeeds when it copied a file.
 copy_secrets() {
   local src dst tmp copied=1
   [ -d "$SECRET_VOLUME" ] || return 1
@@ -132,12 +134,125 @@ copy_secrets() {
   return $copied
 }
 
+# A pending directory contains a staged pair. Validate it before either file moves.
+# Moving each file out of the directory records progress on the same volume, so a
+# restart between the two renames can finish the installation.
+ADMIN_SECRET_PENDING=./data/config/.admin-secret-pending
+
+clean_admin_secret_staging() {
+  local staged
+  for staged in ./data/config/.admin-secret.??????; do
+    [ -d "$staged" ] && [ ! -L "$staged" ] || continue
+    if ! rm -f -- "$staged/admin-keystore" "$staged/admin-keystore.pin" || ! rmdir -- "$staged"; then
+      echo "Could not remove abandoned administration Secret staging directory $staged" >&2
+    fi
+  done
+}
+
+install_pending_admin_secret() {
+  local name discarded rejection=
+  [ -d "$ADMIN_SECRET_PENDING" ] || return 0
+
+  # Both files still staged means the live pair is intact. Once the keystore
+  # has moved, finish installing its PIN even if the configuration has changed.
+  if [ -f "$ADMIN_SECRET_PENDING/admin-keystore" ] && [ -f "$ADMIN_SECRET_PENDING/admin-keystore.pin" ]; then
+    if ! java -cp ./bootstrap AdminSecretValidator \
+        "$ADMIN_SECRET_PENDING/admin-keystore" "$ADMIN_SECRET_PENDING/admin-keystore.pin" \
+        </dev/null >/dev/null 2>&1; then
+      rejection="the store must open as JKS or PKCS12, use that PIN for every private key,"
+      rejection+=" and contain a signing key and matching TLS server certificate for admin-cert"
+    elif [ -e ./data/config/config-changes.ldif ] || ! uses_default_admin_keystore; then
+      rejection="it no longer matches the instance configuration"
+    fi
+    if [ -n "$rejection" ]; then
+      echo "Discarding the staged administration Secret: $rejection" >&2
+      # Remove the transaction marker before deleting either staged file.
+      if ! discarded=$(mktemp -d ./data/config/.admin-secret.XXXXXX) ||
+          ! mv -fT -- "$ADMIN_SECRET_PENDING" "$discarded"; then
+        echo "Could not move the rejected administration Secret out of the pending directory" >&2
+        return 1
+      fi
+      clean_admin_secret_staging
+      return 0
+    fi
+  fi
+
+  for name in admin-keystore admin-keystore.pin; do
+    if [ -f "$ADMIN_SECRET_PENDING/$name" ] &&
+        ! mv -fT -- "$ADMIN_SECRET_PENDING/$name" "./data/config/$name"; then
+      echo "Could not install $name from the staged administration Secret" >&2
+      return 1
+    fi
+  done
+  rmdir -- "$ADMIN_SECRET_PENDING" || return 1
+  echo "Installed the administration keystore and PIN from the staged Secret"
+}
+
+# Only manage the files used by the default administration key manager and nickname.
+uses_default_admin_keystore() {
+  local config connector provider
+  connector='(&(objectClass=ds-cfg-administration-connector)(ds-cfg-key-manager-provider=cn=Administration,cn=Key Manager Providers,cn=config))'
+  provider='(&(objectClass=ds-cfg-file-based-key-manager-provider)(ds-cfg-enabled=true)(ds-cfg-key-store-type=JKS)'
+  provider+='(ds-cfg-java-class=org.opends.server.extensions.FileBasedKeyManagerProvider)'
+  provider+='(!(ds-cfg-key-store-pin-property=*))(!(ds-cfg-key-store-pin-environment-variable=*)))'
+
+  # Read both entries from the same snapshot of the instance configuration.
+  config=$(./bin/ldifsearch -b cn=config ./data/config/config.ldif "(|$connector$provider)" \
+    ds-cfg-ssl-cert-nickname ds-cfg-key-store-file ds-cfg-key-store-pin-file 2>/dev/null) || return 1
+  awk '
+    BEGIN {
+      connector = "dn: cn=administration connector,cn=config"
+      provider = "dn: cn=administration,cn=key manager providers,cn=config"
+    }
+    /^dn: / { dn = tolower($0) }
+    dn == connector && /^ds-cfg-ssl-cert-nickname:/ {
+      nicknames++
+      nickname = $0
+    }
+    dn == provider && /^ds-cfg-key-store-file:/ { store = $0 }
+    dn == provider && /^ds-cfg-key-store-pin-file:/ { pin = $0 }
+    END {
+      exit !(nicknames == 1 && nickname == "ds-cfg-ssl-cert-nickname: admin-cert" &&
+        store == "ds-cfg-key-store-file: config/admin-keystore" &&
+        pin == "ds-cfg-key-store-pin-file: config/admin-keystore.pin")
+    }
+  ' <<< "$config"
+}
+
+sync_admin_secret() {
+  local store="$SECRET_VOLUME/admin-keystore" pin="$SECRET_VOLUME/admin-keystore.pin" staged
+  install_pending_admin_secret || return 1
+  [ -f "$store" ] && [ -f "$pin" ] || return 0
+  if cmp -s "$store" ./data/config/admin-keystore && cmp -s "$pin" ./data/config/admin-keystore.pin; then
+    return 0
+  fi
+
+  if ! staged=$(mktemp -d ./data/config/.admin-secret.XXXXXX); then
+    echo "Could not stage the administration Secret" >&2
+    return 0
+  fi
+
+  # The mounted files can change independently. Stage the exact bytes to be validated and installed.
+  if ! install -m 600 -- "$store" "$staged/admin-keystore" ||
+      ! install -m 600 -- "$pin" "$staged/admin-keystore.pin"; then
+    echo "Could not stage the administration keystore and PIN" >&2
+  elif mv -T -- "$staged" "$ADMIN_SECRET_PENDING"; then
+    install_pending_admin_secret
+    return $?
+  fi
+
+  rm -f -- "$staged/admin-keystore" "$staged/admin-keystore.pin"
+  rmdir -- "$staged"
+  return 0
+}
+
 # The files are compared one at a time, so a Secret updated in the middle of a pass can leave
 # a keystore of one version next to the .pin of the other. Passes are repeated until one finds
-# nothing left to copy, which puts the files of a single version back together.
+# nothing left to copy, which puts the LDAP files of a single version back together.
 sync_secrets() {
   local passes=0
   while copy_secrets && [ $((passes += 1)) -lt 5 ]; do :; done
+  sync_admin_secret
 }
 
 # The server loads a keystore or truststore again, together with its .pin file, on the first
@@ -157,7 +272,7 @@ watch_secrets() {
 start_server() {
   if [ -d "$SECRET_VOLUME" ]; then
     echo "Secret volume is present. Will copy any keystores and truststore"
-    sync_secrets
+    sync_secrets || exit 1
     if [[ $SECRET_VOLUME_REFRESH =~ ^[0-9]+$ ]] && [ "$SECRET_VOLUME_REFRESH" -gt 0 ]; then
       watch_secrets &
     elif ! [[ $SECRET_VOLUME_REFRESH =~ ^0+$ ]]; then
@@ -176,6 +291,8 @@ fi
 
 # Instance dir does exist? We start opendj without detach
 if [ -d ./data/config ]; then
+  clean_admin_secret_staging
+  install_pending_admin_secret || exit 1
   # nothing is bootstrapped here, the instance is already there - but a half-migrated one
   # is not ready to serve either, so the marker follows the upgrade
   if [ -f "$BOOTSTRAP_PENDING" ]; then

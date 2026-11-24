@@ -38,6 +38,8 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Collection;
@@ -4766,6 +4768,7 @@ public final class DirectoryServer
     // Define the arguments that may be provided to the server.
     final BooleanArgument displayUsage;
     BooleanArgument checkStartability      = null;
+    StringArgument startupTimeoutFile      = null;
     BooleanArgument quietMode              = null;
     IntegerArgument timeout                = null;
     BooleanArgument fullVersion            = null;
@@ -4800,6 +4803,11 @@ public final class DirectoryServer
                       .description(INFO_DSCORE_DESCRIPTION_CHECK_STARTABILITY.get())
                       .hidden()
                       .buildAndAddToParser(argParser);
+      startupTimeoutFile =
+              StringArgument.builder("startupTimeoutFile")
+                      .hidden()
+                      .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       fullVersion =
               BooleanArgument.builder("fullVersion")
                       .shortIdentifier('F')
@@ -4825,7 +4833,7 @@ public final class DirectoryServer
       quietMode = quietArgument();
       argParser.addArgument(quietMode);
 
-      // Not used in this class, but required by the start-ds script (see issue #3814)
+      // The Unix launcher uses the validated timeout to wait for detached startup.
       timeout =
               IntegerArgument.builder("timeout")
                       .shortIdentifier('t')
@@ -4907,7 +4915,22 @@ public final class DirectoryServer
       }
       else
       {
-        System.exit(checkStartability(argParser));
+        int startability = checkStartability(argParser);
+        if (startupTimeoutFile.isPresent()
+            && (startability == START_AS_DETACH || startability == START_AS_DETACH_QUIET))
+        {
+          // Keep the launcher metadata separate from the normal command output.
+          try
+          {
+            Files.writeString(Path.of(startupTimeoutFile.getValue()), timeout.getIntValue() + "\n");
+          }
+          catch (IOException | ArgumentException e)
+          {
+            System.err.println("start-ds: could not write the startup timeout: " + e.getMessage());
+            System.exit(CHECK_ERROR);
+          }
+        }
+        System.exit(startability);
       }
     }
     else if (argParser.usageOrVersionDisplayed())

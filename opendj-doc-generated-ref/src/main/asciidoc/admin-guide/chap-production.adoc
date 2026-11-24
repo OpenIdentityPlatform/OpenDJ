@@ -70,7 +70,7 @@ Security updates are occasionally released for the Java runtime environment.
 
 Make sure that your operational plans provide for deploying Java security updates to systems where you run OpenDJ software.
 
-After you update the Java runtime environment, edit the `default.java-home` setting in the file `/path/to/opendj/config/java.properties` to use the path to the update release, and then use the `dsjavaproperties` command for the changes to be taken into account. Then restart OpenDJ directory server. For details see xref:../reference/admin-tools-ref.adoc#dsjavaproperties-1[dsjavaproperties(1)] in the __Reference__.
+After updating Java, change the setting the server uses to find Java and restart it. Update `default.java-home` or `start-ds.java-home` in `config/java.properties`, or update `OPENDJ_JAVA_HOME` or `OPENDJ_JAVA_BIN` if your startup environment sets it.
 
 
 [#production-services]
@@ -201,7 +201,7 @@ $ backup \
  --port 4444 \
  --bindDN "cn=Directory Manager" \
  --bindPassword - \
- --backupAll \
+ --backUpAll \
  --backupDirectory /path/to/opendj/bak \
  --encrypt \
  --start 0

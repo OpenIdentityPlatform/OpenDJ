@@ -20,8 +20,14 @@
 :table-caption!:
 
 
+ifndef::env-site[]
 [#chap-resource-limits]
+endif::[]
 == Setting Resource Limits
+
+ifdef::env-site[]
+anchor:chap-resource-limits[]
+endif::[]
 
 This chapter shows you how to set resource limits that prevent directory clients from using an unfair share of system resources. In this chapter you will learn to:
 

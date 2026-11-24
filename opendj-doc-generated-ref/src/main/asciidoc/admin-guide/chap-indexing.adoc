@@ -20,8 +20,14 @@
 :table-caption!:
 
 
+ifndef::env-site[]
 [#chap-indexing]
+endif::[]
 == Indexing Attribute Values
+
+ifdef::env-site[]
+anchor:chap-indexing[]
+endif::[]
 
 This chapter covers OpenDJ indexing features used to speed up searches, and to limit the impact of searches on directory server resources. In this chapter you will learn to:
 

@@ -14,6 +14,7 @@
 #
 # Copyright 2006-2009 Sun Microsystems, Inc.
 # Portions Copyright 2011-2014 ForgeRock AS.
+# Portions Copyright 2026 3A Systems, LLC.
 
 
 # This script may be used to request that the Directory Server shut down.
@@ -96,6 +97,52 @@ then
   exit ${RETURN_CODE}
 fi
 
+PID_FILE=${INSTANCE_ROOT}/logs/server.pid
+LOG_FILE=${INSTANCE_ROOT}/logs/errors
+# Match DirectoryServer.DEFAULT_TIMEOUT, the timeout used by WaitForFileDelete.
+STOP_TIMEOUT=200
+
+position_shutdown_log()
+{
+  # Get the size of the open file through procfs on Linux or stdin on BSD.
+  LOG_SIZE=$(stat -Lc '%s' /proc/self/fd/0 2>/dev/null <&3) ||
+    LOG_SIZE=$(stat -f '%z' 2>/dev/null <&3) ||
+    return 1
+  case "${LOG_SIZE}" in
+    ''|*[!0-9]*) return 1 ;;
+  esac
+  # Skip to the last byte and read it on the same descriptor.
+  [ "${LOG_SIZE}" -eq 0 ] ||
+    dd bs=1 skip=$(( LOG_SIZE - 1 )) count=1 2>/dev/null <&3 > /dev/null
+}
+
+wait_for_shutdown()
+{
+  STOP_LOG=$1
+  if [ -n "${STOP_LOG}" ] && ! position_shutdown_log
+  then
+    STOP_LOG=
+  fi
+
+  kill "${PID}" || return $?
+  wait_for_marker_removal "${PID_FILE}" "${STOP_TIMEOUT}" "${STOP_LOG}"
+  STOP_RESULT=$?
+  if [ -n "${STOP_LOG}" ]
+  then
+    if [ "${STOP_RESULT}" -eq 0 ]
+    then
+      # The server closes its log publishers before removing server.pid.
+      cat <&3 2>/dev/null
+    else
+      dd bs=8192 count=128 <&3 2>/dev/null
+    fi
+  fi
+  if [ "${STOP_RESULT}" -eq 2 ]
+  then
+    printf 'stop-ds: shutdown timed out after %s seconds\n' "${STOP_TIMEOUT}" >&2
+  fi
+  return "${STOP_RESULT}"
+}
 
 "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
   org.opends.server.tools.StopDS --checkStoppability "${@}"
@@ -156,28 +203,28 @@ fi
 
 if test ${MUST_STOP_USING_SYSTEM_CALL} -eq 0
 then
-  if test -f "${INSTANCE_ROOT}/logs/server.pid"
+  if test -f "${PID_FILE}"
   then
-    read PID < "${INSTANCE_ROOT}/logs/server.pid"
-    kill ${PID}
-    EXIT_CODE=${?}
+    read PID < "${PID_FILE}"
+    WAIT_TIMER_PID=
+    trap stop_wait_timer 0
+    trap 'exit 129' HUP
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    # Capture the status inside the group to distinguish a failed log open.
+    if [ "${QUIET_OPTION}" -eq 0 ] && [ -f "${LOG_FILE}" ] && {
+      wait_for_shutdown "${LOG_FILE}"
+      EXIT_CODE=$?
+    } 3< "${LOG_FILE}"
+    then
+      :
+    else
+      wait_for_shutdown ""
+      EXIT_CODE=${?}
+    fi
     if test ${EXIT_CODE} -eq 0
     then
-      if test ${QUIET_OPTION} -eq 0
-      then
-        "${OPENDJ_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
-            --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
-            --logFile "${INSTANCE_ROOT}/logs/errors"
-      else
-        "${OPENDJ_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
-            --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
-            --logFile "${INSTANCE_ROOT}/logs/errors"  --quiet
-      fi
-      EXIT_CODE=${?}
-      if test ${EXIT_CODE} -eq 0
-      then
-        STOPPED=0
-      fi
+      STOPPED=0
     fi
   else
     echo "ERROR:  Unable to find the server.pid file to determine the process"
@@ -190,9 +237,9 @@ fi
 # has been killed using kill -9).
 if test ${STOPPED} -eq 0
 then
-  if test -f "${INSTANCE_ROOT}/logs/server.pid"
+  if test -f "${PID_FILE}"
   then
-    rm "${INSTANCE_ROOT}/logs/server.pid"
+    rm "${PID_FILE}"
   fi
 fi
 

@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024-2026 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
@@ -20,8 +20,14 @@
 :table-caption!:
 
 
+ifndef::env-site[]
 [#chap-ldap-operations]
+endif::[]
 == Performing LDAP Operations
+
+ifdef::env-site[]
+anchor:chap-ldap-operations[]
+endif::[]
 
 OpenDJ directory server includes the OpenDJ control panel browser and also command-line tools for performing LDAP operations. In this chapter, you will learn how to use the command-line tools to perform LDAP operations.
 
@@ -712,7 +718,7 @@ mail: kvaughan@example.com
 [#persistent-search]
 .Search: Performing a Persistent Search
 ====
-OpenDJ directory server and other LDAP servers support the Internet-Draft for link:http://tools.ietf.org/html/draft-ietf-ldapext-psearch[Persistent Search: A Simple LDAP Change Notification Mechanism, window=\_blank]. A persistent search is like a search that never stops. Every time there is a change to an entry matching the search criteria, the search returns an additional response. Applications can also get change notifications by using OpenDJ directory server's external change log as described in xref:../admin-guide/chap-replication.adoc#repl-change-notification["Change Notification For Your Applications"] in the __Administration Guide__.
+OpenDJ directory server and other LDAP servers support the Internet-Draft for link:https://datatracker.ietf.org/doc/html/draft-ietf-ldapext-psearch[Persistent Search: A Simple LDAP Change Notification Mechanism, window=\_blank]. A persistent search is like a search that never stops. Every time there is a change to an entry matching the search criteria, the search returns an additional response. Applications can also get change notifications by using OpenDJ directory server's external change log as described in xref:../admin-guide/chap-replication.adoc#repl-change-notification["Change Notification For Your Applications"] in the __Administration Guide__.
 
 In order to use the persistent search control with OpenDJ directory server, the user performing the search must be given access to use the control. Persistent searches consume server resources, so directory administrators often limit permission to perform persistent searches to specific applications. If the user does not have access to use the control, the request to use the control causes the search operation to fail with a message such as the following:
 
@@ -965,30 +971,27 @@ a|`'(&(l=San Francisco)(!(uid=bjensen)))'` matches entries for users in San Fran
 
 a|`\|`
 a|OR operator, to find entries that match one of the specified filter components.
-a|`"\|(sn=Jensen)(sn=Johnson)"` matches entries with surname Jensen or surname Johnson.
+a|`"(\|(sn=Jensen)(sn=Johnson))"` matches entries with surname Jensen or surname Johnson.
 |===
 
 
 [#compare-ldap]
 === Comparing Attribute Values
 
-The compare operation checks whether an attribute value you specify matches the attribute value stored on one or more directory entries.
+An LDAP compare request checks whether a directory entry has a matching value for an attribute. The `ldapcompare` command can issue the same comparison for several entry DNs.
 
 [#compare-example]
-.Compare: Checking authPassword
+.Compare: Checking a Common Name
 ====
-In this example, Kirsten Vaughan uses the `ldapcompare` command, described in xref:../reference/admin-tools-ref.adoc#ldapsearch-1[ldapsearch(1)] in the __Reference__, to check whether the hashed password value matches the stored value on `authPassword`:
+Use the `ldapcompare` command, described in xref:../reference/admin-tools-ref.adoc#ldapcompare-1[ldapcompare(1)] in the __Reference__, to check whether an entry has the common name `Kirsten Vaughan`.
 
 [source, console]
 ----
 $ ldapcompare \
  --port 1389 \
- --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
- --bindPassword bribery \
- 'authPassword:MD5$dFHgpDxXUT8=$qlC4xMXvmVlusJLz9/WJ5Q==' \
+ 'cn:Kirsten Vaughan' \
  uid=kvaughan,ou=people,dc=example,dc=com
-Comparing type authPassword with value
- MD5$dFHgpDxXUT8=$qlC4xMXvmVlusJLz9/WJ5Q== in entry
+Comparing type cn with value Kirsten Vaughan in entry
  uid=kvaughan,ou=people,dc=example,dc=com
 Compare operation returned true for entry
  uid=kvaughan,ou=people,dc=example,dc=com
@@ -1127,7 +1130,7 @@ Imagine you are writing an application that lets end users update user profiles 
 
 Consider two users, Alice and Bob, both busy and often interrupted. Alice has Babs Jensen's new phone and room numbers. Bob has Babs's new location and description. Both assume that they have all the information that has changed. What can you do to make sure that your application applies the right changes when Alice and Bob simulaneously update Babs Jensen's profile?
 
-OpenDJ directory server includes two features to help you in this situation. One of the features is the LDAP Assertion Control, described in xref:../reference/appendix-controls.adoc#assertion-request-control[Assertion request control] in the __Reference__, used to tell the directory server to perform the modification only if an assertion you make stays true. The other feature is OpenDJ's support for link:http://tools.ietf.org/html/rfc2616#section-3.11[entity tag, window=\_blank] (ETag) attributes, making it easy to check whether the entry in the directory is the same as the entry you read.
+OpenDJ directory server includes two features to help you in this situation. One of the features is the LDAP Assertion Control, described in xref:../reference/appendix-controls.adoc#assertion-request-control[Assertion request control] in the __Reference__, used to tell the directory server to perform the modification only if an assertion you make stays true. The other feature is OpenDJ's support for link:https://www.rfc-editor.org/rfc/rfc9110.html#section-8.8.3[entity tag, window=\_blank] (ETag) attributes, making it easy to check whether the entry in the directory is the same as the entry you read.
 
 Alice and Bob both get Babs's entry. In LDIF, the relevant attributes from the entry look like this. Notice the ETag:
 
@@ -1475,6 +1478,8 @@ DELETE operation successful for DN ou=Special Users,dc=example,dc=com
 [#change-password]
 === Changing Passwords
 
+The examples use LDAPS on port 1636 with `--trustAll` on an isolated evaluation server. For deployed services, see xref:../admin-guide/chap-connection-handlers.adoc#setup-server-cert[Preparing For Secure Communications].
+
 With the `ldappasswordmodify` command, described in xref:../reference/admin-tools-ref.adoc#ldappasswordmodify-1[ldappasswordmodify(1)] in the __Reference__, authorized users can change and reset user passwords.
 
 [#password-reset]
@@ -1485,8 +1490,7 @@ The following example shows Kirsten Vaughan resetting Sam Carter's password. Kir
 [source, console]
 ----
 $ ldappasswordmodify \
- --useStartTLS \
- --port 1389 \
+ --port 1636 --useSSL --trustAll \
  --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
  --bindPassword bribery \
  --authzID "dn:uid=scarter,ou=people,dc=example,dc=com" \
@@ -1496,26 +1500,8 @@ The LDAP password modify operation was successful
 
 [TIP]
 ======
-The `ldappasswordmodify` command uses the LDAP Password Modify extended operation. If this extended operation is performed on a connection that is already associated with a user (in other words, when a user first does a bind on the connection, then requests the LDAP Password Modify extended operation), then the operation is performed as the user associated with the connection. If the user associated with the connection is not the same user whose password is being changed, then OpenDJ considers it a password reset.
-
-Whenever one user changes another user's password, OpenDJ considers it a password reset. Often password policies specify that users must change their passwords again after a password reset.
-
-If you want your application to change a user's password, rather than reset a user's password, have your application request the password change as the user whose password is changing.
-
-To change the password as the user, bind as the user whose password should be changed, and use the link:http://tools.ietf.org/html/rfc3062[LDAP Password Modify extended operation, window=\_blank] with an authorization ID but without performing a bind, or use proxied authorization. For instructions on using proxied authorization, see xref:#proxied-authz["Configuring Proxied Authorization"].
+The command sends the link:https://www.rfc-editor.org/rfc/rfc3062[LDAP Password Modify extended operation]. OpenDJ treats a change made on behalf of another user as a reset. To change your own password over a bound connection, omit the target identity. OpenDJ then uses the connection’s authorization identity. An application can also use xref:#proxied-authz[proxied authorization] to act for a user.
 ======
-You could also accomplish a password reset with the `manage-account` command, described in xref:../reference/admin-tools-ref.adoc#manage-account-1[manage-account(1)] in the __Reference__, although `set-password-is-reset` is a hidden option, supported only for testing:
-
-[source, console]
-----
-$ manage-account \
- set-password-is-reset \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --targetDN uid=scarter,ou=people,dc=example,dc=com \
- --operationValue true
-Password Is Reset:  true
-----
 ====
 
 [#change-own-password]
@@ -1526,23 +1512,13 @@ You can use the `ldappasswordmodify` command to change your password, as long as
 [source, console]
 ----
 $ ldappasswordmodify \
- --port 1389 \
+ --port 1636 --useSSL --trustAll \
  --authzID "dn:uid=bjensen,ou=people,dc=example,dc=com" \
  --currentPassword hifalutin \
  --newPassword secret12
 The LDAP password modify operation was successful
 ----
-The same operation works for `cn=Directory Manager`:
 
-[source, console]
-----
-$ ldappasswordmodify \
- --port 1389 \
- --authzID "dn:cn=Directory Manager" \
- --currentPassword password \
- --newPassword secret12
-The LDAP password modify operation was successful
-----
 ====
 
 [#non-ascii-password]
@@ -1556,7 +1532,7 @@ $ echo $LANG
 en_US.utf8
 
 $ ldappasswordmodify \
- --port 1389 \
+ --port 1636 --useSSL --trustAll \
  --bindDN uid=bjensen,ou=People,dc=example,dc=com \
  --bindPassword hifalutin \
  --currentPassword hifalutin \
@@ -1564,13 +1540,12 @@ $ ldappasswordmodify \
 The LDAP password modify operation was successful
 
 $ ldapsearch \
- --port 1389 \
+ --port 1636 --useSSL --trustAll \
  --bindDN uid=bjensen,ou=People,dc=example,dc=com \
  --bindPassword pàsswȏrd \
  --baseDN dc=example,dc=com \
  "(uid=bjensen)" cn
 dn: uid=bjensen,ou=People,dc=example,dc=com
-userPassword: {SSHA}k0eEeCxj9YRXUp8yJn0Z/mwqe+wrcFb1N1gg2g==
 cn: Barbara Jensen
 cn: Babs Jensen
 ----
@@ -1610,31 +1585,30 @@ Clients bind by providing both a means to find their principal's entry in the di
 
 In the simplest bind operation, the client provides a zero-length name and a zero-length password. This results in an anonymous bind, meaning the client is authenticated as an anonymous user of the directory. In the simplest examples in xref:#search-ldap["Searching the Directory"], notice that no authentication information is provided. The examples work because the client commands default to requesting anonymous binds when no credentials are provided, and because access controls for the sample data allow anonymous clients to read, search, and compare some directory data.
 
-In a simple bind operation, the client provides an LDAP name, such as the DN identifying its entry, and the corresponding password stored on the `userPassword` attribute of the entry. In xref:#write-ldap["Updating the Directory"], notice that to change directory data, the client provides the bind DN and bind password of a user who has permission to change directory data. The commands do not work with a bind DN and bind password because access controls for the sample data only let authorized users change directory data.
+A simple bind uses the entry DN and its password. The examples in xref:#write-ldap["Updating the Directory"] bind as a user with permission to make the requested change.
 
 Users rarely provide client applications with DNs, however. Instead, users might provide a client application with an identity string like a user ID or an email address. Depending on how the DNs are constructed, the client application can either build the DN directly from the user's identity string, or use a session where the bind has been performed with some other identity to search for the user entry based on the user's identity string. Given the DN constructed or found, the client application can then perform a simple bind.
 
 For example, suppose Babs Jensen enters her email address, `bjensen@example.com`, and her password in order to log in. The client application might search for the entry matching `(mail=bjensen@example.com)` under base DN `dc=example,dc=com`. Alternatively, the client application might know to extract the user ID `bjensen` from the address, then build the corresponding DN, `uid=bjensen,ou=people,dc=example,dc=com` in order to bind.
 When an identifier string provided by the user can be readily mapped to the user's entry DN, OpenDJ directory server can translate between the identifier string and the entry DN. This translation is the job of a component called an identity mapper. Identity mappers are used to perform PLAIN SASL authentication (with a user name and password), SASL GSSAPI authentication (Kerberos V5), SASL CRAM MD5, and DIGEST MD5 authentication. They also handle authorization IDs during password modify extended operations and proxied authorization.
 
-One use of PLAIN SASL is to translate user names from HTTP Basic authentication to LDAP authentication. The following example shows PLAIN SASL authentication using the default Exact Match identity mapper. In this (contrived) example, Babs Jensen reads the hashed value of her password. (According to the access controls in the example data, Babs must authenticate to read her password.) Notice the authentication ID is her user ID, `u:bjensen`, rather than the DN of her entry:
+SASL PLAIN can authenticate with a user ID. The default Exact Match mapper translates `u:bjensen` to Babs Jensen’s entry. This example uses LDAPS on an isolated evaluation server. Use a trusted server certificate in deployed services.
 
 [source, console]
 ----
 $ ldapsearch \
- --port 1389 \
- --useStartTLS \
+ --port 1636 \
+ --useSSL --trustAll \
  --baseDN dc=example,dc=com \
  --saslOption mech=PLAIN \
  --saslOption authid=u:bjensen \
  --bindPassword hifalutin \
- "(cn=Babs Jensen)" cn userPassword
+ "(cn=Babs Jensen)" cn
 dn: uid=bjensen,ou=People,dc=example,dc=com
 cn: Barbara Jensen
 cn: Babs Jensen
-userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==
 ----
-The Exact Match identity mapper searches for a match between the string provided (here, `bjensen`) and the value of a specified attribute (by default the `uid` attribute). If you know users are entering their email addresses, you could create an exact match identity mapper for email addresses, then use that for PLAIN SASL authentication as in the following example:
+To authenticate users by email address, configure an Exact Match mapper for `mail` and select it on the PLAIN SASL mechanism. Then repeat the preceding search with `--saslOption authid=u:bjensen@example.com`.
 
 [source, console]
 ----
@@ -1660,47 +1634,8 @@ $ dsconfig \
  --set identity-mapper:"Email Mapper" \
  --no-prompt
 
-$ ldapsearch \
- --port 1389 \
- --useStartTLS \
- --baseDN dc=example,dc=com \
- --saslOption mech=PLAIN \
- --saslOption authid=u:bjensen@example.com \
- --bindPassword hifalutin \
- "(cn=Babs Jensen)" cn userPassword
-dn: uid=bjensen,ou=People,dc=example,dc=com
-cn: Barbara Jensen
-cn: Babs Jensen
-userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==
 ----
-OpenDJ directory server's Regular Expression identity mapper uses a regular expression to extract a substring from the string provided, then searches for a match between the substring and the value of a specified attribute. In the case of example data where an email address is __user ID__ + @ + __domain__, you can use the default Regular Expression identity mapper in the same way as the email mapper from the previous example. The default regular expression pattern is `^([^@]+)@.+$`, and the part of the identity string matching `([^@]+)` is used to find the entry by user ID:
-
-[source, console]
-----
-$ dsconfig \
- set-sasl-mechanism-handler-prop \
- --hostname opendj.example.com \
- --port 4444 \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --handler-name PLAIN \
- --set identity-mapper:"Regular Expression" \
- --no-prompt
-
-$ ldapsearch \
- --port 1389 \
- --useStartTLS \
- --baseDN dc=example,dc=com \
- --saslOption mech=PLAIN \
- --saslOption authid=u:bjensen@example.com \
- --bindPassword hifalutin \
- "(cn=Babs Jensen)" cn userPassword
-dn: uid=bjensen,ou=People,dc=example,dc=com
-cn: Barbara Jensen
-cn: Babs Jensen
-userPassword: {SSHA}7S4Si+vPE513cYQ7otiqb8hjiCzU7XNTv0RPBA==
-----
-Try the `dsconfig` command interactively to experiment with `match-pattern` and `replace-pattern` settings for the Regular Expression identity mapper. The `match-pattern` can be any regular expression supported by `javax.util.regex.Pattern`.
+If the part before `@` is the user ID, select the `Regular Expression` mapper instead. Its default pattern `^([^@]+)@.+$` uses that part to match `uid`.
 
 
 [#proxied-authz]
@@ -1842,639 +1777,82 @@ If you need to map authorization identifiers using the `u:` form rather than usi
 [#client-cert-auth]
 === Authenticating Using a Certificate
 
-One alternative to simple binds with user name/password combinations consists of storing a digital certificate on the user entry, then using the certificate as credentials during the bind. You can use this mechanism, for example, to let applications bind without using passwords.
+Use SASL EXTERNAL over LDAPS or StartTLS to authenticate with a client certificate. TLS validates the certificate. The SASL bind maps the certificate to a directory entry and sets the LDAP authorization identity.
 
-By setting up a secure connection with a certificate, the client is in effect authenticating to the server. The server must close the connection if it cannot trust the client certificate. However, the process of establishing a secure connection does not in itself identify the client to OpenDJ directory server.
-
-Instead, when binding with a certificate, the client must request the SASL External mechanism by which OpenDJ directory server maps the certificate to the client entry in the directory. When it finds a match, OpenDJ sets the authorization identity for the connection to that of the client, and the bind is successful.
-
-For the whole process of authenticating with a certificate to work smoothly, OpenDJ and the client must trust each others' certificates, the client certificate must be stored on the client entry in the directory, and OpenDJ must be configured to map the certificate to the client entry.
-This section includes the following procedures and examples:
-
-* xref:#add-client-cert["To Add Certificate Information to an Entry"]
-
-* xref:#use-pkcs12-trust-store["To Use a PKCS #12 Truststore"]
-
-* xref:#config-cert-mappers["To Configure Certificate Mappers"]
-
-* xref:#auth-with-client-cert["Authenticating With Client Certificates"]
-
+The example uses an isolated evaluation server with LDAPS on port 1636, the default Subject Equals DN mapper, and the `cn=My App,ou=Apps,dc=example,dc=com` entry from link:../attachments/Example.ldif[Example.ldif]. Run the commands from the OpenDJ installation directory. Replace `password` with the Directory Manager password. The `--trustAll` option accepts any server certificate. For a deployed service, configure client trust as described in xref:../admin-guide/chap-connection-handlers.adoc#setup-server-cert[Preparing For Secure Communications].
 
 [#add-client-cert]
 .To Add Certificate Information to an Entry
 ====
-Before you try to bind to OpenDJ directory server using a certificate, create a certificate, then add the certificate attributes to the entry.
-
-link:../attachments/Example.ldif[Example.ldif, window=\_blank] includes an entry for `cn=My App,ou=Apps,dc=example,dc=com`. Examples in this section use that entry, and use the Java `keytool` command to manage the certificate:
-
-. Create a certificate using the DN of the client entry as the distinguished name string:
+. Create a client certificate whose subject DN is the directory entry DN and export it.
 +
-
 [source, console]
 ----
-$ keytool \
- -genkey \
- -alias myapp-cert \
- -keyalg rsa \
- -dname "cn=My App,ou=Apps,dc=example,dc=com" \
- -keystore keystore \
- -storepass changeit \
- -keypass changeit
+$ keytool -genkeypair -alias myapp-cert -keyalg RSA -storetype PKCS12 \
+  -dname 'CN=My App,OU=Apps,DC=example,DC=com' \
+  -keystore client-keystore.p12 -storepass changeit
+$ keytool -exportcert -alias myapp-cert -keystore client-keystore.p12 \
+  -storepass changeit -file myapp-cert.der
 ----
 
-. Get the certificate signed.
+. Save this LDIF as `add-cert.ldif`. Replace `/path/to/opendj` with your installation directory.
 +
-If you cannot get the certificate signed by a Certificate Authority, self-sign the certificate:
-+
-
-[source, console]
+[source, ldif]
 ----
-$ keytool \
- -selfcert \
- -alias myapp-cert \
- -validity 7300 \
- -keystore keystore \
- -storepass changeit \
- -keypass changeit
-----
-
-. Make note of the certificate fingerprints.
-+
-Later in this procedure you update the client application entry with the MD5 fingerprint, which in this example is `48:AC:F9:13:11:E0:AB:C4:65:A2:83:9E:DB:FE:0C:37`:
-+
-
-[source, console]
-----
-$ keytool \
- -list \
- -v \
- -alias myapp-cert \
- -keystore keystore \
- -storepass changeit
-Alias name: myapp-cert
-Creation date: Jan 18, 2013
-Entry type: PrivateKeyEntry
-Certificate chain length: 1
-Certificate[1]:
-Owner: CN=My App, OU=Apps, DC=example, DC=com
-Issuer: CN=My App, OU=Apps, DC=example, DC=com
-Serial number: 5ae2277
-Valid from: Fri Jan 18 18:27:09 CET 2013 until: Thu Jan 13 18:27:09 CET 2033
-Certificate fingerprints:
-  MD5:  48:AC:F9:13:11:E0:AB:C4:65:A2:83:9E:DB:FE:0C:37
-  SHA1: F9:61:54:37:AA:C1:BC:92:45:07:64:4B:23:6C:BC:C9:CD:1D:44:0F
-  SHA256: 2D:B1:58:CD:33:40:E9:...:FD:61:EA:C9:FF:6A:19:93:FE:E4:84:E3
-  Signature algorithm name: SHA256withRSA
-  Version: 3
-
-Extensions:
-
-#1: ObjectId: 2.5.29.14 Criticality=false
-SubjectKeyIdentifier [
-KeyIdentifier [
-0000: 54 C0 C5 9C 73 37 85 4B   F2 3B D3 37 FD 45 0A AB  T...s7.K.;.7.E..
-0010: C9 6B 32 95                                        .k2.
-]
-]
-----
-
-. Export the certificate to a file in binary format:
-+
-
-[source, console]
-----
-$ keytool \
- -export \
- -alias myapp-cert \
- -keystore keystore \
- -storepass changeit \
- -keypass changeit \
- -file myapp-cert.crt
-Certificate stored in file </path/to/myapp-cert.crt>
-----
-
-. Modify the entry to add attributes related to the certificate.
-+
-By default, you need the `userCertificate` value.
-+
-If you want OpenDJ to map the certificate to its fingerprint, use the `ds-certificate-fingerprint` attribute. This example uses the MD5 fingerprint, which corresponds to the default setting for the fingerprint certificate mapper.
-+
-If you want to map the certificate subject DN to an attribute of the entry, use the `ds-certificate-subject-dn` attribute:
-+
-
-[source, console]
-----
-$ cat addcert.ldif
 dn: cn=My App,ou=Apps,dc=example,dc=com
 changetype: modify
-add: objectclass
-objectclass: ds-certificate-user
--
-add: ds-certificate-fingerprint
-ds-certificate-fingerprint: 48:AC:F9:13:11:E0:AB:C4:65:A2:83:9E:DB:FE:0C:37
--
-add: ds-certificate-subject-dn
-ds-certificate-subject-dn: CN=My App, OU=Apps, DC=example, DC=com
--
 add: userCertificate;binary
-userCertificate;binary:<file:///path/to/myapp-cert.crt
-
-$ ldapmodify \
- --port 1389 \
- --hostname opendj.example.com \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --filename addcert.ldif
-Processing MODIFY request for cn=My App,ou=Apps,dc=example,dc=com
-MODIFY operation successful for DN cn=My App,ou=Apps,dc=example,dc=com
+userCertificate;binary:< file:///path/to/opendj/myapp-cert.der
 ----
-
-. Check your work:
 +
-
 [source, console]
 ----
-$ ldapsearch \
- --port 1389 \
- --hostname opendj.example.com \
- --baseDN dc=example,dc=com \
- "(cn=My App)"
-dn: cn=My App,ou=Apps,dc=example,dc=com
-ds-certificate-fingerprint: 4B:F5:CF:2C:2D:B3:86:14:FF:43:A8:37:17:DD:E7:55
-userCertificate;binary:: MIIDOzCCAiOgAwIBAgIESfC6IjANBgkqhkiG9w0BAQsFADBOMRMwEQY
- KCZImiZPyLGQBGRYDY29tMRcwFQYKCZImiZPyLGQBGRYHZXhhbXBsZTENMAsGA1UECxMEQXBwczEPMA
- 0GA1UEAxMGTXkgQXBwMB4XDTEzMDExNzE3MTEwM1oXDTEzMDQxNzE3MTEwM1owTjETMBEGCgmSJomT8
- ixkARkWA2NvbTEXMBUGCgmSJomT8ixkARkWB2V4YW1wbGUxDTALBgNVBAsTBEFwcHMxDzANBgNVBAMT
- Bk15IEFwcDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJQYq+jG4ZQdNkyBT4OQBZ0sFkl
- X5o2yBViDMGl1sSWIRGLpFwu6iq1chndPBJYTC+FkT66yEEOwWOpSfcYdFHkMQP0qp5A8mgP6bYkeH1
- ROvQ1nhLs0ILuksR10CVIQ5b1zv6bGEFhA9gSKmpHfQOSt9PXq8+kuz+4RgZk9Il28tgDNMm91wSJr7
- kqi5g7a2a7Io5s9L2FeLhVSBYwinWQnASk8nENrhcE0hHkrpGsaxdhIQBQQvm+SRC0dI4E9iwBGI3Lw
- lV3a4KTa5DlYD6cDREI6B8XlSdc1DaIhwC8CbsE0WJQoCERSURdjkuHrPck6f69HKUFRiC7JMT3dFbs
- CAwEAAaMhMB8wHQYDVR0OBBYEFFTAxZxzN4VL8jvTN/1FCqvJazKVMA0GCSqGSIb3DQEBCwUAA4IBAQ
- BXsAIEw7I5XUzLFHvXb2N0hmW/Vmhb/Vlv9LTT8JcCRJy4zaiyS9Q+Sp9zQUkrXauFnNAhJLwpAymjZ
- MCOq1Th1bw9LnIzbccPQ/1+ZHLKDU5pgnc5BcvaV6Zl6COLLH2OOt0XMZ/OrODBV1M6STfhChqcowff
- xp72pWMQe+kpZfzjeDBk4kK2hUNTZsimB9qRyrDAMCIXdmdmFv1o07orxjy8c/6S1329swiiVqFckBR
- aXIa8wCcXjpQbZacDODeKk6wZIKxw4miLg1YByCMa7vkUfz+Jj+JHgbHjyoT/G82mtDbX02chLgXbDm
- xJPFN3mwAC7NEkSPbqd35nJlf3
-objectClass: person
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: ds-certificate-user
-objectClass: top
-ds-certificate-subject-dn: CN=My App, OU=Apps, DC=example, DC=com
-cn: My App
-sn: App
+$ bin/ldapmodify --hostname localhost --port 1636 --useSSL --trustAll \
+  --bindDN 'cn=Directory Manager' --bindPassword password --filename add-cert.ldif
 ----
 
-. When using a self-signed certificate, import the client certificate into the truststore for OpenDJ.
+. Add the self-signed client certificate to the server’s truststore. Verify the certificate when `keytool` asks whether to trust it, then restart the server.
 +
-When the client presents its certificate to OpenDJ, by default OpenDJ must trust the client certificate before it can accept the connection. If OpenDJ cannot trust the client certificate, it cannot establish a secure connection:
-+
-
 [source, console]
 ----
-$ keytool \
- -import \
- -alias myapp-cert \
- -file /path/to/myapp-cert.crt \
- -keystore /path/to/opendj/config/truststore \
- -storepass `cat /path/to/opendj/config/keystore.pin`
-Owner: CN=My App, OU=Apps, DC=example, DC=com
-Issuer: CN=My App, OU=Apps, DC=example, DC=com
-Serial number: 5ae2277
-Valid from: Fri Jan 18 18:27:09 CET 2013 until: Thu Jan 13 18:27:09 CET 2033
-Certificate fingerprints:
-  MD5:  48:AC:F9:13:11:E0:AB:C4:65:A2:83:9E:DB:FE:0C:37
-  SHA1: F9:61:54:37:AA:C1:BC:92:45:07:64:4B:23:6C:BC:C9:CD:1D:44:0F
-  SHA256: 2D:B1:58:CD:33:40:E9:...:FD:61:EA:C9:FF:6A:19:93:FE:E4:84:E3
-  Signature algorithm name: SHA256withRSA
-  Version: 3
-
-Extensions:
-
-#1: ObjectId: 2.5.29.14 Criticality=false
-SubjectKeyIdentifier [
-KeyIdentifier [
-0000: 54 C0 C5 9C 73 37 85 4B   F2 3B D3 37 FD 45 0A AB  T...s7.K.;.7.E..
-0010: C9 6B 32 95                                        .k2.
-]
-]
-
-Trust this certificate? [no]:  yes
-Certificate was added to keystore
+$ keytool -importcert -alias myapp-cert -file myapp-cert.der \
+  -keystore config/truststore -storepass:file config/keystore.pin
+$ bin/stop-ds --restart
 ----
-
-. When using a certificate signed by a CA whose certificate is not delivered with the Java runtime environmentfootnote:d0e6685[`$JAVA_HOME/jre/lib/security/cacerts`holds the certificates for many CAs. To get the full list, use the following command:], import the CA certificate either into the Java runtime environment truststore, or into the OpenDJ trust store as shown in the following example:
-+
-
-[source, console]
-----
-$ keytool \
- -import \
- -alias ca-cert \
- -file ca.crt \
- -keystore /path/to/opendj/config/truststore \
- -storepass `cat /path/to/opendj/config/keystore.pin`
-Owner: EMAILADDRESS=admin@example.com, CN=Example CA, O=Example Corp, C=FR
-Issuer: EMAILADDRESS=admin@example.com, CN=Example CA, O=Example Corp, C=FR
-Serial number: d4586ea05c878b0c
-Valid from: Tue Jan 29 09:30:31 CET 2013 until: Mon Jan 24 09:30:31 CET 2033
-Certificate fingerprints:
-  MD5:  8A:83:61:9B:E7:18:A2:21:CE:92:94:96:59:68:60:FA
-  SHA1: 01:99:18:38:3A:57:D7:92:7B:D6:03:8C:7B:E4:1D:37:45:0E:29:DA
-  SHA256: 5D:20:F1:86:CC:CD:64:50:1E:54:...:DF:15:43:07:69:44:00:FB:36:CF
-  Signature algorithm name: SHA1withRSA
-  Version: 3
-
-Extensions:
-
-#1: ObjectId: 2.5.29.35 Criticality=false
-AuthorityKeyIdentifier [
-KeyIdentifier [
-0000: 30 07 67 7D 1F 09 B6 E6   90 85 95 58 94 37 FD 31  0.g........X.7.1
-0010: 03 D4 56 7B                                        ..V.
-]
-[EMAILADDRESS=admin@example.com, CN=Example CA, O=Example Corp, C=FR]
-SerialNumber: [    d4586ea0 5c878b0c]
-]
-
-#2: ObjectId: 2.5.29.19 Criticality=false
-BasicConstraints:[
-  CA:true
-  PathLen:2147483647
-]
-
-#3: ObjectId: 2.5.29.14 Criticality=false
-SubjectKeyIdentifier [
-KeyIdentifier [
-0000: 30 07 67 7D 1F 09 B6 E6   90 85 95 58 94 37 FD 31  0.g........X.7.1
-0010: 03 D4 56 7B                                        ..V.
-]
-]
-
-Trust this certificate? [no]:  yes
-Certificate was added to keystore
-----
-
-. If you updated the OpenDJ truststore to add a certificate, restart OpenDJ to make sure it reads the updated truststore and recognizes the certificate:
-+
-
-[source, console]
-----
-$ stop-ds --restart
-Stopping Server...
-...
-... The Directory Server has started successfully
-----
-
 ====
 
 [#use-pkcs12-trust-store]
 .To Use a PKCS #12 Truststore
 ====
-The Java `keytool` command does not support importing trusted certificates into a PKCS #12 format store. Yet, Java does support creating a PKCS #12 format keystore, and using an existing PKCS #12 format store as a truststore. You can use a PKCS #12 store as an OpenDJ truststore.
-
-. Add the PKCS #12 format store to OpenDJ's configuration.
-+
-By default, OpenDJ expects the store to be `/path/to/opendj/config/truststore.p12`. The following example uses that default:
-+
-
-[source, console]
-----
-$ cp /path/to/pkcs12-store /path/to/opendj/config/truststore.p12
-----
-+
-Here, __pkcs12-store__ is the file name of the PKCS #12 format store.
-
-. Configure the OpenDJ PKCS12 trust manager provider to use the PKCS #12 store, and restart OpenDJ server to force it to read the store.
-+
-In the following example, the store password is `changeit`:
-+
-
-[source, console]
-----
-$ dsconfig \
- set-trust-manager-provider-prop \
- --port 4444 \
- --hostname opendj.example.com \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --provider-name PKCS12 \
- --set enabled:true \
- --set trust-store-pin:changeit \
- --no-prompt \
- --trustAll
-$ stop-ds --restart
-----
-
-. Configure a connection handler to use the PKCS12 trust manager provider.
-+
-The following example configures the LDAPS connection handler:
-+
-
-[source, console]
-----
-$ dsconfig \
- set-connection-handler-prop \
- --port 4444 \
- --hostname opendj.example.com \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --handler-name "LDAPS Connection Handler" \
- --set trust-manager-provider:PKCS12 \
- --no-prompt \
- --trustAll
-----
-
-. Verify SSL mutual authentication to check your work.
-+
-The following example assumes the client certificate for My App is present in the PKCS #12 store, and that the certificate has been added to the entry for My App as in xref:#add-client-cert["To Add Certificate Information to an Entry"]:
-+
-
-[source, console]
-----
-$ ldapsearch \
- --port 1636 \
- --hostname opendj.example.com \
- --baseDN dc=example,dc=com \
- --useSSL \
- --useSASLExternal \
- --certNickName myapp-cert \
- --keyStorePath keystore \
- --keyStorePassword changeit \
- --trustStorePath /path/to/opendj/config/keystore \
- --trustStorePasswordFile /path/to/opendj/config/keystore.pin \
- "(cn=My App)" userPassword
-dn: cn=My App,ou=Apps,dc=example,dc=com
-userPassword: {SSHA}9jjvsv9wlTW7Ikflzc2/wMNBjAN6G4CbbTKYIw==
-----
-
+To use a PKCS #12 server truststore, import the client certificate or its issuing CA certificate with `keytool -importcert -storetype PKCS12`. The OpenDJ PKCS12 trust manager provider defaults to `config/truststore.p12`. Enable that provider, set its PIN, and set the LDAPS connection handler’s `trust-manager-provider` property to `PKCS12`. See xref:../admin-guide/chap-connection-handlers.adoc#setup-server-cert[Preparing For Secure Communications].
 ====
 
 [#config-cert-mappers]
 .To Configure Certificate Mappers
 ====
---
-OpenDJ uses certificate mappers during binds to establish a mapping between a client certificate and the entry that corresponds to that certificate. The certificate mappers provided out of the box include the following:
+The SASL EXTERNAL mechanism’s `certificate-mapper` property selects how OpenDJ finds the entry. The Subject Equals DN mapper matches the whole certificate subject DN to the entry DN. Other mappers use an attribute on the entry:
 
-Fingerprint Certificate Mapper::
-Looks for the MD5 (default) or SHA1 certificate fingerprint in an attribute of the entry (default: `ds-certificate-fingerprint`).
+* `Subject Attribute to User Attribute` maps subject attributes, such as the common name, to directory attributes.
+* `Subject DN to User Attribute` reads the certificate subject DN from `ds-certificate-subject-dn`.
+* `Fingerprint Mapper` reads the certificate fingerprint from `ds-certificate-fingerprint`. To use the SHA-1 fingerprint shown by `keytool -list -v`, set `fingerprint-algorithm:sha1` on the mapper.
 
-Subject Attribute To User Attribute Mapper::
-Looks for a match between an attribute of the certificate subject and an attribute of the entry (default: match `cn` in the certificate to `cn` on the entry, or match `emailAddress` in the certificate to `mail` on the entry).
-
-Subject DN to User Attribute Certificate Mapper::
-Looks for the certificate subject DN in an attribute of the entry (default: `ds-certificate-subject-dn`).
-
-Subject Equals DN Certificate Mapper::
-Looks for an entry whose DN matches the certificate subject DN.
-
---
-If the default configurations for the certificate mappers are acceptable, you do not need to change them. They are enabled by default.
-
-The following steps demonstrate how to change the Fingerprint Mapper default algorithm of MD5 to SHA1:
-
-. List the certificate mappers to retrieve the correct name:
-+
-
-[source, console]
-----
-$ dsconfig \
- list-certificate-mappers \
- --port 4444 \
- --hostname opendj.example.com \
- --bindDN "cn=Directory Manager" \
- --bindPassword password
-
-Certificate Mapper                  : Type                                : enabled
-------------------------------------:-------------------------------------:--------
-Fingerprint Mapper                  : fingerprint                         : true
-Subject Attribute to User Attribute : subject-attribute-to-user-attribute : true
-Subject DN to User Attribute        : subject-dn-to-user-attribute        : true
-Subject Equals DN                   : subject-equals-dn                   : true
-----
-
-. Examine the current configuration:
-+
-
-[source, console]
-----
-$ dsconfig \
- get-certificate-mapper-prop \
- --port 4444 \
- --hostname opendj.example.com \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --mapper-name "Fingerprint Mapper"
-
-Property              : Value(s)
-----------------------:---------------------------
-enabled               : true
-fingerprint-algorithm : md5
-fingerprint-attribute : ds-certificate-fingerprint
-user-base-dn          : -
-----
-
-. Change the configuration as necessary:
-+
-
-[source, console]
-----
-$ dsconfig \
- set-certificate-mapper-prop \
- --port 4444 \
- --hostname opendj.example.com \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --mapper-name "Fingerprint Mapper" \
- --set fingerprint-algorithm:sha1 \
- --no-prompt
-----
-
-. Set the External SASL Mechanism Handler to use the appropriate certificate mapper (default: Subject Equals DN).
-+
-Client applications use the SASL External mechanism during the bind to have OpenDJ set the authorization identifier based on the entry that matches the client certificate:
-+
-
-[source, console]
-----
-$ dsconfig \
- set-sasl-mechanism-handler-prop \
- --port 4444 \
- --hostname opendj.example.com \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --handler-name External \
- --set certificate-mapper:"Fingerprint Mapper" \
- --no-prompt
-----
-
+Use `dsconfig set-certificate-mapper-prop` to configure a mapper and `dsconfig set-sasl-mechanism-handler-prop --handler-name External` to select it. The `ds-certificate-user` auxiliary object class allows the fingerprint and subject DN attributes on an entry.
 ====
 
 [#auth-with-client-cert]
 .Authenticating With Client Certificates
 ====
-Instead of providing a bind DN and password as for simple authentication, use the SASL EXTERNAL authentication mechanism, and provide the certificate. As a test with example data, you can try an anonymous search, then try with certificate-based authentication.
-
-Before you try this example, make sure OpenDJ is set up to accept StartTLS from clients, and that you have set up the client certificate as described above. Next, create a password .pin file for your client key store:
+Use `--reportAuthzID` to verify that the server bound the client as the expected entry.
 
 [source, console]
 ----
-$ echo changeit > keystore.pin
-$ chmod 400 keystore.pin
-----
-Also, if OpenDJ directory server uses a certificate for StartTLS that was not signed by a well-known CA, import the appropriate certificate into the client keystore, which can then double as a truststore. For example, if OpenDJ uses a self-signed certificate, import the server certificate into the keystore:
-
-[source, console]
-----
-$ keytool \
- -export \
- -alias server-cert \
- -file server-cert.crt \
- -keystore /path/to/opendj/config/keystore \
- -storepass `cat /path/to/opendj/config/keystore.pin`
-
-$ keytool \
- -import \
- -trustcacerts \
- -alias server-cert \
- -file server-cert.crt \
- -keystore keystore \
- -storepass `cat keystore.pin`
-----
-If OpenDJ directory server uses a CA-signed certificate, but the CA is not well-known, import the CA certificate into your keystore:
-
-[source, console]
-----
-$ keytool \
- -import \
- -trustcacerts \
- -alias ca-cert \
- -file ca-cert.crt \
- -keystore keystore \
- -storepass `cat keystore.pin`
-----
-Now that you can try the example, notice that OpenDJ does not return the `userPassword` value for an anonymous search:
-
-[source, console]
-----
-$ ldapsearch \
- --port 1389 \
- --hostname opendj.example.com \
- --baseDN dc=example,dc=com \
- --useStartTLS \
- --trustStorePath keystore \
- --trustStorePasswordFile keystore.pin \
- "(cn=My App)" userPassword
+$ bin/ldapsearch --hostname localhost --port 1636 --useSSL --trustAll \
+  --saslOption mech=EXTERNAL --certNickname myapp-cert \
+  --keyStorePath client-keystore.p12 --keyStorePassword changeit \
+  --reportAuthzID --baseDN 'cn=My App,ou=Apps,dc=example,dc=com' \
+  --searchScope base '(objectClass=*)' cn
+# Bound with authorization ID dn:cn=My App,ou=Apps,dc=example,dc=com
 dn: cn=My App,ou=Apps,dc=example,dc=com
-----
-OpenDJ does let users read the values of their own `userPassword` attributes after they bind successfully:
-
-[source, console]
-----
-$ ldapsearch \
- --port 1389 \
- --hostname opendj.example.com \
- --baseDN dc=example,dc=com \
- --useStartTLS \
- --useSASLExternal \
- --certNickName myapp-cert \
- --keyStorePath keystore \
- --keyStorePasswordFile keystore.pin \
- --trustStorePath keystore \
- --trustStorePasswordFile keystore.pin \
- "(cn=My App)" userPassword
-dn: cn=My App,ou=Apps,dc=example,dc=com
-userPassword: {SSHA}vy/vTthOQoV/wH3MciTOBKKR4OX+0dSN/a09Ew==
-----
-You can also try the same test with other certificate mappers:
-
-[source, console]
-----
-# Fingerprint mapper
-$ dsconfig \
- set-sasl-mechanism-handler-prop \
- --port 4444 \
- --hostname opendj.example.com \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --handler-name External \
- --set certificate-mapper:"Fingerprint Mapper" \
- --no-prompt
-
-$ ldapsearch \
- --port 1389 \
- --hostname opendj.example.com \
- --baseDN dc=example,dc=com \
- --useStartTLS \
- --useSASLExternal \
- --certNickName myapp-cert \
- --keyStorePath keystore \
- --keyStorePasswordFile keystore.pin \
- --trustStorePath keystore \
- --trustStorePasswordFile keystore.pin \
- "(cn=My App)" userPassword
-dn: cn=My App,ou=Apps,dc=example,dc=com
-userPassword: {SSHA}vy/vTthOQoV/wH3MciTOBKKR4OX+0dSN/a09Ew==
-----
-
-[source, console]
-----
-# Subject Attribute to User Attribute mapper
-$ dsconfig \
- set-sasl-mechanism-handler-prop \
- --port 4444 \
- --hostname opendj.example.com \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --handler-name External \
- --set certificate-mapper:"Subject Attribute to User Attribute" \
- --no-prompt
-
-$ ldapsearch \
- --port 1389 \
- --hostname opendj.example.com \
- --baseDN dc=example,dc=com \
- --useStartTLS \
- --useSASLExternal \
- --certNickName myapp-cert \
- --keyStorePath keystore \
- --keyStorePasswordFile keystore.pin \
- --trustStorePath keystore \
- --trustStorePasswordFile keystore.pin \
- "(cn=My App)" userPassword
-dn: cn=My App,ou=Apps,dc=example,dc=com
-userPassword: {SSHA}vy/vTthOQoV/wH3MciTOBKKR4OX+0dSN/a09Ew==
-----
-
-[source, console]
-----
-# Subject DN to User Attribute mapper
-$ dsconfig \
- set-sasl-mechanism-handler-prop \
- --port 4444 \
- --hostname opendj.example.com \
- --bindDN "cn=Directory Manager" \
- --bindPassword password \
- --handler-name External \
- --set certificate-mapper:"Subject DN to User Attribute" \
- --no-prompt
-
-$ ldapsearch \
- --port 1389 \
- --hostname opendj.example.com \
- --baseDN dc=example,dc=com \
- --useStartTLS \
- --useSASLExternal \
- --certNickName myapp-cert \
- --keyStorePath keystore \
- --keyStorePasswordFile keystore.pin \
- --trustStorePath keystore \
- --trustStorePasswordFile keystore.pin \
- "(cn=My App)" userPassword
-dn: cn=My App,ou=Apps,dc=example,dc=com
-userPassword: {SSHA}vy/vTthOQoV/wH3MciTOBKKR4OX+0dSN/a09Ew==
+cn: My App
 ----
 ====
-
-

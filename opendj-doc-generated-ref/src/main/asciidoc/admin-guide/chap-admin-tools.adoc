@@ -129,7 +129,6 @@ xref:#cli-constraints["Tools and Server Constraints"] indicates the constraints,
 a|[none]
 * `backendstat`
 * `create-rc-script`
-* `dsjavaproperties`
 * `encode-password`
 * `list-backends`
 * `setup`
@@ -164,7 +163,7 @@ a|With one exception, this command can be used with current and previous OpenDJ 
  This commands is not useful with other types of directory servers.
 
 a|[none]
-* `make-ldif`
+* `makeldif`
 a|This command depends on template files. The template files can make use of configuration files installed with OpenDJ directory server under `config/MakeLDIF/`.
 
  The LDIF output can be used with OpenDJ and other directory servers.
@@ -176,7 +175,7 @@ a|[none]
 * `ldapmodify`
 * `ldappasswordmodify`
 * `ldapsearch`
-* `ldif-diff`
+* `ldifdiff`
 * `ldifmodify`
 * `ldifsearch`
 a|These commands can be used independently of OpenDJ directory server, and so are not tied to a specific version.
@@ -235,12 +234,6 @@ On Windows, the equivalent non-interactive command that `dsconfig` prints quotes
 +
 For details see xref:../reference/admin-tools-ref.adoc#dsconfig-1[dsconfig(1)] in the __Reference__.
 
-`dsjavaproperties`::
-Apply changes you make to `opendj/config/java.properties`, which sets Java runtime options.
-
-+
-For details see xref:../reference/admin-tools-ref.adoc#dsjavaproperties-1[dsjavaproperties(1)] in the __Reference__.
-
 `dsreplication`::
 Configure data replication between directory servers to keep their contents in sync.
 
@@ -298,11 +291,11 @@ Search a branch of directory data for entries that match the LDAP filter you spe
 +
 For details see xref:../reference/admin-tools-ref.adoc#ldapsearch-1[ldapsearch(1)] in the __Reference__.
 
-`ldif-diff`::
+`ldifdiff`::
 Display differences between two LDIF files, with the resulting output having LDIF format.
 
 +
-For details see xref:../reference/admin-tools-ref.adoc#ldifdiff-1[ldif-diff(1)] in the __Reference__.
+For details see xref:../reference/admin-tools-ref.adoc#ldifdiff-1[ldifdiff(1)] in the __Reference__.
 
 `ldifmodify`::
 Similar to the `ldapmodify` command, modify specified attribute values for specified entries in an LDIF file.
@@ -322,11 +315,11 @@ List backends and base DNs served by OpenDJ directory server.
 +
 For details see xref:../reference/admin-tools-ref.adoc#list-backends-1[list-backends(1)] in the __Reference__.
 
-`make-ldif`::
+`makeldif`::
 Generate directory data in LDIF based on templates that define how the data should appear.
 
 +
-The `make-ldif` command is designed to help generate test data that mimics data expected in production, but without compromising real, potentially private information.
+The `makeldif` command is designed to help generate test data that mimics data expected in production, but without compromising real, potentially private information.
 
 +
 For details see xref:../reference/admin-tools-ref.adoc#makeldif-1[makeldif(1)] in the __Reference__.

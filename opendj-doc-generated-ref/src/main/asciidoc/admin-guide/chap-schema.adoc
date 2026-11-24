@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
@@ -20,8 +20,14 @@
 :table-caption!:
 
 
+ifndef::env-site[]
 [#chap-schema]
+endif::[]
 == Managing Schema
+
+ifdef::env-site[]
+anchor:chap-schema[]
+endif::[]
 
 This chapter describes how to manage Lightweight Directory Access Protocol (LDAP) schema definitions for directory data. In this chapter you will learn to:
 
@@ -291,7 +297,7 @@ OpenDJ directory server provides many standard schema definitions in these LDIF 
 This file contains a core set of attribute type and object class definitions from the following Internet-Drafts, RFCs, and standards:
 +
 [none]
-* link:https://tools.ietf.org/html/draft-ietf-boreham-numsubordinates[draft-ietf-boreham-numsubordinates, window=\_blank]
+* link:https://datatracker.ietf.org/doc/html/draft-boreham-numsubordinates-01[numSubordinates draft, window=\_blank]
 * link:https://tools.ietf.org/html/draft-findlay-ldap-groupofentries[draft-findlay-ldap-groupofentries, window=\_blank]
 * link:https://tools.ietf.org/html/draft-furuseth-ldap-untypedobject[draft-furuseth-ldap-untypedobject, window=\_blank]
 * link:https://tools.ietf.org/html/draft-good-ldap-changelog[draft-good-ldap-changelog, window=\_blank]

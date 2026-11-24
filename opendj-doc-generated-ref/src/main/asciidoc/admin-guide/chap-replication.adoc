@@ -20,8 +20,14 @@
 :table-caption!:
 
 
+ifndef::env-site[]
 [#chap-replication]
+endif::[]
 == Managing Data Replication
+
+ifdef::env-site[]
+anchor:chap-replication[]
+endif::[]
 
 OpenDJ uses advanced data replication with automated conflict resolution to help ensure your directory services remain available during administrative operations that take an individual server offline, or in the event a server crashes or a network goes down. This chapter explains how to manage OpenDJ directory data replication. In this chapter you will learn to:
 
@@ -64,9 +70,92 @@ The Global Administrator account exists on all servers in the replication topolo
 
 * In the Data Replication screen, select the user and application data base DN(s) to replicate.
 +
-OpenDJ directory server automatically replicates configuration data and directory schema.
+OpenDJ also replicates administrative data under `cn=admin data` and directory schema under `cn=schema`. The server configuration under `cn=config` stays local.
 
 Once replication is set up, it works for all the replicas. You can monitor replication status through OpenDJ control panel.
+
+
+[#repl-local-exercise]
+=== Try Replication on Two Local Servers
+
+Use Bash on an isolated test host. Start with the OpenDJ server ZIP saved as `opendj.zip` in an empty working directory. Read the license before using `--acceptLicense`. The ports below must be available.
+
+Create two instances with the same base DN. These commands use separate directories, ports, and self-signed certificates.
+
+[source,bash]
+----
+unzip -q opendj.zip -d first
+unzip -q opendj.zip -d second
+
+first/opendj/setup --cli --no-prompt --acceptLicense --hostname localhost \
+  --ldapPort 2389 --ldapsPort 2636 --adminConnectorPort 5444 \
+  --rootUserDN 'cn=Directory Manager' --rootUserPassword password \
+  --baseDN dc=example,dc=com --addBaseEntry --generateSelfSignedCertificate
+
+second/opendj/setup --cli --no-prompt --acceptLicense --hostname localhost \
+  --ldapPort 3389 --ldapsPort 3636 --adminConnectorPort 6444 \
+  --rootUserDN 'cn=Directory Manager' --rootUserPassword password \
+  --baseDN dc=example,dc=com --addBaseEntry --generateSelfSignedCertificate
+----
+
+Connect the two instances and initialize the second from the first. Initialization replaces the destination's data. Use `--trustAll` only with these local test certificates.
+
+[source,bash]
+----
+first/opendj/bin/dsreplication enable --baseDN dc=example,dc=com \
+  --adminUID admin --adminPassword password \
+  --host1 localhost --port1 5444 --replicationPort1 9989 \
+  --bindDN1 'cn=Directory Manager' --bindPassword1 password \
+  --host2 localhost --port2 6444 --replicationPort2 10989 \
+  --bindDN2 'cn=Directory Manager' --bindPassword2 password \
+  --trustAll --no-prompt
+
+first/opendj/bin/dsreplication initialize --baseDN dc=example,dc=com \
+  --adminUID admin --adminPassword password \
+  --hostSource localhost --portSource 5444 \
+  --hostDestination localhost --portDestination 6444 \
+  --trustAll --no-prompt
+----
+
+OpenDJ accepts writes on either replica. To check that a replica catches up after an interruption, stop the second, write to the first, then start the second again.
+
+[source,bash]
+----
+second/opendj/bin/stop-ds
+first/opendj/bin/ldapmodify --hostname localhost --port 2636 --useSSL --trustAll \
+  --bindDN 'cn=Directory Manager' --bindPassword password <<'LDIF'
+dn: dc=example,dc=com
+changetype: modify
+replace: description
+description: Updated while the second replica was stopped
+LDIF
+second/opendj/bin/start-ds
+----
+
+Read the entry on the second server. If the update has yet to arrive, repeat the search after replication catches up.
+
+[source,bash]
+----
+second/opendj/bin/ldapsearch --hostname localhost --port 3636 --useSSL --trustAll \
+  --bindDN 'cn=Directory Manager' --bindPassword password \
+  --baseDN dc=example,dc=com --searchScope base '(objectClass=*)' description
+----
+
+The result should include `description: Updated while the second replica was stopped`. To check the opposite direction, stop the first replica, write a different `description` on the second, and verify that the first returns the new value after it restarts.
+
+[#repl-local-backlog]
+==== Check for Missing Changes
+
+[source,bash]
+----
+first/opendj/bin/dsreplication status --hostname localhost --port 5444 \
+  --adminUID admin --adminPassword password --baseDN dc=example,dc=com \
+  --trustAll --no-prompt
+----
+
+Check `M.C.` for the number of missing changes on each replica. After both replicas catch up, the column should show `0` for both. `A.O.M.C.` shows when the oldest missing change was generated. To read updates from an application, see xref:#use-ecl[Using the External Change Log].
+
+Stop both instances with their `bin/stop-ds` commands when finished.
 
 
 [#about-repl]
@@ -1221,8 +1310,8 @@ dsconfig \
  --bindDN "cn=Directory Manager" \
  --bindPassword password \
  --provider-name "Multimaster Synchronization" \
- --domain-name dc=example,dc=com
- --set enabled:false
+ --domain-name dc=example,dc=com \
+ --set enabled:false \
  --trustAll \
  --no-prompt
 

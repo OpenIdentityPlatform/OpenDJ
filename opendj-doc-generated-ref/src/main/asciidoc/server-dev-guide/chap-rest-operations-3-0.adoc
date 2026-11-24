@@ -12,7 +12,7 @@
   information: "Portions copyright [year] [name of copyright owner]".
  
   Copyright 2017 ForgeRock AS.
-  Portions Copyright 2024-2025 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 ////
 
 :figure-caption!:
@@ -20,8 +20,14 @@
 :table-caption!:
 
 
+ifndef::env-site[]
 [#chap-rest-operations-3-0]
+endif::[]
 == Performing RESTful Operations (3.0)
+
+ifdef::env-site[]
+anchor:chap-rest-operations-3-0[]
+endif::[]
 
 OpenDJ lets you access directory data as link:http://json.org[JSON, window=\_blank] resources over HTTP. OpenDJ maps JSON resources onto LDAP entries. As a result, REST clients perform many of the same operations as LDAP clients with directory data.
 
@@ -29,9 +35,7 @@ This chapter demonstrates RESTful client operations by using the default configu
 
 [NOTE]
 ====
-The default configuration has changed in OpenDJ 3.5.
-
-If you are using OpenDJ 3.5, see xref:chap-rest-operations.adoc#chap-rest-operations["Performing RESTful Operations"] and xref:../reference/appendix-rest2ldap.adoc#appendix-rest2ldap["REST to LDAP Configuration"] in the __Reference__.
+These examples document the original OpenDJ 3.0 REST API and its `/users` and `/groups` paths. For the current Rest2ldap endpoint under `/api`, see xref:chap-rest-operations.adoc#chap-rest-operations["Performing RESTful Operations"] and xref:../reference/appendix-rest2ldap.adoc#appendix-rest2ldap["REST to LDAP Configuration"] in the __Reference__.
 ====
 In this chapter, you will learn how to use the OpenDJ REST API that provides access to directory data over HTTP. In particular, you will learn how to:
 
@@ -942,7 +946,7 @@ a|_queryFilter=_id+ge+'jensen'
 --
 For query operations, the filter __expression__ is constructed from the following building blocks. Make sure you URL-encode the filter expressions, which are shown here without URL-encoding to make them easier to read.
 
-In filter expressions, the simplest __json-pointer__ is a field of the JSON resource, such as `userName` or `id`. A __json-pointer__ can also point to nested elements as described in the link:http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer[JSON Pointer, window=\_blank] Internet-Draft:
+In filter expressions, the simplest __json-pointer__ is a field of the JSON resource, such as `userName` or `id`. A __json-pointer__ can also point to nested elements as described in the link:https://www.rfc-editor.org/rfc/rfc6901[JSON Pointer (RFC 6901), window=\_blank] specification:
 
 Comparison expressions::
 [open]

@@ -21,7 +21,16 @@ Copyright 2026 3A Systems, LLC.
 [#how-to-rest-access]
 == Access Directory Entries Over REST
 
-This recipe enables the built-in HTTP handler and reads a user through the default `/api` mapping. Start with a fresh server using xref:../install-guide/chap-install.adoc#command-line-install[command-line installation]. For this recipe, pass `--hostname localhost`, `--sampleData 1000`, `--baseDN dc=example,dc=com`, `--enableStartTLS` and `--generateSelfSignedCertificate` to setup. Use administration port 4444 and LDAP port 1389, with Directory Manager password `password`. The generated certificate and its `localhost` identity are used by the HTTPS and StartTLS checks below.
+Use a fresh ZIP installation on an isolated test host with ports 1389, 4444, and 8443 available. Copy link:../attachments/Example.ldif[Example.ldif] into the `opendj` directory. Read the license before using `--acceptLicense`, then run the commands from that directory. See xref:../install-guide/chap-install.adoc#command-line-install[command-line installation] for setup options.
+
+[source,bash]
+----
+./setup --cli --no-prompt --acceptLicense --hostname localhost \
+  --ldapPort 1389 --adminConnectorPort 4444 \
+  --enableStartTLS --generateSelfSignedCertificate \
+  --rootUserDN 'cn=Directory Manager' --rootUserPassword password \
+  --baseDN dc=example,dc=com --ldifFile Example.ldif
+----
 
 === Enable the Handler
 
@@ -48,7 +57,7 @@ bin/dsconfig list-http-endpoints \
   --bindDN 'cn=Directory Manager' --bindPassword password --trustAll --no-prompt
 ----
 
-Restarting applies the listener and TLS settings. The default `/api` endpoint is enabled and uses `HTTP Basic`. The exact-match identity mapper resolves a username to its `uid` entry. The sample users have password `password`.
+Restarting applies the listener and TLS settings. The default `/api` endpoint is enabled and uses `HTTP Basic`. The exact-match identity mapper resolves a username to its `uid` entry.
 
 === Read a User
 
@@ -62,11 +71,46 @@ keytool -exportcert -rfc -alias server-cert -keystore config/keystore \
 
 [source,bash]
 ----
-curl --fail-with-body --cacert server-cert.pem --user 'user.0:password' \
-  'https://localhost:8443/api/users/user.0?_prettyPrint=true'
+api=https://localhost:8443/api
+curl --fail-with-body --cacert server-cert.pem --user 'bjensen:hifalutin' \
+  "$api/users/bjensen?_prettyPrint=true"
 ----
 
-The JSON response identifies `user.0` and includes its mapped name and contact information. The mapping is in `config/rest2ldap/endpoints/api/example-v1.json`; its default user base is `ou=people,dc=example,dc=com`. Adapt that mapping if you use a different suffix.
+The JSON response identifies `bjensen` and includes her mapped name and contact information. The mapping in `config/rest2ldap/endpoints/api/example-v1.json` uses `ou=people,dc=example,dc=com` as its user base.
+
+=== Create, Update, and Delete a User
+
+The sample account `kvaughan` belongs to the Directory Administrators group. Use it to create a temporary user named `rest-example` and read the new entry. The create request returns HTTP 201.
+
+[source,bash]
+----
+curl --fail-with-body --cacert server-cert.pem --user 'kvaughan:bribery' \
+  --header 'Content-Type: application/json' \
+  --data '{"_id":"rest-example","_schema":"frapi:opendj:rest2ldap:user:1.0",
+           "name":{"givenName":"REST","familyName":"Example"},"displayName":["REST Example"]}' \
+  "$api/users?_action=create&_prettyPrint=true"
+
+curl --fail-with-body --cacert server-cert.pem --user 'kvaughan:bribery' \
+  "$api/users/rest-example?_prettyPrint=true"
+----
+
+Replace the writable fields with `PUT`. `If-Match: *` allows any current revision of the existing resource. To require a specific revision, use the `_rev` value returned by `GET`. Check that the response shows the new display name, then delete the test user.
+
+[source,bash]
+----
+curl --fail-with-body --cacert server-cert.pem --user 'kvaughan:bribery' \
+  --request PUT --header 'If-Match: *' --header 'Content-Type: application/json' \
+  --data '{"name":{"givenName":"REST","familyName":"Example"},
+           "displayName":["Updated REST Example"]}' \
+  "$api/users/rest-example?_prettyPrint=true"
+
+curl --fail-with-body --cacert server-cert.pem --user 'kvaughan:bribery' \
+  --request DELETE "$api/users/rest-example?_prettyPrint=true"
+----
+
+`DELETE` returns the removed resource. A subsequent `GET` for `rest-example` returns HTTP 404.
+
+=== Enable Access Logging
 
 To enable HTTP access logging:
 
@@ -79,4 +123,4 @@ bin/dsconfig set-log-publisher-prop \
   --trustAll --no-prompt
 ----
 
-See xref:../server-dev-guide/chap-rest-operations.adoc[Performing RESTful Operations] for creating, updating and deleting resources, API versions and password actions. HTTP authentication does not grant additional LDAP privileges or access rights. For read/write delegation, use xref:../admin-guide/chap-privileges-acis.adoc[Configuring Privileges and Access Control] rather than relying on the name or location of a user entry. To delegate password resets, follow xref:./delegate-password-reset.adoc[Delegate Password Reset Permissions].
+See xref:../server-dev-guide/chap-rest-operations.adoc[Performing RESTful Operations] for more examples. HTTP requests use the authenticated account's LDAP privileges and access rights. See xref:../admin-guide/chap-privileges-acis.adoc[Configuring Privileges and Access Control] or continue with xref:./delegate-password-reset.adoc[Delegate Password Reset Permissions].

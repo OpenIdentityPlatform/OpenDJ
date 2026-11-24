@@ -21,8 +21,14 @@
 
 
 [appendix]
+ifndef::env-site[]
 [#appendix-controls]
+endif::[]
 == LDAP Controls
+
+ifdef::env-site[]
+anchor:appendix-controls[]
+endif::[]
 
 Controls provide a mechanism whereby the semantics and arguments of existing LDAP operations may be extended. One or more controls may be attached to a single LDAP message. A control only affects the semantics of the message it is attached to. Controls sent by clients are termed __request controls__, and those sent by servers are termed __response controls__.
 
