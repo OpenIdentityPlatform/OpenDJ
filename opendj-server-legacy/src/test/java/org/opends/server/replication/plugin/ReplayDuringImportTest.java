@@ -12,7 +12,6 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2026 3A Systems, LLC.
- * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.plugin;
 
@@ -57,6 +56,7 @@ import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -1736,6 +1736,10 @@ public class ReplayDuringImportTest extends ReplicationTestCase
    */
   private void startImportInto(int entryCount) throws Exception
   {
+    // The broker can report the replica connected before the replication server can route to it.
+    final ReplicationServerDomain rsDomain = replicationServer.getReplicationServerDomain(baseDN);
+    waitUntil(() -> rsDomain.getConnectedDSs().containsKey(DS_ID),
+        "the replication server did not register the import target");
     exporter.publish(new InitializeTargetMsg(
         baseDN, EXPORTER_ID, DS_ID, EXPORTER_ID, entryCount, INIT_WINDOW));
     final long deadline = System.currentTimeMillis() + 30_000;
