@@ -45,7 +45,7 @@ import org.testng.annotations.Test;
 public class LogTest extends DirectoryServerTestCase
 {
   /** Use a directory dedicated to this test class. */
-  private static final File LOG_DIRECTORY = new File(TestCaseUtils.getUnitTestRootPath(), "changelog-unit");
+  private static final File LOG_DIRECTORY = new File(TestCaseUtils.getUnitTestRootPath(), "changelog-log");
 
   private static final long NO_TIME_BASED_LOG_ROTATION = 0;
 

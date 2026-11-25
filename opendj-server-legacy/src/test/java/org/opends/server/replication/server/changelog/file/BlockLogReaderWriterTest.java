@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -49,7 +50,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class BlockLogReaderWriterTest extends DirectoryServerTestCase
 {
-  private static final File TEST_DIRECTORY = new File(TestCaseUtils.getUnitTestRootPath(), "changelog-unit");
+  private static final File TEST_DIRECTORY = new File(TestCaseUtils.getUnitTestRootPath(), "changelog-block-reader-writer");
   private static final File TEST_FILE = new File(TEST_DIRECTORY, "file");
   private static final RecordParser<Integer, Integer> RECORD_PARSER = new IntRecordParser();
   private static final int INT_RECORD_SIZE = 12;
