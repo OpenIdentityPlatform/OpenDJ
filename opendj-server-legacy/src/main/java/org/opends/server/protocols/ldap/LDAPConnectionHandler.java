@@ -1038,22 +1038,25 @@ public final class LDAPConnectionHandler extends
     int numRegistered = 0;
     for (InetAddress a : listenAddresses)
     {
+      ServerSocketChannel channel = null;
       try
       {
-        ServerSocketChannel channel = ServerSocketChannel.open();
+        channel = ServerSocketChannel.open();
         channel.socket().setReuseAddress(allowReuseAddress);
         channel.socket()
             .bind(new InetSocketAddress(a, listenPort), backlog);
         channel.configureBlocking(false);
         channel.register(selector, SelectionKey.OP_ACCEPT);
+        channel = null;
         numRegistered++;
 
         logger.info(NOTE_CONNHANDLER_STARTED_LISTENING, handlerName);
       }
       catch (Exception e)
       {
+        close(channel);
         logger.traceException(e);
-
+        
         logger.error(ERR_LDAP_CONNHANDLER_CREATE_CHANNEL_FAILED, currentConfig.dn(), a.getHostAddress(), listenPort,
             stackTraceToSingleLineString(e));
       }
