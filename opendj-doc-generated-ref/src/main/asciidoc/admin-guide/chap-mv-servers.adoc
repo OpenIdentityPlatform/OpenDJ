@@ -104,10 +104,6 @@ Disabling replication on base DN cn=schema of server
 Disabling replication port 8989 of server opendj2.example.com:4444 ..... Done.
 Removing registration information ..... Done.
 Removing truststore information ..... Done.
-
-See
-/var/.../opends-replication-3173475478874782719.log
-for a detailed log of this operation.
 ----
 
 . With the server no longer receiving traffic or accepting updates from clients, and no longer replicating to other servers, you can shut it down in preparation for the move:
