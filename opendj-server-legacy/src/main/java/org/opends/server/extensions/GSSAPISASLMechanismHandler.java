@@ -105,6 +105,10 @@ public class GSSAPISASLMechanismHandler extends
   public void initializeSASLMechanismHandler(
       GSSAPISASLMechanismHandlerCfg configuration) throws ConfigException,
       InitializationException {
+    if (DirectoryServer.getSASLMechanismHandler(SASL_MECHANISM_GSSAPI) != null)
+    {
+      throw new InitializationException(ERR_SASLGSSAPI_HANDLER_ALREADY_ENABLED.get(configuration.dn()));
+    }
     try {
       initialize(configuration);
       DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_GSSAPI, this);
