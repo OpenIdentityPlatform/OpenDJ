@@ -138,7 +138,11 @@ import org.opends.quicksetup.installer.PeerNotFoundException;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.ErrorLogPublisher;
+import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.JDKLogging;
+import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 import org.opends.server.tools.dsreplication.EnableReplicationUserData.EnableReplicationServerData;
 import org.opends.server.tools.dsreplication.ReplicationCliArgumentParser.ServerArgs;
@@ -326,8 +330,13 @@ public class ReplicationCliMain extends ConsoleApplication
 
   public static void main(String[] args)
   {
-    int retCode = mainCLI(args, true, System.out, System.err);
-    System.exit(retCode);
+    JDKLogging.enableLoggingForOpenDJTool(System.err);
+    final ErrorLogPublisher errorLogPublisher =
+        TextErrorLogPublisher.getToolStartupTextErrorPublisher(new TextWriter.STREAM(System.err));
+    ErrorLogger.getInstance().addLogPublisher(errorLogPublisher);
+
+    ReplicationCliMain replicationCli = new ReplicationCliMain(System.out, System.err);
+    System.exit(replicationCli.execute(args, true).getReturnCode());
   }
 
   /**
@@ -484,15 +493,12 @@ public class ReplicationCliMain extends ConsoleApplication
     sourceServerCI = new LDAPConnectionConsoleInteraction(this, argParser.getSecureArgsList());
     sourceServerCI.setDisplayLdapIfSecureParameters(false);
 
-    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
-    String subCommand = null;
     final SubcommandChoice subcommandChoice = getSubcommandChoice(argParser.getSubCommand());
     if (subcommandChoice != null)
     {
-      subCommand = subcommandChoice.getName();
-      returnValue = execute(subcommandChoice);
+      return execute(subcommandChoice);
     }
-    else if (argParser.isInteractive())
+    if (argParser.isInteractive())
     {
       final SubcommandChoice subCommandChoice = promptForSubcommand();
       if (subCommandChoice == null || SubcommandChoice.CANCEL.equals(subCommandChoice))
@@ -500,7 +506,7 @@ public class ReplicationCliMain extends ConsoleApplication
         return USER_CANCELLED;
       }
 
-      subCommand = subCommandChoice.getName();
+      final String subCommand = subCommandChoice.getName();
       if (subCommand != null)
       {
         String[] newArgs = new String[args.length + 1];
@@ -509,28 +515,12 @@ public class ReplicationCliMain extends ConsoleApplication
         // The server (if requested) has already been initialized.
         return execute(newArgs, false);
       }
-    }
-    else
-    {
-      errPrintln(ERR_REPLICATION_VALID_SUBCOMMAND_NOT_FOUND.get("--" + OPTION_LONG_NO_PROMPT));
-      errPrintln(LocalizableMessage.raw(argParser.getUsage()));
-      return ERROR_USER_DATA;
+      return SUCCESSFUL_NOP;
     }
 
-    // Display the log file only if the operation is successful (when there
-    // is a critical error this is already displayed).
-    if (returnValue == SUCCESSFUL && displayLogFileAtEnd(subCommand))
-    {
-      File logFile = ControlPanelLog.getLogFile();
-      if (logFile != null)
-      {
-        println();
-        println(INFO_GENERAL_SEE_FOR_DETAILS.get(logFile.getPath()));
-        println();
-      }
-    }
-
-    return returnValue;
+    errPrintln(ERR_REPLICATION_VALID_SUBCOMMAND_NOT_FOUND.get("--" + OPTION_LONG_NO_PROMPT));
+    errPrintln(LocalizableMessage.raw(argParser.getUsage()));
+    return ERROR_USER_DATA;
   }
 
   private SubcommandChoice getSubcommandChoice(SubCommand subCommand)
@@ -9021,13 +9011,6 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
     return results;
-  }
-
-  private boolean displayLogFileAtEnd(String subCommand)
-  {
-    final List<String> subCommands = Arrays.asList(ENABLE_REPLICATION_SUBCMD_NAME, DISABLE_REPLICATION_SUBCMD_NAME,
-        INITIALIZE_ALL_REPLICATION_SUBCMD_NAME, INITIALIZE_REPLICATION_SUBCMD_NAME, RESET_CHANGE_NUMBER_SUBCMD_NAME);
-    return subCommands.contains(subCommand);
   }
 
   /**
