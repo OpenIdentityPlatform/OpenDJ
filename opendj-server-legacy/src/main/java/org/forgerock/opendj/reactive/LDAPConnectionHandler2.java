@@ -41,12 +41,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.net.ssl.KeyManager;
@@ -293,7 +295,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     /** SSL instance name used in context creation. */
     private static final String SSL_CONTEXT_INSTANCE_NAME = "TLS";
 
-    private LDAPListener listener;
+    private GrizzlyLDAPListener listener;
 
     /**
      * The transport serving the connections of this connection handler only. It is started with the listener, and
@@ -390,7 +392,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     private boolean listenAttempted;
 
     /** Allows finalization to wait for the listen socket to close before an in-core restart. */
-    private final CountDownLatch listenerClosed = new CountDownLatch(1);
+    private final CompletableFuture<Void> listenerClosed = new CompletableFuture<>();
 
     /** The friendly name of this connection handler. */
     private String friendlyName;
@@ -553,13 +555,14 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
             r.run(); // Flush pending queue.
         }
 
-        if (isAlive() && Thread.currentThread() != this) {
+        if (getState() != Thread.State.NEW && Thread.currentThread() != this) {
             try {
-                if (!listenerClosed.await(LISTEN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-                    logger.warn(LocalizableMessage.raw("Timed out waiting for %s to close its listen socket", handlerName));
-                }
+                listenerClosed.get(LISTEN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                throw new IllegalStateException("Interrupted while closing listener " + handlerName, e);
+            } catch (ExecutionException | TimeoutException e) {
+                throw new IllegalStateException("Could not close listener " + handlerName, e);
             }
         }
     }
@@ -875,14 +878,21 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     }
 
     void stopListener() {
-        closeListener();
-        drainTransport();
+        try {
+            closeListener();
+        } catch (IOException e) {
+            logger.traceException(e);
+            logger.warn(LocalizableMessage.raw("Could not close listener %s", handlerName));
+        } finally {
+            drainTransport();
+        }
     }
 
-    private void closeListener() {
+    private void closeListener() throws IOException {
         if (listener != null) {
-            listener.close();
+            final GrizzlyLDAPListener closing = listener;
             listener = null;
+            closing.closeAndAwaitPortRelease();
             logger.info(NOTE_CONNHANDLER_STOPPED_LISTENING, handlerName);
         }
     }
@@ -943,7 +953,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
         transport = newTransport(openConnections);
         transportConnections = accepted;
         transportOpenConnections = openConnections;
-        listener = new LDAPListener(
+        listener = new GrizzlyLDAPListener(
                 listenAddresses,
                 new Function<LDAPClientContext,
                              ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
@@ -994,8 +1004,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                           .set(LDAPListener.REQUEST_MAX_SIZE_IN_BYTES, (int) currentConfig.getMaxRequestSize())
                           // Set by the listener on every accepted connection, over the values of the transport.
                           .set(LDAPListener.SO_KEEPALIVE, useTCPKeepAlive)
-                          .set(LDAPListener.TCP_NO_DELAY, useTCPNoDelay)
-                          .set(GrizzlyLDAPListener.GRIZZLY_TRANSPORT, transport));
+                          .set(LDAPListener.TCP_NO_DELAY, useTCPNoDelay), transport);
         logger.info(NOTE_CONNHANDLER_STARTED_LISTENING, handlerName);
     }
 
@@ -1107,9 +1116,14 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
             }
         }
 
-        closeListener();
-        listenerClosed.countDown();
-        drainTransport();
+        try {
+            closeListener();
+            listenerClosed.complete(null);
+        } catch (Exception e) {
+            listenerClosed.completeExceptionally(e);
+        } finally {
+            drainTransport();
+        }
     }
 
     private void waitForListenerChange() {

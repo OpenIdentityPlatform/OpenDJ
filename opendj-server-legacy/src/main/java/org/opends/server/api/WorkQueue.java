@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.api;
 
@@ -67,6 +68,18 @@ public abstract class WorkQueue<T extends WorkQueueCfg>
    */
   public abstract void initializeWorkQueue(T configuration)
          throws ConfigException, InitializationException;
+
+
+
+  /**
+   * Allows a queue to reject new submissions and release submitters waiting for capacity
+   * before the server shuts down its connection handlers. Queued and active operations
+   * can continue until {@link #finalizeWorkQueue(LocalizableMessage)}.
+   */
+  public void stopAcceptingOperations()
+  {
+    // By default, admission stops when the queue is finalized.
+  }
 
 
 

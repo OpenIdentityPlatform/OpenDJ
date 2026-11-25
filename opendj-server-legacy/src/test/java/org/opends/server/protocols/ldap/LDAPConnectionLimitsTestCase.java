@@ -37,6 +37,7 @@ import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableScheduledFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -69,7 +70,6 @@ import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
-import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -231,40 +231,63 @@ public class LDAPConnectionLimitsTestCase extends DirectoryServerTestCase
   }
 
   /**
-   * A connection accepted after the handler is finalized, before its listener stops, is still released when it
-   * closes: the handler has no finalizer left to time it.
+   * A connection that finishes accept after the connection finalizer shuts down still gives back its place when it
+   * closes.
    */
   @Test
-  public void connectionAcceptedWhileTheHandlerIsFinalizedIsReleasedWhenItCloses() throws Exception
+  public void connectionAcceptedDuringFinalizationGivesBackItsPlaceWhenItCloses() throws Exception
   {
-    for (int attempt = 0; attempt < 5; attempt++)
+    final int port = TestCaseUtils.findFreePort();
+    final LDAPConnectionHandler2 handler =
+        start(configuration(port, "ds-cfg-max-client-connections-per-address: 2"));
+    final ExecutorService finalizer = finalizer(handler);
+    final FutureTask<Void> shutdown = new FutureTask<>(() -> handler.finalizeConnectionHandler(STOP_REASON), null);
+    final CompletableFuture<Void> acceptStarted = new CompletableFuture<>();
+    final CompletableFuture<Void> finishAccept = new CompletableFuture<>();
+    final PostConnectPlugin plugin = new PostConnectPlugin(handler, connection -> {
+      acceptStarted.complete(null);
+      finishAccept.join();
+      return PluginResult.PostConnect.continueConnectProcessing();
+    });
+    try (Socket established = new Socket("127.0.0.1", port))
     {
-      final int port = TestCaseUtils.findFreePort();
-      final LDAPConnectionHandler2 handler = start(configuration(port));
+      // Keep the transport draining while the next connection is still in its post-connect plugin.
+      bindAnonymously(established);
+      DirectoryServer.registerInternalPlugin(plugin);
       try
       {
-        // The listener stops only when run() next wakes up, up to a second later.
-        handler.finalizeConnectionHandler(STOP_REASON);
         try (Socket client = new Socket("127.0.0.1", port))
         {
-          if (!awaitClientConnectionsQuietly(handler, 1))
-          {
-            continue;
-          }
+          acceptStarted.get(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+          new Thread(shutdown, "Finalize limits test handler").start();
+          assertTrue(finalizer.awaitTermination(TIMEOUT_MS, TimeUnit.MILLISECONDS),
+              "the connection finalizer did not shut down while accept was in flight");
+          finishAccept.complete(null);
+          shutdown.get(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+
+          bindAnonymously(client);
+          awaitClientConnections(handler, 2);
+          awaitPlacesHeld(handler, 2);
         }
-        catch (IOException listenerAlreadyStopped)
-        {
-          continue;
-        }
-        awaitClientConnections(handler, 0);
-        return;
+        awaitClientConnections(handler, 1);
+        awaitPlacesHeld(handler, 1);
       }
       finally
       {
-        handler.join(TIMEOUT_MS);
+        finishAccept.complete(null);
+        DirectoryServer.deregisterInternalPlugin(plugin);
       }
     }
-    throw new SkipException("the listener stopped before a connection could reach the finalized handler");
+    finally
+    {
+      // Finalize once, including if setup failed before the shutdown thread was started.
+      shutdown.run();
+      shutdown.get(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      handler.join(TIMEOUT_MS);
+      assertFalse(handler.isAlive(), "the connection handler thread is still running");
+    }
+    awaitClientConnections(handler, 0);
+    awaitPlacesHeld(handler, 0);
   }
 
   /**
@@ -862,21 +885,6 @@ public class LDAPConnectionLimitsTestCase extends DirectoryServerTestCase
     assertEquals(notice.getOID(), NOTICE_OF_DISCONNECTION_OID);
     assertEquals(String.valueOf(notice.getErrorMessage()), reason.toString(), "diagnostic message");
     assertEquals(client.getInputStream().read(), -1, "the connection stayed open after the notice");
-  }
-
-  private static boolean awaitClientConnectionsQuietly(LDAPConnectionHandler2 handler, int expected)
-      throws Exception
-  {
-    final long deadline = System.currentTimeMillis() + TIMEOUT_MS;
-    while (handler.getClientConnections().size() != expected)
-    {
-      if (System.currentTimeMillis() >= deadline)
-      {
-        return false;
-      }
-      Thread.sleep(50);
-    }
-    return true;
   }
 
   private static void awaitClientConnections(LDAPConnectionHandler2 handler, int expected) throws Exception

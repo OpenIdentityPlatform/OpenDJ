@@ -166,7 +166,7 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
         start(configuration(freePort(reuseAddress), true, true, reuseAddress, 2));
     try
     {
-      final Collection<?> serverConnections = (Collection<?>) field(field(handler, "listener"), "impl", "serverConnections");
+      final Collection<?> serverConnections = (Collection<?>) field(field(handler, "listener"), "serverConnections");
       assertFalse(serverConnections.isEmpty(), "the handler does not listen");
       for (Object serverConnection : serverConnections)
       {
@@ -354,9 +354,9 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
 
   /**
    * The server shutting down, here for an in-core restart, ends the connections of a handler that is still listening
-   * with a notice of disconnection. The handler stops its listener on its own thread, which may wake before or after
-   * the next server instance is current: {@link #drainEndsTheConnectionsWhenTheServerOfItsHandlerIsShuttingDown()}
-   * covers the latter.
+   * with a notice of disconnection. The handler stops listening on its own thread and then drains the transport.
+   * {@link #drainEndsTheConnectionsWhenTheServerOfItsHandlerIsShuttingDown()} covers a drain against a previous server
+   * instance.
    */
   @Test
   public void serverRestartEndsTheConnectionsOfAListeningHandler() throws Exception

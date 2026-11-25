@@ -119,7 +119,7 @@ jobs:
       id: failsafe
       if: runner.os == 'Linux'
       run: |
-        echo "MAVEN_PROFILE_FLAG=-P precommit -Dopendj.precommit.forkCount=3" >> "$GITHUB_OUTPUT"
+        echo "MAVEN_PROFILE_FLAG=-P precommit" >> "$GITHUB_OUTPUT"
 
     - name: Setup WiX (.NET tool) for MSI
       # Only the java 11 job's MSI is consumed downstream (test-msi*, deploy.yml); without

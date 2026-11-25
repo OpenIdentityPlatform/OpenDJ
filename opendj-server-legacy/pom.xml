@@ -1179,7 +1179,7 @@
     <profile>
       <id>precommit</id>
       <properties>
-        <opendj.precommit.forkCount>1</opendj.precommit.forkCount>
+        <opendj.precommit.forkCount>4</opendj.precommit.forkCount>
       </properties>
       <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>

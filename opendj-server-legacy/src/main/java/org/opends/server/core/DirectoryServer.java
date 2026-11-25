@@ -4150,6 +4150,12 @@ public final class DirectoryServer
     ServerShutdownMonitor shutdownMonitor = new ServerShutdownMonitor();
     shutdownMonitor.start();
 
+    // Release connection-handler threads that are waiting for queue space.
+    if (directoryServer.workQueue != null)
+    {
+      directoryServer.workQueue.stopAcceptingOperations();
+    }
+
     // Shut down the connection handlers.
     for (ConnectionHandler<?> handler : directoryServer.connectionHandlers)
     {

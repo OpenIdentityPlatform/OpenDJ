@@ -15,16 +15,20 @@
  */
 package org.opends.server.extensions;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.FutureTask;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.server.TraditionalWorkQueueCfg;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.types.CancelRequest;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Operation;
 import org.opends.server.util.TestTimer;
 import org.testng.annotations.Test;
@@ -108,6 +112,57 @@ public class TraditionalWorkQueueShutdownTest extends DirectoryServerTestCase
   }
 
   @Test
+  public void stoppingAdmissionWakesAllBlockedSubmittersBeforeFinalization() throws Exception
+  {
+    CountDownLatch running = new CountDownLatch(1);
+    CountDownLatch finish = new CountDownLatch(1);
+    TestWorkQueue queue = new TestWorkQueue();
+    queue.initializeWorkQueue(config(1));
+    Operation active = mock(Operation.class);
+    doAnswer(invocation -> {
+      running.countDown();
+      finish.await();
+      return null;
+    }).when(active).run();
+    Operation queued = mock(Operation.class);
+    try
+    {
+      queue.submitOperation(active);
+      assertTrue(running.await(5, SECONDS), "Worker did not begin the active operation");
+      queue.submitOperation(queued);
+      FutureTask<ResultCode> first = startBlockedSubmitter(queue, "First submitter");
+      FutureTask<ResultCode> second = startBlockedSubmitter(queue, "Second submitter");
+
+      queue.stopAcceptingOperations();
+
+      assertEquals(first.get(5, SECONDS), ResultCode.UNAVAILABLE, "First submitter was not rejected");
+      assertEquals(second.get(5, SECONDS), ResultCode.UNAVAILABLE, "Second submitter was not rejected");
+      DirectoryException rejection = expectThrows(DirectoryException.class,
+          () -> queue.trySubmitOperation(mock(Operation.class)));
+      assertEquals(rejection.getResultCode(), ResultCode.UNAVAILABLE);
+      assertFalse(queue.shutdownRequested(), "Stopping admission stopped the worker pool");
+      assertEquals(queue.size(), 1, "Stopping admission drained the queue");
+      verify(active, never()).cancel(any(CancelRequest.class));
+      verify(active, never()).operationCompleted();
+      verify(queued, never()).abort(any(CancelRequest.class));
+    }
+    finally
+    {
+      try
+      {
+        queue.finalizeWorkQueue(SHUTDOWN_REASON);
+      }
+      finally
+      {
+        finish.countDown();
+      }
+    }
+    verify(active).cancel(any(CancelRequest.class));
+    verify(queued).abort(any(CancelRequest.class));
+    assertTrue(queue.waitUntilIdle(1000), "Rejected submissions or canceled operations still count as pending");
+  }
+
+  @Test
   public void abortsADequeuedOperationWhenShutdownWinsTheHandoff() throws Exception
   {
     CountDownLatch dequeued = new CountDownLatch(1);
@@ -165,20 +220,41 @@ public class TraditionalWorkQueueShutdownTest extends DirectoryServerTestCase
 
   private void waitForIdleWorker(TestWorkQueue queue) throws Exception
   {
-    new TestTimer.Builder().maxSleep(5, SECONDS).toTimer().repeatUntilSuccess(() -> {
+    new TestTimer.Builder().maxSleep(5, SECONDS).sleepTimes(10, MILLISECONDS).toTimer().repeatUntilSuccess(() -> {
       Thread worker = queue.worker;
       assertNotNull(worker, "Worker has not started");
-      assertEquals(worker.getState(), Thread.State.WAITING, "Worker has not entered the condition wait");
-      for (StackTraceElement frame : worker.getStackTrace())
-      {
-        if (frame.getClassName().equals(TraditionalWorkQueue.class.getName())
-            && frame.getMethodName().equals("retryNextOperation"))
-        {
-          return;
-        }
-      }
-      fail("Worker has not reached the queue wait");
+      assertWaitingInQueue(worker, "retryNextOperation");
     });
+  }
+
+  private FutureTask<ResultCode> startBlockedSubmitter(TestWorkQueue queue, String name) throws Exception
+  {
+    Operation operation = mock(Operation.class);
+    FutureTask<ResultCode> submission = new FutureTask<>(() ->
+        expectThrows(DirectoryException.class, () -> queue.submitOperation(operation)).getResultCode());
+    Thread thread = new Thread(submission, name);
+    thread.setDaemon(true);
+    thread.start();
+    new TestTimer.Builder().maxSleep(5, SECONDS).sleepTimes(10, MILLISECONDS).toTimer().repeatUntilSuccess(
+        () -> assertWaitingInQueue(thread, "submitOperation"));
+    return submission;
+  }
+
+  private void assertWaitingInQueue(Thread thread, String methodName)
+  {
+    assertEquals(thread.getState(), Thread.State.WAITING, thread.getName() + " has not entered the condition wait");
+    StackTraceElement[] stack = thread.getStackTrace();
+    for (int i = 1; i < stack.length; i++)
+    {
+      StackTraceElement frame = stack[i];
+      if (frame.getClassName().equals(TraditionalWorkQueue.class.getName())
+          && frame.getMethodName().equals(methodName)
+          && stack[i - 1].getMethodName().equals("await"))
+      {
+        return;
+      }
+    }
+    fail(thread.getName() + " has not reached the queue wait");
   }
 
   private static class TestWorkQueue extends TraditionalWorkQueue

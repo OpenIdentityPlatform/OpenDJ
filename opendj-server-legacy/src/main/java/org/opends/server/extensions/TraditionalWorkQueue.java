@@ -86,6 +86,9 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
    */
   private boolean killThreads;
 
+  /** Indicates whether submissions have been closed before queue finalization. Guarded by queueLock. */
+  private boolean submissionsClosed;
+
   /** Indicates whether the Directory Server is shutting down. */
   private volatile boolean shutdownRequested;
 
@@ -136,6 +139,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     queueLock.lock();
     try
     {
+      submissionsClosed = false;
       shutdownRequested = false;
       killThreads = false;
       opsSubmitted = new AtomicLong(0);
@@ -183,6 +187,21 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     {
       logger.traceException(e);
       logger.error(ERR_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR, TraditionalWorkQueue.class, e);
+    }
+  }
+
+  @Override
+  public void stopAcceptingOperations()
+  {
+    queueLock.lock();
+    try
+    {
+      submissionsClosed = true;
+      spaceAvailable.signalAll();
+    }
+    finally
+    {
+      queueLock.unlock();
     }
   }
 
@@ -341,7 +360,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
 
   private void checkForShutdown() throws DirectoryException
   {
-    if (shutdownRequested)
+    if (submissionsClosed || shutdownRequested)
     {
       throw new DirectoryException(ResultCode.UNAVAILABLE, WARN_OP_REJECTED_BY_SHUTDOWN.get());
     }
