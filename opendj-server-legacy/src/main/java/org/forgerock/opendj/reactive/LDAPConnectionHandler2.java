@@ -530,6 +530,16 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
 
     @Override
     public void finalizeConnectionHandler(LocalizableMessage finalizeReason) {
+        finalizeConnectionHandler(finalizeReason, true);
+    }
+
+    @Override
+    public void finalizeConnectionHandlerForConfigurationChange(LocalizableMessage finalizeReason) {
+        // The listener's selector may be waiting for the worker applying this change to make queue space.
+        finalizeConnectionHandler(finalizeReason, false);
+    }
+
+    private void finalizeConnectionHandler(LocalizableMessage finalizeReason, boolean awaitPortRelease) {
         processServerShutdown(finalizeReason);
         currentConfig.removeLDAPChangeListener(this);
 
@@ -555,7 +565,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
             r.run(); // Flush pending queue.
         }
 
-        if (getState() != Thread.State.NEW && Thread.currentThread() != this) {
+        if (awaitPortRelease && getState() != Thread.State.NEW && Thread.currentThread() != this) {
             try {
                 listenerClosed.get(LISTEN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
@@ -1121,6 +1131,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
             listenerClosed.complete(null);
         } catch (Exception e) {
             listenerClosed.completeExceptionally(e);
+            logger.warn(LocalizableMessage.raw("Could not close listener %s", handlerName), e);
         } finally {
             drainTransport();
         }

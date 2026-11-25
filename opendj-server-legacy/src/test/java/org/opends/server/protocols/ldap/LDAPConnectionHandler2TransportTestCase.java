@@ -15,6 +15,13 @@
  */
 package org.opends.server.protocols.ldap;
 
+import static java.util.Arrays.stream;
+import static java.util.Collections.singletonList;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_CONTEXT;
+import static org.forgerock.opendj.ldap.ModificationType.REPLACE;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.mockito.Mockito.*;
 import static org.opends.messages.CoreMessages.INFO_CONNHANDLER_CLOSED_BY_SHUTDOWN;
 import static org.testng.Assert.*;
 
@@ -29,22 +36,35 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LdapPromise;
+import org.forgerock.opendj.ldap.SSLContextBuilder;
+import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.reactive.LDAPConnectionHandler2;
 import org.forgerock.opendj.server.config.meta.LDAPConnectionHandlerCfgDefn;
 import org.forgerock.opendj.server.config.server.LDAPConnectionHandlerCfg;
+import org.forgerock.opendj.server.config.server.TraditionalWorkQueueCfg;
+import org.forgerock.util.Options;
 import org.glassfish.grizzly.memory.Buffers;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOServerConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
+import org.opends.admin.ads.util.BlindTrustManager;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ClientConnection;
@@ -52,8 +72,11 @@ import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.InitializationUtils;
+import org.opends.server.extensions.TraditionalWorkQueue;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.types.Entry;
+import org.opends.server.types.Operation;
+import org.opends.server.util.TestTimer;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -151,6 +174,121 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
     {
       handler.join(TIMEOUT_MS);
     }
+  }
+
+  @DataProvider
+  public Object[][] liveRemovalOperations()
+  {
+    return new Object[][] { { false }, { true } };
+  }
+
+  @Test(dataProvider = "liveRemovalOperations")
+  public void liveDisableOrDeleteCompletesWhileTheListenerWaitsForQueueSpace(boolean delete) throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final Entry entry = configurationEntry(port, true, true, true, 1);
+    final DN dn = entry.getName();
+    final TraditionalWorkQueue queue = (TraditionalWorkQueue) DirectoryServer.getWorkQueue();
+    final TraditionalWorkQueueCfg original =
+        (TraditionalWorkQueueCfg) DirectoryServer.getInstance().getServerContext().getRootConfig().getWorkQueue();
+    final CountDownLatch running = new CountDownLatch(1);
+    final CountDownLatch releaseWorker = new CountDownLatch(1);
+    final Operation active = mock(Operation.class);
+    doAnswer(invocation -> {
+      running.countDown();
+      releaseWorker.await();
+      return null;
+    }).when(active).run();
+
+    final Options tls = Options.defaultOptions()
+        .set(SSL_CONTEXT, new SSLContextBuilder().setTrustManager(new BlindTrustManager()).getSSLContext());
+    TestCaseUtils.addEntry(entry);
+    try (LDAPConnectionFactory adminFactory =
+            new LDAPConnectionFactory("localhost", TestCaseUtils.getServerAdminPort(), tls);
+         Connection admin = adminFactory.getConnection();
+         LDAPConnectionFactory targetFactory = new LDAPConnectionFactory("127.0.0.1", port);
+         Connection target = targetFactory.getConnection())
+    {
+      admin.bind("cn=Directory Manager", "password".toCharArray());
+      final LDAPConnectionHandler2 handler = DirectoryServer.getConnectionHandlers().stream()
+          .filter(candidate -> dn.equals(candidate.getComponentEntryDN()))
+          .map(LDAPConnectionHandler2.class::cast)
+          .findFirst().orElseThrow();
+      final Thread selector = acceptedConnection(handler).getSelectorRunner().getRunnerThread();
+      final TestTimer timer = new TestTimer.Builder().maxSleep(TIMEOUT_MS, MILLISECONDS)
+          .sleepTimes(10, MILLISECONDS).toTimer();
+      try
+      {
+        setWorkQueueCapacity(queue, 2);
+        queue.submitOperation(active);
+        assertTrue(running.await(TIMEOUT_MS, MILLISECONDS), "the worker did not start the active operation");
+
+        final LdapPromise<Result> change = delete ? admin.deleteAsync(newDeleteRequest(dn))
+            : admin.modifyAsync(newModifyRequest(dn).addModification(REPLACE, "ds-cfg-enabled", "false"));
+        timer.repeatUntilSuccess(() -> assertEquals(queue.size(), 1, "the configuration operation was not queued"));
+        queue.submitOperation(mock(Operation.class));
+        // The second operation keeps the queue full even after the worker takes the configuration operation.
+        setWorkQueueCapacity(queue, 1);
+        final LdapPromise<?> read = target.readEntryAsync(DN.rootDN(), singletonList("objectClass"));
+        timer.repeatUntilSuccess(() -> assertTrue(selector.getState() == Thread.State.WAITING
+            && stream(selector.getStackTrace()).anyMatch(frame ->
+                frame.getClassName().equals(TraditionalWorkQueue.class.getName())
+                    && frame.getMethodName().equals("submitOperation")), "the selector did not block in the queue"));
+
+        releaseWorker.countDown();
+        assertTrue(change.getOrThrow(TIMEOUT_MS, MILLISECONDS).isSuccess());
+        assertSavedConfiguration(dn, delete);
+        assertNotNull(admin.readEntryAsync(DN.rootDN(), singletonList("objectClass"))
+            .getOrThrow(TIMEOUT_MS, MILLISECONDS), "the administrative connection no longer serves requests");
+        assertNotNull(read.getOrThrow(TIMEOUT_MS, MILLISECONDS), "the established connection did not resume");
+
+        handler.join(TIMEOUT_MS);
+        assertFalse(handler.isAlive(), "the disabled or deleted handler did not finish closing");
+        try (ServerSocket replacement = new ServerSocket())
+        {
+          replacement.setReuseAddress(true);
+          replacement.bind(new InetSocketAddress("127.0.0.1", port));
+        }
+      }
+      finally
+      {
+        releaseWorker.countDown();
+        queue.applyConfigurationChange(original);
+      }
+    }
+    finally
+    {
+      if (DirectoryServer.getEntry(dn) != null)
+      {
+        TestCaseUtils.deleteEntry(dn);
+      }
+    }
+  }
+
+  private static void setWorkQueueCapacity(TraditionalWorkQueue queue, int capacity)
+  {
+    final TraditionalWorkQueueCfg config = mock(TraditionalWorkQueueCfg.class);
+    when(config.getNumWorkerThreads()).thenReturn(1);
+    when(config.getMaxWorkQueueCapacity()).thenReturn(capacity);
+    queue.applyConfigurationChange(config);
+  }
+
+  private static void assertSavedConfiguration(DN dn, boolean delete) throws IOException
+  {
+    try (LDIFEntryReader reader = new LDIFEntryReader(Files.newInputStream(Paths.get(DirectoryServer.getConfigFile()))))
+    {
+      while (reader.hasNext())
+      {
+        final org.forgerock.opendj.ldap.Entry saved = reader.readEntry();
+        if (dn.equals(saved.getName()))
+        {
+          assertFalse(delete, "the deleted handler is still in config.ldif");
+          assertEquals(saved.parseAttribute("ds-cfg-enabled").asString(), "false");
+          return;
+        }
+      }
+    }
+    assertTrue(delete, "the disabled handler is missing from config.ldif");
   }
 
   @DataProvider
@@ -737,6 +875,13 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
   private static LDAPConnectionHandlerCfg configuration(int port, boolean keepAlive, boolean noDelay,
       boolean reuseAddress, Integer numRequestHandlers) throws Exception
   {
+    return InitializationUtils.getConfiguration(LDAPConnectionHandlerCfgDefn.getInstance(),
+        configurationEntry(port, keepAlive, noDelay, reuseAddress, numRequestHandlers));
+  }
+
+  private static Entry configurationEntry(int port, boolean keepAlive, boolean noDelay,
+      boolean reuseAddress, Integer numRequestHandlers) throws Exception
+  {
     final List<String> lines = new ArrayList<>();
     lines.add("dn: cn=Transport Test Handler,cn=Connection Handlers,cn=config");
     lines.add("objectClass: top");
@@ -761,8 +906,7 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
     {
       lines.add("ds-cfg-num-request-handlers: " + numRequestHandlers);
     }
-    final Entry entry = TestCaseUtils.makeEntry(lines.toArray(new String[0]));
-    return InitializationUtils.getConfiguration(LDAPConnectionHandlerCfgDefn.getInstance(), entry);
+    return TestCaseUtils.makeEntry(lines.toArray(new String[0]));
   }
 
   private static LDAPConnectionHandler2 start(LDAPConnectionHandlerCfg config) throws Exception
