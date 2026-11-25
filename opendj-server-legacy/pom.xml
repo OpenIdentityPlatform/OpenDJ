@@ -51,6 +51,7 @@
     <product.archive.name>${product.name.lowercase}-${project.version}</product.archive.name>
 
     <juel.version>2.2.7</juel.version>
+    <testcontainers.version>1.21.4</testcontainers.version>
 
     <opendmk.lib.dir>${basedir}/opendmk</opendmk.lib.dir>
   </properties>
@@ -267,31 +268,31 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>cassandra</artifactId>
-      <version>1.20.6</version>
+      <version>${testcontainers.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
-      <version>1.20.6</version>
+      <version>${testcontainers.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>oracle-free</artifactId>
-      <version>1.20.6</version>
+      <version>${testcontainers.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>mysql</artifactId>
-      <version>1.20.6</version>
+      <version>${testcontainers.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>mssqlserver</artifactId>
-      <version>1.20.6</version>
+      <version>${testcontainers.version}</version>
       <scope>test</scope>
     </dependency>
 
