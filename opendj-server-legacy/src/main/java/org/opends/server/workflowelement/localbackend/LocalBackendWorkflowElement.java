@@ -29,6 +29,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.controls.RelaxRulesControl;
 import org.opends.server.api.AccessControlHandler;
+import org.opends.server.api.Backend;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPostReadResponseControl;
@@ -761,27 +762,13 @@ public class LocalBackendWorkflowElement
    *
    * @param operation
    *          the operation to execute
-   * @param entryDN
-   *          the entry DN whose backend will be used
-   * @return true if the operation successfully executed, false otherwise
+   * @param backend
+   *          LocalBackend
    * @throws CanceledOperationException
    *           if this operation should be cancelled.
    */
-  public static boolean execute(Operation operation, DN entryDN) throws CanceledOperationException
+  public static void execute(Operation operation,LocalBackend<?> backend) throws CanceledOperationException
   {
-    LocalBackend<?> backend = getBackendManager().findLocalBackendForEntry(entryDN);
-
-    if (backend == null)
-    {
-      // We have found no backend for the requested base DN,
-      // just return a no such entry result code and stop the processing.
-      if (operation instanceof AbstractOperation)
-      {
-        ((AbstractOperation) operation).updateOperationErrMsgAndResCode();
-      }
-      return false;
-    }
-
     executeOperation(operation, backend);
 
     // For subtree search operation we need to go through the subordinate nodes.
@@ -789,7 +776,6 @@ public class LocalBackendWorkflowElement
     {
       executeSearchOnSubordinates((SearchOperation) operation);
     }
-    return true;
   }
 
   private static BackendConfigManager getBackendManager()
@@ -805,7 +791,7 @@ public class LocalBackendWorkflowElement
    * @throws CanceledOperationException
    *           if this operation should be canceled.
    */
-  private static void executeSearchOnSubordinates(SearchOperation searchOp)
+  public static void executeSearchOnSubordinates(SearchOperation searchOp)
       throws CanceledOperationException {
     SearchScope originalScope = searchOp.getScope();
     if (originalScope == SearchScope.BASE_OBJECT)
@@ -818,7 +804,7 @@ public class LocalBackendWorkflowElement
 
     SearchResultCode searchResultCode = new SearchResultCode(searchOp.getResultCode(), searchOp.getErrorMessage());
     DN originalBaseDN = searchOp.getBaseDN();
-    for (DN subordinateDN : getBackendManager().findSubordinateLocalNamingContextsToSearchForEntry(originalBaseDN))
+    for (DN subordinateDN : getBackendManager().findSubordinateNamingContextsToSearchForEntry(originalBaseDN))
     {
       // We have to change the operation request base DN to match the
       // subordinate workflow base DN. Otherwise the workflow will
@@ -842,7 +828,7 @@ public class LocalBackendWorkflowElement
       // Set the new request base DN and do execute the
       // operation in the subordinate workflow.
       searchOp.setBaseDN(subordinateDN);
-      execute(searchOp, subordinateDN);
+      Backend.execute(searchOp, subordinateDN);
       boolean sendReferenceEntry = searchResultCode.elaborateGlobalResultCode(
           searchOp.getResultCode(), searchOp.getErrorMessage());
       if (sendReferenceEntry)

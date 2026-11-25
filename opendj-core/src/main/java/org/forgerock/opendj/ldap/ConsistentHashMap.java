@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -189,7 +190,7 @@ public final class ConsistentHashMap<P> {
      * @return The partition from this map corresponding to the provided key's hash, or {@code null} if this map is
      * empty.
      */
-    P get(final Object key) {
+    public P get(final Object key) {
         final NavigableMap<Integer, Node<P>> circleSnapshot = circle;
         final Map.Entry<Integer, Node<P>> ceilingEntry = circleSnapshot.ceilingEntry(hashFunction.apply(key));
         if (ceilingEntry != null) {

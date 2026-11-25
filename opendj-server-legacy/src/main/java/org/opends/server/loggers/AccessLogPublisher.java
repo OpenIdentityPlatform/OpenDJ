@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -24,6 +25,7 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.core.*;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.Operation;
 import org.opends.server.types.SearchResultReference;
 
 /**
@@ -42,6 +44,16 @@ import org.opends.server.types.SearchResultReference;
 public abstract class AccessLogPublisher<T extends AccessLogPublisherCfg>
     implements LogPublisher<T>
 {
+
+  /** Records a request forwarded by a proxy backend. */
+  public void logProxyRequest(Operation operation, long proxyId, String identityMode, String shard,
+      String target, String filter, String scope) { }
+
+  /** Records the outcome of a request forwarded by a proxy backend. */
+  public void logProxyResponse(Operation operation, long proxyId, String server, String selectedServer,
+      org.forgerock.opendj.ldap.ResultCode remoteResult, String remoteAuthDN, String authorizationDN, int searchEntries,
+      org.forgerock.opendj.ldap.ConnectionRoutingContext.PoolSnapshot poolSnapshot, long elapsedMillis,
+      org.forgerock.opendj.ldap.ResultCode attemptResult) { }
 
   @Override
   public boolean isConfigurationAcceptable(T configuration,

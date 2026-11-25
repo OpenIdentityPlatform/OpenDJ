@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap.spi;
 
@@ -58,6 +59,36 @@ public final class LdapPromises {
      */
     public static <R> LdapPromise<R> asPromise(Promise<R, LdapException> wrappedPromise) {
         return wrap(wrappedPromise, -1);
+    }
+
+    /** Maps a promise while preserving cancellation of the underlying LDAP operation.
+     * The returned promise completes only after the mapping callback completes.
+     * @param source the underlying operation
+     * @param requestId LDAP request identifier, or -1 if unknown
+     * @param onResult callback for a result
+     * @param onException callback for an LDAP failure
+     * @param <T> source value type
+     * @param <R> result value type
+     * @return the mapped promise
+     */
+    public static <T, R> LdapPromise<R> mapWithCancellation(final Promise<T, LdapException> source,
+            final int requestId, final org.forgerock.util.Function<? super T, R, LdapException> onResult,
+            final org.forgerock.util.promise.ExceptionHandler<? super LdapException> onException) {
+        final Promise<R, LdapException> mapped = source.then(onResult, failure -> {
+            onException.handleException(failure);
+            throw failure;
+        });
+        return new LdapPromiseWrapper<R, Promise<R, LdapException>>(mapped, requestId) {
+            @Override
+            public boolean cancel(boolean mayInterruptIfRunning) {
+                return source.cancel(mayInterruptIfRunning);
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return mapped.isDone() && source.isCancelled();
+            }
+        };
     }
 
     /**

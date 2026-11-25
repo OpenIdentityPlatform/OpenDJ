@@ -1,0 +1,472 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+[#chap-proxy-backend]
+== Configure an LDAP Proxy Backend
+
+An LDAP proxy backend exposes a base DN on OpenDJ and forwards LDAP operations to remote directory servers. Configure a service discovery mechanism to select the remote servers, then reference that mechanism from the proxy backend. Servers in the same primary and secondary groups must contain equivalent replicas of the data; this configuration does not merge different datasets.
+
+For the complete property descriptions, see the `dsconfig` reference for xref:../reference/dsconfig-subcommands-ref.adoc#dsconfig-create-backend-proxy-backend[Proxy Backend], xref:../reference/dsconfig-subcommands-ref.adoc#dsconfig-create-service-discovery-mechanism-static-service-discovery-mechanism[Static Service Discovery Mechanism], and xref:../reference/dsconfig-subcommands-ref.adoc#dsconfig-create-service-discovery-mechanism-replication-service-discovery-mechanism[Replication Service Discovery Mechanism].
+
+The examples use `ou=people,dc=example,dc=com` as the proxy base DN and `dc=directory,dc=example` as the corresponding remote base DN. Replace host names, ports, DNs, passwords, and certificate paths with values for your deployment. Run `dsconfig` from the OpenDJ installation directory.
+
+=== Proxy Access Log Records
+
+The file-based text access logger records a `PROXY_REQ` for a proxy forwarding attempt and a corresponding `PROXY_RES`. They retain the client operation's `conn`, `op`, and `msgID`; these identifiers are local to the proxy and are not sent to the remote server. Each pair also has a local `proxyOp` identifier, which distinguishes multiple forwarding attempts within one client operation. Existing access-log filtering also applies to the proxy records; response criteria use the overall client operation result and duration. In combined log format, both proxy records are emitted when the client operation completes, so their timestamps do not measure the remote duration; use `etime` for that duration. JSON, CSV, and external access publishers do not emit these records.
+
+[source,text]
+----
+SEARCH PROXY_REQ conn=42 op=1 msgID=2 proxyOp=7 s_credmode="specific" shard="directory-servers" base="dc=directory,dc=example" scope="sub" filter="(uid=user1)"
+SEARCH PROXY_RES conn=42 op=1 msgID=2 proxyOp=7 server="ldap2.example.com:636" s_authdn="cn=proxy-service,dc=directory,dc=example" poolServer="ldap2.example.com:636" poolSize=10 poolIdle=0 poolInUse=10 poolPending=0 poolWaiting=3 poolMax=10 poolClosed=false result=0 nentries=1 etime=12
+----
+
+`server` identifies the configured endpoint whose connection returned the LDAP response, after any failover. It does not identify the TCP peer behind DNS or an external load balancer. `s_credmode` is the selected operation identity mode; a forwarded bind uses `client`. `s_authdn` is the remote bind DN when known. `authzDN` is the proxy client's authorization DN when proxied authorization is used. A bind DN is logged as authenticated only after a successful bind. Search `nentries` counts entries received from the remote server and may differ from the final client response after local routing. `etime` is measured on the proxy in milliseconds, starting before connection acquisition and ending when the remote operation completes; it includes waiting for the pool and network transit.
+
+Pool fields appear immediately before `result` when the request uses a pool with available statistics. `poolServer` identifies the configured endpoint for that pool. `poolSize` counts reserved slots, including pending connection attempts; `poolIdle`, `poolInUse`, `poolPending`, and `poolWaiting` show idle connections, borrowed connections, pending connections, and waiting acquisitions. `poolMax` is the pool limit and `poolClosed` indicates whether the pool has been closed. A client-bound pool has no acquisition queue or pending connection creation, so those values are zero. A directly forwarded bind does not use a pool and has no pool fields. The snapshot is taken before the borrowed connection is returned, or when acquisition fails; under concurrent updates some counters are best-effort and can immediately change.
+
+For example, a saturated service pool can report:
+
+[source,text]
+----
+SEARCH PROXY_RES conn=42 op=2 msgID=3 proxyOp=8 outcome=no-response poolServer="ldap2.example.com:636" poolSize=1 poolIdle=0 poolInUse=1 poolPending=0 poolWaiting=0 poolMax=1 poolClosed=false result=51 nentries=0 etime=100
+----
+
+Here `poolServer` identifies the exhausted pool; it does not mean a remote server returned a response. The timed-out waiter has left the queue when the snapshot is recorded.
+
+If no LDAP response is received, `outcome=no-response` is present and `server` is omitted. `selectedServer`, when present, identifies the endpoint whose connection was selected; it does not imply that the endpoint processed the request. In this case `result` is the client-facing proxy result. Request parameters are the rewritten values sent to the remote server. Passwords and request control values are never included. The records can contain DNs and search filters; protect the log accordingly.
+
+=== Before You Begin
+
+* Configure a remote LDAP directory with the remote base DN and client accounts. Configure remote access controls for the operations and entries that clients may use.
+* `specific` and `proxy-auth` operation identity modes require a service account on every remote directory with the same DN and password. `proxy-auth` additionally requires the LDAP Proxied Authorization V2 control (`2.16.840.1.113730.3.4.18`) and permission for the service account to use it for the relevant client identities, including anonymous authorization when anonymous access is needed.
+* Enable LDAPS on the remote servers. The proxy must trust their certificates, and each server address must match its certificate. A trust manager provider can be specified below; otherwise the proxy uses the JVM's default trust configuration.
+* Ensure the proxy's administration connector is reachable and its certificate is trusted by `dsconfig`. The examples use password files and an administration truststore; keep those files readable only by authorized users.
+
+The proxy forwards simple binds to the remote directory. `operation-identity-mode` determines the identity used for subsequent operations; it is not inferred solely from whether a service account is present. Every client bind is independently checked by the remote server. The proxy does not retain client passwords for reconnection: if all available user connections are lost, the client must bind again. The remote directory applies its access controls. SASL bind forwarding is not supported. A bind with a nonempty DN and an empty password is rejected.
+
+=== Authorize the Proxy Service Account
+
+The following examples use the existing service account `cn=proxy-service,dc=directory,dc=example` and user `uid=user1,dc=directory,dc=example`. The OpenDJ and OpenLDAP examples grant the account permission to proxy as that user. The 389 Directory Server example grants proxy access to a target entry; its ACI does not restrict the authorization identity to that user. Run the examples on each remote server, adapting the DNs and access policy to your deployment. The proxied user's own access controls still govern the operation. These examples do not configure anonymous authorization: verify that separately against the remote server's policy if anonymous proxy access is required.
+
+==== Remote OpenDJ Server
+
+The service account needs the `proxied-auth` privilege, permission to use the Proxied Authorization V2 control, and permission to proxy as the requested user. The following example grants access to the control and to one authorization identity; a broader target would permit impersonating additional users. Run it as a remote administrator able to change privileges and ACIs:
+
+[source,bash]
+----
+LDAPTLS_CACERT=/secure/remote-ca.pem ldapmodify -x \
+  -H ldaps://ldap1.example.com:636 -D 'cn=Directory Manager' -W <<'LDIF'
+dn: cn=proxy-service,dc=directory,dc=example
+changetype: modify
+add: ds-privilege-name
+ds-privilege-name: proxied-auth
+
+dn: dc=directory,dc=example
+changetype: modify
+add: aci
+aci: (targetcontrol="2.16.840.1.113730.3.4.18")
+ (version 3.0; acl "Proxy service may use proxied authorization control";
+ allow(read) userdn="ldap:///cn=proxy-service,dc=directory,dc=example";)
+aci: (target="ldap:///uid=user1,dc=directory,dc=example")
+ (targetattr="*")(version 3.0; acl "Proxy service may act as user1";
+ allow(proxy) userdn="ldap:///cn=proxy-service,dc=directory,dc=example";)
+LDIF
+----
+
+The first ACI may already be covered by a global ACI; assess the existing policy before adding it. Repeat or adjust the proxy target for the intended users without granting access to administrative identities. See xref:../server-dev-guide/chap-ldap-operations.adoc#setup-proxied-authz[Configure Proxied Authorization] for the privilege and ACI requirements.
+
+==== Remote OpenLDAP Server
+
+OpenLDAP can authorize the proxy through source rules in the service account's `authzTo` attribute. The example enables `to` rules, grants the service account `auth` access to its own `authzTo`, and allows it to assume the one test identity. These are changes to the **remote OpenLDAP server**, not the OpenDJ proxy.
+
+First identify the configuration entry for the database containing the service account. On the OpenLDAP host, using a local administrator permitted to manage `cn=config`:
+
+[source,bash]
+----
+ldapsearch -Y EXTERNAL -H ldapi:/// -LLL -b cn=config \
+  '(olcSuffix=dc=directory,dc=example)' dn
+----
+
+Replace `olcDatabase=\{1}mdb,cn=config` below with the returned DN. For a test server whose proxy authorization policy is currently disabled, enable source rules and add the ACL ahead of existing ACLs:
+
+[source,bash]
+----
+ldapmodify -Y EXTERNAL -H ldapi:/// <<'LDIF'
+dn: cn=config
+changetype: modify
+replace: olcAuthzPolicy
+olcAuthzPolicy: to
+
+dn: olcDatabase={1}mdb,cn=config
+changetype: modify
+add: olcAccess
+olcAccess: {0}to dn.exact="cn=proxy-service,dc=directory,dc=example"
+  attrs=authzTo by self auth by * none
+LDIF
+----
+
+`olcAuthzPolicy` is a global setting. If the server already uses `from` rules, replacing it with `to` would disable those rules; choose a policy compatible with the existing deployment, such as `both`, and review ACL order before making changes. The example ACL protects `authzTo` from ordinary users; OpenLDAP's database root DN bypasses ACLs and can administer the account.
+
+Add the source rule to the existing service account as the remote database administrator. The example adds `extensibleObject` if needed to allow the operational attribute; omit that change if the entry already permits `authzTo`:
+
+[source,bash]
+----
+LDAPTLS_CACERT=/secure/remote-ca.pem ldapmodify -x \
+  -H ldaps://ldap1.example.com:636 \
+  -D 'cn=admin,dc=directory,dc=example' -W <<'LDIF'
+dn: cn=proxy-service,dc=directory,dc=example
+changetype: modify
+add: objectClass
+objectClass: extensibleObject
+-
+add: authzTo
+authzTo: dn.exact:uid=user1,dc=directory,dc=example
+LDIF
+----
+
+Add further `authzTo` values for the intended authorization identities or use a suitably restricted subtree rule. Do not allow ordinary users to modify `authzTo`: source rules can grant impersonation. See the link:https://www.openldap.org/doc/admin26/guide.html#Proxy%20Authorization%20Rules[OpenLDAP proxy authorization rules] and link:https://www.openldap.org/doc/admin26/guide.html#Controlling%20the%20LDAP%20Proxied%20Authorization%20Control[access control requirements].
+
+==== Remote 389 Directory Server
+
+On the remote 389 Directory Server, grant the service account the `proxy` right with an ACI. This example allows proxy operations on the `uid=user1` entry. Run it as an administrator who can manage ACIs:
+
+[source,bash]
+----
+LDAPTLS_CACERT=/secure/remote-ca.pem ldapmodify -x \
+  -H ldaps://ldap1.example.com:636 -D 'cn=Directory Manager' -W <<'LDIF'
+dn: dc=directory,dc=example
+changetype: modify
+add: aci
+aci: (target="ldap:///uid=user1,dc=directory,dc=example")
+ (targetattr="*")(version 3.0; acl "OpenDJ proxy access to user1";
+ allow (proxy) userdn="ldap:///cn=proxy-service,dc=directory,dc=example";)
+LDIF
+----
+
+In 389 Directory Server, the ACI target limits the entries accessed by a proxied operation; it does not limit which authorization identities the service account can assume for those operations. For example, this rule can allow the service account to access the `user1` entry as another user whose own permissions permit that access. Set the target scope as narrowly as possible and protect the service account credentials. For a subtree, adjust the ACI target and review its scope against the existing access policy. See the link:https://www.port389.org/docs/389ds/howto/howto-chainonupdate.html[389 Directory Server proxy ACI example].
+
+==== Remote Microsoft Active Directory
+
+Microsoft Active Directory Domain Services does not implement the Proxied Authorization control from RFC 4370. Do not use `operation-identity-mode:proxy-auth` for an AD route: its capability check returns `UNAVAILABLE`. `auto` with service credentials eventually selects `specific` after every domain controller reports that the control is absent, but `specific` is the explicit and recommended choice for AD.
+
+For `specific` mode, create a dedicated service account such as `CN=opendj-proxy,OU=Service Accounts,DC=example,DC=com`. Configure it with the same password on every selected domain controller (a normal replicated AD account satisfies this), enable LDAPS on each controller, and add the issuing CA to the proxy trust manager. Configure the static mechanism as follows after creating the trust manager provider described below:
+
+[source,bash]
+----
+bin/dsconfig create-service-discovery-mechanism \
+  --mechanism-name active-directory --type static \
+  --set 'bind-dn:CN=opendj-proxy,OU=Service Accounts,DC=example,DC=com' \
+  --set "bind-password:${AD_PROXY_PASSWORD}" \
+  --set operation-identity-mode:specific \
+  --set primary-server:dc1.example.com:636 \
+  --set secondary-server:dc2.example.com:636 \
+  --set use-ssl:true \
+  --set trust-manager-provider:ad-trust --no-prompt
+----
+
+Delegate to this account only the required read, search, write, or reset-password permissions on the target organizational units and attributes; do not add it to Domain Admins or grant unrestricted permissions on the domain. AD evaluates every forwarded operation as this account, so its permissions, rate limits, and audit identity apply to all proxy clients. This is appropriate for an integration API but not when AD must enforce per-user authorization. Rotate its password in AD and in the proxy configuration together.
+
+To preserve per-user authorization and AD audit identity, use `operation-identity-mode:client` instead and omit `bind-dn` and `bind-password` for static discovery. Each client must make a simple bind through the proxy using its full DN, for example `CN=Alice,OU=Users,DC=example,DC=com`; this proxy does not forward an AD UPN such as `alice@example.com`. The proxy does not retain client passwords, so a lost client-bound connection requires another bind.
+
+Use LDAPS (`use-ssl:true`) for both modes. AD can be configured to reject simple binds on unencrypted connections, and this discovery mechanism does not implement StartTLS. Verify the certificate name for every controller and test both an allowed and a denied operation through every configured controller. See the link:https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/faf0b8c6-8c59-439f-ac62-dc4c078ed715[Microsoft documentation on the unsupported Proxied Authentication control] and link:https://learn.microsoft.com/en-us/troubleshoot/windows-server/identity/enable-ldap-signing-in-windows-server[Microsoft LDAP signing guidance].
+
+=== Configure Static Discovery
+
+This example selects `ldap1.example.com:636` as primary and `ldap2.example.com:636` as secondary. Add further `primary-server` or `secondary-server` values as needed. All servers in either group must hold equivalent replicas of the remote data. The proxy exhausts the primary group before trying secondary servers, regardless of the load-balancing algorithm selected for either group. The connection load balancer periodically checks failed servers for recovery.
+
+Create a file-based trust manager provider containing the CA certificates for the remote servers. This example assumes a JKS truststore and a PIN file already exist:
+
+[source,bash]
+----
+bin/dsconfig create-trust-manager-provider \
+  --hostname proxy.example.com --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /secure/admin-password \
+  --trustStorePath /secure/proxy-admin-truststore \
+  --trustStorePasswordFile /secure/proxy-admin-truststore.pin \
+  --provider-name remote-directory-trust --type file-based \
+  --set trust-store-file:/secure/remote-directory-truststore \
+  --set trust-store-type:JKS \
+  --set trust-store-pin-file:/secure/remote-directory-truststore.pin \
+  --set enabled:true --no-prompt
+----
+
+Set `PROXY_SERVICE_PASSWORD` in the shell by a method appropriate for your environment, then create the discovery mechanism:
+
+[source,bash]
+----
+bin/dsconfig create-service-discovery-mechanism \
+  --hostname proxy.example.com --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /secure/admin-password \
+  --trustStorePath /secure/proxy-admin-truststore \
+  --trustStorePasswordFile /secure/proxy-admin-truststore.pin \
+  --mechanism-name directory-servers --type static \
+  --set 'bind-dn:cn=proxy-service,dc=directory,dc=example' \
+  --set "bind-password:${PROXY_SERVICE_PASSWORD}" \
+  --set operation-identity-mode:auto \
+  --set primary-server:ldap1.example.com:636 \
+  --set secondary-server:ldap2.example.com:636 \
+  --set use-ssl:true \
+  --set trust-manager-provider:remote-directory-trust --no-prompt
+----
+
+The service password is passed to `dsconfig` as a property value and stored in the server configuration. Protect process arguments and configuration files accordingly. The `use-ssl` setting selects LDAPS for connections to the remote LDAP servers; StartTLS is not implemented for this discovery mechanism.
+
+==== Configure Remote Connections
+
+The following proxy backend properties control remote connections. Durations are limited to one hour. Changes create new routes; requests already using a previous route can complete there. A client-mode session associated with a previous route must bind again to use the replacement route.
+
+[cols="1,1,3",options="header"]
+|===
+|Property |Default |Purpose
+|`connection-timeout` |SDK default: 10s |Connection establishment timeout, including TLS and initial authentication. When unset, the SDK's `org.forgerock.opendj.io.connectTimeout` JVM property can override its default. Zero uses the operating system timeout.
+|`request-timeout` |30s |Timeout for remote LDAP requests. Zero disables it. This proxy setting overrides the SDK's JVM request-timeout property. A timed-out write may already have been applied and is not retried automatically.
+|`keep-alive-enabled` |true |Enable SDK heartbeat on remote connections.
+|`keep-alive-interval` |10s |Interval between heartbeat checks on connections that have been idle. The minimum is 1s.
+|`keep-alive-timeout` |3s |Heartbeat response timeout. The minimum is 10ms.
+|`keep-alive-search-request-base-dn` |Root DSE |Remote base DN of the heartbeat search; it is not rewritten through `remote-base-dn`.
+|`keep-alive-search-request-filter` |`(objectClass=*)` |LDAP filter for heartbeat searches. The configured string must be a valid LDAP filter.
+|`reconnect-interval` |1s |Interval between attempts to reconnect a connection factory marked offline by the SDK load balancer. The minimum is 10ms.
+|`connection-pool-min-size` |4 |Number of already-created idle service-account connections to retain per server. This does not pre-create connections.
+|`connection-pool-max-size` |1024 |Maximum service-account connections per server; `unlimited` removes the practical limit. The minimum size must not exceed this value.
+|`connection-pool-idle-timeout` |60s |Idle timeout for service connections above the minimum. The minimum is 1ms.
+|`connection-pool-wait-timeout` |10s |Maximum time waiting for a service pool slot. The minimum is 1ms; when the wait expires, the operation returns `BUSY`.
+|===
+
+For example, configure a short remote request timeout and limit each service pool to 100 connections:
+
+[source,bash]
+----
+bin/dsconfig set-backend-prop \
+  --backend-name proxy-example \
+  --set request-timeout:15s \
+  --set connection-pool-min-size:4 \
+  --set connection-pool-max-size:100 \
+  --set connection-pool-wait-timeout:5s --no-prompt
+----
+
+Heartbeat uses existing connections and does not continuously probe every configured server. A heartbeat search returning no entries is not treated as a failed availability check. Choose a heartbeat base entry readable by the identities used on the remote connections; initial checks may be anonymous. The SDK's reconnect interval applies after a connection factory has been marked offline; client-mode binds have a separate path and established client sessions are not moved between remote servers. These settings do not change the capability-probe and replication-discovery administrative timeouts.
+
+==== Select Tier Load-Balancing Algorithms
+
+`primary-load-balancing-algorithm` and `secondary-load-balancing-algorithm` select servers independently within the primary and secondary groups. They are available on both static and replication discovery mechanisms and default to `affinity`. They do not change primary-to-secondary failover: the proxy tries every primary connection candidate before it selects a secondary candidate. A transport failure can move to another server; an LDAP result returned by a reachable server is returned to the client and is not retried on another server.
+
+For example, distribute primary connections in round-robin order, while retaining the first available secondary server as the fallback:
+
+[source,bash]
+----
+bin/dsconfig set-service-discovery-mechanism-prop \
+  --mechanism-name directory-servers \
+  --set primary-load-balancing-algorithm:round-robin \
+  --set secondary-load-balancing-algorithm:failover --no-prompt
+----
+
+[cols="1,2,3"]
+|===
+|Algorithm |Selection within one group |Requirements and operational risks
+
+|`affinity` (default)
+|Hashes the target DN to one server. Requests for the same DN normally stay on the same server; if it is unavailable, the proxy probes other servers in that group.
+|Use it when DN locality and repeatable routing are more valuable than an even instantaneous load. Every proxy must list servers in the same order or the same DN can select different replicas. Adding or removing a server can remap DNs.
+
+|`round-robin`
+|Cycles successive connection acquisitions through the servers in configured order, skipping unavailable servers.
+|Use it for even distribution of new connections. Long-lived client-bound connections and cached service connections can make observed request traffic uneven; it does not preserve DN affinity. The configured order determines the first selection after startup.
+
+|`least-requests`
+|Selects the primary candidate route with the fewest active proxy requests. A request targeting the same DN can select a different server later.
+|Use it when request duration varies substantially. Counts are local to one proxy instance, so they do not include traffic sent by other proxies or directly to the remote servers. If the initially selected primary is unavailable, connection recovery can use another primary while the active count remains associated with the original candidate route; it is therefore not an exact per-server measure during an outage. It also sacrifices DN affinity and can expose replica-lag inconsistencies for write-then-read workloads.
+
+|`failover`
+|Starts with the first available server in the order supplied by discovery and uses the next server after a connection failure.
+|This is not load distribution: the first available server receives most traffic. Configure `server-priority` to prefer a particular server; the order in which server values are entered is not an explicit priority. A recovered server becomes eligible again. Existing client-mode sessions remain bound to their selected server.
+
+|`distribution`
+|Uses consistent hashing of the full target DN across fully replicated servers. Adding or removing a server moves only part of the DN space. Requests without a target DN select a server at random.
+|This is *not* LDAP data partitioning or federation: every server must contain the full dataset, and searches are sent to one selected server, not broadcast. Server IDs follow the discovery order, which is not an administrator-controlled insertion order and can differ between proxy instances or change with membership. Such differences can remap DNs. Verify replica convergence before changing the group.
+|===
+
+`affinity`, `least-requests`, and `distribution` select a server at request level. They use virtual connections, so LDAP abandon requests cannot be routed and are ignored. All five algorithms retry connection acquisition within the current group before the proxy proceeds to secondary servers. These algorithms do not provide weights, per-operation priorities, or an external health-check policy; size remote connection pools, timeouts, and replica capacity for the selected policy.
+
+==== Set Server Priorities
+
+Both static and replication discovery accept the optional, multi-valued `server-priority` property. Each value associates an LDAP server address with a non-negative 32-bit integer. Lower numbers are preferred. An address without an entry has priority `0`, so it is preferred to a server with a positive priority. For example, after adding these servers to a static discovery mechanism:
+
+[source,bash]
+----
+bin/dsconfig set-service-discovery-mechanism-prop \
+  --mechanism-name directory-servers \
+  --set server-priority:ldap1.example.com:636=0 \
+  --set server-priority:ldap2.example.com:636=10 \
+  --set 'server-priority:[2001:db8::1]:636=20' --no-prompt
+----
+
+For `failover`, the first available server with the lowest priority number is used. For `least-requests`, the fewest active requests decide first, and priority breaks a tie. A server with fewer active requests can therefore be selected even if its priority number is higher. The SDK affinity control, when passed through on a service-account request, overrides least-requests and selects a route by index; changing priorities can change that mapping. The priority is applied separately within each group: all primary candidates are exhausted before secondary candidates are tried. It applies to service-account operations and client binds. Changing priorities replaces the route; clients with existing client-bound sessions must bind again.
+
+Use the remote LDAP address and port, not a replication bootstrap administration address. Static discovery requires every priority address to appear in `primary-server` or `secondary-server`; remove its priority in the same configuration change when removing the server. Replication discovery may receive priorities for servers not yet discovered; they take effect when the matching LDAP address appears. Matching ignores case in host names but does not resolve aliases: use the address reported by discovery, including brackets around IPv6 addresses. IPv6 zone identifiers are case-sensitive. Duplicate address entries and invalid or out-of-range priorities are rejected. If any priority is configured, equal priorities are ordered by address; otherwise discovery order is preserved. Priority changes do not reorder `affinity`, `distribution`, or `round-robin` selections.
+
+==== Select the Operation Identity
+
+`operation-identity-mode` is a property of the service discovery mechanism. It applies to every proxy backend that uses that mechanism. Choose the mode according to which identity the *remote* directory must authorize and audit; it does not change how the proxy accepts a client bind. The following modes are available:
+
+[cols="1,2,3"]
+|===
+|Mode |Use it when |Operation identity and selection
+
+|`auto` (default)
+|A mixed deployment should select the safest supported identity automatically.
+|Without both service credentials, use `client`. With credentials, use `proxy-auth` only when every server in the selected route advertises Proxied Authorization V2. If every probe completes and any server does not advertise the control, use `specific`. If a capability probe fails or is incomplete, return `UNAVAILABLE`; do not silently change the identity.
+
+|`client`
+|The remote directory must enforce and audit each end user's authorization without a proxy authorization control.
+|Always use a connection authenticated by the client through this proxy. A service account may still be configured for replication discovery, but is not used for forwarded operations.
+
+|`specific`
+|The proxy must access the remote directory as one controlled integration identity.
+|Always use the configured service account and never add a Proxied Authorization V2 control. Both service credentials are required.
+
+|`proxy-auth`
+|The remote directory must authorize and audit each client, but connections must use a service account.
+|Always use the configured service account and add Proxied Authorization V2. Both credentials are required and every server in the selected route must advertise the control. Otherwise the operation returns `UNAVAILABLE`; it never falls back to `client` or `specific`.
+|===
+
+===== `auto`: Capability-Based Selection
+
+Use `auto` when the same configuration must work with directories that may or may not support Proxied Authorization V2. It is the default and needs no explicit setting. For a static mechanism with no service account, omit *both* `bind-dn` and `bind-password`; `auto` then selects `client`. To let it select `specific` or `proxy-auth`, configure both properties and provision the same service account with the same password on every server in the route. Replication discovery still needs this account to read the administration registry and replication configuration, even when `client` is selected for LDAP operations.
+
+With service credentials, `auto` only discovers support for the control; it cannot discover whether the service account has been granted proxy authorization for each requested identity. Test representative allowed and denied operations after configuring the remote access policy. A reachable server that does not advertise the control selects `specific`, so its service-account permissions become the effective remote permissions. An unreachable server, a failed root-DSE capability request, or a partially completed probe makes operations return `UNAVAILABLE` instead. This prevents an outage or an ambiguous capability result from silently changing remote authorization or audit identity, but it can reduce availability during maintenance or a network partition.
+
+===== `client`: Client-Bound Connections
+
+Use `client` when remote ACLs, rate limits, password policy, and audit records must see the authenticated end user and the remote server does not support, or must not receive, ProxyAuth. Set `operation-identity-mode:client`; a service account is not needed for static discovery and is ignored for forwarded operations if it is configured. Configure every client to use a simple bind through this proxy route. A client authenticated only by another local backend has no corresponding remote connection; it must bind through this route before making authenticated operations, otherwise the operation returns `UNAVAILABLE`.
+
+Each client bind is sent to the remote directory, so the remote password policy and account state apply. The proxy does not retain client passwords. User connections are limited to 16 per proxy route, user, and remote server. Extra idle connections are closed after at least five minutes of inactivity, checked once per minute; one connection is retained while a client session remains active. When all connections in a pool are in use, another operation returns `BUSY`; when no valid connections remain, it returns `UNAVAILABLE` and the client must bind again. Connections authenticated on one server are not reused on a different server. These limits and reconnect requirements are the main operational risk of this mode; size the remote connection limits and client retry policy accordingly.
+
+===== `specific`: Service Account Only
+
+Use `specific` for a controlled integration identity, for example when the remote service deliberately exposes a restricted API to the proxy service rather than per-user access. Set `operation-identity-mode:specific`, set both `bind-dn` and `bind-password`, and create that account with the same credentials on every remote server. Grant it only the LDAP operations, entries, and attributes the proxy needs. Proxied Authorization V2 support and proxy authorization privileges are not required.
+
+The remote directory sees the service account, not the client. Remote access control, rate limits, password policy, and audit records therefore apply to that account. A client authenticated by another backend can use this mode because no client connection pool is required. The risk is privilege aggregation: every client that the proxy allows to reach this backend can receive the service account's remote access. Do not use this mode where the remote directory must enforce each end user's authorization, and do not give the account administrative or unrestricted subtree access.
+
+===== `proxy-auth`: Service Account with Proxied Authorization
+
+Use `proxy-auth` when connections must use a service account but the remote directory must still apply ACLs, policy, and auditing to the client identity. Set `operation-identity-mode:proxy-auth`, set both service credentials, and configure the identical account on every remote server. Every server in the selected route must advertise LDAP Proxied Authorization V2 and the service account must have permission to use the control and to assume only the intended client identities. Follow the remote-server-specific authorization steps above and test both permitted and denied identities on every replica.
+
+This is the most sensitive mode: the service account can request another authorization identity. Limit its proxy privilege to the smallest set of identities and subtrees, protect and rotate its credentials, and review remote audit records. A server that omits, rejects, or becomes unreachable during the capability check causes `UNAVAILABLE` rather than an identity downgrade; there is no fallback to `client` or `specific`. This fail-closed behavior prevents accidental impersonation or a change in audit identity, but means a single inconsistent or unavailable route server can affect availability.
+
+=== Create the Proxy Backend
+
+[source,bash]
+----
+bin/dsconfig create-backend \
+  --hostname proxy.example.com --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /secure/admin-password \
+  --trustStorePath /secure/proxy-admin-truststore \
+  --trustStorePasswordFile /secure/proxy-admin-truststore.pin \
+  --backend-name remote-people --type proxy \
+  --set 'base-dn:ou=people,dc=example,dc=com' \
+  --set 'remote-base-dn:dc=directory,dc=example' \
+  --set shard:directory-servers --set enabled:true --no-prompt
+----
+
+The proxy suffix must not conflict with an existing naming context. If the remote and proxy suffixes are identical, omit `remote-base-dn`. When it is set, exactly one proxy `base-dn` is required.
+
+User binds select a primary server using the configured primary load-balancing algorithm and try secondary servers only when the primary servers cannot be reached before a bind is sent. An authentication failure from a reachable server is returned to the client; it is not retried against other replicas. If the connection fails after a bind was sent, the proxy returns `UNAVAILABLE` without retrying on another server, because the bind outcome is unknown. After a successful bind in `client` mode, the session uses connections authenticated on that server until it binds again.
+
+Use a bind DN under the proxy base DN. The proxy does not forward non-DN bind names such as an Active Directory user principal name. The remote server determines whether an established connection remains usable after a password change or account disablement.
+
+Use an LDAP client to bind as a remote user through the proxy and search the proxy suffix. For example, with OpenLDAP's `ldapsearch` and a TLS-enabled proxy listener:
+
+[source,bash]
+----
+LDAPTLS_CACERT=/secure/proxy-ca.pem ldapsearch -x \
+  -H ldaps://proxy.example.com:636 \
+  -D 'uid=user1,ou=people,dc=example,dc=com' -W \
+  -b 'ou=people,dc=example,dc=com' '(objectClass=*)' dn
+----
+
+The user must exist on the remote server as `uid=user1,dc=directory,dc=example`. Verify both allowed and denied operations with representative user accounts. Protect client-to-proxy connections separately from proxy-to-remote connections; `use-ssl` above controls only the latter.
+
+=== Rewrite DNs, Rename Attributes, and Add Aliases
+
+`remote-base-dn` maps DNs under the proxy suffix to the remote suffix in requests and maps them back in responses. For example, `uid=user1,ou=people,dc=example,dc=com` maps to `uid=user1,dc=directory,dc=example`. Values of attributes recognized by the proxy schema as having DN syntax, such as `manager`, are also rewritten when they fall under the configured suffix. Configure the proxy schema for any custom DN-valued attributes.
+
+Attribute mappings are optional and independent of DN rewriting. Each mapping is `client-attribute=remote-attribute` and must be one-to-one. For example, expose the remote `displayName` as `description`:
+
+[source,bash]
+----
+bin/dsconfig set-backend-prop \
+  --hostname proxy.example.com --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /secure/admin-password \
+  --trustStorePath /secure/proxy-admin-truststore \
+  --trustStorePasswordFile /secure/proxy-admin-truststore.pin \
+  --backend-name remote-people \
+  --add 'attribute-mapping:description=displayName' --no-prompt
+----
+
+Mappings apply to attributes in requests, search filters, and returned entries. Do not configure mappings that cause two attributes of the same entry to resolve to the same name. Referral URLs are passed through and are not rewritten.
+
+An attribute alias preserves the remote attribute and exposes the same values under an additional client-side name. Use `client-alias=remote-attribute`; unlike `attribute-mapping`, an alias is not a rename and multiple aliases can refer to the same remote attribute. For example, retain remote `mail` while exposing it as a custom `orgPersonPrincipalName` attribute:
+
+[source,bash]
+----
+bin/dsconfig set-backend-prop \
+  --hostname proxy.example.com --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /secure/admin-password \
+  --trustStorePath /secure/proxy-admin-truststore \
+  --trustStorePasswordFile /secure/proxy-admin-truststore.pin \
+  --backend-name remote-people \
+  --add 'attribute-alias:orgPersonPrincipalName=mail' --no-prompt
+----
+
+For every returned `mail` value, the proxy returns both `mail` and `orgPersonPrincipalName`. An alias can be used in a search filter, a compare request, an assertion control, a pre-read or post-read attribute list, and a search requested-attribute list; the proxy requests the underlying remote attribute. It is read-only: add and modify requests naming an alias return `UNWILLING_TO_PERFORM`. An alias cannot be used in a DN or RDN, including a bind DN, search base DN, or modify DN request.
+
+Define every custom alias in the proxy schema with a syntax and matching rules compatible with its remote source attribute. Do not configure an alias that overlaps an attribute mapping or another alias, and do not use an alias name that remote entries already return: both cases make the client namespace ambiguous.
+
+The proxy search path does not enforce local entry or attribute ACIs on returned values. Enforce access to the remote source attribute through the remote directory's ACLs and the configured operation identity. Test allowed and denied remote identities; an alias is not a separate security boundary.
+
+Aliases are not virtual attributes. The proxy does not create values from templates such as `{$uid}@example.com`, does not fetch hidden source attributes to calculate values, and does not support filtering, sorting, or writing computed values.
+
+When rewriting is enabled, assertion, pre-read, post-read, and simple paged results controls have explicit handling. Other critical controls that cannot be safely rewritten are rejected; unsupported noncritical controls are omitted. Without rewriting, request controls are forwarded, except client-supplied proxied authorization controls, which are rejected.
+
+=== Discover an OpenDJ Replication Topology
+
+As an alternative to static discovery, use replication discovery for an OpenDJ topology registered in the shared administration data (ADS). The bootstrap addresses are **administration ports**, not replication or LDAP ports. The account must read the ADS registry and remote replication configuration. When proxied authorization is used for LDAP operations, the account also needs the corresponding permissions.
+
+[source,bash]
+----
+bin/dsconfig create-service-discovery-mechanism \
+  --hostname proxy.example.com --port 4444 \
+  --bindDN 'cn=Directory Manager' --bindPasswordFile /secure/admin-password \
+  --trustStorePath /secure/proxy-admin-truststore \
+  --trustStorePasswordFile /secure/proxy-admin-truststore.pin \
+  --mechanism-name replicated-directory --type replication \
+  --set 'bind-dn:cn=proxy-service,dc=directory,dc=example' \
+  --set "bind-password:${PROXY_SERVICE_PASSWORD}" \
+  --set bootstrap-replication-server:ds1.example.com:4444 \
+  --set bootstrap-replication-server:ds2.example.com:4444 \
+  --set discovery-interval:60s --set use-ssl:true \
+  --set trust-manager-provider:remote-directory-trust --no-prompt
+----
+
+Use `shard:replicated-directory` when creating the backend instead of the static mechanism. The optional `primary-group-id` selects a preferred replication group; without it, discovered replicas are treated equally. Discovery reads the topology periodically, using a default interval of 60 seconds. If a registered node cannot be read, its last known information can be retained while accessible nodes are refreshed. Until a route has been discovered for the target DN, requests return an unavailable result.
+
+Discovery connects to administration ports over TLS regardless of `use-ssl`. The `use-ssl` setting selects the registered LDAPS or LDAP listener for forwarded operations. The trust manager provider must trust certificates used by both the administration ports and, when LDAPS is enabled, the LDAP listeners. Replication discovery without ADS is not supported.
+
+=== Current Scope
+
+The backend forwards bind, search, add, modify, modify DN, compare, and delete operations. Search limits and access control are evaluated by the remote directory. Extended operations are handled by the server's normal extended-operation dispatch and are not generally routed to this backend.
+
+The current configuration does not provide per-operation routing priorities, configurable application-level availability checks, or per-backend health metrics. Routing to all discovered naming contexts is not implemented; configure the proxy base DNs explicitly. With service credentials, `auto` selects `proxy-auth` only when every route server advertises Proxied Authorization V2; when every probe completes and the control is absent, it selects `specific`. An incomplete probe returns `UNAVAILABLE` and never silently falls back to a different identity. DN rewriting, attribute mappings, and attribute aliases do not provide general directory federation or virtual attributes.

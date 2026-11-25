@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -45,6 +46,20 @@ abstract class ConnectionLoadBalancer extends LoadBalancer {
     public final Promise<Connection, LdapException> getConnectionAsync() {
         try {
             return getMonitoredConnectionFactory(getInitialConnectionFactoryIndex()).getConnectionAsync();
+        } catch (final LdapException e) {
+            return newExceptionPromise(e);
+        }
+    }
+
+    @Override
+    public final Connection getConnectionWithContext(ConnectionRoutingContext context) throws LdapException {
+        return getMonitoredConnectionFactory(getInitialConnectionFactoryIndex()).getConnectionWithContext(context);
+    }
+
+    @Override
+    public final Promise<Connection, LdapException> getConnectionAsyncWithContext(ConnectionRoutingContext context) {
+        try {
+            return getMonitoredConnectionFactory(getInitialConnectionFactoryIndex()).getConnectionAsyncWithContext(context);
         } catch (final LdapException e) {
             return newExceptionPromise(e);
         }

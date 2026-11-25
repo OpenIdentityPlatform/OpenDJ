@@ -48,19 +48,9 @@ import org.opends.server.core.PersistentSearch.CancellationCallback;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.monitors.LocalBackendMonitor;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.CanceledOperationException;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.IndexType;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.WritabilityMode;
+import org.opends.server.types.*;
+import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
+
 /**
  * This class defines the set of methods and structures that must be
  * implemented for a Directory Server backend.
@@ -836,5 +826,10 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
       }
     }
     return false;
+  }
+
+  @Override
+  public void execute(Operation operation) throws CanceledOperationException {
+    LocalBackendWorkflowElement.execute(operation,this);
   }
 }

@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.ldap;
 
@@ -110,14 +111,23 @@ abstract class LoadBalancer implements ConnectionFactory {
 
         @Override
         public Connection getConnection() throws LdapException {
+            return getConnectionWithContext(null);
+        }
+
+        @Override
+        public Connection getConnectionWithContext(ConnectionRoutingContext context) throws LdapException {
             final Connection connection;
             try {
-                connection = factory.getConnection();
+                connection = context == null ? factory.getConnection() : factory.getConnectionWithContext(context);
             } catch (LdapException e) {
+                if (e.getResult().getResultCode().equals(ResultCode.BUSY)
+                        || e.getResult().getResultCode().equals(ResultCode.CLIENT_SIDE_USER_CANCELLED)) {
+                    throw e;
+                }
                 // Attempt failed - try next factory.
                 notifyOffline(e);
                 final int nextIndex = (index + 1) % monitoredFactories.size();
-                return getMonitoredConnectionFactory(nextIndex).getConnection();
+                return getMonitoredConnectionFactory(nextIndex).getConnectionWithContext(context);
             }
             notifyOnline();
             return connection;
@@ -125,7 +135,14 @@ abstract class LoadBalancer implements ConnectionFactory {
 
         @Override
         public Promise<Connection, LdapException> getConnectionAsync() {
-            return factory.getConnectionAsync().thenAsync(
+            return getConnectionAsyncWithContext(null);
+        }
+
+        @Override
+        public Promise<Connection, LdapException> getConnectionAsyncWithContext(ConnectionRoutingContext context) {
+            final Promise<Connection, LdapException> connectionPromise = context == null
+                    ? factory.getConnectionAsync() : factory.getConnectionAsyncWithContext(context);
+            return connectionPromise.thenAsync(
                 new AsyncFunction<Connection, Connection, LdapException>() {
                     @Override
                     public Promise<Connection, LdapException> apply(Connection value) throws LdapException {
@@ -136,10 +153,14 @@ abstract class LoadBalancer implements ConnectionFactory {
                 new AsyncFunction<LdapException, Connection, LdapException>() {
                     @Override
                     public Promise<Connection, LdapException> apply(LdapException error) throws LdapException {
+                        if (error.getResult().getResultCode().equals(ResultCode.BUSY)
+                                || error.getResult().getResultCode().equals(ResultCode.CLIENT_SIDE_USER_CANCELLED)) {
+                            return newExceptionPromise(error);
+                        }
                         // Attempt failed - try next factory.
                         notifyOffline(error);
                         final int nextIndex = (index + 1) % monitoredFactories.size();
-                        return getMonitoredConnectionFactory(nextIndex).getConnectionAsync();
+                        return getMonitoredConnectionFactory(nextIndex).getConnectionAsyncWithContext(context);
                     }
                 });
         }

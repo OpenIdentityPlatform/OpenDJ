@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.loggers;
 
@@ -26,6 +27,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.TestTextWriter;
 import org.forgerock.opendj.server.config.meta.AccessLogFilteringCriteriaCfgDefn.LogRecordType;
 import org.forgerock.opendj.server.config.server.AccessLogFilteringCriteriaCfg;
 import org.opends.server.api.ClientConnection;
@@ -155,6 +157,183 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
   }
 
 
+
+  @Test
+  public void proxyRecordsKeepOriginalRequestFilterDecision() throws Exception
+  {
+    assertProxyRequestFilterDecision("dc=com", true);
+    assertProxyRequestFilterDecision("ou=child,dc=com", false);
+  }
+
+  @Test
+  public void deferredProxyFailuresKeepTheirOwnResults() throws Exception
+  {
+    org.opends.server.protocols.internal.InternalClientConnection client =
+        new org.opends.server.protocols.internal.InternalClientConnection(new AuthenticationInfo());
+    org.opends.server.core.SearchOperationBasis operation = new org.opends.server.core.SearchOperationBasis(
+        client, 1, 1, java.util.Collections.emptyList(), dn("dc=com"),
+        org.forgerock.opendj.ldap.SearchScope.WHOLE_SUBTREE,
+        org.forgerock.opendj.ldap.DereferenceAliasesPolicy.NEVER, 0, 0, false,
+        org.opends.server.types.SearchFilter.createFilterFromString("(objectClass=*)"),
+        java.util.Collections.emptySet());
+    TestCaseUtils.ACCESS_TEXT_WRITER.clear();
+    operation.setResultCode(ResultCode.BUSY);
+    AccessLogger.deferProxyResponse(operation, 1001, null, null, null, null, null, 0, null, 1);
+    operation.setResultCode(ResultCode.UNAVAILABLE);
+    AccessLogger.deferProxyResponse(operation, 1002, null, null, null, null, null, 0, null, 2);
+    operation.setResultCode(ResultCode.OPERATIONS_ERROR);
+    AccessLogger.logProxyResponses(operation);
+    assertThat(TestCaseUtils.ACCESS_TEXT_WRITER.getMessages()).anySatisfy(line ->
+        assertThat(line).contains("proxyOp=1001", "outcome=no-response", " result=51"));
+    assertThat(TestCaseUtils.ACCESS_TEXT_WRITER.getMessages()).anySatisfy(line ->
+        assertThat(line).contains("proxyOp=1002", "outcome=no-response", " result=52"));
+  }
+
+  @Test
+  public void combinedBindFilteringUsesTheFinalIdentity() throws Exception
+  {
+    AccessLogFilteringCriteriaCfg cfg = mockCriteriaFilterCfg();
+    when(cfg.getUserDNEqualTo()).thenReturn(newTreeSet("uid=user.1,ou=People,o=test"));
+    TestTextWriter writer = new TestTextWriter();
+    TextAccessLogPublisher publisher = TextAccessLogPublisher.getStartupTextAccessPublisher(writer, false);
+    java.lang.reflect.Field filterField = AbstractTextAccessLogPublisher.class.getDeclaredField("filter");
+    filterField.setAccessible(true);
+    filterField.set(publisher, new RootFilter(false, false,
+        org.forgerock.opendj.server.config.meta.AccessLogPublisherCfgDefn.FilteringPolicy.INCLUSIVE,
+        new CriteriaFilter(cfg)));
+    java.lang.reflect.Field combined = TextAccessLogPublisher.class.getDeclaredField("isCombinedMode");
+    combined.setAccessible(true);
+    combined.setBoolean(publisher, true);
+    org.opends.server.protocols.internal.InternalClientConnection client =
+        new org.opends.server.protocols.internal.InternalClientConnection(new AuthenticationInfo());
+    org.opends.server.core.BindOperationBasis operation = new org.opends.server.core.BindOperationBasis(
+        client, 1, 1, java.util.Collections.emptyList(), "3",
+        org.forgerock.opendj.ldap.ByteString.valueOfUtf8("uid=user.1,ou=People,o=test"),
+        org.forgerock.opendj.ldap.ByteString.valueOfUtf8("password"));
+    operation.setResultCode(ResultCode.SUCCESS);
+    publisher.logBindRequest(operation);
+    publisher.logProxyRequest(operation, 1, "client", "test", "uid=user.1,dc=remote", null, null);
+    assertThat(writer.getMessages()).isEmpty();
+    client.setAuthenticationInfo(AuthenticationInfo.internal(new org.opends.server.types.Entry(
+        dn("uid=user.1,ou=People,o=test"), null, null, null)));
+    publisher.logProxyResponse(operation, 1, "localhost:389", "localhost:389", ResultCode.SUCCESS,
+        "uid=user.1,dc=remote", null, -1, null, 1, null);
+    publisher.logBindResponse(operation);
+    assertThat(writer.getMessages()).hasSize(3);
+    assertThat(writer.getMessages().get(0)).contains("BIND PROXY_REQ");
+    assertThat(writer.getMessages().get(1)).contains("BIND PROXY_RES");
+    assertThat(writer.getMessages().get(2)).contains("BIND conn=");
+  }
+
+  @Test
+  public void proxyBindFilteringKeepsTheIdentityFromTheClientRequest() throws Exception
+  {
+    AccessLogFilteringCriteriaCfg cfg = mockCriteriaFilterCfg();
+    when(cfg.getUserDNEqualTo()).thenReturn(newTreeSet("uid=user.1,ou=People,o=test"));
+    TestTextWriter writer = new TestTextWriter();
+    TextAccessLogPublisher publisher = TextAccessLogPublisher.getStartupTextAccessPublisher(writer, false);
+    java.lang.reflect.Field filterField = AbstractTextAccessLogPublisher.class.getDeclaredField("filter");
+    filterField.setAccessible(true);
+    filterField.set(publisher, new RootFilter(false, false,
+        org.forgerock.opendj.server.config.meta.AccessLogPublisherCfgDefn.FilteringPolicy.INCLUSIVE,
+        new CriteriaFilter(cfg)));
+    org.opends.server.protocols.internal.InternalClientConnection client =
+        new org.opends.server.protocols.internal.InternalClientConnection(AuthenticationInfo.internal(
+            new org.opends.server.types.Entry(dn("uid=user.1,ou=People,o=test"), null, null, null)));
+    org.opends.server.core.BindOperationBasis operation = new org.opends.server.core.BindOperationBasis(
+        client, 1, 1, java.util.Collections.emptyList(), "3",
+        org.forgerock.opendj.ldap.ByteString.valueOfUtf8("uid=user.2,ou=People,o=test"),
+        org.forgerock.opendj.ldap.ByteString.valueOfUtf8("password"));
+    operation.setResultCode(ResultCode.SUCCESS);
+    publisher.logBindRequest(operation);
+    client.setAuthenticationInfo(new AuthenticationInfo());
+    publisher.logProxyRequest(operation, 1, "client", "test", "uid=user.2,dc=remote", null, null);
+    publisher.logProxyResponse(operation, 1, "localhost:389", "localhost:389", ResultCode.SUCCESS,
+        "uid=user.2,dc=remote", null, -1, null, 1, null);
+    publisher.logBindResponse(operation);
+    assertThat(writer.getMessages()).hasSize(4);
+  }
+
+  @Test
+  public void proxyResponseUsesOriginalDecisionForEveryFilteringCriterion() throws Exception
+  {
+    AccessLogFilteringCriteriaCfg first = mockCriteriaFilterCfg();
+    when(first.getRequestTargetDNEqualTo()).thenReturn(newTreeSet("dc=com"));
+    when(first.getResponseResultCodeEqualTo()).thenReturn(newTreeSet(32));
+    AccessLogFilteringCriteriaCfg second = mockCriteriaFilterCfg();
+    when(second.getRequestTargetDNEqualTo()).thenReturn(newTreeSet("ou=child,dc=com"));
+    Class<?> filterType = Class.forName(AbstractTextAccessLogPublisher.class.getName() + "$Filter");
+    Object filters = java.lang.reflect.Array.newInstance(filterType, 2);
+    java.lang.reflect.Array.set(filters, 0, new CriteriaFilter(first));
+    java.lang.reflect.Array.set(filters, 1, new CriteriaFilter(second));
+    Class<?> orType = Class.forName(AbstractTextAccessLogPublisher.class.getName() + "$OrFilter");
+    java.lang.reflect.Constructor<?> orConstructor = orType.getDeclaredConstructor(filters.getClass());
+    orConstructor.setAccessible(true);
+    Object orFilter = orConstructor.newInstance(filters);
+    java.lang.reflect.Constructor<?> rootConstructor = RootFilter.class.getDeclaredConstructor(boolean.class,
+        boolean.class, org.forgerock.opendj.server.config.meta.AccessLogPublisherCfgDefn.FilteringPolicy.class, filterType);
+    rootConstructor.setAccessible(true);
+    Object rootFilter = rootConstructor.newInstance(false, false,
+        org.forgerock.opendj.server.config.meta.AccessLogPublisherCfgDefn.FilteringPolicy.INCLUSIVE, orFilter);
+    TestTextWriter writer = new TestTextWriter();
+    TextAccessLogPublisher publisher = TextAccessLogPublisher.getStartupTextAccessPublisher(writer, false);
+    java.lang.reflect.Field filterField = AbstractTextAccessLogPublisher.class.getDeclaredField("filter");
+    filterField.setAccessible(true);
+    filterField.set(publisher, rootFilter);
+    org.opends.server.core.SearchOperationBasis operation = new org.opends.server.core.SearchOperationBasis(
+        new org.opends.server.protocols.internal.InternalClientConnection(new AuthenticationInfo()),
+        1, 1, java.util.Collections.emptyList(), dn("dc=com"),
+        org.forgerock.opendj.ldap.SearchScope.WHOLE_SUBTREE,
+        org.forgerock.opendj.ldap.DereferenceAliasesPolicy.NEVER, 0, 0, false,
+        org.opends.server.types.SearchFilter.createFilterFromString("(objectClass=*)"),
+        java.util.Collections.emptySet());
+    operation.setResultCode(ResultCode.SUCCESS);
+    publisher.logSearchRequest(operation);
+    publisher.logProxyRequest(operation, 1, "client", "test", "dc=com", "(objectClass=*)", "sub");
+    operation.setBaseDN(dn("ou=child,dc=com"));
+    publisher.logProxyRequest(operation, 2, "client", "test", "ou=child,dc=com", "(objectClass=*)", "sub");
+    publisher.logProxyResponse(operation, 2, "localhost:389", "localhost:389", ResultCode.SUCCESS,
+        "", null, 0, null, 1, null);
+    publisher.logSearchResultDone(operation);
+    assertThat(writer.getMessages()).hasSize(3);
+  }
+
+  private void assertProxyRequestFilterDecision(String allowedTarget, boolean expected) throws Exception
+  {
+    AccessLogFilteringCriteriaCfg cfg = mockCriteriaFilterCfg();
+    when(cfg.getRequestTargetDNEqualTo()).thenReturn(newTreeSet(allowedTarget));
+    TestTextWriter writer = new TestTextWriter();
+    TextAccessLogPublisher publisher = TextAccessLogPublisher.getStartupTextAccessPublisher(writer, false);
+    java.lang.reflect.Field filterField = AbstractTextAccessLogPublisher.class.getDeclaredField("filter");
+    filterField.setAccessible(true);
+    filterField.set(publisher, new RootFilter(false, false,
+        org.forgerock.opendj.server.config.meta.AccessLogPublisherCfgDefn.FilteringPolicy.INCLUSIVE,
+        new CriteriaFilter(cfg)));
+    org.opends.server.protocols.internal.InternalClientConnection client =
+        new org.opends.server.protocols.internal.InternalClientConnection(new AuthenticationInfo());
+    org.opends.server.core.SearchOperationBasis operation = new org.opends.server.core.SearchOperationBasis(
+        client, 1, 1, java.util.Collections.emptyList(), dn("dc=com"),
+        org.forgerock.opendj.ldap.SearchScope.WHOLE_SUBTREE,
+        org.forgerock.opendj.ldap.DereferenceAliasesPolicy.NEVER, 0, 0, false,
+        org.opends.server.types.SearchFilter.createFilterFromString("(objectClass=*)"),
+        java.util.Collections.emptySet());
+    operation.setResultCode(ResultCode.SUCCESS);
+    publisher.logSearchRequest(operation);
+    publisher.logProxyRequest(operation, 1, "client", "test", "dc=com", "(objectClass=*)", "sub");
+    operation.setBaseDN(dn("ou=child,dc=com"));
+    publisher.logProxyRequest(operation, 2, "client", "test", "ou=child,dc=com", "(objectClass=*)", "sub");
+    publisher.logProxyResponse(operation, 2, "localhost:389", "localhost:389", ResultCode.SUCCESS,
+        "", null, 0, null, 1, null);
+    publisher.logSearchResultDone(operation);
+    if (expected)
+    {
+      assertThat(writer.getMessages()).hasSize(5);
+    }
+    else
+    {
+      assertThat(writer.getMessages()).isEmpty();
+    }
+  }
 
   @Test
   public void testCriteriaFilterDefault() throws Exception

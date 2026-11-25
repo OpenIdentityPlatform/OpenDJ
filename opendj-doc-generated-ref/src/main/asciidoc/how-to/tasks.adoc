@@ -36,6 +36,8 @@ The examples use a disposable local instance and illustrative passwords. Run ser
 |xref:../admin-guide/chap-backup-restore.adoc[Backing Up and Restoring Data]
 |Enable and initialize replication, or remove a replica
 |xref:../admin-guide/chap-replication.adoc[Managing Data Replication]
+|Forward LDAP requests to remote directory servers
+|xref:../admin-guide/chap-proxy-backend.adoc[Configure an LDAP Proxy Backend]
 |Inspect indexes and rebuild degraded indexes
 |xref:../admin-guide/chap-indexing.adoc[Managing Indexes]
 |List supported TLS protocols and cipher suites, or restrict them
