@@ -13,13 +13,15 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2015-2016 ForgeRock AS.
-  Portions Copyright 2024 3A Systems LLC.
+  Portions Copyright 2024-2026 3A Systems, LLC.
 
 ////
 
 == Examples
 The following example enables and then initializes replication for a new replica
 on `opendj2.example.com` from an existing replica on `opendj.example.com`.
+
+The example shows standard output. `dsreplication` writes diagnostics to standard error (`stderr`).
 
 [source, console]
 ----
@@ -54,18 +56,10 @@ Replication has been successfully enabled.  Note that for replication to
  work you must initialize the contents of the base DN's that are being
   replicated (use dsreplication initialize to do so).
 
-See
-/var/.../opends-replication-7958637258600693490.log
-for a detailed log of this operation.
-
 $ dsreplication initialize-all -I admin -w password -X -n -b dc=example,dc=com \
  -h opendj.example.com -p 4444
 
 Initializing base DN dc=example,dc=com with the contents from
  opendj.example.com:4444: 160 entries processed (100 % complete).
 Base DN initialized successfully.
-
-See
-/var/.../opends-replication-5020375834904394170.log
-for a detailed log of this operation.
 ----

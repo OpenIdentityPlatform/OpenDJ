@@ -227,6 +227,8 @@ The directory server regularly updates the list of replication servers in case i
 
 This section shows how to configure replication with command-line tools, such as the `dsreplication` command, described in xref:../reference/admin-tools-ref.adoc#dsreplication-1[dsreplication(1)] in the __Reference__.
 
+The `dsreplication` examples show standard output. Diagnostic messages go to standard error (`stderr`).
+
 [#enable-repl]
 ==== Enabling Replication
 
@@ -276,10 +278,6 @@ Initializing schema on server opendj2.example.com:4444 with the contents of
 Replication has been successfully enabled.  Note that for replication to
  work you must initialize the contents of the base DN's that are being
   replicated (use dsreplication initialize to do so).
-
-See
-/var/.../opends-replication-7958637258600693490.log
-for a detailed log of this operation.
 ----
 To enable secure connections for replication use the `--secureReplication1` and `--secureReplication2` options, which are equivalent to selecting Configure as Secure in the replication topology options screen of the setup wizard.
 
@@ -334,10 +332,6 @@ $ dsreplication \
 Initializing base DN dc=example,dc=com with the contents from
  opendj.example.com:4444: 160 entries processed (100 % complete).
 Base DN initialized successfully.
-
-See
-/var/.../opends-replication-5020375834904394170.log
-for a detailed log of this operation.
 ----
 
 ====
@@ -431,10 +425,6 @@ Initializing registration information on server opendj3.example.com:4444 with
 Replication has been successfully enabled.  Note that for replication to
  work you must initialize the contents of the base DN's that are being
  replicated (use dsreplication initialize to do so).
-
-See
-/var/.../opends-replication-1672058070147419978.log
-for a detailed log of this operation.
 ----
 +
 Contrary to the message from the command, you do not need to use the `dsreplication initialize` command at this point.
@@ -619,10 +609,6 @@ Disabling replication port 8989 of server
  opendj2.example.com:4444 ..... Done.
 Removing registration information ..... Done.
 Removing truststore information ..... Done.
-
-See
-/var/.../opends-replication-125248191132797765.log
-for a detailed log of this operation.
 ----
 +
 The `dsreplication disable` as shown completely removes the replication configuration information from the server.
@@ -709,10 +695,6 @@ Replication has been successfully enabled.  Note that for replication to work
  you must initialize the contents of the base DN's that are being
  replicated (use dsreplication initialize to do so).
 
-See
-/var/.../opends-replication-1720959352638609971.log
-for a detailed log of this operation.
-
 $ dsreplication \
  enable \
  --adminUID admin \
@@ -760,10 +742,6 @@ Initializing registration information on server opendj2.example.com:4444 with
 Replication has been successfully enabled.  Note that for replication to work
  you must initialize the contents of the base DN's that are being
  replicated (use dsreplication initialize to do so).
-
-See
-/var/folders/.../opends-replication-5893037538856033562.log
-for a detailed log of this operation.
 ----
 
 . Initialize replication from one of the directory servers:
@@ -784,10 +762,6 @@ $ dsreplication \
 Initializing base DN dc=example,dc=com with the contents from
  opendj.example.com:4444: 160 entries processed (100 % complete).
 Base DN initialized successfully.
-
-See
-/var/.../opends-replication-7677303986403997574.log
-for a detailed log of this operation.
 ----
 
 ====
@@ -863,10 +837,6 @@ Initializing schema on server ds-only.example.com:4444
 Replication has been successfully enabled.  Note that for replication to work
  you must initialize the contents of the base DNs that are being replicated
  (use dsreplication initialize to do so).
-
-See
-/var/.../opendj-replication-859181866587327450.log
-for a detailed log of this operation.
 ----
 +
 Here the existing server is both directory server and replication server. If the existing server is a standalone replication server, then also use the appropriate `--onlyReplicationServer` option.
@@ -893,10 +863,6 @@ Initializing base DN dc=example,dc=com with the contents
 0 entries processed (0 % complete).
 176 entries processed (100 % complete).
 Base DN initialized successfully.
-
-See
-/var/.../opendj-replication-4326340645155418876.log
-for a detailed log of this operation.
 ----
 
 . If you want to make the directory server replica read-only for client application traffic, see xref:#read-only-repl["Read-Only Replicas"].
@@ -2005,9 +1971,6 @@ $ dsreplication \
  --no-prompt
 
 Change-log change number reset task has finished successfully.
-
-See /path/to/opendj-replication-....log
-for a detailed log of this operation.
 ----
 +
 At this point, the new replica's change log starts with the last change number from the existing replica. Earlier change numbers are no longer present in the new replica's change log.
