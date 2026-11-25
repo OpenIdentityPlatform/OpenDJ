@@ -32,6 +32,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -66,6 +68,7 @@ import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.DoneMsg;
 import org.opends.server.replication.protocol.EntryMsg;
 import org.opends.server.replication.protocol.HeartbeatMsg;
+import org.opends.server.replication.protocol.InitializeTargetMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.MonitorMsg;
@@ -1525,6 +1528,81 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
   }
 
   @Test(timeOut = 120_000)
+  public void plannedRebalanceKeepsLdifDataAndReplaysUpdatesAfterAnInitializationHeader() throws Exception
+  {
+    final DN ldifBaseDN = DN.valueOf("o=switch-ldif");
+    final DN retainedDN = DN.valueOf("cn=retain," + ldifBaseDN);
+    final DN replayDN = DN.valueOf("cn=delete," + ldifBaseDN);
+    final DN backendDN = DN.valueOf("ds-cfg-backend-id=switchLdif,cn=Backends,cn=config");
+    final Path ldifFile = Path.of(TestCaseUtils.createTempFile(
+        "dn: " + ldifBaseDN, "objectClass: top", "objectClass: organization", "o: switch-ldif", ""));
+    TestCaseUtils.addEntry("dn: " + backendDN, "objectClass: top", "objectClass: ds-cfg-backend",
+        "objectClass: ds-cfg-local-backend", "objectClass: ds-cfg-ldif-backend", "ds-cfg-backend-id: switchLdif",
+        "ds-cfg-enabled: true", "ds-cfg-java-class: org.opends.server.backends.LDIFBackend",
+        "ds-cfg-writability-mode: enabled", "ds-cfg-base-dn: " + ldifBaseDN, "ds-cfg-ldif-file: " + ldifFile);
+    final WithholdingReplicationServer oldRS = new WithholdingReplicationServer(LARGE_WINDOW);
+    final WithholdingReplicationServer nextRS = new WithholdingReplicationServer(LARGE_WINDOW, 4);
+    try
+    {
+      TestCaseUtils.addEntry("dn: " + retainedDN, "objectClass: top", "objectClass: person",
+          "cn: retain", "sn: retain");
+      TestCaseUtils.addEntry("dn: " + replayDN, "objectClass: top", "objectClass: person",
+          "cn: delete", "sn: delete");
+      final String replayUUID = getEntryUUID(replayDN);
+
+      final LDAPReplicationDomain domain = startDomain(ldifBaseDN, oldRS, 100000, nextRS.getAddress());
+      final AtomicBoolean importClaimed = new AtomicBoolean();
+      domain.setImportClaimHook(() -> importClaimed.set(true));
+      assertEquals(domain.getRsServerId(), oldRS.serverId);
+      nextRS.start();
+      oldRS.advertiseRebalance(nextRS, domain);
+      newTimer().repeatUntilSuccess(() -> assertEquals(oldRS.count(StopMsg.class), 1));
+
+      // Hold the stop reply while the DS deals with the remaining frames from the old RS.
+      final Session retiring = oldRS.session.get();
+      assertTrue(retiring.publish(new InitializeTargetMsg(ldifBaseDN, OTHER_DS_ID, DS_ID, OTHER_DS_ID, 1, 4), null));
+      final CSN replayCSN = new CSNGenerator(OTHER_DS_ID, 0).newCSN();
+      assertTrue(retiring.publish(new DeleteMsg(replayDN, replayCSN, replayUUID), null));
+      newTimer().repeatUntilSuccess(() -> {
+        assertFalse(importClaimed.get(), "the old session entered full initialization");
+        assertEquals(domain.getServerState().getCSN(OTHER_DS_ID), replayCSN, "the update has not replayed");
+      });
+
+      assertEquals(domain.getRsServerId(), oldRS.serverId, "the replay must finish before the stop reply");
+      assertNotNull(DirectoryServer.getEntry(retainedDN));
+      assertNull(DirectoryServer.getEntry(replayDN));
+      final String storedLdif = Files.readString(ldifFile);
+      assertTrue(storedLdif.contains("dn: " + retainedDN), "the active LDIF lost an existing entry");
+      assertFalse(storedLdif.contains("dn: " + replayDN), "the active LDIF did not record the incremental delete");
+
+      oldRS.goAway();
+      oldRS.closeTheSession();
+      newTimer().repeatUntilSuccess(() -> assertEquals(domain.getRsServerId(), nextRS.serverId));
+    }
+    finally
+    {
+      try
+      {
+        nextRS.shutdown();
+      }
+      finally
+      {
+        try
+        {
+          oldRS.shutdown();
+        }
+        finally
+        {
+          MultimasterReplication.deleteDomain(ldifBaseDN);
+          TestCaseUtils.deleteEntry(backendDN);
+          Files.deleteIfExists(ldifFile);
+          Files.deleteIfExists(Path.of(ldifFile + ".old"));
+        }
+      }
+    }
+  }
+
+  @Test(timeOut = 120_000)
   public void plannedRebalanceAbortsOnlyTheOldSessionWhenItDoesNotReply() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1572,10 +1650,16 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
   private LDAPReplicationDomain startDomain(WithholdingReplicationServer rs, long heartbeatIntervalMS,
       String... otherServers) throws Exception
   {
+    return startDomain(baseDN, rs, heartbeatIntervalMS, otherServers);
+  }
+
+  private LDAPReplicationDomain startDomain(DN domainBaseDN, WithholdingReplicationServer rs, long heartbeatIntervalMS,
+      String... otherServers) throws Exception
+  {
     rs.start();
     final SortedSet<String> servers = new TreeSet<>(Arrays.asList(otherServers));
     servers.add(rs.getAddress());
-    final DomainFakeCfg conf = new DomainFakeCfg(baseDN, DS_ID, servers);
+    final DomainFakeCfg conf = new DomainFakeCfg(domainBaseDN, DS_ID, servers);
     conf.setHeartbeatInterval(heartbeatIntervalMS);
     final LDAPReplicationDomain domain = MultimasterReplication.createNewDomain(conf);
     domain.start();

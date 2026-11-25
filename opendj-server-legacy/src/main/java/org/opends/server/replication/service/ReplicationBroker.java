@@ -63,6 +63,7 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.ChangeStatusMsg;
+import org.opends.server.replication.protocol.InitializeTargetMsg;
 import org.opends.server.replication.protocol.MonitorMsg;
 import org.opends.server.replication.protocol.MonitorRequestMsg;
 import org.opends.server.replication.protocol.ProtocolVersion;
@@ -2892,6 +2893,11 @@ public class ReplicationBroker
               mustRunBestServerCheckingAlgorithm = 0;
             }
           }
+        }
+        else if (msg instanceof InitializeTargetMsg && rs.session.isClosingForSwitch())
+        {
+          // A full import needs a session that can still publish FULL_UPDATE.
+          continue;
         }
         else
         {
