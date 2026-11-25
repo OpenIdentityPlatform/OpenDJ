@@ -37,6 +37,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.Assertions;
 import org.assertj.core.data.MapEntry;
@@ -350,7 +352,8 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      * Signal that the current scenario the RS must execute reached the point
      * where the main code can perform test assertion.
      */
-    private boolean scenarioExecuted;
+    private final CountDownLatch scenarioExecuted = new CountDownLatch(1);
+    private long ackSendStartedNanos;
 
     private CSNGenerator gen;
     private String testcase;
@@ -536,13 +539,20 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       return handshakeOk;
     }
 
-    /**
-     * Tells the main code that the fake RS executed enough of the expected
-     * scenario and can perform test assertion.
-     */
-    public boolean isScenarioExecuted()
+    /** Waits until the fake RS has completed the part of the scenario under test. */
+    private void awaitScenarioExecuted() throws InterruptedException
     {
-      return scenarioExecuted;
+      assertTrue(scenarioExecuted.await(10, TimeUnit.SECONDS),
+          testcase + ": timed out waiting for the fake RS to complete the scenario");
+    }
+
+    /** Checks the add timing before waiting for the fake RS to finish publishing the ACK. */
+    private void assertAddWaitedForAck(long startTime, int timeout) throws InterruptedException
+    {
+      final long addReturnedNanos = System.nanoTime();
+      assertBlockedForLessThanTimeout(startTime, timeout);
+      awaitScenarioExecuted();
+      assertTrue(addReturnedNanos - ackSendStartedNanos >= 0, "add returned before the fake RS sent the ACK");
     }
 
     /** Handle client connection then call code specific to configured test. */
@@ -637,7 +647,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     {
       checkAssuredParametersOnReceivedUpdateMsg();
 
-      scenarioExecuted = true;
+      scenarioExecuted.countDown();
     }
 
     /** Read the coming update and make the client time out by not sending back the ack. */
@@ -645,7 +655,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     {
       checkAssuredParametersOnReceivedUpdateMsg();
 
-      scenarioExecuted = true;
+      scenarioExecuted.countDown();
 
       // We do not send back an ack and the client code is expected to be
       // blocked at least for the programmed timeout time.
@@ -661,9 +671,10 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
       // Send the ack without errors
       AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
+      ackSendStartedNanos = System.nanoTime();
       session.publish(ackMsg);
 
-      scenarioExecuted = true;
+      scenarioExecuted.countDown();
     }
 
     /**
@@ -720,7 +731,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       updateMsg = checkAssuredParametersOnReceivedUpdateMsg();
 
       // let timeout occur
-      scenarioExecuted = true;
+      scenarioExecuted.countDown();
     }
 
     /** Read the coming safe data mode updates and send back acks with errors. */
@@ -754,7 +765,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       updateMsg = checkAssuredParametersOnReceivedUpdateMsg();
 
       // let timeout occur
-      scenarioExecuted = true;
+      scenarioExecuted.countDown();
     }
   }
 
@@ -820,13 +831,12 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       }
       long endTime = System.currentTimeMillis();
 
-      waitForScenarioExecutedOnRs(testcase, replicationServer);
+      replicationServer.awaitScenarioExecuted();
 
       if (rsGroupId == 1)
       {
         // RS has same group id as DS
         assertBlockedLongerThanTimeout(startTime, endTime, TIMEOUT);
-        assertTrue(replicationServer.isScenarioExecuted());
 
         // Check monitoring values
         Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -931,12 +941,11 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       }
       long endTime = System.currentTimeMillis();
 
-      waitForScenarioExecutedOnRs(testcase, replicationServer);
+      replicationServer.awaitScenarioExecuted();
 
       if (rsGroupId == 1)
       {
         assertBlockedLongerThanTimeout(startTime, endTime, TIMEOUT);
-        assertTrue(replicationServer.isScenarioExecuted());
 
         // Check monitoring values
         Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -989,7 +998,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
           "objectClass: organizationalUnit");
 
       // Wait for entry received by RS
-      waitForScenarioExecutedOnRs(testcase, replicationServer);
+      replicationServer.awaitScenarioExecuted();
 
       // No more test to do here
     } finally
@@ -1014,24 +1023,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       }
       Thread.sleep(1000);
     } while (!rs.isHandshakeOk());
-  }
-
-  /**
-   * Wait for the scenario to be executed by the fake replication server or
-   * times out with error after some seconds.
-   */
-  private void waitForScenarioExecutedOnRs(String testCase, FakeReplicationServer rs) throws Exception
-  {
-    int nsec = -1;
-    do
-    {
-      nsec++;
-      if (nsec == 10)
-      {
-        fail(testCase + ": timeout waiting for scenario to be exectued on fake RS after " + nsec + " seconds.");
-      }
-      Thread.sleep(1000);
-    } while (!rs.isScenarioExecuted());
   }
 
   private void endTest(String testcase) throws Exception
@@ -1073,8 +1064,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
           "objectClass: top",
           "objectClass: organizationalUnit");
 
-      assertBlockedForLessThanTimeout(startTime, TIMEOUT);
-      assertTrue(replicationServer.isScenarioExecuted());
+      replicationServer.assertAddWaitedForAck(startTime, TIMEOUT);
 
       // Check monitoring values
       Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -1117,8 +1107,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
           "objectClass: top",
           "objectClass: organizationalUnit");
 
-      assertBlockedForLessThanTimeout(startTime, TIMEOUT);
-      assertTrue(replicationServer.isScenarioExecuted());
+      replicationServer.assertAddWaitedForAck(startTime, TIMEOUT);
 
       // Check monitoring values
       Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -1379,7 +1368,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
           "objectClass: organizationalUnit");
 
       assertBlockedLongerThanTimeout(startTime, System.currentTimeMillis(), TIMEOUT);
-      assertTrue(replicationServer.isScenarioExecuted());
+      replicationServer.awaitScenarioExecuted();
 
       // Check monitoring values
       // No ack should have comen back, so timeout incremented (flag and error for rs)
@@ -1494,7 +1483,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
           "objectClass: organizationalUnit");
 
       assertBlockedLongerThanTimeout(startTime, System.currentTimeMillis(), TIMEOUT);
-      assertTrue(replicationServer.isScenarioExecuted());
+      replicationServer.awaitScenarioExecuted();
 
       // Check monitoring values
       // No ack should have comen back, so timeout incremented (flag and error for rs)
