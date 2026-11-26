@@ -1706,7 +1706,10 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
       }
       handshake.sendNextReply.countDown();
 
-      newTimer().repeatUntilSuccess(() -> assertEquals(domain.getRsServerId(), nextRS.serverId));
+      newTimer().repeatUntilSuccess(() -> {
+        assertEquals(domain.getRsServerId(), nextRS.serverId);
+        assertFalse(domain.hasConnectionError(), "the broker did not clear isolation after reconnecting");
+      });
       if (writer != null)
       {
         assertEquals(handshake.starts.get(), successfulProbes + timedOutReplies + 1,
