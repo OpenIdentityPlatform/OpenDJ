@@ -1763,7 +1763,7 @@ public abstract class ReplicationDomain
           getBaseDN(), getServerId(), serverToInitialize);
 
       ieCtx.startList.add(serverToInitialize);
-      ieCtx.setAckVal(targetDsi.getDsId(), 0);
+      ieCtx.setAckVal(serverToInitialize, 0);
     }
 
     DirectoryException exportRootException = null;
@@ -2795,24 +2795,26 @@ public abstract class ReplicationDomain
       initFromTask = (InitializeTask) ieCtx.initializeTask;
 
       // Launch the import
-      final ReplInputStream input = new ReplInputStream(this);
-      if (attemptId != null)
+      try (ReplInputStream input = new ReplInputStream(this))
       {
-        importBackend(input, () ->
+        if (attemptId != null)
         {
-          if (!broker.publishOnSession(
-              new InitializeRcvAckMsg(getServerId(), requesterServerId, attemptId), importSession))
+          importBackend(input, () ->
           {
-            final DirectoryException failure =
-                new DirectoryException(ResultCode.UNAVAILABLE, ERR_INITIALIZATION_FAILED_NOCONN.get(getBaseDN()));
-            ieCtx.failImportPreparation(failure);
-            throw failure;
-          }
-        });
-      }
-      else
-      {
-        importBackend(input);
+            if (!broker.publishOnSession(
+                new InitializeRcvAckMsg(getServerId(), requesterServerId, attemptId), importSession))
+            {
+              final DirectoryException failure =
+                  new DirectoryException(ResultCode.UNAVAILABLE, ERR_INITIALIZATION_FAILED_NOCONN.get(getBaseDN()));
+              ieCtx.failImportPreparation(failure);
+              throw failure;
+            }
+          });
+        }
+        else
+        {
+          importBackend(input);
+        }
       }
       if (!locallyInitiated && ieCtx.importPreparationFailed && !Thread.currentThread().isInterrupted()
           && !isServicePermanentlyStopped())

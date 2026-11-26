@@ -2495,7 +2495,7 @@ public class ReplicationBroker
     pendingInitializationRefusals.put(refusal.getDestination(), new PendingInitializationRefusal(refusal));
   }
 
-  private void publishPendingInitializationRefusals(ConnectedRS rs)
+  private void publishPendingInitializationRefusals(Session session, int rsServerId)
   {
     if (pendingInitializationRefusals.isEmpty())
     {
@@ -2514,11 +2514,11 @@ public class ReplicationBroker
         continue;
       }
       final DSInfo exporter = replicas.get(refusal.message.getDestination());
-      if (exporter != null && rs.session != refusal.lastSession && rs.session.getProtocolVersion() >= REPLICATION_PROTOCOL_V9
-          && publishOnSession(refusal.message, rs.session))
+      if (exporter != null && session != refusal.lastSession && session.getProtocolVersion() >= REPLICATION_PROTOCOL_V9
+          && publishOnSession(refusal.message, session))
       {
-        refusal.lastSession = rs.session;
-        if (exporter.getRsId() == rs.getServerId())
+        refusal.lastSession = session;
+        if (exporter.getRsId() == rsServerId)
         {
           refusals.remove();
         }
@@ -2827,12 +2827,13 @@ public class ReplicationBroker
   {
     while (!shutdown && !permanentlyStopped)
     {
-      ConnectedRS rs = connectedRS.get();
-      if (plannedSwitch != null && plannedSwitch.session != rs.session)
+      final ConnectedRS rs = connectedRS.get();
+      final Session session = rs.session;
+      if (plannedSwitch != null && plannedSwitch.session != session)
       {
         finishPlannedSwitch(plannedSwitch.session);
       }
-      if (!rs.isConnected())
+      if (session == null)
       {
         if (reconnectOnFailure)
         {
@@ -2847,21 +2848,20 @@ public class ReplicationBroker
         }
       }
 
-      publishPendingInitializationRefusals(rs);
-
       final int serverId = getServerId();
       final DN baseDN = getBaseDN();
       final int previousRsServerID = rs.getServerId();
+      publishPendingInitializationRefusals(session, previousRsServerID);
       try
       {
-        ReplicationMsg msg = rs.session.receive();
+        ReplicationMsg msg = session.receive();
         if (msg instanceof UpdateMsg)
         {
           final UpdateMsg update = (UpdateMsg) msg;
           if (update.isAssured() && update.getAssuredMode() == AssuredMode.SAFE_READ_MODE
-              && rs.getGroupId() == getGroupId() && rs.session.getProtocolVersion() >= REPLICATION_PROTOCOL_V2)
+              && rs.getGroupId() == getGroupId() && session.getProtocolVersion() >= REPLICATION_PROTOCOL_V2)
           {
-            update.setAcknowledgementSender(ack -> publish(ack, false, false, rs.session));
+            update.setAcknowledgementSender(ack -> publish(ack, false, false, session));
           }
           synchronized (this)
           {
@@ -2891,14 +2891,14 @@ public class ReplicationBroker
         }
         else if (msg instanceof StopMsg)
         {
-          if (!finishPlannedSwitch(rs.session))
+          if (!finishPlannedSwitch(session))
           {
             logger.warn(WARN_REPLICATION_SERVER_PROPERLY_DISCONNECTED, previousRsServerID, rs.replicationServer,
                 serverId, baseDN);
           }
 
           // Try to find a suitable RS
-          reStart(rs.session, true);
+          reStart(session, true);
         }
         else if (msg instanceof MonitorMsg)
         {
@@ -2974,7 +2974,7 @@ public class ReplicationBroker
                 {
                   debugInfo("best replication servers evaluation results: " + evals);
                 }
-                switchReplicationServer(rs.session);
+                switchReplicationServer(session);
               }
 
               // Reset wait time before next computation of best server
@@ -2982,7 +2982,7 @@ public class ReplicationBroker
             }
           }
         }
-        else if (msg instanceof InitializeTargetMsg && rs.session.isClosingForSwitch())
+        else if (msg instanceof InitializeTargetMsg && session.isClosingForSwitch())
         {
           // A full import needs a session that can still publish FULL_UPDATE.
           continue;
@@ -2994,14 +2994,14 @@ public class ReplicationBroker
       }
       catch (SocketTimeoutException e)
       {
-        if (!finishPlannedSwitch(rs.session))
+        if (!finishPlannedSwitch(session))
         {
           throw e;
         }
-        abortPlannedSwitch(rs.session, e);
+        abortPlannedSwitch(session, e);
         if (reconnectOnFailure)
         {
-          reStart(rs.session, true);
+          reStart(session, true);
         }
         else
         {
@@ -3010,13 +3010,12 @@ public class ReplicationBroker
       }
       catch (Exception e)
       {
-        final boolean wasSwitching = finishPlannedSwitch(rs.session);
+        final boolean wasSwitching = finishPlannedSwitch(session);
         logger.traceException(e);
 
         if (!shutdown)
         {
-          final boolean locallyClosed = rs.session != null
-              && (wasSwitching ? rs.session.isSocketCloseRequested() : rs.session.closeInitiated());
+          final boolean locallyClosed = wasSwitching ? session.isSocketCloseRequested() : session.closeInitiated();
           if (!locallyClosed)
           {
             // We did not initiate the close on our side, log an error message.
@@ -3029,7 +3028,7 @@ public class ReplicationBroker
             break; // does not seem necessary to explicitly disconnect ..
           }
 
-          reStart(rs.session, true);
+          reStart(session, true);
         }
       }
     }
