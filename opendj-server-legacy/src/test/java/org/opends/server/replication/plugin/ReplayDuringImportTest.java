@@ -23,8 +23,9 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.testng.Assert.*;
 
-import java.util.ArrayList;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
@@ -122,6 +123,7 @@ public class ReplayDuringImportTest extends ReplicationTestCase
   private DN baseDN;
   private ReplicationServer replicationServer;
   private LDAPReplicationDomain domain;
+  private volatile boolean reconnectAllowed = true;
   private TestSynchronousReplayQueue queue;
   private ReplicationBroker exporter;
   private CSNGenerator gen;
@@ -611,6 +613,9 @@ public class ReplayDuringImportTest extends ReplicationTestCase
     lock.lock();
     try
     {
+      // Keep the established session available to report the failure and make the next
+      // reconnect fail, as it can while the RS still holds the previous registration.
+      reconnectAllowed = false;
       exporter.publish(new InitializeTargetMsg(baseDN, EXPORTER_ID, DS_ID, EXPORTER_ID, 3, INIT_WINDOW));
       waitUntil(() -> !domain.ieRunning()
           && errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.ordinal()).size() > completions,
@@ -622,11 +627,14 @@ public class ReplayDuringImportTest extends ReplicationTestCase
       assertTrue(entryExists(original.getName()), "a rejected preflight must leave the original data intact");
       assertNull(org.opends.server.api.LocalBackend.getWriteFailure(baseDN));
       assertThat(errorLogRecordsOf(WARN_REPLAY_NOT_DRAINED.ordinal())).hasSize(shutdownWarnings);
-      final ErrorMsg failure = waitForSpecificMsg(exporter, ErrorMsg.class);
+      assertFalse(domain.isConnected(), "the restart must fail while reconnecting is disabled");
+      // Read every frame on the timed session so monitoring messages advance the wait's deadline check.
+      final ErrorMsg failure = waitForSpecificMsg(exporter.getSession(), ErrorMsg.class);
       assertEquals(failure.getDetails().toString(), ERR_INIT_OPERATIONS_NOT_DRAINED.get(baseDN).toString());
     }
     finally
     {
+      reconnectAllowed = true;
       lock.unlock();
       domain.setReplayDrainTimeout(30_000);
     }
@@ -752,7 +760,14 @@ public class ReplayDuringImportTest extends ReplicationTestCase
 
     final SortedSet<String> replServers = new TreeSet<>();
     replServers.add("localhost:" + rsPort);
-    final DomainFakeCfg conf = new DomainFakeCfg(baseDN, DS_ID, replServers);
+    final DomainFakeCfg conf = new DomainFakeCfg(baseDN, DS_ID, replServers)
+    {
+      @Override
+      public SortedSet<String> getReplicationServer()
+      {
+        return reconnectAllowed ? super.getReplicationServer() : Collections.emptySortedSet();
+      }
+    };
     conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
     queue = new TestSynchronousReplayQueue();
     domain = MultimasterReplication.createNewDomain(conf, queue);

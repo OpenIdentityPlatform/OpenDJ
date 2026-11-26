@@ -83,6 +83,7 @@ import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.ResetGenerationIdMsg;
 import org.opends.server.replication.protocol.RoutableMsg;
+import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.tasks.InitializeTargetTask;
@@ -1203,6 +1204,9 @@ public abstract class ReplicationDomain
     /** Exception raised during the initialization. */
     private DirectoryException exception;
 
+    /** Whether the import failed while draining replay and state saves before replacement. */
+    private boolean importPreparationFailed;
+
     /** Whether the context is related to an import or an export. */
     private final boolean importInProgress;
 
@@ -1474,6 +1478,19 @@ public abstract class ReplicationDomain
       if (this.exception == null)
       {
         this.exception = exception;
+      }
+    }
+
+    /**
+     * Records a failure while draining replay and state saves before replacing the backend.
+     * @param failure the preparation failure
+     */
+    public void failImportPreparation(DirectoryException failure)
+    {
+      if (exception == null)
+      {
+        exception = failure;
+        importPreparationFailed = true;
       }
     }
 
@@ -2608,13 +2625,15 @@ public abstract class ReplicationDomain
 
     InitializeTask initFromTask = null;
     final int source = initTargetMsgReceived.getSenderID();
+    final Session importSession = broker.getSession();
+    final boolean locallyInitiated = initTargetMsgReceived.getInitiatorID() == getServerId();
     final ImportExportContext ieCtx;
     final Runnable hook = importClaimHook;
     if (hook != null)
     {
       hook.run();
     }
-    if (initTargetMsgReceived.getInitiatorID() == getServerId())
+    if (locallyInitiated)
     {
       ieCtx = getImportExportContext();
       if (ieCtx == null || !ieCtx.markInitStartReceived())
@@ -2689,6 +2708,7 @@ public abstract class ReplicationDomain
         return;
       }
     }
+    boolean exporterNotified = false;
     try
     {
       // Log starting
@@ -2707,6 +2727,14 @@ public abstract class ReplicationDomain
 
       // Launch the import
       importBackend(new ReplInputStream(this));
+      if (!locallyInitiated && ieCtx.importPreparationFailed && !Thread.currentThread().isInterrupted()
+          && !isServicePermanentlyStopped())
+      {
+        // The RS can still be unregistering this session when the reconnect below runs.
+        // Send the preflight refusal while the original session can still carry it.
+        exporterNotified = broker.publishOnSession(
+            new ErrorMsg(requesterServerId, ieCtx.getException().getMessageObject()), importSession);
+      }
     }
     catch (DirectoryException e)
     {
@@ -2799,7 +2827,8 @@ public abstract class ReplicationDomain
 
       try
       {
-        if (!isServicePermanentlyStopped() && broker.isConnected() && ieCtx.getException() != null)
+        if (!exporterNotified && !isServicePermanentlyStopped() && broker.isConnected()
+            && ieCtx.getException() != null)
         {
           // Let's notify the exporter
           ErrorMsg errorMsg = new ErrorMsg(requesterServerId,

@@ -6545,7 +6545,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
             ? ERR_INIT_PREPARATION_INTERRUPTED.get(getBaseDN())
             : ERR_INIT_OPERATIONS_NOT_DRAINED.get(getBaseDN());
         logger.error(reason);
-        ieCtx.setExceptionIfNoneSet(new DirectoryException(ResultCode.UNAVAILABLE, reason));
+        ieCtx.failImportPreparation(new DirectoryException(ResultCode.UNAVAILABLE, reason));
         return;
       }
 

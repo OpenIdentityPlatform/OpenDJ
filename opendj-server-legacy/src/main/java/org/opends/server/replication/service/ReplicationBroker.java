@@ -2467,6 +2467,12 @@ public class ReplicationBroker
     return publish(msg, false, retryOnFailure, null);
   }
 
+  /** Publishes the message on the supplied session while it is still current. */
+  boolean publishOnSession(ReplicationMsg msg, Session session)
+  {
+    return session != null && publish(msg, false, false, session);
+  }
+
   /**
    * Returns the session this broker publishes on, which a recovery started for it publishes on:
    * see {@link #publishRecovery(ReplicationMsg, Session)}.
