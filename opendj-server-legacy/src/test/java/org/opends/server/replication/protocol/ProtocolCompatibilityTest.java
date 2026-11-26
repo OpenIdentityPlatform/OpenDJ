@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -1137,6 +1138,47 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     {
       { sender, dest, baseDN, initWindow },
     };
+  }
+
+  @Test
+  public void preparationRefusalRetainsItsAttemptAcrossV9AndCannotLoseItOnV8() throws Exception
+  {
+    final String attemptId = "f3916e33-5e3f-450e-ba61-e3e0baf3c784";
+    final InitializeTargetMsg header = new InitializeTargetMsg(DN.valueOf("dc=example"), 1, 2, 1, 17, 8, attemptId);
+    final InitializeTargetMsg decoded = new InitializeTargetMsg(
+        header.getBytes(REPLICATION_PROTOCOL_V9), REPLICATION_PROTOCOL_V9);
+    assertEquals(decoded.getInitializationAttemptId(), attemptId);
+    final InitializeTargetMsg legacy = new InitializeTargetMsg(
+        header.getBytes(REPLICATION_PROTOCOL_V8), REPLICATION_PROTOCOL_V8);
+    assertNull(legacy.getInitializationAttemptId());
+    assertEquals(legacy.getBaseDN(), DN.valueOf("dc=example"));
+    assertEquals(legacy.getEntryCount(), 17L);
+    assertEquals(legacy.getInitWindow(), 8);
+
+    final LocalizableMessage reason = LocalizableMessage.raw("import preparation refused");
+    final ErrorMsg refusal = new ErrorMsg(2, 1, reason, attemptId);
+    final ErrorMsg forwarded = new ErrorMsg(refusal.getBytes(REPLICATION_PROTOCOL_V9), REPLICATION_PROTOCOL_V9);
+    assertEquals(forwarded.getInitializationAttemptId(), attemptId);
+    assertEquals(forwarded.getSenderID(), 2);
+    assertEquals(forwarded.getDestination(), 1);
+    assertEquals(forwarded.getDetails().toString(), "import preparation refused");
+    assertNull(forwarded.getBytes(REPLICATION_PROTOCOL_V8));
+    final ErrorMsg uncorrelated = new ErrorMsg(2, 1, reason);
+    final ErrorMsg legacyError = new ErrorMsg(
+        uncorrelated.getBytes(REPLICATION_PROTOCOL_V8), REPLICATION_PROTOCOL_V8);
+    assertNull(legacyError.getInitializationAttemptId());
+    assertEquals(legacyError.getDetails().toString(), "import preparation refused");
+
+    final InitializeRcvAckMsg ready = new InitializeRcvAckMsg(2, 1, attemptId);
+    final InitializeRcvAckMsg decodedReady = new InitializeRcvAckMsg(
+        ready.getBytes(REPLICATION_PROTOCOL_V9), REPLICATION_PROTOCOL_V9);
+    assertEquals(decodedReady.getInitializationAttemptId(), attemptId);
+    assertEquals(decodedReady.getNumAck(), 0);
+    assertNull(decodedReady.getBytes(REPLICATION_PROTOCOL_V8));
+    final InitializeRcvAckMsg credit = new InitializeRcvAckMsg(
+        new InitializeRcvAckMsg(2, 1, 4).getBytes(REPLICATION_PROTOCOL_V8), REPLICATION_PROTOCOL_V8);
+    assertEquals(credit.getNumAck(), 4);
+    assertNull(credit.getInitializationAttemptId());
   }
 
   /**

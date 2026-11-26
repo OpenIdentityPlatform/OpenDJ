@@ -219,7 +219,7 @@ public abstract class ReplicationMsg
     case MSG_TYPE_STOP:
       return new StopMsg(buffer);
     case MSG_TYPE_INITIALIZE_RCV_ACK:
-      return new InitializeRcvAckMsg(buffer);
+      return new InitializeRcvAckMsg(buffer, protocolVersion);
     case MSG_TYPE_REPLICA_OFFLINE:
       return new ReplicaOfflineMsg(buffer);
     default:

@@ -6514,6 +6514,12 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
   @Override
   protected void importBackend(InputStream input) throws DirectoryException
   {
+    importBackend(input, () -> { });
+  }
+
+  @Override
+  protected void importBackend(InputStream input, ImportPreparation onPrepared) throws DirectoryException
+  {
     LocalBackend<?> backend = getBackend();
 
     LDIFImportConfig importConfig = null;
@@ -6548,6 +6554,7 @@ private ConflictResolution solveNamingConflict(ModifyDNOperation op, LDAPUpdateM
         ieCtx.failImportPreparation(new DirectoryException(ResultCode.UNAVAILABLE, reason));
         return;
       }
+      onPrepared.reportReady();
 
       if (!backend.supports(BackendOperation.LDIF_IMPORT))
       {

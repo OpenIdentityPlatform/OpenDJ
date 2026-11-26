@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -94,10 +95,13 @@ public class ProtocolVersion
    */
   public static final short REPLICATION_PROTOCOL_V8 = 8;
 
+  /** Correlates import preparation acknowledgements and refusals with their initialization headers. */
+  public static final short REPLICATION_PROTOCOL_V9 = 9;
+
   /**
    * The replication protocol version used by the instance of RS/DS in this VM.
    */
-  private static final short CURRENT_VERSION = REPLICATION_PROTOCOL_V8;
+  private static final short CURRENT_VERSION = REPLICATION_PROTOCOL_V9;
 
   /**
    * Gets the current version of the replication protocol.

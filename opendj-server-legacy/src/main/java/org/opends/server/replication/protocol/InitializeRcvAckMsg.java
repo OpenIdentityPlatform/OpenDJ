@@ -13,6 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2013-2014 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -30,6 +31,8 @@ import java.util.zip.DataFormatException;
 public class InitializeRcvAckMsg extends RoutableMsg
 {
   private final int numAck;
+  /** Identifies a preparation acknowledgement, which carries no entry credit. */
+  private final String initializationAttemptId;
 
   /**
    * Create a new message..
@@ -41,18 +44,36 @@ public class InitializeRcvAckMsg extends RoutableMsg
    */
   public InitializeRcvAckMsg(int sender, int destination, int numAck)
   {
+    this(sender, destination, numAck, null);
+  }
+
+  /**
+   * Acknowledges readiness to receive the entries for a particular initialization.
+   * @param sender the prepared importer
+   * @param destination the exporter
+   * @param initializationAttemptId the attempt identifier from the initialization header
+   */
+  public InitializeRcvAckMsg(int sender, int destination, String initializationAttemptId)
+  {
+    this(sender, destination, 0, initializationAttemptId);
+  }
+
+  private InitializeRcvAckMsg(int sender, int destination, int numAck, String initializationAttemptId)
+  {
     super(sender, destination);
     this.numAck = numAck;
+    this.initializationAttemptId = initializationAttemptId;
   }
 
   /**
    * Creates a new message from its encoded form.
    *
    * @param in The byte array containing the encoded form of the message.
+   * @param protocolVersion the session's negotiated protocol version
    * @throws DataFormatException If the byte array does not contain a valid
    *                             encoded form of the message.
    */
-  InitializeRcvAckMsg(byte[] in) throws DataFormatException
+  InitializeRcvAckMsg(byte[] in, short protocolVersion) throws DataFormatException
   {
     final ByteArrayScanner scanner = new ByteArrayScanner(in);
     if (scanner.nextByte() != MSG_TYPE_INITIALIZE_RCV_ACK)
@@ -64,17 +85,26 @@ public class InitializeRcvAckMsg extends RoutableMsg
     senderID = scanner.nextIntUTF8();
     destination = scanner.nextIntUTF8();
     numAck = scanner.nextIntUTF8();
+    initializationAttemptId = protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V9 ? scanner.nextString() : null;
   }
 
   /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short protocolVersion)
   {
+    if (initializationAttemptId != null && protocolVersion < ProtocolVersion.REPLICATION_PROTOCOL_V9)
+    {
+      return null;
+    }
     final ByteArrayBuilder builder = new ByteArrayBuilder();
     builder.appendByte(MSG_TYPE_INITIALIZE_RCV_ACK);
     builder.appendIntUTF8(senderID);
     builder.appendIntUTF8(destination);
     builder.appendIntUTF8(numAck);
+    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V9)
+    {
+      builder.appendString(initializationAttemptId);
+    }
     return builder.toByteArray();
   }
 
@@ -96,5 +126,11 @@ public class InitializeRcvAckMsg extends RoutableMsg
   public int getNumAck()
   {
     return numAck;
+  }
+
+  /** @return the preparation acknowledgement's attempt identifier, or null for an entry acknowledgement */
+  public String getInitializationAttemptId()
+  {
+    return initializationAttemptId;
   }
 }

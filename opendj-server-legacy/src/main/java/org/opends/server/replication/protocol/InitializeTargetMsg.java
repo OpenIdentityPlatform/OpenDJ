@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -41,6 +42,9 @@ public class InitializeTargetMsg extends RoutableMsg
 
   private int initWindow;
 
+  /** Identifier supplied by the exporter for this initialization attempt, if available. */
+  private final String initializationAttemptId;
+
   /**
    * Creates a InitializeTargetMsg.
    *
@@ -54,11 +58,28 @@ public class InitializeTargetMsg extends RoutableMsg
   public InitializeTargetMsg(DN baseDN, int serverID,
       int destination, int requestorID, long entryCount, int initWindow)
   {
+    this(baseDN, serverID, destination, requestorID, entryCount, initWindow, null);
+  }
+
+  /**
+   * Creates the header of an initialization that can accept a correlated preparation refusal.
+   * @param baseDN the replicated suffix
+   * @param serverID the exporting server
+   * @param destination the importing server
+   * @param requestorID the server initiating the export
+   * @param entryCount the count of entries to export
+   * @param initWindow the initialization window
+   * @param initializationAttemptId the exporter-assigned attempt identifier, or null
+   */
+  public InitializeTargetMsg(DN baseDN, int serverID, int destination, int requestorID,
+      long entryCount, int initWindow, String initializationAttemptId)
+  {
     super(serverID, destination);
     this.requestorID = requestorID;
     this.baseDN = baseDN;
     this.entryCount = entryCount;
     this.initWindow = initWindow; // V4
+    this.initializationAttemptId = initializationAttemptId;
   }
 
   /**
@@ -87,6 +108,7 @@ public class InitializeTargetMsg extends RoutableMsg
     {
       initWindow = scanner.nextIntUTF8();
     }
+    initializationAttemptId = version >= ProtocolVersion.REPLICATION_PROTOCOL_V9 ? scanner.nextString() : null;
   }
 
   /**
@@ -130,6 +152,12 @@ public class InitializeTargetMsg extends RoutableMsg
     return this.initWindow;
   }
 
+  /** @return the exporter-assigned attempt identifier, or null for an uncorrelated header */
+  public String getInitializationAttemptId()
+  {
+    return initializationAttemptId;
+  }
+
   // ============
   // Msg encoding
   // ============
@@ -148,6 +176,10 @@ public class InitializeTargetMsg extends RoutableMsg
     if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
       builder.appendIntUTF8(initWindow);
+    }
+    if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V9)
+    {
+      builder.appendString(initializationAttemptId);
     }
     return builder.toByteArray();
   }

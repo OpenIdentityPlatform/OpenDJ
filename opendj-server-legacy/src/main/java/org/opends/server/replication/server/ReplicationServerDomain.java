@@ -54,6 +54,7 @@ import org.opends.server.replication.protocol.AckMsg;
 import org.opends.server.replication.protocol.ChangeStatusMsg;
 import org.opends.server.replication.protocol.ChangeTimeHeartbeatMsg;
 import org.opends.server.replication.protocol.ErrorMsg;
+import org.opends.server.replication.protocol.InitializeRcvAckMsg;
 import org.opends.server.replication.protocol.MonitorMsg;
 import org.opends.server.replication.protocol.MonitorRequestMsg;
 import org.opends.server.replication.protocol.ReplicaOfflineMsg;
@@ -1856,6 +1857,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     final LocalizableMessage message = mb.toMessage();
     logger.error(message);
 
+    if (isScopedInitializationReply(msg))
+    {
+      // An unscoped routing error could reach the importer during another initialization.
+      return;
+    }
     ErrorMsg errMsg = new ErrorMsg(this.localReplicationServer.getServerId(),
         msg.getSenderID(), message);
     try
@@ -1896,6 +1902,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         final LocalizableMessage message = mb.toMessage();
         logger.error(message);
 
+        if (isScopedInitializationReply(msg))
+        {
+          continue;
+        }
         ErrorMsg errMsg = new ErrorMsg(msg.getSenderID(), message);
         try
         {
@@ -1911,6 +1921,12 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       // TODO Handle error properly (sender timeout in addition)
       }
     }
+  }
+
+  private boolean isScopedInitializationReply(RoutableMsg msg)
+  {
+    return (msg instanceof ErrorMsg && ((ErrorMsg) msg).getInitializationAttemptId() != null)
+        || (msg instanceof InitializeRcvAckMsg && ((InitializeRcvAckMsg) msg).getInitializationAttemptId() != null);
   }
 
   /**

@@ -63,6 +63,7 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.ChangeStatusMsg;
+import org.opends.server.replication.protocol.ErrorMsg;
 import org.opends.server.replication.protocol.InitializeTargetMsg;
 import org.opends.server.replication.protocol.MonitorMsg;
 import org.opends.server.replication.protocol.MonitorRequestMsg;
@@ -281,6 +282,21 @@ public class ReplicationBroker
    */
   // @NotNull // for the reference
   private final AtomicReference<ConnectedRS> connectedRS = new AtomicReference<>(ConnectedRS.noConnectedRS());
+
+  /** Preparation refusals awaiting a route to the exporter, owned by the receiver thread. */
+  private final Map<Integer, PendingInitializationRefusal> pendingInitializationRefusals = new HashMap<>();
+
+  private static final class PendingInitializationRefusal
+  {
+    private final ErrorMsg message;
+    private final long createdNanos = System.nanoTime();
+    private Session lastSession;
+
+    private PendingInitializationRefusal(ErrorMsg message)
+    {
+      this.message = message;
+    }
+  }
   /** Our replication domain. */
   private final ReplicationDomain domain;
   /**
@@ -2473,6 +2489,43 @@ public class ReplicationBroker
     return session != null && publish(msg, false, false, session);
   }
 
+  /** Retains a refusal if the receiver has to retry the reconnect after finishing the import. */
+  void publishInitializationRefusalAfterReconnect(ErrorMsg refusal)
+  {
+    pendingInitializationRefusals.put(refusal.getDestination(), new PendingInitializationRefusal(refusal));
+  }
+
+  private void publishPendingInitializationRefusals(ConnectedRS rs)
+  {
+    if (pendingInitializationRefusals.isEmpty())
+    {
+      return;
+    }
+    final long now = System.nanoTime();
+    final Map<Integer, DSInfo> replicas = getReplicaInfos();
+    final Iterator<PendingInitializationRefusal> refusals = pendingInitializationRefusals.values().iterator();
+    while (refusals.hasNext())
+    {
+      final PendingInitializationRefusal refusal = refusals.next();
+      // The exporter's wait for preparation is bounded to two minutes.
+      if (now - refusal.createdNanos >= TimeUnit.MINUTES.toNanos(2))
+      {
+        refusals.remove();
+        continue;
+      }
+      final DSInfo exporter = replicas.get(refusal.message.getDestination());
+      if (exporter != null && rs.session != refusal.lastSession && rs.session.getProtocolVersion() >= REPLICATION_PROTOCOL_V9
+          && publishOnSession(refusal.message, rs.session))
+      {
+        refusal.lastSession = rs.session;
+        if (exporter.getRsId() == rs.getServerId())
+        {
+          refusals.remove();
+        }
+      }
+    }
+  }
+
   /**
    * Returns the session this broker publishes on, which a recovery started for it publishes on:
    * see {@link #publishRecovery(ReplicationMsg, Session)}.
@@ -2793,6 +2846,8 @@ public class ReplicationBroker
           break;
         }
       }
+
+      publishPendingInitializationRefusals(rs);
 
       final int serverId = getServerId();
       final DN baseDN = getBaseDN();

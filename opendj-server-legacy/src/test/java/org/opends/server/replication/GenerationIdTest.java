@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2023-2025 3A Systems, LLC.
+ * Portions Copyright 2023-2026 3A Systems, LLC.
  */
 package org.opends.server.replication;
 
@@ -48,6 +48,7 @@ import org.opends.server.replication.protocol.ChangeStatusMsg;
 import org.opends.server.replication.protocol.DoneMsg;
 import org.opends.server.replication.protocol.EntryMsg;
 import org.opends.server.replication.protocol.ErrorMsg;
+import org.opends.server.replication.protocol.InitializeRcvAckMsg;
 import org.opends.server.replication.protocol.InitializeTargetMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
@@ -272,6 +273,11 @@ public class GenerationIdTest extends ReplicationTestCase
       if (msg instanceof InitializeTargetMsg)
       {
         debugInfo("Broker " + serverID + " receives InitializeTargetMessage ");
+        final InitializeTargetMsg header = (InitializeTargetMsg) msg;
+        if (header.getInitializationAttemptId() != null)
+        {
+          broker.publish(new InitializeRcvAckMsg(serverID, header.getSenderID(), header.getInitializationAttemptId()));
+        }
         entriesReceived = 0;
       }
       else if (msg instanceof EntryMsg)
