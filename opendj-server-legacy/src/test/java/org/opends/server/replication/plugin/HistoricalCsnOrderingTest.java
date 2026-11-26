@@ -1086,25 +1086,29 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
       // The session started again recovers them, and the first round of its recovery fails, with a
       // change done meanwhile: the recovery keeps it, and the next one publishes it.
+      final CountDownLatch changeDone = new CountDownLatch(1);
       rd1.setMissingChangesSearchHook(onTheFirstSearch(search ->
       {
         unchecked(() ->
         {
           replace(dnA, "displayName", "while the failing round searches");
           done.add(rd1.getLastLocalChange());
+          changeDone.countDown();
         }).run();
         failure.accept(search);
       }));
       rd1.disable();
       rd1.enable();
 
+      assertTrue(changeDone.await(30, SECONDS), "the publisher recorded the third change");
+      final List<CSN> expected = List.copyOf(done);
       new TestTimer.Builder()
           .maxSleep(30, SECONDS)
           .sleepTimes(100, MILLISECONDS)
           .toTimer()
           .repeatUntilSuccess(() -> assertThat(changelogAfter(rs, baseDN, rsMaxCSN))
               .as("the changes the replication server holds after the ones it had")
-              .isEqualTo(done));
+              .isEqualTo(expected));
       waitUntilTheRecoveryIsOver(rd1);
       replace(dnA, "description", "once the recovery is over");
       assertInTheChangelog(rs, baseDN, rd1.getLastLocalChange());
