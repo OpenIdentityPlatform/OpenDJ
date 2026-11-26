@@ -13,7 +13,7 @@
  *
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
- * Portions copyright 2025-2026 3A Systems, LLC.
+ * Portions Copyright 2025-2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -26,7 +26,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -39,11 +41,15 @@ import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRequestEnvelope;
 import org.forgerock.util.Function;
 import org.forgerock.util.Option;
 import org.forgerock.util.Options;
+import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.filterchain.FilterChain;
+import org.glassfish.grizzly.impl.FutureImpl;
+import org.glassfish.grizzly.nio.SelectorHandler;
+import org.glassfish.grizzly.nio.SelectorRunner;
 import org.glassfish.grizzly.nio.transport.TCPNIOBindingHandler;
-import org.glassfish.grizzly.nio.transport.TCPNIOConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOServerConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
+import org.glassfish.grizzly.utils.Futures;
 
 import com.forgerock.opendj.util.ReferenceCountedObject;
 import com.forgerock.reactive.ReactiveHandler;
@@ -127,16 +133,82 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
 
     @Override
     public void close() {
-        if (isClosed.compareAndSet(false, true)) {
-            for (TCPNIOConnection serverConnection : serverConnections) {
+        try {
+            close(false);
+        } catch (IOException e) {
+            logger.warn(LocalizableMessage.raw("Exception occurred while closing listener"), e);
+        }
+    }
+
+    /**
+     * Closes the listener and waits for the accept sockets to be released.
+     * Call this from outside the transport's selector threads. If the transport was supplied by the caller, the
+     * caller still owns it and can drain existing connections.
+     *
+     * @throws IOException
+     *             If an accept socket could not be closed and deregistered.
+     */
+    public void closeAndAwaitPortRelease() throws IOException {
+        close(true);
+    }
+
+    private void close(boolean awaitPortRelease) throws IOException {
+        if (!isClosed.compareAndSet(false, true)) {
+            return;
+        }
+        IOException failure = null;
+        try {
+            for (TCPNIOServerConnection serverConnection : serverConnections) {
                 try {
-                    serverConnection.close().get(5, TimeUnit.SECONDS);
-                } catch (final Exception e) {
-                    // TODO: I18N
-                    logger.warn(LocalizableMessage.raw("Exception occurred while closing listener", e));
+                    closeServerConnection(serverConnection, awaitPortRelease);
+                } catch (IOException e) {
+                    if (failure == null) {
+                        failure = e;
+                    } else {
+                        failure.addSuppressed(e);
+                    }
                 }
             }
+        } finally {
             transport.release();
+        }
+        if (failure != null) {
+            throw failure;
+        }
+    }
+
+    private void closeServerConnection(TCPNIOServerConnection connection, boolean awaitPortRelease) throws IOException {
+        try {
+            final SelectorRunner runner = connection.getSelectorRunner();
+            if (awaitPortRelease && runner != null) {
+                final FutureImpl<SelectorHandler.Task> released = Futures.createSafeFuture();
+                final SelectorHandler selectorHandler = transport.get().getSelectorHandler();
+                // A closed NIO channel can still own the socket until the selector processes its cancelled key.
+                // Enqueue the check from the owning thread so it runs after the next selection cycle.
+                selectorHandler.enque(runner, () -> {
+                    connection.closeSilently();
+                    selectorHandler.enque(runner, () -> {
+                        if (connection.getChannel().isOpen() || connection.getChannel().isRegistered()) {
+                            throw new IOException("Listening socket is still registered: " + connection.getLocalAddress());
+                        }
+                        return true;
+                    }, Futures.toCompletionHandler(released));
+                    return true;
+                }, new EmptyCompletionHandler<SelectorHandler.Task>() {
+                    @Override
+                    public void failed(Throwable cause) {
+                        released.failure(cause);
+                    }
+                });
+                released.get(5, TimeUnit.SECONDS);
+            } else {
+                connection.close().get(5, TimeUnit.SECONDS);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupted while closing listener", e);
+        } catch (ExecutionException | TimeoutException e) {
+            throw new IOException("Could not close listener", e);
         }
     }
 

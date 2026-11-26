@@ -172,7 +172,7 @@ public class ConnectionHandlerConfigManager implements
             .deregisterConnectionHandler(connectionHandler);
         connectionHandlers.remove(dn);
 
-        connectionHandler.finalizeConnectionHandler(
+        connectionHandler.finalizeConnectionHandlerForConfigurationChange(
                 INFO_CONNHANDLER_CLOSED_BY_DISABLE.get());
       }
     }
@@ -194,7 +194,7 @@ public class ConnectionHandlerConfigManager implements
       DirectoryServer.deregisterConnectionHandler(connectionHandler);
       connectionHandlers.remove(dn);
 
-      connectionHandler.finalizeConnectionHandler(
+      connectionHandler.finalizeConnectionHandlerForConfigurationChange(
               INFO_CONNHANDLER_CLOSED_BY_DELETE.get());
     }
 

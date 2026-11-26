@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2015 ForgeRock AS.
- * Portions Copyright 2026 3A Systems, LLC
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.quicksetup.util;
 
@@ -129,12 +129,9 @@ public class FileManagerTest extends QuickSetupTestCase {
   @Test
   public void testRenameNonExistentTarget() throws Exception {
     File src = File.createTempFile("src", null);
-    File target = new File(src.getParentFile(), "target");
+    File target = File.createTempFile("target", null);
     try {
-      if (target.exists()) {
-        target.delete();
-        assertFalse(target.exists());
-      }
+      assertTrue(target.delete());
       fileManager.rename(src, target);
       assertFalse(src.exists());
       assertTrue(target.exists());

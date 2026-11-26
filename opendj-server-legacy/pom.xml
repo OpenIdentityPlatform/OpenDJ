@@ -1178,6 +1178,9 @@
     -->
     <profile>
       <id>precommit</id>
+      <properties>
+        <opendj.precommit.forkCount>4</opendj.precommit.forkCount>
+      </properties>
       <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
 
@@ -1273,6 +1276,7 @@
                  <systemPropertyVariables>
                     <org.opends.server.BuildRoot>${basedir}</org.opends.server.BuildRoot>
                     <org.opends.server.BuildDir>${project.build.directory}</org.opends.server.BuildDir>
+                    <org.opends.test.forkCount>${opendj.precommit.forkCount}</org.opends.test.forkCount>
                     <org.opends.test.replicationDbImpl>LOG</org.opends.test.replicationDbImpl>
                     <org.opends.server.snmp.opendmk>${opendmk.lib.dir}</org.opends.server.snmp.opendmk>
                     <org.opends.server.CleanupDirectories>true</org.opends.server.CleanupDirectories>
@@ -1292,9 +1296,10 @@
                   <environmentVariables>
                     <JAVA_TOOL_OPTIONS>-Dorg.bouncycastle.native.cpu_variant=java</JAVA_TOOL_OPTIONS>
                   </environmentVariables>
-                  <argLine>@{argLine}</argLine>
+                  <!-- Failsafe substitutes the fork number in each JVM command line. -->
+                  <argLine>@{argLine} -Dorg.opends.test.forkNumber=${surefire.forkNumber}</argLine>
 	          	  <reuseForks>false</reuseForks>
-	          	  <forkCount>1</forkCount>
+                  <forkCount>${opendj.precommit.forkCount}</forkCount>
 	          	  <parallel>none</parallel>
 	          	  <runOrder>alphabetical</runOrder>
 	          	  <!--

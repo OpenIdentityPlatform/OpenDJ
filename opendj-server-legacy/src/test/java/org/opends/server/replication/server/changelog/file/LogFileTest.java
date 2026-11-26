@@ -46,7 +46,7 @@ import static org.opends.server.replication.server.changelog.api.DBCursor.Positi
 @Test(sequential=true)
 public class LogFileTest extends DirectoryServerTestCase
 {
-  private static final File TEST_DIRECTORY = new File(TestCaseUtils.getUnitTestRootPath(), "changelog-unit");
+  private static final File TEST_DIRECTORY = new File(TestCaseUtils.getUnitTestRootPath(), "changelog-log-file");
   private static final File TEST_LOG_FILE = new File(TEST_DIRECTORY, Log.HEAD_LOG_FILE_NAME);
   static final StringRecordParser RECORD_PARSER = new StringRecordParser();
   private static final byte STRING_SEPARATOR = 0;

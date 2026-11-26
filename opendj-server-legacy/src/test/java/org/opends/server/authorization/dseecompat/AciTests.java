@@ -20,6 +20,7 @@ package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
@@ -44,7 +45,9 @@ import java.util.regex.Pattern;
 
 import com.forgerock.opendj.ldap.tools.LDAPCompare;
 import com.forgerock.opendj.ldap.tools.LDIFDiff;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DeleteOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import com.forgerock.opendj.ldap.tools.LDAPModify;
 import com.forgerock.opendj.ldap.tools.LDAPSearch;
@@ -55,8 +58,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
- * These are more functional tests than unit tests.  They go directly over
- * LDAP for all of their operations.  We use the builtin LDAPModify,
+ * These functional tests exercise ACI behavior over LDAP. We use the builtin LDAPModify,
  * LDAPSearch, etc. tools to do this, as well as the ones that can
  * do similar operations directly on LDIF (e.g. LDIFDiff).  This is
  * probably the easiest way to test the code, and it makes it easy to test
@@ -188,8 +190,7 @@ public class AciTests extends AciTestCase {
   private static final String PROXY_USER_DN = "cn=proxy user," + OU_BASE_DN;
 
   /**
-   * We need to delete all of these between each test.  This list needs to be
-   * bottom up so that it can be handed to LDAPDelete.
+   * Test entries in deletion order, with child entries before their parents.
    */
   private static final String[] ALL_TEST_ENTRY_DNS_BOTTOM_UP = {
     SALES_USER_1,
@@ -565,8 +566,15 @@ public class AciTests extends AciTestCase {
 
 
   @BeforeMethod
-  public void clearBackend() throws Exception {
-    deleteAllTestEntries();
+  public void clearBackend() {
+    // Wait for post-response delete plugins before the next test reuses the same DNs.
+    // An LDAP delete can return while AuthenticatedUsers is still processing the deletion.
+    for (String dn : ALL_TEST_ENTRY_DNS_BOTTOM_UP) {
+      DeleteOperation delete = getRootConnection().processDelete(dn);
+      ResultCode result = delete.getResultCode();
+      assertTrue(result == ResultCode.SUCCESS || result == ResultCode.NO_SUCH_OBJECT,
+          "Could not delete test entry " + dn + " (" + result + ") " + delete.getErrorMessage());
+    }
   }
 
 // -----------------------------------------------------------------------------
@@ -2301,17 +2309,17 @@ private static String _buildAciValue(String attr, String... aciFields) {
 
   private void modEntries(String ldif, String bindDn, String bindPassword)
           throws Exception {
-    modEntries(ldif, bindDn, bindPassword, null, true, false);
+    modEntries(ldif, bindDn, bindPassword, null, true);
   }
 
   private void modEntries(String ldif, String bindDn, String bindPassword, String proxyDN)
           throws Exception {
-    modEntries(ldif, bindDn, bindPassword, proxyDN, true, false);
+    modEntries(ldif, bindDn, bindPassword, proxyDN, true);
   }
 
   private void modEntriesExpectFailure(String ldif, String bindDn,
                                        String bindPassword) throws Exception {
-    modEntries(ldif, bindDn, bindPassword, null, false, false);
+    modEntries(ldif, bindDn, bindPassword, null, false);
   }
 
   private void _modEntries(String ldif, String bindDn, String bindPassword,
@@ -2332,8 +2340,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
   }
 
     private void modEntries(String ldif, String bindDn, String bindPassword,
-                          String proxyDN, boolean expectSuccess,
-                          boolean contFlag)
+                          String proxyDN, boolean expectSuccess)
     throws Exception {
     File tempFile = getTemporaryLdifFile();
     TestCaseUtils.writeFile(tempFile, ldif);
@@ -2348,10 +2355,6 @@ private static String _buildAciValue(String attr, String... aciFields) {
     argList.add(bindPassword);
     argList.add("-f");
     argList.add(tempFile.getAbsolutePath());
-    if(contFlag)
-    {
-      argList.add("-c");
-    }
     if(proxyDN != null) {
         argList.add("-Y");
         argList.add("dn:" + proxyDN);
@@ -2359,10 +2362,6 @@ private static String _buildAciValue(String attr, String... aciFields) {
     String[] args = new String[argList.size()];
     ldapModify(argList.toArray(args), expectSuccess);
   }
-
-    private void deleteAllTestEntries() throws Exception {
-        deleteEntries(ALL_TEST_ENTRY_DNS_BOTTOM_UP);
-    }
 
   private void deleteAttrFromEntry(String dn, String attr, String val,
                                    String bindDN, String pwd,
@@ -2373,7 +2372,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
                 "changetype: modify",
                 "delete: " + attr,
                 attr + ":" + val));
-        modEntries(ldif.toString(), bindDN, pwd, null, errorOk, false);
+        modEntries(ldif.toString(), bindDN, pwd, null, errorOk);
     }
 
 
@@ -2400,20 +2399,8 @@ private static String _buildAciValue(String attr, String... aciFields) {
                   "dn: "  + dn,
                   "changetype: modify",
                   "delete: " + attr));
-          modEntries(ldif.toString(), DIR_MGR_DN, DIR_MGR_PW,  null, errorOk, false);
+          modEntries(ldif.toString(), DIR_MGR_DN, DIR_MGR_PW, null, errorOk);
       }
-
-    private void deleteEntries(String[] entries) throws Exception {
-        // TODO: make this actually do a search first!
-        StringBuilder ldif = new StringBuilder();
-        for (String dn: entries) {
-            ldif.append(TestCaseUtils.makeLdif(
-                    "dn: " + dn,
-                    "changetype: delete"
-            ));
-        }
-        modEntries(ldif.toString(), DIR_MGR_DN, DIR_MGR_PW, null, true, true);
-    }
 
   /**
    * Return the difference between two ldif files.

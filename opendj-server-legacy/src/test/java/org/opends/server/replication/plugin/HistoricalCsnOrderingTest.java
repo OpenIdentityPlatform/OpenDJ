@@ -2557,6 +2557,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     TestCaseUtils.initializeTestBackend(true);
     ReplicationServer rs = createReplicationServer();
+    ReplicationServer second = null;
     LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
     try
     {
@@ -2567,19 +2568,31 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       waitUntilTheStateIsSaved(baseDN, rsMaxCSN);
       final List<Entry> backup = newArrayList(DirectoryServer.getEntry(baseDN).duplicate(false),
           DirectoryServer.getEntry(dnA).duplicate(false), DirectoryServer.getEntry(dnB).duplicate(false));
+
+      // Only the second replication server receives the delete. The first stays at the backup.
+      final int secondPort = TestCaseUtils.findFreePort();
+      second = createIsolatedReplicationServer(secondPort, "HistoricalCsnOrderingSecond", SECOND_RS_ID);
+      connectTo(rd1, towards(secondPort), SECOND_RS_ID);
       TestCaseUtils.deleteEntry(dnB);
-      assertInTheChangelog(rs, baseDN, rd1.getLastLocalChange());
+      assertInTheChangelog(second, baseDN, rd1.getLastLocalChange());
 
       // The data is restored while the domain is disabled, as it was before the delete.
       rd1.disable();
       restore(backup);
+      assertEquals(rd1.applyConfigurationChange(domainConfiguration(serverId, replServers)).getResultCode(),
+          ResultCode.SUCCESS);
       rd1.enable();
+      assertEquals(rd1.getRsServerId(), FIRST_RS_ID);
+      waitUntilTheRecoveryIsOver(rd1);
       assertNotNull(DirectoryServer.getEntry(dnB), "the entry is back");
 
       // A replication server which misses the changes after the backup: its recovery publishes the
       // change done since, and not the delete.
       replace(dnA, "description", "once the data was restored");
       final CSN afterTheRestore = rd1.getLastLocalChange();
+      assertInTheChangelog(rs, baseDN, afterTheRestore);
+      assertThat(changelogAfter(rs, baseDN, rsMaxCSN)).containsExactly(afterTheRestore);
+
       startRecovery(rd1);
       final List<ReplicationMsg> published = new ArrayList<>();
       assertTrue(rd1.buildAndPublishMissingChanges(rsMaxCSN, new TestBroker(published)));
@@ -2588,7 +2601,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     finally
     {
       MultimasterReplication.deleteDomain(baseDN);
-      remove(rs);
+      remove(rs, second);
     }
   }
 

@@ -136,6 +136,8 @@ public class AssuredReplicationServerTest
    * (without errors).
    */
   private static final int MAX_SEND_UPDATE_TIME = 2000;
+  /** Read deadline for the fake sender when no ack is expected, including time for an assured timeout ack. */
+  private static final int NO_ACK_READ_TIMEOUT = 5000;
 
   /** Default group id. */
   private static final int DEFAULT_GID = 1;
@@ -794,8 +796,13 @@ public class AssuredReplicationServerTest
      * Make the RS send an assured message and return the ack message it
      * receives from the RS.
      */
-    public AckMsg sendNewFakeUpdate() throws Exception
+    public AckMsg sendNewFakeUpdate(boolean expectAck) throws Exception
     {
+        if (!expectAck)
+        {
+          session.setSoTimeout(NO_ACK_READ_TIMEOUT);
+        }
+
         // Create a new delete update message (the simplest to create)
         DeleteMsg delMsg = new DeleteMsg(baseDN, gen.newCSN(),
         UUID.randomUUID().toString());
@@ -2206,12 +2213,14 @@ public class AssuredReplicationServerTest
        * Send an assured update using configured assured parameters
        */
 
+      boolean expectAck = sdLevel > 1 && fakeRsGid == DEFAULT_GID
+          && fakeRsGenId == DEFAULT_GENID && sendInAssured;
       long startTime = System.currentTimeMillis();
       AckMsg ackMsg = null;
       boolean timeout = false;
       try
       {
-        ackMsg = fakeRs1.sendNewFakeUpdate();
+        ackMsg = fakeRs1.sendNewFakeUpdate(expectAck);
       } catch (SocketTimeoutException e)
       {
         debugInfo("testSafeDataFromRS: timeout waiting for update ack");
@@ -2223,8 +2232,7 @@ public class AssuredReplicationServerTest
       /*
        * Now check timeout or not according to test configuration parameters
        */
-      if (sdLevel == 1 || fakeRsGid != DEFAULT_GID
-          || fakeRsGenId != DEFAULT_GENID || !sendInAssured )
+      if (!expectAck)
       {
         // Should have timed out (no ack)
         assertTrue(timeout);

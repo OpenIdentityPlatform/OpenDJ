@@ -37,6 +37,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.Assertions;
 import org.assertj.core.data.MapEntry;
@@ -132,6 +134,8 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   private final int RS_SERVER_ID = 90;
   /** Sleep time of the RS, before sending an ack. */
   private static final long NO_TIMEOUT_RS_SLEEP_TIME = 2000;
+  /** Read timeout for the final check that a replay did not send an ack. */
+  private static final int NO_ACK_READ_TIMEOUT = 5000;
   private final String testName = getClass().getSimpleName();
 
   /**
@@ -348,7 +352,8 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      * Signal that the current scenario the RS must execute reached the point
      * where the main code can perform test assertion.
      */
-    private boolean scenarioExecuted;
+    private final CountDownLatch scenarioExecuted = new CountDownLatch(1);
+    private long ackSendStartedNanos;
 
     private CSNGenerator gen;
     private String testcase;
@@ -534,13 +539,20 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       return handshakeOk;
     }
 
-    /**
-     * Tells the main code that the fake RS executed enough of the expected
-     * scenario and can perform test assertion.
-     */
-    public boolean isScenarioExecuted()
+    /** Waits until the fake RS has completed the part of the scenario under test. */
+    private void awaitScenarioExecuted() throws InterruptedException
     {
-      return scenarioExecuted;
+      assertTrue(scenarioExecuted.await(10, TimeUnit.SECONDS),
+          testcase + ": timed out waiting for the fake RS to complete the scenario");
+    }
+
+    /** Checks the add timing before waiting for the fake RS to finish publishing the ACK. */
+    private void assertAddWaitedForAck(long startTime, int timeout) throws InterruptedException
+    {
+      final long addReturnedNanos = System.nanoTime();
+      assertBlockedForLessThanTimeout(startTime, timeout);
+      awaitScenarioExecuted();
+      assertTrue(addReturnedNanos - ackSendStartedNanos >= 0, "add returned before the fake RS sent the ACK");
     }
 
     /** Handle client connection then call code specific to configured test. */
@@ -602,6 +614,23 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      */
     private AckMsg sendAssuredAddMsg(Entry entry, String parentUid) throws Exception
     {
+      publishAssuredAddMsg(entry, parentUid);
+      return waitForSpecificMsg(session, AckMsg.class);
+    }
+
+    private void assertNoAckForAssuredAdd(Entry entry, String parentUid) throws Exception
+    {
+      publishAssuredAddMsg(entry, parentUid);
+      // Confirm the DS replayed the add before checking whether it acknowledged it.
+      assertNotNull(getEntry(entry.getName(), NO_ACK_READ_TIMEOUT, true));
+
+      // This is the session's last read before the test closes it.
+      session.setSoTimeout(NO_ACK_READ_TIMEOUT);
+      assertThrows(SocketTimeoutException.class, () -> waitForSpecificMsg(session, AckMsg.class));
+    }
+
+    private void publishAssuredAddMsg(Entry entry, String parentUid) throws Exception
+    {
       AddMsg addMsg = new AddMsg(
           gen.newCSN(), entry.getName(), UUID.randomUUID().toString(),
           parentUid, entry.getObjectClassAttribute(), entry.getAllAttributes(), null);
@@ -611,8 +640,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       addMsg.setAssuredMode(assuredMode);
       addMsg.setSafeDataLevel(safeDataLevel);
       session.publish(addMsg);
-
-      return waitForSpecificMsg(session, AckMsg.class);
     }
 
     /** Read the coming update and check parameters are not assured. */
@@ -620,7 +647,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     {
       checkAssuredParametersOnReceivedUpdateMsg();
 
-      scenarioExecuted = true;
+      scenarioExecuted.countDown();
     }
 
     /** Read the coming update and make the client time out by not sending back the ack. */
@@ -628,7 +655,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     {
       checkAssuredParametersOnReceivedUpdateMsg();
 
-      scenarioExecuted = true;
+      scenarioExecuted.countDown();
 
       // We do not send back an ack and the client code is expected to be
       // blocked at least for the programmed timeout time.
@@ -644,9 +671,10 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
       // Send the ack without errors
       AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
+      ackSendStartedNanos = System.nanoTime();
       session.publish(ackMsg);
 
-      scenarioExecuted = true;
+      scenarioExecuted.countDown();
     }
 
     /**
@@ -703,7 +731,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       updateMsg = checkAssuredParametersOnReceivedUpdateMsg();
 
       // let timeout occur
-      scenarioExecuted = true;
+      scenarioExecuted.countDown();
     }
 
     /** Read the coming safe data mode updates and send back acks with errors. */
@@ -737,7 +765,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       updateMsg = checkAssuredParametersOnReceivedUpdateMsg();
 
       // let timeout occur
-      scenarioExecuted = true;
+      scenarioExecuted.countDown();
     }
   }
 
@@ -803,13 +831,12 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       }
       long endTime = System.currentTimeMillis();
 
-      waitForScenarioExecutedOnRs(testcase, replicationServer);
+      replicationServer.awaitScenarioExecuted();
 
       if (rsGroupId == 1)
       {
         // RS has same group id as DS
         assertBlockedLongerThanTimeout(startTime, endTime, TIMEOUT);
-        assertTrue(replicationServer.isScenarioExecuted());
 
         // Check monitoring values
         Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -914,12 +941,11 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       }
       long endTime = System.currentTimeMillis();
 
-      waitForScenarioExecutedOnRs(testcase, replicationServer);
+      replicationServer.awaitScenarioExecuted();
 
       if (rsGroupId == 1)
       {
         assertBlockedLongerThanTimeout(startTime, endTime, TIMEOUT);
-        assertTrue(replicationServer.isScenarioExecuted());
 
         // Check monitoring values
         Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -972,7 +998,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
           "objectClass: organizationalUnit");
 
       // Wait for entry received by RS
-      waitForScenarioExecutedOnRs(testcase, replicationServer);
+      replicationServer.awaitScenarioExecuted();
 
       // No more test to do here
     } finally
@@ -997,24 +1023,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       }
       Thread.sleep(1000);
     } while (!rs.isHandshakeOk());
-  }
-
-  /**
-   * Wait for the scenario to be executed by the fake replication server or
-   * times out with error after some seconds.
-   */
-  private void waitForScenarioExecutedOnRs(String testCase, FakeReplicationServer rs) throws Exception
-  {
-    int nsec = -1;
-    do
-    {
-      nsec++;
-      if (nsec == 10)
-      {
-        fail(testCase + ": timeout waiting for scenario to be exectued on fake RS after " + nsec + " seconds.");
-      }
-      Thread.sleep(1000);
-    } while (!rs.isScenarioExecuted());
   }
 
   private void endTest(String testcase) throws Exception
@@ -1056,8 +1064,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
           "objectClass: top",
           "objectClass: organizationalUnit");
 
-      assertBlockedForLessThanTimeout(startTime, TIMEOUT);
-      assertTrue(replicationServer.isScenarioExecuted());
+      replicationServer.assertAddWaitedForAck(startTime, TIMEOUT);
 
       // Check monitoring values
       Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -1100,8 +1107,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
           "objectClass: top",
           "objectClass: organizationalUnit");
 
-      assertBlockedForLessThanTimeout(startTime, TIMEOUT);
-      assertTrue(replicationServer.isScenarioExecuted());
+      replicationServer.assertAddWaitedForAck(startTime, TIMEOUT);
 
       // Check monitoring values
       Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -1138,50 +1144,36 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // Wait for connection of domain to RS
       waitForConnectionToRs(testcase, replicationServer);
 
-      /* Send an update from the RS and get the ack */
-
-      // Make the RS send an assured add message
       Entry entry = makeEntry(
-          "dn: ou=assured-sr-reply-entry," + SAFE_READ_DN,
+          "dn: ou=assured-sr-reply-entry-" + rsGroupId + "," + SAFE_READ_DN,
           "objectClass: top",
           "objectClass: organizationalUnit");
       String parentUid = getEntryUUID(DN.valueOf(SAFE_READ_DN));
 
-      try {
-        AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
-
-        if (rsGroupId == 2)
-        {
-          fail("Should only go here for RS with same group id as DS");
-        }
-
-        // Ack received, replay has occurred
-        assertNotNull(DirectoryServer.getEntry(entry.getName()));
-
-        // Check that DS replied an ack without errors anyway
-        assertFalse(ackMsg.hasTimeout());
-        assertFalse(ackMsg.hasReplayError());
-        assertFalse(ackMsg.hasWrongStatus());
-        assertEquals(ackMsg.getFailedServers().size(), 0);
-
-        // Check for monitoring data
-        DN baseDN = DN.valueOf(SAFE_READ_DN);
-        new MonitorAssertions(baseDN)
-          .assertValue("assured-sr-received-updates", 1)
-          .assertValue("assured-sr-received-updates-acked", 1)
-          .assertRemainingValuesAreZero();
-        assertNoServerErrors(baseDN);
-      }
-      catch (SocketTimeoutException e)
+      if (rsGroupId == 2)
       {
-        // Expected
-        if (rsGroupId == 1)
-        {
-          fail("Should only go here for RS with group id different from DS one");
-        }
-
+        replicationServer.assertNoAckForAssuredAdd(entry, parentUid);
         return;
       }
+
+      AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
+
+      // Ack received, replay has occurred
+      assertNotNull(DirectoryServer.getEntry(entry.getName()));
+
+      // Check that DS replied an ack without errors
+      assertFalse(ackMsg.hasTimeout());
+      assertFalse(ackMsg.hasReplayError());
+      assertFalse(ackMsg.hasWrongStatus());
+      assertEquals(ackMsg.getFailedServers().size(), 0);
+
+      // Check for monitoring data
+      DN baseDN = DN.valueOf(SAFE_READ_DN);
+      new MonitorAssertions(baseDN)
+        .assertValue("assured-sr-received-updates", 1)
+        .assertValue("assured-sr-received-updates-acked", 1)
+        .assertRemainingValuesAreZero();
+      assertNoServerErrors(baseDN);
     } finally
     {
       endTest(testcase);
@@ -1275,7 +1267,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
   /**
    * Tests that a DS receiving an update from a RS in safe data mode does not
-   * send back and ack (only safe read is taken into account in DS replay).
+   * send back an ack (only safe read is taken into account in DS replay).
    */
   @Test(dataProvider = "rsGroupIdProvider")
   public void testSafeDataModeReply(byte rsGroupId) throws Exception
@@ -1294,20 +1286,13 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // Wait for connection of domain to RS
       waitForConnectionToRs(testcase, replicationServer);
 
-      // Make the RS send an assured add message: we expect a read timeout as
-      // safe data should be ignored by DS
       Entry entry = makeEntry(
-          "dn: ou=assured-sd-reply-entry," + SAFE_DATA_DN,
+          "dn: ou=assured-sd-reply-entry-" + rsGroupId + "," + SAFE_DATA_DN,
           "objectClass: top",
           "objectClass: organizationalUnit");
       String parentUid = getEntryUUID(DN.valueOf(SAFE_DATA_DN));
 
-      AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
-      fail("DS should not reply an ack in safe data mode, however, it replied: " + ackMsg);
-    }
-    catch (SocketTimeoutException expected)
-    {
-      return;
+      replicationServer.assertNoAckForAssuredAdd(entry, parentUid);
     }
     finally
     {
@@ -1383,7 +1368,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
           "objectClass: organizationalUnit");
 
       assertBlockedLongerThanTimeout(startTime, System.currentTimeMillis(), TIMEOUT);
-      assertTrue(replicationServer.isScenarioExecuted());
+      replicationServer.awaitScenarioExecuted();
 
       // Check monitoring values
       // No ack should have comen back, so timeout incremented (flag and error for rs)
@@ -1498,7 +1483,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
           "objectClass: organizationalUnit");
 
       assertBlockedLongerThanTimeout(startTime, System.currentTimeMillis(), TIMEOUT);
-      assertTrue(replicationServer.isScenarioExecuted());
+      replicationServer.awaitScenarioExecuted();
 
       // Check monitoring values
       // No ack should have comen back, so timeout incremented (flag and error for rs)

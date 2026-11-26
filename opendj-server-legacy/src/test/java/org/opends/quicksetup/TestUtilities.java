@@ -13,7 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2013-2015 ForgeRock AS.
- * Portions Copyright 2018-2026 3A Systems, LLC
+ * Portions Copyright 2018-2026 3A Systems, LLC.
  */
 package org.opends.quicksetup;
 
@@ -66,7 +66,7 @@ public class TestUtilities {
   }
 
   private static void setupServer() throws IOException, InterruptedException {
-    int[] ports = TestCaseUtils.findFreePorts(2);
+    int[] ports = TestCaseUtils.findFreePorts(3);
     ldapPort = ports[0];
     jmxPort = ports[1];
 
@@ -80,6 +80,8 @@ public class TestUtilities {
     args.add(Integer.toString(ldapPort));
     args.add("-x");
     args.add(Integer.toString(jmxPort));
+    args.add("--adminConnectorPort");
+    args.add(Integer.toString(ports[2]));
     args.add("-w");
     args.add(DIRECTORY_MANAGER_PASSWORD);
     // Create a backend so that configuration tests see database paths.
@@ -136,7 +138,7 @@ public class TestUtilities {
     String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
     File   buildDir  = new File(buildRoot, "build");
     File   unitRootDir  = new File(buildDir, "unit-tests");
-    return new File(unitRootDir, "quicksetup");
+    return TestCaseUtils.getForkDirectory(new File(unitRootDir, "quicksetup"));
   }
 
   public static File getQuickSetupTestServerRootDir() {

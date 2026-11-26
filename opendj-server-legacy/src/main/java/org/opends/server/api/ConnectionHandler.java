@@ -106,6 +106,19 @@ public abstract class ConnectionHandler
   public abstract void finalizeConnectionHandler(
       LocalizableMessage finalizeReason);
 
+  /**
+   * Stops this handler after its configuration is disabled or deleted.
+   * This can run on a work queue worker. Handlers whose listeners depend on
+   * the work queue can initiate closure asynchronously.
+   *
+   * @param finalizeReason
+   *          The reason that this connection handler should be finalized.
+   */
+  public void finalizeConnectionHandlerForConfigurationChange(LocalizableMessage finalizeReason)
+  {
+    finalizeConnectionHandler(finalizeReason);
+  }
+
 
 
   /**
