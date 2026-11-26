@@ -33,7 +33,17 @@ These examples use the OpenDJ LDAP SDK {opendj-sdk-example-version} to read serv
 [#ldap-sdk-maven]
 === Add the SDK to a Maven Project
 
-Use Java 11 or later and Maven 3. Create an `ldap-client` project directory next to the `opendj-quickstart` directory from xref:../getting-started/first-steps.adoc#getting-started-first-directory[Your First Directory]. Save this `pom.xml` in `ldap-client`. The `opendj-grizzly` dependency brings in the `opendj-core` SDK and provides its LDAP network transport.
+Use Java 11 or later and Maven 3. In xref:../getting-started/first-steps.adoc#getting-started-first-directory[Your First Directory], complete *Set Up and Start the Server*. Keep the evaluation server running and retain `quickstart-password.txt` for the Java exercises. If you already completed the Quickstart cleanup, restart the server with `opendj/bin/start-ds` from `opendj-quickstart` and re-create `quickstart-password.txt` there with the same Directory Manager password and permissions readable only by you.
+
+From the directory containing `opendj-quickstart`, create the Java project next to it.
+
+[source,bash]
+----
+mkdir -p ldap-client/src/main/java
+cd ldap-client
+----
+
+Save this `pom.xml` in `ldap-client`. The `opendj-grizzly` dependency brings in the `opendj-core` SDK and provides its LDAP network transport.
 
 [source,xml,subs="+attributes"]
 ----
@@ -59,7 +69,7 @@ Use Java 11 or later and Maven 3. Create an `ldap-client` project directory next
 [#ldap-sdk-search]
 === Read the Root DSE
 
-Set up and start the evaluation server as described in xref:../getting-started/first-steps.adoc#getting-started-first-directory[Your First Directory]. The example reads the root DSE, an entry with public server information, anonymously from the local LDAP listener on port 1389.
+The example reads the root DSE, an entry with server information, anonymously from the evaluation server's LDAP listener on port 1389.
 
 Save this class as `src/main/java/ReadCapabilities.java`.
 
@@ -76,6 +86,7 @@ public final class ReadCapabilities {
             RootDSE rootDse = RootDSE.readRootDSE(connection);
             var versions = rootDse.getSupportedLDAPVersions();
             System.out.println("LDAPv3 supported = " + versions.contains(3));
+            System.out.println("Naming contexts = " + rootDse.getNamingContexts());
         }
     }
 }
@@ -88,7 +99,13 @@ Run this command from the Maven project directory.
 mvn -q compile exec:java -Dexec.mainClass=ReadCapabilities
 ----
 
-The program prints `LDAPv3 supported = true`. The link:{opendj-sdk-javadoc}/ldap/RootDSE.html[`RootDSE`] class also exposes naming contexts, supported controls, and extended operations.
+The program prints `LDAPv3 supported = true`. Check that the naming contexts include `dc=example,dc=com`. The link:{opendj-sdk-javadoc}/ldap/RootDSE.html[`RootDSE`] class also exposes supported controls and extended operations.
+
+For an existing directory, obtain the server hostname, listener port and TLS mode, trusted CA certificates, service-account DN, and permitted search base from its administrator. Use `getNamingContexts()` on a verified connection to identify the directory suffixes visible to your account. Choose a search base within the suffix that contains the application data.
+
+* The *Bind DN* identifies the account whose credentials the client presents.
+* The *base DN* is the starting point of a search, such as `ou=People,dc=example,dc=com`.
+* The *entry DN* identifies a particular record, such as `uid=alice,ou=People,dc=example,dc=com`. Its first component, `uid=alice`, is the relative distinguished name (RDN).
 
 [#ldap-sdk-entry-operations]
 === Add, Search, Modify, and Delete Entries
@@ -105,7 +122,30 @@ keytool -importcert -noprompt -alias server-cert -file ldap-server.pem \
   -keystore ldap-trust.p12 -storetype PKCS12 -storepass changeit
 ----
 
-Save the following class as `src/main/java/ManageEntries.java`. It verifies the server certificate and hostname before binding on port 1636. The Directory Manager account is for this evaluation server. In an application, use an account with access to the entries and operations it needs.
+Save the TLS setup as `src/main/java/LocalLdaps.java`. The examples use it to open verified LDAPS connections to the evaluation server.
+
+[source,java]
+----
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.SSLContextBuilder;
+import org.forgerock.opendj.ldap.TrustManagers;
+import org.forgerock.util.Options;
+
+final class LocalLdaps {
+    static final String HOST = "localhost";
+    static final int PORT = 1636;
+
+    static Options options() throws Exception {
+        var trust = TrustManagers.checkUsingTrustStore(
+                "ldap-trust.p12", "changeit".toCharArray(), "PKCS12");
+        var trustManager = TrustManagers.checkValidityDates(TrustManagers.checkHostName(HOST, trust));
+        var sslContext = new SSLContextBuilder().setTrustManager(trustManager).getSSLContext();
+        return Options.defaultOptions().set(LDAPConnectionFactory.SSL_CONTEXT, sslContext);
+    }
+}
+----
+
+Save the following class as `src/main/java/ManageEntries.java`. The Directory Manager account is for this evaluation server. In an application, use an account with access to the entries and operations it needs.
 
 [source,java]
 ----
@@ -119,23 +159,14 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
-import org.forgerock.util.Options;
 
 public final class ManageEntries {
     public static void main(String[] args) throws Exception {
-        String host = "localhost";
-        var trustStore = TrustManagers.checkUsingTrustStore(
-                "ldap-trust.p12", "changeit".toCharArray(), "PKCS12");
-        var trustManager = TrustManagers.checkValidityDates(TrustManagers.checkHostName(host, trustStore));
-        var sslContext = new SSLContextBuilder().setTrustManager(trustManager).getSSLContext();
-        Options options = Options.defaultOptions().set(LDAPConnectionFactory.SSL_CONTEXT, sslContext);
-
-        try (LDAPConnectionFactory factory = new LDAPConnectionFactory(host, 1636, options);
+        try (LDAPConnectionFactory factory =
+                     new LDAPConnectionFactory(LocalLdaps.HOST, LocalLdaps.PORT, LocalLdaps.options());
              Connection connection = factory.getConnection()) {
             char[] password = Files.readAllLines(Path.of("../opendj-quickstart/quickstart-password.txt"))
                     .get(0).toCharArray();
@@ -218,6 +249,399 @@ Expect one search match, `true` for the updated email comparison, and `false` fo
 * *Abandon and Unbind.* Closing a `ConnectionEntryReader` cancels its search if it is still active. For other asynchronous operations, cancel the returned `LdapPromise` to request abandonment where supported. The Cancel extended operation is a separate request with its own result. Closing a direct LDAP connection sends Unbind when possible and releases the connection.
 * *Errors.* SDK methods report LDAP failures through `LdapException`. Use `e.getResult().getResultCode()` to distinguish conditions such as `ENTRY_ALREADY_EXISTS`, `NO_SUCH_OBJECT`, and `INSUFFICIENT_ACCESS_RIGHTS`. Use `e.getLocalizedMessage()` for messages presented to users. A search may yield entries before reporting a final LDAP error, such as `SIZE_LIMIT_EXCEEDED`.
 
+[#ldap-sdk-choose-search]
+=== Choose a Search Method
+
+[cols="2,3",options="header"]
+|===
+|Method |When to use it
+
+|`readEntry(dn, attributes)`
+|You already know the entry DN. A missing entry raises `EntryNotFoundException`.
+
+|`searchSingleEntry(request)`
+|You expect exactly one match, such as a unique login. Zero matches produce `CLIENT_SIDE_NO_RESULTS_RETURNED`. Multiple or otherwise unexpected results raise `MultipleEntriesFoundException`.
+
+|`search(request)`
+|You expect zero or more matches. Consume entries and continuation references through `ConnectionEntryReader`. A successful search can return zero entries. Consume the complete result to detect a final LDAP error.
+|===
+
+Build filters with methods such as `Filter.equality("uid", login)` so that characters in the supplied value are treated literally. Request the attributes the application uses. For an optional single value, call `entry.parseAttribute("mail").asString("")` to supply a default. For a multivalued attribute, call `entry.parseAttribute("mail").asSetOfString()` and handle an empty set. A missing value can also reflect the account's read permissions.
+
+[#ldap-sdk-search-and-bind]
+=== Find a User and Verify a Password
+
+Use a service account to find the user's DN, then bind as the user on a separate connection. Both connections use verified TLS. Keep the service account's privileges limited to the search and attributes required by the application.
+
+On the evaluation server, create a reader account and two sample records. Run the following Bash block from `ldap-client` after creating the LDAPS truststore. It uses `openssl` to generate temporary passwords and grants the reader search and read access to the sample users' login and object class.
+
+[source,bash]
+----
+sdk_admin() {
+  local tool=$1
+  shift
+  "../opendj-quickstart/opendj/bin/$tool" --hostname localhost --port 1636 --useSSL \
+    --trustStorePath ldap-trust.p12 --trustStorePassword changeit \
+    --bindDN 'cn=Directory Manager' \
+    --bindPasswordFile ../opendj-quickstart/quickstart-password.txt "$@"
+}
+
+SDK_READER_PASSWORD=$(openssl rand -hex 16) &&
+SDK_USER_PASSWORD=$(openssl rand -hex 16) &&
+export SDK_READER_PASSWORD SDK_USER_PASSWORD &&
+sdk_admin ldapmodify --defaultAdd <<LDIF
+dn: uid=sdk-reader,dc=example,dc=com
+objectClass: inetOrgPerson
+uid: sdk-reader
+cn: SDK Reader
+sn: Reader
+userPassword: ${SDK_READER_PASSWORD}
+
+dn: ou=SdkUsers,dc=example,dc=com
+objectClass: organizationalUnit
+ou: SdkUsers
+aci: (targetattr = "uid || objectClass")(version 3.0; acl "Search SDK users"; allow (read,search) userdn = "ldap:///uid=sdk-reader,dc=example,dc=com";)
+
+dn: uid=sdk-alice,ou=SdkUsers,dc=example,dc=com
+objectClass: inetOrgPerson
+uid: sdk-alice
+cn: SDK Alice
+sn: Alice
+userPassword: ${SDK_USER_PASSWORD}
+
+dn: uid=sdk-bob,ou=SdkUsers,dc=example,dc=com
+objectClass: inetOrgPerson
+uid: sdk-bob
+cn: SDK Bob
+sn: Bob
+LDIF
+----
+
+Save this class as `src/main/java/SearchAndBind.java`. It uses `AUTHN_BIND_REQUEST` to configure the service pool. The user's password travels only on the separate LDAPS connection. Reject an empty password before calling Bind.
+
+[source,java]
+----
+import java.util.Arrays;
+
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.ConnectionPool;
+import org.forgerock.opendj.ldap.Connections;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.EntryNotFoundException;
+import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.Requests;
+
+public final class SearchAndBind {
+    static final DN USERS_BASE = DN.valueOf("ou=SdkUsers,dc=example,dc=com");
+    private static final String READER_DN = "uid=sdk-reader,dc=example,dc=com";
+
+    public static void main(String[] args) throws Exception {
+        if (args.length != 1 || args[0].isBlank()) {
+            throw new IllegalArgumentException("Pass one login, for example sdk-alice");
+        }
+
+        DN userDN;
+        try (ConnectionPool pool = newReaderPool();
+             Connection reader = pool.getConnection()) {
+            var request = Requests.newSearchRequest(USERS_BASE, SearchScope.SINGLE_LEVEL,
+                    Filter.equality("uid", args[0]), "uid");
+            userDN = reader.searchSingleEntry(request).getName();
+        } catch (EntryNotFoundException e) {
+            if (e.getResult().getResultCode() != ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED) {
+                throw e;
+            }
+            System.out.println("No matching user");
+            return;
+        } catch (MultipleEntriesFoundException e) {
+            System.out.println("Could not select one user. Check for duplicate matches, referrals, or search limits.");
+            return;
+        }
+
+        char[] password = requirePassword("SDK_USER_PASSWORD");
+        try (LDAPConnectionFactory factory =
+                     new LDAPConnectionFactory(LocalLdaps.HOST, LocalLdaps.PORT, LocalLdaps.options());
+             Connection connection = factory.getConnection()) {
+            connection.bind(userDN.toString(), password);
+            System.out.println("Authenticated " + userDN);
+        } catch (LdapException e) {
+            if (e.getResult().getResultCode() != ResultCode.INVALID_CREDENTIALS) {
+                throw e;
+            }
+            System.out.println("Invalid credentials");
+        } finally {
+            Arrays.fill(password, '\0');
+        }
+    }
+
+    static ConnectionPool newReaderPool() throws Exception {
+        char[] password = requirePassword("SDK_READER_PASSWORD");
+        try {
+            var bind = Requests.newSimpleBindRequest(READER_DN, password);
+            var options = LocalLdaps.options().set(LDAPConnectionFactory.AUTHN_BIND_REQUEST, bind);
+            return Connections.newFixedConnectionPool(
+                    new LDAPConnectionFactory(LocalLdaps.HOST, LocalLdaps.PORT, options), 4);
+        } finally {
+            Arrays.fill(password, '\0');
+        }
+    }
+
+    private static char[] requirePassword(String variable) {
+        String value = System.getenv(variable);
+        if (value == null || value.isEmpty()) {
+            throw new IllegalArgumentException("Set " + variable + " to a nonempty password");
+        }
+        return value.toCharArray();
+    }
+}
+----
+
+Run these commands to try a successful login, an absent login, and a wrong password.
+
+[source,bash]
+----
+mvn -q compile exec:java -Dexec.mainClass=SearchAndBind -Dexec.args=sdk-alice
+mvn -q compile exec:java -Dexec.mainClass=SearchAndBind -Dexec.args=sdk-unknown
+SDK_USER_PASSWORD=wrong-test-password \
+  mvn -q compile exec:java -Dexec.mainClass=SearchAndBind -Dexec.args=sdk-alice
+----
+
+To try the duplicate case on the evaluation server, temporarily add a second entry under `ou=SdkUsers` with a different DN and the same `uid: sdk-alice`. Repeat the lookup and remove the second entry.
+
+The example prints separate outcomes for the exercise. In an application, give the same sign-in response for an unknown login and incorrect credentials. Keep a single service pool for the application's lifetime, and supply its password from the application's secret store. Closing a borrowed service connection returns it to the pool.
+
+[#ldap-sdk-paged-search]
+=== Read Search Results Page by Page
+
+Use the sample users and lookup pool from the preceding exercise. Save this class as `src/main/java/PagedSearch.java`. It requests one result per page to demonstrate more than one request. It holds a single connection while sending each response cookie with the next request.
+
+[source,java]
+----
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.ConnectionPool;
+import org.forgerock.opendj.ldap.DecodeOptions;
+import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.RootDSE;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.controls.SimplePagedResultsControl;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
+
+public final class PagedSearch {
+    public static void main(String[] args) throws Exception {
+        try (ConnectionPool pool = SearchAndBind.newReaderPool();
+             Connection connection = pool.getConnection()) {
+            if (!RootDSE.readRootDSE(connection).getSupportedControls().contains(SimplePagedResultsControl.OID)) {
+                throw new IllegalStateException("The server does not advertise paged results");
+            }
+
+            ByteString cookie = ByteString.empty();
+            do {
+                var request = Requests.newSearchRequest(SearchAndBind.USERS_BASE, SearchScope.SINGLE_LEVEL,
+                        Filter.equality("objectClass", "inetOrgPerson"), "uid").setTimeLimit(5);
+                request.addControl(SimplePagedResultsControl.newControl(true, 1, cookie));
+                try (ConnectionEntryReader reader = connection.search(request)) {
+                    while (reader.hasNext()) {
+                        if (reader.isEntry()) {
+                            System.out.println(reader.readEntry().getName());
+                        } else {
+                            System.out.println("Search reference " + reader.readReference().getURIs());
+                        }
+                    }
+                    var response = reader.readResult().getControl(SimplePagedResultsControl.DECODER, new DecodeOptions());
+                    if (response == null) {
+                        throw new IllegalStateException("Missing paged results response control");
+                    }
+                    cookie = response.getCookie();
+                }
+            } while (cookie.length() != 0);
+        }
+    }
+}
+----
+
+Run `mvn -q compile exec:java -Dexec.mainClass=PagedSearch`. Expect the two sample user DNs. An empty cookie ends the search. Keep the base, scope, filter, and requested attributes the same across pages. Page size controls the number requested per page. `setSizeLimit` and `setTimeLimit` request server-side limits on entries and elapsed search time in seconds. A final `SIZE_LIMIT_EXCEEDED` or `TIME_LIMIT_EXCEEDED` means you have partial results.
+
+[#ldap-sdk-async-search]
+=== Run an Asynchronous Search
+
+Save this class as `src/main/java/FindUserAsync.java`. The promise starts the search after the pool supplies a connection. Its completion handler returns the connection to the pool on success or failure. The command-line program waits for the result with `getOrThrow()`.
+
+[source,java]
+----
+import org.forgerock.opendj.ldap.ConnectionPool;
+import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.Requests;
+
+public final class FindUserAsync {
+    public static void main(String[] args) throws Exception {
+        var request = Requests.newSearchRequest(SearchAndBind.USERS_BASE, SearchScope.SINGLE_LEVEL,
+                Filter.equality("uid", "sdk-alice"), "uid");
+        try (ConnectionPool pool = SearchAndBind.newReaderPool()) {
+            var lookup = pool.getConnectionAsync().thenAsync(connection -> {
+                try {
+                    return connection.searchSingleEntryAsync(request).thenFinally(connection::close);
+                } catch (RuntimeException e) {
+                    connection.close();
+                    throw e;
+                }
+            });
+            System.out.println(lookup.getOrThrow().getName());
+        }
+    }
+}
+----
+
+Run `mvn -q compile exec:java -Dexec.mainClass=FindUserAsync`. Expect the DN of `sdk-alice`. Use the link:{opendj-sdk-examples}/SearchAsync.java[`SearchAsync.java`] example for asynchronous searches that deliver multiple entries.
+
+Remove the sample entries before the evaluation server cleanup. Run this in the shell where you defined `sdk_admin`.
+
+[source,bash]
+----
+printf '%s\n' \
+  'uid=sdk-alice,ou=SdkUsers,dc=example,dc=com' \
+  'uid=sdk-bob,ou=SdkUsers,dc=example,dc=com' \
+  'ou=SdkUsers,dc=example,dc=com' \
+  'uid=sdk-reader,dc=example,dc=com' |
+  sdk_admin ldapdelete
+unset SDK_READER_PASSWORD SDK_USER_PASSWORD
+----
+
+[#ldap-sdk-troubleshooting]
+=== Diagnose Client Errors
+
+Log the operation, the result code from `LdapException.getResult()`, and the exception cause when applicable. Keep passwords out of logs. For an application-facing error, show a message appropriate for the failed operation.
+
+[cols="2,3",options="header"]
+|===
+|Symptom |First check
+
+|Connection refused or `CLIENT_SIDE_CONNECT_ERROR`
+|Check that the server is running and that the host, port, and LDAP or LDAPS listener match. Run the Root DSE example against the evaluation listener to verify connectivity.
+
+|TLS handshake or certificate error
+|Check the exception cause for an untrusted certificate chain or a hostname mismatch. Verify that the LDAPS or StartTLS mode matches the listener and that the truststore contains the appropriate CA or the evaluation server's certificate.
+
+|`INVALID_CREDENTIALS`
+|Check the Bind DN, its password and the account state. Use a separate Bind to distinguish the service-account login from the user's login.
+
+|`INSUFFICIENT_ACCESS_RIGHTS`
+|Check the account reported by Who Am I? and the access control rules for the requested entry, operation, and attributes.
+
+|`NO_SUCH_OBJECT` or zero results
+|Check the search base or target DN first. If the base exists, check the search scope, filter and the account's search visibility.
+
+|`CLIENT_SIDE_TIMEOUT` or a server search limit
+|Check whether the timeout is on the client or the server. Narrow the scope or filter, and verify that the application handles partial search results before retrying.
+|===
+
+If a write times out after transmission, read the entry before deciding whether to retry. A sequence of separate LDAP requests can leave changes from earlier requests in place. For integration tests, create a dedicated branch, assert the returned entry and error codes, and remove the branch after each test. Use a test OpenDJ instance for checks that depend on TLS, access controls, or server-side search limits.
+
+[#ldap-sdk-connection-settings]
+=== LDAP Connection Settings
+
+Pass the server host, port, and an `Options` instance to link:{opendj-sdk-javadoc}/ldap/LDAPConnectionFactory.html[`LDAPConnectionFactory`]. Set each option with `Options.defaultOptions().set(option, value)`. A pool uses the options of its underlying factory when it opens physical connections. The defaults below apply to OpenDJ LDAP SDK {opendj-sdk-example-version}.
+
+[cols="2,1,4",options="header"]
+|===
+|Option on `LDAPConnectionFactory` |Default |Effect
+
+|`CONNECT_TIMEOUT`
+|10 seconds
+|Maximum time to establish a physical connection, including TCP, TLS negotiation, an initial bind, and an initial heartbeat when applicable. Use zero to leave the TCP connection timeout to the operating system and disable the SDK's overall connection deadline. The JVM property `org.forgerock.opendj.io.connectTimeout` sets the default in milliseconds.
+
+|`REQUEST_TIMEOUT`
+|0 (disabled)
+|Client timeout for an LDAP operation waiting for a response. Grizzly reports `CLIENT_SIDE_TIMEOUT` when it expires. The JVM property `org.forgerock.opendj.io.requestTimeout` sets the default in milliseconds. Its legacy fallback is `org.forgerock.opendj.io.timeout`.
+
+|`AUTHN_BIND_REQUEST`
+|Unset
+|A `BindRequest` sent when opening each physical connection, after TLS negotiation if configured. A failed bind causes connection acquisition to fail.
+
+|`SSL_CONTEXT`
+|Unset
+|Supply an `SSLContext` to enable TLS and configure certificate validation. An unset context uses plaintext LDAP.
+
+|`SSL_USE_STARTTLS`
+|`false`
+|With an SSL context, `false` uses LDAPS and `true` upgrades an LDAP connection using StartTLS.
+
+|`SSL_ENABLED_PROTOCOLS`
+|Empty list
+|List of TLS protocol names enabled on secure connections. An empty list uses the SSL engine's enabled protocols.
+
+|`SSL_ENABLED_CIPHER_SUITES`
+|Empty list
+|List of TLS cipher suites enabled on secure connections. An empty list uses the SSL engine's enabled suites.
+
+|`HEARTBEAT_ENABLED`
+|`false`
+|Enable periodic LDAP searches on idle connections to detect an unresponsive server.
+
+|`HEARTBEAT_INTERVAL`
+|10 seconds
+|Interval between heartbeat checks. Use a positive duration when heartbeats are enabled.
+
+|`HEARTBEAT_TIMEOUT`
+|3 seconds
+|Response deadline for a periodic heartbeat. A shorter enabled request timeout can expire first. Use a positive duration when heartbeats are enabled.
+
+|`HEARTBEAT_SEARCH_REQUEST`
+|Root DSE base search
+|Override the heartbeat `SearchRequest`. The default uses the filter `(objectClass=*)` and requests no attributes (`1.1`).
+
+|`HEARTBEAT_SCHEDULER`
+|Shared SDK scheduler
+|Supply a `ScheduledExecutorService` for heartbeat work and the SDK's connection setup deadline.
+|===
+
+Timeout and interval options use `org.forgerock.util.time.Duration`. Set the time unit when creating the duration, for example `Duration.duration(5, TimeUnit.SECONDS)`.
+
+The connection factory also accepts these inherited options and the Grizzly transport option.
+
+[cols="2,2,4",options="header"]
+|===
+|Option |Default |Effect
+
+|`TCP_NO_DELAY`
+|`true`
+|Set the `TCP_NODELAY` socket option. The JVM property `org.forgerock.opendj.io.tcpNoDelay` sets the default.
+
+|`SO_KEEPALIVE`
+|`true`
+|Enable operating-system TCP keepalives through `SO_KEEPALIVE`. The JVM property `org.forgerock.opendj.io.keepAlive` sets the default.
+
+|`SO_REUSE_ADDRESS`
+|`true`
+|Set the `SO_REUSEADDR` socket option. The JVM property `org.forgerock.opendj.io.reuseAddress` sets the default.
+
+|`SO_LINGER_IN_SECONDS`
+|`-1` (disabled)
+|Configure how long socket close may wait for queued data. Use a negative value to disable `SO_LINGER`. The JVM property `org.forgerock.opendj.io.linger` sets the default in seconds.
+
+|`LDAP_DECODE_OPTIONS`
+|Default schema and factories
+|Supply `DecodeOptions` to select the schema resolver, entry factory, and attribute factory for decoding LDAP messages.
+
+|`TRANSPORT_PROVIDER`
+|First discovered provider
+|Select the `TransportProvider` by name. The `opendj-grizzly` dependency provides `Grizzly`.
+
+|`TRANSPORT_PROVIDER_CLASS_LOADER`
+|Class loader of `TransportProvider`
+|Specify the class loader used by `ServiceLoader` to find the transport provider.
+
+|`GrizzlyLDAPConnectionFactory.GRIZZLY_TRANSPORT`
+|Shared SDK transport
+|Supply a Grizzly `TCPNIOTransport` to configure the underlying network transport.
+|===
+
 [#ldap-sdk-connection-pools]
 === Reuse LDAP Connections
 
@@ -242,7 +666,45 @@ Choose the pool configuration according to how long the application should keep 
 |Uses a core size of zero, an effectively unbounded maximum, and a 60-second idle timeout. A burst can create as many connections as the workload demands within resource limits.
 |===
 
-When a bounded pool is at maximum size and all its connections are in use, `getConnection()` waits for an available connection. Use `getConnectionAsync()` to acquire a connection without blocking the caller. A connection factory's connect timeout applies to opening a network connection. Set the application concurrency limit and release connections promptly to control pool contention.
+[#ldap-sdk-pool-settings]
+==== Connection Pool Settings
+
+Set pool parameters when calling the factory methods in `Connections`. The cached defaults below apply to `newCachedConnectionPool(factory)`.
+
+[cols="1,2,4",options="header"]
+|===
+|Argument |Default |Effect
+
+|`factory`
+|Required
+|Underlying `ConnectionFactory` used to open physical connections.
+
+|`poolSize`
+|Required for a fixed pool
+|Positive size passed to `newFixedConnectionPool`. The fixed pool uses this value as both its core and maximum size.
+
+|`corePoolSize`
+|`0`
+|Minimum number of established connections to retain during idle eviction. Use a value between zero and `maximumPoolSize`. A core size of zero lets an idle pool shrink to zero when eviction is enabled.
+
+|`maximumPoolSize`
+|`Integer.MAX_VALUE`
+|Positive limit on the number of physical connections in the cached pool. Use an explicit maximum to bound load on the directory server.
+
+|`idleTimeout`
+|60 seconds
+|Time an idle connection above the core size must wait before it is eligible for eviction. Cleanup runs periodically. Zero disables idle eviction.
+
+|`unit`
+|`TimeUnit.SECONDS`
+|Unit of the `idleTimeout` argument. Supply a unit whenever the timeout is positive.
+
+|`scheduler`
+|Shared SDK scheduler
+|The six-argument cached-pool overload accepts a `ScheduledExecutorService` for idle cleanup. The caller manages the lifetime of a supplied executor.
+|===
+
+When a bounded pool is at maximum size and all its connections are in use, `getConnection()` waits for an available connection. That wait can exceed `CONNECT_TIMEOUT`, which applies to physical connection setup. Use `getConnectionAsync()` to acquire a connection without blocking the caller. Set the application concurrency limit and release connections promptly to control pool contention.
 
 Save this class as `src/main/java/ReadWithPool.java`. It borrows and returns a connection twice from the same pool, using the anonymous Root DSE read from the first example.
 
@@ -275,7 +737,64 @@ Run `mvn -q compile exec:java -Dexec.mainClass=ReadWithPool`. Both reads should 
 
 For an authenticated pool, configure TLS on the factory and set `LDAPConnectionFactory.AUTHN_BIND_REQUEST` to a bind request for the service account. The factory binds each physical connection before it is available to the pool. Perform per-user binds on separate, unpooled connections, because a bind changes the identity of the underlying connection.
 
-For multiple replicas, give each server its own pool and combine the pools with link:{opendj-sdk-javadoc}/ldap/Connections.html[`Connections.newRoundRobinLoadBalancer`] to distribute connection acquisition or `Connections.newFailoverLoadBalancer` to prefer the first available server in a configured order. Close the load-balancing factory at shutdown to close its underlying pools. If a write loses its connection before a response arrives, check the directory state before retrying the write. See link:{opendj-sdk-examples}/Proxy.java[`Proxy.java`] for an example of combining pools and load balancers.
+[#ldap-sdk-load-balancing]
+==== Load Balancing Across Servers
+
+Use a pool per server to set its connection limits and reuse connections. Combine the pools with a load-balancing factory from link:{opendj-sdk-javadoc}/ldap/Connections.html[`Connections`] to choose which server or partition receives work.
+
+[cols="1,2,3",options="header"]
+|===
+|Strategy |Factory method in `Connections` |Routing behavior
+
+|Round robin (RR)
+|`newRoundRobinLoadBalancer(pools, options)`
+|Selects a server when the caller borrows a connection. Rotates through the available servers to distribute connection acquisitions across equivalent replicas.
+
+|Failover
+|`newFailoverLoadBalancer(pools, options)`
+|Selects the first available server in the configured order when the caller borrows a connection. Put the preferred server or site first.
+
+|Least requests
+|`newLeastRequestsLoadBalancer(pools, options)`
+|Routes each LDAP request to the replica with the fewest in-flight requests tracked by this factory. Use it when concurrent requests have different durations.
+
+|DN affinity
+|`newAffinityRequestLoadBalancer(pools, options)`
+|Hashes the target DN to prefer the same replica for requests to that DN. Use the same replica order in each client that needs the same routing.
+
+|Partitioned distribution
+|`newFixedSizeDistributionLoadBalancer(partitionBaseDN, partitions, options)`
+|Uses a `ConsistentHashMap` to map each subtree immediately below the partition base DN to a partition. A search that spans partitions can fan out according to its base DN and scope.
+|===
+
+Least-connections routing uses open connection counts and requires an external load balancer that supports that policy.
+
+With round robin or failover, operations on the borrowed connection use the same server. The request-level strategies borrow a connection for each operation and can send successive operations to different servers. Use a single server connection for operations that depend on the same LDAP session.
+
+Searches that span multiple partitions reject simple paged results, server-side sort, and virtual list view controls. Modify DN requests that move an entry across partition boundaries are rejected.
+
+The following `Connections` options apply to the four replica strategies.
+
+[cols="2,2,4",options="header"]
+|===
+|Option |Default |Effect
+
+|`LOAD_BALANCER_MONITORING_INTERVAL`
+|1 second
+|Delay between connection attempts to factories marked offline.
+
+|`LOAD_BALANCER_EVENT_LISTENER`
+|`LoadBalancerEventListener.LOG_EVENTS`
+|Receive online and offline events. The default listener logs state changes.
+
+|`LOAD_BALANCER_SCHEDULER`
+|Shared SDK scheduler
+|Supply a `ScheduledExecutorService` to run reconnect checks.
+|===
+
+Close the load-balancing factory at shutdown to close its underlying pools. If a write loses its connection before a response arrives, check the directory state before retrying the write.
+
+The link:{opendj-sdk-examples}/Proxy.java[`Proxy.java`] example combines pools with the `least-requests`, `fail-over`, `affinity`, and `distribution` modes.
 
 [#ldap-sdk-next-steps]
 === OpenDJ LDAP SDK Examples
