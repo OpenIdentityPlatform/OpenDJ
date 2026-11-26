@@ -1641,21 +1641,29 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     }
   }
 
+  private enum FormerRsDuringFailover
+  {
+    OFFLINE,
+    TIMES_OUT,
+    DISAPPEARS_AFTER_PROBE
+  }
+
   @DataProvider
   public Object[][] failoverStartReplyTimeouts()
   {
     return new Object[][] {
-        { 0, 1, false }, // The discovery probe times out.
-        { 1, 1, false }, // The elected RS times out after a successful probe.
-        { 0, 2, false }, // The discovery timeout is followed by another timeout.
-        { 1, 2, false }, // The elected RS times out again.
-        { 0, 1, true }   // Both initial probes time out.
+        { 0, 1, FormerRsDuringFailover.OFFLINE }, // The discovery probe times out.
+        { 1, 1, FormerRsDuringFailover.OFFLINE }, // The elected RS times out after a successful probe.
+        { 0, 2, FormerRsDuringFailover.OFFLINE }, // The discovery timeout is followed by another timeout.
+        { 1, 2, FormerRsDuringFailover.OFFLINE }, // The elected RS times out again.
+        { 0, 1, FormerRsDuringFailover.TIMES_OUT },
+        { 0, 1, FormerRsDuringFailover.DISAPPEARS_AFTER_PROBE }
     };
   }
 
   @Test(dataProvider = "failoverStartReplyTimeouts", timeOut = 120_000)
   public void failoverAllowsOneRetryOfTheSurvivingRs(int successfulProbes, int timedOutReplies,
-      boolean oldRsProbeTimesOut) throws Exception
+      FormerRsDuringFailover formerRs) throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
     final WithholdingReplicationServer first = new WithholdingReplicationServer(LARGE_WINDOW);
@@ -1664,24 +1672,31 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     final boolean firstSortsFirst = first.getAddress().compareTo(second.getAddress()) < 0;
     final WithholdingReplicationServer oldRS = firstSortsFirst ? first : second;
     final WithholdingReplicationServer nextRS = firstSortsFirst ? second : first;
-    final DelayedFailoverHandshake handshake = new DelayedFailoverHandshake(successfulProbes, timedOutReplies);
+    final DelayedFailoverHandshake handshake = new DelayedFailoverHandshake(successfulProbes, timedOutReplies,
+        formerRs == FormerRsDuringFailover.DISAPPEARS_AFTER_PROBE ? oldRS.listenSocket : null);
     final DelayedFailoverHandshake oldHandshake = new DelayedFailoverHandshake(0, 2);
     Thread writer = null;
     try
     {
+      // Answer startup probes while ensuring the original RS wins the election.
+      nextRS.differentGroup = true;
+      nextRS.start();
       final LDAPReplicationDomain domain = startDomain(oldRS, 100000, nextRS.getAddress());
       assertEquals(domain.getRsServerId(), oldRS.serverId);
+      nextRS.differentGroup = false;
       nextRS.delayedFailoverHandshake = handshake;
-      nextRS.start();
-      if (oldRsProbeTimesOut)
+      if (formerRs == FormerRsDuringFailover.OFFLINE)
       {
-        newTimer().repeatUntilSuccess(() -> assertNotNull(oldRS.session.get()));
-        oldRS.delayedFailoverHandshake = oldHandshake;
-        oldRS.dropTheSession();
+        oldRS.shutdown();
       }
       else
       {
-        oldRS.shutdown();
+        newTimer().repeatUntilSuccess(() -> assertNotNull(oldRS.session.get()));
+        if (formerRs == FormerRsDuringFailover.TIMES_OUT)
+        {
+          oldRS.delayedFailoverHandshake = oldHandshake;
+        }
+        oldRS.dropTheSession();
       }
 
       await(handshake.nextStartReceived);
@@ -1689,7 +1704,7 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
       if (timedOutReplies == 1)
       {
         assertFalse(domain.hasConnectionError(), "the broker declared isolation before retrying the surviving RS");
-        if (oldRsProbeTimesOut)
+        if (formerRs == FormerRsDuringFailover.TIMES_OUT)
         {
           assertEquals(oldHandshake.starts.get(), 1, "the broker retried the former RS before the survivor");
         }
@@ -2006,19 +2021,32 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
   {
     private final int successfulProbes;
     private final int timedOutReplies;
+    private final ServerSocket formerRsListener;
     private final AtomicInteger starts = new AtomicInteger();
     private final CountDownLatch nextStartReceived = new CountDownLatch(1);
     private final CountDownLatch sendNextReply = new CountDownLatch(1);
 
     DelayedFailoverHandshake(int successfulProbes, int timedOutReplies)
     {
+      this(successfulProbes, timedOutReplies, null);
+    }
+
+    DelayedFailoverHandshake(int successfulProbes, int timedOutReplies, ServerSocket formerRsListener)
+    {
       this.successfulProbes = successfulProbes;
       this.timedOutReplies = timedOutReplies;
+      this.formerRsListener = formerRsListener;
     }
 
     boolean respond(Session session) throws Exception
     {
-      final int attempt = starts.incrementAndGet() - successfulProbes;
+      final int startNumber = starts.incrementAndGet();
+      if (startNumber == 1 && formerRsListener != null)
+      {
+        // Discovery has already probed the former RS, which sorts before this one.
+        formerRsListener.close();
+      }
+      final int attempt = startNumber - successfulProbes;
       if (attempt >= 1 && attempt <= timedOutReplies)
       {
         session.setSoTimeout(2 * MultimasterReplication.getConnectionTimeoutMS());
