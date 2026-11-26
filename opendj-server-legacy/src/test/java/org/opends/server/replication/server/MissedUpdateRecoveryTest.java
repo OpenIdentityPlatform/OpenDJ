@@ -130,9 +130,8 @@ public class MissedUpdateRecoveryTest extends ReplicationTestCase
           .as("the warning names the state of the replica and the state of the domain")
           .contains(ownCSN.toString())
           .contains(csn.toString());
-      assertThat(handler.isFollowing())
-          .as("the replica is served from the queue again once it has been sent the change")
-          .isTrue();
+      // The writer can deliver the change before it returns to the in-memory queue.
+      waitForFollowing(handler);
     }
     finally
     {
