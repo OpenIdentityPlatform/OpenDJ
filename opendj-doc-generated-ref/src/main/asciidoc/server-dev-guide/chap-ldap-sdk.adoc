@@ -28,12 +28,12 @@ ifdef::env-site[]
 anchor:chap-ldap-sdk[]
 endif::[]
 
-This example uses the OpenDJ LDAP SDK {opendj-sdk-example-version} to check which LDAP versions a server supports.
+These examples use the OpenDJ LDAP SDK {opendj-sdk-example-version} to read server capabilities, manage directory entries over LDAPS, and reuse connections.
 
 [#ldap-sdk-maven]
 === Add the SDK to a Maven Project
 
-Use Java 11 or later and Maven 3. Save this `pom.xml`. The `opendj-grizzly` dependency brings in the `opendj-core` SDK and provides its LDAP network transport.
+Use Java 11 or later and Maven 3. Create an `ldap-client` project directory next to the `opendj-quickstart` directory from xref:../getting-started/first-steps.adoc#getting-started-first-directory[Your First Directory]. Save this `pom.xml` in `ldap-client`. The `opendj-grizzly` dependency brings in the `opendj-core` SDK and provides its LDAP network transport.
 
 [source,xml,subs="+attributes"]
 ----
@@ -59,7 +59,7 @@ Use Java 11 or later and Maven 3. Save this `pom.xml`. The `opendj-grizzly` depe
 [#ldap-sdk-search]
 === Read the Root DSE
 
-Start the evaluation server from xref:../getting-started/first-steps.adoc#getting-started-first-directory[Your First Directory]. The example reads the root DSE, an entry with public server information, from its LDAP listener on port 1389.
+Set up and start the evaluation server as described in xref:../getting-started/first-steps.adoc#getting-started-first-directory[Your First Directory]. The example reads the root DSE, an entry with public server information, anonymously from the local LDAP listener on port 1389.
 
 Save this class as `src/main/java/ReadCapabilities.java`.
 
@@ -90,14 +90,267 @@ mvn -q compile exec:java -Dexec.mainClass=ReadCapabilities
 
 The program prints `LDAPv3 supported = true`. The link:{opendj-sdk-javadoc}/ldap/RootDSE.html[`RootDSE`] class also exposes naming contexts, supported controls, and extended operations.
 
-[#ldap-sdk-next-steps]
-=== Use the SDK in an Application
+[#ldap-sdk-entry-operations]
+=== Add, Search, Modify, and Delete Entries
 
-* For simple authentication, call `Connection.bind` after connecting over LDAPS or StartTLS. Configure link:{opendj-sdk-javadoc}/ldap/LDAPConnectionFactory.html[`LDAPConnectionFactory`] with `SSL_CONTEXT` and a trust configuration that validates the server certificate and identity. Set `SSL_USE_STARTTLS` to `true` to negotiate TLS on an LDAP listener. See `getTrustOptions()` in link:{opendj-sdk-examples}/SimpleAuth.java[`SimpleAuth.java`] for certificate and hostname verification.
-* For SASL PLAIN, use link:{opendj-sdk-examples}/SASLAuth.java[`SASLAuth.java`] to see how to construct the bind request. Its StartTLS setup uses `TrustManagers.trustAll()` for local testing. Use the verified TLS setup above when sending credentials from an application.
-* Use `Connection.search` to read multiple entries. Set a specific base DN, scope and filter, and request the attributes you need. See xref:chap-ldap-operations.adoc#search-ldap[Searching the Directory] for equivalent command-line examples and link:{opendj-sdk-examples}/Search.java[`Search`] for an SDK example that handles entries and continuation references. Follow referrals only to servers your application trusts. Use `Connection.compare` to compare an attribute value and check the LDAP result code for the outcome.
-* Use a connection factory or a pool for repeated operations. Close connections when finished with them and close the factory at application shutdown. Use separate connections for binds as different users. For concurrent operations, see link:{opendj-sdk-examples}/SearchAsync.java[`SearchAsync`] and link:{opendj-sdk-examples}/ModifyAsync.java[`ModifyAsync`]. SDK methods report LDAP failures through `LdapException`, whose result carries the LDAP result code and diagnostic details.
-* Use link:{opendj-sdk-javadoc}/ldap/requests/Requests.html[`Requests`] to construct add, modify, modify DN, delete, and extended operation requests. See link:{opendj-sdk-examples}/Modify.java[`Modify`], link:{opendj-sdk-examples}/UpdateGroup.java[`UpdateGroup`], and link:{opendj-sdk-examples}/ExtendedOperations.java[`ExtendedOperations`]. For request controls, check `supportedControl` before depending on a control and see link:{opendj-sdk-examples}/Controls.java[`Controls`] and link:{opendj-sdk-examples}/UseGenericControl.java[`UseGenericControl`].
-* For schema discovery, read `subschemaSubentry` or use the link:{opendj-sdk-examples}/ReadSchema.java[`ReadSchema`] example. For files in LDAP Data Interchange Format (LDIF), use the link:{opendj-sdk-javadoc}/ldif/package-summary.html[`org.forgerock.opendj.ldif`] readers and writers. Use an entry reader for entries and a change record reader for LDIF files that describe updates.
-* The SDK uses localized messages. Handle errors by result code and use `getLocalizedMessage()` for messages presented to users.
-* A proxy can reuse connections and distribute them among servers with link:{opendj-sdk-javadoc}/ldap/Connections.html[`Connections`]. For listener and request handler examples, see link:{opendj-sdk-examples}/Proxy.java[`Proxy`] and link:{opendj-sdk-examples}/RewriterProxy.java[`RewriterProxy`].
+Use the running evaluation server with the `dc=example,dc=com` base entry and the `quickstart-password.txt` file created during setup. From `ldap-client`, export the evaluation server's public certificate and import it into a new client truststore. The password in these commands protects the example truststore, which contains only the public certificate.
+
+[source,bash]
+----
+server=../opendj-quickstart/opendj
+keytool -exportcert -rfc -alias server-cert \
+  -keystore "$server/config/keystore" -storepass:file "$server/config/keystore.pin" \
+  -file ldap-server.pem &&
+keytool -importcert -noprompt -alias server-cert -file ldap-server.pem \
+  -keystore ldap-trust.p12 -storetype PKCS12 -storepass changeit
+----
+
+Save the following class as `src/main/java/ManageEntries.java`. It verifies the server certificate and hostname before binding on port 1636. The Directory Manager account is for this evaluation server. In an application, use an account with access to the entries and operations it needs.
+
+[source,java]
+----
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.UUID;
+
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.SSLContextBuilder;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.TrustManagers;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
+import org.forgerock.util.Options;
+
+public final class ManageEntries {
+    public static void main(String[] args) throws Exception {
+        String host = "localhost";
+        var trustStore = TrustManagers.checkUsingTrustStore(
+                "ldap-trust.p12", "changeit".toCharArray(), "PKCS12");
+        var trustManager = TrustManagers.checkValidityDates(TrustManagers.checkHostName(host, trustStore));
+        var sslContext = new SSLContextBuilder().setTrustManager(trustManager).getSSLContext();
+        Options options = Options.defaultOptions().set(LDAPConnectionFactory.SSL_CONTEXT, sslContext);
+
+        try (LDAPConnectionFactory factory = new LDAPConnectionFactory(host, 1636, options);
+             Connection connection = factory.getConnection()) {
+            char[] password = Files.readAllLines(Path.of("../opendj-quickstart/quickstart-password.txt"))
+                    .get(0).toCharArray();
+            try {
+                connection.bind("cn=Directory Manager", password);
+            } finally {
+                Arrays.fill(password, '\0');
+            }
+
+            var identity = connection.extendedRequest(Requests.newWhoAmIExtendedRequest());
+            System.out.println("Authorization identity = " + identity.getAuthorizationID());
+            manageEntries(connection);
+        }
+    }
+
+    private static void manageEntries(Connection connection) throws Exception {
+        String ou = "SdkExample-" + UUID.randomUUID();
+        String branch = "ou=" + ou + ",dc=example,dc=com";
+        String person = "uid=sdk-alice," + branch;
+        String newRdn = "uid=sdk-alice-renamed";
+        String renamed = newRdn + "," + branch;
+        String originalMail = "sdk-alice@example.com";
+        String updatedMail = "sdk-alice-renamed@example.com";
+
+        connection.add(Requests.newAddRequest(branch)
+                .addAttribute("objectClass", "top", "organizationalUnit")
+                .addAttribute("ou", ou));
+        System.out.println("Created sample branch " + branch);
+        connection.add(Requests.newAddRequest(person)
+                .addAttribute("objectClass", "top", "inetOrgPerson")
+                .addAttribute("uid", "sdk-alice")
+                .addAttribute("cn", "Alice Jensen")
+                .addAttribute("sn", "Jensen")
+                .addAttribute("mail", originalMail));
+
+        var search = Requests.newSearchRequest(DN.valueOf(branch), SearchScope.SINGLE_LEVEL,
+                Filter.equality("uid", "sdk-alice"), "cn", "mail");
+        try (ConnectionEntryReader reader = connection.search(search)) {
+            while (reader.hasNext()) {
+                if (reader.isEntry()) {
+                    var entry = reader.readEntry();
+                    System.out.println("Found " + entry.getName() + " (" + entry.parseAttribute("cn").asString()
+                            + ", " + entry.parseAttribute("mail").asString() + ")");
+                } else {
+                    System.out.println("Search reference " + reader.readReference().getURIs());
+                }
+            }
+        }
+
+        connection.modify(Requests.newModifyRequest(person)
+                .addModification(ModificationType.ADD, "description", "LDAP SDK example")
+                .addModification(ModificationType.REPLACE, "mail", updatedMail)
+                .addModification(ModificationType.DELETE, "description", "LDAP SDK example"));
+        System.out.println("Updated mail matches = " + connection.compare(person, "mail", updatedMail).matched());
+        System.out.println("Original mail matches = " + connection.compare(person, "mail", originalMail).matched());
+
+        connection.modifyDN(Requests.newModifyDNRequest(person, newRdn).setDeleteOldRDN(true));
+        System.out.println("Renamed to " + connection.readEntry(renamed, "mail").getName());
+
+        connection.delete(renamed);
+        connection.delete(branch);
+        System.out.println("Removed sample branch " + branch);
+    }
+}
+----
+
+Run the program from `ldap-client`.
+
+[source,bash]
+----
+mvn -q compile exec:java -Dexec.mainClass=ManageEntries
+----
+
+Expect one search match, `true` for the updated email comparison, and `false` for the original email comparison. The program prints the renamed DN and removes its sample branch. If an operation fails after creation, use the printed branch DN to locate any remaining sample entries. Delete children before deleting their parent.
+
+* *Bind and extended operations.* Bind sets the connection's authentication state. The Who Am I? extended operation reports the resulting authorization identity. Use `RootDSE.getSupportedExtendedOperations()` to discover optional operations before sending them. To use StartTLS instead of LDAPS, keep the same trust settings, set `LDAPConnectionFactory.SSL_USE_STARTTLS` to `true`, and connect to the LDAP port with StartTLS enabled. The factory negotiates TLS before returning the connection.
+* *Search.* `readEntry` performs a base-object lookup by DN. `SINGLE_LEVEL` searches the immediate children, `WHOLE_SUBTREE` includes the base and all descendants, and `SUBORDINATES` searches all descendants where the server supports that scope. Use `Filter.equality` or `Filter.format` for application-supplied assertion values. The example reports continuation references. Follow them only to servers your application trusts. See xref:chap-ldap-operations.adoc#search-ldap[Searching the Directory] for the equivalent command-line operations.
+* *Modify and Modify DN.* Add and delete can change individual values of a multivalued attribute, and replace sets its new value list. Use `ModificationType.INCREMENT` on supported servers for integer increments. To move an entry, set the destination parent with `setNewSuperior` on the Modify DN request. Set `setDeleteOldRDN(true)` to remove the old naming value during a rename.
+* *Compare and delete.* `CompareResult.matched()` distinguishes the normal LDAP results `COMPARE_TRUE` and `COMPARE_FALSE`. A standard Delete removes a leaf entry. Use `deleteSubtree` only when the application intends to remove the whole branch and the server supports the subtree delete control.
+* *Abandon and Unbind.* Closing a `ConnectionEntryReader` cancels its search if it is still active. For other asynchronous operations, cancel the returned `LdapPromise` to request abandonment where supported. The Cancel extended operation is a separate request with its own result. Closing a direct LDAP connection sends Unbind when possible and releases the connection.
+* *Errors.* SDK methods report LDAP failures through `LdapException`. Use `e.getResult().getResultCode()` to distinguish conditions such as `ENTRY_ALREADY_EXISTS`, `NO_SUCH_OBJECT`, and `INSUFFICIENT_ACCESS_RIGHTS`. Use `e.getLocalizedMessage()` for messages presented to users. A search may yield entries before reporting a final LDAP error, such as `SIZE_LIMIT_EXCEEDED`.
+
+[#ldap-sdk-connection-pools]
+=== Reuse LDAP Connections
+
+Create a link:{opendj-sdk-javadoc}/ldap/ConnectionPool.html[`ConnectionPool`] once for a workload with the same server and authentication settings. Borrow a connection for each unit of work and close it with try-with-resources to return it to the pool. Complete any asynchronous requests and close any search readers before returning the connection. Close the pool at application shutdown to release its connections and its underlying factory.
+
+Choose the pool configuration according to how long the application should keep idle connections and how many concurrent borrowers it can support. All three options create connections on demand.
+
+[cols="1,2,3",options="header"]
+|===
+|Pool |Factory method in `Connections` |Behavior
+
+|Fixed
+|`newFixedConnectionPool(factory, 8)`
+|Keeps up to eight connections. Established idle connections stay in the pool until they become invalid or the pool closes.
+
+|Bounded cached
+|`newCachedConnectionPool(factory, 2, 8, 60, TimeUnit.SECONDS)`
+|Grows to at most eight connections. Idle connections above the core size of two become eligible for eviction after 60 seconds. The core size does not pre-open connections.
+
+|Default cached
+|`newCachedConnectionPool(factory)`
+|Uses a core size of zero, an effectively unbounded maximum, and a 60-second idle timeout. A burst can create as many connections as the workload demands within resource limits.
+|===
+
+When a bounded pool is at maximum size and all its connections are in use, `getConnection()` waits for an available connection. Use `getConnectionAsync()` to acquire a connection without blocking the caller. A connection factory's connect timeout applies to opening a network connection. Set the application concurrency limit and release connections promptly to control pool contention.
+
+Save this class as `src/main/java/ReadWithPool.java`. It borrows and returns a connection twice from the same pool, using the anonymous Root DSE read from the first example.
+
+[source,java]
+----
+import java.util.concurrent.TimeUnit;
+
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.ConnectionPool;
+import org.forgerock.opendj.ldap.Connections;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.RootDSE;
+
+public final class ReadWithPool {
+    public static void main(String[] args) throws Exception {
+        LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", 1389);
+        try (ConnectionPool pool = Connections.newCachedConnectionPool(factory, 2, 8, 60, TimeUnit.SECONDS)) {
+            for (int i = 0; i < 2; i++) {
+                try (Connection connection = pool.getConnection()) {
+                    var versions = RootDSE.readRootDSE(connection).getSupportedLDAPVersions();
+                    System.out.println("LDAPv3 supported = " + versions.contains(3));
+                }
+            }
+        }
+    }
+}
+----
+
+Run `mvn -q compile exec:java -Dexec.mainClass=ReadWithPool`. Both reads should print `LDAPv3 supported = true`. To try the other configurations, replace the pool construction with either alternative from the table.
+
+For an authenticated pool, configure TLS on the factory and set `LDAPConnectionFactory.AUTHN_BIND_REQUEST` to a bind request for the service account. The factory binds each physical connection before it is available to the pool. Perform per-user binds on separate, unpooled connections, because a bind changes the identity of the underlying connection.
+
+For multiple replicas, give each server its own pool and combine the pools with link:{opendj-sdk-javadoc}/ldap/Connections.html[`Connections.newRoundRobinLoadBalancer`] to distribute connection acquisition or `Connections.newFailoverLoadBalancer` to prefer the first available server in a configured order. Close the load-balancing factory at shutdown to close its underlying pools. If a write loses its connection before a response arrives, check the directory state before retrying the write. See link:{opendj-sdk-examples}/Proxy.java[`Proxy.java`] for an example of combining pools and load balancers.
+
+[#ldap-sdk-next-steps]
+=== OpenDJ LDAP SDK Examples
+
+The `opendj-ldap-sdk-examples` module contains the following examples for OpenDJ {opendj-sdk-example-version}. Check the class documentation for command-line arguments, sample entries, and required server capabilities. Some of these examples use plaintext LDAP, fixed test credentials, or `TrustManagers.trustAll()`. Use the verified TLS configuration from xref:chap-ldap-sdk.adoc#ldap-sdk-entry-operations[Add, Search, Modify, and Delete Entries] when adapting these clients for application credentials.
+
+[cols="2,3",options="header"]
+|===
+|Example |What it demonstrates
+
+|link:{opendj-sdk-examples}/GetInfo.java[`GetInfo`]
+|Reads the root DSE anonymously and prints supported controls, supported extended operations, or operational attributes as LDIF.
+
+|link:{opendj-sdk-examples}/SimpleAuth.java[`SimpleAuth`], link:{opendj-sdk-examples}/SimpleAuthAsync.java[`SimpleAuthAsync`]
+|Perform a simple bind, with options for LDAPS or StartTLS. The asynchronous version chains connection acquisition and bind.
+
+|link:{opendj-sdk-examples}/SASLAuth.java[`SASLAuth`]
+|Constructs a SASL PLAIN bind request and sends it over StartTLS.
+
+|link:{opendj-sdk-examples}/SearchBind.java[`SearchBind`], link:{opendj-sdk-examples}/SearchBindAsync.java[`SearchBindAsync`]
+|Prompt for an email address and password, find the user's DN by email, and bind as that user. The asynchronous version chains search and bind.
+
+|link:{opendj-sdk-examples}/Search.java[`Search`]
+|Searches by base DN, scope, filter, and requested attributes. Writes entries as LDIF and reports continuation references.
+
+|link:{opendj-sdk-examples}/SearchAsync.java[`SearchAsync`]
+|Processes entries and references with an asynchronous result handler and demonstrates the Cancel extended operation.
+
+|link:{opendj-sdk-examples}/ShortLife.java[`ShortLife`], link:{opendj-sdk-examples}/ShortLifeAsync.java[`ShortLifeAsync`]
+|Create, modify, rename, and delete a temporary entry using synchronous calls or a chain of asynchronous requests.
+
+|link:{opendj-sdk-examples}/Modify.java[`Modify`]
+|Applies a stream of LDIF change records from a file or standard input using `ConnectionChangeRecordWriter`.
+
+|link:{opendj-sdk-examples}/ModifyAsync.java[`ModifyAsync`]
+|Builds one Modify request from LDIF read from a file or standard input and submits it with `modifyAsync`.
+
+|link:{opendj-sdk-examples}/UpdateGroup.java[`UpdateGroup`], link:{opendj-sdk-examples}/UpdateGroupAsync.java[`UpdateGroupAsync`]
+|Add or remove a member of a static `groupOfNames` group. Use the Permissive Modify control when supported and otherwise compare membership before changing it.
+
+|link:{opendj-sdk-examples}/ParseAttributes.java[`ParseAttributes`]
+|Updates and reads a test entry, then converts attribute values to Java types such as integers, DNs, and timestamps.
+
+|link:{opendj-sdk-examples}/ReadSchema.java[`ReadSchema`]
+|Reads the server schema and prints a summary and any parsing warnings.
+
+|link:{opendj-sdk-examples}/UseSchema.java[`UseSchema`], link:{opendj-sdk-examples}/UseSchemaAsync.java[`UseSchemaAsync`]
+|Validate an entry from standard input against the server schema before adding it, using synchronous or asynchronous calls.
+
+|link:{opendj-sdk-examples}/Controls.java[`Controls`]
+|Discovers controls through the root DSE and demonstrates paged results, server-side sort, pre-read and post-read, and other controls. Select the method for the control you want to try.
+
+|link:{opendj-sdk-examples}/UseGenericControl.java[`UseGenericControl`]
+|Encodes a Pre-Read request control with ASN.1, attaches it to a Modify request, and decodes the response to retrieve the old attribute value.
+
+|link:{opendj-sdk-examples}/ExtendedOperations.java[`ExtendedOperations`]
+|Discovers supported extended operations and demonstrates Who Am I? and Password Modify.
+
+|link:{opendj-sdk-examples}/GetADChangeNotifications.java[`GetADChangeNotifications`]
+|Watches a naming context for changes using the Microsoft Active Directory notification control.
+
+|link:{opendj-sdk-examples}/PasswordResetForAD.java[`PasswordResetForAD`]
+|Changes or resets an Active Directory password by modifying `unicodePwd` over LDAPS.
+
+|link:{opendj-sdk-examples}/Server.java[`Server`]
+|Exposes entries from an LDIF file through an LDAP listener with an in-memory backend and optional LDAPS.
+
+|link:{opendj-sdk-examples}/Proxy.java[`Proxy`]
+|Starts an LDAP proxy that combines per-server connection pools with least-requests, failover, affinity, or distribution routing.
+
+|link:{opendj-sdk-examples}/ProxyBackend.java[`ProxyBackend`]
+|Implements the per-client request handler used by `Proxy`. It forwards operations with proxied authorization and uses a separate connection factory for binds.
+
+|link:{opendj-sdk-examples}/RewriterProxy.java[`RewriterProxy`]
+|Starts a proxy that rewrites a fixed DN suffix and attribute name between clients and an upstream server.
+|===
+
+link:{opendj-sdk-examples}/ExampleUtils.java[`ExampleUtils`] provides shared command-line port parsing. link:{opendj-sdk-examples}/package-info.java[`package-info.java`] describes the package.
