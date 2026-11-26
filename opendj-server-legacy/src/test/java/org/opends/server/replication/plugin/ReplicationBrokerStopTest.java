@@ -1641,6 +1641,107 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     }
   }
 
+  @DataProvider
+  public Object[][] failoverStartReplyTimeouts()
+  {
+    return new Object[][] {
+        { 0, 1, false }, // The discovery probe times out.
+        { 1, 1, false }, // The elected RS times out after a successful probe.
+        { 0, 2, false }, // The discovery timeout is followed by another timeout.
+        { 1, 2, false }, // The elected RS times out again.
+        { 0, 1, true }   // Both initial probes time out.
+    };
+  }
+
+  @Test(dataProvider = "failoverStartReplyTimeouts", timeOut = 120_000)
+  public void failoverAllowsOneRetryOfTheSurvivingRs(int successfulProbes, int timedOutReplies,
+      boolean oldRsProbeTimesOut) throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    final WithholdingReplicationServer first = new WithholdingReplicationServer(LARGE_WINDOW);
+    final WithholdingReplicationServer second = new WithholdingReplicationServer(LARGE_WINDOW, 4);
+    // The configured URLs are sorted, so put the original RS first.
+    final boolean firstSortsFirst = first.getAddress().compareTo(second.getAddress()) < 0;
+    final WithholdingReplicationServer oldRS = firstSortsFirst ? first : second;
+    final WithholdingReplicationServer nextRS = firstSortsFirst ? second : first;
+    final DelayedFailoverHandshake handshake = new DelayedFailoverHandshake(successfulProbes, timedOutReplies);
+    final DelayedFailoverHandshake oldHandshake = new DelayedFailoverHandshake(0, 2);
+    Thread writer = null;
+    try
+    {
+      final LDAPReplicationDomain domain = startDomain(oldRS, 100000, nextRS.getAddress());
+      assertEquals(domain.getRsServerId(), oldRS.serverId);
+      nextRS.delayedFailoverHandshake = handshake;
+      nextRS.start();
+      if (oldRsProbeTimesOut)
+      {
+        newTimer().repeatUntilSuccess(() -> assertNotNull(oldRS.session.get()));
+        oldRS.delayedFailoverHandshake = oldHandshake;
+        oldRS.dropTheSession();
+      }
+      else
+      {
+        oldRS.shutdown();
+      }
+
+      await(handshake.nextStartReceived);
+      final AtomicReference<ResultCode> duringFailover = new AtomicReference<>();
+      if (timedOutReplies == 1)
+      {
+        assertFalse(domain.hasConnectionError(), "the broker declared isolation before retrying the surviving RS");
+        if (oldRsProbeTimesOut)
+        {
+          assertEquals(oldHandshake.starts.get(), 1, "the broker retried the former RS before the survivor");
+        }
+        final Thread localWrite = startThread("write during failover retry",
+            () -> duringFailover.set(replaceDescription("during failover retry")));
+        writer = localWrite;
+        newTimer().repeatUntilSuccess(() -> assertTrue(isIn(localWrite, ReplicationBroker.class, "publish"),
+            "the write did not reach replication during failover"));
+      }
+      else
+      {
+        assertTrue(domain.hasConnectionError(), "the broker did not report isolation after the retry expired");
+        assertEquals(replaceDescription("while isolated"), ResultCode.UNWILLING_TO_PERFORM);
+      }
+      handshake.sendNextReply.countDown();
+
+      newTimer().repeatUntilSuccess(() -> assertEquals(domain.getRsServerId(), nextRS.serverId));
+      if (writer != null)
+      {
+        assertEquals(handshake.starts.get(), successfulProbes + timedOutReplies + 1,
+            "the surviving RS should have connected on the extra attempt");
+        writer.join(10_000);
+        assertEquals(duringFailover.get(), ResultCode.SUCCESS);
+        final CSN firstCSN = domain.getServerState().getCSN(DS_ID);
+        assertNotNull(firstCSN);
+        assertEquals(replaceDescription("after failover"), ResultCode.SUCCESS);
+        final CSN secondCSN = domain.getServerState().getCSN(DS_ID);
+        assertTrue(firstCSN.isOlderThan(secondCSN));
+        nextRS.waitForUpdates(2);
+        assertEquals(nextRS.receivedUpdateCSNs(), Arrays.asList(firstCSN, secondCSN));
+      }
+      else
+      {
+        assertEquals(replaceDescription("after isolation"), ResultCode.SUCCESS);
+        nextRS.waitForUpdates(1);
+      }
+    }
+    finally
+    {
+      handshake.sendNextReply.countDown();
+      oldHandshake.sendNextReply.countDown();
+      try
+      {
+        nextRS.shutdown();
+      }
+      finally
+      {
+        cleanUp(oldRS, writer);
+      }
+    }
+  }
+
   private LDAPReplicationDomain startDomain(WithholdingReplicationServer rs) throws Exception
   {
     // Heartbeats far apart: the session stays up whatever the replication server reads.
@@ -1897,6 +1998,39 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     return new TestTimer.Builder().maxSleep(10, SECONDS).sleepTimes(50, MILLISECONDS).toTimer();
   }
 
+  /** Withholds start replies until the broker's read times out, then lets the test release the next reply. */
+  private static final class DelayedFailoverHandshake
+  {
+    private final int successfulProbes;
+    private final int timedOutReplies;
+    private final AtomicInteger starts = new AtomicInteger();
+    private final CountDownLatch nextStartReceived = new CountDownLatch(1);
+    private final CountDownLatch sendNextReply = new CountDownLatch(1);
+
+    DelayedFailoverHandshake(int successfulProbes, int timedOutReplies)
+    {
+      this.successfulProbes = successfulProbes;
+      this.timedOutReplies = timedOutReplies;
+    }
+
+    boolean respond(Session session) throws Exception
+    {
+      final int attempt = starts.incrementAndGet() - successfulProbes;
+      if (attempt >= 1 && attempt <= timedOutReplies)
+      {
+        session.setSoTimeout(2 * MultimasterReplication.getConnectionTimeoutMS());
+        session.receive(); // The broker closes the session after its read deadline.
+        return false;
+      }
+      if (attempt == timedOutReplies + 1)
+      {
+        nextStartReceived.countDown();
+        await(sendNextReply);
+      }
+      return true;
+    }
+  }
+
   /**
    * A replication server which keeps the session of the domain up and reads every message of it,
    * but gives no credit beyond the window it opens the session with - of one update, unless the
@@ -1938,6 +2072,7 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     /** If set, read from the next session after StartSessionMsg instead of sending its topology. */
     private final AtomicReference<CompletableFuture<ReplicationMsg>> readInsteadOfSendingTopology =
         new AtomicReference<>();
+    private volatile DelayedFailoverHandshake delayedFailoverHandshake;
 
     WithholdingReplicationServer() throws IOException
     {
@@ -2025,6 +2160,11 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
         if (hook != null)
         {
           hook.call();
+        }
+        final DelayedFailoverHandshake failoverHandshake = delayedFailoverHandshake;
+        if (failoverHandshake != null && !failoverHandshake.respond(s))
+        {
+          return;
         }
         final String url = getAddress();
         final byte groupId = differentGroup ? (byte) (start.getGroupId() + 1) : start.getGroupId();

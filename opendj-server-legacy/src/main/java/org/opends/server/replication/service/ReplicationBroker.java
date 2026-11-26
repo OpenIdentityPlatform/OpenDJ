@@ -100,6 +100,8 @@ public class ReplicationBroker
   {
     private static final ConnectedRS NO_CONNECTED_RS = new ConnectedRS(NO_CONNECTED_SERVER);
     private static final ConnectedRS CONNECTION_REFUSED = new ConnectedRS(NO_CONNECTED_SERVER);
+    /** Handshake result only. Never installed as the broker's current RS. */
+    private static final ConnectedRS START_REPLY_TIMED_OUT = new ConnectedRS(NO_CONNECTED_SERVER);
 
     /** The info of the RS we are connected to. */
     private final ReplicationServerInfo rsInfo;
@@ -812,26 +814,25 @@ public class ReplicationBroker
   }
 
   /**
-   * Contacts all replication servers to get information from them and being
-   * able to choose the more suitable.
-   * @return the collected information.
+   * Collects replies for server selection and remembers an RS that did not answer its start message.
+   * Prefer a different RS from the one whose session just ended.
    */
-  private Map<Integer, ReplicationServerInfo> collectReplicationServersInfo()
+  private String collectReplicationServersInfo(Map<Integer, ReplicationServerInfo> rsInfos, String previousRS)
   {
-    final Map<Integer, ReplicationServerInfo> rsInfos = new ConcurrentSkipListMap<>();
-
+    String timedOutRS = null;
     for (String serverUrl : getReplicationServerUrls())
     {
-      // Connect to server + get and store info about it
-      final ConnectedRS rs = performPhaseOneHandshake(serverUrl, false);
-      final ReplicationServerInfo rsInfo = rs.rsInfo;
-      if (rsInfo != null)
+      final ConnectedRS probe = performPhaseOneHandshake(serverUrl, false, false);
+      if (probe.rsInfo != null)
       {
-        rsInfos.put(rsInfo.getServerId(), rsInfo);
+        rsInfos.put(probe.getServerId(), probe.rsInfo);
+      }
+      else if (probe == ConnectedRS.START_REPLY_TIMED_OUT && (timedOutRS == null || timedOutRS.equals(previousRS)))
+      {
+        timedOutRS = serverUrl;
       }
     }
-
-    return rsInfos;
+    return timedOutRS;
   }
 
   /**
@@ -857,10 +858,10 @@ public class ReplicationBroker
    * decide with which RS the full handshake (phase 1 then phase 2) will be
    * finally performed.
    *
-   * @param formerServerURL the previous server on the first reconnect after losing its session, or null
+   * @param previousRS the RS whose established session just ended, or null outside the first failover attempt
    * @throws NumberFormatException address was invalid
    */
-  private void connectAsDataServer(String formerServerURL)
+  private void connectAsDataServer(String previousRS)
   {
     /*
      * If a first connect or a connection failure occur, we go through here.
@@ -889,33 +890,53 @@ public class ReplicationBroker
       }
 
       // Get info from every available replication servers
-      Map<Integer, ReplicationServerInfo> rsInfos =
-          collectReplicationServersInfo();
+      final Map<Integer, ReplicationServerInfo> rsInfos = new ConcurrentSkipListMap<>();
+      final String timedOutRS = collectReplicationServersInfo(rsInfos, previousRS);
       computeNewTopology(toRSInfos(rsInfos));
 
-      if (rsInfos.isEmpty())
+      final boolean hasReplies = !rsInfos.isEmpty();
+      final boolean canRetry = previousRS != null && stopping == null && !permanentlyStopped;
+      String electedURL = null;
+      if (hasReplies)
+      {
+        final RSEvaluations evals = computeBestReplicationServer(true, -1, state,
+            rsInfos, serverId, getGroupId(), getGenerationID());
+        if (logger.isTraceEnabled())
+        {
+          debugInfo("phase 2 : will perform PhaseOneH with the preferred RS=" + evals.getBestRS());
+        }
+        electedURL = evals.getBestRS().getServerURL();
+      }
+      else if (canRetry)
+      {
+        // A live RS can miss one start reply under load. Use the retry to establish the
+        // actual session before declaring isolation and rejecting LDAP writes.
+        electedURL = timedOutRS;
+      }
+
+      if (electedURL == null)
       {
         setConnectedRS(ConnectedRS.noConnectedRS());
       }
       else
       {
-        // At least one server answered, find the best one.
-        RSEvaluations evals = computeBestReplicationServer(true, -1, state,
-            rsInfos, serverId, getGroupId(), getGenerationID());
-
-        // Best found, now initialize connection to this one (handshake phase 1)
-        if (logger.isTraceEnabled())
+        final boolean canRetryElected = canRetry && hasReplies;
+        ConnectedRS electedRS = performPhaseOneHandshake(electedURL, true, canRetryElected);
+        if (electedRS.rsInfo == null && canRetryElected && stopping == null && !permanentlyStopped)
         {
-          debugInfo("phase 2 : will perform PhaseOneH with the preferred RS=" + evals.getBestRS());
-        }
-
-        final ReplicationServerInfo preferred = evals.getBestRS();
-        ConnectedRS electedRS = performPhaseOneHandshake(preferred.getServerURL(), true);
-        if (electedRS == ConnectedRS.CONNECTION_REFUSED && preferred.getServerURL().equals(formerServerURL)
-            && stopping == null && !permanentlyStopped)
-        {
-          // Discovery can still see the former RS while its listener is closing.
-          electedRS = tryAnotherDiscoveryResponder(rsInfos, preferred.getServerId());
+          if (electedRS == ConnectedRS.START_REPLY_TIMED_OUT)
+          {
+            electedRS = performPhaseOneHandshake(electedURL, true, false);
+          }
+          else if (electedRS == ConnectedRS.CONNECTION_REFUSED && electedURL.equals(previousRS))
+          {
+            // Discovery can still see the former RS while its listener is closing.
+            final ReplicationServerInfo responder = selectDiscoveryResponder(rsInfos, previousRS);
+            if (responder != null)
+            {
+              electedRS = connectToDiscoveryResponder(responder);
+            }
+          }
         }
         final ReplicationServerInfo electedRsInfo = electedRS.rsInfo;
         if (electedRsInfo != null)
@@ -986,20 +1007,22 @@ public class ReplicationBroker
     }
   }
 
-  /** Tries one compatible discovery responder before publishing isolation. */
-  private ConnectedRS tryAnotherDiscoveryResponder(Map<Integer, ReplicationServerInfo> rsInfos, int refusedServerId)
+  /** Selects a compatible discovery responder other than the former replication server. */
+  private ReplicationServerInfo selectDiscoveryResponder(Map<Integer, ReplicationServerInfo> rsInfos, String formerURL)
   {
     final Map<Integer, ReplicationServerInfo> candidates = new TreeMap<>(rsInfos);
-    candidates.remove(refusedServerId);
-    candidates.values().removeIf(info -> !hasCompatibleGeneration(info));
+    candidates.values().removeIf(info -> formerURL.equals(info.getServerURL()) || !hasCompatibleGeneration(info));
     if (candidates.isEmpty())
     {
-      return ConnectedRS.noConnectedRS();
+      return null;
     }
+    return computeBestReplicationServer(true, -1, state, candidates, getServerId(), getGroupId(),
+        getGenerationID()).getBestRS();
+  }
 
-    final RSEvaluations evals = computeBestReplicationServer(true, -1, state, candidates, getServerId(), getGroupId(),
-        getGenerationID());
-    final ConnectedRS replacement = performPhaseOneHandshake(evals.getBestRS().getServerURL(), true);
+  private ConnectedRS connectToDiscoveryResponder(ReplicationServerInfo responder)
+  {
+    final ConnectedRS replacement = performPhaseOneHandshake(responder.getServerURL(), true, false);
     // The generation may have changed since discovery.
     if (replacement.rsInfo != null && !hasCompatibleGeneration(replacement.rsInfo))
     {
@@ -1207,14 +1230,17 @@ public class ReplicationBroker
    *          Do we keep session opened or not after handshake. Use true if want
    *          to perform handshake phase 2 with the same session and keep the
    *          session to create as the current one.
-   * @return The answer from the server . Null if could not get an answer.
+   * @param retryStartTimeout whether a start reply timeout on this attempt can be retried
+   * @return The result of the handshake, including whether the start reply timed out
    */
-  private ConnectedRS performPhaseOneHandshake(String serverURL, boolean keepSession)
+  private ConnectedRS performPhaseOneHandshake(String serverURL, boolean keepSession, boolean retryStartTimeout)
   {
     Session newSession = null;
     Socket socket = null;
     boolean hasConnected = false;
     ConnectedRS failure = ConnectedRS.noConnectedRS();
+    boolean waitingForStartReply = false;
+    boolean startReplyTimedOut = false;
     LocalizableMessage errorMessage = null;
 
     try
@@ -1254,7 +1280,9 @@ public class ReplicationBroker
 
       // Read the ReplServerStartMsg or ReplServerStartDSMsg that should
       // come back.
+      waitingForStartReply = true;
       ReplicationMsg msg = newSession.receive();
+      waitingForStartReply = false;
       if (logger.isTraceEnabled())
       {
         debugInfo("RB HANDSHAKE SENT:\n" + serverStartMsg + "\nAND RECEIVED:\n"
@@ -1305,6 +1333,7 @@ public class ReplicationBroker
     catch (SocketTimeoutException e)
     {
       logger.traceException(e);
+      startReplyTimedOut = waitingForStartReply;
       errorMessage = WARN_TIMEOUT_CONNECTING_TO_RS.get(getServerId(), serverURL, getBaseDN());
     }
     catch (Exception e)
@@ -1356,10 +1385,8 @@ public class ReplicationBroker
            * a schedule, and a server which cannot be reached over several reconnections is
            * a server whose configuration or certificate needs looking at.
            *
-           * The severity says what the failure cost this broker, not what the message is
-           * named: the elected server keeps the error it was reported with, and a server
-           * which was only contacted is a warning, so that a broker which does find a
-           * server to work with does not raise an error over the one it did not need.
+           * An unsuccessful attempt to establish the elected session is an error.
+           * A discovery probe or a start reply timeout scheduled for retry is a warning.
            * ERR_DS_DN_DOES_NOT_MATCH is the one message which reaches the second branch
            * under an ERR_ name -- it is set without setting hasConnected -- and it is a
            * permanent misconfiguration rather than a transient. It still goes out as an
@@ -1367,7 +1394,7 @@ public class ReplicationBroker
            * without, and where it is only contacted the broker has another server to work
            * with. Before this, that path logged nothing above trace either way.
            */
-          if (keepSession)
+          if (keepSession && !(startReplyTimedOut && retryStartTimeout))
           {
             logger.error(errorMessage);
           }
@@ -1380,7 +1407,7 @@ public class ReplicationBroker
       }
     }
     setConnectedRS(ConnectedRS.noConnectedRS());
-    return failure;
+    return startReplyTimedOut ? ConnectedRS.START_REPLY_TIMED_OUT : failure;
   }
 
   /**
@@ -2356,7 +2383,7 @@ public class ReplicationBroker
     }
 
     ConnectedRS rs = connectedRS.get();
-    String formerServerURL = infiniteTry && failingSession != null && failingSession == rs.session && !connectionError
+    String previousRS = infiniteTry && failingSession != null && failingSession == rs.session && !connectionError
         ? rs.rsInfo.getServerURL() : null;
     if (failingSession == rs.session && !rs.equals(ConnectedRS.noConnectedRS()))
     {
@@ -2386,9 +2413,9 @@ public class ReplicationBroker
         {
           try
           {
-            final String previousServerURL = formerServerURL;
-            formerServerURL = null;
-            connectAsDataServer(previousServerURL);
+            final String failedRS = previousRS;
+            previousRS = null;
+            connectAsDataServer(failedRS);
             rs = connectedRS.get();
           }
           catch (Exception e)
