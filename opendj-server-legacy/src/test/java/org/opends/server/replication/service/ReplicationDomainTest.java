@@ -1630,7 +1630,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
         .appendString(details)
         .appendLongUTF8(System.currentTimeMillis())
         .toByteArray();
-    return (ErrorMsg) ReplicationMsg.generateMsg(bytes, ProtocolVersion.getCurrentVersion());
+    // This payload predates the v9 initialization attempt field.
+    return (ErrorMsg) ReplicationMsg.generateMsg(bytes, ProtocolVersion.REPLICATION_PROTOCOL_V8);
   }
 
   /** Returns the details of the ErrorMsgs the replica receives before the one with the provided details. */

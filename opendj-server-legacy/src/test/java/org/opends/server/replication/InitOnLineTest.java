@@ -752,8 +752,7 @@ public class InitOnLineTest extends ReplicationTestCase
       waitForRemoteReplicas(server2ID);
       addTask(taskInitTargetS2, ResultCode.SUCCESS, null);
 
-      // Signal RS we just entered the full update status
-      server2.signalStatusChange(ServerStatus.FULL_UPDATE_STATUS);
+      acknowledgeTargetExport(testCase, server2);
 
       // Tests that entries have been received by S2
       receiveUpdatedEntries(server2);
@@ -1103,16 +1102,7 @@ public class InitOnLineTest extends ReplicationTestCase
       addTask(taskInitTargetS2, ResultCode.SUCCESS, null);
 
       log(testCase + " " + server2.getServerId() + " wait target " + Thread.currentThread());
-      final InitializeTargetMsg header = waitForInitializeTargetMsg(testCase, server2);
-
-      // Signal RS we just entered the full update status
-      log(testCase + " change status");
-      server2.signalStatusChange(ServerStatus.FULL_UPDATE_STATUS);
-      if (header.getInitializationAttemptId() != null)
-      {
-        server2.publish(new InitializeRcvAckMsg(server2.getServerId(), header.getSenderID(),
-            header.getInitializationAttemptId()));
-      }
+      acknowledgeTargetExport(testCase, server2);
 
       // Tests that entries have been received by S2
       log(testCase + " receive entries");
@@ -1166,6 +1156,17 @@ public class InitOnLineTest extends ReplicationTestCase
     finally
     {
       afterTest(testCase);
+    }
+  }
+
+  private void acknowledgeTargetExport(String testCase, ReplicationBroker importer) throws Exception
+  {
+    final InitializeTargetMsg header = waitForInitializeTargetMsg(testCase, importer);
+    importer.signalStatusChange(ServerStatus.FULL_UPDATE_STATUS);
+    if (header.getInitializationAttemptId() != null)
+    {
+      importer.publish(new InitializeRcvAckMsg(importer.getServerId(), header.getSenderID(),
+          header.getInitializationAttemptId()));
     }
   }
 
