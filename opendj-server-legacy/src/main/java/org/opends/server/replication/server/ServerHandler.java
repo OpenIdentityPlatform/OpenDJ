@@ -22,7 +22,6 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Random;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -799,56 +798,6 @@ public abstract class ServerHandler extends MessageHandler
     {
       replicationServerDomain.lock();
     }
-  }
-
-  /**
-   * Lock the domain with a timeout.
-   * <p>
-   * Take the lock on the domain. WARNING: Here we try to acquire the lock with
-   * a timeout. This is for preventing a deadlock that may happen if there are
-   * cross connection attempts (for same domain) from this replication server
-   * and from a peer one.
-   * <p>
-   * Here is the scenario:
-   * <ol>
-   * <li>RS1 connect thread takes the domain lock and starts connection to RS2
-   * </li>
-   * <li>at the same time RS2 connect thread takes his domain lock and start
-   * connection to RS2</li>
-   * <li>RS2 listen thread starts processing received ReplServerStartMsg from
-   * RS1 and wants to acquire the lock on the domain (here) but cannot as RS2
-   * connect thread already has it</li>
-   * <li>RS1 listen thread starts processing received ReplServerStartMsg from
-   * RS2 and wants to acquire the lock on the domain (here) but cannot as RS1
-   * connect thread already has it</li>
-   * </ol>
-   * =&gt; Deadlock: 4 threads are locked.
-   * <p>
-   * To prevent threads locking in such situation, the listen threads here will
-   * both timeout trying to acquire the lock. The random time for the timeout
-   * should allow on connection attempt to be aborted whereas the other one
-   * should have time to finish in the same time.
-   * <p>
-   * Warning: the minimum time (3s) should be big enough to allow normal
-   * situation connections to terminate. The added random time should represent
-   * a big enough range so that the chance to have one listen thread timing out
-   * a lot before the peer one is great. When the first listen thread times out,
-   * the remote connect thread should release the lock and allow the peer listen
-   * thread to take the lock it was waiting for and process the connection
-   * attempt.
-   *
-   * @return {@code true} if the lock was acquired, {@code false} if the wait
-   *         timed out, which is the connection attempt to abort
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting for the lock.
-   */
-  public boolean lockDomainWithTimeout() throws InterruptedException
-  {
-    final Random random = new Random();
-    final int randomTime = random.nextInt(6); // Random from 0 to 5
-    // Wait at least 3 seconds + (0 to 5 seconds)
-    final long timeout = 3000 + randomTime * 1000L;
-    return replicationServerDomain.tryLock(timeout);
   }
 
   /**

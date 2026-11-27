@@ -276,7 +276,11 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     {
       replicationServerDomain = replicationServer.getReplicationServerDomain(
           baseDN, true);
-      if (waitConnections)
+      // Let a bootstrapping domain learn its generation and topology before accepting
+      // a DS. A domain already serving a DS must be able to accept another while the
+      // connect thread is waiting for a peer RS.
+      if (waitConnections && (replicationServerDomain.getGenerationId() <= 0
+          || replicationServerDomain.getConnectedDSs().isEmpty()))
       {
         replicationServer.waitConnections();
       }

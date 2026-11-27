@@ -30,7 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -428,21 +430,19 @@ public class ReplicationServerHandler extends ServerHandler
     this.sslEncryption = sslEncryption;
 
     setBaseDNAndDomain(baseDN, false);
+    final ReentrantLock peerLock = replicationServerDomain.peerHandshakeLock();
 
     try
     {
+      peerLock.lockInterruptibly();
       lockDomainNoTimeout();
-
-      // Read under the domain lock so the start message advertises any change
-      // made by a previous handshake (handshakes serialize on this lock). The
-      // field itself is only guarded by generationIDLock and lock-free
-      // adopters can still move it — the arming CAS in
-      // setDomainGenerationIdOnStart handles that residual race.
       localGenerationId = replicationServerDomain.getGenerationId();
+      final ReplServerStartMsg outReplServerStartMsg = createReplServerStartMsg();
+      releaseDomainLock();
 
-      ReplServerStartMsg outReplServerStartMsg = sendStartToRemote();
-
-      // Wait answer
+      // The peer lock still arbitrates crossed RS connections. DS handshakes can
+      // use the domain while this peer has yet to answer the start message.
+      send(outReplServerStartMsg);
       ReplicationMsg msg = session.receive();
 
       // Reject bad responses
@@ -463,7 +463,18 @@ public class ReplicationServerHandler extends ServerHandler
         return false;
       }
 
+      lockDomainNoTimeout();
       processStartFromRemote((ReplServerStartMsg) msg);
+      if (replicationServerDomain.getGenerationId() != localGenerationId)
+      {
+        // The peer saw the previous generation. Retry with the current state.
+        if (!this.sslEncryption)
+        {
+          session.stopEncryption();
+        }
+        abortStart(null);
+        return false;
+      }
 
       if (replicationServerDomain.isAlreadyConnectedToRS(this))
       {
@@ -565,6 +576,10 @@ public class ReplicationServerHandler extends ServerHandler
     finally
     {
       releaseDomainLock();
+      if (peerLock.isHeldByCurrentThread())
+      {
+        peerLock.unlock();
+      }
     }
   }
 
@@ -576,14 +591,15 @@ public class ReplicationServerHandler extends ServerHandler
   public void startFromRemoteRS(ReplServerStartMsg inReplServerStartMsg)
   {
     localGenerationId = -1;
+    ReentrantLock peerLock = null;
     try
     {
       // The initiator decides if the session is encrypted
       sslEncryption = processStartFromRemote(inReplServerStartMsg);
+      peerLock = replicationServerDomain.peerHandshakeLock();
 
-      if (!lockDomainWithTimeout())
+      if (!lockDomainWithTimeout(peerLock))
       {
-        // This server gives way to a cross connection, see lockDomainWithTimeout().
         abortStartWithWarning(WARN_TIMEOUT_WHEN_CROSS_CONNECTION.get(getBaseDN(), serverId,
             session.getReadableRemoteAddress(), getReplicationServerId()));
         return;
@@ -702,7 +718,23 @@ public class ReplicationServerHandler extends ServerHandler
     finally
     {
       releaseDomainLock();
+      if (peerLock != null && peerLock.isHeldByCurrentThread())
+      {
+        peerLock.unlock();
+      }
     }
+  }
+
+  /**
+   * Acquire both locks within one randomized deadline. If two RSs dial each other,
+   * one incoming handshake can give way first so the other connection can finish.
+   */
+  private boolean lockDomainWithTimeout(ReentrantLock peerLock) throws InterruptedException
+  {
+    final long timeout = ThreadLocalRandom.current().nextInt(3, 9) * 1000L;
+    final long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeout);
+    return peerLock.tryLock(timeout, TimeUnit.MILLISECONDS)
+        && replicationServerDomain.tryLock(Math.max(0, TimeUnit.NANOSECONDS.toMillis(deadline - System.nanoTime())));
   }
 
   /**

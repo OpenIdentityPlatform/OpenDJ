@@ -2747,6 +2747,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   private final ReentrantLock lock = new ReentrantLock();
 
+  private final ReentrantLock peerHandshakeLock = new ReentrantLock();
+
+  /** Orders competing peer RS handshakes without locking out directory servers. */
+  ReentrantLock peerHandshakeLock()
+  {
+    return peerHandshakeLock;
+  }
+
   /** This lock is used to protect the generationId variable. */
   private final Object generationIDLock = new Object();
 
