@@ -1779,6 +1779,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             synchronized (queue) {
                 final Response response = queue.pollFirst();
                 if (response != null) {
+                    // Only producers wait on this monitor, and each removal frees exactly one slot.
                     queue.notify();
                 }
                 return response;
