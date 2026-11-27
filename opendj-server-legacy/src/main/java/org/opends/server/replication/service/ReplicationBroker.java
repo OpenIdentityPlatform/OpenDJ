@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -94,6 +95,7 @@ public class ReplicationBroker
   private static final class ConnectedRS
   {
     private static final ConnectedRS NO_CONNECTED_RS = new ConnectedRS(NO_CONNECTED_SERVER);
+    private static final ConnectedRS CONNECTION_REFUSED = new ConnectedRS(NO_CONNECTED_SERVER);
 
     /** The info of the RS we are connected to. */
     private final ReplicationServerInfo rsInfo;
@@ -375,7 +377,7 @@ public class ReplicationBroker
       shutdown = false;
       stopping = null;
       this.rcvWindow = getMaxRcvWindow();
-      connectAsDataServer();
+      connectAsDataServer(null);
     }
   }
 
@@ -832,9 +834,10 @@ public class ReplicationBroker
    * decide with which RS the full handshake (phase 1 then phase 2) will be
    * finally performed.
    *
+   * @param formerServerURL the previous server on the first reconnect after losing its session, or null
    * @throws NumberFormatException address was invalid
    */
-  private void connectAsDataServer()
+  private void connectAsDataServer(String formerServerURL)
   {
     /*
      * If a first connect or a connection failure occur, we go through here.
@@ -883,8 +886,14 @@ public class ReplicationBroker
           debugInfo("phase 2 : will perform PhaseOneH with the preferred RS=" + evals.getBestRS());
         }
 
-        final ConnectedRS electedRS = performPhaseOneHandshake(
-            evals.getBestRS().getServerURL(), true);
+        final ReplicationServerInfo preferred = evals.getBestRS();
+        ConnectedRS electedRS = performPhaseOneHandshake(preferred.getServerURL(), true);
+        if (electedRS == ConnectedRS.CONNECTION_REFUSED && preferred.getServerURL().equals(formerServerURL)
+            && stopping == null && !permanentlyStopped)
+        {
+          // Discovery can still see the former RS while its listener is closing.
+          electedRS = tryAnotherDiscoveryResponder(rsInfos, preferred.getServerId());
+        }
         final ReplicationServerInfo electedRsInfo = electedRS.rsInfo;
         if (electedRsInfo != null)
         {
@@ -952,6 +961,34 @@ public class ReplicationBroker
         }
       }
     }
+  }
+
+  /** Tries one compatible discovery responder before publishing isolation. */
+  private ConnectedRS tryAnotherDiscoveryResponder(Map<Integer, ReplicationServerInfo> rsInfos, int refusedServerId)
+  {
+    final Map<Integer, ReplicationServerInfo> candidates = new TreeMap<>(rsInfos);
+    candidates.remove(refusedServerId);
+    candidates.values().removeIf(info -> !hasCompatibleGeneration(info));
+    if (candidates.isEmpty())
+    {
+      return ConnectedRS.noConnectedRS();
+    }
+
+    final RSEvaluations evals = computeBestReplicationServer(true, -1, state, candidates, getServerId(), getGroupId(),
+        getGenerationID());
+    final ConnectedRS replacement = performPhaseOneHandshake(evals.getBestRS().getServerURL(), true);
+    // The generation may have changed since discovery.
+    if (replacement.rsInfo != null && !hasCompatibleGeneration(replacement.rsInfo))
+    {
+      close(replacement.session);
+      return ConnectedRS.noConnectedRS();
+    }
+    return replacement;
+  }
+
+  private boolean hasCompatibleGeneration(ReplicationServerInfo info)
+  {
+    return info.getGenerationId() == -1 || info.getGenerationId() == getGenerationID();
   }
 
   private void computeNewTopology(List<RSInfo> newRSInfos)
@@ -1154,6 +1191,7 @@ public class ReplicationBroker
     Session newSession = null;
     Socket socket = null;
     boolean hasConnected = false;
+    ConnectedRS failure = ConnectedRS.noConnectedRS();
     LocalizableMessage errorMessage = null;
 
     try
@@ -1238,6 +1276,7 @@ public class ReplicationBroker
     catch (ConnectException e)
     {
       logger.traceException(e);
+      failure = ConnectedRS.CONNECTION_REFUSED;
       errorMessage = WARN_NO_CHANGELOG_SERVER_LISTENING.get(getServerId(), serverURL, getBaseDN());
     }
     catch (SocketTimeoutException e)
@@ -1317,7 +1356,8 @@ public class ReplicationBroker
         logger.trace(errorMessage);
       }
     }
-    return setConnectedRS(ConnectedRS.noConnectedRS());
+    setConnectedRS(ConnectedRS.noConnectedRS());
+    return failure;
   }
 
   /**
@@ -1368,6 +1408,7 @@ public class ReplicationBroker
       logger.error(WARN_EXCEPTION_STARTING_SESSION_PHASE,
           getServerId(), electedRS.rsInfo.getServerURL(), getBaseDN(), stackTraceToSingleLineString(e));
 
+      close(electedRS.session);
       setConnectedRS(ConnectedRS.noConnectedRS());
       return null;
     }
@@ -2292,6 +2333,8 @@ public class ReplicationBroker
     }
 
     ConnectedRS rs = connectedRS.get();
+    String formerServerURL = infiniteTry && failingSession != null && failingSession == rs.session && !connectionError
+        ? rs.rsInfo.getServerURL() : null;
     if (failingSession == rs.session && !rs.equals(ConnectedRS.noConnectedRS()))
     {
       rs = setConnectedRS(ConnectedRS.noConnectedRS());
@@ -2320,7 +2363,9 @@ public class ReplicationBroker
         {
           try
           {
-            connectAsDataServer();
+            final String previousServerURL = formerServerURL;
+            formerServerURL = null;
+            connectAsDataServer(previousServerURL);
             rs = connectedRS.get();
           }
           catch (Exception e)
