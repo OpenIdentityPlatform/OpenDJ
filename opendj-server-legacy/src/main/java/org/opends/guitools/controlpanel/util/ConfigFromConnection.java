@@ -693,7 +693,7 @@ public class ConfigFromConnection extends ConfigReader
 
     DN suffixDn = sr.parseAttribute("domain-name").asDN();
     Integer replicaId = sr.parseAttribute("server-id").asInteger();
-    Integer missingChanges = sr.parseAttribute("missing-changes").asInteger();
+    Long missingChanges = sr.parseAttribute("missing-changes").asLong();
 
     if (suffixDn != null && replicaId != null && missingChanges != null)
     {
@@ -705,9 +705,12 @@ public class ConfigFromConnection extends ConfigReader
           {
             if (baseDN.getDn().equals(suffixDn) && Objects.equals(baseDN.getReplicaID(), replicaId))
             {
-              baseDN.setAgeOfOldestMissingChange(
-                  sr.parseAttribute("approx-older-change-not-synchronized-millis").asLong());
               baseDN.setMissingChanges(missingChanges);
+              Long oldestChange = sr.parseAttribute("approx-older-change-not-synchronized-millis").asLong();
+              if (oldestChange != null)
+              {
+                baseDN.setAgeOfOldestMissingChange(oldestChange);
+              }
             }
           }
           catch (Throwable ignored)

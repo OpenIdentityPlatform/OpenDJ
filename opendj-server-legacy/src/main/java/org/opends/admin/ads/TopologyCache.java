@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.admin.ads;
 
@@ -492,18 +493,10 @@ public class TopologyCache
 
   private void setMissingChanges(ReplicaDescriptor replica, SearchResultEntry sr)
   {
-    Integer value = sr.parseAttribute("missing-changes").asInteger();
+    Long value = sr.parseAttribute("missing-changes").asLong();
     if (value != null)
     {
-      try
-      {
-        replica.setMissingChanges(value);
-      }
-      catch (Throwable t)
-      {
-        logger.warn(LocalizableMessage.raw(
-            "Unexpected error reading missing changes: " + t, t));
-      }
+      replica.setMissingChanges(value);
     }
   }
 
