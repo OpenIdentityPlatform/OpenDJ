@@ -32,17 +32,21 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,6 +60,11 @@ import org.forgerock.i18n.LocalizableMessageDescriptor.Arg4;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.ConfigurationFramework;
+import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
+import org.forgerock.opendj.config.LDAPProfile;
+import org.forgerock.opendj.config.PasswordPropertyDefinition;
+import org.forgerock.opendj.config.PropertyDefinition;
+import org.forgerock.opendj.config.TopCfgDefn;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.spi.ConfigAddListener;
@@ -63,6 +72,7 @@ import org.forgerock.opendj.config.server.spi.ConfigChangeListener;
 import org.forgerock.opendj.config.server.spi.ConfigDeleteListener;
 import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
 import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.CancelRequestListener;
 import org.forgerock.opendj.ldap.CancelledResultException;
@@ -94,6 +104,7 @@ import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.forgerock.util.Utils;
 import org.opends.server.api.AlertGenerator;
+import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
@@ -354,6 +365,19 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
   }
 
   /**
+   * Returns an entry with password expressions preserved for LDAP and offline writers.
+   *
+   * @param dn The configuration entry DN.
+   * @return The entry, or {@code null} when it does not exist.
+   * @throws ConfigException If the entry cannot be retrieved.
+   */
+  public Entry getEntryPreservingPasswordValues(final DN dn) throws ConfigException
+  {
+    final Entry entry = backend.get(dn);
+    return entry == null ? null : unmodifiableEntry(evaluateEntryPreservingPasswordValues(entry));
+  }
+
+  /**
    * Returns the configuration root entry.
    *
    * @return the root entry
@@ -404,6 +428,377 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     backend.handleSearch(UNCANCELLABLE_REQUEST_CONTEXT, request, null, entryHandler, resultHandler);
   }
 
+  private static final class ProtectedEntry
+  {
+    private final Entry entry;
+    private final Map<AttributeDescription, PasswordPropertyDefinition> changedPasswords;
+
+    private ProtectedEntry(Entry entry, Map<AttributeDescription, PasswordPropertyDefinition> changedPasswords)
+    {
+      this.entry = entry;
+      this.changedPasswords = changedPasswords;
+    }
+
+    private boolean passwordChanged()
+    {
+      return !changedPasswords.isEmpty();
+    }
+  }
+
+  private ProtectedEntry protectPasswordValues(Entry previous, Entry proposed,
+      Set<AttributeDescription> explicitlyModified) throws DirectoryException
+  {
+    Entry protectedEntry = LinkedHashMapEntry.deepCopyOfEntry(proposed);
+    org.forgerock.opendj.ldap.schema.ObjectClass structural =
+        Entries.getStructuralObjectClass(proposed, serverContext.getSchema());
+    org.forgerock.opendj.ldap.schema.ObjectClass previousStructural = previous == null ? null
+        : Entries.getStructuralObjectClass(previous, serverContext.getSchema());
+    LDAPProfile profile = LDAPProfile.getInstance();
+    Set<String> knownNames = new HashSet<>();
+    Map<String, PasswordPropertyDefinition> matching = new HashMap<>();
+    Map<String, PasswordPropertyDefinition> previouslyMatching = new HashMap<>();
+    Map<AttributeDescription, PasswordPropertyDefinition> changedPasswords = new HashMap<>();
+    for (AbstractManagedObjectDefinition<?, ?> definition : TopCfgDefn.getInstance().getAllChildren())
+    {
+      for (PropertyDefinition<?> property : definition.getAllPropertyDefinitions())
+      {
+        if (property instanceof PasswordPropertyDefinition)
+        {
+          String name = profile.getAttributeName(definition, property).toLowerCase(Locale.ROOT);
+          knownNames.add(name);
+          if (structural != null && structural.hasName(profile.getObjectClass(definition)))
+          {
+            matching.put(name, (PasswordPropertyDefinition) property);
+          }
+          if (previousStructural != null && previousStructural.hasName(profile.getObjectClass(definition)))
+          {
+            previouslyMatching.put(name, (PasswordPropertyDefinition) property);
+          }
+        }
+      }
+    }
+    Set<AttributeDescription> removed = new HashSet<>(explicitlyModified);
+    if (previous != null)
+    {
+      for (Attribute attribute : previous.getAllAttributes())
+      {
+        if (proposed.getAttribute(attribute.getAttributeDescription()) == null)
+        {
+          removed.add(attribute.getAttributeDescription());
+        }
+      }
+    }
+    for (AttributeDescription description : removed)
+    {
+      if (proposed.getAttribute(description) == null)
+      {
+        Map<String, PasswordPropertyDefinition> candidates = previouslyMatching.isEmpty() ? matching : previouslyMatching;
+        for (Map.Entry<String, PasswordPropertyDefinition> candidate : candidates.entrySet())
+        {
+          if (matchesAttributeName(description, candidate.getKey()))
+          {
+            changedPasswords.put(description, candidate.getValue());
+            try
+            {
+              PASSWORD_CODEC.requireScheme(candidate.getValue().getEncryptionScheme());
+            }
+            catch (Exception e)
+            {
+              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                  LocalizableMessage.raw("Cannot modify configuration password property %s", description), e);
+            }
+          }
+        }
+      }
+    }
+    for (Attribute attribute : proposed.getAllAttributes())
+    {
+      boolean known = false;
+      PasswordPropertyDefinition effective = null;
+      for (String name : knownNames)
+      {
+        if (matchesAttributeName(attribute.getAttributeDescription(), name))
+        {
+          known = true;
+          PasswordPropertyDefinition candidate = matching.get(name);
+          if (candidate != null)
+          {
+            if (effective != null && !effective.getEncryptionScheme().equalsIgnoreCase(candidate.getEncryptionScheme()))
+            {
+              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                  LocalizableMessage.raw("Conflicting encryption schemes for configuration password property"));
+            }
+            effective = candidate;
+          }
+        }
+      }
+      if (!known)
+      {
+        continue;
+      }
+      if (effective == null)
+      {
+        if (hasMatchingNonPasswordDefinition(structural, attribute.getAttributeDescription(), profile))
+        {
+          continue;
+        }
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            LocalizableMessage.raw("No password definition matches configuration attribute %s",
+                attribute.getAttributeDescription()));
+      }
+      Attribute oldAttribute = previous == null ? null : previous.getAttribute(attribute.getAttributeDescription());
+      if (!explicitlyModified.contains(attribute.getAttributeDescription())
+          && samePasswordValues(attribute, oldAttribute))
+      {
+        continue;
+      }
+      changedPasswords.put(attribute.getAttributeDescription(), effective);
+      LinkedAttribute transformed = new LinkedAttribute(attribute.getAttributeDescription());
+      for (ByteString value : attribute)
+      {
+        String stringValue = value.toString();
+        try
+        {
+          if (stringValue.contains("${") && !PasswordPropertyDefinition.hasSchemePrefix(stringValue))
+          {
+            PASSWORD_CODEC.requireScheme(effective.getEncryptionScheme());
+            transformed.add(value);
+          }
+          else
+          {
+            transformed.add(ByteString.valueOfUtf8(effective.encodeForStorage(stringValue, PASSWORD_CODEC)));
+          }
+        }
+        catch (Exception e)
+        {
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+              LocalizableMessage.raw("Cannot protect configuration password property %s",
+                  attribute.getAttributeDescription()), e);
+        }
+      }
+      protectedEntry.replaceAttribute(transformed);
+    }
+    return new ProtectedEntry(protectedEntry, changedPasswords);
+  }
+
+  private static boolean matchesAttributeName(AttributeDescription description, String name)
+  {
+    return description.getAttributeType().hasName(name)
+        || description.withoutAnyOptions().toString().equalsIgnoreCase(name);
+  }
+
+  private static boolean hasMatchingNonPasswordDefinition(org.forgerock.opendj.ldap.schema.ObjectClass structural,
+      AttributeDescription attribute, LDAPProfile profile)
+  {
+    if (structural == null)
+    {
+      return false;
+    }
+    for (AbstractManagedObjectDefinition<?, ?> definition : TopCfgDefn.getInstance().getAllChildren())
+    {
+      try
+      {
+        if (!structural.hasName(profile.getObjectClass(definition)))
+        {
+          continue;
+        }
+      }
+      catch (MissingResourceException e)
+      {
+        // Some abstract definitions have no LDAP profile.
+        continue;
+      }
+      for (PropertyDefinition<?> property : definition.getAllPropertyDefinitions())
+      {
+        if (!(property instanceof PasswordPropertyDefinition))
+        {
+          try
+          {
+            if (matchesAttributeName(attribute, profile.getAttributeName(definition, property)))
+            {
+              return true;
+            }
+          }
+          catch (MissingResourceException e)
+          {
+            // A property without an LDAP mapping cannot match this attribute.
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  private static boolean samePasswordValues(Attribute first, Attribute second)
+  {
+    if (second == null || first.size() != second.size())
+    {
+      return false;
+    }
+    Set<ByteString> firstValues = new HashSet<>();
+    Set<ByteString> secondValues = new HashSet<>();
+    for (ByteString value : first) { firstValues.add(value); }
+    for (ByteString value : second) { secondValues.add(value); }
+    return firstValues.equals(secondValues);
+  }
+
+  private Entry rebaseMigratedPasswords(Entry observed, Entry current,
+      Map<AttributeDescription, PasswordPropertyDefinition> changedPasswords) throws DirectoryException
+  {
+    Entry basis = LinkedHashMapEntry.deepCopyOfEntry(observed);
+    for (Map.Entry<AttributeDescription, PasswordPropertyDefinition> changed : changedPasswords.entrySet())
+    {
+      AttributeDescription description = changed.getKey();
+      Attribute expected = observed.getAttribute(description);
+      Attribute actual = current.getAttribute(description);
+      if (expected == null && actual == null || expected != null && samePasswordValues(expected, actual))
+      {
+        continue;
+      }
+      if (!isEquivalentMigration(expected, actual, changed.getValue()))
+      {
+        throw new DirectoryException(ResultCode.BUSY,
+            LocalizableMessage.raw("Configuration password changed concurrently; retry the update"));
+      }
+      basis.replaceAttribute(new LinkedAttribute(actual));
+    }
+    return basis;
+  }
+
+  private boolean isEquivalentMigration(Attribute expected, Attribute actual, PasswordPropertyDefinition definition)
+      throws DirectoryException
+  {
+    if (expected == null || actual == null || expected.size() != actual.size())
+    {
+      return false;
+    }
+    Set<ByteString> legacyValues = new HashSet<>();
+    for (ByteString value : expected)
+    {
+      String text = value.toString();
+      if (PasswordPropertyDefinition.hasSchemePrefix(text) || text.contains("${"))
+      {
+        return false;
+      }
+      legacyValues.add(value);
+    }
+    Set<ByteString> decodedValues = new HashSet<>();
+    try
+    {
+      for (ByteString value : actual)
+      {
+        String text = value.toString();
+        if (!PasswordPropertyDefinition.hasSchemePrefix(text))
+        {
+          return false;
+        }
+        decodedValues.add(ByteString.valueOfUtf8(definition.decodeFromStorage(text, PASSWORD_CODEC)));
+      }
+    }
+    catch (Exception e)
+    {
+      throw new DirectoryException(ResultCode.BUSY,
+          LocalizableMessage.raw("Cannot verify a concurrent configuration password update"), e);
+    }
+    return legacyValues.equals(decodedValues);
+  }
+
+  private static final PasswordPropertyDefinition.Codec PASSWORD_CODEC = new PasswordPropertyDefinition.Codec()
+  {
+    private PasswordStorageScheme<?> scheme(String name)
+    {
+      PasswordStorageScheme<?> scheme = DirectoryServer.getPasswordStorageScheme(name.toLowerCase(Locale.ROOT));
+      if (scheme == null || !scheme.isReversible())
+      {
+        throw new IllegalStateException("Password storage scheme is unavailable or not reversible: " + name);
+      }
+      return scheme;
+    }
+
+    @Override
+    public void requireScheme(String name) { scheme(name); }
+
+    @Override
+    public String encrypt(String name, String plaintext) throws DirectoryException
+    {
+      return scheme(name).encodePasswordWithScheme(ByteString.valueOfUtf8(plaintext)).toString();
+    }
+
+    @Override
+    public String decrypt(String name, String encoded) throws DirectoryException
+    {
+      return scheme(name).getPlaintextValue(ByteString.valueOfUtf8(encoded)).toString();
+    }
+  };
+
+  @Override
+  public synchronized String decodePassword(DN dn, String attributeName,
+      PasswordPropertyDefinition definition, String value)
+  {
+    try
+    {
+      String plaintext = definition.decodeFromStorage(value, PASSWORD_CODEC);
+      if (!PasswordPropertyDefinition.hasSchemePrefix(value) && dn != null)
+      {
+        migrateLegacyPassword(dn, attributeName, definition, value);
+      }
+      return plaintext;
+    }
+    catch (Exception e)
+    {
+      throw new IllegalStateException("Cannot decode configuration password property " + attributeName, e);
+    }
+  }
+
+  private void migrateLegacyPassword(DN dn, String attributeName,
+      PasswordPropertyDefinition definition, String expected) throws Exception
+  {
+    Entry current = backend.get(dn);
+    Attribute attribute = current == null ? null : current.getAttribute(attributeName);
+    if (attribute == null)
+    {
+      return;
+    }
+    LinkedAttribute migrated = new LinkedAttribute(attribute.getAttributeDescription());
+    ByteString expectedBytes = ByteString.valueOfUtf8(expected);
+    boolean found = false;
+    for (ByteString currentValue : attribute)
+    {
+      if (currentValue.equals(expectedBytes) && !currentValue.toString().contains("${"))
+      {
+        migrated.add(ByteString.valueOfUtf8(definition.encodeForStorage(expected, PASSWORD_CODEC)));
+        found = true;
+      }
+      else
+      {
+        migrated.add(currentValue);
+      }
+    }
+    if (!found)
+    {
+      return;
+    }
+    Entry replacement = LinkedHashMapEntry.deepCopyOfEntry(current);
+    replacement.replaceAttribute(migrated);
+    backend.load(LDIF.newEntryCollectionReader(Collections.singleton(replacement)), true);
+    try
+    {
+      writeUpdatedConfig(true);
+    }
+    catch (DirectoryException e)
+    {
+      try
+      {
+        backend.load(LDIF.newEntryCollectionReader(Collections.singleton(current)), true);
+      }
+      catch (IOException rollbackError)
+      {
+        e.addSuppressed(rollbackError);
+      }
+      throw e;
+    }
+  }
+
   /**
    * Retrieves the number of subordinates for the requested entry.
    *
@@ -440,20 +835,22 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
    * change is accepted, entry is effectively added and all Add listeners are called again to apply
    * the change resulting from this new entry.
    *
-   * @param entry
+   * @param originalEntry
    *          The configuration entry to add.
    * @throws DirectoryException
    *           If an error occurs.
    */
-  public void addEntry(final Entry entry) throws DirectoryException
+  public synchronized void addEntry(final Entry originalEntry) throws DirectoryException
   {
-    final DN entryDN = entry.getName();
+    final DN entryDN = originalEntry.getName();
     if (backend.contains(entryDN))
     {
       throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, ERR_CONFIG_FILE_ADD_ALREADY_EXISTS.get(entryDN));
     }
 
     final DN parentDN = retrieveParentDNForAdd(entryDN);
+    final ProtectedEntry protectedEntry = protectPasswordValues(null, originalEntry, Collections.emptySet());
+    final Entry entry = protectedEntry.entry;
 
     // If the entry contains any expressions then these must be evaluated before passing to listeners.
     final Entry evaluatedEntry = evaluateEntry(entry, ERR_CONFIG_FILE_ADD_REJECTED_DUE_TO_EVALUATION_FAILURE);
@@ -480,7 +877,23 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
       throw new DirectoryException(ex.getResult().getResultCode(),
           ERR_CONFIG_FILE_ADD_FAILED.get(entryDN, parentDN, ex.getLocalizedMessage()), ex);
     }
-    writeUpdatedConfig();
+    try
+    {
+      writeUpdatedConfig(protectedEntry.passwordChanged());
+    }
+    catch (DirectoryException e)
+    {
+      if (protectedEntry.passwordChanged())
+      {
+        ConfigLdapResultHandler rollback = new ConfigLdapResultHandler();
+        backend.handleDelete(UNCANCELLABLE_REQUEST_CONTEXT, Requests.newDeleteRequest(entryDN), null, rollback);
+        if (!rollback.hasCompletedSuccessfully())
+        {
+          e.addSuppressed(rollback.getResultError());
+        }
+      }
+      throw e;
+    }
 
     // Notify all the add listeners to apply the new configuration entry.
     final ConfigChangeResult ccr = new ConfigChangeResult();
@@ -510,7 +923,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
    * @throws DirectoryException
    *           If a problem occurs.
    */
-  public void deleteEntry(final DN dn) throws DirectoryException
+  public synchronized void deleteEntry(final DN dn) throws DirectoryException
   {
     // Entry must exist.
     if (!backend.contains(dn))
@@ -590,16 +1003,32 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
    *
    * @param oldEntry
    *          The original entry that is being replaced.
-   * @param newEntry
+   * @param proposedEntry
    *          The new entry to use in place of the existing entry with the same DN.
    * @param structuralUpdate
    *          Force objectClass update.
    * @throws DirectoryException
    *           If a problem occurs while trying to replace the entry.
    */
-  public void replaceEntry(final Entry oldEntry, final Entry newEntry, final boolean structuralUpdate) throws DirectoryException
+  public void replaceEntry(final Entry oldEntry, final Entry proposedEntry, final boolean structuralUpdate)
+      throws DirectoryException
   {
-    final DN newEntryDN = newEntry.getName();
+    replaceEntry(oldEntry, proposedEntry, structuralUpdate, Collections.emptySet());
+  }
+
+  /**
+   * Replaces a configuration entry while preserving explicitly requested attribute changes.
+   *
+   * @param oldEntry The original entry.
+   * @param proposedEntry The replacement entry.
+   * @param structuralUpdate Whether a structural object class change is permitted.
+   * @param explicitlyModified Attributes explicitly requested by the caller.
+   * @throws DirectoryException If the replacement fails.
+   */
+  public synchronized void replaceEntry(final Entry oldEntry, final Entry proposedEntry, final boolean structuralUpdate,
+      final Set<AttributeDescription> explicitlyModified) throws DirectoryException
+  {
+    final DN newEntryDN = proposedEntry.getName();
     if (!backend.contains(newEntryDN))
     {
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
@@ -607,14 +1036,34 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     }
 
     if (!structuralUpdate && !Entries.getStructuralObjectClass(oldEntry, serverContext.getSchema()).equals(
-        Entries.getStructuralObjectClass(newEntry, serverContext.getSchema())))
+        Entries.getStructuralObjectClass(proposedEntry, serverContext.getSchema())))
     {
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
           ERR_CONFIG_FILE_MODIFY_STRUCTURAL_CHANGE_NOT_ALLOWED.get(oldEntry.getName()));
     }
+    final ProtectedEntry protectedEntry = protectPasswordValues(oldEntry, proposedEntry, explicitlyModified);
+    Entry original = LinkedHashMapEntry.deepCopyOfEntry(backend.get(newEntryDN));
+    Entry diffBase = protectedEntry.passwordChanged()
+        ? rebaseMigratedPasswords(oldEntry, original, protectedEntry.changedPasswords) : oldEntry;
+    Entries.DiffOptions options = Entries.diffOptions().attributes("*", "+");
+    if (protectedEntry.passwordChanged())
+    {
+      options.useExactMatching();
+    }
+    ModifyRequest modifyRequest = Entries.diffEntries(diffBase, protectedEntry.entry, options);
+    Entry newEntry = LinkedHashMapEntry.deepCopyOfEntry(original);
+    try
+    {
+      Entries.modifyEntry(newEntry, modifyRequest);
+    }
+    catch (LdapException ex)
+    {
+      throw new DirectoryException(ex.getResult().getResultCode(),
+          ERR_CONFIG_FILE_MODIFY_FAILED.get(newEntryDN, newEntryDN, ex.getLocalizedMessage()), ex);
+    }
 
     // If the entry contains any expressions then these must be evaluated before passing to listeners.
-    final Entry evaluatedNewEntry = evaluateEntry(newEntry, ERR_CONFIG_FILE_MODIFY_REJECTED_DUE_TO_EVALUATION_FAILURE);
+    Entry evaluatedNewEntry = evaluateEntry(newEntry, ERR_CONFIG_FILE_MODIFY_REJECTED_DUE_TO_EVALUATION_FAILURE);
 
     // Iterate through change listeners to make sure the change is acceptable.
     final List<ConfigChangeListener> changeListeners = getChangeListeners(newEntryDN);
@@ -628,18 +1077,67 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
       }
     }
 
-    // Replace the old entry with new entry.
-    ModifyRequest modifyRequest = Entries.diffEntries(oldEntry, newEntry, Entries.diffOptions().attributes("*", "+"));
-    final ConfigLdapResultHandler resultHandler = new ConfigLdapResultHandler();
-    backend.handleModify(UNCANCELLABLE_REQUEST_CONTEXT, modifyRequest, null, resultHandler);
-
-    if (!resultHandler.hasCompletedSuccessfully())
+    // A listener may have read a legacy password and migrated it while validating.
+    // Merge the requested changes again so that migration is not overwritten.
+    original = LinkedHashMapEntry.deepCopyOfEntry(backend.get(newEntryDN));
+    diffBase = protectedEntry.passwordChanged()
+        ? rebaseMigratedPasswords(oldEntry, original, protectedEntry.changedPasswords) : oldEntry;
+    modifyRequest = Entries.diffEntries(diffBase, protectedEntry.entry, options);
+    newEntry = LinkedHashMapEntry.deepCopyOfEntry(original);
+    try
     {
-      LdapException ex = resultHandler.getResultError();
+      Entries.modifyEntry(newEntry, modifyRequest);
+    }
+    catch (LdapException ex)
+    {
       throw new DirectoryException(ex.getResult().getResultCode(),
           ERR_CONFIG_FILE_MODIFY_FAILED.get(newEntryDN, newEntryDN, ex.getLocalizedMessage()), ex);
     }
-    writeUpdatedConfig();
+    evaluatedNewEntry = evaluateEntry(newEntry, ERR_CONFIG_FILE_MODIFY_REJECTED_DUE_TO_EVALUATION_FAILURE);
+
+    // Replace the old entry with new entry.
+    if (protectedEntry.passwordChanged())
+    {
+      try
+      {
+        backend.load(LDIF.newEntryCollectionReader(Collections.singleton(newEntry)), true);
+      }
+      catch (IOException ex)
+      {
+        throw new DirectoryException(ResultCode.OTHER,
+            ERR_CONFIG_FILE_MODIFY_FAILED.get(newEntryDN, newEntryDN, ex.getLocalizedMessage()), ex);
+      }
+    }
+    else
+    {
+      final ConfigLdapResultHandler resultHandler = new ConfigLdapResultHandler();
+      backend.handleModify(UNCANCELLABLE_REQUEST_CONTEXT, modifyRequest, null, resultHandler);
+      if (!resultHandler.hasCompletedSuccessfully())
+      {
+        LdapException ex = resultHandler.getResultError();
+        throw new DirectoryException(ex.getResult().getResultCode(),
+            ERR_CONFIG_FILE_MODIFY_FAILED.get(newEntryDN, newEntryDN, ex.getLocalizedMessage()), ex);
+      }
+    }
+    try
+    {
+      writeUpdatedConfig(protectedEntry.passwordChanged());
+    }
+    catch (DirectoryException e)
+    {
+      if (protectedEntry.passwordChanged())
+      {
+        try
+        {
+          backend.load(LDIF.newEntryCollectionReader(Collections.singleton(original)), true);
+        }
+        catch (IOException rollbackError)
+        {
+          e.addSuppressed(rollbackError);
+        }
+      }
+      throw e;
+    }
 
     // Notify all the change listeners of the update.
     final ConfigChangeResult ccr = new ConfigChangeResult();
@@ -860,7 +1358,11 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
 
   private void writeUpdatedConfig() throws DirectoryException
   {
-    // FIXME -- This needs support for encryption.
+    writeUpdatedConfig(false);
+  }
+
+  private void writeUpdatedConfig(boolean failOnWriteError) throws DirectoryException
+  {
 
     // Calculate an archive for the current server configuration file and see if
     // it matches what we expect. If not, then the file has been manually
@@ -935,7 +1437,25 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
       logger.error(message);
 
       DirectoryServer.sendAlertNotification(this, ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, message);
+      if (failOnWriteError)
+      {
+        throw new DirectoryException(ResultCode.OTHER, message, e);
+      }
       return;
+    }
+
+    byte[] newDigest = null;
+    if (failOnWriteError)
+    {
+      try (InputStream input = new FileInputStream(tempConfig))
+      {
+        newDigest = calculateDigest(input);
+      }
+      catch (Exception e)
+      {
+        throw new DirectoryException(ResultCode.OTHER,
+            LocalizableMessage.raw("Cannot calculate digest for updated configuration"), e);
+      }
     }
 
     // Delete the previous version of the configuration and rename the new one.
@@ -943,7 +1463,14 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     {
       File actualConfig = configFile;
       File tmpConfig = new File(tempConfig);
-      renameFile(tmpConfig, actualConfig);
+      if (failOnWriteError)
+      {
+        replaceConfigFile(tmpConfig, actualConfig);
+      }
+      else
+      {
+        renameFile(tmpConfig, actualConfig);
+      }
     }
     catch (Exception e)
     {
@@ -954,16 +1481,25 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
       logger.error(message);
 
       DirectoryServer.sendAlertNotification(this, ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, message);
+      if (failOnWriteError)
+      {
+        throw new DirectoryException(ResultCode.OTHER, message, e);
+      }
       return;
     }
 
-    configurationDigest = calculateConfigDigest();
+    configurationDigest = failOnWriteError ? newDigest : calculateConfigDigest();
 
     // Try to write the archive for the new configuration.
     if (maintainConfigArchive)
     {
       writeConfigArchive();
     }
+  }
+
+  static void replaceConfigFile(File source, File target) throws IOException
+  {
+    Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
   }
 
   /** Request context to be used when requesting the internal backend. */
@@ -1075,7 +1611,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
   }
 
   /** Handler for search results redirecting to a SearchOperation. */
-  private static final class SearchResultHandlerAdapter implements SearchResultHandler
+  private final class SearchResultHandlerAdapter implements SearchResultHandler
   {
     private final SearchOperation searchOperation;
     private final LdapResultHandlerAdapter resultHandler;
@@ -1095,7 +1631,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     @Override
     public boolean handleEntry(SearchResultEntry entry)
     {
-      org.opends.server.types.Entry serverEntry = Converters.to(evaluateEntryIfPossible(entry));
+      org.opends.server.types.Entry serverEntry = Converters.to(evaluateEntryPreservingPasswordValues(entry));
       serverEntry.processVirtualAttributes();
       return !filterMatchesEntry(serverEntry) || searchOperation.returnEntry(serverEntry, null);
     }
@@ -1791,6 +2327,64 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     else if (!messages.isEmpty())
     {
       logger.debug(INFO_CONFIG_CHANGE_RESULT_MESSAGES, className, methodName, entryDN, messages);
+    }
+  }
+
+  private Entry evaluateEntryPreservingPasswordValues(final Entry entry)
+  {
+    try
+    {
+      org.forgerock.opendj.ldap.schema.ObjectClass structural =
+          Entries.getStructuralObjectClass(entry, serverContext.getSchema());
+      LDAPProfile profile = LDAPProfile.getInstance();
+      Set<String> knownNames = new HashSet<>();
+      Set<String> matchingNames = new HashSet<>();
+      for (AbstractManagedObjectDefinition<?, ?> definition : TopCfgDefn.getInstance().getAllChildren())
+      {
+        for (PropertyDefinition<?> property : definition.getAllPropertyDefinitions())
+        {
+          if (property instanceof PasswordPropertyDefinition)
+          {
+            String name = profile.getAttributeName(definition, property).toLowerCase(Locale.ROOT);
+            knownNames.add(name);
+            if (structural != null && structural.hasName(profile.getObjectClass(definition)))
+            {
+              matchingNames.add(name);
+            }
+          }
+        }
+      }
+      Entry result = new LinkedHashMapEntry(entry.getName());
+      for (Attribute attribute : entry.getAllAttributes())
+      {
+        boolean known = false;
+        boolean matching = false;
+        for (String name : knownNames)
+        {
+          if (matchesAttributeName(attribute.getAttributeDescription(), name))
+          {
+            known = true;
+            matching |= matchingNames.contains(name);
+          }
+        }
+        if (known && (matching || !hasMatchingNonPasswordDefinition(structural,
+            attribute.getAttributeDescription(), profile)))
+        {
+          result.addAttribute(new LinkedAttribute(attribute));
+        }
+        else
+        {
+          result.addAttribute(evaluateAttribute(entry.getName(), attribute,
+              ERR_CONFIG_FILE_READ_FAILED_DUE_TO_EVALUATION_FAILURE));
+        }
+      }
+      return result;
+    }
+    catch (DirectoryException | RuntimeException e)
+    {
+      // Returning the original entry avoids exposing evaluated password expressions.
+      logger.traceException(e);
+      return entry;
     }
   }
 

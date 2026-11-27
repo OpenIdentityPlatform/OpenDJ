@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -56,6 +57,12 @@ final class PropertyValuePrinter {
             numberFormat = NumberFormat.getNumberInstance();
             numberFormat.setGroupingUsed(!this.isScriptFriendly);
             numberFormat.setMaximumFractionDigits(2);
+        }
+
+        @Override
+        public LocalizableMessage visitPassword(org.forgerock.opendj.config.PasswordPropertyDefinition pd,
+                String value, Void p) {
+            return LocalizableMessage.raw("********");
         }
 
         @Override
