@@ -1,0 +1,148 @@
+////
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+////
+
+[#how-to-phpldapadmin]
+== Connect phpLDAPadmin to OpenDJ in Docker
+
+This recipe uses Docker Compose to run OpenDJ and phpLDAPadmin (PLA) v2 for local testing. PLA reaches OpenDJ at `opendj:1389` on the Compose network. The example uses plain LDAP on that network and publishes the PLA web interface over HTTP on the host's loopback address.
+
+=== Start OpenDJ and phpLDAPadmin
+
+In an empty directory, save the following as `compose.yaml`. OpenDJ creates the base entry `dc=example,dc=com` in a new instance. The named volume keeps the instance when you replace the container. See xref:../install-guide/chap-install.adoc#install-docker[Running OpenDJ in Docker].
+
+[source,yaml]
+----
+services:
+  opendj:
+    image: openidentityplatform/opendj:5.2.0
+    init: true
+    environment:
+      ROOT_PASSWORD: "${OPENDJ_ROOT_PASSWORD:?Set OPENDJ_ROOT_PASSWORD}"
+      ADD_BASE_ENTRY: --addBaseEntry
+    volumes:
+      - opendj-data:/opt/opendj/data
+    stop_grace_period: 60s
+  pla:
+    image: phpldapadmin/phpldapadmin:2.3.13
+    depends_on:
+      opendj:
+        condition: service_healthy
+    environment:
+      LDAP_HOST: opendj
+      LDAP_PORT: "1389"
+      LDAP_BASE_DN: "dc=example,dc=com"
+      LDAP_LOGIN_ATTR: DN
+      LDAP_LOGIN_OBJECTCLASS: inetOrgPerson
+    ports:
+      - "127.0.0.1:8080:8080"
+volumes:
+  opendj-data:
+----
+
+Set the initial password for `cn=Directory Manager` and run the commands in this recipe from the same Bash session.
+
+[source,bash]
+----
+read -r -s -p 'OpenDJ Directory Manager password: ' OPENDJ_ROOT_PASSWORD
+printf '\n'
+export OPENDJ_ROOT_PASSWORD
+docker compose up -d --wait
+----
+
+=== Create a PLA Login
+
+PLA needs an LDAP entry for the login DN. The default OpenDJ bind DN `cn=Directory Manager` is an alternate bind DN with no entry at that location. Use it to create the delegate with the `inetOrgPerson` object class configured in PLA. See the link:https://github.com/leenooks/phpLDAPadmin/wiki/FAQ[phpLDAPadmin FAQ] for the login requirements.
+
+[source,bash]
+----
+docker compose exec -T opendj /opt/opendj/bin/ldapmodify \
+  --hostname localhost --port 1389 --bindDN 'cn=Directory Manager' \
+  --bindPassword "$OPENDJ_ROOT_PASSWORD" <<'LDIF'
+dn: uid=pla-user,dc=example,dc=com
+changetype: add
+objectClass: inetOrgPerson
+uid: pla-user
+cn: PLA User
+sn: User
+userPassword: DemoPlaPassword123
+LDIF
+----
+
+=== Delegate Administration of the People Branch
+
+As `cn=Directory Manager`, create `ou=People,dc=example,dc=com` and add two access control instructions (ACIs) to it. The first ACI allows `pla-user` to add and delete `inetOrgPerson` entries below `ou=People`. The second allows updates to the listed attributes on those entries. The `password-reset` privilege and write access to `userPassword` together allow the delegate to reset passwords in this branch.
+
+[source,bash]
+----
+docker compose exec -T opendj /opt/opendj/bin/ldapmodify \
+  --hostname localhost --port 1389 --bindDN 'cn=Directory Manager' \
+  --bindPassword "$OPENDJ_ROOT_PASSWORD" <<'LDIF'
+dn: ou=People,dc=example,dc=com
+changetype: add
+objectClass: organizationalUnit
+ou: People
+
+dn: ou=People,dc=example,dc=com
+changetype: modify
+add: aci
+aci: (targetscope="subordinate")(targetfilter="(objectClass=inetOrgPerson)")
+ (version 3.0; acl "PLA manages People entries";
+ allow (add,delete) userdn="ldap:///uid=pla-user,dc=example,dc=com";)
+aci: (targetscope="subordinate")(targetfilter="(objectClass=inetOrgPerson)")
+ (targetattr="cn || sn || givenName || mail || telephoneNumber || description || userPassword")
+ (version 3.0; acl "PLA updates People profiles and passwords";
+ allow (write) userdn="ldap:///uid=pla-user,dc=example,dc=com";)
+-
+
+dn: uid=pla-user,dc=example,dc=com
+changetype: modify
+add: ds-privilege-name
+ds-privilege-name: password-reset
+-
+
+dn: uid=demo-user,ou=People,dc=example,dc=com
+changetype: add
+objectClass: inetOrgPerson
+uid: demo-user
+cn: Demo User
+sn: User
+mail: demo-user@example.com
+description: Demo account
+LDIF
+----
+
+If `ou=People` already exists, omit the first LDIF record. For more on how OpenDJ evaluates these rules, see xref:../admin-guide/chap-privileges-acis.adoc#aci-required[ACI Required For LDAP Operations] and xref:./delegate-password-reset.adoc[Delegate Password Reset Permissions].
+
+=== Sign In and Verify Access
+
+. Open link:http://127.0.0.1:8080/[phpLDAPadmin] in a browser.
+. Enter `uid=pla-user,dc=example,dc=com` in the *User ID* field and `DemoPlaPassword123` in the *Password* field. Click *Login*.
++
+image::images/phpldapadmin-login.png[phpLDAPadmin login form with the delegate's DN]
+. Open the sidebar if it is collapsed. Expand `dc=example,dc=com` and `ou=People` in the tree, then select `uid=demo-user`.
++
+image::images/phpldapadmin-directory.png[phpLDAPadmin directory tree with the demo user selected]
+. To verify the delegated write permission, click *Edit Entry* and change *Description*. Click *Update*, then click *Update* again to confirm the change.
+
+To stop the demo while keeping the directory data, run `docker compose down`.
+
+=== Connect to an Existing OpenDJ Server
+
+If OpenDJ already runs in Compose, add the `pla` service to that deployment and update `LDAP_HOST` and `depends_on` to use the OpenDJ service name. The health dependency requires an OpenDJ health check. For an OpenDJ server outside the Compose project, omit `depends_on` and use a hostname that resolves from the PLA container. If OpenDJ runs on a separate Docker network, attach PLA to that network as well.
+
+Set `LDAP_PORT` to the LDAP listener port reachable from PLA and `LDAP_BASE_DN` to an existing base entry. Sign in with the full DN of an existing LDAP user and set `LDAP_LOGIN_OBJECTCLASS` to an object class on that entry. If the server requires a bind to read the schema or find the login entry, set `LDAP_USERNAME` and `LDAP_PASSWORD` for a lookup account with that access.
+
+For an LDAPS listener, use `LDAP_CONNECTION: ldaps` and the listener port (1636 by default). Configure PLA to trust the certificate presented by OpenDJ. See xref:../admin-guide/chap-connection-handlers.adoc#setup-server-cert[Preparing for Secure Communications] and link:https://github.com/leenooks/phpLDAPadmin/wiki/Configuration-Variables[phpLDAPadmin configuration variables].
