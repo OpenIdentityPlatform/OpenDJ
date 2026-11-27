@@ -1760,6 +1760,53 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     }
   }
 
+  @Test(timeOut = 120_000)
+  public void failoverRetriesElectedRsAfterStartReplyTimeout() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    final WithholdingReplicationServer oldRS = new WithholdingReplicationServer(LARGE_WINDOW);
+    final WithholdingReplicationServer otherRS = new WithholdingReplicationServer(LARGE_WINDOW, 4);
+    final DelayedFailoverHandshake oldHandshake = new DelayedFailoverHandshake(1, 1);
+    final DelayedFailoverHandshake otherHandshake = new DelayedFailoverHandshake(0, 2);
+    try
+    {
+      otherRS.differentGroup = true;
+      otherRS.start();
+      final LDAPReplicationDomain domain = startDomain(oldRS, 100000, otherRS.getAddress());
+      assertEquals(domain.getRsServerId(), oldRS.serverId);
+      newTimer().repeatUntilSuccess(() -> assertNotNull(oldRS.session.get()));
+
+      otherRS.differentGroup = false;
+      otherRS.delayedFailoverHandshake = otherHandshake;
+      oldRS.delayedFailoverHandshake = oldHandshake;
+      oldRS.dropTheSession();
+
+      await(oldHandshake.nextStartReceived);
+      assertFalse(domain.hasConnectionError(), "the broker declared isolation before retrying the elected RS");
+      assertEquals(otherHandshake.starts.get(), 1, "the other RS should only receive the discovery probe");
+      oldHandshake.sendNextReply.countDown();
+
+      waitForConnection(domain);
+      assertEquals(domain.getRsServerId(), oldRS.serverId);
+      assertFalse(domain.hasConnectionError());
+      assertEquals(replaceDescription("after retrying the elected RS"), ResultCode.SUCCESS);
+      oldRS.waitForUpdates(1);
+    }
+    finally
+    {
+      oldHandshake.sendNextReply.countDown();
+      otherHandshake.sendNextReply.countDown();
+      try
+      {
+        otherRS.shutdown();
+      }
+      finally
+      {
+        cleanUp(oldRS);
+      }
+    }
+  }
+
   private LDAPReplicationDomain startDomain(WithholdingReplicationServer rs) throws Exception
   {
     // Heartbeats far apart: the session stays up whatever the replication server reads.

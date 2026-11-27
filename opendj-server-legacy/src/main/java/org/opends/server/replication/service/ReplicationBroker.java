@@ -940,21 +940,23 @@ public class ReplicationBroker
         ConnectedRS electedRS = performPhaseOneHandshake(electedURL, true, canRetryElected);
         if (electedRS.rsInfo == null && canRetryElected && stopping == null && !permanentlyStopped)
         {
-          final boolean electedFormerRS = electedURL.equals(previousRS);
-          final ReplicationServerInfo responder = electedRS == ConnectedRS.CONNECTION_REFUSED && electedFormerRS
-              ? selectDiscoveryResponder(rsInfos, previousRS) : null;
-          if (responder != null)
-          {
-            electedRS = connectToDiscoveryResponder(responder);
-          }
-          else if (electedFormerRS && timedOutRS != null && !electedURL.equals(timedOutRS))
-          {
-            // The other RS can still accept a session after missing its discovery reply.
-            electedRS = performPhaseOneHandshake(timedOutRS, true, false);
-          }
-          else if (electedRS == ConnectedRS.START_REPLY_TIMED_OUT)
+          if (electedRS == ConnectedRS.START_REPLY_TIMED_OUT)
           {
             electedRS = performPhaseOneHandshake(electedURL, true, false);
+          }
+          else if (electedURL.equals(previousRS))
+          {
+            final ReplicationServerInfo responder = electedRS == ConnectedRS.CONNECTION_REFUSED
+                ? selectDiscoveryResponder(rsInfos, previousRS) : null;
+            if (responder != null)
+            {
+              electedRS = connectToDiscoveryResponder(responder);
+            }
+            else if (timedOutRS != null && !electedURL.equals(timedOutRS))
+            {
+              // The other RS can still accept a session after missing its discovery reply.
+              electedRS = performPhaseOneHandshake(timedOutRS, true, false);
+            }
           }
         }
         final ReplicationServerInfo electedRsInfo = electedRS.rsInfo;
