@@ -14,6 +14,28 @@ docker run -d -p 1389:1389 -p 1636:1636 -p 4444:4444 --name opendj \
   -v opendj-data:/opt/opendj/data openidentityplatform/opendj
 ```
 
+## Windows containers
+
+OpenDJ releases include a native `windows/amd64` image tagged `<version>-windows` on Docker
+Hub and GHCR. It uses Windows Server Core LTSC 2022 and requires Docker in Windows container
+mode on a compatible host. See the [Windows container compatibility matrix](https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/version-compatibility).
+
+Set `ROOT_PASSWORD` in your PowerShell environment for the first start. Replace `<version>`
+with the OpenDJ release version.
+
+```powershell
+docker run -d --name opendj --env ROOT_PASSWORD -p 1389:1389 -p 1636:1636 -p 4444:4444 `
+  --mount 'type=volume,source=opendj-data,target=C:\opendj\data' `
+  openidentityplatform/opendj:<version>-windows
+```
+
+The Windows image initializes a single server and creates the base entry for `BASE_DN`
+(`dc=example,dc=com` by default). `ROOT_USER_DN` defaults to `cn=Directory Manager`.
+`PORT`, `LDAPS_PORT` and `ADMIN_PORT` set the initial listener ports. Reuse the named volume
+and its listener port settings when replacing the container at the same version. The health
+check searches the root DSE over LDAPS. The replication, automatic upgrade and mounted
+certificate options below apply to the Linux images.
+
 ## Health check
 
 The image reports itself `healthy` once the server answers on `LDAPS_PORT` *and* the whole
