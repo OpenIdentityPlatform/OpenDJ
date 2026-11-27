@@ -32,14 +32,13 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.security.cert.Certificate;
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -65,7 +64,6 @@ import org.forgerock.opendj.ldap.responses.Response;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRequestEnvelope;
-import org.forgerock.util.Reject;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.AbandonOperationBasis;
@@ -109,19 +107,14 @@ import org.opends.server.types.OperationType;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.util.TimeThread;
-import org.reactivestreams.Processor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import com.forgerock.reactive.Consumer;
 import com.forgerock.reactive.ReactiveHandler;
 import com.forgerock.reactive.Stream;
 
-import io.reactivex.rxjava3.core.BackpressureStrategy;
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.FlowableEmitter;
-import io.reactivex.rxjava3.core.FlowableOnSubscribe;
+import io.reactivex.rxjava3.exceptions.Exceptions;
 
 /**
  * This class defines an LDAP client connection, which is a type of client connection that will be accepted by an
@@ -415,12 +408,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         // the server terminates it.
         if (removeOperationInProgress(operation.getMessageID())
                 || hasPersistentSearch(operation.getMessageID())) {
-            final Response response = operationToResponse(operation);
-            final FlowableEmitter<Response> out = getAttachedEmitter(operation);
-            if (response != null) {
-                out.onNext(response);
-            }
-            out.onComplete();
+            getAttachedResponses(operation).complete(operationToResponse(operation));
         }
     }
 
@@ -546,11 +534,11 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      */
     @Override
     public void sendSearchEntry(final SearchOperation searchOperation, final SearchResultEntry searchEntry) {
-        getAttachedEmitter(searchOperation).onNext(toResponse(searchEntry));
+        getAttachedResponses(searchOperation).onNext(toResponse(searchEntry));
     }
 
-    private FlowableEmitter<Response> getAttachedEmitter(final Operation operation) {
-        return (FlowableEmitter<Response>) operation.getAttachment(REACTIVE_OUT);
+    private BlockingBackpressureSubscription getAttachedResponses(final Operation operation) {
+        return (BlockingBackpressureSubscription) operation.getAttachment(REACTIVE_OUT);
     }
 
     private Response toResponse(final SearchResultEntry searchEntry) {
@@ -579,7 +567,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             return false;
         }
 
-        final FlowableEmitter<Response> out = getAttachedEmitter(searchOperation);
+        final BlockingBackpressureSubscription out = getAttachedResponses(searchOperation);
         out.onNext(Converters.from(searchReference));
 
         return true;
@@ -596,7 +584,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
     @Override
     protected boolean sendIntermediateResponseMessage(IntermediateResponse intermediateResponse) {
         final Operation operation = intermediateResponse.getOperation();
-        final FlowableEmitter<Response> emitter = getAttachedEmitter(operation);
+        final BlockingBackpressureSubscription out = getAttachedResponses(operation);
 
         final Response response = Responses.newGenericIntermediateResponse(intermediateResponse.getOID(),
                 intermediateResponse.getValue());
@@ -604,7 +592,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             response.addControl(Converters.from(control));
         }
 
-        emitter.onNext(response);
+        out.onNext(response);
 
         // The only reason we shouldn't continue processing is if the
         // connection is closed.
@@ -1008,29 +996,26 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             requestReceived = true;
             cancelFirstRequestTimer();
         }
-        return streamFromPublisher(
-                new BlockingBackpressureSubscription(connectionHandler.getMaxBlockedWriteTimeLimit(),
-                        Flowable.create(new FlowableOnSubscribe<Response>() {
-                            @Override
-                            public void subscribe(FlowableEmitter<Response> emitter) throws Exception {
-                                try {
-                                    processLDAPMessage(
-                                            queueingStrategy, LDAPReader.readMessage(message.getContent()), emitter);
-                                } finally {
-                                    // We don't need the ASN1Reader anymore.
-                                    closeSilently(message.getContent());
-                                }
-                            }
-                        }, BackpressureStrategy.ERROR)))
-                        .onNext(new Consumer<Response>() {
-                            @Override
-                            public void accept(final Response response) throws Exception {
-                                if (keepStats) {
-                                    statTracker.updateMessageWritten(
-                                            toLdapResponseType(message, response), message.getMessageId());
-                                }
-                            }
-                        });
+        final Publisher<Response> responses = subscriber -> {
+            final BlockingBackpressureSubscription out =
+                    new BlockingBackpressureSubscription(connectionHandler.getMaxBlockedWriteTimeLimit(), subscriber);
+            try {
+                subscriber.onSubscribe(out);
+                if (!out.cancelled) {
+                    processLDAPMessage(queueingStrategy, LDAPReader.readMessage(message.getContent()), out);
+                }
+            } catch (Throwable error) {
+                Exceptions.throwIfFatal(error);
+                out.terminate(error);
+            } finally {
+                closeSilently(message.getContent());
+            }
+        };
+        return streamFromPublisher(responses).onNext(response -> {
+            if (keepStats) {
+                statTracker.updateMessageWritten(toLdapResponseType(message, response), message.getMessageId());
+            }
+        });
     }
 
     private final byte toLdapResultType(final byte requestType) {
@@ -1073,7 +1058,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
     }
 
     private boolean processLDAPMessage(final QueueingStrategy queueingStrategy, final LDAPMessage message,
-            final FlowableEmitter<Response> out) {
+            final BlockingBackpressureSubscription out) {
         if (keepStats) {
             statTracker.updateMessageRead(message);
         }
@@ -1173,7 +1158,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      *         connection has been closed as a result (it is the responsibility of this method to close the connection).
      */
     private boolean processAbandonRequest(final QueueingStrategy queueingStrategy, final LDAPMessage message,
-            final List<Control> controls, final FlowableEmitter<Response> out) {
+            final List<Control> controls, final BlockingBackpressureSubscription out) {
         if (ldapVersion == 2 && !controls.isEmpty()) {
             disconnectControlsNotAllowed();
             return false;
@@ -1210,7 +1195,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      *         connection has been closed as a result (it is the responsibility of this method to close the connection).
      */
     private boolean processAddRequest(final QueueingStrategy queueingStrategy, final LDAPMessage message,
-            final List<Control> controls, final FlowableEmitter<Response> out) {
+            final List<Control> controls, final BlockingBackpressureSubscription out) {
         if (ldapV2HasControls(controls, out)) {
             return false;
         }
@@ -1237,7 +1222,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      *         connection has been closed as a result (it is the responsibility of this method to close the connection).
      */
     private boolean processBindRequest(final QueueingStrategy queueingStrategy, final LDAPMessage message,
-            final List<Control> controls, final FlowableEmitter<Response> out) {
+            final List<Control> controls, final BlockingBackpressureSubscription out) {
         BindRequestProtocolOp protocolOp = message.getBindRequestProtocolOp();
 
         // See if this is an LDAPv2 bind request, and if so whether that
@@ -1248,18 +1233,16 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             versionString = "2";
 
             if (!connectionHandler.allowLDAPv2()) {
-                out.onNext(Responses.newBindResult(ResultCode.PROTOCOL_ERROR)
+                out.complete(Responses.newBindResult(ResultCode.PROTOCOL_ERROR)
                                     .setDiagnosticMessage(ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get().toString()));
-                out.onComplete();
                 disconnect(DisconnectReason.PROTOCOL_ERROR, false, ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
                 return false;
             }
 
             if (!controls.isEmpty()) {
                 // LDAPv2 clients aren't allowed to send controls.
-                out.onNext(Responses.newBindResult(ResultCode.PROTOCOL_ERROR)
+                out.complete(Responses.newBindResult(ResultCode.PROTOCOL_ERROR)
                                     .setDiagnosticMessage(ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get().toString()));
-                out.onComplete();
                 disconnectControlsNotAllowed();
                 return false;
             }
@@ -1271,9 +1254,8 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         default:
             // Unsupported protocol version. RFC4511 states that we MUST send
             // a protocol error back to the client.
-            out.onNext(Responses.newBindResult(ResultCode.PROTOCOL_ERROR).setDiagnosticMessage(
+            out.complete(Responses.newBindResult(ResultCode.PROTOCOL_ERROR).setDiagnosticMessage(
                     ERR_LDAP_UNSUPPORTED_PROTOCOL_VERSION.get(ldapVersion).toString()));
-            out.onComplete();
             disconnect(DisconnectReason.PROTOCOL_ERROR, false, ERR_LDAP_UNSUPPORTED_PROTOCOL_VERSION.get(ldapVersion));
             return false;
         }
@@ -1309,8 +1291,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
 
             final Result result = Responses.newBindResult(de.getResultCode());
             setDetails(result, de, bindOp.getResponseControls());
-            out.onNext(result);
-            out.onComplete();
+            out.complete(result);
 
             // If it was a protocol error, then terminate the connection.
             if (de.getResultCode() == ResultCode.PROTOCOL_ERROR) {
@@ -1336,12 +1317,11 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      *         connection has been closed as a result (it is the responsibility of this method to close the connection).
      */
     private boolean processCompareRequest(final QueueingStrategy queueingStrategy, final LDAPMessage message,
-            final List<Control> controls, final FlowableEmitter<Response> out) {
+            final List<Control> controls, final BlockingBackpressureSubscription out) {
         if (ldapVersion == 2 && !controls.isEmpty()) {
             // LDAPv2 clients aren't allowed to send controls.
-            out.onNext(Responses.newCompareResult(ResultCode.PROTOCOL_ERROR)
+            out.complete(Responses.newCompareResult(ResultCode.PROTOCOL_ERROR)
                                 .setDiagnosticMessage(ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get().toString()));
-            out.onComplete();
             disconnectControlsNotAllowed();
             return false;
         }
@@ -1360,8 +1340,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
 
             final CompareResult result = Responses.newCompareResult(de.getResultCode());
             setDetails(result, de, compareOp.getResponseControls());
-            out.onNext(result);
-            out.onComplete();
+            out.complete(result);
         }
 
         return connectionValid;
@@ -1380,7 +1359,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      *         connection has been closed as a result (it is the responsibility of this method to close the connection).
      */
     private boolean processDeleteRequest(final QueueingStrategy queueingStrategy, final LDAPMessage message,
-            final List<Control> controls, final FlowableEmitter<Response> out) {
+            final List<Control> controls, final BlockingBackpressureSubscription out) {
         if (ldapV2HasControls(controls, out)) {
             return false;
         }
@@ -1406,7 +1385,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      *         connection has been closed as a result (it is the responsibility of this method to close the connection).
      */
     private boolean processExtendedRequest(final QueueingStrategy queueingStrategy, final LDAPMessage message,
-            final List<Control> controls, final FlowableEmitter<Response> out) {
+            final List<Control> controls, final BlockingBackpressureSubscription out) {
         // See if this is an LDAPv2 client. If it is, then they should not
         // be issuing extended requests. We can't send a response that we
         // can be sure they can understand, so we have no choice but to
@@ -1416,8 +1395,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             LocalizableMessage msg = ERR_LDAPV2_EXTENDED_REQUEST_NOT_ALLOWED.get(getConnectionID(),
                     message.getMessageID());
 
-            out.onNext(Responses.newResult(ResultCode.PROTOCOL_ERROR).setDiagnosticMessage(msg.toString()));
-            out.onComplete();
+            out.complete(Responses.newResult(ResultCode.PROTOCOL_ERROR).setDiagnosticMessage(msg.toString()));
 
             logger.error(msg);
             disconnect(DisconnectReason.PROTOCOL_ERROR, false, msg);
@@ -1440,8 +1418,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             logger.traceException(de);
             final Result result = Responses.newGenericExtendedResult(de.getResultCode());
             setDetails(result, de, extendedOp.getResponseControls());
-            out.onNext(result);
-            out.onComplete();
+            out.complete(result);
         }
 
         return connectionValid;
@@ -1460,7 +1437,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      *         connection has been closed as a result (it is the responsibility of this method to close the connection).
      */
     private boolean processModifyRequest(final QueueingStrategy queueingStrategy, final LDAPMessage message,
-            final List<Control> controls, final FlowableEmitter<Response> out) {
+            final List<Control> controls, final BlockingBackpressureSubscription out) {
         if (ldapV2HasControls(controls, out)) {
             return false;
         }
@@ -1486,7 +1463,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      *         connection has been closed as a result (it is the responsibility of this method to close the connection).
      */
     private boolean processModifyDNRequest(final QueueingStrategy queueingStrategy, final LDAPMessage message,
-            final List<Control> controls, final FlowableEmitter<Response> out) {
+            final List<Control> controls, final BlockingBackpressureSubscription out) {
         if (ldapV2HasControls(controls, out)) {
             return false;
         }
@@ -1513,7 +1490,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      *         connection has been closed as a result (it is the responsibility of this method to close the connection).
      */
     private boolean processSearchRequest(final QueueingStrategy queueingStrategy, final LDAPMessage message,
-            final List<Control> controls, final FlowableEmitter<Response> out) {
+            final List<Control> controls, final BlockingBackpressureSubscription out) {
         if (ldapV2HasControls(controls, out)) {
             return false;
         }
@@ -1529,7 +1506,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
     }
 
     private void addOperationToWorkQueue(
-            QueueingStrategy queueingStrategy, FlowableEmitter<Response> out, Operation operation) {
+            QueueingStrategy queueingStrategy, BlockingBackpressureSubscription out, Operation operation) {
         operation.setAttachment(REACTIVE_OUT, out);
         try {
             addOperationInProgress(queueingStrategy, operation);
@@ -1538,8 +1515,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
 
             final Result result = Responses.newResult(de.getResultCode());
             setDetails(result, de, operation.getResponseControls());
-            out.onNext(result);
-            out.onComplete();
+            out.complete(result);
         }
     }
 
@@ -1561,11 +1537,10 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
     }
 
     /** LDAPv2 clients aren't allowed to send controls. */
-    private boolean ldapV2HasControls(final List<Control> controls, final FlowableEmitter<Response> out) {
+    private boolean ldapV2HasControls(final List<Control> controls, final BlockingBackpressureSubscription out) {
         if (ldapVersion == 2 && !controls.isEmpty()) {
-            out.onNext(Responses.newResult(ResultCode.PROTOCOL_ERROR)
+            out.complete(Responses.newResult(ResultCode.PROTOCOL_ERROR)
                                 .setDiagnosticMessage(ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get().toString()));
-            out.onComplete();
             disconnectControlsNotAllowed();
             return true;
         }
@@ -1725,46 +1700,27 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         return clientContext.getSecurityStrengthFactor();
     }
 
-    /** Upstream -> BlockingBackpressureSubscription -> Downstream. */
-    private static final class BlockingBackpressureSubscription implements Subscription, Processor<Response, Response> {
+    /**
+     * Queues responses before publishing them. A persistent search can receive changes from several workers at once.
+     * The bounded queue accepts concurrent producers, and only the drain calls the downstream subscriber.
+     */
+    private static final class BlockingBackpressureSubscription implements Subscription {
+        private static final int QUEUE_CAPACITY = 32;
         private final AtomicLong pendingRequests = new AtomicLong();
         private final AtomicInteger missedDrain = new AtomicInteger();
-        private final BlockingQueue<Response> queue = new LinkedBlockingQueue<>(32);
-        private final Publisher<Response> upstream;
-        private final long writeTimeoutMillis;
-        private Subscription subscription;
-        private Subscriber<? super Response> downstream;
+        private final ArrayDeque<Response> queue = new ArrayDeque<>(QUEUE_CAPACITY);
+        private final Subscriber<? super Response> downstream;
+        private final long writeTimeoutNanos;
         private volatile boolean done;
         private Throwable error;
         private volatile boolean cancelled;
 
-        BlockingBackpressureSubscription(final long maxBlockedWriteTimeLimit, final Publisher<Response> upstream) {
-            this.upstream = upstream;
-            this.writeTimeoutMillis = maxBlockedWriteTimeLimit == 0
-                    ? 30000 // Do not wait indefinitely,
-                    : maxBlockedWriteTimeLimit;
-        }
-
-        @Override
-        public void subscribe(final Subscriber<? super Response> subscriber) {
-            Reject.ifNull(subscriber);
-            if (downstream != null) {
-                // This publisher only support one subscriber.
-                return;
-            }
-            downstream = subscriber;
-            subscriber.onSubscribe(/* Subscription */ this);
-            upstream.subscribe(/* Subscriber */ this);
-        }
-
-        @Override
-        public void onSubscribe(final Subscription s) {
-            if (subscription != null) {
-                s.cancel();
-                return;
-            }
-            subscription = s;
-            subscription.request(Long.MAX_VALUE);
+        BlockingBackpressureSubscription(final long maxBlockedWriteTimeLimit,
+                final Subscriber<? super Response> downstream) {
+            this.downstream = downstream;
+            // Do not wait indefinitely.
+            this.writeTimeoutNanos = TimeUnit.MILLISECONDS.toNanos(
+                    maxBlockedWriteTimeLimit == 0 ? 30000 : maxBlockedWriteTimeLimit);
         }
 
         @Override
@@ -1772,9 +1728,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             if (n == Long.MAX_VALUE) {
                 pendingRequests.set(Long.MAX_VALUE);
             } else {
-                // There is a known and accepted problem here regarding reactive-stream contract in the sense that
-                // we're not supporting pendingRequests overflow (pendingRequests + n > Long.MAX_VALUE) for performance
-                // reason since this should never happen in the context we're using it.
+                // The LDAP writer initially requests two responses, then replenishes each completed write.
                 pendingRequests.addAndGet(n);
             }
             drain();
@@ -1784,101 +1738,130 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         // https://github.com/ReactiveX/RxJava/wiki/Writing-operators-for-2.0#backpressure-and-cancellation
         private void drain() {
             if (missedDrain.getAndIncrement() != 0) {
-                // Another thread is already executing this drain method.
                 return;
             }
 
             int missed = 1;
-
             for (;;) {
-                final long immutablePendingRequests = pendingRequests.get();
-                long emitted = 0L;
-                while (emitted != immutablePendingRequests) {
-                    // Check if we should early exit because of cancellation
-                    if (cancelled) {
-                        return;
-                    }
-
-                    final Response response = queue.poll();
-                    if (response != null) {
-                        downstream.onNext(response);
-                        emitted++;
-                    } else if (done) {
-                        // queue is empty and we received a completion (onError/onComplete) notification from upstream
-                        forwardDoneEvent();
-                        return;
-                    } else {
-                        // Queue is empty but upstream is not done yet.
+                final long demand = pendingRequests.get();
+                long emitted = 0;
+                while (emitted != demand && !cancelled) {
+                    final Response response = poll();
+                    if (response == null) {
                         break;
                     }
+                    downstream.onNext(response);
+                    emitted++;
                 }
 
-                // Check if an onError/onComplete from upstream arrived.
-                if (emitted == immutablePendingRequests) {
-                    if (cancelled) {
-                        return;
-                    }
-
-                    if (done && queue.isEmpty()) {
-                        forwardDoneEvent();
-                        return;
-                    }
+                if (cancelled) {
+                    return;
                 }
-
+                if (done && isQueueEmpty()) {
+                    if (error != null) {
+                        downstream.onError(error);
+                    } else {
+                        downstream.onComplete();
+                    }
+                    return;
+                }
                 if (emitted != 0) {
                     pendingRequests.addAndGet(-emitted);
                 }
-
-                // Check to see if another thread asked for drain
                 missed = missedDrain.addAndGet(-missed);
                 if (missed == 0) {
-                    // Nop, we can exit.
-                    break;
-                }
-            }
-        }
-
-        private void forwardDoneEvent() {
-            final Throwable immutableError = error;
-            if (immutableError != null) {
-                downstream.onError(immutableError);
-            } else {
-                downstream.onComplete();
-            }
-        }
-
-        @Override
-        public void onNext(final Response response) {
-            try {
-                if (queue.offer(response, writeTimeoutMillis, TimeUnit.MILLISECONDS)) {
-                    drain();
-                } else {
-                    // If we've gotten here, then the write timed out.
-                    onError(new ClosedChannelException().fillInStackTrace());
                     return;
                 }
-            } catch (InterruptedException e) {
-                onError(e);
             }
         }
 
-        @Override
-        public void onError(final Throwable error) {
-            this.error = error;
-            done = true;
+        private Response poll() {
+            synchronized (queue) {
+                final Response response = queue.pollFirst();
+                if (response != null) {
+                    queue.notify();
+                }
+                return response;
+            }
+        }
+
+        private boolean isQueueEmpty() {
+            synchronized (queue) {
+                return queue.isEmpty();
+            }
+        }
+
+        void onNext(final Response response) {
+            enqueue(response, false);
+        }
+
+        void complete(final Response finalResponse) {
+            if (finalResponse == null) {
+                terminate(null);
+            } else {
+                enqueue(finalResponse, true);
+            }
+        }
+
+        private void enqueue(final Response response, final boolean last) {
+            try {
+                synchronized (queue) {
+                    awaitQueueSpace();
+                    if (cancelled || done) {
+                        return;
+                    }
+                    if (queue.size() == QUEUE_CAPACITY) {
+                        finish(new ClosedChannelException());
+                    } else {
+                        queue.addLast(response);
+                        if (last) {
+                            finish(null);
+                        }
+                    }
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                terminate(e);
+                return;
+            }
             drain();
         }
 
-        @Override
-        public void onComplete() {
-            done = true;
+        private void awaitQueueSpace() throws InterruptedException {
+            if (queue.size() == QUEUE_CAPACITY) {
+                final long started = System.nanoTime();
+                long remaining = writeTimeoutNanos;
+                while (queue.size() == QUEUE_CAPACITY && !cancelled && !done && remaining > 0) {
+                    TimeUnit.NANOSECONDS.timedWait(queue, remaining);
+                    remaining = writeTimeoutNanos - (System.nanoTime() - started);
+                }
+            }
+        }
+
+        private void terminate(final Throwable error) {
+            synchronized (queue) {
+                if (done || cancelled) {
+                    return;
+                }
+                finish(error);
+            }
             drain();
+        }
+
+        /** Records the terminal event under the queue lock, after all responses already accepted. */
+        private void finish(final Throwable error) {
+            this.error = error;
+            done = true;
+            queue.notifyAll();
         }
 
         @Override
         public void cancel() {
-            cancelled = true;
-            subscription.cancel();
+            synchronized (queue) {
+                cancelled = true;
+                queue.clear();
+                queue.notifyAll();
+            }
         }
     }
 }
