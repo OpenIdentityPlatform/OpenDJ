@@ -110,11 +110,9 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
   private final ObjectClass ocMacKey;
 
   /**
-   * Creates a new instance of this trust store synchronization thread.
+   * Initializes the local instance certificate and loads certificates and secret keys from ADS.
    *
-   * @throws InitializationException in case an exception occurs during
-   * initialization, such as a failure to publish the instance-key-pair
-   * public-key-certificate in ADS.
+   * @throws InitializationException if the local instance certificate cannot be initialized
    */
   public CryptoManagerSync() throws InitializationException
   {
@@ -126,7 +124,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
         POST_RESPONSE_ADD, POST_RESPONSE_MODIFY, POST_RESPONSE_DELETE),
         true);
     try {
-      CryptoManagerImpl.publishInstanceKeyEntryInADS();
+      CryptoManagerImpl.getInstanceKeyCertificateFromLocalTruststore();
     }
     catch (CryptoManagerException ex) {
       throw new InitializationException(ex.getMessageObject());
@@ -165,6 +163,25 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
     }
 
     DirectoryServer.registerInternalPlugin(this);
+  }
+
+  /**
+   * Publishes the local instance certificate in ADS if its entry is missing.
+   *
+   * @param requireReplication whether to wait for an ADS replication domain to be enabled
+   * @return true if the entry exists or was created, or false if publication must wait
+   * @throws InitializationException if the entry cannot be published
+   */
+  public static boolean publishInstanceKeyEntryInADS(boolean requireReplication) throws InitializationException
+  {
+    try
+    {
+      return CryptoManagerImpl.publishInstanceKeyEntryInADS(requireReplication);
+    }
+    catch (CryptoManagerException ex)
+    {
+      throw new InitializationException(ex.getMessageObject(), ex);
+    }
   }
 
   private void searchAdminSuffix()

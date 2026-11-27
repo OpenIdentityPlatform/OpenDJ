@@ -101,6 +101,9 @@ import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.plugin.LDAPReplicationDomain;
+import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.LDAPReader;
@@ -123,6 +126,7 @@ import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ReplicationMessages.ERR_REPLICATION_COULD_NOT_CONNECT;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
@@ -753,8 +757,20 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
    @throws CryptoManagerException In case there is a problem
    searching for the entry, or, if necessary, adding it.
    */
-  static void publishInstanceKeyEntryInADS()
-          throws CryptoManagerException {
+  static void publishInstanceKeyEntryInADS() throws CryptoManagerException
+  {
+    publishInstanceKeyEntryInADS(false);
+  }
+
+  /**
+   * Publishes a missing instance key through a usable replication session, if ADS is replicated.
+   *
+   * @param requireReplication whether to wait for an ADS replication domain to be enabled
+   * @return true if the entry exists or was created, or false if publication must wait
+   * @throws CryptoManagerException if the lookup or publication failed
+   */
+  static boolean publishInstanceKeyEntryInADS(boolean requireReplication) throws CryptoManagerException
+  {
     final byte[] instanceKeyCertificate = getInstanceKeyCertificateFromLocalTruststore();
     final String instanceKeyID = getInstanceKeyID(instanceKeyCertificate);
     // Construct the key entry DN.
@@ -770,6 +786,12 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
           newSearchRequest(entryDN, SearchScope.BASE_OBJECT, FILTER_OC_INSTANCE_KEY).addAttribute("dn");
       final InternalSearchOperation searchOp = icc.processSearch(request);
       if (searchOp.getSearchEntries().isEmpty()) {
+        final LDAPReplicationDomain domain = MultimasterReplication.findDomain(entryDN, null);
+        if (domain == null ? requireReplication : !canPublishInstanceKey(domain))
+        {
+          return false;
+        }
+
         final Entry entry = new Entry(entryDN, null, null, null);
         entry.addObjectClass(CoreSchema.getTopObjectClass());
         entry.addObjectClass(ocInstanceKey);
@@ -785,11 +807,21 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
         final Attribute certificateAttr = builder.toAttribute();
         entry.addAttribute(certificateAttr);
 
-        AddOperation addOperation = icc.processAdd(entry);
-        if (ResultCode.SUCCESS != addOperation.getResultCode()) {
-          throw new DirectoryException(
-                  addOperation.getResultCode(),
-                  ERR_CRYPTOMGR_FAILED_TO_ADD_INSTANCE_KEY_ENTRY_TO_ADS.get(entry.getName()));
+        final AddOperation add = icc.processAdd(entry);
+        final ResultCode result = add.getResultCode();
+        // Replication may have added the entry while we were preparing the ADD.
+        if (result == ResultCode.ENTRY_ALREADY_EXISTS && !icc.processSearch(request).getSearchEntries().isEmpty()) {
+          return true;
+        }
+        // The session can be lost between the readiness check and the ADD.
+        if (result == ResultCode.UNWILLING_TO_PERFORM && domain != null
+            && ERR_REPLICATION_COULD_NOT_CONNECT.get(domain.getBaseDN()).toString()
+                .contentEquals(add.getErrorMessage()))
+        {
+          return false;
+        }
+        if (result != ResultCode.SUCCESS) {
+          throw new DirectoryException(result, ERR_CRYPTOMGR_FAILED_TO_ADD_INSTANCE_KEY_ENTRY_TO_ADS.get(entryDN));
         }
       }
     } catch (DirectoryException ex) {
@@ -798,6 +830,13 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
               ERR_CRYPTOMGR_FAILED_TO_PUBLISH_INSTANCE_KEY_ENTRY.get(
                       getExceptionMessage(ex)), ex);
     }
+    return true;
+  }
+
+  private static boolean canPublishInstanceKey(LDAPReplicationDomain domain)
+  {
+    final ServerStatus status = domain.getStatus();
+    return domain.isConnected() && (status == ServerStatus.NORMAL_STATUS || status == ServerStatus.DEGRADED_STATUS);
   }
 
 

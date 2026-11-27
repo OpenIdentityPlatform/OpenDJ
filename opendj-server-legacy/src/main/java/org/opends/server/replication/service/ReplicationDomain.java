@@ -233,7 +233,7 @@ public abstract class ReplicationDomain
   }
 
   /** Current status for this replicated domain. */
-  private ServerStatus status = ServerStatus.NOT_CONNECTED_STATUS;
+  private volatile ServerStatus status = ServerStatus.NOT_CONNECTED_STATUS;
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The configuration of the replication domain. */
