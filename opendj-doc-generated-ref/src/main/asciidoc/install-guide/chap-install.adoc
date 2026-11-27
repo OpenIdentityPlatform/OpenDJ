@@ -50,6 +50,8 @@ This chapter covers installation of OpenDJ server software and includes the foll
 
 * xref:#install-docker["To Run OpenDJ in Docker"]
 
+* xref:#install-docker-windows["To Run OpenDJ in Windows Containers"]
+
 * xref:#install-properties-file["To Install OpenDJ Directory Server With a Properties File"]
 
 * xref:#chap-jvm-opts["To Configure Java Runtime Options"]
@@ -518,7 +520,7 @@ The service takes the display name `OpenDJ Server`; when a host already runs ano
 ====
 OpenDJ directory server is published as the Docker image `openidentityplatform/opendj` on Docker Hub, and as `ghcr.io/openidentityplatform/opendj/opendj`. The image brings its own Java environment. On the first start of a container, the image runs `setup` with settings taken from environment variables; later starts use the instance that is already there.
 
-The tags `latest` and `{opendj-version}` are built from `Dockerfile`, on Eclipse Temurin; the tags `alpine` and `{opendj-version}-alpine` from `Dockerfile-alpine`. This procedure covers the first start only. The environment variables of the image, its health check, replication and certificates are described in the link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/opendj-packages/opendj-docker/README.md[README of the image, window=\_blank].
+For Linux containers, use `latest` or `{opendj-version}` for the Eclipse Temurin image and `alpine` or `{opendj-version}-alpine` for the Alpine image. For Windows container mode, see xref:#install-docker-windows["To Run OpenDJ in Windows Containers"]. This procedure covers the first start of a Linux container. The environment variables of the image, its health check, replication and certificates are described in the link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/opendj-packages/opendj-docker/README.md[README of the image, window=\_blank].
 
 . Start a container, with a volume for the instance:
 +
@@ -600,6 +602,28 @@ volumes:
 
 `docker compose down` keeps the named volume for the next `up`. Use `docker compose down --volumes` to delete the instance. `ROOT_PASSWORD` sets the initial password when the instance is created.
 
+====
+
+[#install-docker-windows]
+.To Run OpenDJ in Windows Containers
+====
+The native `windows/amd64` image uses Windows Server Core LTSC 2022. Run it in Windows container mode on a compatible host. See the link:https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/version-compatibility[Windows container compatibility matrix].
+
+Use `windows` for the latest Windows release or `<version>-windows` to select a published Windows release. Both tags are available for `openidentityplatform/opendj` on Docker Hub and `ghcr.io/openidentityplatform/opendj/opendj` on GHCR.
+
+Set `ROOT_PASSWORD` in your PowerShell environment before starting the container for the first time:
+
+[source,powershell]
+----
+docker run -d --name opendj --env ROOT_PASSWORD `
+  -p 1389:1389 -p 1636:1636 -p 4444:4444 `
+  --mount 'type=volume,source=opendj-data,target=C:\opendj\data' `
+  openidentityplatform/opendj:windows
+----
+
+The first start creates a single directory server, including the base entry for `BASE_DN`, which defaults to `dc=example,dc=com`. `ROOT_USER_DN` defaults to `cn=Directory Manager`. The image checks readiness by searching the root DSE over LDAPS. Check the result with `docker inspect --format '{{.State.Health.Status}}' opendj`.
+
+The volume at `C:\opendj\data` holds the instance configuration and directory data. When replacing the container at the same version, reuse that volume and the same listener settings. Subsequent starts use the credentials stored in the instance.
 ====
 
 [#install-properties-file]

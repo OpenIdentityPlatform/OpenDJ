@@ -16,7 +16,7 @@ param(
     [Parameter(Mandatory)]
     [string] $ServerZipDirectory,
     [Parameter(Mandatory)]
-    [string] $Image
+    [string[]] $ImageTags
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,13 +27,17 @@ if ($serverZips.Count -ne 1) {
 }
 
 $context = Join-Path $env:RUNNER_TEMP "opendj-windows-$([guid]::NewGuid().ToString('N'))"
+$tagArguments = foreach ($tag in $ImageTags) {
+    '--tag'
+    $tag
+}
 $windowsFiles = Join-Path $PSScriptRoot '../../opendj-packages/opendj-docker/windows/*'
 try {
     Expand-Archive -LiteralPath $serverZips[0].FullName -DestinationPath $context
     Copy-Item -Path $windowsFiles -Destination $context
     # Windows Docker Engine uses the classic builder for native Windows containers.
     $env:DOCKER_BUILDKIT = '0'
-    docker build --isolation=process --pull --tag $Image $context
+    docker build --isolation=process --pull @tagArguments $context
     if ($LASTEXITCODE -ne 0) {
         throw "Windows image build failed with exit code $LASTEXITCODE"
     }

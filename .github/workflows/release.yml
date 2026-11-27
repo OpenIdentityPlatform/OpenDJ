@@ -357,12 +357,6 @@ jobs:
         with:
           name: release-server-zip
           path: server-zip
-      - name: Build the Windows image
-        shell: pwsh
-        run: ./.github/scripts/build-docker-windows.ps1 -ServerZipDirectory server-zip -Image opendj-windows:release
-      - name: Smoke-test the Windows image
-        shell: pwsh
-        run: ./.github/scripts/test-docker-windows.ps1 -Image opendj-windows:release
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
@@ -370,7 +364,17 @@ jobs:
           images: |
             ${{ github.repository }}
             ghcr.io/${{ github.repository }}/${{ github.event.repository.name }}
-          tags: type=raw,value=${{ inputs.releaseVersion }}-windows
+          tags: |
+            type=raw,value=windows
+            type=raw,value=${{ inputs.releaseVersion }}-windows
+      - name: Build and smoke-test the Windows image
+        shell: pwsh
+        env:
+          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          $tags = $env:IMAGE_TAGS -split '\r?\n'
+          ./.github/scripts/build-docker-windows.ps1 -ServerZipDirectory server-zip -ImageTags $tags
+          ./.github/scripts/test-docker-windows.ps1 -Image $tags[0]
       - name: Login to Docker Hub
         uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
@@ -388,8 +392,6 @@ jobs:
           IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
         run: |
           foreach ($tag in ($env:IMAGE_TAGS -split '\r?\n')) {
-            docker tag opendj-windows:release $tag
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             docker push $tag
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }

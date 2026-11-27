@@ -506,10 +506,10 @@ jobs:
           name: ubuntu-latest-11
       - name: Build the Windows image
         shell: pwsh
-        run: ./.github/scripts/build-docker-windows.ps1 -ServerZipDirectory opendj-server-legacy/target/package -Image opendj-windows:ci
+        run: ./.github/scripts/build-docker-windows.ps1 -ServerZipDirectory opendj-server-legacy/target/package -ImageTags opendj:windows
       - name: Smoke-test the Windows image
         shell: pwsh
-        run: ./.github/scripts/test-docker-windows.ps1 -Image opendj-windows:ci
+        run: ./.github/scripts/test-docker-windows.ps1 -Image opendj:windows
 
   build-docker:
     needs: build-maven

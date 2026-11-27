@@ -16,9 +16,10 @@ docker run -d -p 1389:1389 -p 1636:1636 -p 4444:4444 --name opendj \
 
 ## Windows containers
 
-OpenDJ releases include a native `windows/amd64` image tagged `<version>-windows` on Docker
-Hub and GHCR. It uses Windows Server Core LTSC 2022 and requires Docker in Windows container
-mode on a compatible host. See the [Windows container compatibility matrix](https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/version-compatibility).
+The native `windows/amd64` image uses `windows` for the latest Windows release and
+`<version>-windows` for a specific release. Both tags are available on Docker Hub and GHCR.
+The image uses Windows Server Core LTSC 2022 and requires Docker in Windows container mode
+on a compatible host. See the [Windows container compatibility matrix](https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/version-compatibility).
 
 Set `ROOT_PASSWORD` in your PowerShell environment for the first start. Replace `<version>`
 with the OpenDJ release version.
