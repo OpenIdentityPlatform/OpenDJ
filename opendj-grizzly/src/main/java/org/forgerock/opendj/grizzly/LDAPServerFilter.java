@@ -45,6 +45,7 @@ import javax.security.sasl.SaslServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.AbstractLDAPMessageHandler;
 import org.forgerock.opendj.io.LDAP;
+import org.forgerock.opendj.io.ProxyProtocolHeader;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.LDAPClientContext;
@@ -173,10 +174,12 @@ public final class LDAPServerFilter extends BaseFilter {
         connection.configureBlocking(false);
 
         final ClientConnectionImpl clientContext = new ClientConnectionImpl(connection);
-        connection.setProcessor(FilterChainBuilder
-                .stateless()
-                .addAll((FilterChain) connection.getProcessor())
-                .add(new LdapCodec(connectionOptions.get(LDAPListener.REQUEST_MAX_SIZE_IN_BYTES), decodeOptions) {
+        FilterChainBuilder chain = FilterChainBuilder.stateless().addAll((FilterChain) connection.getProcessor());
+        if (connectionOptions.get(LDAPListener.PROXY_PROTOCOL_ENABLED)) {
+            chain.add(1, new ProxyProtocolFilter(clientContext::notifyProxyProtocolHeader,
+                    clientContext::notifyConnectionError, () -> !clientContext.isClosed()));
+        }
+        connection.setProcessor(chain.add(new LdapCodec(connectionOptions.get(LDAPListener.REQUEST_MAX_SIZE_IN_BYTES), decodeOptions) {
                     @Override
                     protected void onLdapCodecError(final FilterChainContext ctx, final Throwable error) {
                         clientContext.exceptionOccurred(ctx, error);
@@ -336,6 +339,7 @@ public final class LDAPServerFilter extends BaseFilter {
         private ScheduledFuture<?> handshakeDeadline;
         private long handshakeDeadlineGeneration;
         private boolean initialHandshakePending;
+        private volatile ProxyProtocolHeader proxyHeader;
         private final List<LDAPClientContextEventListener> connectionEventListeners = new LinkedList<>();
         private GrizzlyBackpressureSubscription downstream;
 
@@ -547,12 +551,107 @@ public final class LDAPServerFilter extends BaseFilter {
 
         @Override
         public InetSocketAddress getPeerAddress() {
+            ProxyProtocolHeader header = proxyHeader;
+            return header != null && header.getSourceAddress() != null
+                    ? header.getSourceAddress() : getTcpPeerAddress();
+        }
+
+        @Override
+        public InetSocketAddress getTcpPeerAddress() {
             return (InetSocketAddress) connection.getPeerAddress();
         }
 
         @Override
+        public boolean isProxyClientSecure() {
+            ProxyProtocolHeader header = proxyHeader;
+            return header != null && header.isClientSsl();
+        }
+
+        private void notifyProxyProtocolHeader(ProxyProtocolHeader header) {
+            proxyHeader = header;
+            final List<LDAPClientContextEventListener> listeners;
+            synchronized (connectionEventListeners) {
+                listeners = new ArrayList<>(connectionEventListeners);
+            }
+            for (LDAPClientContextEventListener listener : listeners) {
+                listener.handleProxyProtocolHeader(this, header);
+            }
+        }
+
+        @Override
         public int getSecurityStrengthFactor() {
-            return Math.max(getSSLSecurityStrengthFactor(), getSaslSecurityStrengthFactor());
+            return Math.max(getProxySecurityStrengthFactor(),
+                    Math.max(getSSLSecurityStrengthFactor(), getSaslSecurityStrengthFactor()));
+        }
+
+        private int getProxySecurityStrengthFactor() {
+            ProxyProtocolHeader header = proxyHeader;
+            if (header == null || !header.isClientSsl() || header.getClientCipher() == null) {
+                return 0;
+            }
+            switch (header.getClientCipher()) {
+            case "TLS_AES_128_GCM_SHA256":
+            case "TLS_AES_128_CCM_SHA256":
+            case "TLS_AES_128_CCM_8_SHA256":
+            case "ECDHE-RSA-AES128-GCM-SHA256":
+            case "ECDHE-ECDSA-AES128-GCM-SHA256":
+            case "DHE-RSA-AES128-GCM-SHA256":
+            case "AES128-GCM-SHA256":
+            case "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256":
+            case "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256":
+            case "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256":
+            case "TLS_RSA_WITH_AES_128_GCM_SHA256":
+            case "ECDHE-RSA-AES128-SHA":
+            case "ECDHE-RSA-AES128-SHA256":
+            case "ECDHE-ECDSA-AES128-SHA":
+            case "ECDHE-ECDSA-AES128-SHA256":
+            case "DHE-RSA-AES128-SHA":
+            case "DHE-RSA-AES128-SHA256":
+            case "AES128-SHA":
+            case "AES128-SHA256":
+            case "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA":
+            case "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256":
+            case "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA":
+            case "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256":
+            case "TLS_DHE_RSA_WITH_AES_128_CBC_SHA":
+            case "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256":
+            case "TLS_RSA_WITH_AES_128_CBC_SHA":
+            case "TLS_RSA_WITH_AES_128_CBC_SHA256":
+                return 128;
+            case "TLS_AES_256_GCM_SHA384":
+            case "TLS_CHACHA20_POLY1305_SHA256":
+            case "ECDHE-RSA-AES256-GCM-SHA384":
+            case "ECDHE-ECDSA-AES256-GCM-SHA384":
+            case "DHE-RSA-AES256-GCM-SHA384":
+            case "AES256-GCM-SHA384":
+            case "ECDHE-RSA-CHACHA20-POLY1305":
+            case "ECDHE-ECDSA-CHACHA20-POLY1305":
+            case "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384":
+            case "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384":
+            case "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384":
+            case "TLS_RSA_WITH_AES_256_GCM_SHA384":
+            case "ECDHE-RSA-AES256-SHA":
+            case "ECDHE-RSA-AES256-SHA384":
+            case "ECDHE-ECDSA-AES256-SHA":
+            case "ECDHE-ECDSA-AES256-SHA384":
+            case "DHE-RSA-AES256-SHA":
+            case "DHE-RSA-AES256-SHA256":
+            case "AES256-SHA":
+            case "AES256-SHA256":
+            case "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA":
+            case "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384":
+            case "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA":
+            case "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384":
+            case "TLS_DHE_RSA_WITH_AES_256_CBC_SHA":
+            case "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256":
+            case "TLS_RSA_WITH_AES_256_CBC_SHA":
+            case "TLS_RSA_WITH_AES_256_CBC_SHA256":
+            case "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256":
+            case "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256":
+                return 256;
+            default:
+                return 0;
+            }
         }
 
         private int getSSLSecurityStrengthFactor() {
@@ -634,12 +733,14 @@ public final class LDAPServerFilter extends BaseFilter {
 
         @Override
         public void disconnect() {
+            isClosed = true;
             notifyConnectionDisconnected(null, null);
             connection.closeSilently();
         }
 
         @Override
         public void disconnect(final ResultCode resultCode, final String diagnosticMessage) {
+            isClosed = true;
             notifyConnectionDisconnected(resultCode, diagnosticMessage);
             sendUnsolicitedNotification(
                     newGenericExtendedResult(resultCode)

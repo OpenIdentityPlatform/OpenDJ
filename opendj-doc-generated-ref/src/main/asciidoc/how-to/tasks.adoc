@@ -44,6 +44,8 @@ The examples use a disposable local instance and illustrative passwords. Run ser
 |xref:../admin-guide/chap-connection-handlers.adoc#setup-server-cert[Preparing For Secure Communications]
 |Keep Docker data when replacing a container, including with Compose
 |xref:../install-guide/chap-install.adoc#install-docker[Running OpenDJ in Docker]
+|Forward LDAP through nginx and preserve the client address
+|xref:./nginx-proxy-protocol.adoc[nginx and PROXY Protocol]
 |Pass a PKCS#12 certificate to the Docker image
 |link:https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/opendj-packages/opendj-docker/README.md[Docker image configuration] (`OPENDJ_SSL_OPTIONS`)
 |Use OpenDJ with Jira
