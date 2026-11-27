@@ -488,7 +488,6 @@ jobs:
             opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm
             opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
             opendj-packages/opendj-docker/target/Dockerfile.zip
-            opendj-packages/opendj-openshift-template/*.yaml
             opendj-doc-generated-ref/target/*.zip
             opendj-dsml-servlet/target/*.war
             opendj-rest2ldap-servlet/target/*.war
@@ -575,6 +574,12 @@ jobs:
           # about 250 MB. "Re-run failed jobs" does not run this job again and downloads the
           # image it uploaded: within 3 days of the run; later only "Re-run all jobs" works
           retention-days: 3
+
+  helm-kind:
+    needs: build-docker
+    uses: ./.github/workflows/helm-kind.yml
+    with:
+      image-version: ${{ needs.build-docker.outputs.release_version }}
 
   build-docker-alpine:
     needs: build-maven

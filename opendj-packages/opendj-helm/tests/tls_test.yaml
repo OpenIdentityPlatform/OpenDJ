@@ -1,0 +1,90 @@
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions copyright [year] [name of copyright owner]".
+#
+# Copyright 2026 3A Systems, LLC.
+
+suite: TLS Secret projection
+templates:
+  - templates/statefulset.yaml
+release:
+  name: directory
+capabilities:
+  majorVersion: 1
+  minorVersion: 34
+tests:
+  - it: leaves both Secret mounts optional
+    asserts:
+      - notExists:
+          path: spec.template.spec.volumes
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "SECRET_VOLUME_REFRESH")]
+  - it: projects the LDAP pair by itself
+    set:
+      tls.ldap.enabled: true
+      tls.ldap.keystoreSecret.name: ldap-store
+      tls.ldap.passwordSecret.name: ldap-pin
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.volumes[0].projected.sources
+          count: 2
+      - equal:
+          path: spec.template.spec.volumes[0].projected.sources[0].secret.items[0].path
+          value: keystore
+      - equal:
+          path: spec.template.spec.volumes[0].projected.sources[1].secret.items[0].path
+          value: keystore.pin
+  - it: projects the administration pair by itself
+    set:
+      tls.admin.enabled: true
+      tls.admin.keystoreSecret.name: admin-store
+      tls.admin.passwordSecret.name: admin-pin
+      tls.refreshSeconds: 0
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.volumes[0].projected.sources
+          count: 2
+      - equal:
+          path: spec.template.spec.volumes[0].projected.sources[0].secret.items[0]
+          value:
+            key: keystore.jks
+            path: admin-keystore
+      - equal:
+          path: spec.template.spec.volumes[0].projected.sources[1].secret.items[0].path
+          value: admin-keystore.pin
+      - equal:
+          path: spec.template.spec.containers[0].env[?(@.name == "SECRET_VOLUME_REFRESH")].value
+          value: "0"
+  - it: mounts both pairs in one Secret projection without subPath
+    set:
+      tls.ldap.enabled: true
+      tls.ldap.keystoreSecret.name: ldap-store
+      tls.ldap.passwordSecret.name: ldap-pin
+      tls.admin.enabled: true
+      tls.admin.keystoreSecret.name: admin-store
+      tls.admin.passwordSecret.name: admin-pin
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.volumes[0].projected.sources
+          count: 4
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1]
+          value:
+            mountPath: /var/secrets/opendj
+            name: tls
+            readOnly: true
+  - it: rejects an enabled connector without a PIN Secret
+    set:
+      tls.admin.enabled: true
+      tls.admin.keystoreSecret.name: admin-store
+    asserts:
+      - failedTemplate:
+          errorMessage: tls.admin.passwordSecret.name is required when TLS is enabled

@@ -1,0 +1,182 @@
+{{- /*
+The contents of this file are subject to the terms of the Common Development and
+Distribution License (the License). You may not use this file except in compliance with the
+License.
+
+You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+specific language governing permission and limitations under the License.
+
+When distributing Covered Software, include this CDDL Header Notice in each file and include
+the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+Header, with the fields enclosed by brackets [] replaced by your own identifying
+information: "Portions copyright [year] [name of copyright owner]".
+
+Copyright 2026 3A Systems, LLC.
+*/ -}}
+
+{{- $name := include "opendj.fullname" . -}}
+{{- $replicas := int .Values.replicaCount -}}
+{{- $peerCount := int (default $replicas .Values.replication.peerCount) -}}
+{{- if and (gt $replicas 1) (not .Values.replication.enabled) -}}
+  {{- fail "replicaCount greater than one requires replication.enabled" -}}
+{{- end -}}
+{{- if and .Values.replication.enabled (lt $peerCount $replicas) -}}
+  {{- fail "replication.peerCount must be at least replicaCount" -}}
+{{- end -}}
+{{- $tlsEnabled := or .Values.tls.ldap.enabled .Values.tls.admin.enabled -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "opendj.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ $name }}-headless
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: RollingUpdate
+  replicas: {{ $replicas }}
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  selector:
+    matchLabels:
+      {{- include "opendj.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "opendj.labels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include "opendj.configData" . | sha256sum | quote }}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- include "opendj.podSecurityContext" . | nindent 8 }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    {{- include "opendj.selectorLabels" . | nindent 20 }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: opendj
+          image: {{ include "opendj.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- include "opendj.containerSecurityContext" . | nindent 12 }}
+          command: ["/bin/bash", "-ec"]
+          args:
+            - |
+              case "${ROOT_PASSWORD-}" in
+                ""|*$'\r'*|*$'\n'*)
+                  echo "The configured root password Secret must contain a non-empty, single-line password." >&2
+                  exit 1
+                  ;;
+              esac
+              exec /opt/opendj/run.sh
+          envFrom:
+            - configMapRef:
+                name: {{ $name }}-config
+          env:
+            - name: ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-root" $name) .Values.auth.existingSecret | quote }}
+                  key: {{ .Values.auth.passwordKey | quote }}
+            {{- if .Values.replication.enabled }}
+            {{- $peers := list }}
+            {{- range $ordinal := until $peerCount }}
+              {{- $peers = append $peers (printf "%s-%d.%s-headless" $name $ordinal $name) }}
+            {{- end }}
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MYHOSTNAME
+              value: {{ printf "$(POD_NAME).%s-headless" $name | quote }}
+            - name: OPENDJ_REPLICATION_TYPE
+              value: simple
+            - name: REPLICATION_ROLE
+              value: combined
+            - name: REPLICATION_PEERS
+              value: {{ join "," $peers | quote }}
+            {{- end }}
+            {{- if $tlsEnabled }}
+            - name: SECRET_VOLUME
+              value: /var/secrets/opendj
+            - name: SECRET_VOLUME_REFRESH
+              value: {{ .Values.tls.refreshSeconds | quote }}
+            {{- end }}
+          ports:
+            - name: ldap
+              containerPort: 1389
+            - name: ldaps
+              containerPort: 1636
+            - name: admin
+              containerPort: 4444
+            - name: replication
+              containerPort: 8989
+          startupProbe:
+            exec:
+              command: ["/opt/opendj/healthcheck.sh"]
+            {{- toYaml .Values.probes.startup | nindent 12 }}
+          readinessProbe:
+            exec:
+              command: ["/opt/opendj/healthcheck.sh"]
+            {{- toYaml .Values.probes.readiness | nindent 12 }}
+          livenessProbe:
+            tcpSocket:
+              port: ldap
+            {{- toYaml .Values.probes.liveness | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /opt/opendj/data
+            {{- if $tlsEnabled }}
+            - name: tls
+              mountPath: /var/secrets/opendj
+              readOnly: true
+            {{- end }}
+      {{- if $tlsEnabled }}
+      volumes:
+        - name: tls
+          projected:
+            defaultMode: 0440
+            sources:
+              {{- range $connector := list "ldap" "admin" }}
+              {{- $tls := index $.Values.tls $connector }}
+              {{- if $tls.enabled }}
+              {{- $keystore := ternary "admin-keystore" "keystore" (eq $connector "admin") }}
+              - secret:
+                  name: {{ required (printf "tls.%s.keystoreSecret.name is required when TLS is enabled" $connector) $tls.keystoreSecret.name | quote }}
+                  items:
+                    - key: {{ $tls.keystoreSecret.key | quote }}
+                      path: {{ $keystore }}
+              - secret:
+                  name: {{ required (printf "tls.%s.passwordSecret.name is required when TLS is enabled" $connector) $tls.passwordSecret.name | quote }}
+                  items:
+                    - key: {{ $tls.passwordSecret.key | quote }}
+                      path: {{ $keystore }}.pin
+              {{- end }}
+              {{- end }}
+      {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- with .Values.persistence.storageClass }}
+        storageClassName: {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size | quote }}

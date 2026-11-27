@@ -222,6 +222,75 @@ The directory server regularly updates the list of replication servers in case i
 
 
 
+[#helm-replica-resize]
+=== Resizing an OpenDJ Helm Release
+
+Use Helm to change the size of a single-cluster `combined` topology. Keep the release name, chart version, namespace, and initial directory settings stable during resize. The examples assume a `directory-values.yaml` file with `replication.enabled: true` and the rest of the running release's settings. Keep the root password in the referenced Secret. The chart retains each ordinal's PVC when it scales in.
+
+The image reconciles membership with `REPLICATION_PEERS` when its container starts. A normal pod termination does not remove a server from the topology. Change the list of peers and the number of pods in the order below. Set `CHART` to one of the OCI URLs in xref:../install-guide/chap-install.adoc#install-helm[Installing OpenDJ with Helm].
+
+To grow from two replicas to three, roll the existing pods with a list that includes the third ordinal. Then start the additional pod with the same list.
+
+[source,bash]
+----
+helm upgrade directory "$CHART" --version "$OPENDJ_VERSION" -n directory \
+  -f directory-values.yaml --set replicaCount=2,replication.peerCount=3 --wait --timeout 15m
+kubectl -n directory rollout status statefulset/opendj-directory --timeout=15m
+----
+
+If the third ordinal has a retained PVC, move client reads and writes off the shared LDAP Service before starting it. A returning pod can pass the root DSE readiness probe as soon as it serves LDAP, while its data is still catching up or its background join has failed. Pause LDAP traffic and drain existing connections, or point clients at a temporary Service that selects a verified survivor. The following example uses `opendj-directory-0` as the survivor.
+
+[source,bash]
+----
+kubectl -n directory create service clusterip opendj-directory-resize \
+  --tcp=1389:1389 --tcp=1636:1636 --dry-run=client -o yaml |
+  kubectl set selector --local -f - \
+    statefulset.kubernetes.io/pod-name=opendj-directory-0 -o yaml |
+  kubectl -n directory apply -f -
+----
+
+Check that the temporary Service has the verified pod as its ready endpoint. Reconnect clients to the temporary Service so existing connections to the shared Service are closed. For LDAPS, use a temporary DNS name covered by the survivor's certificate, or pause traffic if clients cannot validate the name.
+
+[source,bash]
+----
+helm upgrade directory "$CHART" --version "$OPENDJ_VERSION" -n directory \
+  -f directory-values.yaml --set replicaCount=3 --set-json replication.peerCount=null
+----
+
+For a retained PVC, check the credentials as soon as the container is running and LDAP is listening. The background join can leave the pod unready if the replication administrator password is stale. Enter the pod directly with `kubectl -n directory exec -it pod/opendj-directory-2 -- /bin/bash` and test both binds against that instance. Keep client traffic isolated throughout these checks.
+
+* Bind as Directory Manager with the password from the current Secret. If the password changed while the pod was absent, update its local Directory Manager password using its previous credentials.
+* Verify that the replication administrator (`cn=admin,cn=Administrators,cn=admin data`) can bind with the password from the current Secret. If the account missed the rotation, follow the xref:chap-troubleshooting.adoc#reset-repl-admin-password[global administrator password reset procedure] as Directory Manager on the returning pod and verify the bind again.
+
+If you changed either password, delete only the returning pod with `kubectl -n directory delete pod/opendj-directory-2` after both binds succeed. The StatefulSet recreates it on the same PVC and the join runs again. Now wait for the rollout. For a fresh PVC, go directly to this wait.
+
+[source,bash]
+----
+kubectl -n directory rollout status statefulset/opendj-directory --timeout=15m
+----
+
+Check membership with `dsreplication status` and query the new peer's data with LDAP. For a retained PVC, check for changes made while the pod was away and verify that test writes replicate in both directions. If the pod cannot catch up from its retained data, restore or initialize it and repeat the checks. For a fresh PVC, confirm that writes made through the new peer reach an existing peer. After the checks pass, reconnect clients to the shared Service or resume client traffic if you paused it. Then remove the temporary Service if you created one.
+
+To shrink from three replicas to two, stop writes to the third ordinal and confirm its latest updates are present on the surviving replicas. If clients use the shared Service, pause writes until the outgoing member has stopped. Keep a backup before changing the topology. Stop the pod first, then apply the shorter peer list.
+
+[source,bash]
+----
+helm upgrade directory "$CHART" --version "$OPENDJ_VERSION" -n directory \
+  -f directory-values.yaml --set replicaCount=2,replication.peerCount=3 --wait --timeout 15m
+kubectl -n directory wait --for=delete pod/opendj-directory-2 --timeout=15m
+helm upgrade directory "$CHART" --version "$OPENDJ_VERSION" -n directory \
+  -f directory-values.yaml --set replicaCount=2 --set-json replication.peerCount=null --wait --timeout=15m
+kubectl -n directory rollout status statefulset/opendj-directory --timeout=15m
+----
+
+Check `dsreplication status` and query each surviving server's configuration to confirm that the departed address is absent from its replication-server lists and `cn=admin data`. Write and read an entry in both directions. Kubernetes readiness reports whether a pod can serve LDAP; use these checks to verify the membership changes and the data.
+
+To expand a standalone instance, first enable replication with `replication.enabled=true` and `replicaCount=1` on its existing PVC. Wait for the rollout and confirm the original data. Bind as Directory Manager on the existing pod and wait for the `description` on `cn=Docker Join,cn=config` to read `ready combined` before following the grow procedure. Keep replication enabled when reducing a topology to one server.
+
+If the first ordinal loses its PVC while all peers are unavailable, the image can eventually seed a new empty topology. Bring up a surviving copy with the directory data before restarting the empty peer, or restore from a backup. See xref:chap-backup-restore.adoc#chap-backup-restore[Backing Up and Restoring Data].
+
+To change the Directory Manager password, change it on the existing instances as well as in the Kubernetes Secret. The join process uses the same password for the replication administrator account. Update that account before restarting pods with the updated Secret. Changing the Secret alone does not change credentials on a populated PVC.
+
 [#configure-repl]
 === Configuring Replication
 
