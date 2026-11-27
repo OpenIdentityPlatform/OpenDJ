@@ -21,14 +21,18 @@ import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
@@ -1510,41 +1514,100 @@ public class LDAPConnectionConsoleInteraction
 
   private void trustCertificatePermanently(final X509Certificate[] chain) throws Exception
   {
+    final String defaultPath = getWritableTrustStorePath();
+    final LocalizableMessage prompt = defaultPath == null ? INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PATH.get()
+        : INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PATH_DEFAULT.get(defaultPath);
+    final ValidationCallback<String> validatePath = filePathValidationCallback(!ALLOW_EMPTY_PATH, !FILE_MUST_EXISTS);
     app.println();
-    final String trustStorePath = app.readValidatedInput(
-        INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PATH.get(),
-        filePathValidationCallback(!ALLOW_EMPTY_PATH, !FILE_MUST_EXISTS));
+    final String path = app.readValidatedInput(prompt, (console, input) ->
+        defaultPath != null && input.trim().isEmpty() ? defaultPath : validatePath.validate(console, input));
+    final File trustStore = new File(path);
 
-    // Read the password from the stdin.
-    final String trustStorePasswordStr = readPassword(
-        INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PASSWORD.get(trustStorePath));
     final KeyStore keyStore = KeyStore.getInstance("JKS");
-    final char[] trustStorePassword = trustStorePasswordStr.toCharArray();
-    loadKeyStoreFromFile(keyStore, trustStorePath, trustStorePassword);
-
+    final char[] password = loadTrustStoreForUpdate(keyStore, trustStore);
     for (final X509Certificate cert : chain)
     {
       keyStore.setCertificateEntry(cert.getSubjectX500Principal().getName(), cert);
     }
 
-    try (final FileOutputStream trustStoreOutputFile = new FileOutputStream(trustStorePath))
+    try (FileOutputStream output = new FileOutputStream(trustStore))
     {
-      keyStore.store(trustStoreOutputFile, trustStorePassword);
+      keyStore.store(output, password);
     }
   }
 
-  private void loadKeyStoreFromFile(
-      final KeyStore keyStore, final String trustStorePath, final char[] trustStorePassword) throws Exception
+  private String getWritableTrustStorePath()
   {
-      try (FileInputStream inputStream = new FileInputStream(trustStorePath))
+    if (state.truststorePath == null)
+    {
+      return null;
+    }
+    final File file = new File(state.truststorePath);
+    return file.isFile() && file.canRead() && file.canWrite() ? state.truststorePath : null;
+  }
+
+  private char[] loadTrustStoreForUpdate(KeyStore keyStore, File trustStore) throws Exception
+  {
+    final char[] password;
+    if (state.truststorePassword != null && state.truststorePath != null
+        && trustStore.getCanonicalFile().equals(new File(state.truststorePath).getCanonicalFile()))
+    {
+      password = state.truststorePassword.toCharArray();
+    }
+    else
+    {
+      final char[] pin = readTrustStorePin(trustStore);
+      if (pin != null)
       {
-        keyStore.load(inputStream, trustStorePassword);
+        try
+        {
+          loadKeyStoreFromFile(keyStore, trustStore, pin);
+          return pin;
+        }
+        catch (IOException e)
+        {
+          if (!(e.getCause() instanceof UnrecoverableKeyException))
+          {
+            throw e;
+          }
+          // The PIN may be stale. Let the user enter the current password.
+        }
       }
-      catch (FileNotFoundException ignored)
+      password = readPassword(INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PASSWORD.get(trustStore)).toCharArray();
+    }
+    loadKeyStoreFromFile(keyStore, trustStore, password);
+    return password;
+  }
+
+  private char[] readTrustStorePin(File trustStore)
+  {
+    final File pinFile = new File(trustStore.getPath() + ".pin");
+    if (pinFile.isFile())
+    {
+      try (BufferedReader reader = new BufferedReader(new FileReader(pinFile)))
       {
-        // create empty keystore
-        keyStore.load(null, trustStorePassword);
+        final String pin = reader.readLine();
+        return pin != null ? pin.toCharArray() : null;
       }
+      catch (IOException ignored)
+      {
+        // Fall back to the console if the optional PIN file cannot be read.
+      }
+    }
+    return null;
+  }
+
+  private void loadKeyStoreFromFile(KeyStore keyStore, File trustStore, char[] password) throws Exception
+  {
+    try (FileInputStream input = new FileInputStream(trustStore))
+    {
+      keyStore.load(input, password);
+    }
+    catch (FileNotFoundException ignored)
+    {
+      // Create an empty keystore.
+      keyStore.load(null, password);
+    }
   }
 
   /**
