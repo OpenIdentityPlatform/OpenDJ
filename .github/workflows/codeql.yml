@@ -16,7 +16,7 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ 'sustaining/4.10.x','master', 'issues/**', 'features/**' ]
+    branches: [ 'sustaining/4.10.x','master', 'issues?/**', 'features?/**' ]
   pull_request:
     branches: [ 'master' ]
   schedule:
