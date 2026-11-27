@@ -1288,43 +1288,122 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     }
   }
 
-  @Test(timeOut = 120_000)
-  public void gracefulStopSendsOfflineOnTheReplacementAfterTheOldStop() throws Exception
+  private enum SwitchAtShutdown
+  {
+    ORDINARY, FORMER_RS_DISAPPEARS, REPLACEMENT_WITHHOLDS_TOPOLOGY, WRONG_GENERATION, CHANGED_GENERATION
+  }
+
+  @DataProvider
+  public Object[][] switchesAtShutdown()
+  {
+    return new Object[][] { { SwitchAtShutdown.ORDINARY }, { SwitchAtShutdown.FORMER_RS_DISAPPEARS },
+      { SwitchAtShutdown.REPLACEMENT_WITHHOLDS_TOPOLOGY }, { SwitchAtShutdown.WRONG_GENERATION },
+      { SwitchAtShutdown.CHANGED_GENERATION } };
+  }
+
+  @Test(dataProvider = "switchesAtShutdown", timeOut = 120_000)
+  public void gracefulStopSendsOfflineOnTheReplacementAfterTheOldStop(SwitchAtShutdown scenario) throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
     setConnectionTimeout(LONG_CONNECTION_TIMEOUT_MS);
     final WithholdingReplicationServer oldRS = new WithholdingReplicationServer(LARGE_WINDOW);
     final WithholdingReplicationServer nextRS = new WithholdingReplicationServer(LARGE_WINDOW, 4);
+    final boolean withholdTopology = scenario == SwitchAtShutdown.REPLACEMENT_WITHHOLDS_TOPOLOGY;
+    final boolean wrongGeneration = scenario == SwitchAtShutdown.WRONG_GENERATION;
+    final boolean changedGeneration = scenario == SwitchAtShutdown.CHANGED_GENERATION;
+    final DelayedFailoverHandshake replacementHandshake = new DelayedFailoverHandshake(1, 0);
+    if (wrongGeneration)
+    {
+      replacementHandshake.sendNextReply.countDown();
+    }
     Thread disabling = null;
     try
     {
-      final LDAPReplicationDomain domain = startDomain(oldRS, 100000, nextRS.getAddress());
+      nextRS.differentGroup = true;
       nextRS.start();
+      final LDAPReplicationDomain domain = startDomain(oldRS, 100000, nextRS.getAddress());
+      assertEquals(domain.getRsServerId(), oldRS.serverId);
+      nextRS.differentGroup = false;
+      newTimer().repeatUntilSuccess(() -> assertNotNull(oldRS.session.get()));
       oldRS.advertiseRebalance(nextRS, domain);
       newTimer().repeatUntilSuccess(() -> assertEquals(oldRS.count(StopMsg.class), 1));
 
+      if (withholdTopology)
+      {
+        setConnectionTimeout(SHORT_CONNECTION_TIMEOUT_MS);
+      }
+      final long stopBound = stopBoundMS();
       final CSN previous = offlineAnnouncementOfTheReplica();
       final Thread stop = startThread("disable after switch StopMsg", domain::disable);
       disabling = stop;
       // Answer the old StopMsg as soon as the concurrent disable tries to publish offline.
       newTimer().repeatUntilSuccess(() -> {
         final CSN announced = offlineAnnouncementOfTheReplica();
-        assertTrue(!stop.isAlive() || announced != null && !announced.equals(previous));
+        assertTrue(announced != null && !announced.equals(previous), "disable did not announce the offline marker");
       });
-      oldRS.shutdown();
+      final CSN marker = offlineAnnouncementOfTheReplica();
+      if (scenario == SwitchAtShutdown.ORDINARY)
+      {
+        oldRS.shutdown();
+      }
+      else
+      {
+        // The former RS answers discovery, then refuses the elected connection.
+        oldRS.delayedFailoverHandshake = new DelayedFailoverHandshake(1, 0, oldRS.listenSocket);
+        nextRS.withholdTopology = withholdTopology;
+        if (wrongGeneration || changedGeneration)
+        {
+          nextRS.delayedFailoverHandshake = replacementHandshake;
+        }
+        if (wrongGeneration)
+        {
+          nextRS.generationOverride = domain.getGenerationID() + 1;
+        }
+        if (withholdTopology)
+        {
+          // A new handshake timeout must not extend the deadline already set by the stop.
+          setConnectionTimeout(60_000);
+        }
+        oldRS.closeTheSession();
+        if (changedGeneration)
+        {
+          await(replacementHandshake.nextStartReceived);
+          nextRS.generationOverride = domain.getGenerationID() + 1;
+          replacementHandshake.sendNextReply.countDown();
+        }
+      }
 
-      stop.join(stopBoundMS());
+      stop.join(stopBound);
       assertFalse(stop.isAlive(), "the graceful stop did not finish within its budget");
       assertEquals(oldRS.count(ReplicaOfflineMsg.class), 0, "offline was written after the old StopMsg");
-      newTimer().repeatUntilSuccess(() -> assertNotNull(nextRS.lastOffline, "the replacement RS did not receive offline"));
-      nextRS.waitForTheSessionToEnd();
-      assertEquals(nextRS.lastOffline.getCSN().getServerId(), DS_ID);
-      assertEquals(nextRS.lastOffline.getCSN(), offlineAnnouncementOfTheReplica());
-      assertTrue(nextRS.received.indexOf(ReplicaOfflineMsg.class) < nextRS.received.indexOf(StopMsg.class),
-          "offline must precede the replacement session's StopMsg");
+      if (withholdTopology || wrongGeneration || changedGeneration)
+      {
+        if (withholdTopology)
+        {
+          assertEquals(nextRS.sessionsStarted(), 1, "stop did not attempt to open the replacement session");
+        }
+        else
+        {
+          assertEquals(replacementHandshake.starts.get(), wrongGeneration ? 1 : 2);
+          assertEquals(nextRS.sessionsStarted(), 0, "stop opened a session with a different generation");
+        }
+        assertFalse(marker.equals(offlineAnnouncementOfTheReplica()), "stop did not withdraw the undelivered marker");
+        assertNull(nextRS.lastOffline, "offline was written before the replacement handshake finished");
+      }
+      else
+      {
+        newTimer().repeatUntilSuccess(() ->
+            assertNotNull(nextRS.lastOffline, "the replacement RS did not receive offline"));
+        nextRS.waitForTheSessionToEnd();
+        assertEquals(nextRS.lastOffline.getCSN().getServerId(), DS_ID);
+        assertEquals(nextRS.lastOffline.getCSN(), marker);
+        assertTrue(nextRS.received.indexOf(ReplicaOfflineMsg.class) < nextRS.received.indexOf(StopMsg.class),
+            "offline must precede the replacement session's StopMsg");
+      }
     }
     finally
     {
+      replacementHandshake.sendNextReply.countDown();
       setConnectionTimeout(SHORT_CONNECTION_TIMEOUT_MS);
       try
       {
@@ -2090,7 +2169,7 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
       final int startNumber = starts.incrementAndGet();
       if (startNumber == 1 && formerRsListener != null)
       {
-        // Discovery has already probed the former RS, which sorts before this one.
+        // The former RS has accepted its discovery connection and can answer even after closing its listener.
         formerRsListener.close();
       }
       final int attempt = startNumber - successfulProbes;
@@ -2139,6 +2218,8 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     private volatile AckMsg lastAck;
     private volatile ReplicaOfflineMsg lastOffline;
     private volatile boolean differentGroup;
+    private volatile boolean withholdTopology;
+    private volatile Long generationOverride;
     private final ServerState state = new ServerState();
     /** Guards {@link #reading} and the changes of {@link #away}. */
     private final Object readingLock = new Object();
@@ -2246,8 +2327,9 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
         }
         final String url = getAddress();
         final byte groupId = differentGroup ? (byte) (start.getGroupId() + 1) : start.getGroupId();
+        final Long override = generationOverride;
         s.publish(new ReplServerStartMsg(serverId, url, start.getBaseDN(), window, state.duplicate(),
-            start.getGenerationId(), start.getSSLEncryption(), groupId, 5000));
+            override != null ? override : start.getGenerationId(), start.getSSLEncryption(), groupId, 5000));
         if (!start.getSSLEncryption())
         {
           s.stopEncryption();
@@ -2272,11 +2354,14 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
           }
           return;
         }
-        s.publish(new TopologyMsg(new ArrayList<DSInfo>(), Collections.singletonList(
-            new RSInfo(serverId, url, start.getGenerationId(), groupId, 1))));
-        s.setSoTimeout(0);
-        session.set(s);
-        startHeartbeats(s, start.getHeartbeatInterval());
+        if (!withholdTopology)
+        {
+          s.publish(new TopologyMsg(new ArrayList<DSInfo>(), Collections.singletonList(
+              new RSInfo(serverId, url, start.getGenerationId(), groupId, 1))));
+          s.setSoTimeout(0);
+          session.set(s);
+          startHeartbeats(s, start.getHeartbeatInterval());
+        }
         while (true)
         {
           waitToRead();

@@ -218,6 +218,9 @@ public class ReplicationBroker
      * while it closes the session, so that the close never comes after the end of the stop.
      */
     private boolean ended;
+    /** Socket of the replacement handshake, before it becomes the broker's published session. */
+    @GuardedBy("this")
+    private Socket replacementSocket;
     /** The connection timeout the deadlines were set from, in milliseconds. */
     private final long connectionTimeoutMS;
 
@@ -959,31 +962,15 @@ public class ReplicationBroker
             }
           }
         }
-        final ReplicationServerInfo electedRsInfo = electedRS.rsInfo;
-        if (electedRsInfo != null)
+        final StopInProgress stop = stopping;
+        if (electedRS.rsInfo != null)
         {
-          /*
-          Update replication server info with potentially more up to date
-          data (server state for instance may have changed)
-          */
-          rsInfos.put(electedRsInfo.getServerId(), electedRsInfo);
-
-          // Handshake phase 1 exchange went well
-
-          // Compute in which status we are starting the session to tell the RS
-          final ServerStatus initStatus = computeInitialServerStatus(
-              electedRsInfo.getGenerationId(), electedRsInfo.getServerState(),
-              electedRsInfo.getDegradedStatusThreshold(), getGenerationID());
-
-          // Perform session start (handshake phase 2)
-          final TopologyMsg topologyMsg =
-              performPhaseTwoHandshake(electedRS, initStatus);
-
-          if (topologyMsg != null) // Handshake phase 2 exchange went well
-          {
-            connectToReplicationServer(electedRS, initStatus, topologyMsg);
-          } // Could perform handshake phase 2 with best
-        } // Could perform handshake phase 1 with best
+          finishElectedConnection(electedRS, rsInfos);
+        }
+        else if (stop != null && electedURL.equals(previousRS))
+        {
+          connectToReplacementForStop(stop, previousRS, rsInfos);
+        }
       }
 
       // connectedRS has been updated by calls above, reload it
@@ -1028,6 +1015,20 @@ public class ReplicationBroker
     }
   }
 
+  /** Opens the selected RS session using the fresh state returned by its start reply. */
+  private void finishElectedConnection(ConnectedRS electedRS, Map<Integer, ReplicationServerInfo> rsInfos)
+  {
+    final ReplicationServerInfo info = electedRS.rsInfo;
+    rsInfos.put(info.getServerId(), info);
+    final ServerStatus status = computeInitialServerStatus(info.getGenerationId(), info.getServerState(),
+        info.getDegradedStatusThreshold(), getGenerationID());
+    final TopologyMsg topologyMsg = performPhaseTwoHandshake(electedRS, status);
+    if (topologyMsg != null)
+    {
+      connectToReplicationServer(electedRS, status, topologyMsg);
+    }
+  }
+
   /** Selects a compatible discovery responder other than the former replication server. */
   private ReplicationServerInfo selectDiscoveryResponder(Map<Integer, ReplicationServerInfo> rsInfos, String formerURL)
   {
@@ -1053,9 +1054,55 @@ public class ReplicationBroker
     return replacement;
   }
 
+  /** Tries one discovery responder when the former RS can no longer take the offline marker. */
+  private void connectToReplacementForStop(StopInProgress stop, String formerURL,
+      Map<Integer, ReplicationServerInfo> rsInfos)
+  {
+    final ReplicationServerInfo responder = selectDiscoveryResponder(rsInfos, formerURL);
+    if (responder == null)
+    {
+      return;
+    }
+
+    final Socket socket = new Socket();
+    synchronized (stop)
+    {
+      if (stop.gaveUp || stop.ended || permanentlyStopped
+          || stop.bounded && System.nanoTime() - stop.writeDeadline >= 0)
+      {
+        close(socket);
+        return;
+      }
+      stop.replacementSocket = socket;
+    }
+
+    boolean connected = false;
+    try
+    {
+      final ConnectedRS replacement = performPhaseOneHandshake(responder.getServerURL(), true, false, socket);
+      // A reset between discovery and the new start reply can change the RS generation.
+      if (hasCompatibleGeneration(replacement.rsInfo) && !stop.gaveUp)
+      {
+        finishElectedConnection(replacement, rsInfos);
+        connected = connectedRS.get() == replacement;
+      }
+    }
+    finally
+    {
+      synchronized (stop)
+      {
+        stop.replacementSocket = null;
+      }
+      if (!connected)
+      {
+        close(socket);
+      }
+    }
+  }
+
   private boolean hasCompatibleGeneration(ReplicationServerInfo info)
   {
-    return info.getGenerationId() == -1 || info.getGenerationId() == getGenerationID();
+    return info != null && (info.getGenerationId() == -1 || info.getGenerationId() == getGenerationID());
   }
 
   private void computeNewTopology(List<RSInfo> newRSInfos)
@@ -1256,8 +1303,13 @@ public class ReplicationBroker
    */
   private ConnectedRS performPhaseOneHandshake(String serverURL, boolean keepSession, boolean retryStartTimeout)
   {
+    return performPhaseOneHandshake(serverURL, keepSession, retryStartTimeout, new Socket());
+  }
+
+  private ConnectedRS performPhaseOneHandshake(String serverURL, boolean keepSession, boolean retryStartTimeout,
+      Socket socket)
+  {
     Session newSession = null;
-    Socket socket = null;
     boolean hasConnected = false;
     ConnectedRS failure = ConnectedRS.noConnectedRS();
     boolean waitingForStartReply = false;
@@ -1267,7 +1319,6 @@ public class ReplicationBroker
     try
     {
       // Open a socket connection to the next candidate.
-      socket = new Socket();
       socket.setReuseAddress(true);
       socket.setReceiveBufferSize(1000000);
       socket.setTcpNoDelay(true);
@@ -3238,6 +3289,7 @@ public class ReplicationBroker
             // End blocked writes too: closing in order could wait for the peer to read forever.
             // stop.end() takes this monitor, so this close cannot reach a later session.
             stop.gaveUp = true;
+            close(stop.replacementSocket);
             final Session session = connectedRS.get().session;
             if (session != null)
             {
@@ -3316,6 +3368,8 @@ public class ReplicationBroker
       }
 
       stop.gaveUp = true;
+      // The replacement's socket is still private until both handshake phases finish.
+      close(stop.replacementSocket);
       /*
        * Read after the mark: a connection under way leaves no session to close here, and publish()
        * writes nothing to the one it then opens, as it reads the mark again under the lock that

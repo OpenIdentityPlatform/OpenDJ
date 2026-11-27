@@ -18,6 +18,8 @@
  */
 package org.opends.server;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import static org.forgerock.opendj.server.embedded.ConfigParameters.configParams;
 import static org.forgerock.opendj.server.embedded.ConnectionParameters.connectionParams;
 import static org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServer;
@@ -1958,9 +1960,10 @@ public final class TestCaseUtils {
     clearSystemErrContents();
   }
 
+  private static final int AUDIT_LOG_TAIL_BYTES = 16 * 1024;
+
   /**
-   * Append the contents of the Access Log, Error Log, Debug Loggers,
-   * System.out, System.err to the specified buffer.
+   * Append logger, stdout, stderr and on-disk log diagnostics to the specified buffer.
    */
   public static void appendLogsContents(StringBuilder logsContents)
   {
@@ -1971,14 +1974,60 @@ public final class TestCaseUtils {
     appendStreamContent(logsContents, TestCaseUtils.getSystemOutContents(), "System.out");
     appendStreamContent(logsContents, TestCaseUtils.getSystemErrContents(), "System.err");
     
-    if (new File(paths.testInstanceRoot, "logs").listFiles()!=null) {
-	    for (final File logFile : Arrays.asList(new File(paths.testInstanceRoot, "logs").listFiles())) {
-	    	 try {
-				appendStreamContent(logsContents, readFile(logFile.getPath()), logFile.getPath());
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}   
+    final File logDirectory = new File(paths.testInstanceRoot, "logs");
+    final File[] logFiles = logDirectory.listFiles();
+    if (logFiles == null)
+    {
+      return;
+    }
+
+    boolean hasRotatedAuditLogs = false;
+    for (final File logFile : logFiles)
+    {
+      final String name = logFile.getName();
+      if (name.startsWith("audit."))
+      {
+        hasRotatedAuditLogs = true;
+        continue;
+      }
+      try
+      {
+        final String content = "audit".equals(name) ? readAuditLogTail(logFile) : readFile(logFile);
+        appendStreamContent(logsContents, content, logFile.getPath());
+      }
+      catch (IOException e)
+      {
+        e.printStackTrace();
+      }
+    }
+    if (hasRotatedAuditLogs)
+    {
+      logsContents.append(EOL).append("Rotated audit logs are available in ").append(logDirectory).append(EOL);
+    }
+  }
+
+  private static String readAuditLogTail(File auditLog) throws IOException
+  {
+    try (FileInputStream input = new FileInputStream(auditLog))
+    {
+      final long size = input.getChannel().size();
+      final int length = (int) Math.min(size, AUDIT_LOG_TAIL_BYTES);
+      final long start = size - length;
+      input.getChannel().position(start);
+      final byte[] tail = input.readNBytes(length);
+      if (start == 0)
+      {
+        return new String(tail, UTF_8);
+      }
+
+      // The byte limit can start inside a UTF-8 character.
+      int offset = 0;
+      while (offset < tail.length && (tail[offset] & 0xc0) == 0x80)
+      {
+        offset++;
+      }
+      return "[truncated " + (start + offset) + " bytes. Full audit log on disk.]" + EOL
+          + new String(tail, offset, tail.length - offset, UTF_8);
     }
   }
 
