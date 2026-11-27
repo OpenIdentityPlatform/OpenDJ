@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.assertj.core.api.SoftAssertions;
@@ -71,6 +72,7 @@ import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.util.TestTimer;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -793,35 +795,45 @@ public class AssuredReplicationServerTest
     }
 
     /**
-     * Make the RS send an assured message and return the ack message it
-     * receives from the RS.
+     * Sends an update and waits for its acknowledgement or for the read deadline to expire.
      */
     public AckMsg sendNewFakeUpdate(boolean expectAck) throws Exception
     {
-        if (!expectAck)
+      DeleteMsg delMsg = new DeleteMsg(baseDN, gen.newCSN(), UUID.randomUUID().toString());
+      delMsg.setAssured(isAssured);
+      delMsg.setAssuredMode(assuredMode);
+      delMsg.setSafeDataLevel(safeDataLevel);
+      session.publish(delMsg);
+
+      int timeoutMillis = expectAck ? MultimasterReplication.getConnectionTimeoutMS() : NO_ACK_READ_TIMEOUT;
+      long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
+      boolean allowGenerationIdError = generationId != DEFAULT_GENID;
+      while (true)
+      {
+        long remainingNanos = deadline - System.nanoTime();
+        if (remainingNanos <= 0)
         {
-          session.setSoTimeout(NO_ACK_READ_TIMEOUT);
+          throw new SocketTimeoutException("Timed out waiting for ACK of update " + delMsg.getCSN());
         }
+        // Round up because a socket timeout of zero would allow an indefinite read.
+        session.setSoTimeout((int) (TimeUnit.NANOSECONDS.toMillis(remainingNanos - 1) + 1));
 
-        // Create a new delete update message (the simplest to create)
-        DeleteMsg delMsg = new DeleteMsg(baseDN, gen.newCSN(),
-        UUID.randomUUID().toString());
-
-        // Send del message in assured mode
-        delMsg.setAssured(isAssured);
-        delMsg.setAssuredMode(assuredMode);
-        delMsg.setSafeDataLevel(safeDataLevel);
-        session.publish(delMsg);
-
-        // Read and return matching ack
-        ReplicationMsg replMsg = session.receive();
-        if (replMsg instanceof ErrorMsg)
+        ReplicationMsg reply = session.receive();
+        if (reply instanceof TopologyMsg)
         {
-        // Support for connection done with bad gen id : we receive an error
-          // message that we must throw away before reading our ack.
-          replMsg = session.receive();
+          continue;
         }
-        return (AckMsg)replMsg;
+        if (allowGenerationIdError && reply instanceof ErrorMsg
+            && ReplicationServerDomain.isGenerationIdWarningMsgID(((ErrorMsg) reply).getMsgID()))
+        {
+          allowGenerationIdError = false;
+          continue;
+        }
+        assertThat(reply).as("response to update %s", delMsg.getCSN()).isInstanceOf(AckMsg.class);
+        AckMsg ack = (AckMsg) reply;
+        assertThat(ack.getCSN()).as("acknowledged CSN").isEqualTo(delMsg.getCSN());
+        return ack;
+      }
     }
 
     /**
@@ -2208,6 +2220,18 @@ public class AssuredReplicationServerTest
       // Put a fake RS 1 connected to real RS
       fakeRs1 = createFakeReplicationServer(FRS1_ID, fakeRsGid, fakeRsGenId,
         sendInAssured, AssuredMode.SAFE_DATA_MODE, sdLevel, SENDER_RS_SCENARIO);
+
+      // Queue a topology notification before the update, so it is read before any ACK.
+      ReplicationServerDomain domain = rs1.getReplicationServerDomain(DN.valueOf(TEST_ROOT_DN_STRING));
+      ReplicationServerHandler sender = new TestTimer.Builder()
+          .maxSleep(MultimasterReplication.getConnectionTimeoutMS(), TimeUnit.MILLISECONDS)
+          .sleepTimes(10, TimeUnit.MILLISECONDS)
+          .toTimer().repeatUntilSuccess(() -> {
+            ReplicationServerHandler handler = domain.getConnectedRSs().get(FRS1_ID);
+            assertNotNull(handler, "The fake sender has not registered with the replication server");
+            return handler;
+          });
+      sender.sendTopoInfo(domain.createTopologyMsgForRS());
 
       /*
        * Send an assured update using configured assured parameters
