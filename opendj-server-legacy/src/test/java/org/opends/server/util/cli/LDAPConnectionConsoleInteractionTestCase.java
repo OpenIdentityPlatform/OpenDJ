@@ -15,9 +15,13 @@
  */
 package org.opends.server.util.cli;
 
+import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
+import static com.forgerock.opendj.cli.Utils.wrapText;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.opends.messages.ToolMessages.INFO_CERTIFICATE_NAME_MISMATCH_TEXT_CLI;
 import static org.opends.messages.ToolMessages.INFO_CERTIFICATE_NOT_TRUSTED_TEXT_CLI;
+import static org.opends.messages.ToolMessages.INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PASSWORD;
 import static org.opends.server.TestCaseUtils.getTestResource;
 
 import java.io.ByteArrayInputStream;
@@ -74,16 +78,18 @@ public class LDAPConnectionConsoleInteractionTestCase extends DirectoryServerTes
   public Object[][] trustStorePasswords()
   {
     return new Object[][] {
-        { "password\nignored\n", false, "" },
-        { "stale\n", false, "password\n" },
-        { null, false, "password\n" },
-        { "stale\n", true, "" }
+        { "JKS", "password\nignored\n", false, "", true },
+        { "JKS", "stale\n", false, "password\n", true },
+        { "JKS", null, false, "password\n", true },
+        { "JKS", "stale\n", true, "", true },
+        { "PKCS12", "\uFEFFpassword\n", false, "password\n", true },
+        { "PKCS12", "\uFEFFpassword\n", false, "wrong-password\n", false }
     };
   }
 
   @Test(dataProvider = "trustStorePasswords")
-  public void testSavesCertificateToSuggestedTrustStore(String pinContents, boolean explicitPasswordFile,
-      String passwordInput) throws Exception
+  public void testSavingCertificateToSuggestedTrustStore(String storeType, String pinContents,
+      boolean explicitPasswordFile, String passwordInput, boolean shouldPersist) throws Exception
   {
     final Path directory = Files.createTempDirectory("cli-trust-");
     final Path trustStore = directory.resolve("admin-truststore");
@@ -92,12 +98,13 @@ public class LDAPConnectionConsoleInteractionTestCase extends DirectoryServerTes
     final char[] password = "password".toCharArray();
     try
     {
-      final KeyStore store = KeyStore.getInstance("JKS");
+      final KeyStore store = KeyStore.getInstance(storeType);
       store.load(null, password);
       try (OutputStream output = Files.newOutputStream(trustStore))
       {
         store.store(output, password);
       }
+      final byte[] originalContents = Files.readAllBytes(trustStore);
       if (pinContents != null)
       {
         Files.writeString(pin, pinContents);
@@ -124,12 +131,25 @@ public class LDAPConnectionConsoleInteractionTestCase extends DirectoryServerTes
       assertThat(new LDAPConnectionConsoleInteraction(app, args)
           .checkServerCertificate(new X509Certificate[] { certificate }, "RSA", HOST)).isTrue();
 
-      try (InputStream saved = Files.newInputStream(trustStore))
+      final String transcript = output.toString(StandardCharsets.UTF_8);
+      assertThat(transcript).contains("[" + trustStore + "]");
+      if (!passwordInput.isEmpty())
       {
-        store.load(saved, password);
+        assertThat(transcript).contains(wrapText(
+            INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PASSWORD.get(trustStore.toFile()), MAX_LINE_WIDTH));
       }
-      assertThat(store.getCertificate(certificate.getSubjectX500Principal().getName())).isEqualTo(certificate);
-      assertThat(output.toString(StandardCharsets.UTF_8)).contains("[" + trustStore + "]");
+      if (shouldPersist)
+      {
+        try (InputStream saved = Files.newInputStream(trustStore))
+        {
+          store.load(saved, password);
+        }
+        assertThat(store.getCertificate(certificate.getSubjectX500Principal().getName())).isEqualTo(certificate);
+      }
+      else
+      {
+        assertThat(Files.readAllBytes(trustStore)).isEqualTo(originalContents);
+      }
     }
     finally
     {

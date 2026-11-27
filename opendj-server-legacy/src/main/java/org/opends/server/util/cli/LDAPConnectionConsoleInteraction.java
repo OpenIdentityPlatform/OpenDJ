@@ -32,7 +32,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.UnrecoverableKeyException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
@@ -1564,13 +1563,9 @@ public class LDAPConnectionConsoleInteraction
           loadKeyStoreFromFile(keyStore, trustStore, pin);
           return pin;
         }
-        catch (IOException e)
+        catch (IOException ignored)
         {
-          if (!(e.getCause() instanceof UnrecoverableKeyException))
-          {
-            throw e;
-          }
-          // The PIN may be stale. Let the user enter the current password.
+          // The optional PIN was rejected. Let the user enter the password.
         }
       }
       password = readPassword(INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PASSWORD.get(trustStore)).toCharArray();
