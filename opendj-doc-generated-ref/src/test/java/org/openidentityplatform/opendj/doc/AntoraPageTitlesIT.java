@@ -125,16 +125,38 @@ public class AntoraPageTitlesIT extends ForgeRockTestCase {
         }
     }
 
+    @DataProvider
+    public Object[][] documentTitles() {
+        return new Object[][] {
+            { "= Heading\n:title: Browser Title\n", "Browser Title" },
+            { ":title: Browser Title\n", null },
+            { "== Section\n", null }
+        };
+    }
+
+    @Test(dataProvider = "documentTitles")
+    public void readsTitleOnlyWhenDocumentHasHeader(String source, String expectedTitle) throws IOException {
+        final Path page = Files.createTempFile("antora-page-title-", ".adoc");
+        try {
+            Files.writeString(page, source);
+            assertThat(readDocumentTitle(page.toFile())).isEqualTo(expectedTitle);
+        } finally {
+            Files.delete(page);
+        }
+    }
+
     private String readDocumentTitle(File input) {
         // Antora extracts metadata from the header. A full parse can fall back to a section
         // title and conceal a missing document header, although Antora publishes "Untitled".
         final Document document = asciidoctor.loadFile(input,
                 Options.builder().safe(SafeMode.SAFE).attributes(Map.of("env-site", ""))
                         .parseHeaderOnly(true).build());
-        // Without a header, Asciidoctor can still return the title attribute, which Antora ignores.
-        assertThat(document.hasAttribute("title"))
-                .as("%s must have a document header rather than a :title: attribute", input).isFalse();
-        return document.getDoctitle();
+        // Antora publishes the resolved title only when the document has a header section.
+        final boolean hasHeader = document.findBy(Map.of()).stream()
+                .filter(Section.class::isInstance)
+                .map(Section.class::cast)
+                .anyMatch(section -> "header".equals(section.getSectionName()));
+        return hasHeader ? document.getDoctitle() : null;
     }
 
     /** Resolves Antora's ROOT partials, which can supply a page header such as the dsconfig reference title. */
