@@ -24,11 +24,13 @@ import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,8 +39,10 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -1130,6 +1134,41 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     }
   }
 
+  @Test(timeOut = 120_000)
+  public void reconnectClosesTheSessionWhenTopologyTimesOut() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    final WithholdingReplicationServer rs = new WithholdingReplicationServer(LARGE_WINDOW);
+    try
+    {
+      final LDAPReplicationDomain domain = startDomain(rs);
+      newTimer().repeatUntilSuccess(() -> assertNotNull(rs.session.get()));
+      final Session originalSession = rs.session.get();
+
+      final CompletableFuture<ReplicationMsg> nextRead = new CompletableFuture<>();
+      rs.readInsteadOfSendingTopology.set(nextRead);
+      rs.dropTheSession();
+
+      // Observe the broker closing the provisional socket before the fixture is shut down.
+      final Throwable failure = expectThrows(ExecutionException.class, () -> nextRead.get(30, SECONDS)).getCause();
+      assertTrue(failure instanceof EOFException
+          || (failure instanceof SocketException && String.valueOf(failure.getMessage()).startsWith("Connection reset")),
+          "expected EOF or connection reset on the provisional session, got " + failure);
+
+      newTimer().repeatUntilSuccess(() -> {
+        final Session reconnected = rs.session.get();
+        assertNotNull(reconnected, "the replication server did not establish a later session");
+        assertNotSame(reconnected, originalSession);
+        assertTrue(domain.isConnected());
+        assertFalse(domain.hasConnectionError());
+      });
+    }
+    finally
+    {
+      cleanUp(rs);
+    }
+  }
+
   private LDAPReplicationDomain startDomain(WithholdingReplicationServer rs) throws Exception
   {
     // Heartbeats far apart: the session stays up whatever the replication server reads.
@@ -1419,6 +1458,9 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     private volatile boolean away;
     private volatile boolean differentGroup;
     private volatile Callable<Void> beforeStartReply;
+    /** If set, read from the next session after StartSessionMsg instead of sending its topology. */
+    private final AtomicReference<CompletableFuture<ReplicationMsg>> readInsteadOfSendingTopology =
+        new AtomicReference<>();
 
     WithholdingReplicationServer() throws IOException
     {
@@ -1498,6 +1540,21 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
           return;
         }
         sessionsStarted.incrementAndGet();
+        final CompletableFuture<ReplicationMsg> nextRead = readInsteadOfSendingTopology.getAndSet(null);
+        if (nextRead != null)
+        {
+          try
+          {
+            // Give the broker its handshake timeout plus time to close the socket.
+            s.setSoTimeout(MultimasterReplication.getConnectionTimeoutMS() + 5_000);
+            nextRead.complete(s.receive());
+          }
+          catch (Exception e)
+          {
+            nextRead.completeExceptionally(e);
+          }
+          return;
+        }
         s.publish(new TopologyMsg(new ArrayList<DSInfo>(), Collections.singletonList(
             new RSInfo(serverId, url, start.getGenerationId(), groupId, 1))));
         s.setSoTimeout(0);
