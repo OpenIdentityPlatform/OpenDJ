@@ -18,14 +18,21 @@ package org.openidentityplatform.opendj.doc;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.Options;
 import org.asciidoctor.SafeMode;
 import org.asciidoctor.ast.Document;
 import org.asciidoctor.ast.Section;
+import org.asciidoctor.extension.IncludeProcessor;
+import org.asciidoctor.extension.PreprocessorReader;
 import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -37,12 +44,16 @@ import org.testng.annotations.Test;
 public class AntoraPageTitlesIT extends ForgeRockTestCase {
     private Asciidoctor asciidoctor;
     private File buildDirectory;
+    private Path modulesDirectory;
 
     @BeforeClass
     public void start() {
         buildDirectory = new File(System.getProperty("docBuildDirectory",
                 new File(System.getProperty("basedir", "."), "target/asciidoc").getPath()));
+        modulesDirectory = buildDirectory.toPath().resolve("antora/modules");
         asciidoctor = Asciidoctor.Factory.create();
+        asciidoctor.javaExtensionRegistry().includeProcessor(
+                new RootPartialIncludeProcessor(modulesDirectory.resolve("ROOT/partials")));
     }
 
     @AfterClass(alwaysRun = true)
@@ -75,29 +86,105 @@ public class AntoraPageTitlesIT extends ForgeRockTestCase {
                              "alias-dereferencing-example", "alias-dereferencing-troubleshooting" } },
             { "admin-guide", "chap-ldap-transactions", "LDAP Transactions (RFC 5805)",
               new String[] { "chap-ldap-transactions", "ldap-transactions-discover", "ldap-transactions-use",
-                             "ldap-transactions-troubleshoot" } }
+                             "ldap-transactions-troubleshoot" } },
+            { "how-to", "phpldapadmin", "Connect phpLDAPadmin to OpenDJ in Docker",
+              new String[] { "how-to-phpldapadmin", "_start_opendj_and_phpldapadmin", "_create_a_pla_login",
+                             "_delegate_administration_of_the_people_branch", "_sign_in_and_verify_access",
+                             "_connect_to_an_existing_opendj_server" } }
         };
+    }
+
+    @Test
+    public void allGeneratedPagesHaveDocumentTitles() throws IOException {
+        final List<Path> pages;
+        try (Stream<Path> paths = Files.walk(modulesDirectory)) {
+            pages = paths.filter(Files::isRegularFile)
+                    .map(modulesDirectory::relativize)
+                    .filter(path -> path.getNameCount() >= 3 && "pages".equals(path.getName(1).toString()))
+                    .filter(path -> path.getFileName().toString().endsWith(".adoc"))
+                    .sorted()
+                    .collect(Collectors.toList());
+        }
+        assertThat(pages).as("Antora pages in %s", modulesDirectory).isNotEmpty().allSatisfy(page -> {
+            final File input = modulesDirectory.resolve(page).toFile();
+            assertThat(readDocumentTitle(input)).as("document title of %s", page).isNotBlank();
+        });
     }
 
     @Test(dataProvider = "pages")
     public void generatedPageHasDocumentTitle(String guide, String page, String title, String[] fragments) {
-        final File input = new File(buildDirectory, "antora/modules/" + guide + "/pages/" + page + ".adoc");
+        final File input = modulesDirectory.resolve(guide + "/pages/" + page + ".adoc").toFile();
         assertThat(input).isFile();
-        // Antora extracts metadata from the header. A full parse can fall back to a section
-        // title and conceal a missing document header, although Antora publishes "Untitled".
-        final Document document = asciidoctor.loadFile(input,
-                Options.builder().safe(SafeMode.SAFE).attributes(Map.of("env-site", ""))
-                        .parseHeaderOnly(true).build());
-        assertThat(document.getDoctitle()).as("document title of %s", input).isEqualTo(title);
-        // Without a header, Asciidoctor can still return the title attribute, which Antora ignores.
-        assertThat(document.hasAttribute("title"))
-                .as("%s must have a document header rather than a :title: attribute", input).isFalse();
+        assertThat(readDocumentTitle(input)).as("document title of %s", input).isEqualTo(title);
         final String html = asciidoctor.convertFile(input,
                 Options.builder().safe(SafeMode.SAFE).attributes(Map.of("env-site", ""))
                         .standalone(false).toFile(false).build());
         for (final String fragment : fragments) {
             assertThat(html).as("published fragment %s in the rendered body of %s", fragment, input)
                     .contains("id=\"" + fragment + "\"");
+        }
+    }
+
+    @DataProvider
+    public Object[][] documentTitles() {
+        return new Object[][] {
+            { "= Heading\n:title: Browser Title\n", "Browser Title" },
+            { ":title: Browser Title\n", null },
+            { "== Section\n", null }
+        };
+    }
+
+    @Test(dataProvider = "documentTitles")
+    public void readsTitleOnlyWhenDocumentHasHeader(String source, String expectedTitle) throws IOException {
+        final Path page = Files.createTempFile("antora-page-title-", ".adoc");
+        try {
+            Files.writeString(page, source);
+            assertThat(readDocumentTitle(page.toFile())).isEqualTo(expectedTitle);
+        } finally {
+            Files.delete(page);
+        }
+    }
+
+    private String readDocumentTitle(File input) {
+        // Antora extracts metadata from the header. A full parse can fall back to a section
+        // title and conceal a missing document header, although Antora publishes "Untitled".
+        final Document document = asciidoctor.loadFile(input,
+                Options.builder().safe(SafeMode.SAFE).attributes(Map.of("env-site", ""))
+                        .parseHeaderOnly(true).build());
+        // Antora publishes the resolved title only when the document has a header section.
+        final boolean hasHeader = document.findBy(Map.of()).stream()
+                .filter(Section.class::isInstance)
+                .map(Section.class::cast)
+                .anyMatch(section -> "header".equals(section.getSectionName()));
+        return hasHeader ? document.getDoctitle() : null;
+    }
+
+    /** Resolves Antora's ROOT partials, which can supply a page header such as the dsconfig reference title. */
+    private static final class RootPartialIncludeProcessor extends IncludeProcessor {
+        private static final String PREFIX = "ROOT:partial$";
+        private final Path partialsDirectory;
+
+        private RootPartialIncludeProcessor(Path partialsDirectory) {
+            this.partialsDirectory = partialsDirectory.toAbsolutePath().normalize();
+        }
+
+        @Override
+        public boolean handles(String target) {
+            return target.startsWith(PREFIX);
+        }
+
+        @Override
+        public void process(Document document, PreprocessorReader reader, String target, Map<String, Object> attributes) {
+            final Path partial = partialsDirectory.resolve(target.substring(PREFIX.length())).normalize();
+            if (!partial.startsWith(partialsDirectory)) {
+                throw new IllegalArgumentException("Invalid Antora ROOT partial: " + target);
+            }
+            final String path = partial.toString();
+            try {
+                reader.pushInclude(Files.readString(partial), path, path, 1, attributes);
+            } catch (IOException e) {
+                throw new UncheckedIOException("Cannot read Antora partial " + partial, e);
+            }
         }
     }
 
