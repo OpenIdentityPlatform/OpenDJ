@@ -13,6 +13,7 @@
  *
  * Copyright 2008-2011 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -39,7 +40,7 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
   private BackendDescriptor backend;
   private Type type;
   private int nEntries;
-  private int missingChanges;
+  private long missingChanges;
   private long ageOfOldestMissingChange;
   private int replicaID = -1;
 
@@ -55,7 +56,7 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
    * @param missingChanges the number of missing changes.
    */
   public BaseDNDescriptor(Type type, DN baseDn, BackendDescriptor backend,
-      int nEntries, long ageOfOldestMissingChange, int missingChanges)
+      int nEntries, long ageOfOldestMissingChange, long missingChanges)
   {
     this.baseDn = baseDn;
     this.backend = backend;
@@ -159,7 +160,7 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
    * @return the number of missing changes in the replication topology for
    * this base DN.
    */
-  public int getMissingChanges()
+  public long getMissingChanges()
   {
     return missingChanges;
   }
@@ -169,7 +170,7 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
    * this base DN.
    * @param missingChanges the missing changes.
    */
-  public void setMissingChanges(int missingChanges)
+  public void setMissingChanges(long missingChanges)
   {
     this.missingChanges = missingChanges;
     recalculateHashCode();

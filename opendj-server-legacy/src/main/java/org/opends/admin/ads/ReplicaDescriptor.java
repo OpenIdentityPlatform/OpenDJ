@@ -36,7 +36,7 @@ public class ReplicaDescriptor
   private final Set<HostPort> replicationServers = new HashSet<>();
   /** @see InstallerHelper#addNewReplicationId(Set) */
   private int serverId = -1;
-  private int missingChanges = -1;
+  private long missingChanges = -1;
   private long ageOfOldestMissingChange = -1;
   private String backendId;
   private Set<String> objectClasses;
@@ -187,7 +187,7 @@ public class ReplicaDescriptor
    * Returns the number of missing changes.
    * @return the number of missing changes.
    */
-  public int getMissingChanges()
+  public long getMissingChanges()
   {
     return missingChanges;
   }
@@ -196,7 +196,7 @@ public class ReplicaDescriptor
    * Sets the number of missing changes.
    * @param missingChanges the number of missing changes.
    */
-  public void setMissingChanges(int missingChanges)
+  public void setMissingChanges(long missingChanges)
   {
     this.missingChanges = missingChanges;
   }

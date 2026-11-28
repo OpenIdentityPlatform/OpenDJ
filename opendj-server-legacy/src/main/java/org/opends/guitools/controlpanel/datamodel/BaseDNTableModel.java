@@ -450,7 +450,7 @@ implements Comparator<BaseDNDescriptor>
   private int compareMissingChanges(BaseDNDescriptor desc1,
       BaseDNDescriptor desc2)
   {
-    return compareIntegers(desc1.getMissingChanges(),
+    return compareLongs(desc1.getMissingChanges(),
         desc2.getMissingChanges());
   }
 

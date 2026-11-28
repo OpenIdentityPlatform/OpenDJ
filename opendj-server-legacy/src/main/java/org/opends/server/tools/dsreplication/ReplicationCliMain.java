@@ -5780,7 +5780,7 @@ public class ReplicationCliMain extends ConsoleApplication
       // Server port
       tableBuilder.appendCell(fromObject(getHostPort2(replicaServer, cnx)));
       // Number of entries
-      tableBuilder.appendCell(fromPositiveInt(replica.getEntries()));
+      tableBuilder.appendCell(fromNonNegative(replica.getEntries()));
 
       if (!replica.isReplicated())
       {
@@ -5816,7 +5816,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
 
         // Missing changes
-        tableBuilder.appendCell(fromPositiveInt(replica.getMissingChanges()));
+        tableBuilder.appendCell(fromNonNegative(replica.getMissingChanges()));
 
         // Age of oldest missing change
         tableBuilder.appendCell(fromDate(replica.getAgeOfOldestMissingChange()));
@@ -5863,7 +5863,7 @@ public class ReplicationCliMain extends ConsoleApplication
       tableBuilder.appendCell(fromInt(server.getReplicationServerId()));
 
       // Replication port
-      tableBuilder.appendCell(fromPositiveInt(server.getReplicationServerPort()));
+      tableBuilder.appendCell(fromNonNegative(server.getReplicationServerPort()));
 
       // Missing changes
       tableBuilder.appendCell(EMPTY_MSG);
@@ -5932,9 +5932,9 @@ public class ReplicationCliMain extends ConsoleApplication
     return LocalizableMessage.raw(Integer.toString(value));
   }
 
-  private LocalizableMessage fromPositiveInt(int value)
+  private LocalizableMessage fromNonNegative(long value)
   {
-    return value >= 0 ? LocalizableMessage.raw(Integer.toString(value)) : EMPTY_MSG;
+    return value >= 0 ? LocalizableMessage.raw(Long.toString(value)) : EMPTY_MSG;
   }
 
   private boolean isRepServerNotInDomain(Set<ReplicaDescriptor> replicas, ServerDescriptor server)
@@ -5982,7 +5982,7 @@ public class ReplicationCliMain extends ConsoleApplication
       // Server host+port
       tableBuilder.appendCell(fromObject(getHostPort2(server, cnx)));
       // Replication port
-      tableBuilder.appendCell(fromPositiveInt(server.getReplicationServerPort()));
+      tableBuilder.appendCell(fromNonNegative(server.getReplicationServerPort()));
       // Secure
       tableBuilder.appendCell(fromBoolean(server.isReplicationSecure()));
     }

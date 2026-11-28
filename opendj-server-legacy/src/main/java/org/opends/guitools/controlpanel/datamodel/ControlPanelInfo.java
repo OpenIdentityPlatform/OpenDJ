@@ -39,6 +39,7 @@ import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.IconPool;
@@ -526,18 +527,27 @@ public class ControlPanelInfo
           desc.setRootMonitor(rCtx.getRootMonitor());
           desc.setEntryCachesMonitor(rCtx.getEntryCaches());
           desc.setJvmMemoryUsageMonitor(rCtx.getJvmMemoryUsage());
-          desc.setSystemInformationMonitor(rCtx.getSystemInformation());
+          SearchResultEntry systemInformation = rCtx.getSystemInformation();
+          desc.setSystemInformationMonitor(systemInformation);
           desc.setWorkQueueMonitor(rCtx.getWorkQueue());
-          desc.setOpenDJVersion(rCtx.getVersionMonitor().parseAttribute("fullVersion").asString());
-          String installPath = rCtx.getSystemInformation().parseAttribute("installPath").asString();
-          if (installPath != null)
+          SearchResultEntry versionMonitor = rCtx.getVersionMonitor();
+          String version = versionMonitor == null ? null : versionMonitor.parseAttribute("fullVersion").asString();
+          if (version != null)
           {
-            desc.setInstallPath(installPath);
+            desc.setOpenDJVersion(version);
           }
-          String instancePath = rCtx.getSystemInformation().parseAttribute("instancePath").asString();
-          if (instancePath != null)
+          if (systemInformation != null)
           {
-            desc.setInstancePath(instancePath);
+            String installPath = systemInformation.parseAttribute("installPath").asString();
+            if (installPath != null)
+            {
+              desc.setInstallPath(installPath);
+            }
+            String instancePath = systemInformation.parseAttribute("instancePath").asString();
+            if (instancePath != null)
+            {
+              desc.setInstancePath(instancePath);
+            }
           }
         }
       }
