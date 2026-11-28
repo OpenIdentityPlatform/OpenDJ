@@ -492,6 +492,25 @@ jobs:
             opendj-doc-generated-ref/target/*.zip
             opendj-dsml-servlet/target/*.war
             opendj-rest2ldap-servlet/target/*.war
+  build-docker-windows:
+    name: Build and test the Windows Docker image
+    needs: build-maven
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Download the server ZIP
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ubuntu-latest-11
+      - name: Build the Windows image
+        shell: pwsh
+        run: ./.github/scripts/build-docker-windows.ps1 -ServerZipDirectory opendj-server-legacy/target/package -ImageTags opendj:windows
+      - name: Smoke-test the Windows image
+        shell: pwsh
+        run: ./.github/scripts/test-docker-windows.ps1 -Image opendj:windows
+
   build-docker:
     needs: build-maven
     # builds the image for every platform and hands its linux/amd64 image to docker-test (and
