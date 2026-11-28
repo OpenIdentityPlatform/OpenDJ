@@ -20,6 +20,7 @@ import static org.testng.Assert.*;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -30,8 +31,10 @@ import java.util.concurrent.TimeUnit;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.Session;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -176,13 +179,23 @@ public class HandshakeAbortRegistrationTest extends ReplicationTestCase
     }
   }
 
+  @DataProvider
+  public Object[][] registeredDataServerStates()
+  {
+    return new Object[][] {
+        { false, false, true },
+        { true, false, false },
+        { false, true, false }
+    };
+  }
+
   /**
-   * The handshake also aborts before registering, e.g. when rejecting a second
-   * connection with an already connected server id. Such an abort must never
-   * evict the legitimately connected handler owning that server id.
+   * A second handshake must keep the first handler registered until teardown.
+   * Only an existing live session is evidence of two live connections sharing an ID.
    */
-  @Test
-  public void abortBeforeRegisterMustNotEvictConnectedDataServer() throws Exception
+  @Test(dataProvider = "registeredDataServerStates")
+  public void abortBeforeRegisterMustNotEvictConnectedDataServer(boolean closeSession,
+      boolean stopHandler, boolean duplicateIdError) throws Exception
   {
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     ReplicationServer replicationServer = null;
@@ -206,9 +219,9 @@ public class HandshakeAbortRegistrationTest extends ReplicationTestCase
         final DataServerHandler connected =
             new DataServerHandler(connectedSession, 100, replicationServer, 100);
         initializeFromHandshake(connected, baseDN, REMOTE_DS_ID, true);
+        domain.lock();
         try
         {
-          domain.lock();
           domain.register(connected);
         }
         finally
@@ -216,17 +229,48 @@ public class HandshakeAbortRegistrationTest extends ReplicationTestCase
           domain.release();
         }
 
-        // Second handshake with the same server id: rejected and aborted
-        // before it ever registered.
-        final DataServerHandler duplicate =
-            new DataServerHandler(duplicateSession, 100, replicationServer, 100);
-        initializeFromHandshake(duplicate, baseDN, REMOTE_DS_ID, true);
-        assertTrue(domain.isAlreadyConnectedToDS(duplicate));
+        try
+        {
+          // ServerReader closes the session before calling stopServer(), which
+          // can leave a closing session registered while a new handshake arrives.
+          if (closeSession)
+          {
+            connectedSession.close();
+          }
+          if (stopHandler)
+          {
+            assertFalse(connected.engageShutdown());
+          }
 
-        duplicate.abortStart(null);
+          // Second handshake with the same server id: rejected and aborted
+          // before it ever registered.
+          final DataServerHandler duplicate =
+              new DataServerHandler(duplicateSession, 100, replicationServer, 100);
+          initializeFromHandshake(duplicate, baseDN, REMOTE_DS_ID, true);
+          final List<String> records = errorLogRecordsOf(() -> {
+            assertTrue(domain.isAlreadyConnectedToDS(duplicate));
+            duplicate.abortStart(null);
+            return null;
+          });
 
-        assertSame(domain.getConnectedDSs().get(REMOTE_DS_ID), connected,
-            "aborting an unregistered handshake evicted the connected DS");
+          assertEquals(records.stream().anyMatch(line -> line.contains("category=SYNC severity=ERROR msgID=54 ")),
+              duplicateIdError, records.toString());
+
+          assertSame(domain.getConnectedDSs().get(REMOTE_DS_ID), connected,
+              "aborting an unregistered handshake evicted the connected DS");
+        }
+        finally
+        {
+          domain.lock();
+          try
+          {
+            domain.unregisterFailedHandshake(connected);
+          }
+          finally
+          {
+            domain.release();
+          }
+        }
       }
     }
     finally
@@ -242,6 +286,7 @@ public class HandshakeAbortRegistrationTest extends ReplicationTestCase
     handler.serverId = remoteServerId;
     handler.serverURL = "127.0.0.1:1636";
     handler.setBaseDNAndDomain(baseDN, isDataServer);
+    handler.setInitialServerState(new ServerState());
   }
 
   /** Teardown must never mask the primary assertion failure. */

@@ -44,8 +44,6 @@ import org.opends.server.replication.protocol.AckMsg;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
-import org.opends.server.replication.protocol.ReplSessionSecurity;
-import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.Entry;
@@ -634,31 +632,7 @@ public class DuplicateReplayTest extends ReplicationTestCase
   public void queuedRedeliveryAcknowledgesOnlyTheReplayResult(
       boolean firstAssured, boolean lastAssured, boolean failReplay) throws Exception
   {
-    final Field brokerField = ReplicationDomain.class.getDeclaredField("broker");
-    brokerField.setAccessible(true);
-    final ReplicationBroker originalBroker = (ReplicationBroker) brokerField.get(domain);
     final List<AckMsg> acks = new ArrayList<>();
-    // A non-started broker retains real completion accounting but records the wire ack.
-    // No domain is passed to its constructor, so it registers no second monitor.
-    final ReplicationBroker recordingBroker = new ReplicationBroker(null, domain.getServerState(),
-        new DomainFakeCfg(baseDN, 1, new TreeSet<String>()), new ReplSessionSecurity())
-    {
-      @Override
-      public byte getRsGroupId()
-      {
-        return domain.getGroupId();
-      }
-
-      @Override
-      public void publish(ReplicationMsg msg)
-      {
-        if (msg instanceof AckMsg)
-        {
-          acks.add((AckMsg) msg);
-        }
-      }
-    };
-    brokerField.set(domain, recordingBroker);
     final AtomicBoolean recovering = (AtomicBoolean) domainField("replayFailureRecovery");
     final SessionRestartRequests restarts = (SessionRestartRequests) domainField("sessionRestarts");
     recovering.set(true);
@@ -682,6 +656,19 @@ public class DuplicateReplayTest extends ReplicationTestCase
         final AddMsg duplicate = addMsg();
         duplicate.setAssured(lastAssured);
         duplicate.setAssuredMode(AssuredMode.SAFE_READ_MODE);
+        if (lastAssured)
+        {
+          if (i == 0)
+          {
+            duplicate.setAcknowledgementSender(ack -> {
+              throw new AssertionError("ack sent to superseded delivery");
+            });
+          }
+          else
+          {
+            duplicate.setAcknowledgementSender(acks::add);
+          }
+        }
         domain.processUpdate(duplicate);
         assertTrue(acks.isEmpty(), "queued redelivery must not acknowledge unapplied data");
         assertEquals(completedUpdates(), 0);
@@ -707,7 +694,6 @@ public class DuplicateReplayTest extends ReplicationTestCase
     }
     finally
     {
-      brokerField.set(domain, originalBroker);
       restarts.clear();
       recovering.set(false);
     }

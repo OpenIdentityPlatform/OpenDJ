@@ -98,6 +98,81 @@ public class SessionTest extends ReplicationTestCase
   }
 
   @Test
+  public void plannedSwitchKeepsReadingUntilThePeerReplies() throws Exception
+  {
+    try (SessionPair pair = connectSessionPair())
+    {
+      pair.peer.publish(new EntryMsg(PEER_ID, SENDER_ID, new byte[] { 1, 2, 3 }, 1));
+
+      assertThat(pair.publisher.closeForSwitch(Runnable::run)).isTrue();
+
+      assertThat(pair.peer.receive()).isInstanceOf(StopMsg.class);
+      assertThat(((EntryMsg) pair.publisher.receive()).getEntryBytes())
+          .containsExactly((byte) 1, (byte) 2, (byte) 3);
+      assertThat(pair.publisher.publish(new HeartbeatMsg(), null)).isFalse();
+      pair.peer.close();
+      assertThat(pair.publisher.receive()).isInstanceOf(StopMsg.class);
+    }
+  }
+
+  @Test
+  public void plannedSwitchEndsControlWritesWithTheStopFrame() throws Exception
+  {
+    try (SessionPair pair = connectSessionPair())
+    {
+      final AtomicReference<Runnable> sender = new AtomicReference<>();
+      final CSN csn = newCSN();
+      assertThat(pair.publisher.closeForSwitch(sender::set)).isTrue();
+      assertThat(pair.publisher.publish(new HeartbeatMsg(), null)).isFalse();
+      assertThat(pair.publisher.publish(new AckMsg(csn), null)).isTrue();
+      assertThat(pair.publisher.publish(new ReplicaOfflineMsg(csn), null)).isTrue();
+
+      sender.get().run();
+      assertThat(((AckMsg) pair.peer.receive()).getCSN()).isEqualTo(csn);
+      assertThat(((ReplicaOfflineMsg) pair.peer.receive()).getCSN()).isEqualTo(csn);
+      assertThat(pair.peer.receive()).isInstanceOf(StopMsg.class);
+      assertThat(pair.publisher.publish(new AckMsg(csn), null)).isFalse();
+      assertThat(pair.publisher.publish(new ReplicaOfflineMsg(csn), null)).isFalse();
+    }
+  }
+
+  @Test(timeOut = 30_000)
+  public void plannedSwitchReleasesAPublicationWaitingForTheWriteLock() throws Exception
+  {
+    final ExecutorService writers = Executors.newFixedThreadPool(2);
+    try (SessionPair pair = connectSessionPair())
+    {
+      try
+      {
+        writers.submit(() -> pair.publisher.publish(newBlockingMsg(), null));
+        pair.awaitBytesReachedThePeer();
+
+        final CountDownLatch started = new CountDownLatch(1);
+        final AtomicReference<Thread> waitingThread = new AtomicReference<>();
+        final Future<Boolean> waiting = writers.submit(() -> {
+          waitingThread.set(Thread.currentThread());
+          started.countDown();
+          return pair.publisher.publish(new HeartbeatMsg(), null);
+        });
+        assertThat(started.await(5, TimeUnit.SECONDS)).isTrue();
+        awaitWaitingIn(waitingThread.get(), "send");
+        assertThat(pair.publisher.closeForSwitch(task -> start("planned stop", task))).isTrue();
+
+        assertThat(waiting.get(3, TimeUnit.SECONDS)).isFalse();
+      }
+      finally
+      {
+        pair.publisher.abort(new IOException("the test releases the blocked writer"));
+      }
+    }
+    finally
+    {
+      writers.shutdownNow();
+      assertThat(writers.awaitTermination(5, TimeUnit.SECONDS)).isTrue();
+    }
+  }
+
+  @Test
   public void aMessageWhichCannotBeEncodedForThePeerIsRefusedWithoutRunningTheCallback()
       throws Exception
   {

@@ -12,7 +12,6 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2026 3A Systems, LLC.
- * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -20,12 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.opends.messages.ReplicationMessages.ERR_DS_BADLY_DISCONNECTED;
+import static org.opends.messages.ReplicationMessages.ERR_RS_BADLY_DISCONNECTED;
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FilterInputStream;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
@@ -46,6 +47,7 @@ import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.StopMsg;
 import org.testng.annotations.Test;
+import org.testng.annotations.DataProvider;
 
 /** Checks the records emitted when a replication server reader loses its peer. */
 @SuppressWarnings("javadoc")
@@ -157,6 +159,69 @@ public class ServerReaderDisconnectTest extends ReplicationTestCase
       {
         executor.shutdownNow();
       }
+    }
+  }
+
+  @DataProvider
+  public Object[][] socketCloseOrigins()
+  {
+    return new Object[][] { { true }, { false } };
+  }
+
+  /** The local socket close wakes a blocked read just as a remote reset does. */
+  @Test(dataProvider = "socketCloseOrigins")
+  public void socketCloseReportsOnlyUnexpectedPeerLoss(boolean localClose) throws Exception
+  {
+    final CountDownLatch reading = new CountDownLatch(1);
+    final ExecutorService executor = Executors.newSingleThreadExecutor();
+    try (ServerSocket listener = new ServerSocket(0);
+         Socket peer = new Socket("127.0.0.1", listener.getLocalPort());
+         Socket socket = listener.accept())
+    {
+      final InputStream input = new FilterInputStream(socket.getInputStream())
+      {
+        @Override
+        public int read(byte[] bytes, int offset, int length) throws IOException
+        {
+          reading.countDown();
+          return super.read(bytes, offset, length);
+        }
+      };
+      try (Session session = new Session(socket, new TestSocket(input)))
+      {
+        session.setProtocolVersion(ProtocolVersion.getCurrentVersion());
+        final ReplicationServerHandler handler = mock(ReplicationServerHandler.class);
+        final ReplicationServer server = mock(ReplicationServer.class);
+        when(server.getServerId()).thenReturn(9301);
+        final java.lang.reflect.Field field = MessageHandler.class.getDeclaredField("replicationServer");
+        field.setAccessible(true);
+        field.set(handler, server);
+        when(handler.getBadlyDisconnectedErrorMessage()).thenReturn(ERR_RS_BADLY_DISCONNECTED.get(
+            9301, 9311, session.getReadableRemoteAddress(), DN.valueOf(TEST_ROOT_DN_STRING)));
+        final List<String> logged = errorLogRecordsOf(() -> {
+          final Future<?> reader = executor.submit(() -> new ServerReader(session, handler).run());
+          assertThat(reading.await(10, TimeUnit.SECONDS)).as("reader entered socket read").isTrue();
+          if (localClose)
+          {
+            // The writer can close the session before stopServer marks the handler.
+            session.close();
+          }
+          else
+          {
+            peer.setSoLinger(true, 0);
+            peer.close();
+          }
+          reader.get(10, TimeUnit.SECONDS);
+          return null;
+        });
+        assertThat(logged).filteredOn(s -> s.contains("category=SYNC severity=ERROR msgID=181 "))
+            .hasSize(localClose ? 0 : 1);
+      }
+    }
+    finally
+    {
+      executor.shutdownNow();
+      assertThat(executor.awaitTermination(10, TimeUnit.SECONDS)).as("reader stopped").isTrue();
     }
   }
 

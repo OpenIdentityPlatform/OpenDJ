@@ -25,15 +25,17 @@ TOPOLOGY=${TOPOLOGY:-rs534}
 DISTURBANCE=${DISTURBANCE:-none}
 # seconds of load. A disturbed run takes the load of its CI rows: a restarted server served
 # again 131 to 225 s after the restart there, and the load has to go on after that
-if [ "$DISTURBANCE" = none ]; then
-  DURATION=${DURATION:-120}
-else
-  DURATION=${DURATION:-900}
-fi
+case $DISTURBANCE in
+  none) DURATION=${DURATION:-120} ;;
+  scale-*) DURATION=${DURATION:-2700} ;;
+  *) DURATION=${DURATION:-900} ;;
+esac
 # the most modifications, and adds or deletes, per second the load sends to each directory
 # server; a runner that cannot keep up sends fewer, which the summary shows
-LOAD_MOD_RATE=${LOAD_MOD_RATE:-423}
-LOAD_ADD_RATE=${LOAD_ADD_RATE:-85}
+case $DISTURBANCE in
+  scale-*) LOAD_MOD_RATE=${LOAD_MOD_RATE:-100}; LOAD_ADD_RATE=${LOAD_ADD_RATE:-20} ;;
+  *) LOAD_MOD_RATE=${LOAD_MOD_RATE:-423}; LOAD_ADD_RATE=${LOAD_ADD_RATE:-85} ;;
+esac
 # users the first directory server imports; the others get them from its initialize
 SAMPLE_DATA=${SAMPLE_DATA:-2000}
 # the heap of every server and every load client. Without a bound each JVM may take a quarter
@@ -49,7 +51,16 @@ QUIESCE_TIMEOUT=${QUIESCE_TIMEOUT:-900}
 # 1: write to one replica only, which the run must report (a self-test of its checks)
 INJECT_DIVERGENCE=${INJECT_DIVERGENCE:-0}
 # seconds into the load at which the disturbance starts
-DISTURB_AT=${DISTURB_AT:-$((DURATION / 3))}
+case $DISTURBANCE in
+  scale-*)
+    # Keep the 120-second warmup when extending the scale load; shorter custom loads
+    # still start the disturbance proportionally earlier.
+    scale_start=$((DURATION * 2 / 15))
+    [ "$scale_start" -le 120 ] || scale_start=120
+    DISTURB_AT=${DISTURB_AT:-$scale_start}
+    ;;
+  *) DISTURB_AT=${DISTURB_AT:-$((DURATION / 3))} ;;
+esac
 # seconds a disturbed server is given to serve again, and its join to end after the load
 DISTURB_TIMEOUT=${DISTURB_TIMEOUT:-900}
 # where the summary, the samples, the exports, the differences and a failed run's state go: a
@@ -87,6 +98,14 @@ case $TOPOLOGY in
   *)
     echo "unknown TOPOLOGY $TOPOLOGY: rs534 or combined" >&2
     exit 2
+    ;;
+esac
+# A scale-in removes one RS and then rolls every survivor. Two remaining RS are needed
+# so writes can continue when either one is restarted; the other rs534 rows keep two.
+case "$TOPOLOGY:$DISTURBANCE" in
+  rs534:scale-rs-kept|rs534:scale-rs-empty)
+    RS_ONLY="cv-r0 cv-r1 cv-r2"
+    RS_NODES=$RS_ONLY
     ;;
 esac
 ALL_NODES=$(echo $DS_NODES $RS_ONLY)
@@ -129,17 +148,30 @@ fail() {
 }
 
 wait_until() { # <seconds> <what> <command> [<argument>...]
-  local deadline=$((SECONDS + $1)) what=$2 start=$SECONDS
+  local deadline=$((SECONDS + $1)) what=$2 start=$SECONDS rc
   shift 2
-  until "$@"; do
-    [ "$SECONDS" -lt "$deadline" ] || fail "timed out waiting until $what"
+  while :; do
+    if [ "${SCALE_DEADLINE_ACTIVE:-0}" = 1 ] && declare -F rolling_worker_failed >/dev/null && rolling_worker_failed; then
+      fail "load worker failed while waiting until $what"; return 1
+    fi
+    rc=0
+    "$@" || rc=$?
+    [ "$rc" -ne 0 ] || break
+    # Reserve 200 for terminal bootstrap failure; existing predicates may retry status 2.
+    [ "$rc" -ne 200 ] || { fail "terminal failure while waiting until $what"; return 1; }
+    [ "$SECONDS" -lt "$deadline" ] || { fail "timed out waiting until $what"; return 1; }
     sleep 2
   done
   [ $((SECONDS - start)) -lt 20 ] || echo "    [$((SECONDS - start)) s] until $what"
 }
 
 is_healthy() { # <container>
-  [ "$(docker inspect --format='{{.State.Health.Status}}' "$1")" = healthy ]
+  local rc=0 state
+  docker exec "$1" sh -c 'test ! -f "${BOOTSTRAP_FAILED:-/opt/opendj/.bootstrap-failed}" || exit 200' 2>/dev/null || rc=$?
+  [ "$rc" -ne 200 ] || return 200
+  [ "$rc" -eq 0 ] || return 1
+  state=$(docker inspect --format='{{.State.Health.Status}}' "$1") || return 1
+  [ "$state" = healthy ]
 }
 
 # The server of the container logged that it started (msgID 135, once its connection handlers
@@ -153,10 +185,11 @@ started_since() { # <container> <seconds>
 
 # The background join of the image goes on once the container reports itself healthy: it adds
 # replication servers to the replication server lists while its peers register
-# (repair_replication_servers in join.sh). Ended once no bootstrap script runs any more, as
-# docker-test-replication.sh waits for it
+# (repair_replication_servers in join.sh). Only the wrapper's successful result proves
+# completion: no join process also means setup has not launched it yet.
 bootstrap_ended() { # <container>
-  ! docker exec "$1" sh -c "grep -qs -e 'bootstrap/[j]oin\.sh' -e 'bootstrap/[r]eplicate\.sh' /proc/[0-9]*/cmdline"
+  docker exec "$1" sh -c 'test ! -f "${BOOTSTRAP_FAILED:-/opt/opendj/.bootstrap-failed}" || exit 200;
+    test -f "${BOOTSTRAP_FINISHED:-/opt/opendj/.bootstrap-finished}"'
 }
 
 ldaps_search() { # <container> <base DN> <scope> <filter> [<attribute>...]

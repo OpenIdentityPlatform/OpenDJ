@@ -24,11 +24,13 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.api.DirectoryThread;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.ReplicaOfflineMsg;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.service.DSRSShutdownSync;
+import org.opends.server.replication.service.DSRSShutdownSync.ForwardingPeer;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.common.ServerStatus.*;
@@ -121,10 +123,14 @@ public class ServerWriter extends DirectoryThread
            * as sent (issue #1080).
            */
           handler.releasePermitInSendWindow();
+          if (handler instanceof ReplicationServerHandler && updateMsg.contributesToDomainState())
+          {
+            ((ReplicationServerHandler) handler).updateDiscardedState(updateMsg.getCSN());
+          }
           if (updateMsg instanceof ReplicaOfflineMsg && !handler.isDataServer())
           {
             dsrsShutdownSync.replicaOfflineMsgNotForwarded(
-                replicationServerDomain.getBaseDN(), handler.getServerId());
+                replicationServerDomain.getBaseDN(), handler.offlineForwarder());
           }
         }
         else
@@ -133,6 +139,14 @@ public class ServerWriter extends DirectoryThread
           if (updateMsg instanceof ReplicaOfflineMsg && !handler.isDataServer())
           {
             forwardReplicaOfflineMsg((ReplicaOfflineMsg) updateMsg);
+          }
+          else if (handler instanceof ReplicationServerHandler && updateMsg.contributesToDomainState())
+          {
+            // take() already advanced the handler state, while publish() may only enqueue.
+            // A shutdown must wait until the session publisher has written the change.
+            final CSN csn = updateMsg.getCSN();
+            session.publish(updateMsg,
+                () -> ((ReplicationServerHandler) handler).updatePublishedState(csn));
           }
           else
           {
@@ -216,12 +230,12 @@ public class ServerWriter extends DirectoryThread
   private void forwardReplicaOfflineMsg(final ReplicaOfflineMsg msg) throws IOException
   {
     final DN baseDN = replicationServerDomain.getBaseDN();
-    final int serverId = handler.getServerId();
+    final ForwardingPeer peer = handler.offlineForwarder();
     final boolean accepted = session.publish(msg,
-        () -> dsrsShutdownSync.replicaOfflineMsgForwarded(baseDN, msg.getCSN(), serverId));
+        () -> dsrsShutdownSync.replicaOfflineMsgForwarded(baseDN, msg.getCSN(), peer));
     if (!accepted)
     {
-      dsrsShutdownSync.replicaOfflineMsgNotForwarded(baseDN, serverId);
+      dsrsShutdownSync.replicaOfflineMsgNotForwarded(baseDN, peer);
     }
   }
 

@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -39,6 +40,8 @@ import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
@@ -97,6 +100,87 @@ public class ReplicationCliMainTest extends DirectoryServerTestCase
 
     assertThat(output.toString(StandardCharsets.UTF_8).strip().split("\t", -1))
         .hasSize(8).endsWith("6442450929");
+  }
+
+  @Test
+  public void localDisableAllRemovesDomainBelowBackendBaseDN() throws Exception
+  {
+    TestCaseUtils.startServer();
+    final String baseDN = "o=disable-all";
+    final DN backend = DN.valueOf("ds-cfg-backend-id=disable-all,cn=Backends,cn=config");
+    final DN nestedDN = DN.valueOf("ou=nested," + baseDN);
+    final String domains = ",cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config";
+    final DN rootDomain = DN.valueOf("cn=disable-all-root" + domains);
+    final DN nestedDomain = DN.valueOf("cn=disable-all-nested" + domains);
+    final String replicationServer = "127.0.0.1:" + TestCaseUtils.findFreePort();
+    TestCaseUtils.addEntries(
+        "dn: " + backend,
+        "objectClass: top",
+        "objectClass: ds-cfg-backend",
+        "objectClass: ds-cfg-local-backend",
+        "objectClass: ds-cfg-memory-backend",
+        "ds-cfg-backend-id: disable-all",
+        "ds-cfg-java-class: org.opends.server.backends.MemoryBackend",
+        "ds-cfg-base-dn: " + baseDN,
+        "ds-cfg-enabled: true",
+        "ds-cfg-writability-mode: enabled");
+    try
+    {
+      TestCaseUtils.addEntries(
+          "dn: " + baseDN,
+          "objectClass: top",
+          "objectClass: organization",
+          "o: disable-all",
+          "",
+          "dn: " + nestedDN,
+          "objectClass: top",
+          "objectClass: organizationalUnit",
+          "ou: nested");
+      addReplicationDomain(rootDomain, baseDN, replicationServer, 1);
+      addReplicationDomain(nestedDomain, nestedDN.toString(), replicationServer, 2);
+      assertThat(DirectoryServer.getEntry(rootDomain)).isNotNull();
+      assertThat(DirectoryServer.getEntry(nestedDomain)).isNotNull();
+
+      final ByteArrayOutputStream output = new ByteArrayOutputStream();
+      final int status = ReplicationCliMain.mainCLI(new String[] {
+          "disable", "--configFile", new File(TestCaseUtils.paths.testInstanceRoot, "config/config.ldif").getPath(),
+          "--hostname", "127.0.0.1", "--port", String.valueOf(TestCaseUtils.getServerAdminPort()),
+          "--bindDN", "cn=Directory Manager", "--adminPassword", "password", "--disableAll", "-X", "-n"
+      }, false, output, output);
+
+      assertThat(status).as(output.toString()).isZero();
+      assertThat(DirectoryServer.getEntry(rootDomain)).isNull();
+      assertThat(DirectoryServer.getEntry(nestedDomain)).isNull();
+    }
+    finally
+    {
+      for (DN domain : Arrays.asList(nestedDomain, rootDomain))
+      {
+        if (DirectoryServer.getEntry(domain) != null)
+        {
+          final DN externalChangelog = DN.valueOf("cn=external changelog," + domain);
+          if (DirectoryServer.getEntry(externalChangelog) != null)
+          {
+            TestCaseUtils.deleteEntry(externalChangelog);
+          }
+          TestCaseUtils.deleteEntry(domain);
+        }
+      }
+      TestCaseUtils.deleteEntry(backend);
+    }
+  }
+
+  private static void addReplicationDomain(DN configDN, String baseDN, String replicationServer, int serverID)
+      throws Exception
+  {
+    TestCaseUtils.addEntries(
+        "dn: " + configDN,
+        "objectClass: top",
+        "objectClass: ds-cfg-replication-domain",
+        "cn: " + configDN.rdn().getFirstAVA().getAttributeValue(),
+        "ds-cfg-base-dn: " + baseDN,
+        "ds-cfg-replication-server: " + replicationServer,
+        "ds-cfg-server-id: " + serverID);
   }
 
   private static TopologyCache topology(ServerDescriptor... servers)

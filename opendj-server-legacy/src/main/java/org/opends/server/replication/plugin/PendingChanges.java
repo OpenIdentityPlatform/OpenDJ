@@ -92,6 +92,9 @@ class PendingChanges
    */
   private final CSNGenerator csnGenerator;
 
+  /** Encoded domain for the opt-in allocation trace; null when tracing is disabled. */
+  private final String csnTraceDomain;
+
   /** The ReplicationDomain that will be used to send UpdateMsg. */
   private final ReplicationDomain domain;
 
@@ -103,6 +106,9 @@ class PendingChanges
    * this list as well - and read without either by {@link #isRecovering()}.
    */
   private volatile boolean recoveringOldChanges;
+  /** While an offline marker is on its way, later commits stay queued behind it. */
+  private volatile boolean publishingOffline;
+
   /** What the recovery which runs keeps of the local changes: {@code null} until it first needs it. */
   private Recovery recovery;
   /** How many local changes a recovery keeps at most: fewer in the tests which make it run over. */
@@ -126,6 +132,7 @@ class PendingChanges
   {
     this.csnGenerator = csnGenerator;
     this.domain = domain;
+    this.csnTraceDomain = CsnAllocationTrace.domain(domain);
     this.replicaOfflineAnnouncer = replicaOfflineAnnouncer;
   }
 
@@ -177,12 +184,17 @@ class PendingChanges
    */
   synchronized CSN putLocalOperation(PluginOperation operation)
   {
-    final CSN csn = csnGenerator.newCSN();
+    final CSN csn = CsnAllocationTrace.next(csnGenerator, csnTraceDomain, 'L');
     if (!operation.isSynchronizationOperation())
     {
       pendingChanges.put(csn, new PendingChange(csn, operation, null));
     }
     return csn;
+  }
+
+  boolean isPublishingOffline()
+  {
+    return publishingOffline;
   }
 
   /**
@@ -198,44 +210,61 @@ class PendingChanges
    * @return the CSN of the message which was published, or {@code null} if it could not be:
    *         a change which is still in flight holds it back, or the broker refused it
    */
-  public synchronized CSN putReplicaOfflineMsg()
+  public CSN putReplicaOfflineMsg()
   {
-    final CSN offlineCSN = csnGenerator.newCSN();
-    final PendingChange pendingChange =
-        new PendingChange(offlineCSN, null, new ReplicaOfflineMsg(offlineCSN));
-    pendingChange.setCommitted(true);
+    final CSN offlineCSN;
+    synchronized (this)
+    {
+      offlineCSN = CsnAllocationTrace.next(csnGenerator, csnTraceDomain, 'O');
+      pushCommittedChanges();
+      if (publishingOffline || !pendingChanges.isEmpty() || recoveringOldChanges)
+      {
+        return null;
+      }
+      publishingOffline = true;
+    }
 
-    pendingChanges.put(offlineCSN, pendingChange);
-    /*
-     * The message is the last change of the queue, so a push which did not reach it, or which
-     * the broker refused, reports another CSN or none.
-     */
-    final boolean published = offlineCSN.equals(pushCommittedChanges());
-    // pushCommittedChanges() removes whatever it reached, so the message is still listed here
-    // if and only if a change before it held it back - it is dropped rather than left queued.
-    pendingChanges.remove(offlineCSN);
-    return published ? offlineCSN : null;
+    boolean published = false;
+    try
+    {
+      // Announce before the socket write: a collocated RS may forward the marker immediately.
+      replicaOfflineAnnouncer.announce(offlineCSN);
+      // A replacement's recovery needs this queue to read and publish the preceding changes.
+      published = domain.publish(new ReplicaOfflineMsg(offlineCSN));
+      return published ? offlineCSN : null;
+    }
+    finally
+    {
+      try
+      {
+        if (!published)
+        {
+          replicaOfflineAnnouncer.withdraw(offlineCSN);
+        }
+      }
+      finally
+      {
+        synchronized (this)
+        {
+          publishingOffline = false;
+          pushCommittedChanges();
+        }
+      }
+    }
   }
 
-  /**
-   * Push all committed local changes to the replicationServer service.
-   *
-   * @return the CSN of the last {@link ReplicaOfflineMsg} the replication service accepted, or
-   *         {@code null} if none was pushed or the broker refused it. The announcement that a
-   *         replica goes offline is the one message whose delivery the caller must know about:
-   *         it is stored nowhere, so nothing publishes it again, while a change the broker
-   *         refuses is republished on the next session, from the message kept of it or, once that
-   *         is dropped, from the historical information of its entry.
-   */
-  synchronized CSN pushCommittedChanges()
+  /** Push committed local changes in CSN order. */
+  synchronized void pushCommittedChanges()
   {
-    CSN publishedOfflineCSN = null;
-
+    if (publishingOffline)
+    {
+      return;
+    }
     // peek the oldest change
     Entry<CSN, PendingChange> firstEntry = pendingChanges.firstEntry();
     if (firstEntry == null)
     {
-      return null;
+      return;
     }
 
     PendingChange firstChange = firstEntry.getValue();
@@ -272,41 +301,6 @@ class PendingChanges
           domain.getServerState().update(msg.getCSN());
         }
       }
-      else if (msg instanceof ReplicaOfflineMsg && recoveringOldChanges)
-      {
-        /*
-         * The announcement carries the newest CSN of this replica, past the changes the recovery
-         * has still to publish: the replication server would take this replica for offline from
-         * there - its changelog index past the changes which reach it afterwards. It is given up
-         * on, as one a change in flight holds back is, whatever the broker would refuse.
-         */
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("The announcement that the replica goes offline at " + msg.getCSN()
-              + " is given up on: a recovery has changes before it to publish");
-        }
-      }
-      else if (msg instanceof ReplicaOfflineMsg)
-      {
-        /*
-         * Announce the replica offline before the message reaches the wire, and not after:
-         * a collocated replication server forwards it as soon as it has it, and a forward
-         * which finds nothing announced leaves the shutdown waiting out the whole grace
-         * period of a message the topology already has.
-         */
-        final CSN offlineCSN = msg.getCSN();
-        replicaOfflineAnnouncer.announce(offlineCSN);
-        if (domain.publish(msg))
-        {
-          publishedOfflineCSN = offlineCSN;
-        }
-        else
-        {
-          // The broker wrote it to no session, so nobody will forward what was announced.
-          replicaOfflineAnnouncer.withdraw(offlineCSN);
-        }
-      }
-
       // false warning: firstEntry will not be null if firstChange is not null
       pendingChanges.remove(firstEntry.getKey());
       pendingAtDataReload.remove(firstChange.getCSN());
@@ -315,7 +309,6 @@ class PendingChanges
       firstEntry = pendingChanges.firstEntry();
       firstChange = firstEntry != null ? firstEntry.getValue() : null;
     }
-    return publishedOfflineCSN;
   }
 
   /**

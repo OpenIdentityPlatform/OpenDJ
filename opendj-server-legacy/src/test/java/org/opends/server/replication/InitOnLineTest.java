@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2026 3A Systems, LLC
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication;
 
@@ -41,6 +41,7 @@ import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.DoneMsg;
 import org.opends.server.replication.protocol.EntryMsg;
 import org.opends.server.replication.protocol.ErrorMsg;
+import org.opends.server.replication.protocol.InitializeRcvAckMsg;
 import org.opends.server.replication.protocol.InitializeRequestMsg;
 import org.opends.server.replication.protocol.InitializeTargetMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -751,8 +752,7 @@ public class InitOnLineTest extends ReplicationTestCase
       waitForRemoteReplicas(server2ID);
       addTask(taskInitTargetS2, ResultCode.SUCCESS, null);
 
-      // Signal RS we just entered the full update status
-      server2.signalStatusChange(ServerStatus.FULL_UPDATE_STATUS);
+      acknowledgeTargetExport(testCase, server2);
 
       // Tests that entries have been received by S2
       receiveUpdatedEntries(server2);
@@ -1102,11 +1102,7 @@ public class InitOnLineTest extends ReplicationTestCase
       addTask(taskInitTargetS2, ResultCode.SUCCESS, null);
 
       log(testCase + " " + server2.getServerId() + " wait target " + Thread.currentThread());
-      waitForInitializeTargetMsg(testCase, server2);
-
-      // Signal RS we just entered the full update status
-      log(testCase + " change status");
-      server2.signalStatusChange(ServerStatus.FULL_UPDATE_STATUS);
+      acknowledgeTargetExport(testCase, server2);
 
       // Tests that entries have been received by S2
       log(testCase + " receive entries");
@@ -1163,7 +1159,18 @@ public class InitOnLineTest extends ReplicationTestCase
     }
   }
 
-  private void waitForInitializeTargetMsg(String testCase,
+  private void acknowledgeTargetExport(String testCase, ReplicationBroker importer) throws Exception
+  {
+    final InitializeTargetMsg header = waitForInitializeTargetMsg(testCase, importer);
+    importer.signalStatusChange(ServerStatus.FULL_UPDATE_STATUS);
+    if (header.getInitializationAttemptId() != null)
+    {
+      importer.publish(new InitializeRcvAckMsg(importer.getServerId(), header.getSenderID(),
+          header.getInitializationAttemptId()));
+    }
+  }
+
+  private InitializeTargetMsg waitForInitializeTargetMsg(String testCase,
       ReplicationBroker server) throws Exception
   {
     // Fail fast when the initialization is lost or failed: looping until the
@@ -1176,7 +1183,7 @@ public class InitOnLineTest extends ReplicationTestCase
       log(testCase + " " + server.getServerId() + " receives " + msgrcv);
       if (msgrcv instanceof InitializeTargetMsg)
       {
-        return;
+        return (InitializeTargetMsg) msgrcv;
       }
       if (msgrcv == null || msgrcv instanceof ErrorMsg)
       {

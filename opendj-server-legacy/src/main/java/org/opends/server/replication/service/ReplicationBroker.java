@@ -39,6 +39,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -54,6 +55,7 @@ import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
 import org.forgerock.util.Utils;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
@@ -61,12 +63,15 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.ChangeStatusMsg;
+import org.opends.server.replication.protocol.ErrorMsg;
+import org.opends.server.replication.protocol.InitializeTargetMsg;
 import org.opends.server.replication.protocol.MonitorMsg;
 import org.opends.server.replication.protocol.MonitorRequestMsg;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplServerStartDSMsg;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
+import org.opends.server.replication.protocol.ReplicaOfflineMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.ServerStartMsg;
 import org.opends.server.replication.protocol.Session;
@@ -96,6 +101,8 @@ public class ReplicationBroker
   {
     private static final ConnectedRS NO_CONNECTED_RS = new ConnectedRS(NO_CONNECTED_SERVER);
     private static final ConnectedRS CONNECTION_REFUSED = new ConnectedRS(NO_CONNECTED_SERVER);
+    /** Handshake result only. Never installed as the broker's current RS. */
+    private static final ConnectedRS START_REPLY_TIMED_OUT = new ConnectedRS(NO_CONNECTED_SERVER);
 
     /** The info of the RS we are connected to. */
     private final ReplicationServerInfo rsInfo;
@@ -211,6 +218,9 @@ public class ReplicationBroker
      * while it closes the session, so that the close never comes after the end of the stop.
      */
     private boolean ended;
+    /** Socket of the replacement handshake, before it becomes the broker's published session. */
+    @GuardedBy("this")
+    private Socket replacementSocket;
     /** The connection timeout the deadlines were set from, in milliseconds. */
     private final long connectionTimeoutMS;
 
@@ -275,6 +285,21 @@ public class ReplicationBroker
    */
   // @NotNull // for the reference
   private final AtomicReference<ConnectedRS> connectedRS = new AtomicReference<>(ConnectedRS.noConnectedRS());
+
+  /** Preparation refusals awaiting a route to the exporter, owned by the receiver thread. */
+  private final Map<Integer, PendingInitializationRefusal> pendingInitializationRefusals = new HashMap<>();
+
+  private static final class PendingInitializationRefusal
+  {
+    private final ErrorMsg message;
+    private final long createdNanos = System.nanoTime();
+    private Session lastSession;
+
+    private PendingInitializationRefusal(ErrorMsg message)
+    {
+      this.message = message;
+    }
+  }
   /** Our replication domain. */
   private final ReplicationDomain domain;
   /**
@@ -309,7 +334,11 @@ public class ReplicationBroker
   private final AtomicReference<Topology> topology = new AtomicReference<>(new Topology());
   @GuardedBy("this")
   private volatile int updateDoneCount;
-  private volatile boolean connectRequiresRecovery;
+
+  private enum RecoveryState { READY, RUNNING, ABORTED }
+
+  private final Object recoveryMonitor = new Object();
+  private volatile RecoveryState recoveryState = RecoveryState.READY;
 
   /**
    * This integer defines when the best replication server checking algorithm
@@ -324,6 +353,21 @@ public class ReplicationBroker
    * (topology stabilization).
    */
   private int mustRunBestServerCheckingAlgorithm;
+
+  /** Owned by the receiver, which continues replay while the old session finishes writing. */
+  private PlannedSwitch plannedSwitch;
+
+  private static final class PlannedSwitch
+  {
+    private final Session session;
+    private final AtomicBoolean completed = new AtomicBoolean();
+    private ScheduledFuture<?> deadline;
+
+    PlannedSwitch(Session session)
+    {
+      this.session = session;
+    }
+  }
 
   /**
    * The monitor provider for this replication domain.
@@ -789,26 +833,25 @@ public class ReplicationBroker
   }
 
   /**
-   * Contacts all replication servers to get information from them and being
-   * able to choose the more suitable.
-   * @return the collected information.
+   * Collects replies for server selection and remembers an RS that did not answer its start message.
+   * Prefer a different RS from the one whose session just ended.
    */
-  private Map<Integer, ReplicationServerInfo> collectReplicationServersInfo()
+  private String collectReplicationServersInfo(Map<Integer, ReplicationServerInfo> rsInfos, String previousRS)
   {
-    final Map<Integer, ReplicationServerInfo> rsInfos = new ConcurrentSkipListMap<>();
-
+    String timedOutRS = null;
     for (String serverUrl : getReplicationServerUrls())
     {
-      // Connect to server + get and store info about it
-      final ConnectedRS rs = performPhaseOneHandshake(serverUrl, false);
-      final ReplicationServerInfo rsInfo = rs.rsInfo;
-      if (rsInfo != null)
+      final ConnectedRS probe = performPhaseOneHandshake(serverUrl, false, false);
+      if (probe.rsInfo != null)
       {
-        rsInfos.put(rsInfo.getServerId(), rsInfo);
+        rsInfos.put(probe.getServerId(), probe.rsInfo);
+      }
+      else if (probe == ConnectedRS.START_REPLY_TIMED_OUT && (timedOutRS == null || timedOutRS.equals(previousRS)))
+      {
+        timedOutRS = serverUrl;
       }
     }
-
-    return rsInfos;
+    return timedOutRS;
   }
 
   /**
@@ -834,10 +877,10 @@ public class ReplicationBroker
    * decide with which RS the full handshake (phase 1 then phase 2) will be
    * finally performed.
    *
-   * @param formerServerURL the previous server on the first reconnect after losing its session, or null
+   * @param previousRS the RS whose established session just ended, or null outside the first failover attempt
    * @throws NumberFormatException address was invalid
    */
-  private void connectAsDataServer(String formerServerURL)
+  private void connectAsDataServer(String previousRS)
   {
     /*
      * If a first connect or a connection failure occur, we go through here.
@@ -866,59 +909,68 @@ public class ReplicationBroker
       }
 
       // Get info from every available replication servers
-      Map<Integer, ReplicationServerInfo> rsInfos =
-          collectReplicationServersInfo();
+      final Map<Integer, ReplicationServerInfo> rsInfos = new ConcurrentSkipListMap<>();
+      final String timedOutRS = collectReplicationServersInfo(rsInfos, previousRS);
       computeNewTopology(toRSInfos(rsInfos));
 
-      if (rsInfos.isEmpty())
+      final boolean hasReplies = !rsInfos.isEmpty();
+      final boolean canRetry = previousRS != null && stopping == null && !permanentlyStopped;
+      String electedURL = null;
+      if (hasReplies)
+      {
+        final RSEvaluations evals = computeBestReplicationServer(true, -1, state,
+            rsInfos, serverId, getGroupId(), getGenerationID());
+        if (logger.isTraceEnabled())
+        {
+          debugInfo("phase 2 : will perform PhaseOneH with the preferred RS=" + evals.getBestRS());
+        }
+        electedURL = evals.getBestRS().getServerURL();
+      }
+      else if (canRetry)
+      {
+        // A live RS can miss one start reply under load. Use the retry to establish the
+        // actual session before declaring isolation and rejecting LDAP writes.
+        electedURL = timedOutRS;
+      }
+
+      if (electedURL == null)
       {
         setConnectedRS(ConnectedRS.noConnectedRS());
       }
       else
       {
-        // At least one server answered, find the best one.
-        RSEvaluations evals = computeBestReplicationServer(true, -1, state,
-            rsInfos, serverId, getGroupId(), getGenerationID());
-
-        // Best found, now initialize connection to this one (handshake phase 1)
-        if (logger.isTraceEnabled())
+        final boolean canRetryElected = canRetry && hasReplies;
+        ConnectedRS electedRS = performPhaseOneHandshake(electedURL, true, canRetryElected);
+        if (electedRS.rsInfo == null && canRetryElected && stopping == null && !permanentlyStopped)
         {
-          debugInfo("phase 2 : will perform PhaseOneH with the preferred RS=" + evals.getBestRS());
-        }
-
-        final ReplicationServerInfo preferred = evals.getBestRS();
-        ConnectedRS electedRS = performPhaseOneHandshake(preferred.getServerURL(), true);
-        if (electedRS == ConnectedRS.CONNECTION_REFUSED && preferred.getServerURL().equals(formerServerURL)
-            && stopping == null && !permanentlyStopped)
-        {
-          // Discovery can still see the former RS while its listener is closing.
-          electedRS = tryAnotherDiscoveryResponder(rsInfos, preferred.getServerId());
-        }
-        final ReplicationServerInfo electedRsInfo = electedRS.rsInfo;
-        if (electedRsInfo != null)
-        {
-          /*
-          Update replication server info with potentially more up to date
-          data (server state for instance may have changed)
-          */
-          rsInfos.put(electedRsInfo.getServerId(), electedRsInfo);
-
-          // Handshake phase 1 exchange went well
-
-          // Compute in which status we are starting the session to tell the RS
-          final ServerStatus initStatus = computeInitialServerStatus(
-              electedRsInfo.getGenerationId(), electedRsInfo.getServerState(),
-              electedRsInfo.getDegradedStatusThreshold(), getGenerationID());
-
-          // Perform session start (handshake phase 2)
-          final TopologyMsg topologyMsg =
-              performPhaseTwoHandshake(electedRS, initStatus);
-
-          if (topologyMsg != null) // Handshake phase 2 exchange went well
+          if (electedRS == ConnectedRS.START_REPLY_TIMED_OUT)
           {
-            connectToReplicationServer(electedRS, initStatus, topologyMsg);
-          } // Could perform handshake phase 2 with best
-        } // Could perform handshake phase 1 with best
+            electedRS = performPhaseOneHandshake(electedURL, true, false);
+          }
+          else if (electedURL.equals(previousRS))
+          {
+            final ReplicationServerInfo responder = electedRS == ConnectedRS.CONNECTION_REFUSED
+                ? selectDiscoveryResponder(rsInfos, previousRS) : null;
+            if (responder != null)
+            {
+              electedRS = connectToDiscoveryResponder(responder);
+            }
+            else if (timedOutRS != null && !electedURL.equals(timedOutRS))
+            {
+              // The other RS can still accept a session after missing its discovery reply.
+              electedRS = performPhaseOneHandshake(timedOutRS, true, false);
+            }
+          }
+        }
+        final StopInProgress stop = stopping;
+        if (electedRS.rsInfo != null)
+        {
+          finishElectedConnection(electedRS, rsInfos);
+        }
+        else if (stop != null && electedURL.equals(previousRS))
+        {
+          connectToReplacementForStop(stop, previousRS, rsInfos);
+        }
       }
 
       // connectedRS has been updated by calls above, reload it
@@ -963,20 +1015,36 @@ public class ReplicationBroker
     }
   }
 
-  /** Tries one compatible discovery responder before publishing isolation. */
-  private ConnectedRS tryAnotherDiscoveryResponder(Map<Integer, ReplicationServerInfo> rsInfos, int refusedServerId)
+  /** Opens the selected RS session using the fresh state returned by its start reply. */
+  private void finishElectedConnection(ConnectedRS electedRS, Map<Integer, ReplicationServerInfo> rsInfos)
+  {
+    final ReplicationServerInfo info = electedRS.rsInfo;
+    rsInfos.put(info.getServerId(), info);
+    final ServerStatus status = computeInitialServerStatus(info.getGenerationId(), info.getServerState(),
+        info.getDegradedStatusThreshold(), getGenerationID());
+    final TopologyMsg topologyMsg = performPhaseTwoHandshake(electedRS, status);
+    if (topologyMsg != null)
+    {
+      connectToReplicationServer(electedRS, status, topologyMsg);
+    }
+  }
+
+  /** Selects a compatible discovery responder other than the former replication server. */
+  private ReplicationServerInfo selectDiscoveryResponder(Map<Integer, ReplicationServerInfo> rsInfos, String formerURL)
   {
     final Map<Integer, ReplicationServerInfo> candidates = new TreeMap<>(rsInfos);
-    candidates.remove(refusedServerId);
-    candidates.values().removeIf(info -> !hasCompatibleGeneration(info));
+    candidates.values().removeIf(info -> formerURL.equals(info.getServerURL()) || !hasCompatibleGeneration(info));
     if (candidates.isEmpty())
     {
-      return ConnectedRS.noConnectedRS();
+      return null;
     }
+    return computeBestReplicationServer(true, -1, state, candidates, getServerId(), getGroupId(),
+        getGenerationID()).getBestRS();
+  }
 
-    final RSEvaluations evals = computeBestReplicationServer(true, -1, state, candidates, getServerId(), getGroupId(),
-        getGenerationID());
-    final ConnectedRS replacement = performPhaseOneHandshake(evals.getBestRS().getServerURL(), true);
+  private ConnectedRS connectToDiscoveryResponder(ReplicationServerInfo responder)
+  {
+    final ConnectedRS replacement = performPhaseOneHandshake(responder.getServerURL(), true, false);
     // The generation may have changed since discovery.
     if (replacement.rsInfo != null && !hasCompatibleGeneration(replacement.rsInfo))
     {
@@ -986,9 +1054,55 @@ public class ReplicationBroker
     return replacement;
   }
 
+  /** Tries one discovery responder when the former RS can no longer take the offline marker. */
+  private void connectToReplacementForStop(StopInProgress stop, String formerURL,
+      Map<Integer, ReplicationServerInfo> rsInfos)
+  {
+    final ReplicationServerInfo responder = selectDiscoveryResponder(rsInfos, formerURL);
+    if (responder == null)
+    {
+      return;
+    }
+
+    final Socket socket = new Socket();
+    synchronized (stop)
+    {
+      if (stop.gaveUp || stop.ended || permanentlyStopped
+          || stop.bounded && System.nanoTime() - stop.writeDeadline >= 0)
+      {
+        close(socket);
+        return;
+      }
+      stop.replacementSocket = socket;
+    }
+
+    boolean connected = false;
+    try
+    {
+      final ConnectedRS replacement = performPhaseOneHandshake(responder.getServerURL(), true, false, socket);
+      // A reset between discovery and the new start reply can change the RS generation.
+      if (hasCompatibleGeneration(replacement.rsInfo) && !stop.gaveUp)
+      {
+        finishElectedConnection(replacement, rsInfos);
+        connected = connectedRS.get() == replacement;
+      }
+    }
+    finally
+    {
+      synchronized (stop)
+      {
+        stop.replacementSocket = null;
+      }
+      if (!connected)
+      {
+        close(socket);
+      }
+    }
+  }
+
   private boolean hasCompatibleGeneration(ReplicationServerInfo info)
   {
-    return info.getGenerationId() == -1 || info.getGenerationId() == getGenerationID();
+    return info != null && (info.getGenerationId() == -1 || info.getGenerationId() == getGenerationID());
   }
 
   private void computeNewTopology(List<RSInfo> newRSInfos)
@@ -1184,20 +1298,27 @@ public class ReplicationBroker
    *          Do we keep session opened or not after handshake. Use true if want
    *          to perform handshake phase 2 with the same session and keep the
    *          session to create as the current one.
-   * @return The answer from the server . Null if could not get an answer.
+   * @param retryStartTimeout whether a start reply timeout on this attempt can be retried
+   * @return The result of the handshake, including whether the start reply timed out
    */
-  private ConnectedRS performPhaseOneHandshake(String serverURL, boolean keepSession)
+  private ConnectedRS performPhaseOneHandshake(String serverURL, boolean keepSession, boolean retryStartTimeout)
+  {
+    return performPhaseOneHandshake(serverURL, keepSession, retryStartTimeout, new Socket());
+  }
+
+  private ConnectedRS performPhaseOneHandshake(String serverURL, boolean keepSession, boolean retryStartTimeout,
+      Socket socket)
   {
     Session newSession = null;
-    Socket socket = null;
     boolean hasConnected = false;
     ConnectedRS failure = ConnectedRS.noConnectedRS();
+    boolean waitingForStartReply = false;
+    boolean startReplyTimedOut = false;
     LocalizableMessage errorMessage = null;
 
     try
     {
       // Open a socket connection to the next candidate.
-      socket = new Socket();
       socket.setReuseAddress(true);
       socket.setReceiveBufferSize(1000000);
       socket.setTcpNoDelay(true);
@@ -1217,7 +1338,7 @@ public class ReplicationBroker
         throw new ConnectException("Connection to " + serverURL
             + " is a TCP self-connect, no replication server is listening");
       }
-      newSession = replSessionSecurity.createClientSession(socket, timeoutMS);
+      newSession = replSessionSecurity.createClientSession(socket, timeoutMS, "DS", getServerId(), getBaseDN());
       boolean isSslEncryption = replSessionSecurity.isSslEncryption();
 
       // Send our ServerStartMsg.
@@ -1231,7 +1352,9 @@ public class ReplicationBroker
 
       // Read the ReplServerStartMsg or ReplServerStartDSMsg that should
       // come back.
+      waitingForStartReply = true;
       ReplicationMsg msg = newSession.receive();
+      waitingForStartReply = false;
       if (logger.isTraceEnabled())
       {
         debugInfo("RB HANDSHAKE SENT:\n" + serverStartMsg + "\nAND RECEIVED:\n"
@@ -1282,6 +1405,7 @@ public class ReplicationBroker
     catch (SocketTimeoutException e)
     {
       logger.traceException(e);
+      startReplyTimedOut = waitingForStartReply;
       errorMessage = WARN_TIMEOUT_CONNECTING_TO_RS.get(getServerId(), serverURL, getBaseDN());
     }
     catch (Exception e)
@@ -1333,10 +1457,8 @@ public class ReplicationBroker
            * a schedule, and a server which cannot be reached over several reconnections is
            * a server whose configuration or certificate needs looking at.
            *
-           * The severity says what the failure cost this broker, not what the message is
-           * named: the elected server keeps the error it was reported with, and a server
-           * which was only contacted is a warning, so that a broker which does find a
-           * server to work with does not raise an error over the one it did not need.
+           * An unsuccessful attempt to establish the elected session is an error.
+           * A discovery probe or a start reply timeout scheduled for retry is a warning.
            * ERR_DS_DN_DOES_NOT_MATCH is the one message which reaches the second branch
            * under an ERR_ name -- it is set without setting hasConnected -- and it is a
            * permanent misconfiguration rather than a transient. It still goes out as an
@@ -1344,7 +1466,7 @@ public class ReplicationBroker
            * without, and where it is only contacted the broker has another server to work
            * with. Before this, that path logged nothing above trace either way.
            */
-          if (keepSession)
+          if (keepSession && !(startReplyTimedOut && retryStartTimeout))
           {
             logger.error(errorMessage);
           }
@@ -1357,7 +1479,7 @@ public class ReplicationBroker
       }
     }
     setConnectedRS(ConnectedRS.noConnectedRS());
-    return failure;
+    return startReplyTimedOut ? ConnectedRS.START_REPLY_TIMED_OUT : failure;
   }
 
   /**
@@ -2333,7 +2455,7 @@ public class ReplicationBroker
     }
 
     ConnectedRS rs = connectedRS.get();
-    String formerServerURL = infiniteTry && failingSession != null && failingSession == rs.session && !connectionError
+    String previousRS = infiniteTry && failingSession != null && failingSession == rs.session && !connectionError
         ? rs.rsInfo.getServerURL() : null;
     if (failingSession == rs.session && !rs.equals(ConnectedRS.noConnectedRS()))
     {
@@ -2363,9 +2485,9 @@ public class ReplicationBroker
         {
           try
           {
-            final String previousServerURL = formerServerURL;
-            formerServerURL = null;
-            connectAsDataServer(previousServerURL);
+            final String failedRS = previousRS;
+            previousRS = null;
+            connectAsDataServer(failedRS);
             rs = connectedRS.get();
           }
           catch (Exception e)
@@ -2417,6 +2539,49 @@ public class ReplicationBroker
     return publish(msg, false, retryOnFailure, null);
   }
 
+  /** Publishes the message on the supplied session while it is still current. */
+  boolean publishOnSession(ReplicationMsg msg, Session session)
+  {
+    return session != null && publish(msg, false, false, session);
+  }
+
+  /** Retains a refusal if the receiver has to retry the reconnect after finishing the import. */
+  void publishInitializationRefusalAfterReconnect(ErrorMsg refusal)
+  {
+    pendingInitializationRefusals.put(refusal.getDestination(), new PendingInitializationRefusal(refusal));
+  }
+
+  private void publishPendingInitializationRefusals(Session session, int rsServerId)
+  {
+    if (pendingInitializationRefusals.isEmpty())
+    {
+      return;
+    }
+    final long now = System.nanoTime();
+    final Map<Integer, DSInfo> replicas = getReplicaInfos();
+    final Iterator<PendingInitializationRefusal> refusals = pendingInitializationRefusals.values().iterator();
+    while (refusals.hasNext())
+    {
+      final PendingInitializationRefusal refusal = refusals.next();
+      // The exporter's wait for preparation is bounded to two minutes.
+      if (now - refusal.createdNanos >= TimeUnit.MINUTES.toNanos(2))
+      {
+        refusals.remove();
+        continue;
+      }
+      final DSInfo exporter = replicas.get(refusal.message.getDestination());
+      if (exporter != null && session != refusal.lastSession && session.getProtocolVersion() >= REPLICATION_PROTOCOL_V9
+          && publishOnSession(refusal.message, session))
+      {
+        refusal.lastSession = session;
+        if (exporter.getRsId() == rsServerId)
+        {
+          refusals.remove();
+        }
+      }
+    }
+  }
+
   /**
    * Returns the session this broker publishes on, which a recovery started for it publishes on:
    * see {@link #publishRecovery(ReplicationMsg, Session)}.
@@ -2439,31 +2604,27 @@ public class ReplicationBroker
    * @param msg the message to publish
    * @param session the session the recovery publishes on, as {@link #getSession()} returned it
    *        when the recovery was started for it
-   * @return {@code false} if the broker refused the message: no replication
-   *         server was reachable, the session is not the one the broker publishes
-   *         on anymore, or the broker was stopped; {@code true} once the session
-   *         took it - which still drops it if it is closing, as it does any
-   *         message the broker publishes.
+   * @return {@code true} if the session accepted the message, or {@code false} if
+   *         the broker no longer publishes on that session, was stopped, or the
+   *         session refused the message.
    */
   public boolean publishRecovery(ReplicationMsg msg, Session session)
   {
-    return publish(msg, true, true, session);
+    return session != null && publish(msg, true, true, session);
   }
 
   /**
    * Publish a message to the other servers.
    * @param msg the message to publish
-   * @param recoveryMsg the message is a recovery LocalizableMessage
+   * @param recoveryMsg whether the message belongs to recovery
    * @param retryOnFailure whether retry should be done on failure
-   * @param recoverySession the only session a recovery message may be published on
-   * @return whether the message was successfully sent.
+   * @param requiredSession the only session that may receive this message, or null for an unbound publication
+   * @return whether the session accepted the message.
    */
   private boolean publish(ReplicationMsg msg, boolean recoveryMsg,
-      boolean retryOnFailure, Session recoverySession)
+      boolean retryOnFailure, Session requiredSession)
   {
-    boolean done = false;
-
-    while (!done && !shutdown && !permanentlyStopped && !gaveUpForTheStop())
+    while (!shutdown && !permanentlyStopped && !gaveUpForTheStop())
     {
       if (connectionError)
       {
@@ -2513,17 +2674,21 @@ public class ReplicationBroker
         announcement that the replica goes offline, which carries its newest
         CSN, would get to the replication server ahead of the changes it misses.
         */
-        if (!recoveryMsg && connectRequiresRecovery && msg instanceof UpdateMsg)
+        if (!recoveryMsg && msg instanceof UpdateMsg && recoveryState != RecoveryState.READY)
         {
-          return false;
+          final StopInProgress stop = stopping;
+          // The old window can run out before its session ever sees the offline write.
+          // This admitted marker can wait because its caller released the pending-change lock.
+          if (!(msg instanceof ReplicaOfflineMsg) || !retryOnFailure || stop == null || !awaitRecoveryForStop(stop))
+          {
+            return false;
+          }
+          // A reconnect while waiting may have replaced both the session and its send window.
+          continue;
         }
-        /*
-        A recovery message is for the session the recovery was started for:
-        the one which replaced it has a recovery of its own, from what its
-        replication server holds. The write below takes the message only on
-        the session read here.
-        */
-        if (recoveryMsg && (recoverySession == null || currentSession != recoverySession))
+        // Recovery belongs to the session that requested it. A replay acknowledgement
+        // likewise belongs to the RS that delivered the update, even if its ID reconnects.
+        if (requiredSession != null && currentSession != requiredSession)
         {
           return false;
         }
@@ -2570,8 +2735,23 @@ public class ReplicationBroker
             final Session session = connectedRS.get().session;
             if (session != null && session == currentSession)
             {
-              session.publish(msg);
-              done = true;
+              final boolean published = session.publish(msg, null);
+              if (!published && msg instanceof UpdateMsg)
+              {
+                // A refused update cannot be acknowledged by the peer.
+                currentWindowSemaphore.release();
+                if (retryOnFailure && !recoveryMsg && session.isClosingForSwitch()
+                    && (((UpdateMsg) msg).contributesToDomainState() || (stop != null && msg instanceof ReplicaOfflineMsg)))
+                {
+                  // The next RS can choose its recovery start before this publication
+                  // advances the local CSN. Retry on that session to keep this change
+                  // ahead of subsequent local writes. A shutdown announcement likewise
+                  // needs a writable session before the stop's existing deadline.
+                  connectPhaseLock.wait(100);
+                  continue;
+                }
+              }
+              return published;
             }
           }
         }
@@ -2654,12 +2834,7 @@ public class ReplicationBroker
         }
       }
     }
-    /*
-     * The loop also ends when the broker is stopped, or gave a message up for the stop, and then
-     * nothing was written to any session: a caller told the message was published would report as
-     * sent a message which never reached the wire.
-     */
-    return done;
+    return false;
   }
 
   /** Tells whether a publish gave its message up for the stop in progress, if there is one. */
@@ -2708,8 +2883,13 @@ public class ReplicationBroker
   {
     while (!shutdown && !permanentlyStopped)
     {
-      ConnectedRS rs = connectedRS.get();
-      if (!rs.isConnected())
+      final ConnectedRS rs = connectedRS.get();
+      final Session session = rs.session;
+      if (plannedSwitch != null && plannedSwitch.session != session)
+      {
+        finishPlannedSwitch(plannedSwitch.session);
+      }
+      if (session == null)
       {
         if (reconnectOnFailure)
         {
@@ -2727,11 +2907,18 @@ public class ReplicationBroker
       final int serverId = getServerId();
       final DN baseDN = getBaseDN();
       final int previousRsServerID = rs.getServerId();
+      publishPendingInitializationRefusals(session, previousRsServerID);
       try
       {
-        ReplicationMsg msg = rs.session.receive();
+        ReplicationMsg msg = session.receive();
         if (msg instanceof UpdateMsg)
         {
+          final UpdateMsg update = (UpdateMsg) msg;
+          if (update.isAssured() && update.getAssuredMode() == AssuredMode.SAFE_READ_MODE
+              && rs.getGroupId() == getGroupId() && session.getProtocolVersion() >= REPLICATION_PROTOCOL_V2)
+          {
+            update.setAcknowledgementSender(ack -> publish(ack, false, false, session));
+          }
           synchronized (this)
           {
             rcvWindow--;
@@ -2760,12 +2947,14 @@ public class ReplicationBroker
         }
         else if (msg instanceof StopMsg)
         {
-          // RS performs a proper disconnection
-          logger.warn(WARN_REPLICATION_SERVER_PROPERLY_DISCONNECTED, previousRsServerID, rs.replicationServer,
-              serverId, baseDN);
+          if (!finishPlannedSwitch(session))
+          {
+            logger.warn(WARN_REPLICATION_SERVER_PROPERLY_DISCONNECTED, previousRsServerID, rs.replicationServer,
+                serverId, baseDN);
+          }
 
           // Try to find a suitable RS
-          reStart(rs.session, true);
+          reStart(session, true);
         }
         else if (msg instanceof MonitorMsg)
         {
@@ -2805,7 +2994,7 @@ public class ReplicationBroker
           disconnect properly and let the connection algorithm re-connect to
           best replication server
           */
-          if (reconnectToTheBestRS)
+          if (reconnectToTheBestRS && plannedSwitch == null)
           {
             mustRunBestServerCheckingAlgorithm++;
             if (mustRunBestServerCheckingAlgorithm == 2)
@@ -2841,13 +3030,18 @@ public class ReplicationBroker
                 {
                   debugInfo("best replication servers evaluation results: " + evals);
                 }
-                reStart(true);
+                switchReplicationServer(session);
               }
 
               // Reset wait time before next computation of best server
               mustRunBestServerCheckingAlgorithm = 0;
             }
           }
+        }
+        else if (msg instanceof InitializeTargetMsg && session.isClosingForSwitch())
+        {
+          // A full import needs a session that can still publish FULL_UPDATE.
+          continue;
         }
         else
         {
@@ -2856,15 +3050,29 @@ public class ReplicationBroker
       }
       catch (SocketTimeoutException e)
       {
-        throw e;
+        if (!finishPlannedSwitch(session))
+        {
+          throw e;
+        }
+        abortPlannedSwitch(session, e);
+        if (reconnectOnFailure)
+        {
+          reStart(session, true);
+        }
+        else
+        {
+          break;
+        }
       }
       catch (Exception e)
       {
+        final boolean wasSwitching = finishPlannedSwitch(session);
         logger.traceException(e);
 
         if (!shutdown)
         {
-          if (rs.session == null || !rs.session.closeInitiated())
+          final boolean locallyClosed = wasSwitching ? session.isSocketCloseRequested() : session.closeInitiated();
+          if (!locallyClosed)
           {
             // We did not initiate the close on our side, log an error message.
             logger.error(WARN_REPLICATION_SERVER_BADLY_DISCONNECTED,
@@ -2876,11 +3084,70 @@ public class ReplicationBroker
             break; // does not seem necessary to explicitly disconnect ..
           }
 
-          reStart(rs.session, true);
+          reStart(session, true);
         }
       }
     }
+    if (plannedSwitch != null)
+    {
+      finishPlannedSwitch(plannedSwitch.session);
+    }
     return null;
+  }
+
+  private void switchReplicationServer(Session session)
+  {
+    if (session.getProtocolVersion() < REPLICATION_PROTOCOL_V4)
+    {
+      reStart(session, true);
+      return;
+    }
+
+    final long timeout = Session.plannedSwitchTimeoutMillis(MultimasterReplication.getConnectionTimeoutMS());
+    final PlannedSwitch pending = new PlannedSwitch(session);
+    pending.deadline = DirectoryServer.getInstance().getServerContext().getCronExecutorService().schedule(() -> {
+      if (pending.completed.compareAndSet(false, true))
+      {
+        abortPlannedSwitch(session, new SocketTimeoutException("Timed out closing the old replication session"));
+      }
+    }, timeout, TimeUnit.MILLISECONDS);
+    plannedSwitch = pending;
+
+    // The old RS can be writing to this DS while it reads our final StopMsg.
+    // Keep the receiver running even if writing the StopMsg blocks.
+    if (!session.closeForSwitch(send -> {
+      final DirectoryThread sender = new DirectoryThread(send,
+          "Replication switch from " + session.getReadableRemoteAddress());
+      sender.setDaemon(true);
+      sender.start();
+    }))
+    {
+      finishPlannedSwitch(session);
+      reStart(session, true);
+    }
+  }
+
+  private boolean finishPlannedSwitch(Session session)
+  {
+    if (plannedSwitch == null || plannedSwitch.session != session)
+    {
+      return false;
+    }
+    plannedSwitch.completed.set(true);
+    plannedSwitch.deadline.cancel(false);
+    plannedSwitch = null;
+    return true;
+  }
+
+  private void abortPlannedSwitch(Session session, SocketTimeoutException cause)
+  {
+    if (session.isSocketCloseRequested())
+    {
+      return;
+    }
+    logger.warn(LocalizableMessage.raw("Timed out switching from replication server %s for domain \"%s\".",
+        session.getReadableRemoteAddress(), getBaseDN()));
+    session.abort(cause);
   }
 
   /**
@@ -3022,6 +3289,7 @@ public class ReplicationBroker
             // End blocked writes too: closing in order could wait for the peer to read forever.
             // stop.end() takes this monitor, so this close cannot reach a later session.
             stop.gaveUp = true;
+            close(stop.replacementSocket);
             final Session session = connectedRS.get().session;
             if (session != null)
             {
@@ -3100,6 +3368,8 @@ public class ReplicationBroker
       }
 
       stop.gaveUp = true;
+      // The replacement's socket is still private until both handshake phases finish.
+      close(stop.replacementSocket);
       /*
        * Read after the mark: a connection under way leaves no session to close here, and publish()
        * writes nothing to the one it then opens, as it reads the mark again under the lock that
@@ -3761,17 +4031,51 @@ public class ReplicationBroker
   }
 
   /**
-   * Set the connectRequiresRecovery to the provided value.
-   * This flag is used to indicate if a recovery of Update is necessary
-   * after a reconnection to a RS.
-   * It is the responsibility of the ReplicationDomain to set it during the
-   * sessionInitiated phase.
-   *
-   * @param b the new value of the connectRequiresRecovery.
+   * Sets the recovery state when a session requests missing changes or their publication completes.
+   * @param required whether the session is waiting for its missing changes
    */
-  public void setRecoveryRequired(boolean b)
+  public void setRecoveryRequired(boolean required)
   {
-    connectRequiresRecovery = b;
+    setRecoveryState(required ? RecoveryState.RUNNING : RecoveryState.READY);
+  }
+
+  /** The publisher exited with changes still missing. Only a successful recovery releases the fence. */
+  public void recoveryAborted()
+  {
+    setRecoveryState(RecoveryState.ABORTED);
+  }
+
+  private void setRecoveryState(RecoveryState state)
+  {
+    synchronized (recoveryMonitor)
+    {
+      recoveryState = state;
+      recoveryMonitor.notifyAll();
+    }
+  }
+
+  private boolean awaitRecoveryForStop(StopInProgress stop) throws InterruptedException
+  {
+    synchronized (recoveryMonitor)
+    {
+      while (recoveryState == RecoveryState.RUNNING && !stop.gaveUp)
+      {
+        if (stop.bounded)
+        {
+          final long left = stop.writeDeadline - System.nanoTime();
+          if (left <= 0)
+          {
+            return false;
+          }
+          TimeUnit.NANOSECONDS.timedWait(recoveryMonitor, left);
+        }
+        else
+        {
+          recoveryMonitor.wait();
+        }
+      }
+      return recoveryState == RecoveryState.READY && !stop.gaveUp;
+    }
   }
 
   /**

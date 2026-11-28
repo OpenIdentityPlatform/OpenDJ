@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyrighted 2026 3A Systems, LLC.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -718,7 +718,7 @@ public class ReplicationServer
         throw new ConnectException("Connection to " + remoteServerAddress
             + " is a TCP self-connect, no replication server is listening");
       }
-      session = replSessionSecurity.createClientSession(socket, timeoutMS);
+      session = replSessionSecurity.createClientSession(socket, timeoutMS, "RS", getServerId(), baseDN);
 
       ReplicationServerHandler rsHandler = new ReplicationServerHandler(
           session, config.getQueueSize(), this, config.getWindowSize());
@@ -1694,6 +1694,22 @@ public class ReplicationServer
       listenThread.interrupt();
     }
 
+    // Remote DSs may still write while this RS stops. End their readers first, then
+    // drain those accepted updates while the peer writers and their sessions remain up.
+    // Unlike a collocated DS, they need not send a ReplicaOfflineMsg at this shutdown.
+    for (ReplicationServerDomain domain : getReplicationServerDomains())
+    {
+      domain.stopDirectoryServers();
+    }
+    try
+    {
+      awaitDirectUpdatesForwarded(TimeUnit.SECONDS.toNanos(30));
+    }
+    catch (InterruptedException e)
+    {
+      Thread.currentThread().interrupt();
+    }
+
     for (ReplicationServerDomain domain : getReplicationServerDomains())
     {
       domain.shutdown();
@@ -1712,6 +1728,16 @@ public class ReplicationServer
 
     // Remove this instance from the global instance list
     allInstances.remove(this);
+  }
+
+  /** Waits for all domains within one direct-update forwarding budget. */
+  void awaitDirectUpdatesForwarded(long timeoutNanos) throws InterruptedException
+  {
+    final long deadline = System.nanoTime() + timeoutNanos;
+    for (ReplicationServerDomain domain : getReplicationServerDomains())
+    {
+      domain.awaitDirectUpdatesForwarded(deadline);
+    }
   }
 
   /**

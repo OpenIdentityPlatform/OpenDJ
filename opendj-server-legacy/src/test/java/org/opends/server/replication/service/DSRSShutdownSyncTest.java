@@ -25,6 +25,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.replication.common.CSN;
 import org.testng.annotations.BeforeClass;
+import org.opends.server.replication.service.DSRSShutdownSync.ForwardingPeer;
 import org.testng.annotations.Test;
 
 /** Test the {@link DSRSShutdownSync} class. */
@@ -43,8 +44,8 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
   private static final int SERVER_ID = 1;
   private static final int OTHER_SERVER_ID = 2;
   /** A peer replication server the collocated one relays the message to. */
-  private static final int RS_ID = 11;
-  private static final int OTHER_RS_ID = 12;
+  private static final ForwardingPeer PEER = new ForwardingPeer(11);
+  private static final ForwardingPeer OTHER_PEER = new ForwardingPeer(12);
 
   private static DN baseDN1;
   private static DN baseDN2;
@@ -81,7 +82,7 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     final CSN offlineCSN = newCSN(SERVER_ID);
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, RS_ID);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, PEER);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
   }
@@ -123,7 +124,7 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
 
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, refusedByTheBroker, RS_ID);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, refusedByTheBroker, PEER);
     assertThat(shutdownSync.canShutdown(baseDN1))
         .as("the stale withdrawal was ignored, not turned into a restore")
         .isFalse();
@@ -149,7 +150,7 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     assertThat(shutdownSync.canShutdown(baseDN1))
         .as("the earlier message went out and nobody has forwarded it yet")
         .isFalse();
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, RS_ID);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, PEER);
     assertThat(shutdownSync.canShutdown(baseDN1))
         .as("the forward of the earlier message ends the wait")
         .isTrue();
@@ -169,15 +170,15 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, sentByTheShutdown);
     shutdownSync.replicaOfflineMsgDispatched(
-        baseDN1, sentByTheShutdown, asList(RS_ID, OTHER_RS_ID));
+        baseDN1, sentByTheShutdown, asList(PEER, OTHER_PEER));
     shutdownSync.replicaOfflineMsgSent(baseDN1, refusedByTheBroker);
     shutdownSync.replicaOfflineMsgNotSent(baseDN1, refusedByTheBroker);
 
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, RS_ID);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, PEER);
     assertThat(shutdownSync.canShutdown(baseDN1))
         .as("the restored message is still owed the other peer's forward")
         .isFalse();
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, OTHER_RS_ID);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, OTHER_PEER);
     assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
   }
 
@@ -219,10 +220,10 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     final CSN refusedByTheBroker = newCSN(SERVER_ID, 2);
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, sentByTheShutdown);
-    shutdownSync.replicaOfflineMsgDispatched(baseDN1, sentByTheShutdown, asList(RS_ID));
+    shutdownSync.replicaOfflineMsgDispatched(baseDN1, sentByTheShutdown, asList(PEER));
     shutdownSync.replicaOfflineMsgSent(baseDN1, refusedByTheBroker);
     // not seen: the announcement of the refused message stands in front
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, RS_ID);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, PEER);
     shutdownSync.replicaOfflineMsgNotSent(baseDN1, refusedByTheBroker);
 
     assertThat(shutdownSync.canShutdown(baseDN1))
@@ -254,7 +255,7 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     // an import disables then re-enables the replication service
     final CSN sentByTheImport = newCSN(SERVER_ID, 1);
     shutdownSync.replicaOfflineMsgSent(baseDN1, sentByTheImport);
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheImport, RS_ID);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheImport, PEER);
     Thread.sleep(GRACE_PERIOD + 50);
 
     // the shutdown of the process, much later
@@ -277,11 +278,11 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, queuedByAnEarlierImport);
     shutdownSync.replicaOfflineMsgSent(baseDN1, sentByTheShutdown);
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, queuedByAnEarlierImport, RS_ID);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, queuedByAnEarlierImport, PEER);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
 
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, RS_ID);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, PEER);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
   }
@@ -309,7 +310,7 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, newCSN(SERVER_ID));
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, newCSN(OTHER_SERVER_ID), RS_ID);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, newCSN(OTHER_SERVER_ID), PEER);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
   }
@@ -323,7 +324,7 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, ofOneReplica);
     shutdownSync.replicaOfflineMsgSent(baseDN1, newCSN(OTHER_SERVER_ID));
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, ofOneReplica, RS_ID);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, ofOneReplica, PEER);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
   }
@@ -337,8 +338,8 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, ofOneReplica);
     shutdownSync.replicaOfflineMsgSent(baseDN1, ofTheOtherReplica);
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, ofOneReplica, RS_ID);
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, ofTheOtherReplica, RS_ID);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, ofOneReplica, PEER);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, ofTheOtherReplica, PEER);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
   }
@@ -407,8 +408,8 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     final CSN offlineCSN = newCSN(SERVER_ID);
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
-    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(RS_ID, OTHER_RS_ID));
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, RS_ID);
+    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(PEER, OTHER_PEER));
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, PEER);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
   }
@@ -420,9 +421,9 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     final CSN offlineCSN = newCSN(SERVER_ID);
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
-    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(RS_ID, OTHER_RS_ID));
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, RS_ID);
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, OTHER_RS_ID);
+    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(PEER, OTHER_PEER));
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, PEER);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, OTHER_PEER);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
   }
@@ -439,7 +440,7 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
     shutdownSync.replicaOfflineMsgDispatched(
-        baseDN1, offlineCSN, Collections.<Integer> emptyList());
+        baseDN1, offlineCSN, Collections.emptyList());
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
   }
@@ -455,9 +456,9 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     final CSN offlineCSN = newCSN(SERVER_ID);
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
-    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(RS_ID, OTHER_RS_ID));
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, RS_ID);
-    shutdownSync.replicaOfflineMsgNotForwarded(baseDN1, OTHER_RS_ID);
+    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(PEER, OTHER_PEER));
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, PEER);
+    shutdownSync.replicaOfflineMsgNotForwarded(baseDN1, OTHER_PEER);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
   }
@@ -470,8 +471,8 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     final CSN offlineCSN = newCSN(SERVER_ID);
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
-    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(RS_ID, OTHER_RS_ID));
-    shutdownSync.replicaOfflineMsgNotForwarded(baseDN1, OTHER_RS_ID);
+    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(PEER, OTHER_PEER));
+    shutdownSync.replicaOfflineMsgNotForwarded(baseDN1, OTHER_PEER);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
   }
@@ -487,8 +488,8 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     final CSN offlineCSN = newCSN(SERVER_ID);
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
-    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(RS_ID));
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, OTHER_RS_ID);
+    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(PEER));
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, OTHER_PEER);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
   }
@@ -506,7 +507,7 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     final CSN offlineCSN = newCSN(SERVER_ID);
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, RS_ID);
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, PEER);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
   }
@@ -524,7 +525,7 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, newCSN(SERVER_ID));
-    shutdownSync.replicaOfflineMsgNotForwarded(baseDN1, RS_ID);
+    shutdownSync.replicaOfflineMsgNotForwarded(baseDN1, PEER);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isFalse();
   }
@@ -542,10 +543,27 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
 
     shutdownSync.replicaOfflineMsgSent(baseDN1, sentByTheShutdown);
     shutdownSync.replicaOfflineMsgDispatched(
-        baseDN1, queuedByAnEarlierImport, asList(RS_ID, OTHER_RS_ID));
-    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, RS_ID);
+        baseDN1, queuedByAnEarlierImport, asList(PEER, OTHER_PEER));
+    shutdownSync.replicaOfflineMsgForwarded(baseDN1, sentByTheShutdown, PEER);
 
     assertThat(shutdownSync.canShutdown(baseDN1)).isTrue();
+  }
+
+  @Test
+  public void aDifferentConnectionWithTheSameServerIdCannotReportTheForward()
+  {
+    final DSRSShutdownSync sync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
+    final CSN offlineCSN = newCSN(SERVER_ID);
+    final ForwardingPeer replacement = new ForwardingPeer(PEER.getServerId());
+
+    sync.replicaOfflineMsgSent(baseDN1, offlineCSN);
+    sync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(replacement));
+    sync.replicaOfflineMsgNotForwarded(baseDN1, PEER);
+    assertThat(sync.canShutdown(baseDN1)).isFalse();
+    sync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, PEER);
+    assertThat(sync.canShutdown(baseDN1)).isFalse();
+    sync.replicaOfflineMsgForwarded(baseDN1, offlineCSN, replacement);
+    assertThat(sync.canShutdown(baseDN1)).isTrue();
   }
 
   /**
@@ -558,8 +576,8 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
     final DSRSShutdownSync shutdownSync = new DSRSShutdownSync(LONG_GRACE_PERIOD);
     final CSN offlineCSN = newCSN(SERVER_ID);
     shutdownSync.replicaOfflineMsgSent(baseDN1, offlineCSN);
-    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(RS_ID));
-    final Thread peerStopper = newPeerStopperThread(shutdownSync, RS_ID);
+    shutdownSync.replicaOfflineMsgDispatched(baseDN1, offlineCSN, asList(PEER));
+    final Thread peerStopper = newPeerStopperThread(shutdownSync, PEER);
 
     final long startTime = System.nanoTime();
     peerStopper.start();
@@ -624,7 +642,7 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
   }
 
   /** Stops the peer the message was queued for, as a disconnection during the wait does. */
-  private Thread newPeerStopperThread(final DSRSShutdownSync shutdownSync, final int peerId)
+  private Thread newPeerStopperThread(final DSRSShutdownSync shutdownSync, final ForwardingPeer peer)
   {
     return new Thread(new Runnable()
     {
@@ -634,7 +652,7 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
         try
         {
           Thread.sleep(FORWARD_DELAY);
-          shutdownSync.replicaOfflineMsgNotForwarded(baseDN1, peerId);
+          shutdownSync.replicaOfflineMsgNotForwarded(baseDN1, peer);
         }
         catch (InterruptedException e)
         {
@@ -656,9 +674,9 @@ public class DSRSShutdownSyncTest extends DirectoryServerTestCase
         try
         {
           Thread.sleep(FORWARD_DELAY);
-          shutdownSync.replicaOfflineMsgForwarded(baseDN1, ofTheFirstDomain, RS_ID);
+          shutdownSync.replicaOfflineMsgForwarded(baseDN1, ofTheFirstDomain, PEER);
           Thread.sleep(FORWARD_DELAY);
-          shutdownSync.replicaOfflineMsgForwarded(baseDN2, ofTheSecondDomain, RS_ID);
+          shutdownSync.replicaOfflineMsgForwarded(baseDN2, ofTheSecondDomain, PEER);
         }
         catch (InterruptedException e)
         {

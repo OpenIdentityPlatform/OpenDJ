@@ -178,6 +178,19 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
+   * Returns the newest update of this replica deliberately not handed to this queue.
+   * RS handlers use domain-wide peer receipts so a newly registered handler sees
+   * updates whose publication began before it registered.
+   *
+   * @param serverId the replica which produced the update
+   * @return its newest unqueued update, or {@code null} when none is known
+   */
+  protected CSN getLatestUnqueuedUpdate(int serverId)
+  {
+    return null;
+  }
+
+  /**
    * Whether the consumer has every change the queue may lack which the changelog still holds - see
    * {@link #queueLacksUpTo} and {@link #consumerLacksFromTheChangelog(CSN, ServerState)}.
    * <p>
@@ -263,7 +276,11 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     {
       replicationServerDomain = replicationServer.getReplicationServerDomain(
           baseDN, true);
-      if (waitConnections)
+      // Let a bootstrapping domain learn its generation and topology before accepting
+      // a DS. A domain already serving a DS must be able to accept another while the
+      // connect thread is waiting for a peer RS.
+      if (waitConnections && (replicationServerDomain.getGenerationId() <= 0
+          || replicationServerDomain.getConnectedDSs().isEmpty()))
       {
         replicationServer.waitConnections();
       }
@@ -523,6 +540,17 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
              * would move the state of the consumer past them, and the changelog would be read
              * from after them, so they would never be sent - see issue #1252.
              */
+            continue;
+          }
+          // A replica may have written through a peer since this queue was last used.
+          // Its next direct write must not advance our cursor past that unqueued prefix.
+          // Other replicas keep following normally: an RS does not relay idle peer traffic.
+          final CSN next = msgQueue.first().getCSN();
+          final CSN unqueued = getLatestUnqueuedUpdate(next.getServerId());
+          if (unqueued != null && !serverState.cover(next) && !serverState.cover(unqueued)
+              && consumerLacksFromTheChangelog(unqueued, replicationServerDomain.getLatestServerState()))
+          {
+            following = false;
             continue;
           }
           UpdateMsg msg = msgQueue.removeFirst();

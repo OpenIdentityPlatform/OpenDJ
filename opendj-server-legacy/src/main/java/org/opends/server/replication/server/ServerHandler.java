@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2026 3A Systems, LLC
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -22,10 +22,10 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Random;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -55,6 +55,7 @@ import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.protocol.WindowMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.service.DSRSShutdownSync.ForwardingPeer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
@@ -82,6 +83,8 @@ public abstract class ServerHandler extends MessageHandler
    * The session opened with the remote server.
    */
   protected final Session session;
+
+  private final AtomicReference<ForwardingPeer> offlineForwarder = new AtomicReference<>();
 
   /**
    * The serverURL of the remote server.
@@ -658,6 +661,12 @@ public abstract class ServerHandler extends MessageHandler
     return serverId;
   }
 
+  /** Returns this connection's offline-forwarding token after the peer ID is known. */
+  final ForwardingPeer offlineForwarder()
+  {
+    return offlineForwarder.updateAndGet(peer -> peer != null ? peer : new ForwardingPeer(serverId));
+  }
+
   /**
    * Retrieves the URL for this server handler.
    *
@@ -792,56 +801,6 @@ public abstract class ServerHandler extends MessageHandler
   }
 
   /**
-   * Lock the domain with a timeout.
-   * <p>
-   * Take the lock on the domain. WARNING: Here we try to acquire the lock with
-   * a timeout. This is for preventing a deadlock that may happen if there are
-   * cross connection attempts (for same domain) from this replication server
-   * and from a peer one.
-   * <p>
-   * Here is the scenario:
-   * <ol>
-   * <li>RS1 connect thread takes the domain lock and starts connection to RS2
-   * </li>
-   * <li>at the same time RS2 connect thread takes his domain lock and start
-   * connection to RS2</li>
-   * <li>RS2 listen thread starts processing received ReplServerStartMsg from
-   * RS1 and wants to acquire the lock on the domain (here) but cannot as RS2
-   * connect thread already has it</li>
-   * <li>RS1 listen thread starts processing received ReplServerStartMsg from
-   * RS2 and wants to acquire the lock on the domain (here) but cannot as RS1
-   * connect thread already has it</li>
-   * </ol>
-   * =&gt; Deadlock: 4 threads are locked.
-   * <p>
-   * To prevent threads locking in such situation, the listen threads here will
-   * both timeout trying to acquire the lock. The random time for the timeout
-   * should allow on connection attempt to be aborted whereas the other one
-   * should have time to finish in the same time.
-   * <p>
-   * Warning: the minimum time (3s) should be big enough to allow normal
-   * situation connections to terminate. The added random time should represent
-   * a big enough range so that the chance to have one listen thread timing out
-   * a lot before the peer one is great. When the first listen thread times out,
-   * the remote connect thread should release the lock and allow the peer listen
-   * thread to take the lock it was waiting for and process the connection
-   * attempt.
-   *
-   * @return {@code true} if the lock was acquired, {@code false} if the wait
-   *         timed out, which is the connection attempt to abort
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting for the lock.
-   */
-  public boolean lockDomainWithTimeout() throws InterruptedException
-  {
-    final Random random = new Random();
-    final int randomTime = random.nextInt(6); // Random from 0 to 5
-    // Wait at least 3 seconds + (0 to 5 seconds)
-    final long timeout = 3000 + randomTime * 1000L;
-    return replicationServerDomain.tryLock(timeout);
-  }
-
-  /**
    * Processes a routable message.
    *
    * @param msg The message to be processed.
@@ -967,21 +926,39 @@ public abstract class ServerHandler extends MessageHandler
   @Override
   public void shutdown()
   {
+    shutdownWithoutWaiting();
+    awaitShutdown();
+  }
+
+  /** Stops accepting work and removes monitors before a replacement can register. */
+  void shutdownWithoutWaiting()
+  {
     shutdownWriter = true;
     setConsumerActive(false);
     super.shutdown();
 
-    if (session != null)
-    {
-      session.close();
-    }
     if (heartbeatThread != null)
     {
       heartbeatThread.shutdown();
     }
 
     DirectoryServer.deregisterMonitorProvider(this);
+  }
 
+  /** Waits for accepted work to finish without retaining the replication domain lock. */
+  void awaitShutdown()
+  {
+    // Closing drains accepted writes and may block on a slow peer. Runtime
+    // teardown must release the domain lock before this phase, just as for joins.
+    if (session != null)
+    {
+      session.close();
+    }
+    joinShutdownThreads();
+  }
+
+  private void joinShutdownThreads()
+  {
     /*
      * Be sure to wait for ServerWriter and ServerReader death
      * It does not matter if we try to stop a thread which is us (reader
@@ -1005,6 +982,12 @@ public abstract class ServerHandler extends MessageHandler
     {
       logger.trace("SH.shutdowned(" + this + ")");
     }
+  }
+
+  /** Records an update received from the remote server, separately from delivery where needed. */
+  void recordReceivedUpdate(UpdateMsg update)
+  {
+    updateServerState(update);
   }
 
   /**

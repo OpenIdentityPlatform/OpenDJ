@@ -22,6 +22,8 @@
 
 set -eE -o pipefail
 
+HERE=$(cd "$(dirname "$0")" && pwd)
+DIAGNOSTICS=${DIAGNOSTICS:-${RUNNER_TEMP:-/tmp}/docker-replication}
 IMAGE=${1:?usage: $0 <image>}
 NODES="dj-0 dj-1 dj-2 dj-x dj-solo dj-bf dj-fi dj-f dj-p0 dj-p1 dj-p2 dj-ipm dj-ipr dj-sdsr dj-shm-probe dj-shm dj-d0 dj-d1 dj-r0 dj-r1 dj-dn0 dj-dn1 dj-rf dj-rfd dj-nm dj-nmr dj-bogus"
 VOLUMES="vol-dj-0 vol-dj-1 vol-dj-2 vol-dj-x vol-dj-solo vol-dj-bf vol-dj-fi vol-dj-f vol-dj-ipr vol-dj-p0 vol-dj-p1 vol-dj-p2 vol-dj-d0 vol-dj-d1 vol-dj-r0 vol-dj-r1 vol-dj-dn0 vol-dj-dn1 vol-dj-rf vol-dj-rfd vol-dj-nm vol-dj-nmr vol-dj-bogus"
@@ -38,25 +40,19 @@ cleanup() {
   docker volume rm -f $VOLUMES >/dev/null 2>&1 || true
 }
 cleanup
-# the container log says that a dsreplication failed and where its detailed log is; the errors
-# log of the server and those detailed logs say why. Both are in the instance, which the
-# image keeps under /opt/opendj/data, and a stopped container has nothing to exec in
+# Preserve the exit/OOM state and files even after PID 1 has exited. docker exec
+# cannot read a stopped container; the collector uses docker cp for its logs.
 dump_logs() {
   local c
   for c in $NODES; do
-    echo "::group::container logs ($c)"
-    docker logs $c 2>&1 || true
-    echo "::endgroup::"
-    [ "$(docker inspect -f '{{.State.Running}}' $c 2>/dev/null)" = true ] || continue
-    echo "::group::server logs ($c)"
-    docker exec $c sh -c 'tail -n 1000 /opt/opendj/data/logs/errors; for f in /opt/opendj/data/tmp/opendj-replication-*.log; do [ -f "$f" ] && echo "--- $f" && cat "$f"; done' 2>&1 || true
-    echo "::endgroup::"
+    docker inspect "$c" >/dev/null 2>&1 || continue
+    bash "$HERE/docker-startup-diagnostics.sh" "$c" "$DIAGNOSTICS/$c" || true
   done
 }
 # set -E hands the trap to every $(...) as well, where a failing command would dump the logs
 # into the value being captured and remove the containers under the running test: there the
 # failure only ends the subshell, and the main shell decides
-trap 'code=$?; [ "$BASH_SUBSHELL" -eq 0 ] || exit $code; dump_logs; timings; cleanup; exit $code' ERR
+trap 'code=$?; [ "$BASH_SUBSHELL" -eq 0 ] || exit $code; trap - ERR; set +e; dump_logs; timings; cleanup; exit $code' ERR
 
 # Where the time goes: each case logs when it starts, in seconds since the script started, and
 # a wait that takes long logs how long; the run ends - failed or not - with the cases sorted by
@@ -99,16 +95,58 @@ logs_count() { # <container> <text>
 # Not right after the start: until this start logs <since> itself, the last such line and the
 # text after it are those of the start before - run.sh prints "Starting OpenDJ" only after
 # the upgrade
+# Return 1 for a missing match and 2 when the log could not be read.
 logs_have_since() { # <container> <since> <text>
-  docker logs "$1" 2>&1 | awk -v s="$2" 'index($0, s) { buf = ""; next } { buf = buf $0 "\n" } END { printf "%s", buf }' \
-    | grep -F -- "$3" >/dev/null
+  local log
+  log=$(docker logs "$1" 2>&1 |
+    awk -v s="$2" 'index($0, s) { buf = ""; next } { buf = buf $0 "\n" } END { printf "%s", buf }') || return 2
+  grep -F -- "$3" <<<"$log" >/dev/null
+}
+
+assert_no_replication_reset() { # <container>
+  local status=0
+  logs_have_since "$1" "Starting OpenDJ" "taking its replication configuration down" || status=$?
+  case "$status" in
+    0) fail "$1 reset its replication on a plain restart" ;;
+    1) return 0 ;;
+    *) fail "could not read the current startup log for $1" ;;
+  esac
+}
+
+# Only nodes explicitly required by this wait are checked: other scenarios stop
+# peers deliberately, and some waits observe an expected failed bootstrap.
+container_running() { # <container>
+  local state
+  state=$(docker inspect --format '{{.State.Status}}' "$1" 2>/dev/null) || return 1
+  case "$state" in
+    running) return 0 ;;
+    exited|dead)
+      echo "::error::$1 stopped while it was required by the test"
+      docker inspect --format '{{json .State}}' "$1" 2>&1 || true
+      return 200 ;;
+    *) return 1 ;;
+  esac
+}
+
+wait_running() { # <space-separated containers> <seconds> <what> <command> [<argument>...]
+  local WAIT_NODES=$1
+  shift
+  wait_until "$@"
 }
 
 wait_until() { # <seconds> <what> <command> [<argument>...]
-  local deadline=$((SECONDS + $1)) what=$2 start=$SECONDS
+  local deadline=$((SECONDS + $1)) what=$2 start=$SECONDS rc c
   shift 2
-  until "$@"; do
-    [ "$SECONDS" -lt "$deadline" ] || fail "timed out waiting until $what"
+  while :; do
+    rc=0
+    for c in ${WAIT_NODES:-}; do
+      container_running "$c" || rc=$?
+      [ "$rc" -eq 0 ] || break
+    done
+    if [ "$rc" -eq 0 ]; then "$@" || rc=$?; fi
+    [ "$rc" -ne 0 ] || break
+    [ "$rc" -ne 200 ] || { fail "terminal failure while waiting until $what"; return 1; }
+    [ "$SECONDS" -lt "$deadline" ] || { fail "timed out waiting until $what"; return 1; }
     sleep 2
   done
   [ $((SECONDS - start)) -lt 20 ] || echo "    [$((SECONDS - start)) s] until $what"
@@ -123,7 +161,7 @@ is_healthy() {
 }
 
 wait_healthy() {
-  wait_until 480 "$1 is healthy" is_healthy "$1"
+  wait_running "$1" 480 "$1 is healthy" is_healthy "$1"
 }
 
 # A container reports itself healthy only after a probe that finds the marker, and the
@@ -144,7 +182,7 @@ ldaps_has() { # <container> <DN>
 }
 
 wait_has() { # <container> <DN>
-  wait_until 60 "$2 is on $1" ldaps_has "$1" "$2"
+  wait_running "$1" 60 "$2 is on $1" ldaps_has "$1" "$2"
 }
 
 admin_search() { # <container> <base DN> <scope> <filter> [<attribute>...]
@@ -178,12 +216,11 @@ recorded_role_of() { # <container>
   docker exec "$1" cat /opt/opendj/data/.replication-role 2>/dev/null
 }
 
-# no join.sh or replicate.sh runs in the container any more. A volume that holds the data
-# reports itself healthy from the start while its join still runs, and the join keeps its
-# password file until it ends. The bracket keeps the pattern from matching the command line
-# of the sh that greps for it
+# Health can precede the retained-volume join. Its wrapper records completion only
+# after the child has exited (including its trap which removes the password file).
 bootstrap_ended() { # <container>
-  ! docker exec "$1" sh -c "grep -qs -e 'bootstrap/[j]oin\.sh' -e 'bootstrap/[r]eplicate\.sh' /proc/[0-9]*/cmdline"
+  docker exec "$1" sh -c 'test ! -f "${BOOTSTRAP_FAILED:-/opt/opendj/.bootstrap-failed}" || exit 200;
+    test -f "${BOOTSTRAP_FINISHED:-/opt/opendj/.bootstrap-finished}"'
 }
 
 # the writability-mode the backend of dc=example,dc=com is configured with, empty where its
@@ -309,11 +346,11 @@ start_node() { # <name> <peers> [<docker run option>...]
   local name=$1 peers=$2
   shift 2
   docker volume create "vol-$name" >/dev/null
-  docker run -d --memory="512m" --network $NETWORK --name "$name" --hostname "$name" \
+  docker run -d --network $NETWORK --name "$name" --hostname "$name" \
     -v "vol-$name:/opt/opendj/data" \
     -e ROOT_PASSWORD="$ROOT_PASSWORD" -e ADD_BASE_ENTRY="--addBaseEntry" \
     -e OPENDJ_REPLICATION_TYPE=simple -e REPLICATION_PEERS="$peers" \
-    -e REPLICATION_RETRY_COUNT=10 -e REPLICATION_RETRY_INTERVAL=3 -e REPLICATION_ATTEMPT_TIMEOUT=90 \
+    -e JOIN_TIMING=1 -e REPLICATION_RETRY_COUNT=10 -e REPLICATION_RETRY_INTERVAL=3 -e REPLICATION_ATTEMPT_TIMEOUT=90 \
     "$@" "$IMAGE" >/dev/null
 }
 
@@ -335,7 +372,7 @@ docker exec dj-0 sh -c 'echo userRoot >/opt/opendj/data/.replication-rejoin-pend
 # turn it healthy - and its backend stays held, since only a join lets the writes in again:
 # the server says which backend that is
 docker rm -f dj-0 >/dev/null
-docker run -d --memory="512m" --network $NETWORK --name dj-0 --hostname dj-0 -v vol-dj-0:/opt/opendj/data \
+docker run -d --network $NETWORK --name dj-0 --hostname dj-0 -v vol-dj-0:/opt/opendj/data \
   -e ROOT_PASSWORD="$ROOT_PASSWORD" "$IMAGE" >/dev/null
 wait_until 300 "dj-0 says that no join lets the writes in" logs_have dj-0 "The backend userRoot may still refuse the writes of clients"
 wait_healthy dj-0
@@ -378,7 +415,8 @@ docker restart dj-0 >/dev/null
 wait_until 120 "dj-0 is healthy while dj-1 is down" is_healthy dj-0
 docker start dj-1 >/dev/null
 wait_healthy dj-1
-# a member is healthy before its join runs: the role is recorded once the join found it a member
+# A member can be healthy before its join checks membership and records the role.
+wait_until 300 "the restarted dj-0 is a member again" logs_have_since dj-0 "Starting OpenDJ" "already a member of the replication topology"
 wait_until 300 "the restarted dj-1 is a member again" logs_have_since dj-1 "Starting OpenDJ" "already a member of the replication topology"
 [ "$(recorded_role_of dj-1)" = combined ] || fail "dj-1 was recorded $(recorded_role_of dj-1) from its combined replication configuration"
 add_ou dj-1 replicated2
@@ -387,7 +425,7 @@ wait_has dj-0 "ou=replicated2,dc=example,dc=com"
 # peer registers any more does that, or one that its own cn=admin data does not register,
 # and a reset followed by a new enable passes every check above
 for n in dj-0 dj-1; do
-  if logs_have $n "taking its replication configuration down"; then fail "$n reset its replication on a plain restart"; fi
+  assert_no_replication_reset "$n"
 done
 
 phase "seed without a domain"
@@ -424,7 +462,7 @@ phase "/dev/shm across restarts"
 # are not its to remove
 docker run -d --memory="64m" --ipc=shareable --name dj-shm --entrypoint sleep "$IMAGE" 600 >/dev/null
 docker exec dj-shm sh -c ': >/dev/shm/opendj-join.4444.killed && : >/dev/shm/opendj-replicate.4444.killed && : >/dev/shm/opendj-join.5444.other'
-docker run -d --memory="512m" --network $NETWORK --ipc=container:dj-shm --name dj-shm-probe --hostname dj-shm-probe \
+docker run -d --network $NETWORK --ipc=container:dj-shm --name dj-shm-probe --hostname dj-shm-probe \
   -e ROOT_PASSWORD="$ROOT_PASSWORD" "$IMAGE" >/dev/null
 # the planted files only: the probe's own bootstrap keeps a password file of its ADMIN_PORT
 # there while it runs
@@ -609,17 +647,17 @@ docker rm -f dj-0 dj-1 dj-2 >/dev/null
 start_node dj-0 dj-0
 wait_healthy dj-0
 for n in dj-1 dj-2; do
-  wait_until 180 "$n leaves cn=admin data of dj-0" admin_data_lacks dj-0 $n
-  wait_until 120 "$n leaves the replication server lists of dj-0" lists_lack dj-0 $n
+  wait_running dj-0 180 "$n leaves cn=admin data of dj-0" admin_data_lacks dj-0 $n
+  wait_running dj-0 120 "$n leaves the replication server lists of dj-0" lists_lack dj-0 $n
 done
 hold_lock dj-0
 start_node dj-1 dj-0,dj-1,dj-2 -e REPLICATION_RETRY_COUNT=30 -e REPLICATION_ATTEMPT_TIMEOUT=1800
 dj1_rejoining() { [ "$(published_state dj-1)" = rejoining ]; }
-wait_until 300 "dj-1 publishes that it is rejoining" dj1_rejoining
+wait_running "dj-0 dj-1" 300 "dj-1 publishes that it is rejoining" dj1_rejoining
 start_node dj-2 dj-0,dj-1,dj-2 -e REPLICATION_RETRY_COUNT=30 -e REPLICATION_ATTEMPT_TIMEOUT=1800
-wait_until 300 "dj-1 passes over the rejoining dj-2" logs_have dj-1 "dj-2 is rejoining, not a peer to join through"
+wait_running "dj-0 dj-1 dj-2" 300 "dj-1 passes over the rejoining dj-2" logs_have dj-1 "dj-2 is rejoining, not a peer to join through"
 drop_lock dj-2
-wait_until 180 "dj-2 passes over the rejoining dj-1" logs_have dj-2 "dj-1 is rejoining, not a peer to join through"
+wait_running "dj-0 dj-1 dj-2" 180 "dj-2 passes over the rejoining dj-1" logs_have dj-2 "dj-1 is rejoining, not a peer to join through"
 sleep 12
 for n in dj-1 dj-2; do
   docker exec $n test ! -e /opt/opendj/.bootstrap-complete || fail "$n reports itself ready while its replication is down"
@@ -633,12 +671,12 @@ drop_lock dj-0
 # their joins took the replication down, and the status turns unhealthy only after the
 # probe's retries. Their joins publish them ready once the writes are let in again
 for n in dj-1 dj-2; do
-  wait_until 480 "$n rejoins and publishes itself ready" published_ready $n
+  wait_running "dj-0 dj-1 dj-2" 480 "$n rejoins and publishes itself ready" published_ready $n
 done
 wait_healthy dj-1
 wait_healthy dj-2
 for n in dj-1 dj-2; do
-  wait_until 300 "$n registers with dj-0 again" registered_in_dj0 $n
+  wait_running "dj-0 dj-1 dj-2" 300 "$n registers with dj-0 again" registered_in_dj0 $n
 done
 [ "$(backend_mode dj-2)" = internal-only ] || fail "the rejoin of dj-2 let the writes of clients in on a backend the operator made read-only"
 add_ou dj-1 rejoined-together
@@ -734,7 +772,7 @@ phase "sdsr"
 # off the network for as long instead would leave its replication server holding the dead
 # connection of dj-0's own directory server, and route the initialize of the replica into it
 docker network create $NETWORK_ALONE >/dev/null
-docker run -d --memory="512m" --network $NETWORK_ALONE --name dj-sdsr --hostname dj-sdsr \
+docker run -d --network $NETWORK_ALONE --name dj-sdsr --hostname dj-sdsr \
   -e ROOT_PASSWORD="$ROOT_PASSWORD" -e MASTER_SERVER=dj-0 -e OPENDJ_REPLICATION_TYPE=sdsr "$IMAGE" >/dev/null
 wait_until 420 "dj-sdsr tries again" logs_have dj-sdsr "exited with 8, trying again"
 docker network connect $NETWORK dj-sdsr
@@ -795,7 +833,7 @@ phase "MASTER_SERVER by address"
 # and a replica joins and initializes through that address
 for n in dj-ipm dj-ipr; do
   if [ $n = dj-ipm ]; then extra="--ip $MASTER_ADDRESS -e SAMPLE_DATA=10"; else extra="-v vol-dj-ipr:/opt/opendj/data"; fi
-  docker run -d --memory="512m" --network $NETWORK --name $n --hostname $n $extra \
+  docker run -d --network $NETWORK --name $n --hostname $n $extra \
     -e ROOT_PASSWORD="$ROOT_PASSWORD" -e ADD_BASE_ENTRY="--addBaseEntry" \
     -e OPENDJ_REPLICATION_TYPE=simple -e MASTER_SERVER=$MASTER_ADDRESS \
     -e REPLICATION_RETRY_COUNT=10 -e REPLICATION_RETRY_INTERVAL=3 "$IMAGE" >/dev/null
@@ -808,7 +846,7 @@ ldaps_has dj-ipr "uid=user.0,ou=People,dc=example,dc=com" || fail "dj-ipr lacks 
 # is registered by its address - in cn=admin data and in its replication server lists -
 # rather than taking it for a server that left the topology
 docker rm -f dj-ipr >/dev/null
-docker run -d --memory="512m" --network $NETWORK --name dj-ipr --hostname dj-ipr -v vol-dj-ipr:/opt/opendj/data \
+docker run -d --network $NETWORK --name dj-ipr --hostname dj-ipr -v vol-dj-ipr:/opt/opendj/data \
   -e ROOT_PASSWORD="$ROOT_PASSWORD" -e OPENDJ_REPLICATION_TYPE=simple -e REPLICATION_PEERS=dj-ipm,dj-ipr \
   -e REPLICATION_RETRY_COUNT=2 -e REPLICATION_RETRY_INTERVAL=3 "$IMAGE" >/dev/null
 wait_until 300 "the moved dj-ipr has looked for departed servers" logs_have dj-ipr "the health check may probe it"
@@ -982,7 +1020,7 @@ for n in dj-r0 dj-d1; do
   docker restart $n >/dev/null
   wait_until 300 "the restarted $n is a member again" logs_have_since $n "Starting OpenDJ" "already a member of the replication topology"
   wait_healthy $n
-  if logs_have $n "taking its replication configuration down"; then fail "$n reset its replication on a plain restart"; fi
+  assert_no_replication_reset "$n"
 done
 roles_hold
 phase "roles: role-less volumes"

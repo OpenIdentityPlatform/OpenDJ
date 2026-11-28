@@ -193,6 +193,7 @@ FIXTURE_TIMEOUT_ARG=-t1 run_case timeout 1 99 2 -t1
 [ -e "$INSTANCE_ROOT/logs/server.starting" ]
 kill -0 "$LIVE_PID"
 grep -Fq 'timed out after 1' "$INSTANCE_ROOT/stderr"
+grep -Fq "server pid $LIVE_PID, status running" "$INSTANCE_ROOT/logs/start-ds.log"
 kill "$LIVE_PID"
 LIVE_PID=
 
@@ -228,6 +229,21 @@ run_case failed-probe 3 99 1 --timeout 3
 [ -e "$INSTANCE_ROOT/final-check" ]
 grep -Fq 'checkStartability exited with status 99' "$INSTANCE_ROOT/stderr"
 grep -Fxq 'probe output' "$INSTANCE_ROOT/logs/start-ds.log"
+kill "$LIVE_PID"
+LIVE_PID=
+
+# A later successful start must preserve the earlier failure diagnostics.
+rm "$INSTANCE_ROOT/checked" "$INSTANCE_ROOT/final-check"
+FIXTURE_PROBE_STATUS=98 run_case failed-probe 3 99 0 --timeout 3
+grep -Fxq 'probe output' "$INSTANCE_ROOT/logs/start-ds.log"
+kill "$LIVE_PID"
+LIVE_PID=
+
+# An unusable diagnostic path must leave the final probe's result intact.
+mkdir -p "$FIXTURES/unwritable-diagnostics instance/logs/start-ds.log"
+run_case unwritable-diagnostics 3 99 1 --timeout 3
+[ -e "$INSTANCE_ROOT/final-check" ]
+grep -Fxq 'probe output' "$INSTANCE_ROOT/stderr"
 kill "$LIVE_PID"
 LIVE_PID=
 

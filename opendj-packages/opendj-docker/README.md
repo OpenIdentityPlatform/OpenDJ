@@ -238,6 +238,13 @@ An enable that stopped half-way leaves that state behind (its initialize of `cn=
 failed, say): `BASE_DN` is replicated, and every later enable only reports it as replicated
 already, without registering the server where it is missing.
 
+Bootstrap LDAP reads share one Java process to avoid starting a JVM for every search.
+Each search opens a fresh connection and reads the current configuration or registrations;
+responses are not cached across topology changes. If the worker exits or cannot answer within
+`REPLICATION_ATTEMPT_TIMEOUT`, the join falls back to the regular `ldapsearch` command.
+Set `JOIN_SEARCH_REUSE=0` to use that command for every read. With `JOIN_TIMING=1`,
+`join-search` records the duration inside the worker alongside the enclosing bootstrap timings.
+
 ### Server roles
 
 `REPLICATION_ROLE` sets the part a server of `simple` takes in its topology:
@@ -262,6 +269,17 @@ next peer or the next round. Each side of an enable is given its own role, the p
 the peer, so a server that joins through a `directory` server never hands it a replication
 server - unless that server runs an image from before roles, whose join gives every peer one:
 move every server to an image with roles before any of them takes another role than `combined`.
+For a controlled scale-out after removing an RS endpoint from every directory server,
+`REPLICATION_RECOVER_FROM_RS=1` on the returning `replication` server enables recovery through
+ready RS peers only. It joins the administrative topology without adding its endpoint to
+existing directory servers' `BASE_DN` lists, so the RS mesh can first transfer retained
+changelog history. Missing or unreadable RS peers are retried; this mode never falls back to
+a directory peer. The controller must verify history catch-up before restarting directory
+servers with the expanded peer list. `ready` still means membership, not completed history
+transfer. This mode does not repair pre-existing history gaps or protect an endpoint still
+listed on live directory servers. It is off by default; ordinary bootstrap keeps configuring
+the directory servers' endpoint lists as before.
+
 Roles may be mixed - `combined` servers with additional `directory` ones, say. Separate
 replication servers on Kubernetes take two StatefulSets, one per role, with one
 `REPLICATION_PEERS` that lists the pods of both, the directory servers first:

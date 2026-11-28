@@ -32,6 +32,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.util.FailureLogThrottle;
@@ -48,6 +49,8 @@ public final class ReplSessionSecurity
   private static final String REPLICATION_SERVER_NAME = "Replication Server";
 
   private static final String REPLICATION_CLIENT_NAME = "Replication Client";
+
+  private static final String TRACE_TLS_FAILURES = "org.opends.server.replication.traceTlsFailures";
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -175,6 +178,33 @@ public final class ReplSessionSecurity
   public Session createClientSession(final Socket socket,
       final int soTimeout) throws ConfigException, IOException
   {
+    return createClientSession(socket, soTimeout, null, 0, null);
+  }
+
+  /**
+   * Creates a client session with optional per-attempt TLS diagnostics. The
+   * diagnostic records the socket endpoints before closing the socket, even
+   * if the caller has already reported the outage.
+   *
+   * @param socket
+   *          The connected socket.
+   * @param soTimeout
+   *          The socket timeout option.
+   * @param role
+   *          The client role (DS or RS).
+   * @param serverId
+   *          The client ID for the attempted session.
+   * @param baseDN
+   *          The domain for the attempted session, or null to omit diagnostics.
+   * @return The new protocol session.
+   * @throws ConfigException
+   *           If the session configuration is invalid.
+   * @throws IOException
+   *           If the session cannot be established.
+   */
+  public Session createClientSession(final Socket socket, final int soTimeout,
+      final String role, final int serverId, final DN baseDN) throws ConfigException, IOException
+  {
     boolean hasCompleted = false;
     SSLSocket secureSocket = null;
 
@@ -205,6 +235,15 @@ public final class ReplSessionSecurity
       secureSocket.startHandshake();
       hasCompleted = true;
       return new Session(socket, secureSocket);
+    }
+    catch (final SSLException e)
+    {
+      if (baseDN != null && Boolean.getBoolean(TRACE_TLS_FAILURES))
+      {
+        logger.info(NOTE_REPLICATION_TLS_CLIENT_FAILURE, role, serverId, baseDN,
+            socket.getLocalSocketAddress(), socket.getRemoteSocketAddress());
+      }
+      throw e;
     }
     finally
     {

@@ -23,18 +23,25 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.testng.Assert.*;
 
-import java.util.ArrayList;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
 import java.util.function.BooleanSupplier;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.IsolationPolicy;
@@ -45,10 +52,13 @@ import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
+import org.opends.server.replication.common.DSInfo;
+import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.DoneMsg;
 import org.opends.server.replication.protocol.EntryMsg;
 import org.opends.server.replication.protocol.ErrorMsg;
+import org.opends.server.replication.protocol.InitializeRcvAckMsg;
 import org.opends.server.replication.protocol.InitializeRequestMsg;
 import org.opends.server.replication.protocol.InitializeTargetMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
@@ -57,6 +67,7 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
+import org.opends.server.replication.service.FakeReplicationDomain;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -122,6 +133,8 @@ public class ReplayDuringImportTest extends ReplicationTestCase
   private DN baseDN;
   private ReplicationServer replicationServer;
   private LDAPReplicationDomain domain;
+  private volatile boolean reconnectAllowed = true;
+  private volatile String replacementServerAddress;
   private TestSynchronousReplayQueue queue;
   private ReplicationBroker exporter;
   private CSNGenerator gen;
@@ -611,6 +624,9 @@ public class ReplayDuringImportTest extends ReplicationTestCase
     lock.lock();
     try
     {
+      // Keep the established session available to report the failure and make the next
+      // reconnect fail, as it can while the RS still holds the previous registration.
+      reconnectAllowed = false;
       exporter.publish(new InitializeTargetMsg(baseDN, EXPORTER_ID, DS_ID, EXPORTER_ID, 3, INIT_WINDOW));
       waitUntil(() -> !domain.ieRunning()
           && errorLogRecordsOf(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.ordinal()).size() > completions,
@@ -622,11 +638,14 @@ public class ReplayDuringImportTest extends ReplicationTestCase
       assertTrue(entryExists(original.getName()), "a rejected preflight must leave the original data intact");
       assertNull(org.opends.server.api.LocalBackend.getWriteFailure(baseDN));
       assertThat(errorLogRecordsOf(WARN_REPLAY_NOT_DRAINED.ordinal())).hasSize(shutdownWarnings);
-      final ErrorMsg failure = waitForSpecificMsg(exporter, ErrorMsg.class);
+      assertFalse(domain.isConnected(), "the restart must fail while reconnecting is disabled");
+      // Read every frame on the timed session so monitoring messages advance the wait's deadline check.
+      final ErrorMsg failure = waitForSpecificMsg(exporter.getSession(), ErrorMsg.class);
       assertEquals(failure.getDetails().toString(), ERR_INIT_OPERATIONS_NOT_DRAINED.get(baseDN).toString());
     }
     finally
     {
+      reconnectAllowed = true;
       lock.unlock();
       domain.setReplayDrainTimeout(30_000);
     }
@@ -637,10 +656,161 @@ public class ReplayDuringImportTest extends ReplicationTestCase
     assertTrue(entryExists(DN.valueOf(IMPORTED_ENTRY_DN)), "a later import must still work");
   }
 
+  @org.testng.annotations.DataProvider(name = "replacementReconnect")
+  public Object[][] replacementReconnect()
+  {
+    return new Object[][] { { false, false }, { true, false }, { false, true } };
+  }
+
+  @Test(dataProvider = "replacementReconnect", timeOut = 120_000)
+  public void aDrainRefusalReachesTheExporterAfterChangingReplicationServers(
+      boolean delayedReconnect, boolean returnThroughOriginal) throws Exception
+  {
+    final int replacementId = RS_ID + 1;
+    final int exporterId = EXPORTER_ID + 1;
+    final int replacementPort = TestCaseUtils.findFreePort();
+    final String dbName = "replayDuringImportReplacementDb";
+    final SortedSet<String> originalAddress =
+        new TreeSet<>(Collections.singleton("localhost:" + replicationServer.getReplicationPort()));
+    final ReplicationServer replacement = new ReplicationServer(new ReplServerFakeConfiguration(
+        replacementPort, dbName, 0, replacementId, 0, 100, originalAddress));
+    final AtomicBoolean streamed = new AtomicBoolean();
+    final String replacementAddress = "localhost:" + replacementPort;
+    final FakeReplicationDomain remoteExporter = new FakeReplicationDomain(baseDN, exporterId,
+        new TreeSet<>(Collections.singleton(replacementAddress)), 0, getGenerationId(baseDN))
+    {
+      @Override
+      protected void exportBackend(OutputStream output) throws DirectoryException
+      {
+        streamed.set(true);
+        super.exportBackend(output);
+      }
+    };
+    remoteExporter.initExport(exportedEntries()[0], 1);
+    final FutureTask<Void> attempt = new FutureTask<>(() ->
+    {
+      remoteExporter.initializeRemote(DS_ID, null);
+      return null;
+    });
+    final Thread exportThread = new Thread(attempt, "export across replication servers");
+    exportThread.setDaemon(true);
+    try
+    {
+      final DN originalDn = DN.valueOf("cn=original," + EXAMPLE_DN);
+      TestCaseUtils.addEntry("dn: " + originalDn,
+          "objectClass: top", "objectClass: person", "cn: original", "sn: original");
+      final ReplicationServerDomain original = replicationServer.getReplicationServerDomain(baseDN);
+      waitUntil(() -> remoteExporter.getReplicaInfos().containsKey(DS_ID)
+          && original.getConnectedRSs().containsKey(replacementId),
+          "the exporter never learned the route to the importer");
+
+      final Field replayLockField = LDAPReplicationDomain.class.getDeclaredField("replayReadLock");
+      replayLockField.setAccessible(true);
+      final Lock replayLock = (Lock) replayLockField.get(domain);
+      final Field stateField = LDAPReplicationDomain.class.getDeclaredField("state");
+      stateField.setAccessible(true);
+      final Field saveLockField = PersistentServerState.class.getDeclaredField("saveLock");
+      saveLockField.setAccessible(true);
+      final Lock saveLock = (Lock) saveLockField.get(stateField.get(domain));
+      // The RS builds its routing error from several messages and logs it with ID -1.
+      final int unreachable = errorLogRecordsOf(-1).size();
+      saveLock.lock();
+      try
+      {
+        replayLock.lock();
+        try
+        {
+          exportThread.start();
+          waitUntil(domain::ieRunning, "the importer did not receive the initialization header");
+          waitUntil(() -> original.getConnectedDSs().get(DS_ID).getStatus() == ServerStatus.FULL_UPDATE_STATUS,
+              "the preparing importer did not enter FULL_UPDATE");
+          // Deliver an unambiguously stale refusal while the new attempt is still active.
+          final String staleRefusal = "drain refusal from a previous export";
+          final int previousErrors = errorLogRecordsOf(ERR_ERROR_MSG_RECEIVED.ordinal()).size();
+          exporter.publish(new ErrorMsg(
+              DS_ID, exporterId, LocalizableMessage.raw(staleRefusal), UUID.randomUUID().toString()));
+          waitUntil(() -> errorLogRecordsOf(ERR_ERROR_MSG_RECEIVED.ordinal()).stream().skip(previousErrors)
+              .anyMatch(record -> record.contains(staleRefusal)), "the exporter did not ignore the stale refusal");
+          if (!returnThroughOriginal)
+          {
+            replacementServerAddress = replacementAddress;
+          }
+          assertEquals(replacement.applyConfigurationChange(new ReplServerFakeConfiguration(
+              replacementPort, dbName, 0, replacementId, 0, 100, new TreeSet<>())).getResultCode(),
+              ResultCode.SUCCESS);
+          waitUntil(() -> !original.getConnectedRSs().containsKey(replacementId),
+              "the original replication server retained the route to the exporter");
+          reconnectAllowed = !delayedReconnect;
+          domain.setReplayDrainTimeout(100);
+        }
+        finally
+        {
+          replayLock.unlock();
+        }
+        if (delayedReconnect)
+        {
+          waitUntil(() -> !domain.ieRunning() && !domain.isConnected(),
+              "the importer did not complete preparation failure after the first reconnect failed");
+          reconnectAllowed = true;
+        }
+        if (returnThroughOriginal)
+        {
+          waitUntil(() -> !domain.ieRunning() && domain.isConnected() && domain.getRsServerId() == RS_ID
+              && original.getConnectedDSs().containsKey(DS_ID),
+              "the importer did not reconnect to the original replication server");
+          replacementServerAddress = replacementAddress;
+          original.stopServer(original.getConnectedDSs().get(DS_ID), false);
+        }
+        waitUntil(() -> !domain.ieRunning() && domain.isConnected() && domain.getRsServerId() == replacementId,
+            "the importer did not reconnect through the exporter's replication server");
+        waitUntil(() ->
+        {
+          final DSInfo importer = remoteExporter.getReplicaInfos().get(DS_ID);
+          return importer != null && importer.getRsId() == replacementId;
+        }, "the exporter did not see the importer on the replacement replication server");
+        assertThat(errorLogRecordsOf(-1).stream().skip(unreachable))
+            .anyMatch(message -> message.contains("unroutable message =ErrorMsg"));
+        assertTrue(entryExists(originalDn), "the preparation failure must preserve the backend");
+        final ExecutionException failure = expectThrows(ExecutionException.class,
+            () -> attempt.get(5, TimeUnit.SECONDS));
+        assertThat(failure.getCause()).isInstanceOf(DirectoryException.class)
+            .hasMessage(ERR_INIT_OPERATIONS_NOT_DRAINED.get(baseDN).toString());
+        assertFalse(streamed.get(), "the exporter must wait for the importer to finish preparation");
+      }
+      finally
+      {
+        saveLock.unlock();
+      }
+    }
+    finally
+    {
+      reconnectAllowed = true;
+      replacementServerAddress = null;
+      domain.setReplayDrainTimeout(30_000);
+      remoteExporter.disableService();
+      exportThread.join(5000);
+      remove(replacement);
+    }
+  }
+
   @org.testng.annotations.DataProvider(name = "interruptedPreparation")
   public Object[][] interruptedPreparation()
   {
     return new Object[][] { { false }, { true } };
+  }
+
+  @Test
+  public void aCorrelatedImportAnnouncesReadinessAndReceivesTheData() throws Exception
+  {
+    final String[] exported = exportedEntries();
+    final String attemptId = UUID.randomUUID().toString();
+    startImportInto(exported.length, attemptId);
+    final InitializeRcvAckMsg ready = waitForSpecificMsg(exporter.getSession(), InitializeRcvAckMsg.class);
+    assertEquals(ready.getInitializationAttemptId(), attemptId);
+    assertEquals(ready.getSenderID(), DS_ID);
+    assertEquals(ready.getNumAck(), 0);
+    finishImport(exported);
+    assertTrue(entryExists(DN.valueOf(IMPORTED_ENTRY_DN)));
   }
 
   @Test(dataProvider = "interruptedPreparation", timeOut = 120_000)
@@ -752,7 +922,19 @@ public class ReplayDuringImportTest extends ReplicationTestCase
 
     final SortedSet<String> replServers = new TreeSet<>();
     replServers.add("localhost:" + rsPort);
-    final DomainFakeCfg conf = new DomainFakeCfg(baseDN, DS_ID, replServers);
+    final DomainFakeCfg conf = new DomainFakeCfg(baseDN, DS_ID, replServers)
+    {
+      @Override
+      public SortedSet<String> getReplicationServer()
+      {
+        if (!reconnectAllowed)
+        {
+          return Collections.emptySortedSet();
+        }
+        final String address = replacementServerAddress;
+        return address != null ? new TreeSet<>(Collections.singleton(address)) : super.getReplicationServer();
+      }
+    };
     conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
     queue = new TestSynchronousReplayQueue();
     domain = MultimasterReplication.createNewDomain(conf, queue);
@@ -1736,12 +1918,17 @@ public class ReplayDuringImportTest extends ReplicationTestCase
    */
   private void startImportInto(int entryCount) throws Exception
   {
+    startImportInto(entryCount, null);
+  }
+
+  private void startImportInto(int entryCount, String attemptId) throws Exception
+  {
     // The broker can report the replica connected before the replication server can route to it.
     final ReplicationServerDomain rsDomain = replicationServer.getReplicationServerDomain(baseDN);
     waitUntil(() -> rsDomain.getConnectedDSs().containsKey(DS_ID),
         "the replication server did not register the import target");
     exporter.publish(new InitializeTargetMsg(
-        baseDN, EXPORTER_ID, DS_ID, EXPORTER_ID, entryCount, INIT_WINDOW));
+        baseDN, EXPORTER_ID, DS_ID, EXPORTER_ID, entryCount, INIT_WINDOW, attemptId));
     final long deadline = System.currentTimeMillis() + 30_000;
     while (getServerContext().getBackendConfigManager().hasLocalBackend("userRoot"))
     {

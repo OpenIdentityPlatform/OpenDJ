@@ -29,6 +29,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -87,6 +88,11 @@ public final class Session extends DirectoryThread implements Closeable
    */
   private final Object stateLock = new Object();
   private volatile boolean closeInitiated;
+  /** A planned switch can leave the socket open for reads after its last write. */
+  private volatile boolean closingForSwitch;
+  /** Set under publishLock before the switch writes its final frames. */
+  private volatile boolean switchWritesEnded;
+  private volatile boolean socketCloseRequested;
   private Throwable sessionError;
 
   /**
@@ -195,35 +201,93 @@ public final class Session extends DirectoryThread implements Closeable
   @Override
   public void close()
   {
-    close(false);
+    close(false, null, false);
   }
 
   /**
-   * Closes the session, as {@link #close()} or as {@link #abort(IOException)} does.
+   * A planned switch allows time for the stop exchange and for the peer's queue to drain.
    *
-   * @param abort
-   *          whether the sockets are to be closed at once, before anything waits for the
-   *          publisher thread or for {@code publishLock} - even when a close had begun already
+   * @param connectionTimeoutMillis the configured connection timeout
+   * @return the maximum time to wait for the old session to finish
    */
-  private void close(final boolean abort)
+  public static long plannedSwitchTimeoutMillis(int connectionTimeoutMillis)
   {
-    Throwable localSessionError;
-    final boolean closing;
+    final long timeout = connectionTimeoutMillis > 0 ? connectionTimeoutMillis : DRAIN_BUDGET_MS;
+    return 2 * timeout + DRAIN_BUDGET_MS;
+  }
 
+  /**
+   * Stops admitting ordinary publications before scheduling the final write. The broker
+   * stays on the receiver and closes this session on the peer's reply or aborts
+   * it at its deadline.
+   *
+   * @param sender executor for the remaining writes and the StopMsg
+   * @return whether the session entered the switch
+   */
+  public boolean closeForSwitch(Executor sender)
+  {
     synchronized (stateLock)
     {
-      closing = closeInitiated;
-      localSessionError = sessionError;
+      if (closeInitiated)
+      {
+        return false;
+      }
+      closingForSwitch = true;
       closeInitiated = true;
     }
-    if (abort)
+    sender.execute(() -> finishClose(true));
+    return true;
+  }
+
+  /** Returns whether ordinary publication has ended for a planned switch. */
+  public boolean isClosingForSwitch()
+  {
+    return closingForSwitch;
+  }
+
+  /** Returns whether the local side requested closing the socket, including an abort. */
+  public boolean isSocketCloseRequested()
+  {
+    return socketCloseRequested;
+  }
+
+  /**
+   * @param abort whether to close the sockets before waiting for any writer
+   * @param cause the session failure, if any
+   * @param heartbeatExpired whether a planned switch can take ownership of the timeout
+   * @return whether the close was accepted
+   */
+  private boolean close(final boolean abort, final IOException cause, final boolean heartbeatExpired)
+  {
+    final boolean closing;
+    synchronized (stateLock)
+    {
+      if (heartbeatExpired && closingForSwitch)
+      {
+        return false;
+      }
+      if (cause != null && sessionError == null)
+      {
+        sessionError = cause;
+      }
+      socketCloseRequested = true;
+      closing = closeInitiated;
+      closeInitiated = true;
+    }
+    if (abort || closing && closingForSwitch)
     {
       StaticUtils.close(plainSocket, secureSocket);
     }
-    if (closing)
+    if (!closing)
     {
-      return;
+      finishClose(false);
     }
+    return true;
+  }
+
+  private void finishClose(final boolean awaitReply)
+  {
+    Throwable localSessionError;
 
     try {
       interrupt();
@@ -303,6 +367,7 @@ public final class Session extends DirectoryThread implements Closeable
     publishLock.lock();
     try
     {
+      switchWritesEnded = awaitReply;
       isRunning.set(false);
       sendWhatThePublisherLeftQueued();
 
@@ -321,7 +386,11 @@ public final class Session extends DirectoryThread implements Closeable
       {
         try
         {
-          publish(new StopMsg());
+          send(new StopMsg().getBytes(protocolVersion));
+          if (awaitReply)
+          {
+            return;
+          }
         }
         catch (final IOException ignored)
         {
@@ -357,8 +426,13 @@ public final class Session extends DirectoryThread implements Closeable
    */
   public void abort(final IOException cause)
   {
-    setSessionError(cause);
-    close(true);
+    close(true, cause, false);
+  }
+
+  /** A planned switch uses its own deadline while the peer drains and stops sending heartbeats. */
+  public boolean abortOnHeartbeatTimeout(final IOException cause)
+  {
+    return close(true, cause, true);
   }
 
 
@@ -375,10 +449,10 @@ public final class Session extends DirectoryThread implements Closeable
    * The whole queue goes out under {@code publishLock}, because the publisher is not the only
    * thread which writes this socket: a {@code ServerWriter} is joined only after the close which
    * gets here (ServerHandler.shutdown() closes the session before joining it, and ServerReader's
-   * finally closes it before stopping the handler), and a {@code HeartbeatThread} is shut down
-   * after it too. Their {@code publish()} takes the synchronous branch once the session is off
-   * the queueing one, so without the lock a newer message could be written between two of these
-   * older ones - which a peer replication server answers by dropping the older ones at debug
+   * finally closes it before stopping the handler), and a {@code HeartbeatThread} may still be
+   * publishing when its shutdown is requested. Their {@code publish()} takes the synchronous
+   * branch once the session is off the queueing one, so without the lock a newer message could be
+   * written between two of these older ones - which a peer replication server answers by dropping them at debug
    * level, its log file refusing a record which would break its key ordering. The close takes
    * the session off the queueing branch under the same lock it holds here, so such a
    * {@code publish()} either queues ahead of that and is drained here, or waits for the drain and
@@ -396,10 +470,9 @@ public final class Session extends DirectoryThread implements Closeable
    * this session is not. The budget is per close, and a shutdown closes its sessions one after
    * another - ReplicationServerDomain.stopAllServers() stops each handler in turn on one thread -
    * so a domain with several peers which are alive and not reading pays it once per such peer.
-   * On the road which does not shut the whole server down the wait is paid under the lock of the
-   * replication domain - ReplicationServerDomain.stopServer() holds it across the handler
-   * shutdown which closes this session - where a handshake meanwhile waiting on that lock times
-   * out and the broker retries. What is given up on is reported rather than dropped in silence,
+   * Runtime peer teardown releases the replication domain lock before closing this session,
+   * so this drain does not hold up another peer's handshake on the live server.
+   * What is given up on is reported rather than dropped in silence,
    * that being the part of this which cost the most to diagnose.
    */
   private void sendWhatThePublisherLeftQueued()
@@ -590,6 +663,10 @@ public final class Session extends DirectoryThread implements Closeable
    */
   public boolean publish(final ReplicationMsg msg, final Runnable whenWritten) throws IOException
   {
+    if (refusedDuringSwitch(msg))
+    {
+      return false;
+    }
     final byte[] buffer = msg.getBytes(protocolVersion);
     if (buffer == null)
     {
@@ -622,9 +699,12 @@ public final class Session extends DirectoryThread implements Closeable
       }
       return false;
     }
-    send(buffer);
-    written(whenWritten);
-    return true;
+    if (send(buffer, msg))
+    {
+      written(whenWritten);
+      return true;
+    }
+    return false;
   }
 
   /** Runs what was to run once a message is written; a callback which fails takes nothing down. */
@@ -703,12 +783,32 @@ public final class Session extends DirectoryThread implements Closeable
    */
   private void send(final byte[] buffer) throws IOException
   {
+    send(buffer, null);
+  }
+
+  /** Writes a frame, checking admission for a new synchronous publication under the write lock. */
+  private boolean send(final byte[] buffer, final ReplicationMsg publication) throws IOException
+  {
     final String str = String.format("%08x", buffer.length);
     final byte[] sendLengthBuf = str.getBytes();
 
-    publishLock.lock();
+    if (publication != null)
+    {
+      if (!lockForPublication(publication))
+      {
+        return false;
+      }
+    }
+    else
+    {
+      publishLock.lock();
+    }
     try
     {
+      if (publication != null && refusedDuringSwitch(publication))
+      {
+        return false;
+      }
       /*
        * The buffered output stream ensures that the message is usually sent as
        * a single TCP packet.
@@ -726,9 +826,56 @@ public final class Session extends DirectoryThread implements Closeable
     }
 
     lastPublishTime = System.currentTimeMillis();
+    return true;
   }
 
 
+
+  private boolean refusedDuringSwitch(ReplicationMsg msg)
+  {
+    // The peer still reads replay acknowledgements and the shutdown announcement until StopMsg.
+    return closingForSwitch && (switchWritesEnded || socketCloseRequested
+        || !(msg instanceof AckMsg || msg instanceof ReplicaOfflineMsg));
+  }
+
+  /**
+   * A publication that began waiting before a switch must be able to leave
+   * without acquiring the lock held by the final write. Replay can hold the
+   * broker's receive-window monitor while publishing a credit.
+   */
+  private boolean lockForPublication(ReplicationMsg publication)
+  {
+    if (publishLock.tryLock())
+    {
+      return true;
+    }
+    boolean interrupted = false;
+    try
+    {
+      while (!refusedDuringSwitch(publication))
+      {
+        try
+        {
+          if (publishLock.tryLock(100, TimeUnit.MILLISECONDS))
+          {
+            return true;
+          }
+        }
+        catch (InterruptedException e)
+        {
+          interrupted = true;
+        }
+      }
+      return false;
+    }
+    finally
+    {
+      if (interrupted)
+      {
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
 
   /**
    * Attempt to receive a ReplicationMsg.

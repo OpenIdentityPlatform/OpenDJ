@@ -16,34 +16,49 @@
 package org.opends.server.replication.server;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.forgerock.opendj.ldap.ModificationType.REPLACE;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
 import static org.opends.server.util.CollectionUtils.newArrayList;
 import static org.opends.server.util.CollectionUtils.newTreeSet;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.DataInputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.plugin.DummyReplicationDomain;
+import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.StopMsg;
 import org.opends.server.replication.protocol.TopologyMsg;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.HostPort;
+import org.opends.server.util.TestTimer;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -86,6 +101,266 @@ public class ReplicationServerConnectFailureTest extends ReplicationTestCase
 
   private static final int RS_ID = 8241;
   private static final int PEER_RS_ID = 8242;
+  private static final String TRACE_TLS_FAILURES = "org.opends.server.replication.traceTlsFailures";
+
+  @DataProvider
+  public Object[][] generationDuringPeerStart()
+  {
+    return new Object[][] { { false }, { true } };
+  }
+
+  @Test(dataProvider = "generationDuringPeerStart")
+  public void aSlowPeerStartReplyDoesNotDelayAnotherDirectoryServer(boolean generationChanges) throws Exception
+  {
+    TestCaseUtils.startServer();
+    final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
+    final DN provider = DN.valueOf("cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
+    final int originalTimeout = MultimasterReplication.getConnectionTimeoutMS();
+    final int[] ports = TestCaseUtils.findFreePorts(2);
+    final int dsId = 8243;
+    final int nextDsId = 8244;
+    final String db = "replicationServerSlowStartReplyDb";
+    final HostPort peerAddress = HostPort.valueOf("127.0.0.1:" + ports[1]);
+    final CountDownLatch startReceived = new CountDownLatch(1);
+    final CountDownLatch sendReply = new CountDownLatch(1);
+    final CountDownLatch finishPeer = new CountDownLatch(1);
+    final ExecutorService clients = Executors.newFixedThreadPool(2);
+    ReplicationServer rs = null;
+    ReplicationBroker current = null;
+    ReplicationBroker next = null;
+    try (ServerSocket listener = bindPeerPort(ports[1]))
+    {
+      setConnectionTimeout(provider, SOCKET_TIMEOUT_MS);
+      listener.setSoTimeout(SOCKET_TIMEOUT_MS);
+      final ReplSessionSecurity security = getReplSessionSecurity();
+      rs = new ReplicationServer(new ReplServerFakeConfiguration(
+          ports[0], db, 0, RS_ID, 0, 100, newTreeSet()));
+      current = new ReplicationBroker(new DummyReplicationDomain(EMPTY_DN_GENID), new ServerState(),
+          newFakeCfg(baseDN, dsId, ports[0]), security);
+      current.start();
+      assertThat(current.isConnected()).isTrue();
+      final ReplicationServerDomain domain = rs.getReplicationServerDomain(baseDN);
+      final TestTimer registration = new TestTimer.Builder().maxSleep(5, TimeUnit.SECONDS)
+          .sleepTimes(50, TimeUnit.MILLISECONDS).toTimer();
+      registration.repeatUntilSuccess(() -> assertThat(domain.getConnectedDSs()).containsKey(dsId));
+      final long advertisedGeneration = domain.getGenerationId();
+      assertThat(advertisedGeneration).isEqualTo(EMPTY_DN_GENID);
+
+      final Future<?> peer = clients.submit(() -> {
+        try (Socket socket = listener.accept();
+             Session session = security.createServerSession(socket, SOCKET_TIMEOUT_MS))
+        {
+          final ReplicationMsg start = session.receive();
+          assertThat(start).isInstanceOf(ReplServerStartMsg.class);
+          assertThat(((ReplServerStartMsg) start).getGenerationId()).isEqualTo(advertisedGeneration);
+          startReceived.countDown();
+          assertThat(sendReply.await(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+          session.publish(peerStartMsg(peerAddress, baseDN));
+          stopEncryptionWith(session, start);
+          if (generationChanges)
+          {
+            assertThat(session.receive()).isInstanceOf(StopMsg.class);
+          }
+          else
+          {
+            assertThat(session.receive()).isInstanceOf(TopologyMsg.class);
+            final RSInfo info = new RSInfo(PEER_RS_ID, peerAddress.toString(), -1, (byte) 1, 1);
+            session.publish(new TopologyMsg(Collections.<DSInfo>emptyList(), newArrayList(info)));
+            assertThat(finishPeer.await(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+          }
+        }
+        return null;
+      });
+      assertThat(rs.applyConfigurationChange(new ReplServerFakeConfiguration(
+          ports[0], db, 0, RS_ID, 0, 100, newTreeSet(peerAddress.toString()))).getResultCode())
+          .isEqualTo(ResultCode.SUCCESS);
+      assertThat(startReceived.await(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+          .as("the background RS connector has sent its start message").isTrue();
+
+      next = new ReplicationBroker(new DummyReplicationDomain(EMPTY_DN_GENID), new ServerState(),
+          newFakeCfg(baseDN, nextDsId, ports[0]), security);
+      final Future<?> directoryServer = clients.submit(next::start);
+      try
+      {
+        directoryServer.get(8, TimeUnit.SECONDS);
+      }
+      catch (TimeoutException e)
+      {
+        throw new AssertionError("the DS handshake waited for the peer RS start reply", e);
+      }
+      assertThat(next.isConnected()).isTrue();
+      registration.repeatUntilSuccess(() -> assertThat(domain.getConnectedDSs()).containsKeys(dsId, nextDsId));
+
+      if (generationChanges)
+      {
+        final long newGeneration = advertisedGeneration + 1;
+        domain.changeGenerationId(newGeneration);
+        sendReply.countDown();
+        peer.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        assertThat(domain.getConnectedRSs()).doesNotContainKey(PEER_RS_ID);
+        assertThat(domain.getGenerationId()).isEqualTo(newGeneration);
+      }
+      else
+      {
+        try (Socket socket = new Socket("127.0.0.1", ports[0]);
+             Session crossed = security.createClientSession(socket, SOCKET_TIMEOUT_MS))
+        {
+          crossed.publish(peerStartMsg(peerAddress, baseDN));
+          assertThat(crossed.receive()).as("the incoming RS connection should give way to the outgoing one")
+              .isInstanceOf(StopMsg.class);
+        }
+        sendReply.countDown();
+        waitForRegistrationUnder(rs, baseDN, peerAddress, SOCKET_TIMEOUT_MS);
+        assertThat(domain.getGenerationId()).isEqualTo(advertisedGeneration);
+      }
+    }
+    finally
+    {
+      sendReply.countDown();
+      finishPeer.countDown();
+      try
+      {
+        stop(next, current);
+        remove(rs);
+      }
+      finally
+      {
+        clients.shutdownNow();
+        setConnectionTimeout(provider, originalTimeout);
+      }
+    }
+  }
+
+  private void setConnectionTimeout(DN provider, int milliseconds)
+  {
+    assertThat(getRootConnection().processModify(
+        modifyRequest(provider, REPLACE, "ds-cfg-connection-timeout", milliseconds + " ms")).getResultCode())
+        .isEqualTo(ResultCode.SUCCESS);
+  }
+
+  @Test
+  public void tracesEveryFailedTlsAttemptWhenEnabled() throws Exception
+  {
+    TestCaseUtils.startServer();
+
+    final DN baseDN = DN.valueOf("cn=admin data");
+    final int[] ports = TestCaseUtils.findFreePorts(2);
+    final HostPort peerAddress = HostPort.valueOf("127.0.0.1:" + ports[1]);
+    final String previous = System.getProperty(TRACE_TLS_FAILURES);
+    final ExecutorService peerThread = Executors.newSingleThreadExecutor();
+    ReplicationServer rs = null;
+    try (ServerSocket listener = bindPeerPort(ports[1]))
+    {
+      listener.setSoTimeout(SOCKET_TIMEOUT_MS);
+      final Future<List<Integer>> clients = peerThread.submit(() -> rejectTlsHandshakes(listener, 3));
+      rs = new ReplicationServer(new ReplServerFakeConfiguration(
+          ports[0], "replicationServerTlsAttemptDb", 0, RS_ID, 0, 100, newTreeSet()));
+      final ReplicationServer caller = rs;
+      final List<String> records = errorLogRecordsOf(() -> {
+        System.clearProperty(TRACE_TLS_FAILURES);
+        assertThat(caller.connect(peerAddress, baseDN)).isFalse();
+        System.setProperty(TRACE_TLS_FAILURES, "true");
+        assertThat(caller.connect(peerAddress, baseDN)).isFalse();
+        assertThat(caller.connect(peerAddress, baseDN)).isFalse();
+        return null;
+      });
+
+      final List<Integer> sourcePorts = clients.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      final String diagnostic = "Replication TLS client handshake failed for RS(" + RS_ID
+          + ") for domain \"cn=admin data\" from ";
+      assertThat(countRecordsOf(records, connectErrorPrefix(peerAddress, baseDN))).isEqualTo(1);
+      assertThat(countRecordsOf(records, diagnostic)).isEqualTo(2);
+      for (int sourcePort : sourcePorts.subList(1, 3))
+      {
+        assertTlsAttempt(records, diagnostic, sourcePort, ports[1]);
+      }
+    }
+    finally
+    {
+      restoreTlsTracing(previous);
+      peerThread.shutdownNow();
+      remove(rs);
+    }
+  }
+
+  @Test
+  public void tracesFailedTlsAttemptThroughDirectoryServerBroker() throws Exception
+  {
+    final DN baseDN = DN.valueOf("dc=tls-test");
+    final int dsId = 8243;
+    final String previous = System.getProperty(TRACE_TLS_FAILURES);
+    final ExecutorService peerThread = Executors.newSingleThreadExecutor();
+    ReplicationBroker broker = null;
+    try (ServerSocket listener = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1")))
+    {
+      listener.setSoTimeout(SOCKET_TIMEOUT_MS);
+      final int port = listener.getLocalPort();
+      final Future<List<Integer>> clients = peerThread.submit(() -> rejectTlsHandshakes(listener, 1));
+      broker = new ReplicationBroker(new DummyReplicationDomain(EMPTY_DN_GENID), new ServerState(),
+          newFakeCfg(baseDN, dsId, port), getReplSessionSecurity());
+      final ReplicationBroker caller = broker;
+      System.setProperty(TRACE_TLS_FAILURES, "true");
+      final List<String> records = errorLogRecordsOf(() -> {
+        caller.start();
+        assertThat(caller.isConnected()).isFalse();
+        return null;
+      });
+
+      final int sourcePort = clients.get(SOCKET_TIMEOUT_MS, TimeUnit.MILLISECONDS).get(0);
+      final String diagnostic = "Replication TLS client handshake failed for DS(" + dsId
+          + ") for domain \"" + baseDN + "\" from ";
+      assertThat(countRecordsOf(records, diagnostic)).isEqualTo(1);
+      assertTlsAttempt(records, diagnostic, sourcePort, port);
+    }
+    finally
+    {
+      restoreTlsTracing(previous);
+      peerThread.shutdownNow();
+      stop(broker);
+    }
+  }
+
+  private List<Integer> rejectTlsHandshakes(ServerSocket listener, int attempts) throws Exception
+  {
+    final List<Integer> sourcePorts = new ArrayList<>();
+    for (int i = 0; i < attempts; i++)
+    {
+      try (Socket socket = listener.accept())
+      {
+        socket.setSoTimeout(SOCKET_TIMEOUT_MS);
+        sourcePorts.add(socket.getPort());
+        final DataInputStream input = new DataInputStream(socket.getInputStream());
+        assertThat(input.readUnsignedByte()).isEqualTo(22); // TLS handshake record
+        input.readUnsignedShort(); // TLS record version
+        input.readFully(new byte[input.readUnsignedShort()]);
+        // A fatal TLS alert with description bad_certificate.
+        socket.getOutputStream().write(new byte[] { 21, 3, 3, 0, 2, 2, 42 });
+      }
+    }
+    return sourcePorts;
+  }
+
+  private void assertTlsAttempt(List<String> records, String diagnostic, int sourcePort, int port)
+  {
+    // A dual-stack socket on macOS can render the IPv4 loopback source as IPv6-compatible.
+    assertThat(records).anySatisfy(record -> {
+      assertThat(record).contains("severity=NOTICE msgID=341 msg=" + diagnostic).endsWith("/127.0.0.1:" + port);
+      assertThat(record).containsAnyOf(
+          "/127.0.0.1:" + sourcePort + " to ", "/[0:0:0:0:0:0:7f00:1]:" + sourcePort + " to ");
+    });
+  }
+
+  private void restoreTlsTracing(String previous)
+  {
+    if (previous == null)
+    {
+      System.clearProperty(TRACE_TLS_FAILURES);
+    }
+    else
+    {
+      System.setProperty(TRACE_TLS_FAILURES, previous);
+    }
+  }
 
   /**
    * Tests that a replication server reports a peer it cannot connect to once, and reports

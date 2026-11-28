@@ -13,6 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.protocol;
 
@@ -38,6 +39,9 @@ public class ErrorMsg extends RoutableMsg
   /** Specifies the complementary details about the error that was detected. */
   private final LocalizableMessage details;
 
+  /** Identifies the initialization attempt that the importer refused, if available. */
+  private final String initializationAttemptId;
+
   /**
    * The time of creation of this message.
    * <p>
@@ -54,9 +58,22 @@ public class ErrorMsg extends RoutableMsg
    */
   public ErrorMsg(int sender, int destination, LocalizableMessage details)
   {
+    this(sender, destination, details, null);
+  }
+
+  /**
+   * Creates an error tied to the exporter's initialization attempt.
+   * @param sender the server that refused the import
+   * @param destination the exporting server
+   * @param details the reason for the refusal
+   * @param initializationAttemptId the attempt identifier from the exporter's header, or null
+   */
+  public ErrorMsg(int sender, int destination, LocalizableMessage details, String initializationAttemptId)
+  {
     super(sender, destination);
     this.msgID  = getMessageId(details);
     this.details = details;
+    this.initializationAttemptId = initializationAttemptId;
     this.creationTime = System.currentTimeMillis();
 
     if (logger.isTraceEnabled())
@@ -109,6 +126,7 @@ public class ErrorMsg extends RoutableMsg
     {
       creationTime = scanner.nextLongUTF8();
     }
+    initializationAttemptId = version >= ProtocolVersion.REPLICATION_PROTOCOL_V9 ? scanner.nextString() : null;
   }
 
   /**
@@ -131,6 +149,12 @@ public class ErrorMsg extends RoutableMsg
     return msgID;
   }
 
+  /** @return the refused initialization attempt identifier, or null for an uncorrelated error */
+  public String getInitializationAttemptId()
+  {
+    return initializationAttemptId;
+  }
+
   // ============
   // Msg encoding
   // ============
@@ -139,6 +163,11 @@ public class ErrorMsg extends RoutableMsg
   @Override
   public byte[] getBytes(short version)
   {
+    if (initializationAttemptId != null && version < ProtocolVersion.REPLICATION_PROTOCOL_V9)
+    {
+      // A peer without the identifier could apply this refusal to a different transfer.
+      return null;
+    }
     final ByteArrayBuilder builder = new ByteArrayBuilder();
     builder.appendByte(MSG_TYPE_ERROR);
     builder.appendIntUTF8(senderID);
@@ -148,6 +177,10 @@ public class ErrorMsg extends RoutableMsg
     if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
       builder.appendLongUTF8(creationTime);
+    }
+    if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V9)
+    {
+      builder.appendString(initializationAttemptId);
     }
     return builder.toByteArray();
   }

@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2026 3A Systems, LLC
+ * Portions Copyright 2026 3A Systems, LLC.
  */
 package org.opends.server.replication.server;
 
@@ -23,10 +23,16 @@ import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -34,6 +40,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.MonitorData;
 import org.opends.server.replication.common.DSInfo;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
@@ -44,6 +51,7 @@ import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.StopMsg;
 import org.opends.server.replication.protocol.TopologyMsg;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.HostPort;
 
@@ -72,6 +80,248 @@ public class ReplicationServerHandler extends ServerHandler
    * LDAP servers connected to the remote replication server.
    */
   private final Map<Integer, LightweightServerHandler> remoteDirectoryServers = new ConcurrentHashMap<>();
+
+  /** Incoming peer knowledge is useful to monitors, but cannot advance the outgoing cursor. */
+  private final ServerState receivedState = new ServerState();
+
+  /** Exact recent receipts, bounded like the message queue. Guarded by publishedState. */
+  private final Set<CSN> receivedUpdates = new LinkedHashSet<>();
+  /** Selected updates and their local generation, awaiting a socket write. Guarded by publishedState. */
+  private final Map<CSN, Long> pendingWrites = new HashMap<>();
+  /** Filtered writes still awaiting an exact receipt. Guarded by publishedState. */
+  private final Set<CSN> discardedWrites = new HashSet<>();
+  /** Earliest discard per origin beyond the exact tracking capacity. Guarded by publishedState. */
+  private final Map<Integer, CSN> firstOverflowDiscards = new HashMap<>();
+  /** Origins with multiple distinct overflow discards whose individual CSNs were forgotten. */
+  private final Set<Integer> ambiguousDiscardOrigins = new HashSet<>();
+  /** Local changelog generation of the discarded writes. Guarded by publishedState. */
+  private long discardedGenerationId = -1;
+
+  @Override
+  void recordReceivedUpdate(UpdateMsg update)
+  {
+    // A DS may have moved to this peer while older updates are still queued here.
+    // Its newer CSN does not prove that this peer received that older history.
+    if (update.contributesToDomainState())
+    {
+      synchronized (publishedState)
+      {
+        final CSN csn = update.getCSN();
+        receivedState.update(csn);
+        final long localGenerationId = replicationServerDomain.getGenerationId();
+        if (generationId != -1 && generationId == localGenerationId)
+        {
+          // The reader can confirm an exact CSN before or after the writer reports its drop.
+          final boolean confirmedDiscard = discardedGenerationId == localGenerationId && confirmDiscard(csn);
+          if (pendingWrites.remove(csn, localGenerationId) || confirmedDiscard)
+          {
+            publishedState.notifyAll();
+          }
+        }
+        receivedUpdates.remove(csn);
+        receivedUpdates.add(csn);
+        if (receivedUpdates.size() > Math.max(1, maxQueueSize))
+        {
+          // Forgetting a receipt may resend that record during a later catch-up.
+          // It must never turn an incoming maximum into proof of an older prefix.
+          receivedUpdates.remove(receivedUpdates.iterator().next());
+        }
+      }
+    }
+  }
+
+  @Override
+  protected CSN getLatestUnqueuedUpdate(int serverId)
+  {
+    return replicationServerDomain.getLatestPeerUpdate(serverId);
+  }
+
+  @Override
+  boolean updateServerState(UpdateMsg update)
+  {
+    synchronized (publishedState)
+    {
+      if (!super.updateServerState(update))
+      {
+        return false;
+      }
+      if (update.contributesToDomainState())
+      {
+        final CSN csn = update.getCSN();
+        if (receivedUpdates.remove(csn))
+        {
+          // Only the ordered reader advances the cursor. Every older unknown
+          // record has been selected, and pendingWrites still fences its delivery.
+          publishedState.notifyAll();
+          return false;
+        }
+        pendingWrites.put(csn, replicationServerDomain.getGenerationId());
+      }
+      return true;
+    }
+  }
+
+  @Override
+  public ServerState getServerState()
+  {
+    final ServerState knownState = super.getServerState().duplicate();
+    knownState.update(receivedState);
+    return knownState;
+  }
+
+  /** Peer handshake state plus updates actually written, rather than merely dequeued. */
+  private final ServerState publishedState = new ServerState();
+
+  @Override
+  public void setInitialServerState(ServerState state) throws DirectoryException
+  {
+    synchronized (publishedState)
+    {
+      super.setInitialServerState(state);
+      receivedState.clear();
+      receivedUpdates.clear();
+      pendingWrites.clear();
+      clearDiscardedWrites(-1);
+      publishedState.clear();
+      publishedState.update(state);
+    }
+  }
+
+  /** Records a successful socket write to this peer. */
+  void updatePublishedState(CSN csn)
+  {
+    synchronized (publishedState)
+    {
+      pendingWrites.remove(csn);
+      publishedState.update(csn);
+      publishedState.notifyAll();
+    }
+  }
+
+  /** Releases bookkeeping for a selected update which the writer filters out. */
+  void updateDiscardedState(CSN csn)
+  {
+    synchronized (publishedState)
+    {
+      final Long selectedGenerationId = pendingWrites.remove(csn);
+      final long localGenerationId = replicationServerDomain.getGenerationId();
+      // A reset may occur between selection, filtering and reporting the drop.
+      // An old selection must not create a barrier in the new local generation.
+      if (selectedGenerationId != null && selectedGenerationId == localGenerationId)
+      {
+        if (discardedGenerationId != localGenerationId)
+        {
+          clearDiscardedWrites(localGenerationId);
+        }
+        if (discardedWrites.size() < Math.max(1, maxQueueSize))
+        {
+          discardedWrites.add(csn);
+        }
+        else
+        {
+          // One overflow CSN per origin is still exact. After a second distinct one,
+          // retain the earliest barrier until reset: its receipt alone cannot prove the rest.
+          final int origin = csn.getServerId();
+          final CSN first = firstOverflowDiscards.putIfAbsent(origin, csn);
+          if (first != null && !first.equals(csn))
+          {
+            ambiguousDiscardOrigins.add(origin);
+            if (first.isNewerThan(csn))
+            {
+              firstOverflowDiscards.put(origin, csn);
+            }
+          }
+        }
+      }
+      publishedState.notifyAll();
+    }
+  }
+
+  private void clearDiscardedWrites(long localGenerationId)
+  {
+    discardedWrites.clear();
+    firstOverflowDiscards.clear();
+    ambiguousDiscardOrigins.clear();
+    discardedGenerationId = localGenerationId;
+  }
+
+  /** Called under publishedState for a receipt in the generation of the discarded writes. */
+  private boolean confirmDiscard(CSN csn)
+  {
+    final int origin = csn.getServerId();
+    return discardedWrites.remove(csn)
+        || (!ambiguousDiscardOrigins.contains(origin) && firstOverflowDiscards.remove(origin, csn));
+  }
+
+  /** Must be called under publishedState, like selecting a record and completing its write. */
+  private boolean delivered(ServerState target)
+  {
+    for (CSN csn : target)
+    {
+      if (discardedGenerationId == replicationServerDomain.getGenerationId())
+      {
+        final CSN firstOverflow = firstOverflowDiscards.get(csn.getServerId());
+        if ((firstOverflow != null && !firstOverflow.isNewerThan(csn)) || blocksDelivery(discardedWrites, csn))
+        {
+          return false;
+        }
+      }
+      if (blocksDelivery(pendingWrites.keySet(), csn))
+      {
+        return false;
+      }
+      if (!publishedState.cover(csn) && !super.getServerState().cover(csn))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean blocksDelivery(Set<CSN> outstanding, CSN target)
+  {
+    for (CSN csn : outstanding)
+    {
+      if (csn.getServerId() == target.getServerId() && !csn.isNewerThan(target))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Waits within a shared monotonic deadline for this peer's outstanding direct updates. */
+  boolean awaitPublished(ServerState target, long deadline) throws InterruptedException
+  {
+    synchronized (publishedState)
+    {
+      while (!delivered(target) && !shuttingDown())
+      {
+        final long remaining = deadline - System.nanoTime();
+        if (remaining <= 0)
+        {
+          break;
+        }
+        TimeUnit.NANOSECONDS.timedWait(publishedState, remaining);
+      }
+      return delivered(target);
+    }
+  }
+
+  @Override
+  public void setGenerationId(long generationId)
+  {
+    synchronized (publishedState)
+    {
+      if (this.generationId != generationId)
+      {
+        receivedUpdates.clear();
+        receivedState.clear();
+        // Changing only the peer's generation does not deliver previously filtered history.
+      }
+      super.setGenerationId(generationId);
+    }
+  }
 
   /**
    * Starts this handler based on a start message received from remote server.
@@ -180,21 +430,19 @@ public class ReplicationServerHandler extends ServerHandler
     this.sslEncryption = sslEncryption;
 
     setBaseDNAndDomain(baseDN, false);
+    final ReentrantLock peerLock = replicationServerDomain.peerHandshakeLock();
 
     try
     {
+      peerLock.lockInterruptibly();
       lockDomainNoTimeout();
-
-      // Read under the domain lock so the start message advertises any change
-      // made by a previous handshake (handshakes serialize on this lock). The
-      // field itself is only guarded by generationIDLock and lock-free
-      // adopters can still move it — the arming CAS in
-      // setDomainGenerationIdOnStart handles that residual race.
       localGenerationId = replicationServerDomain.getGenerationId();
+      final ReplServerStartMsg outReplServerStartMsg = createReplServerStartMsg();
+      releaseDomainLock();
 
-      ReplServerStartMsg outReplServerStartMsg = sendStartToRemote();
-
-      // Wait answer
+      // The peer lock still arbitrates crossed RS connections. DS handshakes can
+      // use the domain while this peer has yet to answer the start message.
+      send(outReplServerStartMsg);
       ReplicationMsg msg = session.receive();
 
       // Reject bad responses
@@ -215,7 +463,18 @@ public class ReplicationServerHandler extends ServerHandler
         return false;
       }
 
+      lockDomainNoTimeout();
       processStartFromRemote((ReplServerStartMsg) msg);
+      if (replicationServerDomain.getGenerationId() != localGenerationId)
+      {
+        // The peer saw the previous generation. Retry with the current state.
+        if (!this.sslEncryption)
+        {
+          session.stopEncryption();
+        }
+        abortStart(null);
+        return false;
+      }
 
       if (replicationServerDomain.isAlreadyConnectedToRS(this))
       {
@@ -317,6 +576,10 @@ public class ReplicationServerHandler extends ServerHandler
     finally
     {
       releaseDomainLock();
+      if (peerLock.isHeldByCurrentThread())
+      {
+        peerLock.unlock();
+      }
     }
   }
 
@@ -328,14 +591,15 @@ public class ReplicationServerHandler extends ServerHandler
   public void startFromRemoteRS(ReplServerStartMsg inReplServerStartMsg)
   {
     localGenerationId = -1;
+    ReentrantLock peerLock = null;
     try
     {
       // The initiator decides if the session is encrypted
       sslEncryption = processStartFromRemote(inReplServerStartMsg);
+      peerLock = replicationServerDomain.peerHandshakeLock();
 
-      if (!lockDomainWithTimeout())
+      if (!lockDomainWithTimeout(peerLock))
       {
-        // This server gives way to a cross connection, see lockDomainWithTimeout().
         abortStartWithWarning(WARN_TIMEOUT_WHEN_CROSS_CONNECTION.get(getBaseDN(), serverId,
             session.getReadableRemoteAddress(), getReplicationServerId()));
         return;
@@ -454,7 +718,23 @@ public class ReplicationServerHandler extends ServerHandler
     finally
     {
       releaseDomainLock();
+      if (peerLock != null && peerLock.isHeldByCurrentThread())
+      {
+        peerLock.unlock();
+      }
     }
+  }
+
+  /**
+   * Acquire both locks within one randomized deadline. If two RSs dial each other,
+   * one incoming handshake can give way first so the other connection can finish.
+   */
+  private boolean lockDomainWithTimeout(ReentrantLock peerLock) throws InterruptedException
+  {
+    final long timeout = ThreadLocalRandom.current().nextInt(3, 9) * 1000L;
+    final long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeout);
+    return peerLock.tryLock(timeout, TimeUnit.MILLISECONDS)
+        && replicationServerDomain.tryLock(Math.max(0, TimeUnit.NANOSECONDS.toMillis(deadline - System.nanoTime())));
   }
 
   /**
@@ -607,14 +887,29 @@ public class ReplicationServerHandler extends ServerHandler
     }
   }
 
-  /**
-   * Shutdown This ServerHandler.
-   */
   @Override
-  public void shutdown()
+  void shutdownWithoutWaiting()
   {
-    super.shutdown();
+    super.shutdownWithoutWaiting();
+    // These monitors share their names with a replacement session's monitors.
+    // Remove them while the domain lock still excludes that replacement.
     clearRemoteLSHandlers();
+  }
+
+  @Override
+  void awaitShutdown()
+  {
+    super.awaitShutdown();
+    clearReceivedUpdates();
+  }
+
+  private void clearReceivedUpdates()
+  {
+    synchronized (publishedState)
+    {
+      receivedUpdates.clear();
+      publishedState.notifyAll();
+    }
   }
 
   private void clearRemoteLSHandlers()
@@ -639,7 +934,7 @@ public class ReplicationServerHandler extends ServerHandler
   {
     // List should only contain RS info for sender
     final RSInfo rsInfo = topoMsg.getRsInfos().get(0);
-    generationId = rsInfo.getGenerationId();
+    setGenerationId(rsInfo.getGenerationId());
     groupId = rsInfo.getGroupId();
     weight = rsInfo.getWeight();
 

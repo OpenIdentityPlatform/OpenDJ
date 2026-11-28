@@ -154,10 +154,24 @@ jobs:
         echo "MAVEN_JAVADOC_GOAL=javadoc:aggregate" >> $GITHUB_OUTPUT
 
     - name: Build with Maven
+      id: maven
       timeout-minutes: 180
       env:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
       run: mvn --batch-mode --errors --update-snapshots verify ${{ steps.javadoc.outputs.MAVEN_JAVADOC_GOAL }} --file pom.xml ${{ steps.failsafe.outputs.MAVEN_PROFILE_FLAG }}
+
+    # TestListener removes passing test instances and keeps failed instances for diagnosis.
+    - name: Upload failed test audit logs
+      if: failure() && steps.maven.outcome == 'failure'
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: failed-test-audit-logs-${{ matrix.os }}-${{ matrix.java }}-attempt-${{ github.run_attempt }}
+        path: |
+          opendj-server-legacy/target/unit-tests/*/package-instance/logs/audit
+          opendj-server-legacy/target/unit-tests/*/package-instance/logs/audit.*
+        retention-days: 5
+        if-no-files-found: ignore
+
     - name: Validate the MSI (ICE)
       # wix build runs no ICE validation (only MSBuild projects or an explicit validate
       # do), so a green build alone proves the authoring compiles, not that it validates -
@@ -697,6 +711,8 @@ jobs:
           sparse-checkout: |
             .github/benchmark
             .github/scripts
+            opendj-server-legacy/resource/bin
+            opendj-packages/opendj-docker/bootstrap
       - name: Download the image
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -711,12 +727,16 @@ jobs:
       - name: Docker test
         shell: bash
         run: |
-          trap 'code=$?; echo "::group::container logs (test)"; docker logs test 2>&1 || true; echo "::endgroup::"; exit $code' ERR
+          bash .github/scripts/selftest-docker-setup.sh
+          bash .github/scripts/selftest-docker-run.sh
+          bash .github/scripts/selftest-docker-replication-wait.sh
+          bash .github/scripts/selftest-docker-diagnostics.sh
+          trap 'code=$?; bash .github/scripts/docker-startup-diagnostics.sh test "$RUNNER_TEMP/docker-startup" || true; exit $code' ERR
           # the image draws nothing: the OS carries none of what AWT needs to, freetype with brotli, X11 or ALSA.
           # The temurin JRE of the default image keeps a freetype of its own in /opt/java, linking nothing but libc (#1238)
           awt=$(docker run --rm --entrypoint sh localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }} -c 'find / -xdev \( -name "libfreetype.so*" ! -path "/opt/java/*" -o -name "libbrotli*.so*" -o -name "libX11.so*" -o -name "libasound.so*" \) 2>/dev/null; true')
           if [ -n "$awt" ]; then echo "::error::The image carries libraries only AWT needs:"; echo "$awt"; false; fi
-          docker run -it -d --memory="512m" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
+          docker run -it -d --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
           # the bootstrap's server is down before the marker the health check waits for is
           # written: the stop has logged its record by the time the marker is there
           timeout 3m bash -c 'until docker exec test sh -c "test -f \"\$BOOTSTRAP_COMPLETE\"" 2>/dev/null; do sleep 0.2; done'
@@ -751,11 +771,18 @@ jobs:
           out=$(docker exec test sh -c 'unset JAVA_HOME; PATH=/bin:/usr/bin /opt/opendj/bin/ldapsearch --version' 2>&1 || true)
           if grep -F "unexpected operator" <<<"$out"; then echo "::error::The lookup of java on the PATH fails with a shell error where it finds no java"; false; fi
           docker rm -f test
+      - name: Upload Docker startup diagnostics
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: docker-startup-${{ matrix.flavor }}
+          path: ${{ runner.temp }}/docker-startup
+          if-no-files-found: ignore
       - name: Docker test custom password
         shell: bash
         run: |
           trap 'code=$?; echo "::group::container logs (test_custom)"; docker logs test_custom 2>&1 || true; echo "::endgroup::"; exit $code' ERR
-          docker run --rm -it -d --memory="512m" -e ADD_BASE_ENTRY="--addBaseEntry" -e ROOT_PASSWORD=custom_password --name=test_custom localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
+          docker run --rm -it -d -e ADD_BASE_ENTRY="--addBaseEntry" -e ROOT_PASSWORD=custom_password --name=test_custom localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_custom | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_custom 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword custom_password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1'
           docker kill test_custom
@@ -765,7 +792,7 @@ jobs:
         shell: bash
         run: |
           trap 'code=$?; echo "::group::container logs (test_base_dn)"; docker logs test_base_dn 2>&1 || true; echo "::endgroup::"; exit $code' ERR
-          docker run --rm -it -d --memory="512m" -e ADD_BASE_ENTRY="--addBaseEntry" -e BASE_DN="o=My Company,c=US" --name=test_base_dn localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
+          docker run --rm -it -d -e ADD_BASE_ENTRY="--addBaseEntry" -e BASE_DN="o=My Company,c=US" --name=test_base_dn localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_base_dn | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_base_dn 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "o=My Company,c=US" --searchScope base "(objectClass=*)" 1.1 | grep -qx "dn: o=My Company,c=US"'
           docker kill test_base_dn
@@ -775,7 +802,7 @@ jobs:
         run: |
           trap 'code=$?; echo "::group::container logs (test_uid)"; docker logs test_uid 2>&1 || true; echo "::endgroup::"; exit $code' ERR
           uid=$((1000000000 + RANDOM))
-          docker run --rm -it -d --memory="512m" --user $uid:0 -e ADD_BASE_ENTRY="--addBaseEntry" --name=test_uid localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
+          docker run --rm -it -d --user $uid:0 -e ADD_BASE_ENTRY="--addBaseEntry" --name=test_uid localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_uid | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_uid 'sh' '-c' "test \"\$(stat -c %u /opt/opendj/instance.loc)\" = $uid"
           docker exec test_uid 'sh' '-c' '/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1'
@@ -788,6 +815,13 @@ jobs:
         # scenarios for both images
         shell: bash
         run: .github/scripts/docker-test-replication.sh "localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}"
+      - name: Upload Docker replication diagnostics
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: docker-replication-${{ matrix.flavor }}-attempt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/docker-replication
+          if-no-files-found: ignore
       - name: Docker test secret volume
         # a keystore mounted at SECRET_VOLUME is what LDAPS serves from the first start on, a
         # renewed one - a new password included - is copied while the server runs and served
@@ -826,7 +860,7 @@ jobs:
           healthy() { timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_secret | grep -q \"healthy\"; do sleep 10; done'; }
           copies() { docker logs test_secret 2>&1 | grep -c "^Copied $1 from the secret volume$" || true; }
           keystore secret-v1
-          docker run -d --memory="512m" -e SECRET_VOLUME_REFRESH=5 -p 127.0.0.1:1637:1636 --name=test_secret \
+          docker run -d -e SECRET_VOLUME_REFRESH=5 -p 127.0.0.1:1637:1636 --name=test_secret \
             -v "$SECRETS":/var/secrets/opendj:ro -v test_secret_data:/opt/opendj/data "$IMAGE"
           healthy
           grep -q "CN=secret-v1" <<< "$(served)"
@@ -861,7 +895,7 @@ jobs:
           # renewed while no container runs, the keystore, its new password and its new alias
           # are copied by the start, over the instance already there
           keystore secret-v4 changeit3
-          docker run -d --memory="512m" -e SECRET_VOLUME_REFRESH=0 -p 127.0.0.1:1637:1636 --name=test_secret \
+          docker run -d -e SECRET_VOLUME_REFRESH=0 -p 127.0.0.1:1637:1636 --name=test_secret \
             -v "$SECRETS":/var/secrets/opendj:ro -v test_secret_data:/opt/opendj/data "$IMAGE"
           healthy
           grep -q "CN=secret-v4" <<< "$(served)"
@@ -883,8 +917,8 @@ jobs:
           IMAGE=localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
           trap 'code=$?; for c in test_bootstrap_lf test_bootstrap_cr test_bootstrap; do echo "::group::container logs ($c)"; docker logs $c 2>&1 || true; echo "::endgroup::"; done; exit $code' ERR
           # a root password with a line break is refused: the tools read only the first line of the password file
-          docker run -d --memory="512m" -e ROOT_PASSWORD=$'ab\ncd' --name=test_bootstrap_lf "$IMAGE"
-          docker run -d --memory="512m" -e ROOT_PASSWORD=$'ab\rcd' --name=test_bootstrap_cr "$IMAGE"
+          docker run -d -e ROOT_PASSWORD=$'ab\ncd' --name=test_bootstrap_lf "$IMAGE"
+          docker run -d -e ROOT_PASSWORD=$'ab\rcd' --name=test_bootstrap_cr "$IMAGE"
           for c in test_bootstrap_lf test_bootstrap_cr; do
             timeout 2m bash -c 'until docker logs $0 2>&1 | grep -qF "ROOT_PASSWORD must not contain a line break"; do sleep 2; done' $c
           done
@@ -904,7 +938,7 @@ jobs:
           chmod -R a+rX "$BOOTSTRAP_DIR"
           # the containers of a Kubernetes pod share its /dev/shm, which outlives a restart of one of them: the holder stands in for the pod
           docker run -d --no-healthcheck --ipc=shareable --entrypoint sleep --name=test_bootstrap_shm "$IMAGE" 3600
-          docker run -it -d --memory="512m" --ipc=container:test_bootstrap_shm -e ADD_BASE_ENTRY="--addBaseEntry" -e ROOT_PASSWORD="$ROOT_PASSWORD" -e ADMIN_PORT=5444 -v "$BOOTSTRAP_DIR/schema:/opt/opendj/bootstrap/schema:ro" -v "$BOOTSTRAP_DIR/data:/opt/opendj/bootstrap/data:ro" -v "$BOOTSTRAP_DIR/config/schema:/opt/opendj/bootstrap/config/schema:ro" --name=test_bootstrap "$IMAGE"
+          docker run -it -d --ipc=container:test_bootstrap_shm -e ADD_BASE_ENTRY="--addBaseEntry" -e ROOT_PASSWORD="$ROOT_PASSWORD" -e ADMIN_PORT=5444 -v "$BOOTSTRAP_DIR/schema:/opt/opendj/bootstrap/schema:ro" -v "$BOOTSTRAP_DIR/data:/opt/opendj/bootstrap/data:ro" -v "$BOOTSTRAP_DIR/config/schema:/opt/opendj/bootstrap/config/schema:ro" --name=test_bootstrap "$IMAGE"
           # while the bootstrap runs, the password file is on the tmpfs of /dev/shm rather than in the writable
           # layer, and its name carries the admin port of the container
           timeout 2m bash -c 'until docker exec test_bootstrap sh -c "ls /dev/shm/opendj-setup-password.5444.*" >/dev/null 2>&1; do sleep 1; done'
@@ -953,7 +987,7 @@ jobs:
             done
           }
           # ROOT_PASSWORD is only the initial root password: changing it must not turn the container unhealthy
-          docker run -it -d --memory="512m" --health-interval=5s -e ROOT_PASSWORD=initial_password --name=test_health $IMAGE
+          docker run -it -d --health-interval=5s -e ROOT_PASSWORD=initial_password --name=test_health $IMAGE
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_health | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_health /opt/opendj/bin/ldappasswordmodify --hostname localhost --port 1636 --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword initial_password --currentPassword initial_password --newPassword rotated_password
           # bind settings kept for the CLI in the home of the image user must not reach the probe
@@ -964,7 +998,7 @@ jobs:
           # a password of its own, so the command lines below can be searched for it
           printf hc_secret_1092 > "$RUNNER_TEMP/healthcheck_password"
           chmod 644 "$RUNNER_TEMP/healthcheck_password"
-          docker run -it -d --memory="512m" --health-interval=5s -v "$RUNNER_TEMP/healthcheck_password:/tmp/healthcheck_password:ro" -e ROOT_PASSWORD=hc_secret_1092 -e HEALTHCHECK_BIND_DN="cn=Directory Manager" -e HEALTHCHECK_BIND_PASSWORD_FILE=/tmp/healthcheck_password --name=test_health_bind $IMAGE
+          docker run -it -d --health-interval=5s -v "$RUNNER_TEMP/healthcheck_password:/tmp/healthcheck_password:ro" -e ROOT_PASSWORD=hc_secret_1092 -e HEALTHCHECK_BIND_DN="cn=Directory Manager" -e HEALTHCHECK_BIND_PASSWORD_FILE=/tmp/healthcheck_password --name=test_health_bind $IMAGE
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_health_bind | grep -q \"healthy\"; do sleep 10; done'
           docker exec test_health_bind /opt/opendj/bin/dsconfig set-global-configuration-prop --hostname localhost --port 4444 --bindDN "cn=Directory Manager" --bindPasswordFile /tmp/healthcheck_password --set reject-unauthenticated-requests:true --no-prompt --trustAll
           # the setting has taken: the anonymous probe would now be refused
@@ -994,10 +1028,9 @@ jobs:
         shell: bash
         run: |
           IMAGE=localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
-          MEMORY=512m
           trap 'code=$?; echo "::group::container logs (test_failed)"; docker logs test_failed 2>&1 || true; docker inspect --format="{{json .State.Health}}" test_failed 2>&1 || true; echo "::endgroup::"; docker rm -f test_failed >/dev/null 2>&1 || true; docker volume rm test_failed_data >/dev/null 2>&1 || true; exit $code' ERR
           # an unknown backend type fails create-backend once setup has written data/config
-          docker run -d --memory="$MEMORY" --health-interval=5s -e ADD_BASE_ENTRY="--addBaseEntry" -e BACKEND_TYPE=bogus -v test_failed_data:/opt/opendj/data --name=test_failed "$IMAGE"
+          docker run -d --health-interval=5s -e ADD_BASE_ENTRY="--addBaseEntry" -e BACKEND_TYPE=bogus -v test_failed_data:/opt/opendj/data --name=test_failed "$IMAGE"
           timeout 3m bash -c 'until docker logs test_failed 2>&1 | grep -qF "failed, this container will not report itself healthy"; do sleep 2; done'
           docker restart -t 60 test_failed
           timeout 3m bash -c 'until docker logs test_failed 2>&1 | grep -qF "The bootstrap of this volume did not complete"; do sleep 2; done'
@@ -1023,7 +1056,6 @@ jobs:
         run: |
           IMAGE=localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}${{ matrix.suffix }}
           RELEASED=openidentityplatform/opendj:${{ env.release_version }}${{ matrix.suffix }}
-          MEMORY=512m
           trap 'code=$?; echo "::group::container logs (test_upgrade)"; docker logs test_upgrade 2>&1 || true; docker inspect --format="{{json .State.Health}}" test_upgrade 2>&1 || true; echo "::endgroup::"; docker rm -f test_upgrade >/dev/null 2>&1 || true; docker volume rm test_upgrade_data >/dev/null 2>&1 || true; exit $code' ERR
           search() { docker exec test_upgrade /opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --useSsl --trustAll --bindDN "cn=Directory Manager" --bindPassword password "$@"; }
           # release.yml publishes the GitHub release before it pushes the images of it: in between,
@@ -1039,14 +1071,14 @@ jobs:
               *) exit 1 ;;
             esac
           fi
-          docker run -d --memory="$MEMORY" -e ADD_BASE_ENTRY="--addBaseEntry" -e SAMPLE_DATA=10 -v test_upgrade_data:/opt/opendj/data --name=test_upgrade "$RELEASED"
+          docker run -d -e ADD_BASE_ENTRY="--addBaseEntry" -e SAMPLE_DATA=10 -v test_upgrade_data:/opt/opendj/data --name=test_upgrade "$RELEASED"
           # the entries, not the health status: the health check of 5.1.2 turned healthy before
           # import-ldif had finished
           export -f search
           timeout 5m bash -c 'until search --baseDN "ou=People,dc=example,dc=com" --searchScope one "(uid=user.9)" 1.1 2>/dev/null | grep -q "^dn:"; do sleep 5; done'
           docker stop -t 60 test_upgrade
           docker rm test_upgrade
-          docker run -d --memory="$MEMORY" -v test_upgrade_data:/opt/opendj/data --name=test_upgrade "$IMAGE"
+          docker run -d -v test_upgrade_data:/opt/opendj/data --name=test_upgrade "$IMAGE"
           timeout 10m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test_upgrade | grep -q \"healthy\"; do sleep 5; done'
           # the upgrade ran its tasks: on equal versions it would be a no-op
           if docker logs test_upgrade 2>&1 | grep -F "has already been upgraded"; then echo "::error::The build image found nothing to upgrade on the volume of $RELEASED"; false; fi
@@ -1059,7 +1091,7 @@ jobs:
           docker stop -t 60 test_upgrade
           docker rm test_upgrade
           docker run --rm --entrypoint sh -v test_upgrade_data:/opt/opendj/data "$IMAGE" -c 'echo "an earlier version to this one" >/opt/opendj/data/.upgrade-pending'
-          docker run -d --memory="$MEMORY" --health-interval=5s -v test_upgrade_data:/opt/opendj/data --name=test_upgrade "$IMAGE"
+          docker run -d --health-interval=5s -v test_upgrade_data:/opt/opendj/data --name=test_upgrade "$IMAGE"
           timeout 3m bash -c 'until docker logs test_upgrade 2>&1 | grep -qF "did not complete on an earlier start"; do sleep 2; done'
           # the server is up to be looked at, and no probe passes over 45 s of probes every 5 s
           timeout 3m bash -c 'until search --baseDN "" --searchScope base "(objectClass=*)" 1.1 >/dev/null 2>&1; do sleep 5; done'
@@ -1075,12 +1107,12 @@ jobs:
           docker volume rm test_upgrade_data
           # the mark goes on before the upgrade and stays when it fails: a read-only buildinfo
           # fails it where it records the new version, after its upgrade tasks
-          docker run -d --memory="$MEMORY" -e ADD_BASE_ENTRY="--addBaseEntry" -v test_upgrade_data:/opt/opendj/data --name=test_upgrade "$RELEASED"
+          docker run -d -e ADD_BASE_ENTRY="--addBaseEntry" -v test_upgrade_data:/opt/opendj/data --name=test_upgrade "$RELEASED"
           timeout 5m bash -c 'until search --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1 2>/dev/null | grep -q "^dn:"; do sleep 5; done'
           docker stop -t 60 test_upgrade
           docker rm test_upgrade
           docker run --rm --user root --entrypoint chmod -v test_upgrade_data:/opt/opendj/data "$IMAGE" 444 /opt/opendj/data/config/buildinfo
-          docker run -d --memory="$MEMORY" -v test_upgrade_data:/opt/opendj/data --name=test_upgrade "$IMAGE"
+          docker run -d -v test_upgrade_data:/opt/opendj/data --name=test_upgrade "$IMAGE"
           timeout 5m bash -c 'until docker logs test_upgrade 2>&1 | grep -qF "The upgrade did not complete, this container will not report itself healthy"; do sleep 2; done'
           docker run --rm --entrypoint test -v test_upgrade_data:/opt/opendj/data "$IMAGE" -s /opt/opendj/data/.upgrade-pending
           docker rm -f test_upgrade
@@ -1161,6 +1193,8 @@ jobs:
     # a red row turns the Build run red, and deploy.yml then skips the snapshot deploy and the
     # publishing of the docs of a push to master
     runs-on: 'ubuntu-latest'
+    # Scale has a 45-minute load ceiling plus setup, final checks and artifact upload.
+    timeout-minutes: ${{ startsWith(matrix.disturbance, 'scale-') && 75 || 360 }}
     permissions:
       contents: read
     strategy:
@@ -1168,19 +1202,32 @@ jobs:
       matrix:
         topology: [rs534, combined]
         # none: the base run; restart-ds and kill-ds: a directory server restarts or crashes;
-        # kill-rs and restart-rs: one RS is killed or gracefully restarted per fresh topology
-        # while every DS writes. Only rs534 has replication servers apart from directory servers.
-        disturbance: [none, restart-ds, kill-ds, kill-rs, restart-rs]
+        # kill-rs and restart-rs: one RS is killed or gracefully restarted per fresh topology;
+        # empty-rs rebuilds an RS while one DS is down, then tests failover to each RS.
+        # scale variants remove a node and roll survivors, then add it back.
+        # Only rs534 has replication servers apart from directory servers.
+        disturbance: [none, restart-ds, kill-ds, kill-rs, restart-rs, empty-rs, scale-rs-kept, scale-rs-empty, scale-kept, scale-empty]
         exclude:
           - topology: combined
             disturbance: kill-rs
           - topology: combined
             disturbance: restart-rs
+          - topology: combined
+            disturbance: empty-rs
+          - topology: combined
+            disturbance: scale-rs-kept
+          - topology: combined
+            disturbance: scale-rs-empty
+          - topology: rs534
+            disturbance: scale-kept
+          - topology: rs534
+            disturbance: scale-empty
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           sparse-checkout: |
             .github/scripts/replication
+            opendj-packages/opendj-docker
       # what a green row does not show: what a disturbance window of the errors log check
       # expects - nothing it expects is logged outside the window there, and a base row has
       # none - and where each disturbance opens and closes its windows
@@ -1188,9 +1235,31 @@ jobs:
         shell: bash
         run: |
           .github/scripts/replication/selftest-replication-errors.sh
+          .github/scripts/replication/selftest-unindexed-searches.sh
           .github/scripts/replication/selftest-disturb-restart-ds.sh
           .github/scripts/replication/selftest-disturb-kill-ds.sh
           .github/scripts/replication/selftest-disturb-rs.sh
+          .github/scripts/replication/selftest-disturb-empty-rs.sh
+          .github/scripts/replication/selftest-disturb-scale.sh
+          bash .github/scripts/replication/selftest-scale-timeout.sh
+          bash .github/scripts/replication/selftest-scale-bootstrap.sh
+          .github/scripts/replication/selftest-scale-membership.sh
+          .github/scripts/replication/selftest-scale-ids.sh
+          .github/scripts/replication/selftest-scale-topology.sh
+          bash .github/scripts/replication/selftest-join-timing.sh
+          bash .github/scripts/replication/selftest-join-batch.sh
+          bash .github/scripts/replication/selftest-join-reset.sh
+          bash .github/scripts/replication/selftest-join-search.sh
+          .github/scripts/replication/selftest-rolling-load.sh
+          .github/scripts/replication/selftest-wait.sh
+          python3 .github/scripts/replication/selftest-changelog-checkpoint.py
+          python3 .github/scripts/replication/selftest-changelog-gaps.py
+          python3 .github/scripts/replication/selftest-csn-trace.py
+          bash .github/scripts/replication/selftest-csn-trace-harness.sh
+          python3 .github/scripts/replication/selftest-scale-monitor.py
+          python3 .github/scripts/replication/selftest-scale-fence.py
+          python3 .github/scripts/replication/selftest-scale-coverage.py
+          python3 .github/scripts/replication/selftest-scale-deadline.py
           .github/scripts/replication/selftest-summary.sh
       - name: Download the image
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -1201,17 +1270,21 @@ jobs:
         shell: bash
         run: docker load -i "$RUNNER_TEMP/image/image.tar"
       - name: Convergence run (${{ matrix.topology }}, ${{ matrix.disturbance }})
+        timeout-minutes: ${{ startsWith(matrix.disturbance, 'scale-') && 70 || 360 }}
         shell: bash
         env:
           TOPOLOGY: ${{ matrix.topology }}
           DISTURBANCE: ${{ matrix.disturbance }}
-          # Every row runs 900 s of load; disturbed rows act a third of the way in.
-          DURATION: "900"
+          CSN_TRACE: "${{ (startsWith(matrix.disturbance, 'scale-') || matrix.disturbance == 'empty-rs') && '1' || '0' }}"
+          # Scale stops after verified post-scale writes, subject to this 45-minute ceiling.
+          DURATION: "${{ startsWith(matrix.disturbance, 'scale-') && '2700' || '900' }}"
           # the replicas fall behind during the load and catch up after it: 900 s at 325 and 65
           # a second converged in 396 s (run 38944365728), 1800 s at 423 and 85 in 2489 s (run
           # 39043600905), the backlog growing faster than the load above the replay capacity; a
           # run that does not converge in time skips the checks of the data
-          QUIESCE_TIMEOUT: "4500"
+          # Run 43857403579: the retained combined replica still lacked 113636 updates after 299 s.
+          # Its slowest mean drain rate projects 735 s to zero, plus over 65 s of stable zero samples.
+          QUIESCE_TIMEOUT: "${{ matrix.topology == 'combined' && matrix.disturbance == 'scale-kept' && '900' || matrix.topology == 'combined' && matrix.disturbance == 'scale-empty' && '600' || startsWith(matrix.disturbance, 'scale-') && '300' || '4500' }}"
           SAMPLE_DATA: "10000"
           OUT: ${{ runner.temp }}/replication-out
         run: .github/scripts/replication/run.sh "localhost:5000/${GITHUB_REPOSITORY,,}:${{ needs.build-docker.outputs.release_version }}"

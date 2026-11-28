@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -83,6 +84,7 @@ import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.ResetGenerationIdMsg;
 import org.opends.server.replication.protocol.RoutableMsg;
+import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.tasks.InitializeTargetTask;
@@ -893,11 +895,8 @@ public abstract class ReplicationDomain
                   " Error Msg received: " + errorMsg);
             }
 
-            // consider only ErrorMsg that relate to the current import/export.
-            // ">=" and not ">": with all servers on one host the whole
-            // request/rejection round-trip can complete within the millisecond
-            // this context was created in (issue #861)
-            if (errorMsg.getCreationTime() >= ieCtx.startTime)
+            // Consider only errors that relate to the current import or export.
+            if (isCurrentInitializationError(errorMsg, ieCtx))
             {
               processErrorMsg(errorMsg, ieCtx);
             }
@@ -938,7 +937,15 @@ public abstract class ReplicationDomain
           if (ieCtx != null)
           {
             InitializeRcvAckMsg ackMsg = (InitializeRcvAckMsg) msg;
-            ieCtx.setAckVal(ackMsg.getSenderID(), ackMsg.getNumAck());
+            final String attemptId = ackMsg.getInitializationAttemptId();
+            if (attemptId == null)
+            {
+              ieCtx.setAckVal(ackMsg.getSenderID(), ackMsg.getNumAck());
+            }
+            else if (ieCtx.matchesExportAttempt(attemptId, ackMsg.getSenderID()))
+            {
+              ieCtx.remotePreparationReady = true;
+            }
           }
           // Trash this msg When no input/export is running/should never happen
         }
@@ -971,9 +978,7 @@ public abstract class ReplicationDomain
     }
 
     numRcvdUpdates.incrementAndGet();
-    if (update.isAssured()
-        && broker.getRsGroupId() == getGroupId()
-        && update.getAssuredMode() == AssuredMode.SAFE_READ_MODE)
+    if (update.getAcknowledgementSender() != null)
     {
       assuredSrReceivedUpdates.incrementAndGet();
     }
@@ -1194,6 +1199,10 @@ public abstract class ReplicationDomain
     private Task initializeTask;
     /** The destination in the case of an export. */
     private int exportTarget = RoutableMsg.UNKNOWN_SERVER;
+    /** Identifies a single-target export initiated on this server. */
+    private volatile String exportAttemptId;
+    /** Whether the importer completed preparation for that export. */
+    private volatile boolean remotePreparationReady;
     /** The source in the case of an import. */
     private int importSource = RoutableMsg.UNKNOWN_SERVER;
 
@@ -1203,7 +1212,13 @@ public abstract class ReplicationDomain
     private long entryLeftCount;
 
     /** Exception raised during the initialization. */
-    private DirectoryException exception;
+    private volatile DirectoryException exception;
+
+    /** Refusal received from the importer before it touched its backend. */
+    private volatile DirectoryException remotePreparationRefusal;
+
+    /** Whether the import failed while draining replay and state saves before replacement. */
+    private boolean importPreparationFailed;
 
     /** Whether the context is related to an import or an export. */
     private final boolean importInProgress;
@@ -1450,7 +1465,13 @@ public abstract class ReplicationDomain
      */
     public DirectoryException getException()
     {
-      return exception;
+      final DirectoryException refusal = remotePreparationRefusal;
+      return refusal != null ? refusal : exception;
+    }
+
+    private boolean matchesExportAttempt(String attemptId, int senderId)
+    {
+      return attemptId.equals(exportAttemptId) && senderId == exportTarget;
     }
 
     /**
@@ -1476,6 +1497,19 @@ public abstract class ReplicationDomain
       if (this.exception == null)
       {
         this.exception = exception;
+      }
+    }
+
+    /**
+     * Records a failure while draining replay and state saves before replacing the backend.
+     * @param failure the preparation failure
+     */
+    public void failImportPreparation(DirectoryException failure)
+    {
+      if (exception == null)
+      {
+        exception = failure;
+        importPreparationFailed = true;
       }
     }
 
@@ -1729,7 +1763,7 @@ public abstract class ReplicationDomain
           getBaseDN(), getServerId(), serverToInitialize);
 
       ieCtx.startList.add(serverToInitialize);
-      ieCtx.setAckVal(targetDsi.getDsId(), 0);
+      ieCtx.setAckVal(serverToInitialize, 0);
     }
 
     DirectoryException exportRootException = null;
@@ -1742,6 +1776,12 @@ public abstract class ReplicationDomain
       try
       {
         ieCtx.exportTarget = serverToInitialize;
+        final Session exportSession = broker.getSession();
+        ieCtx.remotePreparationReady = false;
+        ieCtx.exportAttemptId = targetDsi != null && serverRunningTheTask == getServerId()
+            && targetDsi.getProtocolVersion() >= ProtocolVersion.REPLICATION_PROTOCOL_V9
+            && exportSession != null && exportSession.getProtocolVersion() >= ProtocolVersion.REPLICATION_PROTOCOL_V9
+            ? UUID.randomUUID().toString() : null;
         if (initTask != null)
         {
           ieCtx.initializeTask = initTask;
@@ -1754,7 +1794,7 @@ public abstract class ReplicationDomain
         // Send start message to the peer
         InitializeTargetMsg initTargetMsg = new InitializeTargetMsg(
             getBaseDN(), getServerId(), serverToInitialize,
-            serverRunningTheTask, ieCtx.entryCount, initWindow);
+            serverRunningTheTask, ieCtx.entryCount, initWindow, ieCtx.exportAttemptId);
 
         broker.publish(initTargetMsg);
 
@@ -1772,6 +1812,13 @@ public abstract class ReplicationDomain
 
         exportBackend(new BufferedOutputStream(new ReplOutputStream(this)));
 
+        // A backend can swallow the exception from the final buffered write.
+        final DirectoryException refusal = ieCtx.remotePreparationRefusal;
+        if (refusal != null)
+        {
+          throw refusal;
+        }
+
         // Notify the peer of the success
         broker.publish(
             new DoneMsg(getServerId(), initTargetMsg.getDestination()));
@@ -1779,7 +1826,7 @@ public abstract class ReplicationDomain
       catch(DirectoryException exportException)
       {
         // Give priority to the first exception raised - stored in the context
-        final DirectoryException ieEx = ieCtx.exception;
+        final DirectoryException ieEx = ieCtx.getException();
         exportRootException = ieEx != null ? ieEx : exportException;
       }
 
@@ -1790,7 +1837,7 @@ public abstract class ReplicationDomain
             + " exportRootException=" + exportRootException);
       }
 
-      if (exportRootException != null)
+      if (exportRootException != null && ieCtx.remotePreparationRefusal == null)
       {
         try
         {
@@ -1858,7 +1905,15 @@ public abstract class ReplicationDomain
     } // attempt loop
 
     // Wait for all servers to be ok, and build the failure list
-    waitForRemoteEndOfInit(ieCtx);
+    if (ieCtx.remotePreparationRefusal == null)
+    {
+      waitForRemoteEndOfInit(ieCtx);
+    }
+    final DirectoryException refusal = ieCtx.remotePreparationRefusal;
+    if (refusal != null)
+    {
+      exportRootException = refusal;
+    }
 
     // Servers that left in the list are those for which we could not test
     // that they have been successfully initialized.
@@ -1908,6 +1963,7 @@ public abstract class ReplicationDomain
   private void waitForRemoteStartOfInit(ImportExportContext ieCtx)
   {
     final Set<Integer> replicasWeAreWaitingFor = new HashSet<>(ieCtx.startList);
+    final boolean awaitPreparation = ieCtx.exportAttemptId != null;
 
     if (logger.isTraceEnabled())
     {
@@ -1918,37 +1974,48 @@ public abstract class ReplicationDomain
     boolean done;
     do
     {
-      done = true;
-      for (DSInfo dsi : getReplicaInfos().values())
+      if (awaitPreparation)
       {
-        if (logger.isTraceEnabled())
+        // FULL_UPDATE excludes the importer from assured replay before it is ready to receive entries.
+        final boolean ready = ieCtx.remotePreparationReady;
+        if (ready)
         {
-          logger.trace(
-            "[IE] wait for start dsId " + dsi.getDsId()
-            + " " + dsi.getStatus()
-            + " " + dsi.getGenerationId()
-            + " " + getGenerationID());
+          replicasWeAreWaitingFor.clear();
         }
-        if (ieCtx.startList.contains(dsi.getDsId()))
+        done = ready || ieCtx.getException() != null;
+      }
+      else
+      {
+        done = true;
+        for (DSInfo dsi : getReplicaInfos().values())
         {
-          if (dsi.getStatus() != ServerStatus.FULL_UPDATE_STATUS)
+          if (logger.isTraceEnabled())
           {
-            // this one is still not doing the Full Update ... retry later
-            done = false;
-            try { Thread.sleep(100);
-            }
-            catch (InterruptedException e) {
-              Thread.currentThread().interrupt();
-            }
-            waitResultAttempt++;
-            break;
+            logger.trace("[IE] wait for start dsId " + dsi.getDsId() + " " + dsi.getStatus()
+                + " " + dsi.getGenerationId() + " " + getGenerationID());
           }
-          else
+          if (ieCtx.startList.contains(dsi.getDsId()))
           {
-            // this one is ok
+            if (dsi.getStatus() != ServerStatus.FULL_UPDATE_STATUS)
+            {
+              done = false;
+              break;
+            }
             replicasWeAreWaitingFor.remove(dsi.getDsId());
           }
         }
+      }
+      if (!done)
+      {
+        try
+        {
+          Thread.sleep(100);
+        }
+        catch (InterruptedException e)
+        {
+          Thread.currentThread().interrupt();
+        }
+        waitResultAttempt++;
       }
     }
     while (!done && waitResultAttempt < 1200 && !broker.shuttingDown());
@@ -2053,7 +2120,7 @@ public abstract class ReplicationDomain
         } // 1sec
       }
     }
-    while (!done && !broker.shuttingDown()); // infinite wait
+    while (!done && ieCtx.remotePreparationRefusal == null && !broker.shuttingDown()); // infinite wait
 
     ieCtx.failureList.addAll(replicasWeAreWaitingFor);
 
@@ -2126,6 +2193,15 @@ public abstract class ReplicationDomain
     }
   }
 
+  private boolean isCurrentInitializationError(ErrorMsg errorMsg, ImportExportContext ieCtx)
+  {
+    final String attemptId = errorMsg.getInitializationAttemptId();
+    // An uncorrelated request and its refusal may use the same millisecond (issue #861).
+    return attemptId != null
+        ? ieCtx.matchesExportAttempt(attemptId, errorMsg.getSenderID())
+        : errorMsg.getCreationTime() >= ieCtx.startTime;
+  }
+
   /**
    * Processes an error message received while an export is
    * on going, or an import will start.
@@ -2138,8 +2214,15 @@ public abstract class ReplicationDomain
     if (ieCtx != null && ieCtx.exportTarget != RoutableMsg.ALL_SERVERS)
     {
       // The ErrorMsg is received while we have started an initialization
-      ieCtx.setExceptionIfNoneSet(new DirectoryException(
-          ResultCode.OTHER, errorMsg.getDetails()));
+      final DirectoryException refusal = new DirectoryException(ResultCode.OTHER, errorMsg.getDetails());
+      if (errorMsg.getInitializationAttemptId() != null)
+      {
+        ieCtx.remotePreparationRefusal = refusal;
+      }
+      else
+      {
+        ieCtx.setExceptionIfNoneSet(refusal);
+      }
 
       /*
        * This can happen :
@@ -2253,7 +2336,7 @@ public abstract class ReplicationDomain
           if (ieCtx.getException() == null)
           {
             ErrorMsg errMsg = (ErrorMsg)msg;
-            if (errMsg.getCreationTime() >= ieCtx.startTime)
+            if (isCurrentInitializationError(errMsg, ieCtx))
             {
               ieCtx.setException(
                   new DirectoryException(ResultCode.OTHER,errMsg.getDetails()));
@@ -2471,9 +2554,7 @@ public abstract class ReplicationDomain
       logger.trace("[IE] Entering initializeFromRemote for " + this);
     }
 
-    LocalizableMessage errMsg = !broker.isConnected()
-        ? ERR_INITIALIZATION_FAILED_NOCONN.get(getBaseDN())
-        : null;
+    LocalizableMessage errMsg = null;
 
     /*
     We must not test here whether the remote source is connected to
@@ -2499,6 +2580,8 @@ public abstract class ReplicationDomain
       ieCtx.initReqMsgSent = new InitializeRequestMsg(
           getBaseDN(), getServerId(), source, getInitWindow());
       ieCtx.markInitRequestSent();
+      // A reconnect can finish before the request is sent. Keep the context when
+      // publish succeeds, even if the broker was disconnected on entry.
       // The broker silently drops the message when it is caught between two
       // sessions (connection error, recovery pending after a reconnect) and
       // only replays UpdateMsgs on reconnect: an unpublished request would
@@ -2610,13 +2693,15 @@ public abstract class ReplicationDomain
 
     InitializeTask initFromTask = null;
     final int source = initTargetMsgReceived.getSenderID();
+    final Session importSession = broker.getSession();
+    final boolean locallyInitiated = initTargetMsgReceived.getInitiatorID() == getServerId();
     final ImportExportContext ieCtx;
     final Runnable hook = importClaimHook;
     if (hook != null)
     {
       hook.run();
     }
-    if (initTargetMsgReceived.getInitiatorID() == getServerId())
+    if (locallyInitiated)
     {
       ieCtx = getImportExportContext();
       if (ieCtx == null || !ieCtx.markInitStartReceived())
@@ -2691,13 +2776,15 @@ public abstract class ReplicationDomain
         return;
       }
     }
+    ErrorMsg preparationRefusal = null;
+    boolean refusalAccepted = false;
     try
     {
       // Log starting
       logger.info(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START, getBaseDN(),
           initTargetMsgReceived.getSenderID(), getServerId());
 
-      // Go into full update status
+      final String attemptId = initTargetMsgReceived.getInitializationAttemptId();
       setNewStatus(StatusMachineEvent.TO_FULL_UPDATE_STATUS_EVENT);
 
       // Initialize stuff
@@ -2708,7 +2795,38 @@ public abstract class ReplicationDomain
       initFromTask = (InitializeTask) ieCtx.initializeTask;
 
       // Launch the import
-      importBackend(new ReplInputStream(this));
+      try (ReplInputStream input = new ReplInputStream(this))
+      {
+        if (attemptId != null)
+        {
+          importBackend(input, () ->
+          {
+            if (!broker.publishOnSession(
+                new InitializeRcvAckMsg(getServerId(), requesterServerId, attemptId), importSession))
+            {
+              final DirectoryException failure =
+                  new DirectoryException(ResultCode.UNAVAILABLE, ERR_INITIALIZATION_FAILED_NOCONN.get(getBaseDN()));
+              ieCtx.failImportPreparation(failure);
+              throw failure;
+            }
+          });
+        }
+        else
+        {
+          importBackend(input);
+        }
+      }
+      if (!locallyInitiated && ieCtx.importPreparationFailed && !Thread.currentThread().isInterrupted()
+          && !isServicePermanentlyStopped())
+      {
+        // The RS can still be unregistering this session when the reconnect below runs.
+        // Send the preflight refusal while the original session can still carry it.
+        final LocalizableMessage reason = ieCtx.getException().getMessageObject();
+        preparationRefusal = attemptId != null
+            ? new ErrorMsg(getServerId(), requesterServerId, reason, attemptId)
+            : new ErrorMsg(requesterServerId, reason);
+        refusalAccepted = broker.publishOnSession(preparationRefusal, importSession);
+      }
     }
     catch (DirectoryException e)
     {
@@ -2801,12 +2919,22 @@ public abstract class ReplicationDomain
 
       try
       {
-        if (!isServicePermanentlyStopped() && broker.isConnected() && ieCtx.getException() != null)
+        if (!isServicePermanentlyStopped() && ieCtx.getException() != null)
         {
-          // Let's notify the exporter
-          ErrorMsg errorMsg = new ErrorMsg(requesterServerId,
-              ieCtx.getException().getMessageObject());
-          broker.publish(errorMsg);
+          if (preparationRefusal != null && preparationRefusal.getInitializationAttemptId() != null)
+          {
+            // The old RS can accept the refusal after losing its route to the exporter.
+            // Keep the correlated refusal until a replacement session can carry it.
+            if (!refusalAccepted || broker.getSession() != importSession)
+            {
+              broker.publishInitializationRefusalAfterReconnect(preparationRefusal);
+            }
+          }
+          else if (!refusalAccepted && broker.isConnected())
+          {
+            broker.publish(preparationRefusal != null ? preparationRefusal
+                : new ErrorMsg(requesterServerId, ieCtx.getException().getMessageObject()));
+          }
         }
       }
       finally
@@ -3801,6 +3929,26 @@ public abstract class ReplicationDomain
            throws DirectoryException;
 
   /**
+   * Imports data and announces when preparation has completed and the exporter can start streaming.
+   * @param input the stream of entries
+   * @param onPrepared reports readiness before reading the stream
+   * @throws DirectoryException if the import fails
+   */
+  protected void importBackend(InputStream input, ImportPreparation onPrepared) throws DirectoryException
+  {
+    onPrepared.reportReady();
+    importBackend(input);
+  }
+
+  /** Reports that the importer is ready to receive entries. */
+  @FunctionalInterface
+  protected interface ImportPreparation
+  {
+    /** @throws DirectoryException if the acknowledgement cannot be published */
+    void reportReady() throws DirectoryException;
+  }
+
+  /**
    * This method should return the total number of objects in the
    * replicated domain.
    * This count will be used for reporting.
@@ -3848,44 +3996,34 @@ public abstract class ReplicationDomain
   {
     broker.updateWindowAfterReplay();
 
-    /*
-    Send an ack if it was requested and the group id is the same of the RS
-    one. Only Safe Read mode makes sense in DS for returning an ack.
-    */
-    // Assured feature is supported starting from replication protocol V2
-    if (msg.isAssured()
-      && broker.getProtocolVersion() >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
+    if (msg.isAssured())
     {
-      if (msg.getAssuredMode() == AssuredMode.SAFE_READ_MODE)
+      // Eligibility and the return session belong to the delivery, even if replay
+      // finishes after a reconnect to another group or to the same RS on a new socket.
+      final UpdateMsg.AcknowledgementSender sender = msg.getAcknowledgementSender();
+      if (sender != null)
       {
-        if (broker.getRsGroupId() == getGroupId())
+        final AckMsg ackMsg = new AckMsg(msg.getCSN());
+        if (replayErrorMsg != null)
         {
-          // Send the ack
-          AckMsg ackMsg = new AckMsg(msg.getCSN());
-          if (replayErrorMsg != null)
-          {
-            // Mark the error in the ack
-            //   -> replay error occurred
-            ackMsg.setHasReplayError(true);
-            //   -> replay error occurred in our server
-            ackMsg.setFailedServers(newArrayList(getServerId()));
-          }
-          broker.publish(ackMsg);
-          if (replayErrorMsg != null)
-          {
-            assuredSrReceivedUpdatesNotAcked.incrementAndGet();
-          }
-          else
-          {
-            assuredSrReceivedUpdatesAcked.incrementAndGet();
-          }
+          ackMsg.setHasReplayError(true);
+          ackMsg.setFailedServers(newArrayList(getServerId()));
+        }
+        if (sender.send(ackMsg) && replayErrorMsg == null)
+        {
+          assuredSrReceivedUpdatesAcked.incrementAndGet();
+        }
+        else
+        {
+          assuredSrReceivedUpdatesNotAcked.incrementAndGet();
         }
       }
-      else if (getAssuredMode() != AssuredMode.SAFE_DATA_MODE)
+      else if (msg.getAssuredMode() != AssuredMode.SAFE_READ_MODE
+          && getAssuredMode() != AssuredMode.SAFE_DATA_MODE
+          && broker.getProtocolVersion() >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
       {
         logger.error(ERR_DS_UNKNOWN_ASSURED_MODE, getServerId(), msg.getAssuredMode(), getBaseDN(), msg);
       }
-        // Nothing to do in Assured safe data mode, only RS ack updates.
     }
 
     incProcessedUpdates();
