@@ -20,7 +20,8 @@ param(
 $ErrorActionPreference = 'Stop'
 $container = "opendj-smoke-$([guid]::NewGuid().ToString('N'))"
 $volume = "$container-data"
-$mount = "type=volume,source=$volume,target=C:\opendj\data"
+$dataPath = 'c:\opendj\data'
+$mount = "type=volume,source=$volume,target=$dataPath"
 $password = "OpEnDJ-$([guid]::NewGuid().ToString('N'))"
 
 function Invoke-Docker {
@@ -28,6 +29,17 @@ function Invoke-Docker {
     if ($LASTEXITCODE -ne 0) {
         throw "docker $($args[0]) failed with exit code $LASTEXITCODE"
     }
+}
+
+function Start-SmokeContainer {
+    Invoke-Docker create --isolation=process --name $container --mount $mount @args $Image | Out-Null
+    # Catch mounts that differ only in case before the Windows runtime starts.
+    $mounts = Invoke-Docker inspect --format '{{json .Mounts}}' $container
+    $dataMounts = @($mounts | ConvertFrom-Json | Where-Object Destination -eq $dataPath)
+    if ($dataMounts.Count -ne 1 -or $dataMounts[0].Type -ne 'volume' -or $dataMounts[0].Name -cne $volume) {
+        throw "Expected one data mount at $dataPath backed by volume $volume. Found mounts: $mounts"
+    }
+    Invoke-Docker start $container | Out-Null
 }
 
 function Assert-LdapReady {
@@ -54,15 +66,14 @@ function Assert-LdapReady {
 
 try {
     Invoke-Docker volume create $volume | Out-Null
-    Invoke-Docker run --detach --isolation=process --name $container --mount $mount `
-        --env "ROOT_PASSWORD=$password" --env 'BASE_DN=dc=smoke,dc=example' $Image | Out-Null
+    Start-SmokeContainer --env "ROOT_PASSWORD=$password" --env 'BASE_DN=dc=smoke,dc=example'
     Assert-LdapReady
 
     Invoke-Docker stop $container | Out-Null
     Invoke-Docker rm $container | Out-Null
 
     # A replacement container must serve the same base entry and accept the same password.
-    Invoke-Docker run --detach --isolation=process --name $container --mount $mount $Image | Out-Null
+    Start-SmokeContainer
     Assert-LdapReady
     $errors = Invoke-Docker exec $container cmd.exe /d /c type C:\opendj\data\logs\errors
     if (-not ($errors -match 'category=CORE severity=NOTICE msgID=203\s')) {
@@ -73,6 +84,6 @@ try {
     docker inspect --format '{{json .State.Health}}' $container
     throw
 } finally {
-    docker rm --force $container
+    docker rm --force --volumes $container
     docker volume rm $volume
 }

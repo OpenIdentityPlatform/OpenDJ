@@ -26,7 +26,7 @@ with the OpenDJ release version.
 
 ```powershell
 docker run -d --name opendj --env ROOT_PASSWORD -p 1389:1389 -p 1636:1636 -p 4444:4444 `
-  --mount 'type=volume,source=opendj-data,target=C:\opendj\data' `
+  --mount 'type=volume,source=opendj-data,target=c:\opendj\data' `
   openidentityplatform/opendj:<version>-windows
 ```
 
