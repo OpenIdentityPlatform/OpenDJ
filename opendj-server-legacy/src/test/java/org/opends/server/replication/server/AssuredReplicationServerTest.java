@@ -2743,8 +2743,6 @@ public class AssuredReplicationServerTest
         assertBetweenInclusive(sendUpdateTime, SMALL_TIMEOUT, LONG_TIMEOUT);
       }
 
-      sleepWhileUpdatePropagates(500);
-
       // Check monitoring values in DS 1
       final SafeReadAssertions srAssertsRD1 = fakeRd1.newSafeReadAssertions().sentUpdates(1);
       if ((otherFakeDsGid == DEFAULT_GID && otherFakeDsGenId == DEFAULT_GENID
@@ -2763,7 +2761,13 @@ public class AssuredReplicationServerTest
                .wrongStatusUpdates(shouldSeeWrongStatus ? 1 : 0)
                .replayErrorUpdates(shouldSeeReplayError ? 1 : 0);
       addExpectedErrors(srAssertsRD1, shouldSeeDsIdInError, shouldSeeRsIdInError, shouldSeeDsRsIdInError);
-      srAssertsRD1.runAsserts();
+      // The ACK can unblock the sender before its monitoring counters are updated.
+      new TestTimer.Builder()
+          .maxSleep(5, TimeUnit.SECONDS)
+          .sleepTimes(50, TimeUnit.MILLISECONDS)
+          .toTimer().repeatUntilSuccess(srAssertsRD1::runAsserts);
+
+      sleepWhileUpdatePropagates(500);
 
       // Check monitoring values in DS 2
       checkDSReceivedAndAcked(fakeRDs[2], 1);
