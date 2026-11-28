@@ -20,6 +20,8 @@ import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_CONTEXT;
 import static org.forgerock.opendj.ldap.ModificationType.REPLACE;
+import static org.forgerock.opendj.ldap.SearchScope.BASE_OBJECT;
+import static org.forgerock.opendj.ldap.controls.PersistentSearchChangeType.MODIFY;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.mockito.Mockito.*;
 import static org.opends.messages.CoreMessages.INFO_CONNHANDLER_CLOSED_BY_SHUTDOWN;
@@ -41,25 +43,35 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LdapPromise;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
+import org.forgerock.opendj.ldap.SearchResultHandler;
+import org.forgerock.opendj.ldap.controls.PersistentSearchRequestControl;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.reactive.LDAPConnectionHandler2;
 import org.forgerock.opendj.server.config.meta.LDAPConnectionHandlerCfgDefn;
 import org.forgerock.opendj.server.config.server.LDAPConnectionHandlerCfg;
 import org.forgerock.opendj.server.config.server.TraditionalWorkQueueCfg;
 import org.forgerock.util.Options;
+import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.ConnectionProbe;
 import org.glassfish.grizzly.memory.Buffers;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOServerConnection;
@@ -73,6 +85,7 @@ import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.extensions.TraditionalWorkQueue;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Operation;
@@ -153,6 +166,107 @@ public class LDAPConnectionHandler2TransportTestCase extends DirectoryServerTest
     finally
     {
       stop(handler);
+    }
+  }
+
+  @Test
+  public void persistentSearchDeliversOverlappingNotifications() throws Exception
+  {
+    final int port = TestCaseUtils.findFreePort();
+    final DN dn = DN.valueOf("cn=concurrent-notifications,o=test");
+    TestCaseUtils.addEntry(TestCaseUtils.makeEntry(
+        "dn: " + dn,
+        "objectClass: top",
+        "objectClass: person",
+        "cn: concurrent-notifications",
+        "sn: test"));
+    final LDAPConnectionHandler2 handler = start(configuration(port, true, true, true, 2));
+    final ExecutorService writer = Executors.newSingleThreadExecutor();
+    final CountDownLatch firstWritten = new CountDownLatch(1);
+    final CountDownLatch finishFirstWrite = new CountDownLatch(1);
+    final AtomicReference<Thread> firstWriter = new AtomicReference<>();
+    final BlockingQueue<String> notifications = new LinkedBlockingQueue<>();
+    try (LDAPConnectionFactory factory = new LDAPConnectionFactory("127.0.0.1", port);
+         Connection client = factory.getConnection())
+    {
+      client.bind("cn=Directory Manager", "password".toCharArray());
+      final TCPNIOConnection socket = acceptedConnection(handler);
+      final ConnectionProbe probe = new ConnectionProbe.Adapter()
+      {
+        @Override
+        public void onWriteEvent(org.glassfish.grizzly.Connection connection, Buffer data, long size)
+        {
+          if (size > 0 && firstWriter.compareAndSet(Thread.currentThread(), null))
+          {
+            // The bytes are already in the socket, but the first onNext has not returned.
+            firstWritten.countDown();
+            try
+            {
+              assertTrue(finishFirstWrite.await(TIMEOUT_MS, MILLISECONDS), "the first write was not released");
+            }
+            catch (InterruptedException e)
+            {
+              Thread.currentThread().interrupt();
+              throw new AssertionError(e);
+            }
+          }
+        }
+      };
+      socket.getMonitoringConfig().addProbes(probe);
+      try
+      {
+        client.searchAsync(newSearchRequest(dn.toString(), BASE_OBJECT, "(objectClass=*)")
+            .addControl(PersistentSearchRequestControl.newControl(true, true, false, MODIFY)),
+            new SearchResultHandler()
+            {
+              @Override
+              public boolean handleEntry(SearchResultEntry entry)
+              {
+                notifications.add(entry.parseAttribute("description").asString());
+                return true;
+              }
+
+              @Override
+              public boolean handleReference(SearchResultReference reference)
+              {
+                return true;
+              }
+            });
+        final ClientConnection serverConnection = handler.getClientConnections().iterator().next();
+        final TestTimer timer = new TestTimer.Builder().maxSleep(TIMEOUT_MS, MILLISECONDS)
+            .sleepTimes(10, MILLISECONDS).toTimer();
+        timer.repeatUntilSuccess(() -> assertFalse(serverConnection.getPersistentSearches().isEmpty(),
+            "the server did not register the persistent search"));
+        timer.repeatUntilSuccess(() -> assertEquals(socket.getAsyncWriteQueue().spaceInBytes(), 0,
+            "the bind response write did not finish"));
+
+        final InternalClientConnection internal = InternalClientConnection.getRootConnection();
+        final Future<ResultCode> first = writer.submit(() -> {
+          firstWriter.set(Thread.currentThread());
+          return internal.processModify(newModifyRequest(dn)
+              .addModification(REPLACE, "description", "first")).getResultCode();
+        });
+        assertTrue(firstWritten.await(TIMEOUT_MS, MILLISECONDS), "the first notification did not reach the socket");
+        assertEquals(notifications.poll(TIMEOUT_MS, MILLISECONDS), "first");
+        // Internal modify returns after the notification callback, while the first write is still held.
+        assertEquals(internal.processModify(newModifyRequest(dn)
+            .addModification(REPLACE, "description", "second")).getResultCode(), ResultCode.SUCCESS);
+        finishFirstWrite.countDown();
+        assertEquals(first.get(TIMEOUT_MS, MILLISECONDS), ResultCode.SUCCESS);
+        assertEquals(notifications.poll(TIMEOUT_MS, MILLISECONDS), "second",
+            "the notification from the overlapping modify was lost");
+      }
+      finally
+      {
+        finishFirstWrite.countDown();
+        socket.getMonitoringConfig().removeProbes(probe);
+      }
+    }
+    finally
+    {
+      writer.shutdownNow();
+      stop(handler);
+      TestCaseUtils.deleteEntry(dn);
     }
   }
 
