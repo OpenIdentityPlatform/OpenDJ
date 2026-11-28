@@ -1169,6 +1169,8 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
       // Check for monitoring data
       DN baseDN = DN.valueOf(SAFE_READ_DN);
+      assertMonitorAttrValueEventually(baseDN, "assured-sr-received-updates-acked", 1,
+          "The DS should record the ACK it sent");
       new MonitorAssertions(baseDN)
         .assertValue("assured-sr-received-updates", 1)
         .assertValue("assured-sr-received-updates-acked", 1)
