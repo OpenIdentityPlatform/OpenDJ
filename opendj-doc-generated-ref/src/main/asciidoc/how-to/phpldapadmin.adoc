@@ -14,8 +14,16 @@ information: "Portions copyright [year] [name of copyright owner]".
 Copyright 2026 3A Systems, LLC.
 ////
 
+:table-caption!:
+
+ifndef::env-site[]
 [#how-to-phpldapadmin]
+endif::[]
 == Connect phpLDAPadmin to OpenDJ in Docker
+
+ifdef::env-site[]
+anchor:how-to-phpldapadmin[]
+endif::[]
 
 This recipe uses Docker Compose to run OpenDJ and phpLDAPadmin (PLA) v2 for local testing. PLA reaches OpenDJ at `opendj:1389` on the Compose network. The example uses plain LDAP on that network and publishes the PLA web interface over HTTP on the host's loopback address.
 
