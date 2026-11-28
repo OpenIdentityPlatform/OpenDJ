@@ -24,11 +24,13 @@ import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,8 +38,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -1063,18 +1068,123 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     }
   }
 
+  @Test(timeOut = 120_000)
+  public void failoverTriesAnotherDiscoveryResponderWhenTheFormerRsRefusesConnection() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    final WithholdingReplicationServer former = new WithholdingReplicationServer(LARGE_WINDOW);
+    final WithholdingReplicationServer survivor = new WithholdingReplicationServer(LARGE_WINDOW, 4);
+    final AtomicInteger survivorStarts = new AtomicInteger();
+    final CountDownLatch survivorRetry = new CountDownLatch(1);
+    final CountDownLatch finishRetry = new CountDownLatch(1);
+    try
+    {
+      survivor.differentGroup = true;
+      survivor.start();
+      final LDAPReplicationDomain domain = startDomain(former, 100000, survivor.getPort());
+      assertEquals(domain.getRsServerId(), former.serverId);
+      newTimer().repeatUntilSuccess(() -> assertNotNull(former.session.get()));
+      assertEquals(replaceDescription("already on both replication servers"), ResultCode.SUCCESS);
+      former.waitForUpdates(1);
+      survivor.state.update(former.receivedUpdateCSNs().get(0));
+      // The former RS has the latest local change, so it wins discovery even with both RSs in the same group.
+      assertEquals(replaceDescription("before failover"), ResultCode.SUCCESS);
+      former.waitForUpdates(2);
+      final CSN beforeFailover = former.receivedUpdateCSNs().get(1);
+
+      survivor.differentGroup = false;
+      former.beforeStartReply = () -> {
+        // The accepted socket can answer discovery after the listener stops accepting connections.
+        former.listenSocket.close();
+        return null;
+      };
+      survivor.beforeStartReply = () -> {
+        if (survivorStarts.incrementAndGet() == 2)
+        {
+          survivorRetry.countDown();
+          await(finishRetry);
+        }
+        return null;
+      };
+      former.closeTheSession();
+
+      await(survivorRetry);
+      assertFalse(domain.hasConnectionError(), "the broker declared isolation before trying the discovery responder");
+      finishRetry.countDown();
+      newTimer().repeatUntilSuccess(() -> {
+        assertEquals(domain.getRsServerId(), survivor.serverId);
+        assertFalse(domain.hasConnectionError());
+      });
+      assertEquals(replaceDescription("after failover to the discovery responder"), ResultCode.SUCCESS);
+      survivor.waitForUpdates(2);
+      assertEquals(survivor.receivedUpdateCSNs(), List.of(beforeFailover, domain.getServerState().getCSN(DS_ID)));
+      assertEquals(survivorStarts.get(), 2, "the survivor must receive one discovery probe and one session start");
+    }
+    finally
+    {
+      finishRetry.countDown();
+      try
+      {
+        survivor.shutdown();
+      }
+      finally
+      {
+        cleanUp(former);
+      }
+    }
+  }
+
+  @Test(timeOut = 120_000)
+  public void reconnectClosesTheSessionWhenTopologyTimesOut() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    final WithholdingReplicationServer rs = new WithholdingReplicationServer(LARGE_WINDOW);
+    try
+    {
+      final LDAPReplicationDomain domain = startDomain(rs);
+      newTimer().repeatUntilSuccess(() -> assertNotNull(rs.session.get()));
+      final Session originalSession = rs.session.get();
+
+      final CompletableFuture<ReplicationMsg> nextRead = new CompletableFuture<>();
+      rs.readInsteadOfSendingTopology.set(nextRead);
+      rs.dropTheSession();
+
+      // Observe the broker closing the provisional socket before the fixture is shut down.
+      final Throwable failure = expectThrows(ExecutionException.class, () -> nextRead.get(30, SECONDS)).getCause();
+      assertTrue(failure instanceof EOFException
+          || (failure instanceof SocketException && String.valueOf(failure.getMessage()).startsWith("Connection reset")),
+          "expected EOF or connection reset on the provisional session, got " + failure);
+
+      newTimer().repeatUntilSuccess(() -> {
+        final Session reconnected = rs.session.get();
+        assertNotNull(reconnected, "the replication server did not establish a later session");
+        assertNotSame(reconnected, originalSession);
+        assertTrue(domain.isConnected());
+        assertFalse(domain.hasConnectionError());
+      });
+    }
+    finally
+    {
+      cleanUp(rs);
+    }
+  }
+
   private LDAPReplicationDomain startDomain(WithholdingReplicationServer rs) throws Exception
   {
     // Heartbeats far apart: the session stays up whatever the replication server reads.
     return startDomain(rs, 100000);
   }
 
-  private LDAPReplicationDomain startDomain(WithholdingReplicationServer rs, long heartbeatIntervalMS)
-      throws Exception
+  private LDAPReplicationDomain startDomain(WithholdingReplicationServer rs, long heartbeatIntervalMS,
+      int... additionalPorts) throws Exception
   {
     rs.start();
-    final DomainFakeCfg conf = new DomainFakeCfg(baseDN, DS_ID,
-        new TreeSet<>(Collections.singleton("127.0.0.1:" + rs.getPort())));
+    final SortedSet<String> servers = new TreeSet<>(Collections.singleton("127.0.0.1:" + rs.getPort()));
+    for (int port : additionalPorts)
+    {
+      servers.add("127.0.0.1:" + port);
+    }
+    final DomainFakeCfg conf = new DomainFakeCfg(baseDN, DS_ID, servers);
     conf.setHeartbeatInterval(heartbeatIntervalMS);
     final LDAPReplicationDomain domain = MultimasterReplication.createNewDomain(conf);
     domain.start();
@@ -1326,6 +1436,7 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
   {
     private static final int RS_ID = 2;
 
+    private final int serverId;
     private final int window;
     private final ServerSocket listenSocket;
     /** The latest session started, until it ends. */
@@ -1345,6 +1456,11 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
     private boolean reading = true;
     /** Whether this server is away: it then sends no heartbeat, and answers no connection either. */
     private volatile boolean away;
+    private volatile boolean differentGroup;
+    private volatile Callable<Void> beforeStartReply;
+    /** If set, read from the next session after StartSessionMsg instead of sending its topology. */
+    private final AtomicReference<CompletableFuture<ReplicationMsg>> readInsteadOfSendingTopology =
+        new AtomicReference<>();
 
     WithholdingReplicationServer() throws IOException
     {
@@ -1353,8 +1469,14 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
 
     WithholdingReplicationServer(int window) throws IOException
     {
+      this(window, RS_ID);
+    }
+
+    WithholdingReplicationServer(int window, int serverId) throws IOException
+    {
       super(ReplicationBrokerStopTest.class.getSimpleName() + " replication server");
       setDaemon(true);
+      this.serverId = serverId;
       this.window = window;
       listenSocket = new ServerSocket(0, 50, InetAddress.getLoopbackAddress());
     }
@@ -1400,9 +1522,15 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
         s = new ReplSessionSecurity().createServerSession(socket, MultimasterReplication.getConnectionTimeoutMS());
         sessions.add(s);
         final ServerStartMsg start = (ServerStartMsg) s.receive();
+        final Callable<Void> hook = beforeStartReply;
+        if (hook != null)
+        {
+          hook.call();
+        }
         final String url = "127.0.0.1:" + getPort();
-        s.publish(new ReplServerStartMsg(RS_ID, url, start.getBaseDN(), window, state.duplicate(),
-            start.getGenerationId(), start.getSSLEncryption(), start.getGroupId(), 5000));
+        final byte groupId = differentGroup ? (byte) (start.getGroupId() + 1) : start.getGroupId();
+        s.publish(new ReplServerStartMsg(serverId, url, start.getBaseDN(), window, state.duplicate(),
+            start.getGenerationId(), start.getSSLEncryption(), groupId, 5000));
         if (!start.getSSLEncryption())
         {
           s.stopEncryption();
@@ -1412,8 +1540,23 @@ public class ReplicationBrokerStopTest extends ReplicationTestCase
           return;
         }
         sessionsStarted.incrementAndGet();
+        final CompletableFuture<ReplicationMsg> nextRead = readInsteadOfSendingTopology.getAndSet(null);
+        if (nextRead != null)
+        {
+          try
+          {
+            // Give the broker its handshake timeout plus time to close the socket.
+            s.setSoTimeout(MultimasterReplication.getConnectionTimeoutMS() + 5_000);
+            nextRead.complete(s.receive());
+          }
+          catch (Exception e)
+          {
+            nextRead.completeExceptionally(e);
+          }
+          return;
+        }
         s.publish(new TopologyMsg(new ArrayList<DSInfo>(), Collections.singletonList(
-            new RSInfo(RS_ID, url, start.getGenerationId(), start.getGroupId(), 1))));
+            new RSInfo(serverId, url, start.getGenerationId(), groupId, 1))));
         s.setSoTimeout(0);
         session.set(s);
         startHeartbeats(s, start.getHeartbeatInterval());
