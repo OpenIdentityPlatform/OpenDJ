@@ -58,6 +58,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.MBeanServer;
@@ -796,6 +797,7 @@ public final class DirectoryServer
       checkSubsystemIsInitialized(SubSystem.INIT_CRYPTO);
       checkSubsystemIsInitialized(SubSystem.ADMIN_USERS);
       new CryptoManagerSync();
+      CryptoManagerSync.publishInstanceKeyEntryInADS(false);
     }
 
     private void setupAdminBackends() throws InitializationException
@@ -1531,6 +1533,9 @@ public final class DirectoryServer
 
       workQueue = new WorkQueueConfigManager(serverContext).initializeWorkQueue();
 
+      // The ADS replication domain can now record the ADD of a missing instance key.
+      final boolean instanceKeyPublished = CryptoManagerSync.publishInstanceKeyEntryInADS(false);
+
       PluginResult.Startup startupPluginResult = pluginConfigManager.invokeStartupPlugins();
       if (! startupPluginResult.continueProcessing())
       {
@@ -1581,6 +1586,42 @@ public final class DirectoryServer
       deleteUnnecessaryFiles();
 
       isRunning = true;
+      if (!instanceKeyPublished)
+      {
+        scheduleInstanceKeyPublication();
+      }
+    }
+  }
+
+  private void scheduleInstanceKeyPublication()
+  {
+    synchronized (LIFECYCLE_LOCK)
+    {
+      if (!shuttingDown)
+      {
+        cronExecutorService.schedule(this::retryInstanceKeyPublication, 1, TimeUnit.SECONDS);
+      }
+    }
+  }
+
+  private void retryInstanceKeyPublication()
+  {
+    if (!shuttingDown)
+    {
+      try
+      {
+        if (!CryptoManagerSync.publishInstanceKeyEntryInADS(true))
+        {
+          scheduleInstanceKeyPublication();
+        }
+      }
+      catch (InitializationException e)
+      {
+        if (!shuttingDown)
+        {
+          logger.error(e.getMessageObject());
+        }
+      }
     }
   }
 
@@ -4150,6 +4191,11 @@ public final class DirectoryServer
     ServerShutdownMonitor shutdownMonitor = new ServerShutdownMonitor();
     shutdownMonitor.start();
 
+    if (directoryServer.cronExecutorService != null)
+    {
+      directoryServer.cronExecutorService.shutdownNow();
+    }
+
     // Release connection-handler threads that are waiting for queue space.
     if (directoryServer.workQueue != null)
     {
@@ -4180,6 +4226,19 @@ public final class DirectoryServer
     for (SynchronizationProvider<?> provider : directoryServer.synchronizationProviders)
     {
       provider.finalizeSynchronizationProvider();
+    }
+
+    // Replication shutdown releases an in-flight certificate publication before backend shutdown.
+    if (directoryServer.cronExecutorService != null)
+    {
+      try
+      {
+        directoryServer.cronExecutorService.awaitTermination(ServerShutdownMonitor.WAIT_TIME, TimeUnit.MILLISECONDS);
+      }
+      catch (InterruptedException e)
+      {
+        Thread.currentThread().interrupt();
+      }
     }
 
     // Call the shutdown plugins, and then finalize all the plugins defined in
